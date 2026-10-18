@@ -1,4 +1,9 @@
-# Mahjong Dawn Sky Refresh Implementation Plan
+# Mahjong Sunrise Refresh Implementation Plan
+
+> Revised October 17, 2026 after owner review: the implementation must use
+> shared Sunrise tokens, the real Start Page sunrise landscape and the authentic
+> Sunrise mark. Blue/lilac sky palettes and the synthetic canvas sunrise
+> described in earlier tasks below are superseded.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

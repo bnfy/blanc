@@ -439,7 +439,7 @@ test('hints use safe selection, cycle Classic pairs, and include a parked Burst 
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
   assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
   assert.match(styles, /\.mj-tray-slot\.hinted/);
-  assert.match(mahjongStyles, /--mj-cue:\s*#2f86c9/, 'hints glow sky blue, distinct from the orange selection');
+  assert.match(mahjongStyles, /--mj-cue:\s*#29636b/, 'hints use a restrained teal, distinct from the gold selection');
 });
 
 function contrast(a, b) {
@@ -452,18 +452,19 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-test('mahjong paints a local Dawn sky with an Evening sky in dark mode', () => {
+test('mahjong uses shared Sunrise surfaces and the authentic landscape', () => {
   assert.match(html, /<link rel="stylesheet" href="mahjong\.css"/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /<script src="mahjong-state\.js"><\/script>/);
   assert.doesNotMatch(mahjongStyles, /mahjong-lacquer|\.mahjong-body::(before|after)/, 'no backdrop image or grain layers');
   assert.ok(!fs.existsSync(path.join(__dirname, '../../src/renderer/pages/mahjong-lacquer.webp')));
-  for (const token of ['#cfe6f7', '#f3ecf0', '#fde4cc', '#fbd7b4', '#ff9f43']) assert.ok(mahjongStyles.includes(token), token);
+  for (const token of ['var(--sunrise-bg)', 'var(--sunrise-text)', 'var(--sunrise-border)', 'var(--sunrise-accent)']) assert.ok(mahjongStyles.includes(token), token);
   const dark = mediaBlocks('(prefers-color-scheme: dark)').join('\n');
-  for (const token of ['#1c2340', '#2e2a4a', '#5a3a46', '#7a4a3c', '#ffb35c']) assert.ok(dark.includes(token), token);
+  assert.match(mahjongStyles, /url\("start-page-sunrise\.png"\)/);
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*color-scheme:\s*light;/);
   assert.match(dark, /color-scheme:\s*dark;/);
-  assert.match(mahjongStyles, /:root\[data-theme="private"\] \.mahjong-body\s*\{[^}]*--mj-sky-1:\s*#e3dcf5/);
+  assert.match(mahjongStyles, /:root\[data-theme="private"\] \.mahjong-body\s*\{[^}]*--mj-bg:\s*#100d0b/);
+  assert.match(mahjongStyles, /:root\[data-theme="private"\] \.mj-board-frame\s*\{[^}]*border-style:\s*dashed/);
   assert.doesNotMatch(styles, /\.mj-brand-mark\s*\{[^}]*filter:/);
   for (const hook of ['mj-pair-remove', 'mj-tray-travel', 'mj-score-pulse', 'mj-shuffle-cascade']) {
     assert.match(styles, new RegExp(`@keyframes ${hook}`));
@@ -495,7 +496,7 @@ test('blocked tiles soften instead of turning gray on the light sky', () => {
   assert.ok(brightness >= 0.88, `blocked brightness ${brightness} reads as gray`);
   assert.doesNotMatch(rule, /opacity/, 'stacked tiles must not show through');
   assert.doesNotMatch(rule, /contrast\(0\.[0-8]/, 'low contrast pulls the cream face to gray');
-  assert.match(mahjongStyles, /\.mj-tile\[data-blocked\]::after\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--mj-sky-1\)/, 'blocked tiles take a cool sky wash');
+  assert.match(mahjongStyles, /\.mj-tile\[data-blocked\]::after\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--mj-surface-line\)/, 'blocked tiles take a quiet surface wash');
 });
 
 test('a daily deal still shows which board it picked', () => {
@@ -503,10 +504,10 @@ test('a daily deal still shows which board it picked', () => {
 });
 
 test('text on the accent stays readable', () => {
-  for (const [accent, ink] of [['#ff9f43', '#2a1606'], ['#ffb35c', '#2a1606'], ['#b07ce0', '#1d0f2b'], ['#d2a8f0', '#1d0f2b']]) {
+  for (const [accent, ink] of [['#805d28', '#ffffff'], ['#d4ad66', '#12100b']]) {
     assert.ok(contrast(accent, ink) >= 4.5, `${ink} on ${accent}`);
   }
-  assert.match(mahjongStyles, /--mj-on-accent:\s*#2a1606/);
+  assert.match(mahjongStyles, /--mj-on-accent:\s*#ffffff/);
 });
 
 test('layout-card hover and focus keep readable Dawn sky text colors', () => {
@@ -832,17 +833,15 @@ test('win shows the card after a tiered celebration that can be skipped', () => 
   assert.match(controller, /function playCelebration\(tier, done\)/);
   assert.match(controller, /addEventListener\('pointerdown', skip/);
   assert.match(controller, /addEventListener\('keydown', skip/);
-  assert.match(controller, /SKY\.animate\(canvas, \{ night, tier, duration: FX\.CELEBRATION_MS\[tier\] \}\)/);
+  assert.doesNotMatch(controller, /SKY|canvas/);
 });
 
-test('the celebration renders a photoreal sky on a canvas', () => {
+test('the celebration reveals the authentic Sunrise mark', () => {
   const layer = html.match(/<div id="mjCelebrate"[\s\S]*?\n {8}<\/div>/)[0];
-  assert.match(layer, /<canvas class="mj-celebrate-canvas"><\/canvas>/);
-  assert.doesNotMatch(layer, /<img|mj-celebrate-sun|mj-celebrate-rays/);
-  assert.match(html, /<script src="mahjong-sky\.js"><\/script>\s*<script src="mahjong\.js">/);
-  assert.match(controller, /const night = Boolean\(window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)\.matches\)/);
-  assert.match(controller, /prefers-color-scheme: dark/);
-  assert.match(mahjongStyles, /\.mj-celebrate-canvas\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;/);
+  assert.match(layer, /<div class="mj-celebrate-mark"><\/div>/);
+  assert.doesNotMatch(html, /mahjong-sky\.js|mj-celebrate-canvas/);
+  assert.match(mahjongStyles, /\.mj-celebrate-mark\s*\{[^}]*background:\s*url\("sunrise-mark\.png"\)/);
+  assert.match(mahjongStyles, /@keyframes mj-sunrise-reveal/);
 });
 
 test('the celebration runs on timers and finishes when the tab returns', () => {

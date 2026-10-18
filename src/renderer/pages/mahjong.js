@@ -7,7 +7,6 @@ const E = window.MahjongEngine;
 const S = window.MahjongState;
 const sound = window.MahjongSound;
 const FX = window.MahjongFx;
-const SKY = window.MahjongSky;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
@@ -21,7 +20,7 @@ if (isPrivate) {
 
 // Geometry: half-unit -> px. Layout descriptors all use the same coordinate
 // system, while the virtual board is recalculated per layout and scaled once
-// into the available lacquer table.
+// into the available playfield.
 const HU_X = 26;
 const HU_Y = 34;
 const LAYER_SHIFT = 5;
@@ -1412,7 +1411,6 @@ function cancelCelebration() {
   if (!celebration) return;
   window.clearTimeout(celebration.timer);
   celebration.detach();
-  celebration.stopSky?.();
   celebration = null;
   const layer = document.getElementById('mjCelebrate');
   if (layer) {
@@ -1440,9 +1438,6 @@ function playCelebration(tier, done) {
   layer.dataset.tier = tier;
   layer.hidden = false;
   document.body.classList.add('is-celebrating');
-  const canvas = layer.querySelector('.mj-celebrate-canvas');
-  const night = Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-  const stopSky = canvas && SKY ? SKY.animate(canvas, { night, tier, duration: FX.CELEBRATION_MS[tier] }) : null;
   const skip = () => {
     if (document.hidden) return;
     cancelCelebration();
@@ -1452,7 +1447,6 @@ function playCelebration(tier, done) {
   window.addEventListener('keydown', skip, true);
   document.addEventListener('visibilitychange', skip);
   celebration = {
-    stopSky,
     timer: window.setTimeout(skip, FX.CELEBRATION_MS[tier]),
     detach() {
       window.removeEventListener('pointerdown', skip, true);

@@ -49,6 +49,24 @@ try {
     'a standalone managed Mahjong tab',
   );
   assert.ok(launched.tabs.find((tab) => tab.id === sourceId)?.loadedUrl?.startsWith('blanc://newtab/'));
+  if (process.env.BLANC_CAPTURE_MAHJONG) {
+    await waitFor(
+      () => app.evaluate(async ({ webContents }) => {
+        const wc = webContents.getAllWebContents().find((candidate) => candidate.getURL().startsWith('blanc://mahjong/'));
+        return wc?.executeJavaScript(`document.querySelectorAll('.mj-tile').length`) || 0;
+      }),
+      (count) => count > 0,
+      'a rendered Mahjong board for capture',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    const png = await app.evaluate(async ({ webContents }) => {
+      const state = globalThis.__blanc.state();
+      const wc = webContents.fromId(state.tabs.find((tab) => tab.id === state.activeTabId)?.webContentsId);
+      return (await wc.capturePage()).toPNG().toString('base64');
+    });
+    fs.mkdirSync('output/playwright', { recursive: true });
+    fs.writeFileSync('output/playwright/mahjong-sunrise.png', Buffer.from(png, 'base64'));
+  }
   const played = await waitFor(
     () => app.evaluate(async ({ webContents }) => {
       const wc = webContents.getAllWebContents()
@@ -149,15 +167,6 @@ try {
     'Continue prompt for the unfinished saved game',
   );
   assert.equal(resumeOffered, true);
-  if (process.env.BLANC_CAPTURE_MAHJONG) {
-    const png = await app.evaluate(async ({ webContents }) => {
-      const state = globalThis.__blanc.state();
-      const wc = webContents.fromId(state.tabs.find((tab) => tab.id === state.activeTabId)?.webContentsId);
-      return (await wc.capturePage()).toPNG().toString('base64');
-    });
-    fs.mkdirSync('output/playwright', { recursive: true });
-    fs.writeFileSync('output/playwright/mahjong-dawn-sky.png', Buffer.from(png, 'base64'));
-  }
 } finally {
   await app.close().catch(() => {});
   fs.rmSync(profile, { recursive: true, force: true });

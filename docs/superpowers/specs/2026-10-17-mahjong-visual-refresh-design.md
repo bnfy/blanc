@@ -1,7 +1,7 @@
-# Mahjong visual refresh: Dawn sky
+# Mahjong visual refresh: Sunrise surfaces
 
 Date: 2026-10-17
-Status: draft for owner approval
+Status: revised after owner review
 Scope: `src/renderer/pages/mahjong.*`, its tile artwork, `copy/messages/*`, `test/unit/mahjong-page.test.js`, `test/unit/start-page-fonts.test.js`, `docs/brand-usage.md`
 
 ## Why
@@ -14,8 +14,17 @@ a more gothic traditional overall look. Reminds me of vintage board game." The
 rest of Blanc has since moved to the Sunrise palette and Instrument Sans, so the
 game feels like it belongs to an older Blanc.
 
-The goal is a game that feels fresh, modern, **lighter and brighter**, so
-regular Blanc Mahjong players notice the change and enjoy coming back.
+The goal is a game that feels fresh, modern, **lighter and brighter**, while
+using Blanc's actual Sunrise system rather than a generic sky interpretation.
+
+## Owner revision (October 17, 2026)
+
+The blue-to-peach Dawn sky and synthetic canvas sunrise were rejected after
+reviewing the implementation in the real app. The accepted direction uses
+shared Sunrise tokens, the bundled Start Page sunrise landscape in the
+playfield, warm neutral light and dark surfaces, and the authentic Sunrise mark
+for the board-cleared moment. Private mode stays warm and dark with an explicit
+chip and dashed playfield border instead of receiving a lilac color cast.
 
 ## References
 
@@ -27,12 +36,9 @@ regular Blanc Mahjong players notice the change and enjoy coming back.
 
 ## Goals
 
-1. Replace the dark lacquer table with a **Dawn sky**: soft blue at the top
-   fading through a pale lilac-white into Sunrise peach at the bottom (approved
-   mock-up, option C).
-2. In dark mode, an **Evening sky**: deep indigo at the top settling into a warm
-   ember glow at the horizon (approved). Tiles stay light in both, so symbols
-   stay legible.
+1. Replace the dark lacquer table with Blanc White and warm Sunrise surfaces.
+2. Place the real bundled Start Page sunrise landscape quietly inside the
+   playfield. Dark and private modes use the shared warm dark Sunrise system.
 3. Bright, clean tile bodies: white-to-warm-white face, a warm peach edge (deeper
    caramel at night), soft shadow. No brass.
 4. **Keep every existing tile illustration's shape and motif** (flame, flourish,
@@ -44,8 +50,8 @@ regular Blanc Mahjong players notice the change and enjoy coming back.
 6. All other game UI text (meters, dock labels, Boards, Records, setup, rescue,
    notices, the results card) moves to **Instrument Sans**, matching Blanc's
    internal pages (width 98, +0.01em tracking, as in the root CLAUDE.md).
-7. Controls become light pills (white, translucent at night) with warm orange
-   highlights and focus rings in place of brass.
+7. Controls become quiet raised surfaces with restrained gold state and focus
+   cues in place of brass or bright orange.
 8. Two gameplay "feel" upgrades borrowed from Nebula:
    - **Match trail:** when two tiles are matched, a short glowing trail draws
      from the first tile to the second, then both clear.
@@ -74,27 +80,13 @@ regular Blanc Mahjong players notice the change and enjoy coming back.
   tile art is an intentional nod to Blanc's origins and must remain).
 - Any remote asset or new network path (per-file CSP; everything stays local).
 
-## Palette (starting values from the approved mock-ups; the builder may tune)
+## Palette
 
-Light, Dawn sky:
-- Backdrop gradient, top to bottom: `#cfe6f7` 0%, `#f3ecf0` 45%, `#fde4cc` 80%,
-  `#fbd7b4` 100%.
-- Tile face `#ffffff` to `#fdf7ef`; edge `#ecc9a2`; shadow `rgba(160,100,50,.18)`.
-- Pills: `#ffffffd9` on the sky, text warm brown `#6b5440`.
-- Highlight, focus and selected tile: warm orange `#ff9f43`.
-- Text on the sky: `#2a2017`.
-- Tie to Sunrise tokens (`--sunrise-*` in `pages.css`) where a value matches
-  (text, borders, accent) rather than inventing near-duplicates.
-
-Dark, Evening sky (under `prefers-color-scheme: dark`, as today):
-- Backdrop: `#1c2340` 0%, `#2e2a4a` 45%, `#5a3a46` 80%, `#7a4a3c` 100%.
-- Tile face `#f7f0e5` to `#ece2d2`; edge `#b9875f`; shadow `rgba(0,0,0,.35)`.
-- Pills: frosted `rgba(255,255,255,.1)`, text `#eadfce`.
-- Highlight and trail: amber `#ffb35c`.
-
-Private tabs (`:root[data-theme="private"]`): **my call** is the same light/evening
-structure shifted to lilac (a lilac-to-rose dawn, a violet night), replacing
-today's hue-rotated lacquer. No grain image.
+Light uses the shared `--sunrise-*` tokens from `pages.css`, white-to-Blanc
+White tiles, warm gold edges and restrained gold state cues. Dark uses the
+shared warm dark Sunrise tokens with light tiles. Private tabs use the same
+warm dark family and preserve their explicit private treatment; they do not
+introduce a purple palette.
 
 Suit ink colors (characters, dots, bamboo accents) get brighter and cleaner than
 today's `--mj-red #a63730` / `--mj-green #1f6d50` / `--mj-blue #275d86`, but stay
@@ -186,11 +178,9 @@ CSS filter" fallback.
 
 ## Board-cleared celebration
 
-- When the last pair clears, play a short celebration over the board (about
-  1–1.5 s): the sky brightens, a burst of soft light and confetti-like sparks
-  in the tile and suit colors (reuse or recolor `mahjong-combo-particles.png`
-  and `mahjong-combo-glint.png` where they fit), then the existing results card
-  (`.mj-win-result`) rises in.
+- When the last pair clears, reveal the authentic bundled Sunrise mark over a
+  quiet warm surface for about 1–1.5 seconds, then show the existing results
+  card. Do not paint or synthesize a substitute sunrise.
 - New-record and first-clear outcomes (already distinguished by
   `mahjong.win.newRecord` / `firstClear`) get a slightly bigger moment.
 - Click or key press skips straight to the card.

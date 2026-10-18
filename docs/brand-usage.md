@@ -53,26 +53,25 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
-### Mahjong: Dawn sky
+### Mahjong: Sunrise surfaces
 
 **Owner decision, October 17, 2026** (design:
 `docs/superpowers/specs/2026-10-17-mahjong-visual-refresh-design.md`).
-Mahjong is a scoped in-product exception to the neutral product palette. By
-day its table is a Dawn sky gradient (`#CFE6F7` → `#F3ECF0` → `#FDE4CC` →
-`#FBD7B4`) with white tiles, warm peach edges, white pill controls and a warm
-orange `#FF9F43` accent. In dark mode it becomes an Evening sky (`#1C2340` →
-`#2E2A4A` → `#5A3A46` → `#7A4A3C`) with light tiles, frosted controls and an
-amber `#FFB35C` accent. Private Mahjong uses a lilac version of both and keeps
-its prominent private chip. Tile numerals and counts are Inter Bold; all other
-game text is Instrument Sans. These game-local values do not replace shared
-product or website tokens.
-The header uses the unmodified Sunrise artwork with clear space and no glow.
+Mahjong uses the shared product Sunrise tokens: Blanc White `--sunrise-bg`,
+warm raised surfaces, near-black ink, muted brown-gray and restrained gold.
+The playfield uses the real bundled `start-page-sunrise.png` landscape under a
+quiet warm wash instead of inventing a blue or lilac "sunrise" palette. Dark
+and private modes use the product's warm dark Sunrise surfaces; private mode is
+distinguished by its chip and dashed playfield border, not a purple color cast.
+Tile numerals and counts are Inter Bold; all other game text is Instrument
+Sans. The header and board-cleared moment use the unmodified Sunrise artwork
+with clear space and no redraw.
 The B motif on the white-dragon tile remains an intentional historical game
 detail, not a mark for new Blanc creative.
 
 *Superseded 2026-10-17:* "Mahjong: classic lacquer" (`#0B3D31` table,
 `mahjong-lacquer.webp`, `#0A392F` panels, ivory `#F8F1DC` type, brass `#D8B969`
-accents).
+accents), followed by the unshipped blue-to-peach Dawn sky proposal.
 
 ### Sunrise palette for website and marketing
 
