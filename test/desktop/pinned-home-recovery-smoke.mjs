@@ -173,5 +173,14 @@ try {
     try { app.process().kill('SIGKILL'); } catch {}
   }
   await new Promise((resolve) => server.close(resolve));
-  for (const dir of profiles) fs.rmSync(dir, { recursive: true, force: true });
+  for (const dir of profiles) {
+    await fs.promises.rm(dir, {
+      recursive: true,
+      force: true,
+      // Chromium can release its Windows cache journals just after Electron
+      // exits. Let Node's recursive removal retry that transient EBUSY lock.
+      maxRetries: 10,
+      retryDelay: 100,
+    });
+  }
 }
