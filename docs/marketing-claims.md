@@ -79,17 +79,17 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.37.0; its scope, publication evidence,
+These boundaries describe public v1.38.0; its scope, publication evidence,
 hand checks and adjacent public-feed updater handoffs are recorded in
-[the release report](release-incidents/2026-10-18-v1.37.0.md). Installed
+[the release report](release-incidents/2026-10-18-v1.38.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
 v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0,
-v1.32.0, v1.33.0, v1.34.0, v1.35.0 and v1.36.0 updater confirmations, the v1.35.0 and v1.36.0 hand checks, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.32.0, v1.33.0, v1.34.0, v1.35.0, v1.36.0 and v1.37.0 updater confirmations, the v1.35.0, v1.36.0 and v1.37.0 hand checks, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.37.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.38.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.8.0, unchanged since v1.35.0. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
@@ -366,6 +366,22 @@ original reports:
   and immediate changes for reduced motion. Optional Sync carries only the
   preference; each device computes its own phase. Physical Windows/Linux
   appearance and lifecycle acceptance was waived, not passed.
+- **Your own Start Page image:** Since v1.38.0 the Customize popover's
+  Wallpaper section (and Settings → General → Start Page image) can show a
+  JPEG or PNG of the user's own, up to 25 MB, with Wash (Auto, Light, Dark,
+  Spotlight) and Fade controls. Blanc stores a copy fitted inside 3840 px with
+  every metadata field except orientation removed, owner-only on this device.
+  The image and its controls are never synced, and private tabs never show
+  it. The Windows and Linux hand checks (file picker, phone photos staying
+  upright) are pending in the release report; until it records them, don't
+  claim hands-on verification on those platforms.
+- **Start Page color:** Since v1.38.0 the Wallpaper section offers Color: one
+  of the eight Spaces presets as a Soft, Solid or Gradient fill, plus Match
+  each space's color, which paints a window that belongs to a space in that
+  space's color. These choices sync with Profile Sync; a device's own image
+  still takes priority on that device, and private tabs never show a color.
+  Windows and Linux hand checks are pending as above. Don't describe a
+  separate image per space; that isn't shipped.
 - **Linux AppImage:** v1.24.0 removes the host FUSE 2 library dependency and
   fixes sandbox-disabling packaged desktop arguments. Existing integrated
   shortcuts need reintegration. The launcher can still disable Chromium's
