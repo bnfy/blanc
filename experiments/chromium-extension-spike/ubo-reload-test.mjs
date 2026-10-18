@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {createDeliveryBarrier} from './ubo-static-delivery.mjs';
 const source=fs.readFileSync(new URL('./ubo-reload-guard.js',import.meta.url),'utf8');
-async function guard(fetch){
- const code=source.replaceAll('export ', '');
- return vm.runInNewContext(`(async()=>{${code};return {begin,complete,activate,current};})()`,{fetch});
+async function guard(fetch,staticDeliveries=createDeliveryBarrier()){
+ const code=source.replace(/^import .*;\n/gm,'').replaceAll('export ', '');
+ return vm.runInNewContext(`(async()=>{${code};return {begin,complete,activate,current};})()`,{fetch,staticDeliveries});
 }
 test('startup release requires successful list completion and observer activation',async()=>{
  const calls=[];const g=await guard(async url=>{calls.push(url);return {status:204};});
@@ -30,4 +31,12 @@ test('document payload availability is revoked before reset and restored after a
  await g.activate(true);assert.equal(g.current().ready,true);
  await g.begin();assert.equal(g.current().ready,false);assert.equal(g.current().generation,2);
  await g.complete();assert.equal(g.current().ready,true);
+});
+
+test('engine reset and ready wait for dispatch drain; timeout keeps ready false',async()=>{
+ const b=createDeliveryBarrier(10),calls=[],g=await guard(async url=>{calls.push(url);return {status:204};},b);
+ await g.activate(true);const sender={id:'provider',documentId:'doc'},token=b.acquire(sender);let reset=false;
+ await assert.rejects(g.begin().then(()=>{reset=true;}),/remains held/);assert(!reset);assert.equal(g.current().ready,false);assert(calls.at(-1).includes('/begin?'));
+ await assert.rejects(g.complete(),/remains held/);assert.equal(g.current().ready,false);assert(!calls.at(-1).includes('/ready?'));
+ b.acknowledge(token,sender);await g.begin();await g.complete();assert.equal(g.current().ready,true);
 });

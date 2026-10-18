@@ -34,11 +34,16 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (CodeQL remediation and static fallback regressions)
+### 1.1 Progress checkpoint — October 18, 2026 UTC (static delivery drain and broader CSP)
 
 This table is the live map from implementation work back to the approved plan.
-Four CodeQL remediations and bounded runtime regressions are recorded in
-`evidence/f12-codeql-final-20261017/`; current-head CI confirmation is pending.
+The prior CodeQL remediation head b99334c7 passed all 22 checks, none skipped.
+The current checkpoint is `evidence/f12-static-drain-20261018/`: 45 controlled
+reload schedules serialize nine committed static deliveries before reset, with
+36 pre-dispatch drops; a destroyed receiver leaves reload held. Fifteen new
+header/inherited CSP cases retain page-policy controls. This is bounded static
+ordering, not all-path atomicity or full containment. Lost-acknowledgement recovery
+remains open. 253 tests pass; zero-action guard, no compile; new-head CI pending.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
 links remain in `results.md`. A row marked in progress is not acceptance.
 
@@ -564,4 +569,12 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: bounded CSP/Trusted Types component exemption is now measured (15 cases with page-policy negative controls); 45 diagnostic reload schedules drop 36 pre-dispatch responses but nine already-delivered stale attempts remain a gap. Full CSP/containment and in-place changed-rule semantics remain open. See `evidence/f12-static-race-csp-20261017/`. Bounded inherited deduplication remains measured; mixed-owner/unknown-precursor chains, top-level non-HTTP documents, broader CSP/Trusted Types late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified; the bounded automatic late matrix is now measured above.
+Current follow-up limitation: the static-delivery barrier serializes committed
+receiver execution before engine reset (45 controlled schedules and one lost
+receiver). It does not revoke code already sent. Native early/upstream in-flight
+injection, changed-rule semantics, lost-ack recovery and broader lifecycle remain
+open. Fifteen header/inherited and 15 meta CSP cases demonstrate extension privilege
+while page controls stay enforced, not full containment. Mixed-owner/unknown
+precursors, top-level non-HTTP, broader CSP combinations and arbitrary scriptlets
+remain unqualified. See `evidence/f12-static-drain-20261018/`. Latency deferred;
+Electron diagnostic build §8 remains unchecked/unstarted.

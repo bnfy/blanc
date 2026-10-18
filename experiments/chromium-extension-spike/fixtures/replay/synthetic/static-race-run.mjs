@@ -5,7 +5,7 @@ const host='https://page.blanc-fixture.test',filters='page.blanc-fixture.test##+
 const fixtures=new Map([[host+'/race',{status:200,contentType:'text/html',body:'<!doctype html><link rel="icon" href="data:,"><body>authored parent'}],[host+'/favicon.ico',{status:204,contentType:'image/x-icon',body:''}]]);
 const body='<!doctype html><script>window.first={flag:window.raceFlag===true,origin:window.origin};</script><div id=ready>authored race</div>';
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-static-race-'))),certificates=createCertificateSet(path.join(root,'certificates'),[new URL(host).hostname]),replay=await startSynthetic({fixtures,tlsMaterial:certificates});
-const report={completed:false,diagnosticScheduling:true,latencyMeasured:false,checks:[],sources:{}};for(const n of ['static-race-run.mjs','static-race-payload.mjs','session.mjs'])report.sources[n]=sha(fs.readFileSync(new URL(n,import.meta.url)));
+const report={completed:false,diagnosticScheduling:true,deliveryBarrier:true,latencyMeasured:false,checks:[],sources:{}};for(const n of ['static-race-run.mjs','static-race-payload.mjs','session.mjs'])report.sources[n]=sha(fs.readFileSync(new URL(n,import.meta.url)));
 fs.writeFileSync(path.join(evidence,'fixtures.json'),JSON.stringify({fixtures:[...fixtures],body,filters},null,2));let session;
 try{
  session=await openSession({config,browserKind:'chromium',kind:'regular',label:'race',root,transport:replay,certificates,provider:'ublock-origin',uboPayload:payload});report.source=session.source;await session.uboConfigure();await session.uboSetFilters(filters);
@@ -17,12 +17,32 @@ try{
   const frame=await (await session.page.$('#probe')).contentFrame();await frame.waitForSelector('#ready');
   await until(()=>popup.evaluate(()=>Boolean(globalThis.chrome.extension.getBackgroundPage().__blancRace.resume)));
   const before=await frame.evaluate(()=>({first:window.first,counts:window.__blancScriptletGateCounts,url:location.href,origin:window.origin}));assert(before.first.flag);assert.equal(before.counts.bodies,1);
-  const state=await popup.evaluate(async reload=>{const b=globalThis.chrome.extension.getBackgroundPage(),before=b.__blancRace.state();if(reload==='filter-reload'){await b.µBlock.loadFilterLists();}else{await b.__blancUboProbe.begin();if(reload==='completed')await b.__blancUboProbe.complete();}const after=b.__blancRace.state();b.__blancRace.resume();return {before,after};},reload);
+  let state;
+  if(phase==='after-dispatch'){
+   await popup.evaluate(reload=>{const b=globalThis.chrome.extension.getBackgroundPage();b.__raceReload={before:b.__blancRace.state(),settled:false};b.__raceReload.promise=(async()=>{if(reload==='filter-reload')await b.µBlock.loadFilterLists();else{await b.__blancUboProbe.begin();if(reload==='completed')await b.__blancUboProbe.complete();}b.__raceReload.after=b.__blancRace.state();b.__raceReload.settled=true;})();},reload);
+   await until(()=>popup.evaluate(()=>!globalThis.chrome.extension.getBackgroundPage().__blancRace.state().ready));await pause(100);
+   const held=await popup.evaluate(()=>{const b=globalThis.chrome.extension.getBackgroundPage();return {settled:b.__raceReload.settled,state:b.__blancRace.state()};});assert.equal(held.settled,false);
+   await popup.evaluate(()=>globalThis.chrome.extension.getBackgroundPage().__blancRace.resume());
+   state=await popup.evaluate(async()=>{const b=globalThis.chrome.extension.getBackgroundPage();await b.__raceReload.promise;return {before:b.__raceReload.before,after:b.__raceReload.after};});state.heldBeforeReceiver=held;
+  }else{
+  state=await popup.evaluate(async reload=>{const b=globalThis.chrome.extension.getBackgroundPage(),before=b.__blancRace.state();if(reload==='filter-reload'){await b.µBlock.loadFilterLists();}else{await b.__blancUboProbe.begin();if(reload==='completed')await b.__blancUboProbe.complete();}const after=b.__blancRace.state();b.__blancRace.resume();return {before,after};},reload);
+  }
+
   await pause(150);
   const after=await frame.evaluate(()=>({counts:window.__blancScriptletGateCounts,flag:window.raceFlag===true,origin:window.origin}));
   const observed=await popup.evaluate(()=>{const b=globalThis.chrome.extension.getBackgroundPage();return {events:b.__blancRace.events,rows:b.__blancStaticRows};});
   report.checks.push({mode,phase,reload,before,after,state,...observed});assert.equal(after.counts.bodies,1);assert(after.flag);assert.equal(observed.events.length,1);
   if(reload==='held')await popup.evaluate(()=>globalThis.chrome.extension.getBackgroundPage().__blancUboProbe.complete());
  }
+ // A destroyed receiver cannot acknowledge. A real reload must reject while
+ // held, not reset the engine after a timeout and forget the sent payload.
+ await session.page.goto(host+'/race');
+ await popup.evaluate(()=>{const b=globalThis.chrome.extension.getBackgroundPage();b.__blancRace.armed='after-dispatch';});
+ await session.page.evaluate(body=>{const f=document.createElement('iframe');f.id='lost';f.sandbox='allow-scripts';f.srcdoc=body;document.body.append(f);},body);
+ await until(()=>popup.evaluate(()=>Boolean(globalThis.chrome.extension.getBackgroundPage().__blancRace.resume)));
+ const beforeLost=await popup.evaluate(()=>globalThis.chrome.extension.getBackgroundPage().__blancRace.state());
+ await session.page.evaluate(()=>document.querySelector('#lost').remove());
+ const lost=await popup.evaluate(async()=>{const b=globalThis.chrome.extension.getBackgroundPage();let error;try{await b.µBlock.loadFilterLists();}catch(e){error=String(e);}return {error,state:b.__blancRace.state()};});
+ report.receiverLost={before:beforeLost,...lost};assert.match(lost.error,/reload remains held/);assert.equal(lost.state.ready,false);assert(lost.state.generation>beforeLost.generation);
  report.completed=true;
 }catch(error){report.error=String(error);process.exitCode=1;}finally{if(session){report.records=session.records();await session.close();}report.arrivals=replay.arrivals;report.faults=replay.faults;await replay.close();fs.rmSync(root,{recursive:true,force:true});report.cleanup={removed:!fs.existsSync(root)};fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({completed:report.completed,cases:report.checks.length,error:report.error}));}

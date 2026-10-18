@@ -2,6 +2,7 @@
 import µb from './background.js';
 import scriptletFilteringEngine from './scriptlet-filtering.js';
 import { domainFromHostname, hostnameFromURI } from './uri-utils.js';
+import { staticDeliveries } from './blanc-static-delivery.js';
 import { current } from './blanc-reload-guard.js';
 const endpoint = 'http://blanc-ubo-control.invalid/';
 async function poll() {
@@ -35,7 +36,8 @@ async function poll() {
 }
 // Late static receivers use the browser's live document context twice, around
 // engine selection. A navigation destroys the response channel; generation
-// changes deny the response. In-flight delivery/reload atomicity remains a gap.
+// changes deny undispatched responses. Dispatched receivers hold a delivery lease
+// until their synchronous insertion finishes; reload drains leases before reset.
 export async function lateScript(message, sender, audit = () => {}) {
     if ( message?.type !== 'blanc-static-script' || sender.id !== chrome.runtime.id ||
          !sender.tab || sender.tab.incognito || !Number.isInteger(sender.tab.id) ||
@@ -77,14 +79,22 @@ export async function lateScript(message, sender, audit = () => {}) {
 export function start(observe = false) {
     const rows = observe ? (globalThis.__blancStaticRows = []) : null;
     chrome.runtime.onMessage.addListener((message, sender, reply) => {
+        if ( message?.type === 'blanc-static-done' ) {
+            reply({accepted: staticDeliveries.acknowledge(message.token, sender)});
+            return;
+        }
         if ( message?.type !== 'blanc-static-script' ) { return; }
         const row = rows ? {sender: {id: sender.id, tabId: sender.tab?.id, frameId: sender.frameId, documentId: sender.documentId, url: sender.url, origin: sender.origin}, stages: []} : null;
         if ( row ) { rows.push(row); if ( rows.length > 256 ) { rows.shift(); } }
         void lateScript(message, sender, event => row?.stages.push(event)).then(result => {
             // Revalidate at dispatch as well as around engine selection. This
-            // cannot revoke a response already delivered to the renderer.
+            // commits a delivery lease rather than pretending to revoke sent code.
             const state = current();
             if ( !state.ready || result?.generation !== state.generation ) { result = undefined; }
+            if ( result?.code ) {
+                const token = staticDeliveries.acquire(sender);
+                result = token ? {...result, token} : undefined;
+            }
             if ( row ) { row.replied = !!result; }
             reply(result);
         }, () => reply());

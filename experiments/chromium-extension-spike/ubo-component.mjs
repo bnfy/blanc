@@ -37,6 +37,7 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
  const changes=['manifest.key','manifest.incognito=not_allowed'];
  if(reloadGuard){
   const replace=(file,from,to)=>{const target=path.join(output,file),text=fs.readFileSync(target,'utf8');assert.equal(text.split(from).length,2,'unique payload anchor '+file);fs.writeFileSync(target,text.replace(from,to));};
+  fs.copyFileSync(new URL('./ubo-static-delivery.mjs',import.meta.url),path.join(output,'js/blanc-static-delivery.js'));
   fs.copyFileSync(new URL('./ubo-reload-guard.js',import.meta.url),path.join(output,'js/blanc-reload-guard.js'));
   replace('js/storage.js',"import * as sfp from './static-filtering-parser.js';","import * as sfp from './static-filtering-parser.js';\nimport * as blancGuard from './blanc-reload-guard.js';");
   replace('js/storage.js','loadingPromise = this.loadRedirectResources().then(( ) => {','loadingPromise = blancGuard.begin().then(() => this.loadRedirectResources()).then(( ) => {');

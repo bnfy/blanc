@@ -66,3 +66,9 @@ test('authored redirect returns exact Location and refuses an unmanifested targe
  const replay=await startSynthetic({fixtures,tlsMaterial:proxy});try{const response=await get(replay.port);assert.match(response,/302/);assert(response.includes('Location: '+target));assert.equal(replay.arrivals.length,1);}finally{await replay.close();}
  fixtures.delete(target);await assert.rejects(()=>startSynthetic({fixtures,tlsMaterial:proxy}),/Unmanifested redirect/);
 });
+
+test('authored policy headers are exact and arbitrary or split headers refused',async()=>{
+ const response={status:200,contentType:'text/html',body:'authored',policyHeaders:{'Content-Security-Policy':"script-src 'none'"}},fixtures=new Map([['https://page.fixture.test/index.html',response]]);
+ const replay=await startSynthetic({fixtures,tlsMaterial:proxy});try{assert((await get(replay.port)).includes("Content-Security-Policy: script-src 'none'"));}finally{await replay.close();}
+ for(const policyHeaders of [{'Set-Cookie':'secret=1'},{'Content-Security-Policy':'none\r\nSet-Cookie: bad'}, {'Content-Security-Policy':null}]){response.policyHeaders=policyHeaders;await assert.rejects(startSynthetic({fixtures,tlsMaterial:proxy}),/policy header/);}
+});

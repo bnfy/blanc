@@ -574,3 +574,36 @@ Zero-action guard **4.57 s**, no compile; last upstream footprint31/74 unchanged
 not remeasured. Initial lint and all runtime attempts retained. No full network,
 Electron/private/safety reruns. Parent32790e0b CodeQL four alerts remain unresolved.
 Latency deferred; Electron build §8 unchecked/unstarted; Task0/items3–6 unchanged.
+
+
+## Static delivery barrier and broader CSP — October 18, 2026 UTC
+
+[Evidence and exact limits](../f12-static-drain-20261018/README.md).
+The static receiver now holds a document-bound delivery lease until synchronous
+insertion finishes. Reload acknowledges the native request hold, then drains
+committed deliveries before engine reset/readiness. Sent code is serialized,
+not revoked. A three-second timeout retains the lease and fails closed; lost
+acknowledgements have no automatic recovery yet.
+
+**45 controlled schedules:** 36 pre-dispatch drops, nine deliveries drained before
+reset, no duplicate bodies; 15 actual unchanged-rule reloads. A destroyed receiver
+makes actual reload reject while unready. This qualifies static-delivery/reset
+ordering, not native-early/upstream injection atomicity, changed-rule semantics or
+natural race incidence.
+
+**15 new policy cases:** five HTTP-header controls and ten inherited srcdoc/blob
+cases cover nonce, none, Trusted Types, strict-dynamic and report-only. Page-policy
+negative controls remain effective while privileged extension delivery succeeds.
+Not full containment. Existing **15 meta-CSP**, **18 late + two HTTP + 13 identity**,
+and **10 readiness + one startup** regressions pass. **253 tests / 133-file lint**.
+**Zero actions / 5.18 s**, no native build; binary hashes unchanged, last footprint
+31 files/74 hunks unchanged and not remeasured. Four archives, 231 members, five
+independent extracted proofs; all disposable roots removed. Initial test-import
+failure and earlier race run retained/excluded from final proof.
+
+Remaining: lost-ack recovery, concurrent reload/lifecycle/recreation, native early
+and non-static upstream deliveries, in-place changed rules, asynchronous effects,
+adversarial/deeper/combined CSP and full containment, broader coverage and Electron
+identity. Latency remains deferred; Electron diagnostic build §8 stays unchecked
+and unstarted. Task0/items3–6 unchanged. Parent b99334c7 passed all 22 CI checks,
+none skipped, CodeQL no new alerts; this checkpoint awaits its own CI.

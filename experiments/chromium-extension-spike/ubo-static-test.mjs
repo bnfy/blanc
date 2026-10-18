@@ -1,4 +1,5 @@
 import fs from 'node:fs'; import vm from 'node:vm'; import test from 'node:test'; import assert from 'node:assert/strict';
+import {createDeliveryBarrier} from './ubo-static-delivery.mjs';
 const text = fs.readFileSync(new URL('./ubo-document-start.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replaceAll('export ','');
 async function run({wrongSender=false,privateTab=false,ready=true,store=true,enabled=true,deny=0,change=false,changedContext=false}={}) {
  const requests=[], calls=[]; let state={ready,generation:4};
@@ -16,7 +17,7 @@ test('disabled site returns empty and never queries scriptlet engine',async()=>{
 
 async function dispatch(stateAfter) {
  let listener,finish,reply,state={ready:false,generation:4};
- const context={chrome:{runtime:{onMessage:{addListener:f=>{listener=f;}}}},current:()=>state,setTimeout:()=>{},pending:new Promise(resolve=>{finish=resolve;})};
+ const context={staticDeliveries:createDeliveryBarrier(),chrome:{runtime:{onMessage:{addListener:f=>{listener=f;}}}},current:()=>state,setTimeout:()=>{},pending:new Promise(resolve=>{finish=resolve;})};
  vm.runInNewContext(`${text};lateScript=()=>pending;start(true);`,context);
  state={ready:true,generation:4};assert.equal(listener({type:'blanc-static-script'},{},r=>{reply=r;}),true);
  state=stateAfter;finish({code:'selected-at-generation-four',generation:4});await new Promise(resolve=>setImmediate(resolve));return {reply,row:context.__blancStaticRows[0]};
