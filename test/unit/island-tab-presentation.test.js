@@ -37,6 +37,7 @@ function visibleDots(tabs, activeTabId, dotBudget = 8) {
     // fitIslandDots lowers this when a narrow pill cannot hold eight dots.
     dotBudget,
     activeTab: () => tabs.find((tab) => tab.id === activeTabId) || null,
+    TabSections: require('../../src/renderer/tab-sections.js'),
   };
   vm.runInNewContext(`${islandTabPresentation}\nthis.result = islandTabPresentation();`, sandbox);
   return {
@@ -80,17 +81,29 @@ test('standalone pins stay global while grouped pins stay inside the active grou
   assert.equal(hidden, 1);
 });
 
-test('a loose active tab gets the standalone pins and loose section, not named groups', () => {
+test('a loose active tab gets the standalone pins and its run, not named groups', () => {
   const { pinned, section, hidden } = visibleDots([
-    { id: 'loose-a', groupId: null, pinned: false },
     { id: 'pin', groupId: null, pinned: true },
     { id: 'grouped', groupId: 'work', pinned: false },
+    { id: 'loose-a', groupId: null, pinned: false },
     { id: 'loose-b', groupId: null, pinned: false },
   ], 'loose-b');
 
   assert.deepEqual(pinned.map((tab) => tab.id), ['pin']);
   assert.deepEqual(section.map((tab) => tab.id), ['loose-a', 'loose-b']);
   assert.equal(hidden, 1);
+});
+
+test('the dots show only the active run when ungrouped tabs sit between groups', () => {
+  const { section, hidden } = visibleDots([
+    { id: 'loose-a', groupId: null, pinned: false },
+    { id: 'grouped', groupId: 'work', pinned: false },
+    { id: 'loose-b', groupId: null, pinned: false },
+    { id: 'loose-c', groupId: null, pinned: false },
+  ], 'loose-b');
+
+  assert.deepEqual(section.map((tab) => tab.id), ['loose-b', 'loose-c']);
+  assert.equal(hidden, 2);
 });
 
 test('an active standalone pin windows only the pinned shelf and never duplicates it', () => {

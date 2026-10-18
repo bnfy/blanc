@@ -341,19 +341,17 @@
 
   const groupById = (id) => state.groups.find((g) => g.id === id) || null;
 
-  /** Cluster order: each non-empty group in group order, then ungrouped,
-   * unpinned tabs. Pins lead their named group; only ungrouped pins use the
-   * standalone shelf. (Keep in sync with main.js.) */
+  /** Cluster order: groups and runs of ungrouped tabs, in tab order
+   * (tab-sections.js, shared with main and the rail). Pins lead their named
+   * group; only ungrouped pins use the standalone shelf. */
   function clusterTabs() {
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
     const clusters = [];
-    for (const g of state.groups) {
-      const gtabs = state.tabs
-        .filter((t) => t.groupId === g.id)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
+    for (const section of TabSections.sectionsOf(state.tabs)) {
+      const group = section.groupId ? groupById(section.groupId) : null;
+      if (section.groupId && !group) continue;
+      clusters.push({ group, tabs: section.tabIds.map((id) => byId.get(id)) });
     }
-    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
-    if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
 
@@ -812,11 +810,13 @@
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
-  function groupBand(group, nodes) {
+  function groupBand(group, nodes, firstTabId) {
     const band = document.createElement('div');
     band.className = 'island-group-band';
     band.dataset.dragSection = 'group';
     band.dataset.groupId = group.id;
+    // The gap above a group names its first tab (tab-drag.js).
+    band.dataset.firstTabId = firstTabId;
     band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
@@ -2073,20 +2073,21 @@
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
-      // Recently closed sits before the first group at or past its slot
-      // (main's closedSlot), else after the last group — never among the
-      // ungrouped tabs. Newest first; every entry Blanc keeps.
+      // Recently closed sits at its slot (main's closedSlot): the number of
+      // groups and ungrouped tabs above it, so it can split a run. Newest
+      // first; every entry Blanc keeps.
       const closed = (state.closed ?? []).slice().reverse();
       const closedSlot = dragApi.closedSlotIndex(state);
-      const groupIndex = new Map(state.groups.map((g, index) => [g.id, index]));
       let closedPlaced = !closed.length;
+      let itemIndex = 0;
       const placeClosed = () => {
         if (closedPlaced) return;
         rows.push(closedBand(closed));
         closedPlaced = true;
       };
+      const due = () => !closedPlaced && itemIndex >= closedSlot;
       for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
-        if (!group || groupIndex.get(group.id) >= closedSlot) placeClosed();
+        if (due()) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
@@ -2097,13 +2098,26 @@
               bandNodes.push(row);
             }
           }
-          rows.push(groupBand(group, bandNodes));
+          rows.push(groupBand(group, bandNodes, gtabs[0].id));
+          itemIndex += 1;
         } else {
-          rows.push(dragSection('loose', gtabs.map(tabRow)));
+          let chunk = [];
+          for (const t of gtabs) {
+            if (due()) {
+              if (chunk.length) rows.push(dragSection('loose', chunk));
+              chunk = [];
+              placeClosed();
+            }
+            chunk.push(tabRow(t));
+            itemIndex += 1;
+          }
+          if (chunk.length) rows.push(dragSection('loose', chunk));
         }
       }
       placeClosed();
-      if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
+      // Below a last group there is still a place for an ungrouped tab: the
+      // empty zone a drag reveals.
+      if (!clusters.length || clusters[clusters.length - 1].group) rows.push(dragEmptyZone('loose'));
 
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and

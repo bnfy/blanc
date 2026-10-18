@@ -9,8 +9,12 @@
 //   3. attach: the thin DOM adapter both surfaces use (acceptance-tested)
 //
 // Model   = { top, bottom, sections: Section[] }
-// Section = { kind: 'pinned'|'group'|'loose', groupId, collapsed, top, bottom,
-//             header: {top,bottom}|null, rows: {id,pinned,top,bottom}[] }
+// Section = { kind: 'pinned'|'group'|'loose'|'closed', groupId, firstTabId?, collapsed,
+//             top, bottom, header: {top,bottom}|null, rows: {id,pinned,top,bottom}[] }
+// Ungrouped tabs can sit above, between and below groups (spec 2026-10-17):
+// several 'loose' sections may appear, and every gap between groups takes an
+// unpinned tab. A loose target's beforeId is a loose tab, a group's first
+// drawn tab (above that group), or null (the end of the list).
 // Source  = { kind:'tab', id, pinned, groupId, title } | { kind:'group', id, title }
 // Intent  = { kind:'tab', id, groupId, beforeId } | { kind:'group', id, beforeGroupId }
 (() => {
@@ -25,22 +29,43 @@
     CLOSED_SECTION_ID: 'recently-closed',
   });
 
-  /** Where the Recently closed band sits: the number of groups above it,
-   * clamped like main's clampClosedSlot. */
+  const sections = () => globalThis.TabSections;
+
+  /** Where the Recently closed band sits: the number of top-level items
+   * (groups and ungrouped tabs) above it, clamped like main's clampClosedSlot. */
   function closedSlotIndex(snapshot) {
-    const count = (snapshot?.groups || []).length;
+    const count = sections().itemsOf(snapshot?.tabs || []).length;
     const slot = snapshot?.closedSlot;
     return Number.isInteger(slot) && slot > 0 ? Math.min(slot, count) : 0;
   }
 
   const inside = (y, box) => y >= box.top && y <= box.bottom;
 
+  /** The first tab drawn in a section, for a gap directly above it. */
+  const leadOf = (section) => section.firstTabId ?? section.rows[0]?.id ?? null;
+
   /** Every gap a tab could land in, with which pinned states may use it. */
   function tabSlots(model, sourceId) {
     const slots = [];
-    for (const section of model.sections) {
-      if (section.kind === 'closed') continue; // the band never takes tabs
-      if (section.kind === 'group' && section.collapsed) continue;
+    const listed = model.sections.filter((section) => section.kind !== 'closed');
+    for (const [index, section] of listed.entries()) {
+      const next = listed[index + 1];
+      // What a loose tab dropped at the end of this section sits above.
+      const nextLead = next && next.kind !== 'pinned' ? leadOf(next) : null;
+      if (section.kind === 'group') {
+        // The gap directly above a group takes an unpinned tab, ungrouped.
+        const lead = leadOf(section);
+        if (lead) {
+          slots.push({
+            y: section.top, groupId: null, pinned: false, unpinned: true,
+            pinnedBefore: null, unpinnedBefore: lead,
+          });
+        }
+        if (section.collapsed) {
+          if (!next) slots.push(gapBelow(section));
+          continue;
+        }
+      }
       const rows = section.rows;
       const pinCount = section.kind === 'group'
         ? rows.filter((r) => r.pinned).length
@@ -49,11 +74,12 @@
         for (let i = from; i < to; i += 1) if (rows[i].id !== sourceId) return rows[i].id;
         return null;
       };
+      const looseEnd = section.kind === 'loose' ? nextLead : null;
       if (!rows.length) {
         slots.push({
           y: (section.top + section.bottom) / 2,
           groupId: section.groupId,
-          pinnedBefore: null, unpinnedBefore: null,
+          pinnedBefore: null, unpinnedBefore: looseEnd,
           pinned: section.kind !== 'loose', unpinned: section.kind !== 'pinned',
         });
         continue;
@@ -65,11 +91,17 @@
           pinned: section.kind !== 'loose' && i <= pinCount,
           unpinned: section.kind !== 'pinned' && i >= pinCount,
           pinnedBefore: firstOther(i, pinCount),
-          unpinnedBefore: firstOther(Math.max(i, pinCount), rows.length),
+          unpinnedBefore: firstOther(Math.max(i, pinCount), rows.length) ?? looseEnd,
         });
       }
+      // Below the last group: the end of the list, ungrouped.
+      if (section.kind === 'group' && !next) slots.push(gapBelow(section));
     }
     return slots;
+  }
+
+  function gapBelow(section) {
+    return { y: section.bottom, groupId: null, pinned: false, unpinned: true, pinnedBefore: null, unpinnedBefore: null };
   }
 
   function resolveTabDrop(model, source, y) {
@@ -106,19 +138,27 @@
 
   function resolveGroupDrop(model, groupId, y) {
     if (!model || !(y >= model.top && y <= model.bottom)) return null;
-    // The Recently closed band is a slot among the groups: a group can land
-    // directly above it, and the band itself moves like a group.
-    const groups = model.sections.filter((s) => s.kind === 'group' || s.kind === 'closed');
-    if (!groups.some((s) => s.groupId === groupId)) return null;
+    // Top-level items, top to bottom: groups, the Recently closed band (which
+    // also moves like a group) and each ungrouped tab. A group can land
+    // directly above any of them.
+    const items = [];
+    for (const section of model.sections) {
+      if (section.kind === 'group' || section.kind === 'closed') {
+        items.push({ id: section.groupId, top: section.top, bottom: section.bottom });
+      } else if (section.kind === 'loose') {
+        for (const r of section.rows) items.push({ id: r.id, top: r.top, bottom: r.bottom });
+      }
+    }
+    if (!items.some((item) => item.id === groupId)) return null;
     let bestIndex = 0;
-    let bestY = groups[0].top;
-    for (let i = 1; i <= groups.length; i += 1) {
-      const slotY = i < groups.length ? groups[i].top : groups[groups.length - 1].bottom;
+    let bestY = items[0].top;
+    for (let i = 1; i <= items.length; i += 1) {
+      const slotY = i < items.length ? items[i].top : items[items.length - 1].bottom;
       if (Math.abs(slotY - y) < Math.abs(bestY - y)) { bestIndex = i; bestY = slotY; }
     }
     let beforeGroupId = null;
-    for (let i = bestIndex; i < groups.length; i += 1) {
-      if (groups[i].groupId !== groupId) { beforeGroupId = groups[i].groupId; break; }
+    for (let i = bestIndex; i < items.length; i += 1) {
+      if (items[i].id !== groupId) { beforeGroupId = items[i].id; break; }
     }
     return {
       intent: { kind: 'group', id: groupId, beforeGroupId },
@@ -126,19 +166,40 @@
     };
   }
 
-  /** Eligible buckets for a tab of pinned state `pinned`, in render order. */
+  /** Eligible buckets for a tab of pinned state `pinned`, in render order.
+   * Unpinned tabs also get every run of ungrouped tabs and an empty bucket
+   * for each gap between groups with no run in it; a loose bucket's
+   * `endBefore` is what a tab at its end sits above. Collapsed groups (other
+   * than the tab's own) are skipped, but the gaps around them are not. */
   function eligibleBuckets(snapshot, pinned, ownGroupId) {
     const tabs = snapshot.tabs || [];
+    const groups = snapshot.groups || [];
+    const collapsed = (groupId) => !!groups.find((g) => g.id === groupId)?.collapsed && groupId !== ownGroupId;
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    const list = sections().sectionsOf(tabs);
     const buckets = [];
-    if (pinned) buckets.push({ groupId: null, members: tabs.filter((t) => t.pinned && !t.groupId) });
-    for (const group of snapshot.groups || []) {
-      if (group.collapsed && group.id !== ownGroupId) continue;
-      buckets.push({
-        groupId: group.id,
-        members: tabs.filter((t) => t.groupId === group.id && !!t.pinned === pinned),
-      });
+    if (pinned) {
+      buckets.push({ groupId: null, members: tabs.filter((t) => t.pinned && !t.groupId) });
+      for (const section of list) {
+        if (!section.groupId || collapsed(section.groupId)) continue;
+        buckets.push({ groupId: section.groupId, members: section.tabIds.map((id) => byId.get(id)).filter((t) => t.pinned) });
+      }
+      return buckets;
     }
-    if (!pinned) buckets.push({ groupId: null, members: tabs.filter((t) => !t.pinned && !t.groupId) });
+    let needGap = true;
+    for (const [index, section] of list.entries()) {
+      const endBefore = list[index + 1]?.tabIds[0] ?? null;
+      if (!section.groupId) {
+        buckets.push({ groupId: null, members: section.tabIds.map((id) => byId.get(id)), endBefore });
+        needGap = false;
+        continue;
+      }
+      if (needGap) buckets.push({ groupId: null, members: [], endBefore: section.tabIds[0] });
+      needGap = true;
+      if (collapsed(section.groupId)) continue;
+      buckets.push({ groupId: section.groupId, members: section.tabIds.map((id) => byId.get(id)).filter((t) => !t.pinned) });
+    }
+    if (needGap) buckets.push({ groupId: null, members: [], endBefore: null });
     return buckets;
   }
 
@@ -152,21 +213,32 @@
     const members = buckets[bi].members;
     const mi = members.findIndex((t) => t.id === id);
     const intent = (groupId, beforeId) => ({ intent: { kind: 'tab', id, groupId, beforeId } });
+    // The end of a bucket: null for a group, what follows the run for a loose one.
+    const end = (bucket) => bucket.endBefore ?? null;
     if (direction === 'down') {
-      if (mi < members.length - 1) return intent(buckets[bi].groupId, members[mi + 2]?.id ?? null);
+      if (mi < members.length - 1) return intent(buckets[bi].groupId, members[mi + 2]?.id ?? end(buckets[bi]));
       const next = buckets[bi + 1];
-      return next ? intent(next.groupId, next.members[0]?.id ?? null) : { stop: 'bottom' };
+      return next ? intent(next.groupId, next.members[0]?.id ?? end(next)) : { stop: 'bottom' };
     }
     if (mi > 0) return intent(buckets[bi].groupId, members[mi - 1].id);
     const prev = buckets[bi - 1];
-    return prev ? intent(prev.groupId, null) : { stop: 'top' };
+    return prev ? intent(prev.groupId, end(prev)) : { stop: 'top' };
   }
 
   /** `withClosed`: the island, where the Recently closed band sits among the
-   * groups (while it has entries) and can be stepped past or moved itself. */
+   * items (while it has entries) and can be stepped past or moved itself. A
+   * run of ungrouped tabs counts as one place. */
   function keyboardGroupMove(snapshot, groupId, direction, { withClosed = false } = {}) {
-    const order = (snapshot?.groups || []).map((g) => g.id);
-    if (withClosed && snapshot?.closed?.length) order.splice(closedSlotIndex(snapshot), 0, constants.CLOSED_SECTION_ID);
+    const items = sections().itemsOf(snapshot?.tabs || []);
+    if (withClosed && snapshot?.closed?.length) {
+      items.splice(closedSlotIndex(snapshot), 0, { id: constants.CLOSED_SECTION_ID, groupId: constants.CLOSED_SECTION_ID });
+    }
+    const order = [];
+    for (const [index, item] of items.entries()) {
+      const loose = !item.groupId;
+      if (loose && index > 0 && !items[index - 1].groupId) continue; // inside a run
+      order.push(item.id);
+    }
     const gi = order.indexOf(groupId);
     if (gi === -1) return null;
     const intent = (beforeGroupId) => ({ intent: { kind: 'group', id: groupId, beforeGroupId } });
@@ -421,6 +493,7 @@
         sections.push({
           kind: el.dataset.dragSection,
           groupId: el.dataset.groupId || null,
+          firstTabId: el.dataset.firstTabId || null,
           collapsed: el.dataset.collapsed === 'true',
           top: r.top, bottom: r.bottom,
           header: hr && visible(hr) ? { top: hr.top, bottom: hr.bottom } : null,

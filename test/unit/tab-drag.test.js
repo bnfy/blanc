@@ -12,7 +12,10 @@ function load() {
   // The page's interface strings, as every chrome document loads them.
   const { createTranslator } = require('../../src/renderer/pages/i18n.js');
   const strings = require('../../src/renderer/pages/strings.en.js');
-  const sandbox = { blancI18n: { t: createTranslator({ locale: 'en', messages: strings.messages }) } };
+  const sandbox = {
+    blancI18n: { t: createTranslator({ locale: 'en', messages: strings.messages }) },
+    TabSections: require('../../src/renderer/tab-sections.js'),
+  };
   const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/tab-drag.js'), 'utf8');
   vm.runInThisContext(`(function (globalThis) {\n${source}\n})`)(sandbox);
   return sandbox.blancTabDrag;
@@ -99,6 +102,8 @@ test('group drops resolve between group bands', () => {
   assert.deepEqual(drag.resolveGroupDrop(model, 'play', 22).intent,
     { kind: 'group', id: 'play', beforeGroupId: 'work' });
   assert.deepEqual(drag.resolveGroupDrop(model, 'work', 119).intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'L1' }, 'below play is above the first ungrouped tab');
+  assert.deepEqual(drag.resolveGroupDrop(model, 'work', 159).intent,
     { kind: 'group', id: 'work', beforeGroupId: null });
   assert.deepEqual(drag.resolveGroupDrop(model, 'work', 22).intent,
     { kind: 'group', id: 'work', beforeGroupId: 'play' }, 'own position is an accepted no-op target');
@@ -131,8 +136,8 @@ test('keyboard swaps inside a bucket', () => {
 
 test('keyboard crosses into the next eligible bucket, skipping collapsed groups', () => {
   assert.deepEqual(drag.keyboardTabMove(snapshot, 'W2', 'down').intent,
-    { kind: 'tab', id: 'W2', groupId: 'solo', beforeId: null },
-    'play is collapsed; solo\'s empty unpinned bucket is a valid visible slot');
+    { kind: 'tab', id: 'W2', groupId: null, beforeId: 'Y1' },
+    'a group\'s last tab steps down into the gap below it, above collapsed play');
   assert.deepEqual(drag.keyboardTabMove(snapshot, 'L1', 'up').intent,
     { kind: 'tab', id: 'L1', groupId: 'solo', beforeId: null });
 });
@@ -142,7 +147,8 @@ test('keyboard never enters an opposite-state bucket and stops at the ends', () 
     { kind: 'tab', id: 'P', groupId: 'work', beforeId: null }, 'pinned tab into work\'s empty pinned bucket');
   assert.deepEqual(drag.keyboardTabMove(snapshot, 'P', 'up'), { stop: 'top' });
   assert.deepEqual(drag.keyboardTabMove(snapshot, 'L1', 'down'), { stop: 'bottom' });
-  assert.deepEqual(drag.keyboardTabMove(snapshot, 'W1', 'up'), { stop: 'top' }, 'no unpinned bucket above work');
+  assert.deepEqual(drag.keyboardTabMove(snapshot, 'W1', 'up').intent,
+    { kind: 'tab', id: 'W1', groupId: null, beforeId: 'W1' }, 'the gap above work: ungrouped in place');
   assert.equal(drag.keyboardTabMove(snapshot, 'nope', 'up'), null);
 });
 
@@ -152,7 +158,8 @@ test('keyboard group moves and end stops', () => {
   assert.deepEqual(drag.keyboardGroupMove(snapshot, 'solo', 'up').intent,
     { kind: 'group', id: 'solo', beforeGroupId: 'play' });
   assert.deepEqual(drag.keyboardGroupMove(snapshot, 'work', 'up'), { stop: 'top' });
-  assert.deepEqual(drag.keyboardGroupMove(snapshot, 'solo', 'down'), { stop: 'bottom' });
+  assert.deepEqual(drag.keyboardGroupMove(snapshot, 'solo', 'down').intent,
+    { kind: 'group', id: 'solo', beforeGroupId: null }, 'past the run of ungrouped tabs below it');
 });
 
 test('describeMove names reorders, joins, leaves and dissolving groups', () => {
@@ -548,4 +555,106 @@ test('a pinned source still prefers the pinned section beside empty loose', () =
     tieSection('loose', 64, 64, []),
   ] };
   assert.equal(drag.resolveTabDrop(model, tieTab('P', true), 64)?.intent.beforeId, null);
+});
+
+// Ungrouped tabs anywhere (spec 2026-10-17). Group sections carry their first
+// drawn tab (data-first-tab-id) so a gap above a group can name it.
+const gapModel = {
+  top: 0, bottom: 150,
+  sections: [
+    { kind: 'group', groupId: 'work', firstTabId: 'W1', collapsed: false, top: 0, bottom: 60, header: { top: 0, bottom: 20 },
+      rows: [row('W1', 20), row('W2', 40)] },
+    { kind: 'loose', groupId: null, collapsed: false, top: 60, bottom: 80, header: null, rows: [row('L1', 60)] },
+    { kind: 'group', groupId: 'play', firstTabId: 'Y1', collapsed: true, top: 80, bottom: 100, header: { top: 80, bottom: 100 }, rows: [] },
+    // A band's bottom padding (140-150) separates its last row from the gap below.
+    { kind: 'group', groupId: 'solo', firstTabId: 'S1', collapsed: false, top: 100, bottom: 150, header: { top: 100, bottom: 120 },
+      rows: [row('S1', 120)] },
+  ],
+};
+
+test('drop above the first group is loose', () => {
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('L1', false, null), 1).intent,
+    { kind: 'tab', id: 'L1', groupId: null, beforeId: 'W1' });
+});
+
+test('drop between two groups is loose with the next group\'s first tab', () => {
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('S1', false, 'solo'), 99).intent,
+    { kind: 'tab', id: 'S1', groupId: null, beforeId: 'S1' }, 'just above solo, its own first tab');
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('W2', false, 'work'), 79).intent,
+    { kind: 'tab', id: 'W2', groupId: null, beforeId: 'Y1' }, 'the end of a run is above the next group');
+});
+
+test('drop below the last group appends', () => {
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('W2', false, 'work'), 149).intent,
+    { kind: 'tab', id: 'W2', groupId: null, beforeId: null });
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('W2', false, 'work'), 141).intent,
+    { kind: 'tab', id: 'W2', groupId: 'solo', beforeId: null }, 'just under the last row still joins');
+  assert.equal(drag.resolveTabDrop(gapModel, tabSource('P', true, null), 149), null, 'pins never enter a gap');
+});
+
+test('header top quarter targets the gap, middle joins', () => {
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('L1', false, null), 102).intent,
+    { kind: 'tab', id: 'L1', groupId: null, beforeId: 'S1' });
+  assert.deepEqual(drag.resolveTabDrop(gapModel, tabSource('L1', false, null), 110).intent,
+    { kind: 'tab', id: 'L1', groupId: 'solo', beforeId: null });
+});
+
+test('group drop between two loose tabs', () => {
+  const twoLoose = { top: 0, bottom: 80, sections: [
+    { kind: 'loose', groupId: null, collapsed: false, top: 0, bottom: 40, header: null, rows: [row('L1', 0), row('L2', 20)] },
+    { kind: 'group', groupId: 'work', firstTabId: 'W1', collapsed: false, top: 40, bottom: 80, header: { top: 40, bottom: 60 },
+      rows: [row('W1', 60)] },
+  ] };
+  assert.deepEqual(drag.resolveGroupDrop(twoLoose, 'work', 21).intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'L2' });
+  assert.deepEqual(drag.resolveGroupDrop(twoLoose, 'work', 1).intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'L1' });
+});
+
+const gapSnapshot = {
+  groups: [
+    { id: 'work', name: 'work', collapsed: false },
+    { id: 'play', name: 'play', collapsed: true },
+    { id: 'solo', name: 'solo', collapsed: false },
+  ],
+  tabs: [
+    { id: 'L0', groupId: null, pinned: false, title: 'L0' },
+    { id: 'W1', groupId: 'work', pinned: false, title: 'W1' },
+    { id: 'W2', groupId: 'work', pinned: false, title: 'W2' },
+    { id: 'Y1', groupId: 'play', pinned: false, title: 'Y1' },
+    { id: 'S1', groupId: 'solo', pinned: false, title: 'S1' },
+    { id: 'L1', groupId: null, pinned: false, title: 'L1' },
+    { id: 'L2', groupId: null, pinned: false, title: 'L2' },
+  ],
+};
+
+test('keyboard down from a group\'s last tab stops in the gap below', () => {
+  assert.deepEqual(drag.keyboardTabMove(gapSnapshot, 'W2', 'down').intent,
+    { kind: 'tab', id: 'W2', groupId: null, beforeId: 'Y1' });
+  assert.deepEqual(drag.keyboardTabMove(gapSnapshot, 'L0', 'down').intent,
+    { kind: 'tab', id: 'L0', groupId: 'work', beforeId: 'W1' }, 'a run\'s last tab joins the next group at its top');
+});
+
+test('keyboard skips a collapsed group but keeps its gaps', () => {
+  // The gap above play, then the gap between play and solo, then solo.
+  const step1 = { ...gapSnapshot, tabs: gapSnapshot.tabs.map((t) => (t.id === 'W2' ? { ...t, groupId: null } : t)) };
+  step1.tabs = [step1.tabs[0], step1.tabs[1], step1.tabs[2], ...step1.tabs.slice(3)];
+  assert.deepEqual(drag.keyboardTabMove(step1, 'W2', 'down').intent,
+    { kind: 'tab', id: 'W2', groupId: null, beforeId: 'S1' }, 'past collapsed play into the gap above solo');
+  assert.deepEqual(drag.keyboardTabMove(gapSnapshot, 'S1', 'up').intent,
+    { kind: 'tab', id: 'S1', groupId: null, beforeId: 'S1' }, 'the gap between play and solo');
+});
+
+test('group keyboard move steps over a whole run', () => {
+  assert.deepEqual(drag.keyboardGroupMove(gapSnapshot, 'solo', 'down').intent,
+    { kind: 'group', id: 'solo', beforeGroupId: null });
+  assert.deepEqual(drag.keyboardGroupMove(gapSnapshot, 'work', 'up').intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'L0' });
+  assert.deepEqual(drag.keyboardGroupMove(gapSnapshot, 'work', 'down').intent,
+    { kind: 'group', id: 'work', beforeGroupId: 'solo' });
+});
+
+test('closedSlotIndex counts groups and ungrouped tabs', () => {
+  assert.equal(drag.closedSlotIndex({ ...gapSnapshot, closedSlot: 9 }), 6);
+  assert.equal(drag.closedSlotIndex({ ...gapSnapshot, closedSlot: 2 }), 2);
 });
