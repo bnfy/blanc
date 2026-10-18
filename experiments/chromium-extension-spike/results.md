@@ -1452,3 +1452,19 @@ retained. Final native repair: 31.29 s / six steps; only incremental output used
 Eight fresh service lifecycle sessions retain 16 controlled contexts and eight
 failed-loader identities. Native initial/update factory/request IDs are distinct;
 all eight cross-runtime update-script contexts remain gaps. Latency deferred.
+
+## Full synthetic uBO network parity and unchanged update checks — October 17, 2026
+
+[Evidence and independent-verifier protocol](evidence/f12-ubo-parity-20261017/README.md).
+Two fresh runs per runtime: 5,123 candidates + four controls, 2,113 blocks /
+3,014 allows each, zero context/decision/fixture differences. Same pinned uBO
+inputs, ten lists, automatic updates disabled; failed startup-observer and
+interrupted automatic-reload attempts retained. This is regular-profile synthetic
+network parity, not full F12 or real-web acceptance.
+
+Eight unchanged-byte and eight changed-byte service sessions pass behavior;
+32 controlled contexts and 16 failed initial-loader identities pass. All sixteen
+update-check contexts remain gaps. Identical bytes keep one observed worker target,
+so a new-realm join cannot be assumed. 128 tests pass, 67-file lint clean; zero
+native builds and zero-action guarded check. Latency deferred, footprint unchanged
+at 27/65; Task 0 upgrade gate and the verified 156 baseline unchanged.

@@ -6,7 +6,7 @@ its audit and recording checkpoints have started. The corpus amendment in
 The owner authorized recording approval, merging #916 once CI is green,
 and resuming implementation within the amended scope. Further option C
 runs remain stopped. Spike A implementation is in progress on draft #920;
-the current checkpoint is `4eaad3c7` and is mapped below.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
+the current full-uBO-corpus and update-check checkpoint is mapped below.** Task 0 measured a rebase (`rebase-ledger.md`, row 0: 2h39m47s
 cold build, one broken anchor, one API change, 21 upstream files) and its
 native acceptance passed except the extension version-upgrade observation,
 which stays under daily check through November 3. That open gate blocks 157's
@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (bounded uBO readiness and reload hold)
+### 1.1 Progress checkpoint — October 17, 2026 (full synthetic uBO network parity; update identity still open)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -43,18 +43,21 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
-| 2. Spike B | **In progress: bounded blocking/reload proof** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. Full corpus parity, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
+| 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. Cosmetics/scriptlets, broader paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
 | 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 27 files / 65 hunks; component integration adds two browser files and three hunks. Design artifact remains required. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: factory/request transport IDs distinguish native initial and
-update fetches in four sessions, but are not a cross-runtime worker identity join.
-All eight update contexts remain gaps; 16 controlled contexts and eight failed
-loader identities still pass. The hold cancels new intercepted HTTP(S) requests;
-it does not pause/resume them or revoke already-dispatched traffic. Latency stays
-deferred. The following paragraphs retain the earlier checkpoint history.
+Current follow-up: full synthetic uBO network parity passes with actual Electron
+uBO decisions as the oracle, identical pinned payload inputs and automatic list
+updating disabled in both disposable runtimes. Eight unchanged-byte update checks
+retain one worker target; eight changed-byte regressions still pass. All sixteen
+update-check identities remain gaps: transport IDs and later worker targets are
+not a cross-runtime loader-to-registration link. See
+`evidence/f12-ubo-parity-20261017/`. No native rebuild was needed (guard: zero
+actions). Latency remains deferred. The following paragraphs are historical
+checkpoint records, not the current implementation status.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
 Electron/Chromium sessions: failed registration, controlled network fetch, cache

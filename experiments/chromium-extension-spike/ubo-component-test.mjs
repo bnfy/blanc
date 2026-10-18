@@ -1,4 +1,5 @@
 import test from 'node:test';
+import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -28,5 +29,18 @@ test('reload integration is generated from verified upstream with guarded anchor
  assert(storage.includes('onDone();\n            return blancGuard.complete();'));
  assert(start.includes('webRequest.start();\nawait blancGuard.activate(selfieIsValid);'));
  assert(fs.readFileSync(path.join(out,'LICENSE.txt'),'utf8').includes('GNU GENERAL PUBLIC LICENSE'));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('parity observer preserves original decisions and copies input before mutation',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ubo-observer-test-')),out=path.join(dir,'payload');
+ try{generateComponent(out,true,true);const traffic=fs.readFileSync(path.join(out,'js/traffic.js'),'utf8');
+ const begin=traffic.indexOf('globalThis.__blancUboParityRows = []'),end=traffic.indexOf("vAPI.net.addListener('onHeadersReceived'",begin);assert(begin>0&&end>begin);
+ for(const expected of [undefined,{cancel:true},{redirectUrl:'data:text/plain,fixture'},{}]){
+  let listener;const scope={vAPI:{net:{setSuspendableListener:f=>listener=f}},onBeforeRequest:details=>{details.url='mutated';return expected;}};
+  vm.runInNewContext(traffic.slice(begin,end),scope);const input={url:'https://page.blanc-fixture.test/original',type:'script'};
+  assert.equal(listener(input),expected);assert.equal(scope.__blancUboParityRows[0].input.url,'https://page.blanc-fixture.test/original');
+  assert.deepEqual(JSON.parse(JSON.stringify(scope.__blancUboParityRows[0].result)),expected||{});
+ }
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

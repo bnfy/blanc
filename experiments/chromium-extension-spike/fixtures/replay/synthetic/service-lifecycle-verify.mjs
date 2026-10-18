@@ -4,10 +4,11 @@ const root=process.argv[2],report=JSON.parse(fs.readFileSync(path.join(root,'rep
 const paired=new Map(),proofs=[],updateGaps=[];
 for(const summary of report.runs){
  const run=JSON.parse(fs.readFileSync(path.join(root,summary.label+'.json'))),electron=run.source.browserKind==='electron';
- if(report.updateMode==='same-url-registration-update'){
+ if(['same-url-registration-update','same-url-unchanged-update'].includes(report.updateMode)){
+  const unchanged=report.updateMode==='same-url-unchanged-update';
   assert.equal(run.workerEvidence.faults.length,0);
   const responses=run.arrivals.filter(row=>row.url.endsWith('/worker.js'));
-  assert.equal(responses.length,2);assert.notEqual(responses[0].sha256,responses[1].sha256);assert.equal(run.outcome.after,'v2');
+  assert.equal(responses.length,2);if(unchanged)assert.equal(responses[0].sha256,responses[1].sha256);else assert.notEqual(responses[0].sha256,responses[1].sha256);assert.equal(run.outcome.after,unchanged?'v1':'v2');
   for(const e of run.workerEvidence.events.filter(e=>e.method==='Observer.detachedDuringSetup'))assert(run.workerEvidence.events.some(d=>d.method==='Target.detachedFromTarget'&&d.params.sessionId===e.params.sessionId&&d.params.targetId===e.params.targetId));
   const scripts=run.records.filter(row=>row.url.endsWith('/worker.js'));assert.equal(scripts.length,2);
   const update=correlateWorker({...run,browserKind:run.source.browserKind,kind:run.source.kind},scripts[1]);assert.equal(update.status,'gap');
@@ -16,7 +17,9 @@ for(const summary of report.runs){
    assert(transport.every(t=>typeof t.factory==='string'&&t.factory.length>0&&Number.isInteger(t.requestId)));
    assert.notDeepEqual(transport[0],transport[1],'initial and update transport identities must differ');
   }
-  updateGaps.push({label:summary.label,hookOccurrence:2,devtoolsRequestId:scripts[1].devtools_request_id??'not-exposed-by-electron',transportIdentity:transport,transportIsWorkerIdentity:false,reason:update.reason});
+  const targets=run.workerEvidence.events.filter(e=>e.method==='Target.attachedToTarget'&&e.params.targetInfo.type==='service_worker'&&e.params.targetInfo.url===scripts[0].url).map(e=>e.params.targetInfo.targetId);
+  if(unchanged){assert.equal(new Set(targets).size,1,'unchanged check must not invent a new worker target');assert.equal(run.registrationObservation.installing,false);assert.equal(run.registrationObservation.waiting,false);}
+  updateGaps.push({observedWorkerTargetCount:new Set(targets).size,registrationObservation:run.registrationObservation,label:summary.label,hookOccurrence:2,devtoolsRequestId:scripts[1].devtools_request_id??'not-exposed-by-electron',transportIdentity:transport,transportIsWorkerIdentity:false,reason:update.reason});
  }
  for(const [suffix,decision] of [['/network','allow'],['/blocked','block'],['/missing.js','allow']]){
   const rows=run.records.filter(row=>row.url.endsWith(suffix));assert.equal(rows.length,1,summary.label+suffix);const row=rows[0];

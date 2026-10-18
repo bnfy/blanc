@@ -28,7 +28,7 @@ export function prepareComponent(edit){
     CHECK_EQ(Add(manifest, root), "${componentId}");
   }`,present:'// Blanc admission-only probe:'}]);
 }
-export function generateComponent(output, reloadGuard=false){
+export function generateComponent(output, reloadGuard=false, observe=false){
  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),pin=JSON.parse(fs.readFileSync(path.join(repo,'ublock/pinned.json')));
  const files=pin.files.map(file=>{assert(!path.isAbsolute(file.path)&&!file.path.split('/').includes('..'));const bytes=fs.readFileSync(path.join(repo,'ublock/upstream',file.path));assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),file.sha256);return {file,bytes};});
  fs.mkdirSync(output);for(const {file,bytes} of files){const target=path.join(output,file.path);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}
@@ -44,6 +44,18 @@ export function generateComponent(output, reloadGuard=false){
   replace('js/start.js','webRequest.start();','webRequest.start();\nawait blancGuard.activate(selfieIsValid);\nglobalThis.__blancUboProbe = { reload: () => µb.loadFilterLists(), begin: blancGuard.begin, complete: blancGuard.complete, state: () => ({readyToFilter: µb.readyToFilter}), setFilters: text => { µb.inMemoryFilters = text.split("\\n"); µb.inMemoryFiltersCompiled = ""; } };');
   changes.push('js/storage.js: acknowledged begin before reset, complete after freeze','js/start.js: release after observers start','js/blanc-reload-guard.js');
  }
+ if(observe){
+  assert(reloadGuard,'observer requires readiness guard');
+  const target=path.join(output,'js/traffic.js'),text=fs.readFileSync(target,'utf8'),anchor='vAPI.net.setSuspendableListener(onBeforeRequest);';assert.equal(text.split(anchor).length,2);
+  fs.writeFileSync(target,text.replace(anchor,`globalThis.__blancUboParityRows = [];
+            vAPI.net.setSuspendableListener(details => {
+                const input = JSON.parse(JSON.stringify(details));
+                const result = onBeforeRequest(details);
+                globalThis.__blancUboParityRows.push({input, result: result || {}});
+                return result;
+            });`));
+  changes.push('js/traffic.js: observer returns original listener decision unchanged');
+ }
  return {componentId,version:pin.version,verifiedFiles:files.length,changes,scope:reloadGuard?'offline reload-protection prototype; acceptance pending':'offline component admission only; no reload hold or provider acceptance'};
 }
-if(process.argv[1]===fileURLToPath(import.meta.url))console.log(JSON.stringify(generateComponent(process.argv[2],process.argv.includes('--reload-guard')),null,2));
+if(process.argv[1]===fileURLToPath(import.meta.url))console.log(JSON.stringify(generateComponent(process.argv[2],process.argv.includes('--reload-guard'),process.argv.includes('--observe')),null,2));

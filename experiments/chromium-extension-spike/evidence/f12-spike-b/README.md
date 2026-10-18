@@ -134,3 +134,13 @@ normal ComponentLoader::Add with a switch-gated fixed-ID allowlist. Earlier
 "runtime unproven" notes below describe the source-audit checkpoint. Startup
 readiness, blocking parity, authenticated reload hold and privilege containment
 are still unproven; component admission alone closes none of those gates.
+
+## Full synthetic network follow-up — October 17
+
+[Full-corpus evidence](../f12-ubo-parity-20261017/README.md) now records two fresh
+sessions per runtime, 5,123 candidates plus four controls, with zero uBO context,
+decision or fixture-behavior differences. Automatic list updating is disabled in
+both disposable profiles; the interrupted updater-hold run is retained. This
+closes the bounded full-corpus network comparison, not cosmetics/scriptlets,
+component containment or production lifecycle/recovery acceptance. Update-check
+identity remains open even though unchanged and changed bytes behave correctly.

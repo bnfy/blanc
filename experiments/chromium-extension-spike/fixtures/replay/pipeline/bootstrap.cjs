@@ -94,7 +94,7 @@ coordinatorModule.createBlockingCoordinator = function(...args) {
             topUrl: details.frame.top.url, topOrigin: details.frame.top.origin })),
           tabUrl: safe(() => wc.getURL()), profileKind,
           sessionPersistent: session.isPersistent(), provider: provider.id,
-          status: provider.status(), timestamp: new Date().toISOString(),
+          status: provider.status?.() ?? { id: 'startup-gate', phase: 'initializing' }, timestamp: new Date().toISOString(),
         };
         try {
           const result = await provider.decide(event, details);
@@ -117,6 +117,6 @@ globalThis.__blancF12Capture = {
   resetMetrics: () => {categories.clear();metrics.decisions={};metrics.faults={};metrics.trust={accepted:0,refused:0};},
   state: () => ({ metrics, userData: app.getPath('userData'), versions: process.versions, activeGates: activeGates.size, excludedInternal,
     providers: providers.map(({session, provider}) => ({persistent: session.isPersistent(),
-      status: provider.status()})) }),
+      status: provider.status?.() ?? { id: 'startup-gate', phase: 'initializing' }})) }),
 };
 require('./src/main/main.js');

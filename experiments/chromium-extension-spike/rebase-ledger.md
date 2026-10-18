@@ -825,3 +825,17 @@ No costs enter Task 0's cold column. Bounded runtime proof passes; full uBO pari
 broader worker/request coverage and update-script identity remain open. Latency
 remains deferred. 156 and permanent profiles are untouched; disposable cleanup
 includes the fixture-server connection-reset abort.
+
+### Tranche 2 — full uBO corpus / update-check checkpoint, October 17
+
+Routine verification only; **zero native compilations**, guard zero actions.
+No cold-build time added to row 0. See
+[evidence/f12-ubo-parity-20261017](evidence/f12-ubo-parity-20261017/README.md).
+Final corpus run UTC 00:43:41.656–00:45:54.289 (132.633 s): four fresh sessions,
+5,127 requests each, zero parity differences. Failed probe and interrupted full
+run retained separately. Two eight-session service runs exercise unchanged and
+changed bytes; all update identities stay gaps. Raw per-run timestamps are in
+reports; they are session brackets, not owner attention or agent work time.
+128 tests / 67-file lint pass. Footprint remains 27 files / 65 hunks; no native
+patch delta. Owner attention and agent time not measured. Latency deferred;
+156 baseline and Task 0 outcome unchanged. Full Spike A/B acceptance remains open.
