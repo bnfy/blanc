@@ -1353,11 +1353,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_customize_button">Anpassen</string>
     <string name="newtab_customize_label">Startseite anpassen</string>
     <string name="newtab_customize_layout">Layout</string>
+    <string name="newtab_customize_wallpaper_heading">Hintergrund</string>
+    <string name="newtab_wallpaper_time_of_day">Mit der Tageszeit wechseln</string>
     <string name="newtab_layout_ledger">Ledger</string>
     <string name="newtab_layout_billboard">Billboard</string>
     <string name="newtab_layout_shelf">Shelf</string>
     <string name="newtab_layout_tally">Tally</string>
-    <string name="newtab_customize_wallpaper">Dynamischer Hintergrund</string>
     <string name="newtab_wallpaper_custom">Eigenes Bild</string>
     <string name="newtab_wallpaper_choose">Bild wählen …</string>
     <string name="newtab_wallpaper_change">Ändern …</string>

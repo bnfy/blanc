@@ -138,7 +138,7 @@ try {
   await callTestHook(app, 'activateTab', [publicId, true]);
 
   // The time-of-day switch takes over from the image and hands back.
-  await page.getByRole('button', { name: 'Time-of-day wallpaper', exact: true }).click();
+  await page.getByRole('button', { name: 'Change with time of day', exact: true }).click();
   await page.waitForFunction(() => ['dawn', 'day', 'dusk', 'night'].includes(document.body.dataset.wallpaperPhase));
   assert.equal(await custom.getAttribute('aria-pressed'), 'false');
   await custom.click();

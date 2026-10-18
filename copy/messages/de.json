@@ -4923,6 +4923,14 @@
     "message": "Layout",
     "source": "sha256:4ef13ebe9f4450cd3bb26a58b7f2d4509f288dd9603bb6c469bb25da5eb2cd39"
   },
+  "newtab.customize.wallpaperHeading": {
+    "message": "Hintergrund",
+    "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
+  },
+  "newtab.wallpaper.timeOfDay": {
+    "message": "Mit der Tageszeit wechseln",
+    "source": "sha256:dc8af6b34bc1cd2b8ce2e9f0321719ef4c4c10355a4012d671d40fe444de49d3"
+  },
   "newtab.layout.ledger": {
     "message": "Ledger",
     "source": "sha256:bd98612d0c02b3cf0420b27c069e75518c00a5b53f0a2d3a686a1b0219fad26f"
@@ -4938,10 +4946,6 @@
   "newtab.layout.tally": {
     "message": "Tally",
     "source": "sha256:27629f8cb7e1225a81698aaefcfeab60835a095f10b22adbd67fa25ce1dc1825"
-  },
-  "newtab.customize.wallpaper": {
-    "message": "Dynamischer Hintergrund",
-    "source": "sha256:f801de03f27cd3937f16577b563fae6c36be5120fdb6bc914757b243061de042"
   },
   "newtab.wallpaper.custom": {
     "message": "Eigenes Bild",

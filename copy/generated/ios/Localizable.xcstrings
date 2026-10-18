@@ -55171,6 +55171,90 @@
         }
       }
     },
+    "newtab.customize.wallpaperHeading": {
+      "comment": "Start page → Customize popover: label above the wallpaper choices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wallpaper"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fondo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fond d’écran"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sfondo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundo"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.timeOfDay": {
+      "comment": "Start page → Customize popover, under Wallpaper: switch that makes Blanc’s own Sunrise artwork follow the computer’s clock (dawn, day, dusk, night). It does not affect the person’s own image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change with time of day"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit der Tageszeit wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar según la hora del día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre l’heure de la journée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia con l’ora del giorno"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mudar com a hora do dia"
+          }
+        }
+      }
+    },
     "newtab.layout.ledger": {
       "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
       "extractionState": "manual",
@@ -55335,48 +55419,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tally"
-          }
-        }
-      }
-    },
-    "newtab.customize.wallpaper": {
-      "comment": "Start page → Customize popover: switch for the time-of-day wallpaper.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dynamic wallpaper"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dynamischer Hintergrund"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fondo dinámico"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fond dynamique"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sfondo dinamico"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fundo dinâmico"
           }
         }
       }
