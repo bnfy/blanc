@@ -1769,6 +1769,26 @@
     "message": "Rétablir le son de l’onglet",
     "source": "sha256:d96b53fb09f68554b67ce357d217e9ae6c75db0251a8bdb63ca1db22ff030638"
   },
+  "tabMenu.newTabBelow": {
+    "message": "Nouvel onglet en dessous",
+    "source": "sha256:6234fff57e84fdf7b6fd2e7e1fa77875e9d363a0288417f9f2fcd15bed50e3a0"
+  },
+  "tabMenu.closeAbove": {
+    "message": "Fermer les onglets au-dessus",
+    "source": "sha256:8fd8daaca7bf1023a8f85466bdeed85f00a4b1d553e4ed6569d122bd1f77e23a"
+  },
+  "tabMenu.closeBelow": {
+    "message": "Fermer les onglets en dessous",
+    "source": "sha256:55fb46ae42937065a14e74c499ac9ccad1d6af0deb7e32c3d113ee03b7250e1a"
+  },
+  "tabMenu.muteSite": {
+    "message": "Couper le son du site",
+    "source": "sha256:e4dad8db606521203389598b62e6f3b49db3c4408c3d6e48c20cd80cdabc47f5"
+  },
+  "tabMenu.unmuteSite": {
+    "message": "Rétablir le son du site",
+    "source": "sha256:5367abbe41758f81d11e6ba0ce2e2a2825505d9b19e06822e8ec13a0a725657d"
+  },
   "tabMenu.saveFavorite": {
     "message": "Enregistrer dans les favoris",
     "source": "sha256:cdf90db56c13a5387f212afc76eef71285b4990cd237f9963d9db5961e4586fa"

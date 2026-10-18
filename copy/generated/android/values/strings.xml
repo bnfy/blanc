@@ -481,6 +481,11 @@
     <string name="tab_menu_unpin">Unpin Tab</string>
     <string name="tab_menu_mute">Mute Tab</string>
     <string name="tab_menu_unmute">Unmute Tab</string>
+    <string name="tab_menu_new_tab_below">New Tab Below</string>
+    <string name="tab_menu_close_above">Close Tabs Above</string>
+    <string name="tab_menu_close_below">Close Tabs Below</string>
+    <string name="tab_menu_mute_site">Mute Site</string>
+    <string name="tab_menu_unmute_site">Unmute Site</string>
     <string name="tab_menu_save_favorite">Save to Favorites</string>
     <string name="tab_menu_remove_favorite">Remove from Favorites</string>
     <string name="tab_menu_move_to_group">Move to Group</string>

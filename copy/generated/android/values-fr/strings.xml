@@ -494,6 +494,11 @@
     <string name="tab_menu_unpin">Détacher l’onglet</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>
     <string name="tab_menu_unmute">Rétablir le son de l’onglet</string>
+    <string name="tab_menu_new_tab_below">Nouvel onglet en dessous</string>
+    <string name="tab_menu_close_above">Fermer les onglets au-dessus</string>
+    <string name="tab_menu_close_below">Fermer les onglets en dessous</string>
+    <string name="tab_menu_mute_site">Couper le son du site</string>
+    <string name="tab_menu_unmute_site">Rétablir le son du site</string>
     <string name="tab_menu_save_favorite">Enregistrer dans les favoris</string>
     <string name="tab_menu_remove_favorite">Retirer des favoris</string>
     <string name="tab_menu_move_to_group">Déplacer dans le groupe</string>

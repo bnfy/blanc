@@ -494,6 +494,11 @@
     <string name="tab_menu_unpin">Soltar pestaña</string>
     <string name="tab_menu_mute">Silenciar pestaña</string>
     <string name="tab_menu_unmute">Activar el sonido de la pestaña</string>
+    <string name="tab_menu_new_tab_below">Nueva pestaña debajo</string>
+    <string name="tab_menu_close_above">Cerrar las pestañas de arriba</string>
+    <string name="tab_menu_close_below">Cerrar las pestañas de abajo</string>
+    <string name="tab_menu_mute_site">Silenciar el sitio</string>
+    <string name="tab_menu_unmute_site">Activar el sonido del sitio</string>
     <string name="tab_menu_save_favorite">Guardar en favoritos</string>
     <string name="tab_menu_remove_favorite">Quitar de favoritos</string>
     <string name="tab_menu_move_to_group">Mover al grupo</string>

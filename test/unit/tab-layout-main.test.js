@@ -17,7 +17,7 @@ const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) 
 const names = [
   'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
   'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
-  'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor', 'newTabInGroup',
+  'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor', 'newTabInGroup', 'newTabBelow',
 ];
 const sources = names.map(lift);
 
@@ -338,4 +338,42 @@ test('newTabInGroup lands at the group\'s end', () => {
   assert.deepEqual(h.order(), ['a', 'b', 'NEWTAB', 'L1']);
   assert.equal(h.tabs.get('NEWTAB').groupId, 'g1');
   assert.equal(h.newTabInGroup('nope'), null);
+});
+
+// New Tab Below (spec 2026-10-17-tab-menu-additions-design.md §2).
+test('below a grouped tab joins the group, directly below', () => {
+  const h = harness(['a:g1', 'b:g1', 'L1']);
+  h.sync();
+  assert.equal(h.newTabBelow('a'), 'NEWTAB');
+  h.sync();
+  assert.deepEqual(h.order(), ['a', 'NEWTAB', 'b', 'L1']);
+  assert.equal(h.tabs.get('NEWTAB').groupId, 'g1');
+});
+
+test('below an ungrouped tab stays in its run', () => {
+  const h = harness(['L1', 'L2', 'a:g1']);
+  h.sync();
+  h.newTabBelow('L1');
+  h.sync();
+  assert.deepEqual(h.order(), ['L1', 'NEWTAB', 'L2', 'a']);
+  assert.equal(h.tabs.get('NEWTAB').groupId, null);
+});
+
+test('below a shelf pin lands after the pins', () => {
+  const h = harness(['P!', 'Q!', 'a:g1', 'L1']);
+  h.sync();
+  h.newTabBelow('P');
+  h.sync();
+  assert.deepEqual(h.order(), ['P', 'Q', 'NEWTAB', 'a', 'L1']);
+  assert.equal(h.tabs.get('NEWTAB').pinned, false);
+});
+
+test('below a grouped pin lands at the top of the group\'s unpinned tabs', () => {
+  const h = harness(['L0', 'p:g1!', 'a:g1']);
+  h.tabs.get('p').groupId = 'g1';
+  h.sync();
+  h.newTabBelow('p');
+  h.sync();
+  assert.deepEqual(h.order(), ['L0', 'p', 'NEWTAB', 'a']);
+  assert.equal(h.tabs.get('NEWTAB').groupId, 'g1');
 });

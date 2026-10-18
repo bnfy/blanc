@@ -494,6 +494,11 @@
     <string name="tab_menu_unpin">Desafixar aba</string>
     <string name="tab_menu_mute">Silenciar aba</string>
     <string name="tab_menu_unmute">Reativar o som da aba</string>
+    <string name="tab_menu_new_tab_below">Nova aba abaixo</string>
+    <string name="tab_menu_close_above">Fechar as abas acima</string>
+    <string name="tab_menu_close_below">Fechar as abas abaixo</string>
+    <string name="tab_menu_mute_site">Silenciar o site</string>
+    <string name="tab_menu_unmute_site">Reativar o som do site</string>
     <string name="tab_menu_save_favorite">Salvar nos favoritos</string>
     <string name="tab_menu_remove_favorite">Remover dos favoritos</string>
     <string name="tab_menu_move_to_group">Mover para o grupo</string>
