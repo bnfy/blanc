@@ -100,9 +100,11 @@ const {
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_TOOLTIP_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const { tooltipRequest, tooltipBounds } = require('./tooltip-geometry');
 const { evaluateAdmission, evaluateDocumentVisible, isVisiblePane } = require('./display-capture-admission');
 const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
@@ -3508,6 +3510,75 @@ function detachFillStatusView() {
   }
 }
 
+// --- Resting pill tooltip view (tooltip.html) ----------------------------
+// The 68px strip can't draw a tooltip under the pill: the page view covers
+// everything past it. So the strip measures the tip and asks main to float
+// this view, sized exactly to it, under the button. No preload and no script:
+// main writes the text, and the view is never focused.
+
+function ensureTooltipView() {
+  if (rt().tooltipView && !rt().tooltipView.webContents.isDestroyed()) return rt().tooltipView;
+  const owner = rt();
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  owner.tooltipView = view;
+  view.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    if (rt().tooltipView === view) {
+      rt().tooltipView = null;
+      rt().tooltipViewAttached = false;
+    }
+    // On Linux a hidden view stays window-owned (hideOverlayView); drop the
+    // dead one once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_TOOLTIP_URL);
+  view.webContents.loadURL(CHROME_TOOLTIP_URL).catch(() => {});
+  return view;
+}
+
+async function showPillTooltip(request) {
+  if (!hasLiveWindow() || rt().overlayMode) return;
+  const owner = rt();
+  const generation = ++owner.tooltipGeneration;
+  const contents = ensureTooltipView().webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== owner.tooltipGeneration || contents.isDestroyed()) return;
+  // JSON.stringify makes the text a plain string literal; it is never markup.
+  await contents.executeJavaScript(`(() => {
+    document.getElementById('tip').textContent = ${JSON.stringify(request.text)};
+    if (${request.privateTheme}) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+  })()`);
+  const window = owner.window;
+  if (generation !== owner.tooltipGeneration || !window || window.isDestroyed()) return;
+  const view = owner.tooltipView;
+  if (!view || view.webContents !== contents) return;
+  const { width, height } = window.getContentBounds();
+  view.setBounds(tooltipBounds(request, { windowWidth: width, windowHeight: height }));
+  showOverlayView(window, view);
+  owner.tooltipViewAttached = true;
+}
+
+function hidePillTooltip(runtime = rt()) {
+  runtime.tooltipGeneration += 1;
+  if (!runtime.tooltipViewAttached) return;
+  runtime.tooltipViewAttached = false;
+  const window = runtime.window;
+  if (window && !window.isDestroyed() && runtime.tooltipView) hideOverlayView(window, runtime.tooltipView);
+}
+
 function createOverlay() {
   const owner = rt();
   // A menu open when the previous window died may never have fired its close
@@ -3698,6 +3769,7 @@ function refocusOverlayAfterMenu() {
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
   if (acceptanceTestMode) rt().testOverlayShowCount = (rt().testOverlayShowCount ?? 0) + 1;
+  hidePillTooltip();
   suppressIslandHover();
   closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
@@ -8588,6 +8660,20 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
+  // The resting pill's tooltips (renderer.js). Only the strip may ask.
+  chromeOn('chrome:tooltip-show', (event, raw) => {
+    if (event.sender !== rt().window?.webContents) return;
+    const request = tooltipRequest(raw);
+    if (!request) {
+      hidePillTooltip();
+      return;
+    }
+    showPillTooltip(request).catch(() => hidePillTooltip());
+  });
+  chromeOn('chrome:tooltip-hide', (event) => {
+    if (event.sender === rt().window?.webContents) hidePillTooltip();
+  });
+
   chromeOn('chrome:island-rect', (event, rect) => {
     // The strip measures the narrowest main pane its Island needs and the
     // narrowest reference its Glance header needs (renderer.js
@@ -9653,6 +9739,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, () => {
+    hidePillTooltip(runtime);
     resizeActiveView();
     scheduleSampleTint(tabs.get(runtime.activeTabId));
   }));
@@ -9672,7 +9759,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // Activation can hand a pane focus without that pane's 'focus' event.
     setImmediate(() => syncFocusedPane(runtime));
   }));
-  rt().window.on('blur', bindWindowRuntime(runtime, () => suppressIslandHover(runtime)));
+  rt().window.on('blur', bindWindowRuntime(runtime, () => {
+    suppressIslandHover(runtime);
+    hidePillTooltip(runtime);
+  }));
   const dockReopenLifecycle = createDockReopenLifecycle({
     platform: process.platform,
     runtime,
@@ -9746,6 +9836,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // case too, where no view exists), then destroy the capsule view.
     fillStatusSurface?.invalidatePending(runtime.id);
     liveViewContents(runtime.fillStatusView)?.close();
+    liveViewContents(runtime.tooltipView)?.close();
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     const clearPersistedWindowState = shouldClearPersistedWindowState({

@@ -418,7 +418,7 @@ const recoveryRow = (page, name) => page.evaluate((wanted) => {
     tile: getComputedStyle(row.querySelector('.ws-tile')).backgroundColor,
     title: nameEl.title, truncated: nameEl.scrollWidth > nameEl.clientWidth,
     when: row.querySelector('.ws-recovery-when')?.textContent ?? null,
-    bin: bin && { label: bin.getAttribute('aria-label'), title: bin.title, text: bin.textContent.trim() },
+    bin: bin && { label: bin.getAttribute('aria-label'), title: bin.dataset.tooltip, text: bin.textContent.trim() },
   };
 }, name);
 Then('{string} is listed in {string}, deleted today, with its full name as a tooltip', async function (name, color) {

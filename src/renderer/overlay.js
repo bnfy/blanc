@@ -331,9 +331,11 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
-    // Glance: a page with a narrower page beside it — not the footer's
-    // sidebar glyph, which is the tab-layout toggle.
-    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
+    // Glance: a window split down the middle with the far half filled, "this
+    // tab goes in the other half". The earlier page-and-sliver glyph read as a
+    // video camera. The filled half keeps it apart from the footer's sidebar
+    // glyph (the tab-layout toggle), whose divider sits off-centre.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.75"/><path d="M8 3v10"/><rect class="glance-mark" x="9.6" y="4.6" width="2.8" height="6.8" rx="0.6"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -625,11 +627,13 @@
     if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
       reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
       reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
-      reloadBtn.title = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.dataset.tooltip = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.setAttribute('aria-label', reloadBtn.dataset.tooltip);
     }
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
-    heartBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.dataset.tooltip = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.setAttribute('aria-label', heartBtn.dataset.tooltip);
     const siteInfo = tab?.siteInfo;
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
@@ -637,13 +641,13 @@
     panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
-    panelSiteInfo.title = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
+    panelSiteInfo.dataset.tooltip = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
     panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? blancI18n.t('panel.siteInfo'));
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
-    footerTabLayout.title = verticalTabsActive
+    footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
       : blancI18n.t('footer.tabLayoutOn');
     footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
@@ -718,8 +722,8 @@
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
     pin.dataset.noDrag = '';
-    pin.title = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
-    pin.setAttribute('aria-label', pin.title);
+    pin.dataset.tooltip = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
+    pin.setAttribute('aria-label', pin.dataset.tooltip);
     pin.innerHTML = ICONS.pin;
     pin.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -731,8 +735,8 @@
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
       mute.dataset.noDrag = '';
-      mute.title = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
-      mute.setAttribute('aria-label', mute.title);
+      mute.dataset.tooltip = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
+      mute.setAttribute('aria-label', mute.dataset.tooltip);
       mute.innerHTML = ICONS.mute;
       mute.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -747,8 +751,8 @@
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
       glance.innerHTML = ICONS.glance;
-      glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
-      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
+      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
+      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.dataset.tooltip, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
       glance.addEventListener('click', async (e) => {
@@ -774,8 +778,8 @@
     const close = document.createElement('button');
     close.className = 'row-close';
     close.dataset.noDrag = '';
-    close.title = blancI18n.t('pill.closeTab');
-    close.setAttribute('aria-label', close.title);
+    close.dataset.tooltip = blancI18n.t('pill.closeTab');
+    close.setAttribute('aria-label', close.dataset.tooltip);
     close.innerHTML = ICONS.close;
     close.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1447,8 +1451,8 @@
       clear.className = 'closed-clear';
       clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
-      clear.title = blancI18n.t('closed.clearAll');
-      clear.setAttribute('aria-label', clear.title);
+      clear.dataset.tooltip = blancI18n.t('closed.clearAll');
+      clear.setAttribute('aria-label', clear.dataset.tooltip);
       clear.addEventListener('click', (e) => {
         e.stopPropagation();
         window.browserAPI.clearClosedEntries();
@@ -1480,8 +1484,8 @@
     const forget = document.createElement('button');
     forget.type = 'button';
     forget.className = 'row-close closed-forget';
-    forget.title = blancI18n.t('closed.forget');
-    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.title, title: title.textContent }));
+    forget.dataset.tooltip = blancI18n.t('closed.forget');
+    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.dataset.tooltip, title: title.textContent }));
     forget.dataset.i18nIgnore = 'aria-label'; // carries the closed page title
     forget.innerHTML = ICONS.close;
     forget.addEventListener('click', (event) => {
@@ -2163,6 +2167,80 @@
         : blancI18n.t('siteInfo.hint.chromium');
   }
 
+  // Tooltips for the Island's buttons: the panel's actions, its footer and the
+  // tab rows' icons (pin, mute, Glance, close). They carry data-tooltip rather
+  // than a native title: the panel is rebuilt on every tab broadcast (a page
+  // loading, a title changing), which restarts the OS hover timer, so a native
+  // tooltip here came late or never, and it couldn't match the Island's look. This one waits
+  // a short beat on hover, shows at once on keyboard focus, and follows the
+  // rebuilt button under a still pointer. It is visual only; each button's
+  // aria-label or aria-description already says the same thing.
+  const islandTip = document.createElement('div');
+  islandTip.className = 'island-tip';
+  islandTip.setAttribute('aria-hidden', 'true');
+  document.body.append(islandTip);
+  const ISLAND_TIP_DELAY_MS = 350;
+  let islandTipTarget = null;
+  let islandTipTimer = 0;
+  let islandTipPointer = null;
+
+  function placeIslandTip(el) {
+    islandTip.textContent = el.dataset.tooltip;
+    const box = el.getBoundingClientRect();
+    const tip = islandTip.getBoundingClientRect();
+    const gap = 6;
+    let top = box.top - tip.height - gap;
+    if (top < 4) top = box.bottom + gap;
+    const left = Math.max(4, Math.min(window.innerWidth - tip.width - 4,
+      box.left + box.width / 2 - tip.width / 2));
+    islandTip.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    islandTip.classList.add('show');
+  }
+
+  function hideIslandTip() {
+    clearTimeout(islandTipTimer);
+    islandTipTarget = null;
+    islandTip.classList.remove('show');
+  }
+
+  function aimIslandTip(el, delay) {
+    if (el === islandTipTarget) return;
+    hideIslandTip();
+    if (!el || !el.dataset.tooltip) return;
+    islandTipTarget = el;
+    if (delay) islandTipTimer = setTimeout(() => placeIslandTip(el), delay);
+    else placeIslandTip(el);
+  }
+
+  // After a rebuild the hovered button is a new element: carry the tip over
+  // to whatever button now sits under the pointer, or drop it.
+  function refreshIslandTip() {
+    if (!islandTipTarget || islandTipTarget.isConnected) return;
+    const shown = islandTip.classList.contains('show');
+    const under = islandTipPointer
+      && document.elementFromPoint(islandTipPointer.x, islandTipPointer.y)?.closest('[data-tooltip]');
+    hideIslandTip();
+    if (under) aimIslandTip(under, shown ? 0 : ISLAND_TIP_DELAY_MS);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    islandTipPointer = { x: e.clientX, y: e.clientY };
+    aimIslandTip(e.target.closest?.('[data-tooltip]') || null, ISLAND_TIP_DELAY_MS);
+  });
+  document.documentElement.addEventListener('pointerleave', () => {
+    islandTipPointer = null;
+    hideIslandTip();
+  });
+  document.addEventListener('pointerdown', hideIslandTip, true);
+  document.addEventListener('scroll', hideIslandTip, true);
+  document.addEventListener('focusin', (e) => {
+    const el = e.target.closest?.('[data-tooltip]');
+    if (el && el.matches(':focus-visible')) aimIslandTip(el, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target === islandTipTarget) hideIslandTip();
+  });
+
   function renderList() {
     if (pointerHeld || islandDrag.isActive()) {
       renderQueued = true;
@@ -2187,6 +2265,7 @@
       renderDevicesDrawer(false);
       islandHint.textContent = '';
       observeBangIconRows();
+      refreshIslandTip();
       return;
     }
 
@@ -2341,6 +2420,7 @@
         : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
     observeBangIconRows();
+    refreshIslandTip();
   }
 
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
@@ -3131,6 +3211,7 @@
 
   window.browserAPI.onOverlayHide((payload) => {
     islandDrag.cancel();
+    hideIslandTip();
     // Closing the overlay any other way than Escape keeps a typed name.
     closeGroupMenu({ commit: true });
     // The next open may ask again (main refreshes stale copies on an ask).
@@ -3257,8 +3338,16 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
-  footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
+  // These keep their visible words as their name; the tooltip's fuller text
+  // (with the shortcut) is also their accessible description.
+  for (const [button, text] of [
+    [footerNewTab, blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` })],
+    [footerNewPrivate, blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` })],
+    [footerDevices, blancI18n.t('footer.devices.title')],
+  ]) {
+    button.dataset.tooltip = text;
+    button.setAttribute('aria-description', text);
+  }
 
   // focusAddress:false keeps the panel closed and lands the user on the fresh
   // tab, rather than main re-summoning the launchpad (its default for ⌘T).
@@ -3270,7 +3359,6 @@
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
   });
-  footerDevices.title = blancI18n.t('footer.devices.title');
   footerDevices.addEventListener('click', () => {
     devicesDrawerOpen = !devicesDrawerOpen;
     renderList();

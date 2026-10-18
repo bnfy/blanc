@@ -1420,6 +1420,31 @@
           "doc": "true cancels the request. The overlay cancels through closeOverlay instead."
         }
       }
+    },
+    "TooltipRequest": {
+      "doc": "A strip tooltip: its text, the button it belongs to and the size the strip measured for it.",
+      "fields": {
+        "text": {
+          "type": "string"
+        },
+        "anchor": {
+          "type": "Rect",
+          "doc": "The button's rectangle in the strip."
+        },
+        "width": {
+          "type": "number",
+          "doc": "The measured tooltip width; main caps it."
+        },
+        "height": {
+          "type": "number",
+          "doc": "The measured tooltip height; main caps it."
+        },
+        "privateTheme": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Whether the strip is in its private theme."
+        }
+      }
     }
   },
   "members": [
@@ -2103,6 +2128,27 @@
         }
       ],
       "doc": "Report the resting pill's rectangle."
+    },
+    {
+      "name": "showTooltip",
+      "group": "layout",
+      "kind": "send",
+      "channel": "chrome:tooltip-show",
+      "params": [
+        {
+          "name": "tip",
+          "type": "TooltipRequest"
+        }
+      ],
+      "doc": "Float the tooltip view under a strip button."
+    },
+    {
+      "name": "hideTooltip",
+      "group": "layout",
+      "kind": "send",
+      "channel": "chrome:tooltip-hide",
+      "params": [],
+      "doc": "Hide the strip's tooltip view."
     },
     {
       "name": "onShieldAnchor",

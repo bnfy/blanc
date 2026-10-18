@@ -146,8 +146,8 @@
     }
     function syncIdentity() {
       const bound = current();
-      trigger.title = bound ? t('ws.trigger.current', { name: bound.name }) : t('footer.workspaces');
-      trigger.setAttribute('aria-label', trigger.title);
+      trigger.dataset.tooltip = bound ? t('ws.trigger.current', { name: bound.name }) : t('footer.workspaces');
+      trigger.setAttribute('aria-label', trigger.dataset.tooltip);
       trigger.setAttribute('aria-expanded', String(opened));
       trigger.classList.toggle('bound', !!bound);
     }
@@ -599,7 +599,7 @@
         const restore = button(t('ws.recovery.restore'), `restore:${entry.id}`, () => run(() => api.restoreWorkspace(entry.id), () => { if (undo?.id === entry.id) undo = null; }), 'ws-pill');
         restore.setAttribute('aria-label', t('ws.recovery.restoreNamed', { name: entry.name }));
         const forget = button('', `forget:${entry.id}`, () => { state = { kind: 'forget', id: entry.id, name: entry.name }; render(); }, 'ws-icon-button ws-recovery-forget');
-        forget.setAttribute('aria-label', t('ws.recovery.forgetNamed', { name: entry.name })); forget.title = t('ws.recovery.forget'); forget.append(glyph('trash'));
+        forget.setAttribute('aria-label', t('ws.recovery.forgetNamed', { name: entry.name })); forget.dataset.tooltip = t('ws.recovery.forget'); forget.append(glyph('trash'));
         const actions = el('div', 'ws-recovery-actions');
         actions.append(restore, forget);
         row.append(tile({ color: entry.color, symbol: entry.symbol }), text, actions);
