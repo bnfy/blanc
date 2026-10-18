@@ -69,7 +69,7 @@ test('the homepage, header and footer are Blubird over Inter, and other pages sh
 // Legal pages set their headline in Blubird Display; their section headings
 // read as part of the legal text, in Blubird Text.
 const legalRoutes = ['/privacy', '/terms'];
-const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/support', '/patron', '/privacy', '/terms'];
+const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/support', '/patron', '/teams', '/privacy', '/terms'];
 
 test('every page headline and section heading is Blubird Display at 0 tracking, text is Blubird Text, and nothing overflows', { timeout: 180000 }, async () => {
   const { page, context } = await openPage('/');

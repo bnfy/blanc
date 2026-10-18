@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Blanc for Teams pilot interest page (draft copy from the "Blanc for Teams
+// pilot" doc, October 18, 2026). Undecided by the owner, so kept in one place:
+// the name below, no price, no main-nav link, and the route (this file's name;
+// renaming it also means updating MANIFEST in sitemap.xml.js). Every sentence
+// is recorded in docs/website-teams-claims-v1.37.json.
+const NAME = 'Blanc for Teams';
+const CONTACT = 'mailto:support@blanc.day?subject=Blanc%20for%20Teams%20pilot';
+
+const offers = [
+  ['Your brand', 'Your name, your icon and your own Start Page. Blanc replaces the usual tab strip and toolbar with the Island, one compact bar your team opens to search, switch tabs and run commands.'],
+  ['Every platform', 'Builds for Mac, Windows and Linux that download their own updates. Mac builds are signed and notarized, Windows installers are signed, and Linux builds come with a signed checksum manifest.'],
+  ['Private by default', 'Blanc blocks ads and trackers by default, and a site must ask before it can use the camera or microphone.'],
+  ['Kept current', 'We build the updates, including newer Chromium releases with their security fixes, and Blanc installs them on restart, so nobody on your team has to.'],
+  ['Open source', 'Blanc’s own code is MIT-licensed and public on GitHub, so your IT team can read every line of it.'],
+];
+---
+<BaseLayout
+  title={`${NAME} — Your team’s browser, with your name on it`}
+  description="Blanc for Teams is a pilot: the Blanc browser built under your brand for Mac, Windows and Linux, and kept up to date for you. Tell us what you’d need."
+  path="/teams"
+  page="teams"
+  ogTitle={`${NAME} — Your team’s browser, with your name on it`}
+  ogDescription="We’re taking a few pilot teams for a version of Blanc under their own brand."
+>
+<main id="main-content" class="teams-page">
+  <section class="teams-hero" aria-labelledby="teams-page-title">
+    <p class="teams-eyebrow">{NAME} · Pilot</p>
+    <h1 id="teams-page-title">Your team’s browser, with your name on it.</h1>
+    <p class="teams-lede">Blanc is a quiet browser with almost no interface. We’ll build a version under your brand and keep it up to date, so your team gets a browser that feels like yours.</p>
+    <div class="teams-cta">
+      <!--email_off--><a class="teams-button" href={CONTACT} data-track="teams_pilot_click" data-cta-position="teams-hero">Ask about a pilot</a><!--/email_off-->
+    </div>
+  </section>
+
+  <section class="teams-offers" aria-labelledby="teams-offers-title">
+    <h2 id="teams-offers-title">What you get</h2>
+    <ul>
+      {offers.map(([title, body]) => (
+        <li><h3>{title}</h3><p>{body}</p></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="teams-close" aria-labelledby="teams-close-title">
+    <h2 id="teams-close-title">We’re taking a few pilot teams.</h2>
+    <p>Tell us what you’d need. Email <!--email_off--><a href={CONTACT}>support@blanc.day</a><!--/email_off--> and we’ll reply.</p>
+    <div class="teams-cta">
+      <!--email_off--><a class="teams-button" href={CONTACT} data-track="teams_pilot_click" data-cta-position="teams-close">Ask about a pilot</a><!--/email_off-->
+    </div>
+    <p class="teams-small">Pilot builds are made to order. Admin consoles, single sign-on and compliance certificates aren’t offered yet.</p>
+  </section>
+</main>
+</BaseLayout>
+<style>
+  .teams-page { max-width: 980px; margin: 0 auto; padding: 64px 24px 112px; }
+  .teams-hero { max-width: 760px; margin: 0 auto; text-align: center; }
+  .teams-eyebrow { margin: 0 0 14px; color: var(--site-gold); font-size: 14px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+  .teams-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(38px, 5.4vw, 66px); font-weight: 400; letter-spacing: 0; line-height: 1.03; text-wrap: balance; }
+  .teams-lede { max-width: 56ch; margin: 22px auto 0; color: var(--site-text-dim); font-size: 17px; line-height: 1.65; text-wrap: balance; }
+
+  .teams-cta { display: flex; justify-content: center; margin-top: 32px; }
+  .teams-button { display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; background: var(--site-text); color: var(--site-bg); font-size: 18px; font-weight: 500; text-decoration: none; }
+  .teams-button:hover { background: #000; color: var(--site-bg); }
+  .teams-button:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 3px; }
+
+  .teams-offers { max-width: 820px; margin: 88px auto 0; }
+  .teams-offers h2, .teams-close h2 { margin: 0 0 24px; font-family: var(--site-font-display); font-size: clamp(30px, 3.6vw, 42px); font-weight: 400; letter-spacing: 0; line-height: 1.05; }
+  .teams-offers ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+  .teams-offers li { padding: 22px 24px; border: 1px solid var(--site-border); border-radius: 18px; background: var(--site-surface); }
+  .teams-offers li:first-child { grid-column: 1 / -1; border-color: var(--site-gold); background: var(--site-surface-raised); }
+  .teams-offers h3 { margin: 0; font-family: var(--site-font-display); font-size: 22px; font-weight: 400; letter-spacing: 0; line-height: 1.2; }
+  .teams-offers li p { margin: 8px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.6; }
+
+  .teams-close { max-width: 720px; margin: 88px auto 0; padding: 36px 32px; border: 1px solid var(--site-border); border-radius: 22px; background: var(--site-surface-raised); text-align: center; }
+  .teams-close h2 { margin-bottom: 0; }
+  .teams-close > p { margin: 12px 0 0; color: var(--site-text-dim); font-size: 16px; line-height: 1.6; }
+  .teams-close .teams-cta { margin-top: 24px; }
+  .teams-close .teams-small { max-width: 52ch; margin: 24px auto 0; font-size: 14px; text-wrap: balance; }
+
+  @media (max-width: 640px) {
+    .teams-page { padding-top: 40px; }
+    .teams-offers ul { grid-template-columns: 1fr; }
+    .teams-close { padding: 28px 20px; }
+  }
+</style>

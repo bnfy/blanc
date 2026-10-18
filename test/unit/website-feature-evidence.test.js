@@ -615,3 +615,41 @@ test('Start Page captures are tied to public v1.35.0 and are all the homepage sh
   assert.ok(featureCaptures.length >= 12);
   for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.35.0 or v1.36.0 capture`);
 });
+
+// The Blanc for Teams pilot page: every sentence, the meta copy included, is
+// recorded against public v1.37.0, and the draft wording it corrected stays off.
+test('every sentence on the Teams pilot page is recorded against public v1.37.0', () => {
+  const file = 'site/src/pages/teams.astro';
+  const source = read(file);
+  const teams = JSON.parse(read('docs/website-teams-claims-v1.37.json'));
+  assert.equal(teams.publicRelease, 'v1.37.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${teams.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), teams.sourceSha);
+  assert.ok(read(teams.releaseEvidence).includes(teams.sourceSha));
+  for (const claim of teams.claims) {
+    assert.equal(claim.source, file, claim.id);
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = teams.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${teams.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  const recorded = new Set(teams.claims.map(claim => claim.exactWording));
+  const name = source.match(/const NAME = '([^']+)'/)[1];
+  // Markup text, with the page name filled in; the offer cards come from data.
+  const markup = source.slice(source.indexOf('<main'), source.indexOf('</main>'));
+  const units = [...markup.matchAll(/<(h[1-6]|p|li|a)\b[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map(match => normalize(match[2]).replaceAll('{NAME}', name))
+    .filter(unit => unit && !unit.includes('{'));
+  const offers = source.slice(source.indexOf('const offers'), source.indexOf('];', source.indexOf('const offers')));
+  units.push(...[...offers.matchAll(/'([^']+)'/g)].map(match => match[1]));
+  for (const meta of ['description', 'ogDescription']) units.push(source.match(new RegExp(`\\b${meta}="([^"]+)"`))[1]);
+  assert.ok(units.length > 15, 'the page copy was found');
+  for (const unit of units) {
+    if (unit === `${name} · Pilot` || unit === 'support@blanc.day') continue;
+    assert.ok(recorded.has(unit), `teams page copy is not recorded: “${unit}”`);
+  }
+  const text = normalize(source);
+  for (const retired of teams.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+});

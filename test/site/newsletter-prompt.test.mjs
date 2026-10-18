@@ -94,10 +94,10 @@ test('an expired snooze invites again; a past request never does', async () => {
   }
 });
 
-test('legal, Mail, ambassador and Patron pages carry no card', async () => {
+test('legal, Mail, ambassador, Patron and Teams pages carry no card', async () => {
   const page = await openPage('/privacy');
   try {
-    for (const path of ['/privacy', '/terms', '/mail', '/ambassadors', '/patron', '/media']) {
+    for (const path of ['/privacy', '/terms', '/mail', '/ambassadors', '/patron', '/teams', '/media']) {
       await page.goto(`${baseURL}${path}`);
       assert.equal(await card(page).count(), 0, path);
     }

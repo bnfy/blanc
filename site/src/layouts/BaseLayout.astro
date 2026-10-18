@@ -30,8 +30,9 @@ const {
 } = Astro.props;
 // The discreet newsletter invitation runs where measurement may run (never on
 // legal or utility pages), and not on pages that already ask for an address
-// or a purchase: the Mail waitlist, ambassador applications and Patron.
-const promptExcluded = ['/mail', '/ambassadors', '/patron'].some(prefix => path === prefix || path?.startsWith(`${prefix}/`));
+// or a purchase: the Mail waitlist, ambassador applications, Patron and the
+// Teams pilot.
+const promptExcluded = ['/mail', '/ambassadors', '/patron', '/teams'].some(prefix => path === prefix || path?.startsWith(`${prefix}/`));
 const { newsletterPrompt = analytics && header !== 'legal' && !promptExcluded } = Astro.props;
 const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
