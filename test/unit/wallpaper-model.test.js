@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  SOURCES, MAX_EDGE, effectiveSource, settingsForSource, scaledSize, normalizeMeta,
+  SOURCES, MAX_EDGE, normalizeWash, effectiveSource, settingsForSource, scaledSize, normalizeMeta,
   readJpegOrientation, withOrientation,
 } = require('../../src/main/wallpaper-model');
 
@@ -85,4 +85,9 @@ test('the re-encoded copy carries only the orientation, so it still draws uprigh
   // Nothing but Exif header + one IFD entry: no room for location or camera tags.
   assert.equal(rotated.indexOf(Buffer.from('GPS')), -1);
   assert.equal(withOrientation(Buffer.from('png?'), 6).toString(), 'png?');
+});
+
+test('the Fade value is an integer percent or nothing', () => {
+  for (const ok of [0, 5, 55, 100]) assert.equal(normalizeWash(ok), ok);
+  for (const bad of [-1, 101, 50.5, '50', null, undefined, NaN, Infinity]) assert.equal(normalizeWash(bad), null, String(bad));
 });

@@ -1369,8 +1369,10 @@ Settings → General → Start Page image).
   upright. It lives in this device's data folder (owner-only), never in
   settings and never in Profile Sync. Remove deletes it.
 - **Private tabs.** A private Start Page never shows or offers it.
-- **Legibility.** The image is cropped to fill and centred. The footer takes
-  the neutral day fog and ink, and the header keeps the theme's overlay.
+- **Legibility.** The image is cropped to fill and centred under an even
+  theme wash. A **Fade** slider (device-local `newtabWallpaperWash`, 0–100,
+  default 100) lets the person trade that wash for more of the picture; the
+  footer always keeps the neutral day fog and ink.
 - **Serving.** The page receives an address with a random per-launch name
   (`blanc://newtab/user-wallpaper-<token>.jpg`), answered from that file
   alone, so no website can embed it by guessing. In a Chromium port, this

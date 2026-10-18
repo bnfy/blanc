@@ -2939,8 +2939,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background-color: var(--bg);
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
   --start-wallpaper-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%);
-  /* A photo has no calm band behind the text, so it gets an even wash. */
-  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.78) 0%, rgba(247, 240, 229, 0.66) 55%, rgba(247, 240, 229, 0.5) 100%);
+  /* A photo has no calm band behind the text, so it gets an even wash,
+     scaled by the Fade slider (--start-wallpaper-wash, 0–1, set by newtab.js). */
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(247, 240, 229, calc(0.78 * var(--start-wallpaper-wash, 1))) 0%, rgba(247, 240, 229, calc(0.66 * var(--start-wallpaper-wash, 1))) 55%, rgba(247, 240, 229, calc(0.5 * var(--start-wallpaper-wash, 1))) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   background-position: center, center, center bottom;
   background-repeat: no-repeat;
@@ -2968,7 +2969,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --start-footer-ink-evening: #cfc2b0;
     --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
     --start-wallpaper-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
-    --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+    --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 19, 15, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(18, 15, 12, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   }
 }
@@ -2991,7 +2992,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --start-footer-ink-evening: #ccbba6;
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
   --start-wallpaper-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
-  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(12, 10, 8, calc(0.9 * var(--start-wallpaper-wash, 1))) 0%, rgba(19, 15, 12, calc(0.8 * var(--start-wallpaper-wash, 1))) 52%, rgba(10, 8, 7, calc(0.78 * var(--start-wallpaper-wash, 1))) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
 }
 
@@ -3228,6 +3229,19 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .wallpaper-action:hover { color: var(--text); }
 .wallpaper-action:focus-visible { outline-offset: 3px; }
 .wallpaper-action:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-wash {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.wallpaper-wash input {
+  flex: 1;
+  min-width: 120px;
+  accent-color: var(--text);
+}
 .wallpaper-error {
   max-width: 240px;
   margin: 6px 0 0;

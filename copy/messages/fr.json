@@ -4959,6 +4959,10 @@
     "message": "Retirer",
     "source": "sha256:b4b3a2f52e1986974f9efe25bab3a11ebb410e4077ada3d74d6cb74a842a12e2"
   },
+  "newtab.wallpaper.wash": {
+    "message": "Voile",
+    "source": "sha256:07b86a23ce4881b6ae6f8f8716adf251b024424903f864beb057bb57e8983ddc"
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Choisissez une image pour la page d’accueil",
     "source": "sha256:2000a47e1b32ca9c3334a4dfbe7be6b03538908d7b38a355a8313e2ad46db5cb"

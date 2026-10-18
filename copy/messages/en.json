@@ -5126,6 +5126,11 @@
     "note": "Start page → Customize popover and Settings: button that deletes the stored wallpaper image.",
     "maxLength": 12
   },
+  "newtab.wallpaper.wash": {
+    "message": "Fade",
+    "note": "Start page → Customize popover: label of the slider for how strongly a light or dark wash covers the person’s own wallpaper image, keeping text readable.",
+    "maxLength": 12
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Choose a Start Page image",
     "note": "Title of the native file picker for the Start Page wallpaper image."

@@ -35,6 +35,8 @@ export interface NewtabPagesAPI {
     wallpaper: () => Promise<unknown>;
     /** Choose the Start Page wallpaper: sunrise, time-of-day or custom. IPC: invoke `pages:start:set-wallpaper`. */
     setWallpaper: (source: unknown) => Promise<unknown>;
+    /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
+    setWallpaperWash: (wash: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
@@ -193,6 +195,8 @@ export interface SettingsPagesAPI {
     wallpaper: () => Promise<unknown>;
     /** Choose the Start Page wallpaper: sunrise, time-of-day or custom. IPC: invoke `pages:start:set-wallpaper`. */
     setWallpaper: (source: unknown) => Promise<unknown>;
+    /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
+    setWallpaperWash: (wash: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */

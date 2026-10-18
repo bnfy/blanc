@@ -62,6 +62,13 @@ What this means for Blanc:
 - **Legibility.** The photo is centred and cropped to fill. It gets an even
   theme wash (stronger than Sunrise's in light mode, because a photo has no calm
   band behind the text), and the footer gets the neutral day fog and ink.
+- **Fade slider** (added after the owner's review of the first build). It shows
+  in the popover while your image is on, and runs from 0 (the image as chosen)
+  to 100 (the default wash), in steps of 5. It paints live as you drag (a CSS
+  multiplier on the wash's alpha) and saves on release to the device-local
+  `newtabWallpaperWash`. The footer fog doesn't change, so the footer stays
+  readable even at 0; the clock and the lines under it become the person's own
+  call.
 - **Sync.** The image stays on this device. `newtabCustomWallpaper` is
   device-local. The synced `newtabDynamicWallpaper` is never changed by picking
   your image, so other devices keep their own choice.

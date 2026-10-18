@@ -32,7 +32,7 @@ try {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForFunction(() => !document.getElementById('customWallpaperToggle').disabled);
   assert.deepEqual(await page.evaluate(() => window.bowserPages.start.wallpaper()),
-    { source: 'sunrise', hasImage: false, image: null });
+    { source: 'sunrise', hasImage: false, image: null, wash: 100 });
 
   // Fixtures, made by Electron itself: a wide photo tagged "rotate 90°" with
   // a fake GPS block, an oversized one, and a file that is not an image.
@@ -99,13 +99,24 @@ try {
   assert.equal(await loads(page, state.image), true);
   assert.equal(await loads(page, 'blanc://newtab/user-wallpaper.jpg'), false);
 
+  // Fade: integer 0–100 only, painted as a 0–1 multiplier, kept per device.
+  assert.equal(state.wash, 100);
+  assert.equal(await page.locator('#customWallpaperWashRow').isVisible(), true);
+  for (const bad of [-5, 140, 50.5, '30']) {
+    assert.equal((await page.evaluate((v) => window.bowserPages.start.setWallpaperWash(v), bad)).wash, 100, String(bad));
+  }
+  await page.locator('#customWallpaperWash').fill('40');
+  await page.waitForFunction(() => document.body.style.getPropertyValue('--start-wallpaper-wash') === '0.4');
+  await waitForValue(async () => settingsFile(), (value) => value.newtabWallpaperWash === 40, 'saved fade');
+  assert.equal((await page.evaluate(() => window.bowserPages.start.wallpaper())).wash, 40);
+
   // A private Start Page never shows or offers it.
   await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
   const privatePage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/?private=1'), Boolean, 'private start page');
   await privatePage.waitForLoadState('domcontentloaded');
   await privatePage.waitForFunction(() => window.bowserPages && document.getElementById('customWallpaperRow').hidden);
   const privateState = await privatePage.evaluate(() => window.bowserPages.start.data().then((d) => d.wallpaper));
-  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null });
+  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null, wash: 40 });
   assert.notEqual(await privatePage.evaluate(() => document.body.dataset.wallpaperPhase), 'custom');
   const publicId = (await callTestHook(app, 'state')).tabs.find((tab) => tab.url === 'blanc://newtab/').id;
   await callTestHook(app, 'activateTab', [publicId, true]);
@@ -132,7 +143,7 @@ try {
   await waitForValue(async () => settingsFile(), (value) => value.newtabCustomWallpaper === false, 'saved removal');
   assert.equal(await loads(page, `${state.image}&after-remove`), false);
   await callTestHook(app, 'chooseWallpaperFile', [null]);
-  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, unguessable address, private exclusion, time-of-day handoff, Settings remove with live Start Page update');
+  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, unguessable address, private exclusion, time-of-day handoff, Settings remove with live Start Page update');
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

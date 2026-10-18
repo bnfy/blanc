@@ -884,6 +884,8 @@ const customWallpaperToggle = document.getElementById('customWallpaperToggle');
 const customWallpaperChange = document.getElementById('customWallpaperChange');
 const customWallpaperRemove = document.getElementById('customWallpaperRemove');
 const customWallpaperError = document.getElementById('customWallpaperError');
+const customWallpaperWashRow = document.getElementById('customWallpaperWashRow');
+const customWallpaperWash = document.getElementById('customWallpaperWash');
 const WALLPAPER_ERRORS = {
   'too-large': 'newtab.wallpaper.error.tooLarge',
   unsupported: 'newtab.wallpaper.error.unsupported',
@@ -891,7 +893,12 @@ const WALLPAPER_ERRORS = {
 };
 let dynamicWallpaperEnabled = false;
 // Main's projection for this page (F49): { source, hasImage, image }.
-let wallpaperState = { source: 'sunrise', hasImage: false, image: null };
+let wallpaperState = { source: 'sunrise', hasImage: false, image: null, wash: 100 };
+let washDragging = false;
+// The wash is a 0–1 multiplier on the theme's image overlay in pages.css.
+function paintWash(percent) {
+  document.body.style.setProperty('--start-wallpaper-wash', String(percent / 100));
+}
 let wallpaperUpdatePending = false;
 // A private Start Page never shows the person's own image, so it offers none.
 if (isPrivate) document.getElementById('customWallpaperRow').hidden = true;
@@ -901,6 +908,12 @@ function renderWallpaperControls() {
   customWallpaperToggle.setAttribute('aria-pressed', String(custom));
   customWallpaperChange.hidden = !wallpaperState.hasImage;
   customWallpaperRemove.hidden = !wallpaperState.hasImage;
+  customWallpaperWashRow.hidden = !custom;
+  // A status broadcast must not yank the thumb out from under a drag.
+  if (!washDragging && Number.isInteger(wallpaperState.wash)) {
+    customWallpaperWash.value = String(wallpaperState.wash);
+    paintWash(wallpaperState.wash);
+  }
   for (const control of [wallpaperToggle, customWallpaperToggle, customWallpaperChange, customWallpaperRemove]) {
     control.disabled = wallpaperUpdatePending;
   }
@@ -960,6 +973,21 @@ customWallpaperToggle.addEventListener('click', () => {
   }
 });
 customWallpaperChange.addEventListener('click', () => chooseWallpaperImage());
+// Paint while dragging; save once, on release.
+customWallpaperWash.addEventListener('input', () => {
+  washDragging = true;
+  paintWash(Number(customWallpaperWash.value));
+});
+customWallpaperWash.addEventListener('change', async () => {
+  try {
+    applyWallpaper(await window.bowserPages.start.setWallpaperWash(Number(customWallpaperWash.value)));
+  } catch {
+    // The saved value comes back with the next status.
+  } finally {
+    washDragging = false;
+    renderWallpaperControls();
+  }
+});
 customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () => {
   showWallpaperError(null);
   applyWallpaper(await window.bowserPages.start.removeWallpaper());

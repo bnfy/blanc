@@ -1362,6 +1362,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_wallpaper_choose">Choose image…</string>
     <string name="newtab_wallpaper_change">Change…</string>
     <string name="newtab_wallpaper_remove">Remove</string>
+    <string name="newtab_wallpaper_wash">Fade</string>
     <string name="newtab_wallpaper_choose_title">Choose a Start Page image</string>
     <string name="newtab_wallpaper_filter">Images</string>
     <string name="newtab_wallpaper_error_too_large">That image is larger than 25 MB.</string>

@@ -1399,6 +1399,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_wallpaper_choose">Elegir imagen…</string>
     <string name="newtab_wallpaper_change">Cambiar…</string>
     <string name="newtab_wallpaper_remove">Quitar</string>
+    <string name="newtab_wallpaper_wash">Velo</string>
     <string name="newtab_wallpaper_choose_title">Elige una imagen para la página de inicio</string>
     <string name="newtab_wallpaper_filter">Imágenes</string>
     <string name="newtab_wallpaper_error_too_large">La imagen pesa más de 25 MB.</string>

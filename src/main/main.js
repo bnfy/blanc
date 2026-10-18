@@ -11320,7 +11320,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       hasImage,
       isPrivate,
     });
-    return { source, hasImage, image: source === 'custom' ? wallpaper.imageUrl() : null };
+    return {
+      source, hasImage, image: source === 'custom' ? wallpaper.imageUrl() : null, wash: current.newtabWallpaperWash,
+    };
   };
   const startPageStatus = () => {
     const current = settings.getSettings();

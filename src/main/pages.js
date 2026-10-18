@@ -581,6 +581,11 @@ function setupPages(hooks = {}) {
     if (write) settings.setSettings(write);
     return wallpaperReply(event);
   });
+  // The Fade slider: only an integer 0–100 is saved; anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-wash', ['newtab', 'settings'], (event, wash) => {
+    settings.setSettings({ newtabWallpaperWash: wash });
+    return wallpaperReply(event);
+  });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;
     if (!file) {

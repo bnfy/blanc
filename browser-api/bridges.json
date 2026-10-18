@@ -355,6 +355,22 @@
         "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
       },
       {
+        "name": "start.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+      },
+      {
         "name": "start.chooseWallpaper",
         "kind": "invoke",
         "channel": "pages:start:choose-wallpaper",
@@ -1094,6 +1110,22 @@
         ],
         "returns": "unknown",
         "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
+      },
+      {
+        "name": "settings.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
         "name": "settings.chooseWallpaper",

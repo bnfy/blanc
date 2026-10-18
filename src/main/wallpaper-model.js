@@ -9,6 +9,13 @@ const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 // on every new tab without a visible delay.
 const MAX_EDGE = 3840;
 const JPEG_QUALITY = 85;
+/**
+ * How strongly the theme's wash covers your image, as an integer percent
+ * (100, the default, puts legibility first), or null for anything else.
+ */
+function normalizeWash(value) {
+  return Number.isInteger(value) && value >= 0 && value <= 100 ? value : null;
+}
 
 /**
  * Which wallpaper a Start Page draws. `custom` needs an image on this device
@@ -125,6 +132,7 @@ module.exports = {
   MAX_INPUT_BYTES,
   MAX_EDGE,
   JPEG_QUALITY,
+  normalizeWash,
   effectiveSource,
   settingsForSource,
   scaledSize,

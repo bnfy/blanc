@@ -55549,6 +55549,48 @@
         }
       }
     },
+    "newtab.wallpaper.wash": {
+      "comment": "Start page → Customize popover: label of the slider for how strongly a light or dark wash covers the person’s own wallpaper image, keeping text readable.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fade"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schleier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Véu"
+          }
+        }
+      }
+    },
     "newtab.wallpaper.chooseTitle": {
       "comment": "Title of the native file picker for the Start Page wallpaper image.",
       "extractionState": "manual",

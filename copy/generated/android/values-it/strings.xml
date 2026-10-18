@@ -1399,6 +1399,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_wallpaper_choose">Scegli immagine…</string>
     <string name="newtab_wallpaper_change">Cambia…</string>
     <string name="newtab_wallpaper_remove">Rimuovi</string>
+    <string name="newtab_wallpaper_wash">Velo</string>
     <string name="newtab_wallpaper_choose_title">Scegli un’immagine per la pagina iniziale</string>
     <string name="newtab_wallpaper_filter">Immagini</string>
     <string name="newtab_wallpaper_error_too_large">L’immagine supera i 25 MB.</string>

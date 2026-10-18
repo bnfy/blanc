@@ -27,6 +27,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.setDynamicWallpaper` | invoke | `pages:start:set-dynamic-wallpaper` | newtab | Turn the dynamic Start Page wallpaper on or off. |
 | `start.wallpaper` | invoke | `pages:start:wallpaper` | newtab | Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. |
 | `start.setWallpaper` | invoke | `pages:start:set-wallpaper` | newtab | Choose the Start Page wallpaper: sunrise, time-of-day or custom. |
+| `start.setWallpaperWash` | invoke | `pages:start:set-wallpaper-wash` | newtab | Set how strongly the theme wash covers the Start Page image (integer 0–100). |
 | `start.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | newtab | Pick an image file for the Start Page wallpaper and show it. |
 | `start.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | newtab | Delete the stored Start Page image and return to Sunrise. |
 | `start.openMahjong` | invoke | `pages:start:open-mahjong` | newtab | Open blanc://mahjong as an ordinary tab. |
@@ -79,6 +80,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.set` | invoke | `pages:settings:set` | settings | Write a partial settings update. |
 | `settings.wallpaper` | invoke | `pages:start:wallpaper` | settings | Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. |
 | `settings.setWallpaper` | invoke | `pages:start:set-wallpaper` | settings | Choose the Start Page wallpaper: sunrise, time-of-day or custom. |
+| `settings.setWallpaperWash` | invoke | `pages:start:set-wallpaper-wash` | settings | Set how strongly the theme wash covers the Start Page image (integer 0–100). |
 | `settings.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | settings | Pick an image file for the Start Page wallpaper and show it. |
 | `settings.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | settings | Delete the stored Start Page image and return to Sunrise. |
 | `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |
