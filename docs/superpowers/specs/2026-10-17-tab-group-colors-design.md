@@ -1,7 +1,8 @@
 # Tab group colors: the Spaces palette for groups
 
 **Date:** 2026-10-17
-**Status:** draft for the owner's review. Nothing is built. It reverses a recorded product rule (§2), so the owner decides the open questions in §12 before any plan.
+**Status:** the owner decided D1–D7 on 2026-10-17 (§12); the spec is ready for the owner's review before a plan. Nothing is built.
+**Mockup:** [the three looks compared](assets/2026-10-17-tab-group-colors-options.png). Option A (left) was chosen.
 **Builds on:** [2026-10-13 Blanc Spaces redesign](2026-10-13-blanc-spaces-redesign-design.md) (the palette, the readability guard in `src/renderer/space-identity.js`, the overlay color picker `space-picker.js`), [2026-10-16 Island lower section](2026-10-16-island-lower-section-design.md) §9 (group names keep their case, the group header menu), and the 2026-10-17 ungrouped tab placement spec in PR #933, not yet merged (groups drawn as tinted blocks in both the ⌘L panel and the side tab list).
 **References:** Helium's vertical tabs, shared by the owner on 2026-10-17:
 - a group header filled with its color, and a thin colored line down the left of its tabs;
@@ -68,21 +69,20 @@ Under every option, the ⌘L panel and the side tab list draw a group the same w
 
 **Spaces and groups side by side.** A window's Space shows as a solid tile with a symbol on the Island's leading chip. Under A and C, a group never uses a solid filled tile, so a group can't be mistaken for a Space. That is part of why A is recommended.
 
-## 6. Choosing a color
+## 6. Choosing a color: the group menu
 
-### 6.1 Where
-The group header's right-click menu, in both lists. Today it offers Rename Group…, Ungroup and Close Group.
+As in Helium, a group has one menu, opened two ways:
+- right-clicking the group header, in either list;
+- clicking a **⋮** button at the right end of the header, next to the fold caret. The button shows while the header is hovered or keyboard-focused, and while its menu is open, so the resting list stays calm.
 
-**Recommended:** Rename Group… becomes **Edit Group…**. It opens the panel's existing name prompt with a row of swatches under the field: None plus the eight presets, using the swatch component the Spaces editor already draws (`space-picker.js`).
-- This is the Helium pattern, a name and swatches together, built on Blanc's own prompt.
-- Enter or clicking away saves both the name and the color; Esc cancels both.
+The menu is a small popover drawn by Blanc, not the system's native menu, because it holds a text field and swatches. Like the Spaces menu, it's a new overlay mode (`'group-menu'`), anchored to the header that opened it. From top to bottom:
+1. **Name field**, holding the group's name in the case typed. Enter or clicking away saves it; Esc cancels. A name another group already has is refused, as Rename Group… does today.
+2. **Color row:** None plus the eight presets, using the Spaces editor's swatches (`space-picker.js`). Clicking one applies it at once.
+3. The group actions (§8).
 
-**Alternative:** a native **Color ▸** submenu with nine items (None plus the presets), each with a swatch icon drawn as a `nativeImage`.
-- Faster, at one click.
-- Swatch icons on menu items vary by platform, and Linux desktops differ most. A color name with no swatch is a weak picker.
+This replaces today's native group menu (Rename Group…, Ungroup, Close Group); renaming now happens in the name field. The menu is keyboard-reachable: the ⋮ button is focusable, arrow keys move through the swatches, and Esc returns focus to the header.
 
-### 6.2 Keyboard and commands
-`/group <name>` keeps creating and joining groups and sets no color. Decision D5: whether `/group-color <color>` exists.
+`/group <name>` keeps creating and joining groups and sets no color. There's no color slash command (D5).
 
 ## 7. Where colors show
 
@@ -99,12 +99,11 @@ Private theme: the private wash level from `space-identity.js` applies. A privat
 
 ## 8. Menus (from the Helium reference)
 
-**Group header menu (recommended):**
-1. Edit Group…
-2. New Tab in Group (new)
-3. Move Group to New Window (new; moves every member, like Move Tab to New Window)
-4. Ungroup
-5. Close Group
+**Group menu actions (under the name field and colors, §6):**
+1. New Tab in Group (new)
+2. Move Group to New Window (new; moves every member, like Move Tab to New Window)
+3. Ungroup
+4. Close Group
 
 Helium's **Delete group** means close and forget, which is Blanc's Close Group; Close Group already records one Recently closed entry for the whole group. So there's no separate delete.
 
@@ -119,11 +118,11 @@ Blanc already covers the rest:
 - Quiet is Hibernate.
 - Close Other Tabs exists.
 
-None of this needs colors. Decision D6 is whether any of it joins this work or gets its own spec.
+None of this needs colors. The owner chose a separate spec for these items (D6).
 
 ## 9. Imports
 
-Bring Your Tabs groups imported tabs by the names in its own proposal (`tab-import-apply.js`). The handoff from the other browser (`tab-import-handoff.js`) carries no tab groups and no colors, so imported groups start with no color. Carrying Chrome's groups and colors across (Chrome's nine named colors mapped to the nearest preset, for example blue to sky and green to sage) would mean extending the handoff, and that is decision D4. Arc folders have no color.
+Bring Your Tabs groups imported tabs by the names in its own proposal (`tab-import-apply.js`). The handoff from the other browser (`tab-import-handoff.js`) carries no tab groups and no colors, so imported groups start with no color. Carrying Chrome's groups and colors across (Chrome's nine named colors mapped to the nearest preset, for example blue to sky and green to sage) would mean extending the handoff, so the owner left it to its own spec (D4). Arc folders have no color.
 
 ## 10. Data, persistence and sync
 
@@ -138,7 +137,8 @@ Bring Your Tabs groups imported tabs by the names in its own proposal (`tab-impo
 ## 11. Copy and parity
 
 New strings, in all six languages in the same PR:
-- Edit Group…
+- the group menu's accessible name and the ⋮ button's label (for example "Group options")
+- the name field's label
 - New Tab in Group
 - Move Group to New Window
 - None (the swatch's accessible name)
@@ -146,18 +146,18 @@ New strings, in all six languages in the same PR:
 
 `spec/features.md` F3 and `spec/parity-matrix.md` record the reversal, and a new F3 acceptance scenario covers set, clear, relaunch and Space switch. The website copy changes later (§2).
 
-## 12. Decisions for the owner
+## 12. The owner's decisions (2026-10-17)
 
-- **D1. Reverse "names, not colors"?** Recommended: yes, with colors optional and off by default.
-- **D2. The look.** Recommended: A, the tinted block with a dot, and colored Island dots. Alternatives: B (Helium's filled header) or C (edge line).
-- **D3. Presets only, or also custom colors?** Recommended: presets only for now. Custom colors can follow, using the Spaces hex picker.
-- **D4. Carry Chrome's groups and colors through Bring Your Tabs?** Recommended: not in this work; it needs handoff changes, so give it its own small spec.
-- **D5. A `/group-color` slash command?** Recommended: not now.
-- **D6. The Helium tab-menu items in §8 (New Tab Below, Close Tabs Above/Below, Mute Site)?** Recommended: a separate small spec; only the group menu changes here.
-- **D7. Where to choose a color.** Recommended: Edit Group… with swatches. Alternative: a Color ▸ submenu.
+- **D1. Reverse "names, not colors":** yes. Colors are optional and off by default.
+- **D2. The look:** A, the tinted block with a dot before the name and colored Island dots (see the mockup).
+- **D3. Colors:** the eight Spaces presets only. No custom colors.
+- **D4. Chrome's groups and colors through Bring Your Tabs:** not in this work; a separate small spec later.
+- **D5. A `/group-color` slash command:** not now.
+- **D6. Helium's tab-menu items (New Tab Below, Close Tabs Above/Below, Mute Site):** a separate spec.
+- **D7. Where to choose a color:** Helium's way. Right-clicking the header or clicking its ⋮ opens one group menu with the name field, the colors and the group actions (§6).
 
 ## 13. Verification (once decided)
 
-- **Unit:** color sanitizing; persistence and rollback (an older build's group objects have no color); Recently closed keeps the color; the group menu model.
-- **Desktop acceptance:** set a color from the group menu, then clear it; the color survives a relaunch and a Space switch; a closed colored group reopens colored; the Island's dots use the color.
+- **Unit:** color sanitizing; persistence and rollback (an older build's group objects have no color); Recently closed keeps the color; the group menu's actions and its refusal of a duplicate name.
+- **Desktop acceptance:** open the group menu by right-click and by the ⋮ button, in both lists; set a color, then clear it; rename from the name field; the color survives a relaunch and a Space switch; a closed colored group reopens colored; the Island's dots use the color.
 - **Visual:** light, dark and private screenshots of the panel, the side tab list and the Island for every preset, with the readability guard's edge case (graphite in dark) checked by eye.
