@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (inherited frames and Electron attribution measured)
+### 1.1 Progress checkpoint — October 17, 2026 (opaque-about and inherited deduplication measured)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,19 +49,18 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-inherited-observer-20261017/` repeats 56 cases.
-Native inherited about:blank/srcdoc joins HTTP/sandbox-HTTP for 8/8 early passes;
-24/24 private cases now have actual Blanc cancellation attribution. The six
-Electron metadata gaps close with exact synthetic sentinel/data admission;
-opaque origins stay literal null and the public scrubber stays unchanged.
-Six inherited exception/restoration probes and seven gate-safety regressions
-pass. Sixteen early-scriptlet gaps remain (four native opaque/data and twelve
-Electron regular). 187 tests/96-file lint pass; incremental build37.45s/eight steps,
-final guard0, measured31/74 footprint. Latency deferred. The separate
-`electron-instrumentation-build-request.md` is a draft, with unchecked §8;
-no Electron checkout/build started and no change to this tranche's approval.
-Next: review that proposal before independent Electron native instrumentation;
-opaque/blob/fenced/nested contexts, broader lifecycle and component containment.
+Current follow-up: `evidence/f12-opaque-dedup-20261017/` repeats 56 cases:
+42 scoped passes/14 gaps. Native regular early10/10 includes opaque srcdoc while
+retaining its null origin; private attribution24/24. Four inherited stress cases
+prove one main-world body despite repeated real extension insertion attempts;
+two opaque late-delivery cases remain unproved. Blob/data/nested-opaque early
+coverage stays a gap. Six inherited checks also pass without counters/observer.
+195 tests/102-file lint pass; one34.24s/six-step incremental build, final guard0,
+measured31/74 footprint. Latency remains deferred. Electron diagnostic build §8
+is unchecked; no checkout or build started. Next: broader opaque delivery,
+lifecycle/arbitrary scriptlets, containment, and independently instrumented
+Electron identity only after separate approval. Full prior network parity is
+historical, not rerun for this bounded follow-up.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
@@ -564,4 +563,4 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: inherited-frame native/extension late-path deduplication remains unmeasured; bounded constant/fetch success is not arbitrary-scriptlet acceptance.
+Current follow-up limitation: four inherited repeat-delivery cases now prove bounded deduplication; opaque late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified.

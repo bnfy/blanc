@@ -1006,3 +1006,54 @@ are labelled unmeasured (4–8h cold compile; up to220GiB new-root budget). No f
 setup or build started. The current tranche approval does not authorize it.
 
 Inherited-frame native/extension late-path deduplication is not proved by the bounded constant/fetch cases; an exactly-once probe remains required for broader scriptlets.
+
+## Opaque about selection and inherited deduplication — October 17, 2026
+
+Evidence: [opaque/dedup checkpoint](evidence/f12-opaque-dedup-20261017/README.md).
+Browser-side selection now admits exact committed about:blank/srcdoc with a
+browser-recorded tuple/precursor matching the actual non-opaque HTTP(S) parent.
+The precursor selects rules only; opaque origin stays `null` and is never used
+as a same-origin grant or a replacement network observation. Unknown precursor,
+opaque parent and unsupported URLs remain outside this bounded gate.
+
+The generated uBO payload wraps both its exported native main-world body and
+its extension insertion body with one per-payload random, per-realm once marker.
+The marker is non-enumerable/non-configurable/non-writable after installation.
+It is duplicate prevention, not an authorization boundary against page code.
+Exceptions that select no payload set no marker; a throwing body is not retried.
+New documents have independent markers. In-place filter-generation semantics
+and arbitrary scriptlets remain broader coverage work.
+
+Eight fresh sessions repeat 56 frame cases: **42 scoped passes / 14 gaps**.
+Native regular early checks now pass 10/10 (HTTP, sandbox HTTP, inherited srcdoc,
+blank, opaque srcdoc, each twice). All 24 private cancellation observations
+still pass; uBO remains disabled there. Two native data cases and twelve Electron
+early cases remain gaps. Eight no-script cases are sandbox enforcement only.
+
+Four inherited repeat-delivery cases, across two fresh document cycles, show
+one body execution with 4–5 attempts after two deliberate extension deliveries.
+The test explicitly resets upstream's isolated injection sentinel to force the
+late main-world path; it does not pretend these deliveries occurred naturally.
+Two opaque srcdoc cases pass early checks but extension late delivery cannot be
+observed, so their repeat-delivery scope remains a gap. Independent verification
+rejects missing attempts, duplicate bodies and opaque-origin substitution.
+
+Boundary run records blob, data and nested-opaque early gaps, plus one passing
+opaque-srcdoc exception. Seven existing gate-safety and six inherited
+normal/exception/restoration checks pass; a separate observer/counter-free
+payload repeats the six inherited checks. Full 5,123-network parity and complete
+previous ancestor matrices were not rerun and remain historical.
+
+One guarded incremental build: **34.24 s wrapper / 30.61 s Siso, six steps**,
+from a one-action plan. Final guard zero; fresh footprint **31 files / 74 hunks**.
+**195 focused tests / 102-file lint pass**. First lint found one harness global
+reference and was corrected. Two excluded dedup probes are retained: first
+never forced late delivery past upstream's isolated marker; second overclaimed
+opaque extension reachability and stopped. Neither is counted as acceptance.
+Disposable profiles/fixture CA keys/runtime processes were removed.
+
+Latency remains deferred, including gate and marker overhead. Electron early
+behavior and independent update-loader identity remain open; its diagnostic
+build request §8 is unchecked and no checkout/build started. Broader lifecycle,
+CSP/opaque/fenced contexts, arbitrary scriptlets, component containment and
+plan items 3–6 remain open. Task0 and the156 baseline are unchanged.

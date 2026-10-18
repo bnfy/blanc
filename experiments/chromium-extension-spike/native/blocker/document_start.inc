@@ -44,12 +44,17 @@ void DocumentScript::GetScript(const std::string& url, GetScriptCallback callbac
       const auto& origin = frame.GetLastCommittedOrigin();
       auto* parent = frame.GetParent();
       if ((!committed.IsAboutBlank() && !committed.IsAboutSrcdoc()) ||
-          committed.spec() != url || origin.opaque() || !parent ||
-          !origin.IsSameOriginWith(parent->GetLastCommittedOrigin()) ||
-          !origin.GetURL().SchemeIsHTTPOrHTTPS()) {
+          committed.spec() != url || !parent ||
+          parent->GetLastCommittedOrigin().opaque() ||
+          origin.GetTupleOrPrecursorTupleIfOpaque() !=
+              parent->GetLastCommittedOrigin().GetTupleOrPrecursorTupleIfOpaque() ||
+          !parent->GetLastCommittedOrigin().GetURL().SchemeIsHTTPOrHTTPS()) {
         std::move(callback).Run(true, ""); return; // Explicitly unsupported, no guessed fallback.
       }
-      selection = origin.GetURL();
+      // Sandboxed about documents retain a browser-owned precursor tuple.
+      // Use it only after matching the actual non-opaque parent, never as
+      // the document origin or an observation substitute.
+      selection = parent->GetLastCommittedOrigin().GetURL();
     } else if (committed.spec() != url) { std::move(callback).Run(false, ""); return; }
     auto& state = UboState(context);
     if (!state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }

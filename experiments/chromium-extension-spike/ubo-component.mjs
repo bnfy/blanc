@@ -1,4 +1,5 @@
 // Offline admission probe only. No provider readiness/reload protection claim.
+import { wrapMainWorld } from './scriptlet-once.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
 export const componentId='oddhmofgkplblkmckempfepikkophank';
 export const componentKey='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgmQ2nqsfUeKcq4+s+lUz53iaJ97Kay2Jxn0wR+ihw4xt0cDc+bC6DhN+4AgtpI2+5HqBsM9DX3d3IFe2umzq8f6tCxT/hsEHjifB1ZemwH22QEFSVBQb6M8XDYYjQ1Sjs4dbQHiC3uQE1GXaRNm6nbtgfWsHDkS66MffjZNQlr6Mwqm2FH1sdJPn/vcNZDg50wwi+Hy9/nU2lRUnNkd3zXtPJ2+2tffD3oC9nW5XVjqSGCgD0R54VhHUInJzYgsBkkgFyhLjNsJzBV0j7YKrmisdlBR2kB6WwFmDLg4Y1J9y3mwdH2u+5CEl9NZdvPA4w2YVBujvFoFDszZugp7fkQIDAQAB';
@@ -47,11 +48,16 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
  if(documentStart){
   assert(reloadGuard,'document gate requires reload guard');
   const replace=(file,from,to)=>{const target=path.join(output,file),text=fs.readFileSync(target,'utf8');assert.equal(text.split(from).length,2,'document-start anchor '+file);fs.writeFileSync(target,text.replace(from,to));};
+  const onceKey = '__blancUboOnce_' + crypto.randomBytes(16).toString('hex');
+  const wrapperSource = wrapMainWorld.toString();
+  replace('js/scriptlet-filtering.js','        const contentScript = [];', `        if (scriptletDetails.mainWorld) scriptletDetails.mainWorld = (${wrapperSource})(scriptletDetails.mainWorld, ${JSON.stringify(onceKey)}, ${JSON.stringify(observe)});\n        const contentScript = [];`);
+  changes.push('shared native/extension main-world per-document once marker; observe-only counters');
   fs.copyFileSync(new URL('./ubo-document-start.js',import.meta.url),path.join(output,'js/blanc-document-start.js'));
   replace('js/scriptlet-filtering.js','let scriptletDetails = this.scriptletCache.lookup(hostname);','let scriptletDetails = request.nocache === true ? undefined : this.scriptletCache.lookup(hostname);');
   replace('js/scriptlet-filtering.js','            bcSecret,','            bcSecret,\n            mainWorld: scriptletDetails.mainWorld || "",\n            isolatedCode: scriptletDetails.isolatedWorld ? isolatedWorldInjector.assemble(hostname, scriptletDetails) : "",');
   replace('js/scriptlet-filtering.js','const contentScript = [ scriptletDetails.code ];','const contentScript = [ /^https?:/.test(details.url) ? scriptletDetails.isolatedCode : scriptletDetails.code ];');
   replace('js/start.js','await blancGuard.activate(selfieIsValid);',"await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();");
+  if (observe) replace('js/start.js',"(await import('./blanc-document-start.js')).start();","(await import('./blanc-document-start.js')).start();\nglobalThis.__blancScriptletEngine = (await import('./scriptlet-filtering.js')).default;");
   changes.push('HTTP(S) frame main-world document-bound synchronous gate; ancestor-aware uncached selection; isolated/non-HTTP retain upstream path','js/blanc-document-start.js');
  }
  if(observe){
