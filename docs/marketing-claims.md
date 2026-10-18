@@ -213,8 +213,9 @@ original reports:
   by default), drawn as a tint on its block, a dot before its name and its
   tabs' Island dots. Right-clicking a group header, or its ⋮ button, opens a
   group menu with the name, the color, New Tab in Group, Move Group to New
-  Window, Ungroup and Close Group. Move Group to New Window wasn't
-  hand-checked on Linux before release, so don't claim it there. A link
+  Window, Ungroup and Close Group. On Linux, Move Group to New Window was
+  checked after release in an ARM64 VM on an unpackaged build, not on the x64
+  AppImage or a physical machine. A link
   opened in a new tab from a grouped tab opens ungrouped, like any new tab.
 - **Drag to reorder:** Since v1.30.0 the user can drag tabs and group headers
   in the expanded Island and in vertical tabs, or use Alt/Option+Shift+Up and
@@ -297,10 +298,10 @@ original reports:
 - **Pinned pages:** Since v1.37.0 a pinned tab remembers the page it was
   pinned on and starts there again after a normal quit and relaunch; after a
   crash it reopens on the last page. Back to Pinned Page and Replace Pinned
-  Page with Current are in the tab menu. The Windows updater handoff (no
-  recovery prompt, pinned tabs at their pinned pages after Restart Now) is
-  still to be confirmed, so don't claim pinned pages survive an update on
-  Windows until the release report records it.
+  Page with Current are in the tab menu. The owner confirmed on Windows that
+  after a v1.36.0 → v1.37.0 Restart Now there was no recovery prompt and
+  pinned tabs reopened at their pinned pages; that's a single machine, so
+  don't present it as tested across Windows setups.
 - **Open the Island on hover:** Since v1.37.0 an opt-in setting (off by
   default, Settings → General) opens the ⌘L panel when the pointer rests on
   the Island's address for 300 ms. It never opens from the rest of the Island.
