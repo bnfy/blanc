@@ -6638,6 +6638,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     httpEntryCount: 0,        // http(s) entries in navigationHistory
   };
   tabs.set(id, tab);
+  refreshSiteMute(tab, url); // a muted site's new tab starts muted (Mute Site)
   // A background-created tab (cmd-click, session restore, window.open child)
   // never passes through setActiveTab, so it would otherwise never be stamped.
   // A foreground creation overwrites this the moment it is deactivated.
@@ -7510,15 +7511,16 @@ function toggleSiteMute(tabId) {
 /** After a navigation: a tab on a muted host is muted; moving to another
  * host drops a one-tab unmute. */
 function refreshSiteMute(tab, url = tab.url) {
+  // Compare what the page hears, not just the flag: a one-tab unmute that
+  // ends on another muted site changes the audio while siteMuted stays true.
+  const before = effectiveTabMuted(tab);
   const host = hostOf(url);
   if (host !== (tab.siteMuteHost ?? null)) {
     tab.siteUnmuted = false;
     tab.siteMuteHost = host;
   }
-  const muted = siteMutes.has(siteMuteKey(tab), host);
-  if (muted === !!tab.siteMuted) return;
-  tab.siteMuted = muted;
-  liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
+  tab.siteMuted = siteMutes.has(siteMuteKey(tab), host);
+  if (effectiveTabMuted(tab) !== before) liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
 }
 
 function closeOtherTabsInWindow(keepId) {

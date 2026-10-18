@@ -75,3 +75,19 @@ test('per-tab unmute overrides the site until the host changes', () => {
   h.refreshSiteMute(h.tabs.get('a'), 'https://v.test/3');
   assert.equal(h.audio.get('a'), true, 'back on the muted host, the one-tab unmute is gone');
 });
+
+test('a one-tab unmute ends when the tab moves to another muted site', () => {
+  const h = harness([{ id: 'a', url: 'https://v.test/1' }, { id: 'b', url: 'https://w.test/1' }]);
+  h.toggleSiteMute('a');
+  h.toggleSiteMute('b');
+  h.toggleTabMuted('a');
+  assert.equal(h.audio.get('a'), false, 'unmuted on its own');
+  h.tabs.get('a').url = 'https://w.test/2';
+  h.refreshSiteMute(h.tabs.get('a'), 'https://w.test/2');
+  assert.equal(h.audio.get('a'), true, 'w.test is muted too, so its page is quiet again');
+});
+
+test('a tab created on a muted site starts muted, before its page commits', () => {
+  const create = mainSource.slice(mainSource.indexOf('function createTab('), mainSource.indexOf('\n}\n', mainSource.indexOf('function createTab(')));
+  assert.match(create, /tabs\.set\(id, tab\);\n\s*refreshSiteMute\(tab, url\);/);
+});
