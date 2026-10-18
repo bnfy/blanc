@@ -1,0 +1,492 @@
+{
+  "passed": true,
+  "scope": "single controlled client; unique allowed/blocked worker fetch",
+  "proofs": [
+    {
+      "label": "electron-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "99D4D205743986CE9F9CA987C6F3FD68",
+        "sessionId": "B40672DF89776C12189E858009856143",
+        "requestId": "92867.4",
+        "eventSequence": 35,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "99D4D205743986CE9F9CA987C6F3FD68",
+        "sessionId": "B40672DF89776C12189E858009856143",
+        "requestId": "92867.7",
+        "eventSequence": 38,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "769D0D9F1B08F8558B9BA0D5F540C543",
+        "sessionId": "6F5CD2EF21230C61527711E43A406EBD",
+        "requestId": "92885.4",
+        "eventSequence": 35,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-regular-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "769D0D9F1B08F8558B9BA0D5F540C543",
+        "sessionId": "6F5CD2EF21230C61527711E43A406EBD",
+        "requestId": "92885.7",
+        "eventSequence": 38,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "42F97E7835F5EFB65EFA5EDD462AAF3C",
+        "sessionId": "E592F44221CABB8EF22734150F276840",
+        "requestId": "92901.4",
+        "eventSequence": 35,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "42F97E7835F5EFB65EFA5EDD462AAF3C",
+        "sessionId": "E592F44221CABB8EF22734150F276840",
+        "requestId": "92901.7",
+        "eventSequence": 38,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "FDC48BBD3421357C9896712F1F71F6D6",
+        "sessionId": "6B87468023108A7CD6212C2FC9EB69E4",
+        "requestId": "92917.4",
+        "eventSequence": 35,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "electron-private-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "FDC48BBD3421357C9896712F1F71F6D6",
+        "sessionId": "6B87468023108A7CD6212C2FC9EB69E4",
+        "requestId": "92917.7",
+        "eventSequence": 38,
+        "join": "unique-observed-request-and-time",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3D0A3A0E9F826FE6278DFE6461D82FA2",
+        "sessionId": "282D4A02C8E1DE4390C06DDBFE21C5CB",
+        "requestId": "92934.4",
+        "eventSequence": 31,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3D0A3A0E9F826FE6278DFE6461D82FA2",
+        "sessionId": "282D4A02C8E1DE4390C06DDBFE21C5CB",
+        "requestId": "92934.7",
+        "eventSequence": 34,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "39164F8AC202C355463A08AA543332EA",
+        "sessionId": "E41BCBBE3FCE0C320B8D3FBA9BCA7E5E",
+        "requestId": "92997.4",
+        "eventSequence": 31,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-regular-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "regular",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "39164F8AC202C355463A08AA543332EA",
+        "sessionId": "E41BCBBE3FCE0C320B8D3FBA9BCA7E5E",
+        "requestId": "92997.7",
+        "eventSequence": 34,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "AA742B48EDEC4253AB892EB78D2C0FB4",
+        "sessionId": "031D1C439FB59038F40E69BE3B7B39F3",
+        "requestId": "93020.4",
+        "eventSequence": 31,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-a",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "AA742B48EDEC4253AB892EB78D2C0FB4",
+        "sessionId": "031D1C439FB59038F40E69BE3B7B39F3",
+        "requestId": "93020.7",
+        "eventSequence": 34,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/service-life/network",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3804AC94F8E59C3BCF899049A1544949",
+        "sessionId": "5E910C3E9900E97320B6ED7488E5BF0F",
+        "requestId": "93046.4",
+        "eventSequence": 31,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    },
+    {
+      "label": "chromium-private-b",
+      "url": "https://000491b06a.com/blanc-fixture/service-life/blocked",
+      "status": "resolved",
+      "context": {
+        "kind": "service_worker",
+        "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/service-life/worker.js",
+        "executionOrigin": "https://page.blanc-fixture.test",
+        "profileKind": "private",
+        "documentFrame": "not-associated",
+        "clients": {
+          "kind": "controlled-documents",
+          "status": "observed-stable",
+          "members": [
+            {
+              "role": "observed-page-target",
+              "origin": "https://page.blanc-fixture.test"
+            }
+          ]
+        }
+      },
+      "proof": {
+        "targetId": "3804AC94F8E59C3BCF899049A1544949",
+        "sessionId": "5E910C3E9900E97320B6ED7488E5BF0F",
+        "requestId": "93046.7",
+        "eventSequence": 34,
+        "join": "native-devtools-id",
+        "devtoolsType": "Fetch"
+      }
+    }
+  ],
+  "remainingGaps": [
+    "failed-startup without realm",
+    "update script correlation",
+    "multiple clients and in-flight ownership",
+    "cache-only context"
+  ]
+}

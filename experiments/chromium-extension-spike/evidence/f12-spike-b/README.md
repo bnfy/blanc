@@ -58,3 +58,36 @@ the no-extension-core-patch constraint. No core patch is justified by the audit.
 Next decision requires classifying a narrow browser-owned admission hook against
 that constraint, plus privilege containment and the list-reload hold design before
 runtime work. Spike B stays in progress; ordinary MV2's hard gate is unchanged.
+
+## Admission and reload-hold assessment — October 17, 2026
+
+A concrete candidate is browser-owned admission through ComponentLoader's public
+Add(manifest, root) API (`component_loader.h:95`), a fixed packaged identity and a
+narrow browser component allowlist entry. That would leave the MV2 deprecation
+handler, manifest parser and extension event router unchanged. Those changes are
+browser integration rather than demonstrated extension-core restoration; whether
+they suffice is still unproven. Do not use AddOrReplace's testing bypass, a global
+MV2 test override or a blanket component auto-grant change. No integration patch
+or runtime load was made during this assessment.
+
+The reload issue is concrete in the pinned payload: `js/storage.js:961-965` only
+suspends when canSuspend() is true, then resets both engines. Chromium's packaged
+`js/vapi-background.js:1378` returns false; suspendOneRequest/unsuspendAllRequests
+at 1353-1355 are empty. Electron's `src/main/ublock-host-mainworld.js:59-74` wraps
+loadFilterLists and signals the host before/after loading, holding decisions on
+failure. Component status does not change that code. Merely loading uBO would
+therefore not satisfy the reload gate.
+
+An acceptable prototype design must authenticate readiness/reload messages to the
+fixed packaged extension and background document, hold the regular-profile
+browser request proxy before releasing traffic, and fail closed on timeout,
+background loss or incomplete reload. Private traffic must keep Blanc Blocker.
+It must also avoid deadlocking the extension's own pinned list acquisition and
+prove that startup and concurrent reloads cannot outrun the hold. This is a design
+requirement, not implemented protection. Feature auto-grants and API use still need
+runtime inspection; allowlisting alone does not contain component privileges.
+
+Assessment outcome: candidate integration identified, **runtime admission not yet
+established**. Keep Spike B in progress. If it needs core gate/event-dispatch
+patches or cannot meet the scoped fail-closed hold, apply the approved stop rule;
+do not silently relax it. No production or baseline decision follows.

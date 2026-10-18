@@ -1374,3 +1374,26 @@ archives have verified member hashes. No native build/prepare/GN, no upstream
 patch delta, no new output. Latency deferred. Test invocation timestamps are in
 reports; owner attention/agent time not measured. Plan and coverage updated;
 156, permanent profiles/tabs and Task 0 extension-upgrade gate unchanged.
+
+### Controlled-fetch contexts and component-path design — October 17, 2026
+
+[Context evidence](evidence/f12-service-context-20261017/README.md) closes the
+bounded single-client controlled-fetch join: eight fresh runtime/profile sessions,
+16 allowed/blocked worker requests. A proven page event is separated from the
+worker network event; unknown duplicates remain gaps. Actual hook inputs and
+observed worker/client contexts compare, without substituting a top-frame origin.
+Same-URL update behavior still passes, but update-script attribution remains open
+because the native update-check request lacks a DevTools ID. Failed-startup and
+cache-only attribution and broader lifecycle cases remain gaps.
+
+[Component assessment](evidence/f12-spike-b/README.md) identifies a narrow
+browser-owned Add/allowlist candidate, without claiming runtime feasibility or
+extension-core restoration. Pinned Chromium uBO cannot suspend requests during
+filter-engine reset. Authenticated startup/reload holds, failure recovery and
+privilege containment are requirements before adoption, not implemented features.
+
+93 focused tests pass; 58-file lint clean. Existing worker-path regression is
+retained with the fresh context run. No native build, upstream patch delta or
+new output; latency deferred. Evidence archives/member hashes and source hashes
+verified. Plan and coverage updated. Owner attention/agent time not measured;
+156, permanent profiles/tabs and Task 0 upgrade gate remain unchanged.

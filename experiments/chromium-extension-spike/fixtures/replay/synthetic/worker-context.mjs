@@ -6,14 +6,17 @@ export function correlateWorker(run,row){
  const ev=run.workerEvidence;if(!ev||ev.faults.length)return {status:'gap',reason:'worker-observer-unavailable'};
  const initial=serviceScriptContext(run,row);if(initial)return initial;
  const events=ev.events;let boundRow=row,redirectParent=false;
- let requests=events.filter(e=>e.method==='Network.requestWillBeSent'&&e.params.url===boundRow.url);
+ // A controlled fetch emits both a page event and a distinct worker network
+ // event. Only the latter can describe a frameless worker-hook request.
+ const workerRequests=url=>events.filter(e=>e.method==='Network.requestWillBeSent'&&e.params.url===url&&!((run.browserKind==='chromium'&&boundRow.factory_kind==='service-worker-subresource'||run.browserKind==='electron'&&boundRow.frame===null)&&events.some(a=>a.method==='Target.attachedToTarget'&&a.params.sessionId===e.sessionId&&a.sequence<e.sequence&&a.params.targetInfo.type==='page'&&a.params.targetInfo.targetId===run.source?.observedPageTarget?.targetId&&e.params.frameId===a.params.targetInfo.targetId)));
+ let requests=workerRequests(boundRow.url);
  // Native interception may block before OnReceiveRedirect reaches the renderer.
  // Follow only the same logged DevTools request ID and contiguous native hops,
  // never a fixture's expected redirect graph or a different request's URL.
  while(requests.length===0&&run.browserKind==='chromium'&&boundRow.redirect_index>0&&boundRow.devtools_request_id&&boundRow.devtools_request_id!=='absent'){
   const parents=(run.records||[]).filter(r=>r.devtools_request_id===boundRow.devtools_request_id&&r.redirect_index===boundRow.redirect_index-1&&r.decision==='allow');
   if(parents.length!==1)break;boundRow=parents[0];redirectParent=true;
-  requests=events.filter(e=>e.method==='Network.requestWillBeSent'&&e.params.url===boundRow.url);
+  requests=workerRequests(boundRow.url);
  }
  if(requests.length!==1)return {status:'gap',reason:'worker-request-not-unique'};
  const request=requests[0],p=request.params;

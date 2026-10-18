@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (component audit and same-URL updates)
+### 1.1 Progress checkpoint — October 17, 2026 (component design and controlled-fetch contexts)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -60,6 +60,11 @@ Strict failed-script and controlled-fetch context acceptance remain open, as do
 unchanged-byte and HTTP cache/validator variants. Spike B's component follow-up
 documents required manifest identity, broader feature privileges, background-page
 support and browser-owned payload updates; runtime loading is still unproven.
+The follow-up identifies a narrow browser-owned Add/allowlist candidate and an
+authenticated fail-closed reload-hold design requirement; neither is implemented.
+`evidence/f12-service-context-20261017/README.md` closes 16 unique controlled
+worker fetch contexts across eight fresh sessions. Failed-startup, update-script,
+cache-only and broader lifecycle attribution remain explicit gaps.
 
 No tranche kill criterion has been observed at this checkpoint. Spike A remains
 inside the fixed 40-file / 120-hunk budget. Every native build used the existing

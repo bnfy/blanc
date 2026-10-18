@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Eight behavior runs now pass same-URL changed-byte registration.update(), failed registration and controlled network/cache/blocked fetch. Expected setup detachments are explicit incomplete observations; zero unexplained observer faults. Strict failed-script and controlled-fetch ownership, unchanged-byte/cache-validator updates, multi-client/teardown and cache eviction/restart remain gaps. See evidence/f12-service-update-20261017."
+      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Same-URL changed-byte update behavior passes. Sixteen unique allowed/blocked fetch contexts now match across eight fresh sessions with one stable controlled client. Proven page events are distinct from worker network events; unknown duplicates still fail. Failed-startup, update-script and cache-only attribution, unchanged-byte/cache-validator updates, multi-client/teardown and restart remain gaps. See evidence/f12-service-context-20261017."
     },
     {
       "priority": 2,

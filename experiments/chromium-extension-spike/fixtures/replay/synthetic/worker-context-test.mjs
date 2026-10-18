@@ -32,3 +32,13 @@ test('one independently observed controlled page is retained as a client, never 
  events.forEach((e,i)=>e.sequence=i);const r=correlateWorker(run,row);assert.equal(r.status,'resolved');assert.equal(r.context.documentFrame,'not-associated');assert.deepEqual(r.context.clients.members,[{role:'observed-page-target',origin:'https://page.test'}]);
 });
 test('multiple worker realms cannot be collapsed into one identity',()=>{const {run,row,events}=fixture();events.push({...events[1],sequence:5});assert.equal(correlateWorker(run,row).reason,'worker-execution-context-ambiguous');});
+test('controlled page event is distinct from its worker network event; unknown duplicate remains a gap',()=>{
+ for(const kind of ['electron','chromium']){
+  const {run,row,events}=fixture(kind);row.frame=null;row.factory_kind='service-worker-subresource';
+  events.unshift({method:'Target.attachedToTarget',params:{sessionId:'page-session',targetInfo:{targetId:'page',type:'page'}}});
+  events.push({method:'Network.requestWillBeSent',sessionId:'page-session',params:{url:row.url,frameId:'page'}});events.forEach((e,i)=>e.sequence=i);
+  assert.equal(correlateWorker(run,row).status,'resolved');
+  events.push({method:'Network.requestWillBeSent',sessionId:'unknown',params:{url:row.url,frameId:null},sequence:99});
+  assert.equal(correlateWorker(run,row).status,'gap');
+ }
+});
