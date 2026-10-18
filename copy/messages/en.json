@@ -547,8 +547,8 @@
     "maxLength": 14
   },
   "rail.section.tabs": {
-    "message": "tabs",
-    "note": "Lowercase heading of the rail section holding ungrouped tabs.",
+    "message": "Tabs",
+    "note": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
     "maxLength": 10
   },
   "permission.surfaceTitle": {

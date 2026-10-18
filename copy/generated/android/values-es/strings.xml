@@ -154,7 +154,7 @@
     <string name="rail_group_expanded">expandido</string>
     <string name="rail_private_marker">Privada</string>
     <string name="rail_section_pinned">Fijadas</string>
-    <string name="rail_section_tabs">pestañas</string>
+    <string name="rail_section_tabs">Pestañas</string>
     <string name="permission_surface_title">Permiso</string>
     <string name="permission_label">Solicitud de permiso del sitio</string>
     <string name="permission_allow">Permitir</string>

@@ -415,6 +415,19 @@
     return section;
   }
 
+  /** A run of ungrouped tabs: plain rows with no heading, set apart from the
+   * tinted group blocks around it (as in the island). The heading text stays
+   * its accessible name. */
+  function looseRun(tabs, activeTabId) {
+    const section = document.createElement('section');
+    section.className = 'vertical-tabs-section vertical-tabs-run';
+    section.dataset.dragSection = 'loose';
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-label', blancI18n.t('rail.section.tabs'));
+    for (const tab of tabs) section.appendChild(tabRow(tab, activeTabId));
+    return section;
+  }
+
   function groupSection(group, members, activeTabId, index) {
     if (!members.length) return null;
     const section = document.createElement('section');
@@ -422,6 +435,8 @@
     section.setAttribute('role', 'group');
     section.dataset.dragSection = 'group';
     section.dataset.groupId = group.id;
+    // The gap above a group names its first tab (tab-drag.js).
+    section.dataset.firstTabId = members[0].id;
     section.dataset.collapsed = String(!!group.collapsed);
 
     const containsActive = members.some((tab) => tab.id === activeTabId);
@@ -577,19 +592,31 @@
     const standalonePins = tabs.filter((tab) => tab.pinned && (tab.groupId ?? null) === null);
     fragment.appendChild(staticBucket(blancI18n.t('rail.section.pinned'), 'pinned', standalonePins, activeTabId));
 
-    groups.forEach((group, index) => {
-      const members = tabs.filter((tab) => tab.groupId === group.id);
-      const section = groupSection(group, members, activeTabId, index);
-      if (section) fragment.appendChild(section);
-    });
-
-    // Invalid orphaned group ids should never escape main's model, but keep
-    // their tabs visible if a future migration briefly produces one.
-    const looseTabs = tabs.filter((tab) => (
-      !tab.pinned &&
-      ((tab.groupId ?? null) === null || !knownGroupIds.has(tab.groupId))
-    ));
-    fragment.appendChild(staticBucket(blancI18n.t('rail.section.tabs'), 'loose', looseTabs, activeTabId));
+    // Groups and runs of ungrouped tabs, in tab order, as the island draws
+    // them (tab-sections.js). Invalid orphaned group ids should never escape
+    // main's model, but keep their tabs visible as a run if a future
+    // migration briefly produces one.
+    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+    let groupIndex = 0;
+    let endsInRun = false;
+    for (const entry of TabSections.sectionsOf(tabs)) {
+      const members = entry.tabIds.map((id) => byId.get(id));
+      const group = entry.groupId && knownGroupIds.has(entry.groupId)
+        ? groups.find((candidate) => candidate.id === entry.groupId)
+        : null;
+      if (group) {
+        const section = groupSection(group, members, activeTabId, groupIndex);
+        groupIndex += 1;
+        if (section) fragment.appendChild(section);
+        endsInRun = false;
+      } else {
+        fragment.appendChild(looseRun(members.filter((tab) => !tab.pinned), activeTabId));
+        endsInRun = true;
+      }
+    }
+    // Below a last group there is still a place for an ungrouped tab: the
+    // empty zone a drag reveals.
+    if (!endsInRun) fragment.appendChild(emptyZone('loose'));
 
     list.replaceChildren(fragment);
     list.scrollTop = scrollTop;

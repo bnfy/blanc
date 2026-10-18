@@ -925,17 +925,21 @@ Then('pinned rows lead unpinned rows inside each group', async function () {
   assert.equal(work.rows[1].pinned, false);
 });
 
-Then('loose ungrouped rows follow the named groups', async function () {
+Then('each run of ungrouped rows keeps its place in tab order around the named groups', async function () {
+  // "Loose first" was open before any group, "Loose last" after them all
+  // (spec 2026-10-17: ungrouped tabs may sit above, between or below groups).
   const snapshot = await railSnapshot(this.railPage);
   const groupIndexes = snapshot.sections
     .map((section, index) => section.kind === 'group' ? index : -1)
     .filter((index) => index >= 0);
-  const looseIndex = snapshot.sections.findIndex((section) => section.label === 'tabs');
-  assert.ok(looseIndex > Math.max(...groupIndexes));
-  assert.deepEqual(snapshot.sections[looseIndex].rows.map((row) => row.id), [
-    this.canonicalRail.looseFirst,
-    this.canonicalRail.looseLast,
-  ]);
+  const runs = snapshot.sections
+    .map((section, index) => ({ section, index }))
+    .filter(({ section }) => section.label === 'Tabs');
+  assert.equal(runs.length, 2);
+  assert.ok(runs[0].index < Math.min(...groupIndexes));
+  assert.ok(runs[1].index > Math.max(...groupIndexes));
+  assert.deepEqual(runs[0].section.rows.map((row) => row.id), [this.canonicalRail.looseFirst]);
+  assert.deepEqual(runs[1].section.rows.map((row) => row.id), [this.canonicalRail.looseLast]);
 });
 
 Then('the new-tab action is last', async function () {

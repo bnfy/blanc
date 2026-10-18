@@ -149,7 +149,7 @@
     <string name="rail_group_expanded">ausgeklappt</string>
     <string name="rail_private_marker">Privat</string>
     <string name="rail_section_pinned">Angeheftet</string>
-    <string name="rail_section_tabs">tabs</string>
+    <string name="rail_section_tabs">Tabs</string>
     <string name="permission_surface_title">Berechtigung</string>
     <string name="permission_label">Berechtigungsanfrage einer Website</string>
     <string name="permission_allow">Erlauben</string>

@@ -1,7 +1,7 @@
 # Ungrouped tabs anywhere — placing loose tabs above and between groups
 
 **Date:** 2026-10-17
-**Status:** draft for the owner's review. The four behavior decisions in §3 are the owner's, made on 2026-10-17. Nothing is built.
+**Status:** approved by the owner on 2026-10-17, including the four behavior decisions in §3; implementation plan in `docs/superpowers/plans/2026-10-17-ungrouped-tab-placement.md`.
 **Builds on:** [2026-10-07 drag reorder](2026-10-07-drag-reorder-tabs-groups-design.md) (`tabs:move`, `groups:reorder`, the ⌥⇧↑/↓ rule), [2026-10-16 Island lower section](2026-10-16-island-lower-section-design.md) (the Recently closed band and `closedSlot`).
 **Reverses:** the 2026-10-16 spec's anti-goal "Ungrouped tabs appearing between groups" and its §4.1 rule "Ungrouped tabs never sit between bands". The owner changed this on 2026-10-17.
 
@@ -44,7 +44,7 @@ One pure helper (in `tab-order.js`, no Electron) turns `tabOrder` and the tabs i
 
 **Upgrading.** When a window's tabs are loaded (session restore, opening a Space, reopening a closed group), the order is first normalized to today's look: groups in `groups[]` order, each group's members in their current relative order, then the ungrouped tabs. The first launch after the update therefore looks identical.
 
-**Saved files.** No format change. `session.json`, Spaces and `syncSnapshot` already save `tabOrder` with a group per tab (`urls` with the parallel `groupIds`). Only the Recently closed position needs a new field (§6).
+**Saved files.** `session.json`, Spaces and `syncSnapshot` already save `tabOrder` with a group per tab (`urls` with the parallel `groupIds`). Two small fields are added to a saved window entry: `sectionOrder: true`, which tells the next launch the order is already the display order (an entry without it is normalized as above), and the Recently closed position (§6).
 
 ## 5. Behavior
 
@@ -77,7 +77,7 @@ Both follow the section order of §3.2. A run remembers its last active tab for 
 
 ### 5.6 The rail
 
-The rail draws the same sections in the same order. A run has no heading in the panel; in the rail the single "Tabs" heading (`rail.section.tabs`) is dropped, and each run is drawn as plain tab rows between group headers. If that reads badly in review, the alternative is a quiet divider above each run, with no text.
+The rail draws the same sections in the same order, and looks like the ⌘L panel: each group is a tinted block (the panel's group band), and runs of ungrouped tabs are plain rows between the blocks, with no heading. The owner tried and turned down two alternatives on 2026-10-17: a "Tabs" heading over every run (it made runs look like unnamed groups, and suggested renaming them), and divider lines between sections. A run keeps "Tabs" as its accessible name.
 
 ## 6. Recently closed
 

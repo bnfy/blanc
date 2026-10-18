@@ -73,6 +73,12 @@ export default [
     languageOptions: { globals: { SpaceIdentity: 'readonly' } },
   },
   {
+    // index.html and overlay.html load tab-sections.js first; it publishes
+    // window.TabSections (groups and runs of ungrouped tabs).
+    files: ['src/renderer/renderer.js', 'src/renderer/overlay.js', 'src/renderer/vertical-tabs.js'],
+    languageOptions: { globals: { TabSections: 'readonly' } },
+  },
+  {
     files: ['cloudflare/**/src/**/*.js'],
     languageOptions: { sourceType: 'module', globals: globals.worker },
   },

@@ -6,11 +6,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
 const groupNameCase = require('../../src/main/group-name-case');
+const tabSections = require('../../src/renderer/tab-sections');
 
 // main.js cannot be required under node --test; lift the shipped functions.
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}`))?.[0];
-const sources = ['groupTabByName', 'reopenGroupEntry'].map(lift);
+const sources = ['groupTabByName', 'reopenGroupEntry', 'tabLayoutList'].map(lift);
 
 test('groupTabByName and reopenGroupEntry could be lifted from main.js', () => {
   assert.ok(sources[0], 'groupTabByName not found in main.js — update this test with it');
@@ -18,17 +19,18 @@ test('groupTabByName and reopenGroupEntry could be lifted from main.js', () => {
 });
 
 function harness(groups = []) {
-  const runtime = { groups };
+  const runtime = { groups, tabOrder: ['t1', 't2', 't3'] };
   const sandbox = {
     tabs: new Map(['t1', 't2', 't3'].map((id) => [id, { id, groupId: null }])),
     rt: () => runtime,
     crypto,
+    ...tabSections,
     pruneEmptyGroups: () => {},
     broadcastTabs: () => {},
     scheduleMenuRebuild: () => {},
     ...groupNameCase,
   };
-  vm.runInNewContext(`${sources[0]}\nthis.groupTabByName = groupTabByName;`, sandbox);
+  vm.runInNewContext(`${sources[0]}\n${sources[2]}\nthis.groupTabByName = groupTabByName;`, sandbox);
   return { groupTabByName: sandbox.groupTabByName, runtime, tabs: sandbox.tabs };
 }
 

@@ -44,8 +44,13 @@ function sanitizeName(raw) {
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
 /** Where the Recently closed band sits among the Space's groups; the default
  * (0, under Pinned) is never written. */
-const closedSlotColumn = (source) => (
-  Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {});
+const closedSlotColumn = (source) => ({
+  ...(Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {}),
+  // The order as drawn (spec 2026-10-17) and the band's item index; the
+  // closedSlot above stays the rollback copy, counting groups only.
+  ...(source.sectionOrder === true ? { sectionOrder: true } : {}),
+  ...(Number.isInteger(source.closedIndex) && source.closedIndex > 0 ? { closedIndex: source.closedIndex } : {}),
+});
 
 /** One workspace record, repaired — or null when it cannot be trusted.
  * Rejects (rather than repairs) identity fields: a record with no id, no
@@ -144,7 +149,7 @@ function loadFile(raw) {
   return { status: 'supported', file };
 }
 
-const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */

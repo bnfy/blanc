@@ -777,11 +777,12 @@
     // Reserve one slot for the active tab before applying pinned-first
     // priority. Any additional standalone pins remain included in +N.
     const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
-    const sectionMembers = tab.groupId
-      ? state.tabs
-        .filter((t) => t.groupId === tab.groupId)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned))
-      : state.tabs.filter((t) => !t.groupId && !t.pinned);
+    // The active tab's group, or its run of ungrouped tabs (tab-sections.js:
+    // ungrouped tabs between groups form separate runs, spec 2026-10-17).
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
+    const sectionMembers = (TabSections.sectionsOf(state.tabs)
+      .find((entry) => entry.tabIds.includes(tab.id))?.tabIds ?? [tab.id])
+      .map((id) => byId.get(id));
     const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {

@@ -576,6 +576,23 @@
           ]
         },
         {
+          "label": "beforeGroupId = \"tab-id-1\"",
+          "args": [
+            "group-id-1",
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:reorder",
+              "args": [
+                "group-id-1",
+                "tab-id-1"
+              ]
+            }
+          ]
+        },
+        {
           "label": "beforeGroupId = \"recently-closed\"",
           "args": [
             "group-id-1",
@@ -635,6 +652,21 @@
               "channel": "groups:move-closed",
               "args": [
                 "group-id-1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "beforeGroupId = \"tab-id-1\"",
+          "args": [
+            "tab-id-1"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:move-closed",
+              "args": [
+                "tab-id-1"
               ]
             }
           ]

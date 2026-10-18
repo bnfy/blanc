@@ -6068,43 +6068,43 @@
       }
     },
     "rail.section.tabs": {
-      "comment": "Lowercase heading of the rail section holding ungrouped tabs.",
+      "comment": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestañas"
+            "value": "Pestañas"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglets"
+            "value": "Onglets"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "schede"
+            "value": "Schede"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "abas"
+            "value": "Abas"
           }
         }
       }

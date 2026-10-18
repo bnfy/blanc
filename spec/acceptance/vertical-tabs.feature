@@ -134,7 +134,7 @@ Feature: Desktop vertical tabs
     Then ungrouped pinned rows appear first
     And each named group follows in canonical group order
     And pinned rows lead unpinned rows inside each group
-    And loose ungrouped rows follow the named groups
+    And each run of ungrouped rows keeps its place in tab order around the named groups
     And the new-tab action is last
     And remote-device tabs do not appear in the rail
     But remote-device tabs remain available in the Quick Switcher and start page

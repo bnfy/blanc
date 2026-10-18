@@ -50,6 +50,9 @@ const HOST_ASSETS = new Map([
     // Pure drag-to-reorder controller shared by the rail and the island so the
     // two surfaces cannot disagree. No IPC of its own and no application data.
     ['/tab-drag.js', 'tab-drag.js'],
+    // Pure tab-order sections (groups and runs of ungrouped tabs), shared
+    // with main so the rail, the island and main draw one order. No IPC.
+    ['/tab-sections.js', 'tab-sections.js'],
     // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
     // and no application data; the strip mark and the Spaces menu share it.
     ['/space-identity.js', 'space-identity.js'],
@@ -58,6 +61,7 @@ const HOST_ASSETS = new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
     ['/workspace-ui.js', 'workspace-ui.js'],
+    ['/tab-sections.js', 'tab-sections.js'],
     ['/tab-drag.js', 'tab-drag.js'],
     // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
     // and no application data; the strip mark and the Spaces menu share it.

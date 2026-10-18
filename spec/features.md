@@ -96,7 +96,8 @@ toolbar (Bowser Design System "Island Chrome").
   offers **Rename Group…** (a name another group already has is refused, not
   merged), **Ungroup** and **Close Group**.
 - The pill's direct dots show standalone pins followed by the active section:
-  the active named group, loose ungrouped tabs, or the pinned shelf itself.
+  the active named group, the active tab's run of ungrouped tabs, or the
+  pinned shelf itself.
   They share an eight-dot budget, always retain the active tab, and use `+N` to
   count every other tab in the window. A group's pinned tabs stay inside it and
   lead its rows/dots; only ungrouped pins use the standalone pinned section.
@@ -104,7 +105,15 @@ toolbar (Bowser Design System "Island Chrome").
   collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
-  nth *group's* first tab when groups exist.
+  nth *section's* first tab when groups exist.
+- **Ungrouped tabs anywhere:** the window's tab order is the order drawn.
+  Ungrouped tabs may sit above, between or below groups; each run of ungrouped
+  tabs with no group between them is its own section, numbered with the groups
+  top to bottom. A new group appears where its tab was (directly below the
+  group that tab left, if any); Remove from Group lands a tab directly below
+  its group; Ungroup leaves the tabs where they were. New tabs still land at the
+  bottom. A window saved before this order is laid out as before: groups, then
+  ungrouped tabs.
 - New **private** tabs are never grouped.
 - A tab opened from a link in a grouped tab (`window.open` / `target=_blank`,
   Open Link in New Tab, Open Link in Glance) opens **ungrouped**, in the same
@@ -112,10 +121,12 @@ toolbar (Bowser Design System "Island Chrome").
   only when the person moves it there.
 - **Drag to reorder** (rail and expanded island, same gesture): drag a tab
   within its section, into another group's section or onto any group header
-  (appends; a collapsed group stays collapsed), or out to the loose section.
-  Dragging never changes pinned state. Drag a group header to reorder groups;
+  (appends; a collapsed group stays collapsed), or into any gap above, between
+  or below groups, where it becomes ungrouped. Dragging never changes pinned
+  state. Drag a group header to reorder groups, including past ungrouped tabs;
   cluster order (⌘1–9, ⌥⌘↑/↓, pill dots) follows. ⌥⇧↑/↓ does the same from the
-  keyboard, skipping collapsed groups and stopping at either end. Dragging out
+  keyboard, stopping in each gap between groups, skipping collapsed groups (but
+  not the gaps beside them) and stopping at either end. Dragging out
   over page content does nothing and gives the page no data.
 - **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
   `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
@@ -626,8 +637,9 @@ From the desktop `DEFAULTS`:
   divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
   from anywhere.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
-  named groups (group pins first), then loose tabs, followed by the new-tab
-  action. Rows expose favicon and title plus active, loading, private, pinned,
+  then named groups (group pins first) and runs of ungrouped tabs in tab order,
+  followed by the new-tab action. As in the island, each group is a tinted
+  block and runs of ungrouped tabs are plain rows with no heading. Rows expose favicon and title plus active, loading, private, pinned,
   audible, and muted states. Directly hovering a genuinely truncated title
   starts a delayed, reduced-motion-aware reading pass to its hidden end;
   fully visible titles stay still and pointer exit restores the ellipsis.
@@ -636,7 +648,7 @@ From the desktop `DEFAULTS`:
   become rail rows.
 - Pointer actions switch, close, middle-click close, create a new tab, and
   fold/unfold groups. Drag reorder follows F3's rule: tabs may move between
-  groups and the loose section, never across the pinned boundary; a
+  groups and the ungrouped places between them, never across the pinned boundary; a
   pin-crossing drop is rejected without changing order, membership or pinned
   state. Pin/unpin, mute/unmute, duplicate, and group membership editing
   remain available through the Island and native menus in the first rail
