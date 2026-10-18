@@ -6,6 +6,7 @@ const { t } = blancI18n;
 const E = window.MahjongEngine;
 const S = window.MahjongState;
 const sound = window.MahjongSound;
+const FX = window.MahjongFx;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
@@ -795,6 +796,61 @@ function launchTrayBurst() {
   trackTransient(burst, 560);
 }
 
+function visibleRect(element) {
+  const rect = element?.getBoundingClientRect();
+  return rect && rect.width > 0 && rect.height > 0 ? rect : null;
+}
+
+// Trails and marks sit on a fixed layer over the page: in Burst the trail
+// reaches a tray slot outside the board frame, which clips its contents.
+const VIEWPORT_ORIGIN = Object.freeze({ left: 0, top: 0 });
+
+function launchMatchTrail(fromEl, toEl, { tier } = {}) {
+  const from = visibleRect(fromEl);
+  const to = visibleRect(toEl);
+  if (!from || !to) return;
+  const geometry = FX.trailGeometry(from, to, VIEWPORT_ORIGIN);
+  const trail = document.createElement('div');
+  trail.className = tier ? `mj-trail mj-trail-${tier}` : 'mj-trail';
+  trail.setAttribute('aria-hidden', 'true');
+  trail.style.setProperty('--mj-trail-x', String(geometry.x));
+  trail.style.setProperty('--mj-trail-y', String(geometry.y));
+  trail.style.setProperty('--mj-trail-length', String(geometry.length));
+  trail.style.setProperty('--mj-trail-angle', String(geometry.angle));
+  trail.style.setProperty('--mj-trail-thickness', String(geometry.thickness));
+  document.body.append(trail);
+  trackTransient(trail, FX.TRAIL_MS);
+}
+
+// Reduced motion: a still glow where each matched tile was, nothing travels.
+function launchMatchMarks(elements) {
+  for (const element of elements) {
+    const rect = visibleRect(element);
+    if (!rect) continue;
+    const mark = document.createElement('div');
+    mark.className = 'mj-match-mark';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.style.setProperty('--mj-mark-x', String(rect.left));
+    mark.style.setProperty('--mj-mark-y', String(rect.top));
+    mark.style.setProperty('--mj-mark-w', String(rect.width));
+    mark.style.setProperty('--mj-mark-h', String(rect.height));
+    document.body.append(mark);
+    trackTransient(mark, 400);
+  }
+}
+
+function launchPairTrail(fromEl, toEl, tier = null) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) launchMatchMarks([fromEl, toEl]);
+  else launchMatchTrail(fromEl, toEl, { tier });
+}
+
+// A tile parked a moment ago may still be flying in, so its slot is not
+// rendered yet; the slot receiving it stands in.
+function traySlotFor(tileIndex) {
+  return document.querySelector(`.mj-tray-slot[data-tile-index="${tileIndex}"]`)
+    || document.querySelector('.mj-tray-slot.is-receiving');
+}
+
 function launchScoreFlight(result, index) {
   if (result.type !== 'tray-pair') return;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -866,6 +922,19 @@ function animateTileResult(result, index) {
   const immediate = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   beginComboAnimationPause();
   if (locksInput) setTileAnimationBusy(true);
+  const trailTier = result.comboCount >= 3 ? comboTier(result.comboCount).name : null;
+  if (result.type === 'pair') {
+    launchPairTrail(tileButtons[result.indices[0]], tileButtons[result.indices[1]], trailTier);
+  } else if (result.type === 'tray-pair') {
+    launchPairTrail(traySlotFor(result.indices[0]), tileButtons[index], trailTier);
+  }
+  if (result.autoClear?.indices?.length === 2) {
+    const [first, second] = result.autoClear.indices;
+    const firstEl = result.autoClear.source === 'tray' ? traySlotFor(first) : tileButtons[first];
+    window.setTimeout(() => {
+      if (generation === tileAnimationGeneration) launchPairTrail(firstEl, tileButtons[second]);
+    }, immediate ? 0 : FX.AUTO_TRAIL_DELAY_MS);
+  }
   const flightDuration = startTrayFlight(result, index);
   if (result.type === 'tray-pair') {
     const from = Math.max(0, result.score - result.userPoints - result.bonusPoints);

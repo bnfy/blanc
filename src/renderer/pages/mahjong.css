@@ -2029,6 +2029,47 @@
   .mj-button { width: auto; }
 }
 
+/* Match trail: a short glowing stroke from the first matched tile to the
+   second, on a fixed layer so it can reach the Burst tray. */
+.mj-trail {
+  position: fixed;
+  z-index: 40;
+  left: calc(var(--mj-trail-x) * 1px);
+  top: calc(var(--mj-trail-y) * 1px);
+  width: calc(var(--mj-trail-length) * 1px);
+  height: calc(var(--mj-trail-thickness) * 1px);
+  margin-top: calc(var(--mj-trail-thickness) * -0.5px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--mj-accent) 16%, rgba(255, 255, 255, 0.85) 55%, var(--mj-accent) 84%, transparent);
+  box-shadow: 0 0 12px var(--mj-accent-soft), 0 0 3px var(--mj-accent);
+  transform-origin: 0 50%;
+  rotate: calc(var(--mj-trail-angle) * 1deg);
+  pointer-events: none;
+  animation: mj-trail-draw 320ms cubic-bezier(.2,.8,.3,1) both;
+}
+.mj-trail-brilliant,
+.mj-trail-masterful {
+  height: calc(var(--mj-trail-thickness) * 1.3px);
+  box-shadow: 0 0 18px var(--mj-accent-soft), 0 0 5px var(--mj-accent);
+}
+@keyframes mj-trail-draw {
+  0% { scale: 0 1; opacity: 1; }
+  55% { scale: 1 1; opacity: 1; }
+  100% { scale: 1 1; opacity: 0; }
+}
+
+.mj-match-mark {
+  position: fixed;
+  z-index: 40;
+  left: calc(var(--mj-mark-x) * 1px);
+  top: calc(var(--mj-mark-y) * 1px);
+  width: calc(var(--mj-mark-w) * 1px);
+  height: calc(var(--mj-mark-h) * 1px);
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px var(--mj-accent), 0 0 18px var(--mj-accent-soft);
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mahjong-body *,
   .mahjong-body *::before,
@@ -2040,6 +2081,7 @@
   }
 
   .mj-tile { animation-delay: 0ms !important; }
+  .mj-trail { display: none; }
 
   .mj-tile.hinted {
     animation: none;

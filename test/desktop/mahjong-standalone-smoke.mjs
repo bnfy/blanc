@@ -62,7 +62,7 @@ try {
           if (!name || !match) continue;
           free[first].click();
           match.click();
-          return true;
+          return document.querySelectorAll('.mj-trail, .mj-match-mark').length > 0 ? 'trail' : 'no trail';
         }
         return false;
       })()`);
@@ -70,7 +70,30 @@ try {
     Boolean,
     'a playable standalone Mahjong pair',
   );
-  assert.equal(played, true);
+  assert.equal(played, 'trail', 'a matched pair draws a trail');
+  const trailCleared = await waitFor(
+    () => app.evaluate(async ({ webContents }) => {
+      const wc = webContents.getAllWebContents()
+        .find((candidate) => candidate.getURL().startsWith('blanc://mahjong/'));
+      return wc.executeJavaScript(`(() => {
+        const free = [...document.querySelectorAll('.mj-tile:not([data-blocked]):not([hidden])')];
+        for (let first = 0; first < free.length; first += 1) {
+          const name = free[first].getAttribute('aria-label')?.split(',')[0];
+          const match = free.slice(first + 1).find((tile) => tile.getAttribute('aria-label')?.split(',')[0] === name);
+          if (!name || !match) continue;
+          free[first].click();
+          match.click();
+          const drawn = document.querySelectorAll('.mj-trail, .mj-match-mark').length;
+          document.getElementById('mjUndo').click();
+          return drawn > 0 && document.querySelectorAll('.mj-trail, .mj-match-mark').length === 0;
+        }
+        return false;
+      })()`);
+    }),
+    Boolean,
+    'undo clearing an in-flight trail',
+  );
+  assert.equal(trailCleared, true);
   const savedGameUrl = (await app.evaluate(() => globalThis.__blanc.state()))
     .tabs.find((tab) => tab.id === launched.activeTabId)?.loadedUrl;
   assert.ok(savedGameUrl?.startsWith('blanc://mahjong/'));
@@ -98,7 +121,7 @@ try {
       return (await wc.capturePage()).toPNG().toString('base64');
     });
     fs.mkdirSync('output/playwright', { recursive: true });
-    fs.writeFileSync('output/playwright/mahjong-lacquer.png', Buffer.from(png, 'base64'));
+    fs.writeFileSync('output/playwright/mahjong-dawn-sky.png', Buffer.from(png, 'base64'));
   }
 } finally {
   await app.close().catch(() => {});

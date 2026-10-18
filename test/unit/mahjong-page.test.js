@@ -805,6 +805,27 @@ test('tile numerals are Inter Bold while the game UI uses Instrument Sans', () =
   assert.doesNotMatch(mahjongStyles, /--font-mono/);
 });
 
+test('match trail is placed by custom properties on a fixed layer', () => {
+  assert.match(controller, /function launchMatchTrail\(fromEl, toEl, \{ tier \} = \{\}\)/);
+  assert.match(controller, /setProperty\('--mj-trail-length'/);
+  assert.match(controller, /trackTransient\(trail, FX\.TRAIL_MS\)/);
+  assert.match(mahjongStyles, /\.mj-trail\s*\{[^}]*position:\s*fixed;[^}]*width:\s*calc\(var\(--mj-trail-length\) \* 1px\);[^}]*background:[^}]*var\(--mj-accent\)/);
+  assert.match(mahjongStyles, /\.mj-trail\s*\{[^}]*pointer-events:\s*none;/);
+  assert.doesNotMatch(controller.match(/function launchMatchTrail[\s\S]*?\n\}/)[0], /style\.(left|top|width)\s*=/, 'geometry goes through custom properties');
+});
+
+test('reduced motion swaps the travelling trail for static marks', () => {
+  const reduced = mediaBlocks('(prefers-reduced-motion: reduce)').join('\n');
+  assert.match(reduced, /\.mj-trail\s*\{[^}]*display:\s*none;/);
+  assert.match(controller, /function launchMatchMarks\(elements\)/);
+  assert.match(mahjongStyles, /\.mj-match-mark\s*\{[^}]*position:\s*fixed;[^}]*pointer-events:\s*none;/);
+});
+
+test('auto-clears get their own delayed trail', () => {
+  assert.match(controller, /FX\.AUTO_TRAIL_DELAY_MS/);
+  assert.match(controller, /generation === tileAnimationGeneration\) launchPairTrail\(/);
+});
+
 test('notices are dusk pills anchored inside the table instead of loose text at its edge', () => {
   assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-pill\);[^}]*box-shadow:/);
   const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
