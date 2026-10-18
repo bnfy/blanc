@@ -21,8 +21,8 @@
 | `reload` | navigation | invoke | `tabs:reload` | `(id: TabId) => Promise<boolean \| undefined>` | all |
 | `stop` | navigation | invoke | `tabs:stop` | `(id: TabId) => Promise<void>` | all |
 | `moveTab` | tabs | invoke | `tabs:move` | `(id: TabId, target: TabMoveTarget) => Promise<boolean>` | all |
-| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| 'recently-closed' \| null) => Promise<boolean>` | all |
-| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| null) => Promise<boolean>` | all |
+| `reorderGroup` | tabs | invoke | `groups:reorder` | `(id: GroupId, beforeGroupId: GroupId \| TabId \| 'recently-closed' \| null) => Promise<boolean>` | all |
+| `moveClosedSection` | tabs | invoke | `groups:move-closed` | `(beforeGroupId: GroupId \| TabId \| null) => Promise<boolean>` | all |
 | `renameGroup` | groups | invoke | `groups:rename` | `(groupId: GroupId, name: string) => Promise<GroupRenameResult>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
@@ -217,8 +217,8 @@ Where a dragged or keyboard-moved tab should land. The pinned state never change
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `groupId` | `GroupId \| null` | Target group, or null for the loose section / standalone pins. |
-| `beforeId` | `TabId \| null` | Land before this tab of the target bucket; null means that bucket's end. |
+| `groupId` | `GroupId \| null` | Target group, or null for an ungrouped place / standalone pins. |
+| `beforeId` | `TabId \| null` | Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group) or itself (ungrouped in place); null is then the end of the list. |
 
 ### `OpenWorkspaceOptions`
 
@@ -466,7 +466,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
-| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
+| `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
@@ -485,7 +485,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
 | `closed` | `ClosedEntrySummary[]` |  |
-| `closedSlot` | `number` | How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
+| `closedSlot` | `number` | How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). |
 | `tabLayout` | `TabLayout` |  |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |

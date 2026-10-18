@@ -46,9 +46,9 @@ export type CreateTabOptions = { private?: boolean };
 
 /** Where a dragged or keyboard-moved tab should land. The pinned state never changes. */
 export interface TabMoveTarget {
-  /** Target group, or null for the loose section / standalone pins. */
+  /** Target group, or null for an ungrouped place / standalone pins. */
   groupId: GroupId | null;
-  /** Land before this tab of the target bucket; null means that bucket's end. */
+  /** Land before this tab of the target bucket; null means that bucket's end. An unpinned tab going ungrouped may name a loose tab, a group's first drawn tab (above that group) or itself (ungrouped in place); null is then the end of the list. */
   beforeId: TabId | null;
 }
 
@@ -256,7 +256,7 @@ export interface TabsSnapshot {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
-  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
   verticalTabsWidth: number;
@@ -273,7 +273,7 @@ export interface TabsUpdatedPayload {
   glanceTabId: TabId | null;
   groups: TabGroup[];
   closed: ClosedEntrySummary[];
-  /** How many of groups sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
+  /** How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned). */
   closedSlot: number;
   tabLayout: TabLayout;
   adblockEnabled: boolean;
@@ -762,20 +762,20 @@ export interface BlancBrowserAPI {
    */
   stop(id: TabId): Promise<void>;
   /**
-   * Move a tab within its bucket or into another group's matching bucket. Never changes pinned state. Resolves false for a rejected request.
+   * Move a tab within its bucket, into another group's matching bucket, or to an ungrouped place above, between or below groups. Never changes pinned state. Resolves false for a rejected request.
    * IPC: invoke `tabs:move`.
    */
   moveTab(id: TabId, target: TabMoveTarget): Promise<boolean>;
   /**
-   * Move a group before another group, directly above the Recently closed band with 'recently-closed', or to the end with null.
+   * Move a group before another group, an ungrouped tab, the Recently closed band ('recently-closed'), or to the end with null.
    * IPC: invoke `groups:reorder`.
    */
-  reorderGroup(id: GroupId, beforeGroupId: GroupId | 'recently-closed' | null): Promise<boolean>;
+  reorderGroup(id: GroupId, beforeGroupId: GroupId | TabId | 'recently-closed' | null): Promise<boolean>;
   /**
-   * Move the ⌘L panel's Recently closed band before a group, or after the last group with null.
+   * Move the ⌘L panel's Recently closed band before a group or an ungrouped tab, or to the end with null.
    * IPC: invoke `groups:move-closed`.
    */
-  moveClosedSection(beforeGroupId: GroupId | null): Promise<boolean>;
+  moveClosedSection(beforeGroupId: GroupId | TabId | null): Promise<boolean>;
   /**
    * Rename a group, keeping the case typed. An empty or unchanged name changes nothing; another group's name in this window (in any case) is refused.
    * IPC: invoke `groups:rename`.
