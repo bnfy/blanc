@@ -1,0 +1,10 @@
+[
+  {
+    "path": "content/browser/service_worker/service_worker_single_script_update_checker.cc",
+    "sha256": "f6ffad1d53e0b275f38a7fec8e06719283a0d7861d74dd9fa4dd8ca86173f695"
+  },
+  {
+    "path": "content/browser/service_worker/service_worker_updated_script_loader.cc",
+    "sha256": "989fad1e612c5c980beaa31aef1ecfb452a9f7dc89d07f6eb6408f1db6e4f75d"
+  }
+]

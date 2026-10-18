@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (failed-loader identity and update guard)
+### 1.1 Progress checkpoint — October 17, 2026 (component admission probe)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -43,8 +43,8 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
-| 2. Spike B | **In progress: source audit** | `evidence/f12-spike-b/README.md` traces parser, deprecation, install/enable/startup, policy, component exceptions and blocking API gates at the 157 pin. Ordinary MV2 is disabled; component packaging and privileges still require audit. Exhaustive gate inventory, uBO runtime, list-reload hold and parity remain pending. No Spike B build or extension-system patch has run. |
-| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint remains 25 files / 62 hunks; this checkpoint changes only experiment harness/docs and adds no upstream file or hunk. Design artifact remains required. |
+| 2. Spike B | **In progress: offline component probe** | Source audit remains in `evidence/f12-spike-b/README.md`. The switch-gated browser component Add/allowlist prototype has been incrementally compiled; runtime outcomes and failed attempts are in `evidence/f12-component-admission-20261017/`. No extension-core MV2 override. Admission does not prove blocking, least privilege, readiness or the reload hold; those gates remain open. |
+| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 27 files / 65 hunks; component integration adds two browser files and three hunks. Design artifact remains required. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
@@ -71,7 +71,10 @@ explicitly unobserved. It also fixes false Electron update correlation when a
 repeated hook occurrence could borrow the initial token; all eight update contexts
 remain rejected. Other startup failures are gaps. Spike B now records the required
 acknowledgement-before-reset reload protocol and its runtime failure probes;
-component loading/bridge protection are still not implemented.
+Component admission is now implemented as an explicit offline probe; authenticated
+bridge protection remains unimplemented. The update checker creates its request
+ID after constructing throttles, independently of the later updated-script loader.
+No safe cross-runtime identity join has been established; update contexts stay gaps.
 
 No tranche kill criterion has been observed at this checkpoint. Spike A remains
 inside the fixed 40-file / 120-hunk budget. Every native build used the existing

@@ -120,3 +120,11 @@ first inventory the actual admission/bridge patches against the fixed budget and
 core-patch rule. Required failure probes: delayed startup, held reload with page
 traffic, overlapping reloads, background crash, stale release, private-profile
 isolation and restart. Passing a component load alone cannot close Spike B.
+# Component admission follow-up
+
+The [offline admission checkpoint](../f12-component-admission-20261017/README.md)
+now proves pinned uBO 1.75.0 background target, popup and runtime identity through
+normal ComponentLoader::Add with a switch-gated fixed-ID allowlist. Earlier
+"runtime unproven" notes below describe the source-audit checkpoint. Startup
+readiness, blocking parity, authenticated reload hold and privilege containment
+are still unproven; component admission alone closes none of those gates.

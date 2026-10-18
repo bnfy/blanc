@@ -792,3 +792,15 @@ and failure probes. These are runtime prerequisites, not implemented protection.
 Three archives verified with source hashes. No native build or patch delta;
 latency deferred. Plan/coverage updated. Owner attention/agent time not measured;
 156, permanent profiles/tabs and Task 0 upgrade gate unchanged.
+# Tranche 2 routine incremental component probe — October 17, 2026
+
+Evidence: [offline component admission](evidence/f12-component-admission-20261017/README.md).
+Invocations: payload generation (658 hashes verified); prepare on 157; guarded
+`--check` (2 scheduled actions before generated expansion); guarded `--build`
+(4.79 s failed compile, restricted ScopedAllowBlocking); repaired guarded
+`--build` (33.35 s success, 6 completed steps). No cold build or environment reset.
+Both invocations and the failed/runtime retries are archived. Runtime admission
+passes; provider readiness/reload protection and update-script identity remain
+open. Budget 25/62 before, 27/65 after. Context regression 95/95, component 3/3.
+These costs belong to routine tranche work, never Task 0's cold column. Latency
+deferred; owner attention/agent effort not measured.

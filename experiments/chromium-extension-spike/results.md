@@ -1420,3 +1420,14 @@ and failure probes. These are runtime prerequisites, not implemented protection.
 Three archives verified with source hashes. No native build or patch delta;
 latency deferred. Plan/coverage updated. Owner attention/agent time not measured;
 156, permanent profiles/tabs and Task 0 upgrade gate unchanged.
+# Offline uBO component admission checkpoint — October 17, 2026
+
+See [component evidence](evidence/f12-component-admission-20261017/README.md).
+Pinned uBO 1.75.0 background target and popup runtime identity pass in an offline
+disposable profile; private availability is disabled. Ordinary MV2 gates remain
+untouched. Initial compile and harness failures are retained. Incremental repair
+build: 33.35 seconds, six steps; footprint 27 files / 65 hunks. 95 context tests
+and three component tests pass. Update-script identity remains unresolved;
+no initial-token borrowing or URL-based attribution was admitted. Blocking parity,
+authenticated startup/reload hold and privilege containment remain open. Latency
+stays deferred and 156/permanent profiles remain untouched.
