@@ -1834,6 +1834,12 @@
               "width": 1,
               "height": 1,
               "hoverCapable": true,
+              "hoverRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
               "shieldAnchor": {
                 "right": 1,
                 "center": 1,
@@ -1860,6 +1866,12 @@
                   "width": 1,
                   "height": 1,
                   "hoverCapable": true,
+                  "hoverRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
                   "shieldAnchor": {
                     "right": 1,
                     "center": 1,

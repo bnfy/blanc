@@ -476,8 +476,8 @@
     <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
-    <string name="tab_menu_return_pinned_home">Zur Ausgangsseite des Tabs zurückkehren</string>
-    <string name="tab_menu_set_pinned_home">Diese Seite als Ausgangsseite festlegen</string>
+    <string name="tab_menu_return_pinned_home">Zurück zur angehefteten Seite</string>
+    <string name="tab_menu_set_pinned_home">Angeheftete Seite durch aktuelle ersetzen</string>
     <string name="tab_menu_unpin">Tab lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>
     <string name="tab_menu_unmute">Ton einschalten</string>
@@ -896,7 +896,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_island_site_colors_label">Website-Farben übernehmen</string>
     <string name="settings_general_island_site_colors_hint">Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs.</string>
     <string name="settings_general_island_hover_open_label">Island beim Darüberfahren öffnen</string>
-    <string name="settings_general_island_hover_open_hint">Lass den Zeiger auf der Island ruhen, um sie ohne Klick zu öffnen.</string>
+    <string name="settings_general_island_hover_open_hint">Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen.</string>
     <string name="settings_general_dark_websites_label">Dunkle Websites</string>
     <string name="settings_general_dark_websites_hint">Solange Blanc dunkel ist, werden Websites ohne eigenen Dunkelmodus abgedunkelt. Nutzt die Open-Source-Engine Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Hier aufgeführte Websites behalten ihre eigenen Farben. Gib auf einer Website /dark-site ein, um sie hinzuzufügen oder zu entfernen.</string>

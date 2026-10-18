@@ -19,7 +19,7 @@ test('mouse moves use the cached hover setting instead of rereading settings', (
 test('the hover timer stays bound to its owning focused window', () => {
   assert.match(main, /runtime\.window\.isFocused\(\)/);
   assert.match(main, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
-  assert.match(main, /!islandHoverEligible\(runtime\) \|\| !pointInRect\(hover\.point, runtime\.islandRect\)/);
+  assert.match(main, /!islandHoverEligible\(runtime\) \|\| !pointInRect\(hover\.point, runtime\.islandHoverRect\)/);
 });
 
 test('closing the panel samples and disarms a pointer already over the Island', () => {

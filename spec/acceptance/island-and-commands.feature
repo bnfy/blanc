@@ -95,6 +95,14 @@ Feature: Island chrome, command palette, and slash commands
     When I turn Island hover-open off halfway through its dwell
     Then the Island panel stays closed after 400 milliseconds
 
+  @F1-14 @F1 @desktop @island-hover
+  Scenario: Only the address area opens the Island on hover
+    Given Island hover-open is on
+    When I rest the pointer on the Island buttons beside the address for 400 milliseconds
+    Then the Island panel stays closed
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the Island panel opens from hover
+
   @F1-13 @F1 @desktop @island-hover
   Scenario: A pending permission prompt blocks hover-open
     Given Island hover-open is on

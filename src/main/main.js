@@ -3086,7 +3086,7 @@ function islandHoverEligible(runtime) {
   return runtime.islandHoverCapable === true &&
     runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
     !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
-    !runtime.permissionViewAttached && !!runtime.islandRect && !overlayDragActive(runtime);
+    !runtime.permissionViewAttached && !!runtime.islandHoverRect && !overlayDragActive(runtime);
 }
 
 function clearIslandHoverTimer(runtime) {
@@ -3104,7 +3104,7 @@ function applyIslandHoverStep(runtime, event) {
     clearIslandHoverTimer(runtime);
     hover.timer = setTimeout(bindWindowRuntime(runtime, () => {
       hover.timer = null;
-      if (!islandHoverEligible(runtime) || !pointInRect(hover.point, runtime.islandRect)) {
+      if (!islandHoverEligible(runtime) || !pointInRect(hover.point, runtime.islandHoverRect)) {
         applyIslandHoverStep(runtime, { type: 'ineligible' });
         return;
       }
@@ -3120,7 +3120,7 @@ function updateIslandHover(runtime, point, { buttonsDown = false, sampled = fals
   const hover = islandHoverRecord(runtime);
   hover.point = point;
   return applyIslandHoverStep(runtime, {
-    type: 'move', inside: pointInRect(point, runtime.islandRect),
+    type: 'move', inside: pointInRect(point, runtime.islandHoverRect),
     eligible: islandHoverEligible(runtime), buttonsDown, sampled,
   });
 }
@@ -8613,7 +8613,14 @@ function registerIpcHandlers() {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
     rt().islandHoverCapable = rect?.hoverCapable === true;
-    if (!rt().islandHoverCapable || !rt().islandRect) suppressIslandHover();
+    // Hover-open listens only over the favicon and domain, so reaching for
+    // the pill's buttons, dots and chips never opens the panel over them.
+    const hover = rect?.hoverRect;
+    rt().islandHoverRect = rt().islandRect && hover
+      && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(hover[f])) && hover.width > 0
+      ? { x: hover.x, y: hover.y, width: hover.width, height: hover.height }
+      : null;
+    if (!rt().islandHoverCapable || !rt().islandHoverRect) suppressIslandHover();
     const popup = ublockPopups.get(rt().id);
     if (popup && event.sender === rt().window?.webContents && rect?.shieldAnchor?.trigger === 'shield') {
       popup.anchor = rect.shieldAnchor; layoutUblockPopup(popup);
@@ -11584,7 +11591,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
         addressFocusGeneration: rt().addressFocusGeneration,
       }),
-      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, getIslandHoverRect: () => rt().islandHoverRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       goBack: (id) => {
         const tab = tabs.get(id);

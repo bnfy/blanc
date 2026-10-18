@@ -641,7 +641,8 @@ Island without activating it. A finger cannot hover, and treating proximity or
 a first tap as hover would steal the tap's ordinary job.
 
 - **Desktop with a hover-capable fine pointer:** an off-by-default setting may
-  open the Island panel after a continuous 300 ms dwell on the resting Island.
+  open the Island panel after a continuous 300 ms dwell on the resting Island's
+  address (favicon and domain); its buttons and chips stay click-only.
 - **Touch-only desktop hardware, iOS and Android:** hover-open is unavailable;
   the ordinary tap, keyboard and gesture routes remain.
 

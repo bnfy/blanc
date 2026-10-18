@@ -19568,37 +19568,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return to Pinned Home"
+            "value": "Back to Pinned Page"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zur Ausgangsseite des Tabs zurückkehren"
+            "value": "Zurück zur angehefteten Seite"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Volver a la página de origen fijada"
+            "value": "Volver a la página fijada"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revenir à la page d’origine épinglée"
+            "value": "Revenir à la page épinglée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Torna alla pagina d’origine fissata"
+            "value": "Torna alla pagina fissata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voltar à página de origem fixada"
+            "value": "Voltar à página fixada"
           }
         }
       }
@@ -19610,37 +19610,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make This the Pinned Home"
+            "value": "Replace Pinned Page with Current"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite als Ausgangsseite festlegen"
+            "value": "Angeheftete Seite durch aktuelle ersetzen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usar esta página como página de origen fijada"
+            "value": "Reemplazar la página fijada por la actual"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Définir comme page d’origine épinglée"
+            "value": "Remplacer la page épinglée par l’actuelle"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Imposta come pagina d’origine fissata"
+            "value": "Sostituisci la pagina fissata con quella attuale"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Definir como página de origem fixada"
+            "value": "Substituir a página fixada pela atual"
           }
         }
       }
@@ -36284,37 +36284,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rest the pointer on the Island to open it without clicking."
+            "value": "Rest the pointer on the Island’s address to open it without clicking."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lass den Zeiger auf der Island ruhen, um sie ohne Klick zu öffnen."
+            "value": "Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deja el puntero sobre la Island para abrirla sin hacer clic."
+            "value": "Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laissez le pointeur sur l’Island pour l’ouvrir sans cliquer."
+            "value": "Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lascia il puntatore sull’Island per aprirla senza fare clic."
+            "value": "Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deixe o ponteiro sobre a Island para abri-la sem clicar."
+            "value": "Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."
           }
         }
       }
