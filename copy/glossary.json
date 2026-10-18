@@ -307,7 +307,8 @@
       "settings.general.customBangs.code",
       "newtab.wallpaper.filter",
       "newtab.wallpaper.styleAuto",
-      "newtab.wallpaper.sunrise"
+      "newtab.wallpaper.sunrise",
+      "newtab.wallpaper.imageLabel"
     ],
     "pt-BR": [
       "about.chromium",

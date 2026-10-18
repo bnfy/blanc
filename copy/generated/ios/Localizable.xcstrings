@@ -55507,6 +55507,48 @@
         }
       }
     },
+    "newtab.wallpaper.imageLabel": {
+      "comment": "Start page → Customize popover, under Your image: row label before the Change… and Remove buttons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagine"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagem"
+          }
+        }
+      }
+    },
     "newtab.wallpaper.choose": {
       "comment": "Start page → Customize popover and Settings: button that opens a file picker for the wallpaper image.",
       "extractionState": "manual",

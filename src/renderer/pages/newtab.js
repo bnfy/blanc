@@ -883,10 +883,10 @@ const wallpaperToggle = document.getElementById('dynamicWallpaperToggle');
 const customWallpaperToggle = document.getElementById('customWallpaperToggle');
 const sunriseWallpaperPick = document.getElementById('sunriseWallpaperPick');
 const customWallpaperRow = document.getElementById('customWallpaperRow');
+const customWallpaperThumb = document.getElementById('customWallpaperThumb');
 const customWallpaperChange = document.getElementById('customWallpaperChange');
 const customWallpaperRemove = document.getElementById('customWallpaperRemove');
 const customWallpaperError = document.getElementById('customWallpaperError');
-const customWallpaperWashRow = document.getElementById('customWallpaperWashRow');
 const customWallpaperWash = document.getElementById('customWallpaperWash');
 const customWallpaperStyleRow = document.getElementById('customWallpaperStyleRow');
 const customWallpaperStyles = [...customWallpaperStyleRow.querySelectorAll('[data-wallpaper-style-pick]')];
@@ -914,8 +914,10 @@ function renderWallpaperControls() {
   wallpaperToggle.hidden = custom;
   wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
   customWallpaperRow.hidden = !custom;
-  customWallpaperWashRow.hidden = !custom;
-  customWallpaperStyleRow.hidden = !custom;
+  // The card previews your picture whenever one is stored.
+  customWallpaperThumb.classList.toggle('has-image', Boolean(wallpaperState.image));
+  if (wallpaperState.image) customWallpaperThumb.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
+  else customWallpaperThumb.style.removeProperty('--wallpaper-thumb');
   const style = wallpaperState.style ?? 'auto';
   for (const button of customWallpaperStyles) {
     button.setAttribute('aria-pressed', String(button.dataset.wallpaperStylePick === style));

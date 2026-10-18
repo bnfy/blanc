@@ -5120,6 +5120,11 @@
     "message": "Your image",
     "note": "Start page → Customize popover, under Wallpaper: choice that shows the person’s own image instead of Blanc’s Sunrise artwork."
   },
+  "newtab.wallpaper.imageLabel": {
+    "message": "Image",
+    "note": "Start page → Customize popover, under Your image: row label before the Change… and Remove buttons.",
+    "maxLength": 12
+  },
   "newtab.wallpaper.choose": {
     "message": "Choose image…",
     "note": "Start page → Customize popover and Settings: button that opens a file picker for the wallpaper image.",

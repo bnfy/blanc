@@ -3213,12 +3213,49 @@ body:not([data-layout="ledger"]) .ledger-footer {
   left: 12px;
   background: var(--bg);
 }
-/* F49: the person's own image, below the time-of-day switch. */
-.wallpaper-custom {
-  display: flex;
+/* F49 Wallpaper section: two preview cards like the layouts above, then
+   the chosen wallpaper's options in one label column. */
+/* Doubled class: .layout-thumb's background shorthand comes later. */
+.layout-thumb.wallpaper-thumb {
+  padding: 0;
+  overflow: hidden;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.wallpaper-thumb[data-thumb="sunrise"] { background-image: url("start-page-sunrise.png"); }
+/* Your image: its own picture once chosen, a quiet plus until then. */
+.wallpaper-thumb[data-thumb="custom"] { background-image: var(--wallpaper-thumb, none); }
+.wallpaper-thumb[data-thumb="custom"]:not(.has-image) { display: grid; place-items: center; }
+.wallpaper-thumb[data-thumb="custom"]:not(.has-image)::after {
+  content: '+';
+  color: var(--text-dim);
+  font: 400 18px/1 var(--font-text);
+}
+.wallpaper-options { margin-top: 12px; }
+.wallpaper-options-grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
+  column-gap: 14px;
+  row-gap: 12px;
+}
+.wallpaper-option-label {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.wallpaper-option-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+#customWallpaperStyleRow { gap: 6px; }
+.wallpaper-fade {
+  width: 100%;
+  min-width: 140px;
+  margin: 0;
+  accent-color: var(--text);
 }
 .wallpaper-action {
   min-height: 24px;
@@ -3242,15 +3279,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--text);
 }
 .wallpaper-action-primary:hover { border-color: var(--text); }
-.wallpaper-styles {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  color: var(--text-dim);
-  font-size: 11px;
-}
 .wallpaper-style {
   min-height: 22px;
   padding: 2px 9px;
@@ -3268,24 +3296,6 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--bg);
 }
 .wallpaper-style:focus-visible { outline-offset: 2px; }
-.wallpaper-sources {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.wallpaper-wash {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-  color: var(--text-dim);
-  font-size: 11px;
-}
-.wallpaper-wash input {
-  flex: 1;
-  min-width: 120px;
-  accent-color: var(--text);
-}
 .wallpaper-error {
   max-width: 240px;
   margin: 6px 0 0;

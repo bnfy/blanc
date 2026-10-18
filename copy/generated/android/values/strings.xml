@@ -1361,6 +1361,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_layout_shelf">Shelf</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_wallpaper_custom">Your image</string>
+    <string name="newtab_wallpaper_image_label">Image</string>
     <string name="newtab_wallpaper_choose">Choose image…</string>
     <string name="newtab_wallpaper_change">Change…</string>
     <string name="newtab_wallpaper_remove">Remove</string>

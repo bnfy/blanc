@@ -11323,7 +11323,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     return {
       source,
       hasImage,
-      image: source === 'custom' ? wallpaper.imageUrl() : null,
+      // Also while Sunrise shows, for the Your image card's preview.
+      image: hasImage && !isPrivate ? wallpaper.imageUrl() : null,
       wash: current.newtabWallpaperWash,
       style: current.newtabWallpaperStyle,
     };

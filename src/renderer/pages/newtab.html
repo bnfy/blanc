@@ -198,29 +198,40 @@
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
         <!-- Two wallpapers; each shows only its own options, so the clock
              switch can never look like it applies to your image. -->
-        <div id="wallpaperSourcePicker" class="wallpaper-sources" role="group" aria-labelledby="customizeWallpaperLabel">
-          <button id="sunriseWallpaperPick" class="wallpaper-style" type="button" aria-pressed="true" disabled data-i18n="newtab.wallpaper.sunrise">Sunrise</button>
-          <button id="customWallpaperToggle" class="wallpaper-style" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.custom">Your image</button>
+        <div id="wallpaperSourcePicker" class="layout-switcher" role="group" aria-labelledby="customizeWallpaperLabel">
+          <button id="sunriseWallpaperPick" class="layout-preview" type="button" aria-pressed="true" disabled>
+            <span class="layout-thumb wallpaper-thumb" data-thumb="sunrise" aria-hidden="true"></span>
+            <span class="layout-name" data-i18n="newtab.wallpaper.sunrise">Sunrise</span>
+          </button>
+          <button id="customWallpaperToggle" class="layout-preview" type="button" aria-pressed="false" disabled>
+            <span id="customWallpaperThumb" class="layout-thumb wallpaper-thumb" data-thumb="custom" aria-hidden="true"></span>
+            <span class="layout-name" data-i18n="newtab.wallpaper.custom">Your image</span>
+          </button>
         </div>
-        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>
-          <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-          <span data-i18n="newtab.wallpaper.timeOfDay">Change with time of day</span>
-        </button>
-        <div id="customWallpaperRow" class="wallpaper-custom" hidden>
-          <button id="customWallpaperChange" class="wallpaper-action wallpaper-action-primary" type="button" data-i18n="newtab.wallpaper.change">Change…</button>
-          <button id="customWallpaperRemove" class="wallpaper-action" type="button" data-i18n="newtab.wallpaper.remove">Remove</button>
+        <!-- Only the chosen wallpaper's options show, so the clock switch can
+             never look like it applies to your image. -->
+        <div class="wallpaper-options">
+          <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>
+            <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+            <span data-i18n="newtab.wallpaper.timeOfDay">Change with time of day</span>
+          </button>
         </div>
-        <div id="customWallpaperStyleRow" class="wallpaper-styles" role="group" aria-labelledby="customWallpaperStyleLabel" hidden>
-          <span id="customWallpaperStyleLabel" data-i18n="newtab.wallpaper.styleLabel">Wash</span>
-          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="auto" aria-pressed="true" data-i18n="newtab.wallpaper.styleAuto">Auto</button>
-          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="light" aria-pressed="false" data-i18n="newtab.wallpaper.styleLight">Light</button>
-          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="dark" aria-pressed="false" data-i18n="newtab.wallpaper.styleDark">Dark</button>
-          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="spotlight" aria-pressed="false" data-i18n="newtab.wallpaper.styleSpotlight">Spotlight</button>
+        <div id="customWallpaperRow" class="wallpaper-options wallpaper-options-grid" hidden>
+          <span id="customWallpaperImageLabel" class="wallpaper-option-label" data-i18n="newtab.wallpaper.imageLabel">Image</span>
+          <div class="wallpaper-option-controls" role="group" aria-labelledby="customWallpaperImageLabel">
+            <button id="customWallpaperChange" class="wallpaper-action wallpaper-action-primary" type="button" data-i18n="newtab.wallpaper.change">Change…</button>
+            <button id="customWallpaperRemove" class="wallpaper-action" type="button" data-i18n="newtab.wallpaper.remove">Remove</button>
+          </div>
+          <span id="customWallpaperStyleLabel" class="wallpaper-option-label" data-i18n="newtab.wallpaper.styleLabel">Wash</span>
+          <div id="customWallpaperStyleRow" class="wallpaper-option-controls" role="group" aria-labelledby="customWallpaperStyleLabel">
+            <button type="button" class="wallpaper-style" data-wallpaper-style-pick="auto" aria-pressed="true" data-i18n="newtab.wallpaper.styleAuto">Auto</button>
+            <button type="button" class="wallpaper-style" data-wallpaper-style-pick="light" aria-pressed="false" data-i18n="newtab.wallpaper.styleLight">Light</button>
+            <button type="button" class="wallpaper-style" data-wallpaper-style-pick="dark" aria-pressed="false" data-i18n="newtab.wallpaper.styleDark">Dark</button>
+            <button type="button" class="wallpaper-style" data-wallpaper-style-pick="spotlight" aria-pressed="false" data-i18n="newtab.wallpaper.styleSpotlight">Spotlight</button>
+          </div>
+          <label class="wallpaper-option-label" for="customWallpaperWash" data-i18n="newtab.wallpaper.wash">Fade</label>
+          <input id="customWallpaperWash" class="wallpaper-fade" type="range" min="0" max="100" step="5" value="100" />
         </div>
-        <label id="customWallpaperWashRow" class="wallpaper-wash" hidden>
-          <span data-i18n="newtab.wallpaper.wash">Fade</span>
-          <input id="customWallpaperWash" type="range" min="0" max="100" step="5" value="100" />
-        </label>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
       </div>
     </span>

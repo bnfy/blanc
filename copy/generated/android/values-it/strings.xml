@@ -1398,6 +1398,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_layout_shelf">Shelf</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_wallpaper_custom">La tua immagine</string>
+    <string name="newtab_wallpaper_image_label">Immagine</string>
     <string name="newtab_wallpaper_choose">Scegli immagine…</string>
     <string name="newtab_wallpaper_change">Cambia…</string>
     <string name="newtab_wallpaper_remove">Rimuovi</string>

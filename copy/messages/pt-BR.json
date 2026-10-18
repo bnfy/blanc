@@ -4955,6 +4955,10 @@
     "message": "Sua imagem",
     "source": "sha256:93bf4e318c953e0f759958f3974fcc257a156a330c136a0b5c2761477ea90ea4"
   },
+  "newtab.wallpaper.imageLabel": {
+    "message": "Imagem",
+    "source": "sha256:4df5863b8b56ae8b11b3b456266980e18a02af42a887574a2fa5f127e56bca01"
+  },
   "newtab.wallpaper.choose": {
     "message": "Escolher imagem…",
     "source": "sha256:a56bfa577511a793140c79bbccd3f3d0183b5309411b09d2b7b7e9426f47a6a8"

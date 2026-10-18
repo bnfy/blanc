@@ -101,7 +101,7 @@ try {
 
   // Fade: integer 0–100 only, painted as a 0–1 multiplier, kept per device.
   assert.equal(state.wash, 100);
-  assert.equal(await page.locator('#customWallpaperWashRow').isVisible(), true);
+  assert.equal(await page.locator('#customWallpaperWash').isVisible(), true);
   for (const bad of [-5, 140, 50.5, '30']) {
     assert.equal((await page.evaluate((v) => window.bowserPages.start.setWallpaperWash(v), bad)).wash, 100, String(bad));
   }
