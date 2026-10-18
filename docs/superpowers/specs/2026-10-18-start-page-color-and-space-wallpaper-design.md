@@ -1,7 +1,7 @@
 # Start Page color backgrounds and Space wallpapers — design
 
-Date: October 18, 2026. Status: **proposal, awaiting the owner's choice of
-direction.** No code yet. Follows F49 (PR #945, unreleased), whose spec
+Date: October 18, 2026. Status: **direction A chosen by the owner on October 18, 2026** (Color as a
+third wallpaper, plus Match each space's color). Not implemented yet. Follows F49 (PR #945, unreleased), whose spec
 (`2026-10-18-custom-wallpaper-design.md`) lists both as later phases:
 
 1. Solid and gradient backgrounds built from the eight Space presets.
