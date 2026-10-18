@@ -1,5 +1,126 @@
 [
   {
+    "tag": "v1.38.0",
+    "version": "1.38.0",
+    "name": "1.38.0",
+    "publishedAt": "2026-10-18T20:24:38.000Z",
+    "humanDate": "October 18, 2026",
+    "machineDate": "2026-10-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.38.0",
+    "anchor": "v1-38-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your own Start Page image."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on the Start Page and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Your image"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to show a JPEG or PNG of your own, up to 25 MB. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Wash"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (Auto, Light, Dark or Spotlight) and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Fade"
+                  },
+                  {
+                    "type": "text",
+                    "value": " keep the page readable over it. Blanc keeps a resized copy on this device only, with location, camera and time details removed. It isn't synced, and private tabs never show it. Settings → General → Start Page image offers the same choice."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A Start Page color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Color"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to paint the Start Page in one of the eight colors Spaces use, as a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Soft"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Gradient"
+                  },
+                  {
+                    "type": "text",
+                    "value": " fill. Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Match each space's color"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and a window that belongs to a space shows that space's color instead. The color settings sync with Profile Sync; an image chosen on this device still takes priority here. Private tabs never show the color."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.37.0",
     "version": "1.37.0",
     "name": "1.37.0",

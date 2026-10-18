@@ -277,7 +277,7 @@
     {
       "id": "v136-031",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "10,624 bangs, exactly the list in Blanc 1.37.0. Search by site or by code.",
+      "exactWording": "10,624 bangs, exactly the list in Blanc 1.38.0. Search by site or by code.",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsList"

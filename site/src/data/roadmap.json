@@ -7,13 +7,6 @@
   ],
   "items": [
     {
-      "id": "custom-wallpaper",
-      "stage": "now",
-      "product": "Blanc Browser",
-      "title": "Your own Start Page wallpaper",
-      "line": "Pick one of your own images or a Spaces color for the Start Page. Being built and tested for an upcoming release."
-    },
-    {
       "id": "blanc-mail",
       "stage": "now",
       "product": "Blanc Mail",
