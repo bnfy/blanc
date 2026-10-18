@@ -1,5 +1,352 @@
 [
   {
+    "tag": "v1.37.0",
+    "version": "1.37.0",
+    "name": "1.37.0",
+    "publishedAt": "2026-10-18T08:04:59.000Z",
+    "humanDate": "October 18, 2026",
+    "machineDate": "2026-10-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.37.0",
+    "anchor": "v1-37-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tab group colors."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A group can take one of eight colors, the same ones Spaces use, or none, which is the default. A colored group's block in the ⌘L panel and on the vertical tabs rail takes a light tint, its name gets a dot, and its tabs' dots in the Island take the color."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A menu for each group."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a group's header, or press the ⋮ that appears when you point at it. The menu holds the group's name, its color, "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Tab in Group"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Move Group to New Window"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Ungroup"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Group"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Put ungrouped tabs anywhere."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Drag an ungrouped tab above, between or below your groups in the ⌘L panel or on the vertical tabs rail, or move it with ⌥⇧↑ and ⌥⇧↓. Each run of ungrouped tabs gets its own place in the Island's dots and in ⌘1–9. New tabs still land at the bottom, and windows and spaces saved before this update open exactly as before."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "More in the tab menu."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Right-click a tab for "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "New Tab Below"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Tabs Above"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Tabs Below"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which leave pinned tabs alone and can be reopened in one go, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Mute Site"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which mutes every tab on that site, including ones you open there later, until you quit Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pinned pages."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A pinned tab remembers the page you pinned it on. When you reopen Blanc after quitting normally, each pinned tab starts back on its pinned page. After a crash, it reopens on the page you were on. Right-click a pinned tab for "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Back to Pinned Page"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Replace Pinned Page with Current"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open the Island on hover."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open the Island on hover"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, and resting the pointer on the Island's address for a moment opens the panel. It's off by default."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Site icons on bang rows."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Bangs in the ⌘L panel now show each site's icon. Blanc uses an icon you already have from your own visits when it can. Otherwise it asks blanc.day's icon server for that one site's icon and keeps a small copy on this device. Private tabs never ask."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tooltips throughout the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Buttons in the ⌘L panel and on the resting Island now show their tooltip reliably when you point at them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Links open as ungrouped tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A link opened in a new tab from a grouped tab now opens ungrouped, at the bottom, like any new tab, instead of joining the group."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Quieter private mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Private tabs no longer draw dashed outlines. The Island's private marker is a small "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Private"
+                  },
+                  {
+                    "type": "text",
+                    "value": " label that shows its × when you point at it, the header on a private Start Page matches its wallpaper, and the private Start Page shows the date."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Start Page footer sits on the wallpaper"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instead of on a solid band, shaded to match each wallpaper and time of day so it stays easy to read."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Island's reload, favorite and close buttons match"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in size and hover, and a button you can't use right now is dimmed instead of nearly disappearing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A clearer Glance icon"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the ⌘L panel, and larger pin, mute, Glance and close buttons on tab rows."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "On Linux, Invite a Friend"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now copies the invite when no mail app opens it, and says so."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The scroll bar in the ⌘L panel"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and on the vertical tabs rail no longer covers the end of each row."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Dragging a tab to the top of your unpinned tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now works when you have no pinned tabs."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.36.0",
     "version": "1.36.0",
     "name": "1.36.0",

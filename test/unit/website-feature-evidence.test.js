@@ -380,8 +380,13 @@ test('v1.36.0 bangs copy resolves to verified public v1.36.0 evidence', () => {
   assert.equal(execFileSync('git', ['rev-parse', `${v136.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v136.sourceSha);
   assert.ok(read(v136.releaseEvidence).includes(v136.sourceSha));
   assert.equal(fs.existsSync(path.join(root, 'docs/website-candidate-claims-bangs.json')), false);
-  assert.equal(bangsData.release, v136.publicRelease, 'the bang data is pinned to the same release');
-  assert.equal(bangsData.ref, v136.sourceSha, 'the copy and the bang data are pinned to the same commit');
+  // The copy's evidence stays anchored at v1.36.0, where it was verified. The
+  // bang data is re-pinned to each later release (npm run site:bangs), so it
+  // must match its own release tag and still carry v1.36.0's list.
+  assert.equal(execFileSync('git', ['rev-parse', `${bangsData.release}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(),
+    bangsData.ref, 'the bang data is pinned to its release tag');
+  assert.equal(bangsData.catalogSha256, '8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e',
+    'a changed bang list needs its copy re-verified, not just re-pinned');
   const builtFromData = new Set([...bangsPageDynamicLines().values()].flat());
   for (const claim of v136.claims) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
