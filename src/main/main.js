@@ -11204,6 +11204,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .map(({ group, tabIds }) => ({
           id: group.id,
           name: group.name,
+          color: group.color ?? null,
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
@@ -11457,7 +11458,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,

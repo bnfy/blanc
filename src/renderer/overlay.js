@@ -817,6 +817,7 @@
     band.dataset.groupId = group.id;
     // The gap above a group names its first tab (tab-drag.js).
     band.dataset.firstTabId = firstTabId;
+    TabSections.paintGroup(band, group, 'group-colored');
     band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
@@ -861,6 +862,13 @@
     row.className = 'island-ghead';
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
+    if (group.color) {
+      // The color dot before the name; the band carries --group-color.
+      const dot = document.createElement('span');
+      dot.className = 'group-color-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      row.querySelector('.ghead-name').before(dot);
+    }
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelector('.ghead-name').dataset.i18nIgnore = ''; // a user-chosen group name
     row.querySelector('.ghead-n').textContent = String(count);
@@ -1541,6 +1549,7 @@
       leading = document.createElement('span');
       leading.className = 'row-group-mark';
       leading.innerHTML = CARET;
+      TabSections.paintGroup(leading, result.group, 'group-colored-mark');
       leading.setAttribute('aria-hidden', 'true');
     } else if (result.kind === 'search') {
       leading = document.createElement('span');

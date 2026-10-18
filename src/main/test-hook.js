@@ -102,6 +102,7 @@ function install(refs) {
     beginRenameGroup,
     beginRenameDevice,
     ungroupGroup,
+    setGroupColor,
     closeGroup,
     toggleGroupCollapsed,
     moveTabTo,
@@ -642,6 +643,10 @@ function install(refs) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));
       if (group) beginRenameGroup(group.id);
       return !!group;
+    },
+    setGroupColorByName(name, color) {
+      const group = getGroups().find((g) => sameGroupName(g.name, name));
+      return group ? setGroupColor(group.id, color).ok : false;
     },
     ungroupGroupByName(name) {
       const group = getGroups().find((g) => sameGroupName(g.name, name));

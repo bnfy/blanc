@@ -437,6 +437,7 @@
     section.dataset.groupId = group.id;
     // The gap above a group names its first tab (tab-drag.js).
     section.dataset.firstTabId = members[0].id;
+    TabSections.paintGroup(section, group, 'group-colored');
     section.dataset.collapsed = String(!!group.collapsed);
 
     const containsActive = members.some((tab) => tab.id === activeTabId);
@@ -470,6 +471,12 @@
     caret.className = 'vertical-tabs-group-caret';
     caret.innerHTML = ICONS.caret;
     caret.setAttribute('aria-hidden', 'true');
+    // The color dot before the name; the block carries --group-color.
+    const colorDot = group.color ? document.createElement('span') : null;
+    if (colorDot) {
+      colorDot.className = 'group-color-dot';
+      colorDot.setAttribute('aria-hidden', 'true');
+    }
     const name = document.createElement('span');
     name.className = 'vertical-tabs-group-name';
     name.textContent = group.name;
@@ -477,7 +484,7 @@
     const count = document.createElement('span');
     count.className = 'vertical-tabs-group-count';
     count.textContent = String(members.length);
-    header.append(caret, name, count);
+    header.append(...[caret, colorDot, name, count].filter(Boolean));
     if (containsActive && group.collapsed) {
       const activeMarker = document.createElement('span');
       activeMarker.className = 'vertical-tabs-group-active';

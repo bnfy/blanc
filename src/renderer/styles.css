@@ -740,6 +740,34 @@ body.mac .vertical-tabs-toolbar {
   opacity: 0.65;
 }
 
+/* Tab group colors (spec 2026-10-17-tab-group-colors-design.md): a colored
+   group's block (panel and side list) takes its color as a wash instead of the
+   neutral surface, and a dot before the name. Text stays --text. The only value
+   set from script is --group-color, always a Spaces preset. */
+.group-colored { --group-wash: 15%; }
+@media (prefers-color-scheme: dark) {
+  .group-colored { --group-wash: 20%; }
+}
+:root[data-theme="private"] .group-colored { --group-wash: 20%; }
+.island-group-band.group-colored,
+.vertical-tabs-group.group-colored {
+  background: color-mix(in srgb, var(--group-color) var(--group-wash), transparent);
+}
+.group-color-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--group-color);
+}
+/* A Quick Switcher group result: the caret takes the group's color. */
+.row-group-mark.group-colored-mark { color: var(--group-color); }
+/* The Island's dots for a colored group: the color, fuller when active. */
+.island-dot.dot-group-colored { background: color-mix(in srgb, var(--group-color) 45%, transparent); }
+.island-dot.dot-group-colored.active { background: var(--group-color); }
+.island-dot.dot-group-colored.private { background: transparent; border-color: var(--group-color); }
+.island-dot.dot-group-colored.private.active { background: color-mix(in srgb, var(--group-color) 45%, transparent); }
+
 /* Groups are tinted blocks, as in the island (.island-group-band), so runs of
    ungrouped tabs between them need no heading (owner, 2026-10-17). */
 .vertical-tabs-group {

@@ -846,11 +846,14 @@
     // Stable identity lets trusted chrome tests and future focus restoration
     // address a dot without relying on page titles, which are not unique.
     dot.dataset.tabId = t.id;
+    // A colored group's dots take its color (tab group colors spec §5).
+    const dotGroup = t.groupId ? (state.groups || []).find((g) => g.id === t.groupId) : null;
     dot.className =
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
       (t.private ? ' private' : '');
+    TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
     dot.title = dotTitle;
     // A tab title is page data, not interface copy (pseudo-locale sweep).

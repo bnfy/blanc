@@ -459,6 +459,14 @@ function favRow(b) {
 
 /** Group chip for billboard/shelf/tally. `withCount` adds the trailing number
  * the shelf card shows; the billboard and tally chips carry the name alone. */
+/** A colored group's dots take its color (tab group colors spec §7). Main
+ * sends only a Spaces preset hex or null. */
+function paintGroupDots(el, group) {
+  if (typeof group.color !== 'string' || !/^#[0-9a-f]{6}$/.test(group.color)) return;
+  el.classList.add('group-colored');
+  el.style.setProperty('--group-color', group.color);
+}
+
 function groupChip(group, { withCount = false } = {}) {
   const chip = document.createElement('button');
   chip.type = 'button';
@@ -466,6 +474,7 @@ function groupChip(group, { withCount = false } = {}) {
   const dots = document.createElement('span');
   dots.className = 'chip-dots';
   for (let i = 0; i < Math.min(group.count, 5); i++) dots.appendChild(document.createElement('i'));
+  paintGroupDots(dots, group);
   const name = document.createElement('span');
   name.className = 'chip-name';
   name.textContent = group.name;
@@ -572,6 +581,7 @@ function renderLedgerGroups(groups) {
     const cluster = document.createElement('span');
     cluster.className = 'cluster';
     for (let i = 0; i < Math.min(g.count, 5); i++) cluster.appendChild(document.createElement('i'));
+    paintGroupDots(cluster, g);
     const name = document.createElement('span');
     name.className = 'gname';
     name.textContent = g.name;
