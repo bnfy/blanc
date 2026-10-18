@@ -77,3 +77,7 @@ Until an independently instrumented Electron build passes those joins, the
 existing eight Electron update observations remain identity gaps; the eight
 native joins and behavior observations keep their prior bounded meaning.
 Latency (including gate/instrumentation overhead) remains deferred.
+
+A separate [diagnostic build request](electron-instrumentation-build-request.md)
+now specifies source pins, paths, resources, guard requirements and unchecked
+owner approval. It remains a proposal; no instrumented Electron build exists.

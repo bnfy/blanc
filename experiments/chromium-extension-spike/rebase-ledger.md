@@ -963,3 +963,46 @@ mouse/keyboard or latency claim. Latency stays deferred; broader opaque/fenced
 coverage, scriptlets, containment, recovery, worker contexts and both full
 acceptance gates stay open. Plan items 3–6 remain unstarted; no Task 0/baseline
 promotion and no 156/permanent-profile changes. Attention/agent time unmeasured.
+
+
+### Inherited document start, Electron observer and diagnostic-build proposal — October 17, 2026
+
+See [evidence](evidence/f12-inherited-observer-20261017/README.md). The opt-in
+native gate now considers about:blank/srcdoc only when the committed browser
+URL matches, its non-opaque HTTP(S) origin matches its actual parent origin,
+and the existing profile/document/generation checks hold. That origin supplies
+scriptlet rule selection only; document identity and request metadata remain
+unchanged. Opaque about/data and unsupported schemes do not acquire a guessed
+parent origin or an early-protection claim.
+
+Eight fresh sessions repeat all 56 frame cases. Native early checks now pass
+8/8 across HTTP, sandboxed HTTP, inherited srcdoc and blank (four newly passing
+inherited cases). All 24 private script-enabled cases have actual private Blanc
+Blocker cancellation records and unchanged allowed/blocked network outcomes.
+The six former Electron attribution gaps are closed by synthetic-only exact
+about/data metadata admission, with observed initiator presence and literal
+opaque null preserved. Unknown data/blob/file metadata and exempted network
+fields are rejected; the public recorder scrubber is unchanged.
+
+Six inherited normal/exception/restoration probes and all seven gate-safety
+regressions pass. The 56-case matrix retains 16 early-scriptlet gaps: four native
+opaque srcdoc/data cases and 12 Electron regular cases. Eight sandbox script-denial
+checks remain scoped enforcement evidence, not scriptlet passes. Broader nested,
+blob/fenced/CSP/lifecycle contexts, full provider/containment acceptance and
+cross-runtime update identity remain open. The full 5,123 corpus was not rerun.
+
+187 focused tests pass; lint covers 96 files without issues. One guarded
+incremental build: 37.45 s wrapper / 33.62 s Siso, eight steps, after a two-action
+plan. No compile failure, cold output, GN-arg/toolchain or hook change. Final guard
+zero actions; measured footprint31 files/74 hunks. Build time is routine tranche
+work, never Task0 cold cost. Profiles, fixture CA keys and owned browser processes
+removed. No physical-input claim. Latency remains deferred; attention/agent time
+not measured, items3–6 unstarted, Task0/156/permanent data unchanged.
+
+[Electron diagnostic build proposal](electron-instrumentation-build-request.md)
+is drafted with separate unchecked §8 approval. It pins Electron44.8.0/Chromium152,
+one isolated arm64 testing output, local tools and resource/time limits. Estimates
+are labelled unmeasured (4–8h cold compile; up to220GiB new-root budget). No fetch,
+setup or build started. The current tranche approval does not authorize it.
+
+Inherited-frame native/extension late-path deduplication is not proved by the bounded constant/fetch cases; an exactly-once probe remains required for broader scriptlets.

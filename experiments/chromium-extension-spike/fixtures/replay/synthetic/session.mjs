@@ -5,7 +5,7 @@ import {freePort,observeWorkers} from './worker-observer.mjs';
 import {sha} from './generate.mjs';import {publicTrust,spkiList} from './certificate-set.mjs';
 export const pause=ms=>new Promise(r=>setTimeout(r,ms));
 export async function until(fn,timeout=45000){const end=Date.now()+timeout;while(Date.now()<end){const value=await fn();if(value)return value;await pause(100);}throw Error('Probe wait timed out');}
-export async function openSession({config,browserKind,kind,label,root,transport,certificates,workerObservation=false,fixtureUrls=[],provider='blanc',uboPayload=null}){
+export async function openSession({config,browserKind,kind,label,root,transport,certificates,workerObservation=false,fixtureUrls=[],provider='blanc',uboPayload=null,authoredDataUrls=[]}){
  assert(['blanc','ublock-origin'].includes(provider));
  const pw=await import(pathToFileURL(config.playwright));const dir=path.join(root,label);fs.mkdirSync(dir);const profile=path.join(dir,'profile');fs.mkdirSync(profile);
  const updateLog=path.join(dir,'update-identities.jsonl');fs.writeFileSync(updateLog,'',{mode:0o600});
@@ -21,15 +21,13 @@ export async function openSession({config,browserKind,kind,label,root,transport,
   let bootstrap=fs.readFileSync(new URL('../pipeline/bootstrap.cjs',import.meta.url),'utf8');
   // A monotonic JS observer reference, not an invented Electron base::TimeTicks hook.
   for(const [a,b] of [["observer.decide = async function(event, details) {","observer.decide = async function(event, details) { const entered=process.hrtime.bigint();"],["saveDecision({ ...observed, result: result ?? {} });","saveDecision({ ...observed, result: result ?? {}, observer_to_result_us: Number(process.hrtime.bigint()-entered)/1000 });"]]){assert.equal(bootstrap.split(a).length,2);bootstrap=bootstrap.replace(a,b);}
-  // Preserve the observed about:blank sentinel on initial navigation while
-  // validating all actual network fields with the unchanged public scrubber.
+  // Synthetic frame metadata has exact sentinel/fixture admission, not a
+  // relaxed public recorder scrubber or substituted initiator origin.
   const scrubAnchor="const scrub = require('./scrub.cjs');";
   assert.equal(bootstrap.split(scrubAnchor).length,2);
-  bootstrap=bootstrap.replace(scrubAnchor,`const baseScrub = require('./scrub.cjs');
-const scrub={...baseScrub,decision(row){const checked={...row,frame:row.frame&&{...row.frame}};
-for(const key of ['tabUrl'])if(checked[key]==='about:blank')checked[key]=null;
-if(checked.frame)for(const key of ['url','topUrl'])if(checked.frame[key]==='about:blank')checked.frame[key]=null;
-baseScrub.decision(checked);return row;}};`);
+  bootstrap=bootstrap.replace(scrubAnchor,`const scrub = require('./frame-observer-scrub.cjs').frameObserverScrub(require('./scrub.cjs'),require('./authored-data-urls.json'));`);
+  fs.copyFileSync(new URL('./frame-observer-scrub.cjs',import.meta.url),path.join(appPath,'frame-observer-scrub.cjs'));
+  fs.writeFileSync(path.join(appPath,'authored-data-urls.json'),JSON.stringify(authoredDataUrls));
   fs.writeFileSync(path.join(appPath,'capture-bootstrap.cjs'),bootstrap);source.bootstrapSha256=sha(bootstrap);source.asarSha256=sha(fs.readFileSync(config.asar));
   for(const [src,dst] of [['../pipeline/scrub.cjs','scrub.cjs'],['../pilot/fixture-trust.cjs','single-fixture-trust.cjs'],['./fixture-trust.cjs','fixture-trust.cjs']])fs.copyFileSync(new URL(src,import.meta.url),path.join(appPath,dst));
   fs.writeFileSync(path.join(appPath,'package.json'),JSON.stringify({...pkg,main:'capture-bootstrap.cjs'}));fs.mkdirSync(profile+'-Dev');

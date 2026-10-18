@@ -36,8 +36,23 @@ DocumentScript::DocumentScript(content::RenderFrameHost& frame, mojo::PendingRec
 void DocumentScript::GetScript(const std::string& url, GetScriptCallback callback) {
     auto& frame = render_frame_host(); auto* context = frame.GetBrowserContext();
     if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || context->IsOffTheRecord()) { std::move(callback).Run(true, ""); return; }
+    // Rule-selection fallback only for browser-verified inherited about documents.
+    // This never changes the document/security origin or the network context log.
+    const auto& committed = frame.GetLastCommittedURL();
+    GURL selection = committed;
+    if (!committed.SchemeIsHTTPOrHTTPS()) {
+      const auto& origin = frame.GetLastCommittedOrigin();
+      auto* parent = frame.GetParent();
+      if ((!committed.IsAboutBlank() && !committed.IsAboutSrcdoc()) ||
+          committed.spec() != url || origin.opaque() || !parent ||
+          !origin.IsSameOriginWith(parent->GetLastCommittedOrigin()) ||
+          !origin.GetURL().SchemeIsHTTPOrHTTPS()) {
+        std::move(callback).Run(true, ""); return; // Explicitly unsupported, no guessed fallback.
+      }
+      selection = origin.GetURL();
+    } else if (committed.spec() != url) { std::move(callback).Run(false, ""); return; }
     auto& state = UboState(context);
-    if (!frame.GetLastCommittedURL().SchemeIsHTTPOrHTTPS() || frame.GetLastCommittedURL().spec() != url || !state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
+    if (!state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
     auto& jobs = Jobs(context).jobs;
     if (jobs.size() >= 64) { std::move(callback).Run(false, ""); return; }
     const auto id = base::UnguessableToken::Create().ToString();
@@ -46,7 +61,7 @@ void DocumentScript::GetScript(const std::string& url, GetScriptCallback callbac
       ancestors.Append(parent->GetLastCommittedURL().spec());
     }
     jobs.emplace(id, PendingScript{frame.GetWeakDocumentPtr(), state.generation,
-        sessions::SessionTabHelper::IdForTab(content::WebContents::FromRenderFrameHost(&frame)).id(), extensions::ExtensionApiFrameIdMap::GetFrameId(&frame), std::move(ancestors), url, false, std::move(callback)});
+        sessions::SessionTabHelper::IdForTab(content::WebContents::FromRenderFrameHost(&frame)).id(), extensions::ExtensionApiFrameIdMap::GetFrameId(&frame), std::move(ancestors), selection.spec(), false, std::move(callback)});
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE, base::BindOnce([](base::WeakPtr<content::BrowserContext> context, std::string id) {
       if (!context) return; auto& jobs = Jobs(context.get()).jobs; auto it = jobs.find(id); if (it == jobs.end()) return;
       auto callback = std::move(it->second.callback); jobs.erase(it); std::move(callback).Run(false, "");

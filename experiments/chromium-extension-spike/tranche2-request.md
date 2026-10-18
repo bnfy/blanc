@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (private/opaque frames and Electron instrumentation assessed)
+### 1.1 Progress checkpoint — October 17, 2026 (inherited frames and Electron attribution measured)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,21 +49,19 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-opaque-electron-audit-20261017/` records
-56 cases in eight fresh sessions. All 24 private script-enabled cases preserve
-uBO-disabled policy and network outcomes; 18 have private Blanc cancellation
-records and six Electron non-HTTP metadata cases remain attribution gaps.
-Four native regular HTTP/sandbox-HTTP early checks pass; eight native non-HTTP
-and 12 Electron regular early checks lack the tested effects. Eight sandbox
-script-denial checks are not scriptlet passes. The pinned-source Electron
-assessment identifies an opt-in update metadata/token/hook export path, but
-implementation and a separately approved Electron diagnostic build remain
-required. Cross-runtime update identity stays open. See
-`electron-update-instrumentation.md`; 181 tests/93-file lint pass, no native
-compilation, final guard zero actions. Footprint last measured 31/74, unchanged
-by this harness/docs-only follow-up. Latency remains deferred.
-Next: non-HTTP document-start design and observer context handling, independent
-Electron instrumentation proposal, broader frame/lifecycle/containment coverage.
+Current follow-up: `evidence/f12-inherited-observer-20261017/` repeats 56 cases.
+Native inherited about:blank/srcdoc joins HTTP/sandbox-HTTP for 8/8 early passes;
+24/24 private cases now have actual Blanc cancellation attribution. The six
+Electron metadata gaps close with exact synthetic sentinel/data admission;
+opaque origins stay literal null and the public scrubber stays unchanged.
+Six inherited exception/restoration probes and seven gate-safety regressions
+pass. Sixteen early-scriptlet gaps remain (four native opaque/data and twelve
+Electron regular). 187 tests/96-file lint pass; incremental build37.45s/eight steps,
+final guard0, measured31/74 footprint. Latency deferred. The separate
+`electron-instrumentation-build-request.md` is a draft, with unchecked §8;
+no Electron checkout/build started and no change to this tranche's approval.
+Next: review that proposal before independent Electron native instrumentation;
+opaque/blob/fenced/nested contexts, broader lifecycle and component containment.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
@@ -565,3 +563,5 @@ local sample, with their reporting, retention and cleanup requirements and
 all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
+
+Current follow-up limitation: inherited-frame native/extension late-path deduplication remains unmeasured; bounded constant/fetch success is not arbitrary-scriptlet acceptance.

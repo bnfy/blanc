@@ -10,7 +10,7 @@ void BlancFrameLifetime::OnDestruct() { alive = false; }
 static bool BlancDocumentStart(content::RenderFrame* frame) {
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return true;
   const GURL url(frame->GetWebFrame()->GetDocument().Url());
-  if (!url.SchemeIsHTTPOrHTTPS()) return true;
+  if (!url.SchemeIsHTTPOrHTTPS() && !url.IsAboutBlank() && !url.IsAboutSrcdoc()) return true;
   BlancFrameLifetime lifetime(frame);
   mojo::Remote<blanc::mojom::DocumentStart> remote;
   frame->GetBrowserInterfaceBroker().GetInterface(remote.BindNewPipeAndPassReceiver());
