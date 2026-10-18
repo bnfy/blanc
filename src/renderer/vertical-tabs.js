@@ -415,6 +415,19 @@
     return section;
   }
 
+  /** A run of ungrouped tabs: plain rows with no heading, set apart from the
+   * tinted group blocks around it (as in the island). The heading text stays
+   * its accessible name. */
+  function looseRun(tabs, activeTabId) {
+    const section = document.createElement('section');
+    section.className = 'vertical-tabs-section vertical-tabs-run';
+    section.dataset.dragSection = 'loose';
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-label', blancI18n.t('rail.section.tabs'));
+    for (const tab of tabs) section.appendChild(tabRow(tab, activeTabId));
+    return section;
+  }
+
   function groupSection(group, members, activeTabId, index) {
     if (!members.length) return null;
     const section = document.createElement('section');
@@ -597,9 +610,7 @@
         if (section) fragment.appendChild(section);
         endsInRun = false;
       } else {
-        // Each run keeps the "tabs" heading and its own count, wherever it sits.
-        fragment.appendChild(staticBucket(blancI18n.t('rail.section.tabs'), 'loose',
-          members.filter((tab) => !tab.pinned), activeTabId));
+        fragment.appendChild(looseRun(members.filter((tab) => !tab.pinned), activeTabId));
         endsInRun = true;
       }
     }

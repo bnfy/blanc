@@ -77,7 +77,7 @@ Both follow the section order of §3.2. A run remembers its last active tab for 
 
 ### 5.6 The rail
 
-The rail draws the same sections in the same order. Every run keeps the rail's lowercase "tabs" heading (`rail.section.tabs`) with its own count, wherever it sits; without it, ungrouped tabs between groups looked out of place (the owner, 2026-10-17). The ⌘L panel keeps drawing runs without a heading, as it does today.
+The rail draws the same sections in the same order, and looks like the ⌘L panel: each group is a tinted block (the panel's group band), and runs of ungrouped tabs are plain rows between the blocks, with no heading. The owner tried and turned down two alternatives on 2026-10-17: a "Tabs" heading over every run (it made runs look like unnamed groups, and suggested renaming them), and divider lines between sections. A run keeps "Tabs" as its accessible name.
 
 ## 6. Recently closed
 

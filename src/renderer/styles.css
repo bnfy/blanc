@@ -740,6 +740,32 @@ body.mac .vertical-tabs-toolbar {
   opacity: 0.65;
 }
 
+/* Groups are tinted blocks, as in the island (.island-group-band), so runs of
+   ungrouped tabs between them need no heading (owner, 2026-10-17). */
+.vertical-tabs-group {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 2px 0 4px;
+}
+/* Inside the block the header and rows darken the tint instead of repeating
+   it, and rows lose their own corners, as in the island. */
+.vertical-tabs-group .vertical-tabs-group-header:hover,
+.vertical-tabs-group .vertical-tabs-group-header.contains-active {
+  background: transparent;
+}
+.vertical-tabs-group .vertical-tab-row { border-radius: 0; }
+.vertical-tabs-group .vertical-tab-row:hover,
+.vertical-tabs-group .vertical-tab-row:focus-within {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--text) 5.5%, transparent) 12%,
+    color-mix(in srgb, var(--text) 5.5%, transparent) 88%,
+    transparent 100%
+  );
+}
+.vertical-tabs-group .vertical-tab-row.active { background: var(--accent-dim); }
+
 .vertical-tabs-group-header {
   width: 100%;
   height: 28px;

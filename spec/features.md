@@ -638,7 +638,8 @@ From the desktop `DEFAULTS`:
   from anywhere.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
   then named groups (group pins first) and runs of ungrouped tabs in tab order,
-  each run under its own "tabs" heading, followed by the new-tab action. Rows expose favicon and title plus active, loading, private, pinned,
+  followed by the new-tab action. As in the island, each group is a tinted
+  block and runs of ungrouped tabs are plain rows with no heading. Rows expose favicon and title plus active, loading, private, pinned,
   audible, and muted states. Directly hovering a genuinely truncated title
   starts a delayed, reduced-motion-aware reading pass to its hidden end;
   fully visible titles stay still and pointer exit restores the ellipsis.

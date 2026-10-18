@@ -548,7 +548,7 @@
   },
   "rail.section.tabs": {
     "message": "Tabs",
-    "note": "Heading of each rail section holding ungrouped tabs. Sentence case.",
+    "note": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
     "maxLength": 10
   },
   "permission.surfaceTitle": {

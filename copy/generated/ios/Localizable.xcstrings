@@ -6068,7 +6068,7 @@
       }
     },
     "rail.section.tabs": {
-      "comment": "Heading of each rail section holding ungrouped tabs. Sentence case.",
+      "comment": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
       "extractionState": "manual",
       "localizations": {
         "en": {
