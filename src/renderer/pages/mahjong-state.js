@@ -20,6 +20,7 @@
   const RECORDS_KEY = 'mahjong.records.v3';
   const RECORD_EVENT_PREFIX = 'mahjong.record-event.v3.';
   const PREFS_KEY = 'mahjong.prefs.v3';
+  const PROGRESS_KEY = 'mahjong.progress.v1';
   const V2_GAME_KEY_PREFIX = 'mahjong.game.v2.';
   const V2_GAME_ACCESS_PREFIX = 'mahjong.game-access.v2.';
   const V2_RECORDS_KEY = 'mahjong.records.v2';
@@ -43,6 +44,9 @@
   const SOURCES = Object.freeze(['random', 'daily']);
   const BURST_RULES = Object.freeze(['auto', 'manual']);
   const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily', burstRules: 'auto' });
+  const DEFAULT_PROGRESS = Object.freeze({ clearStreak: 0, lastCompletedGameId: null });
+  const TILE_THEMES = Object.freeze(['porcelain', 'carved', 'inlay']);
+  const CLEARS_PER_TILE_THEME = 3;
   const TRAY_SCORING_REVISION = 2;
   const MANUAL_TRAY_SCORING_REVISION = 3;
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -517,6 +521,55 @@
       return safeSet(storage, PREFS_KEY, JSON.stringify({ version: STATE_VERSION, ...normalizePrefs(prefs) }));
     }
     return Object.freeze({ read, write });
+  }
+
+  function normalizeProgress(value) {
+    const source = isObject(value) ? value : {};
+    return {
+      clearStreak: finiteInteger(source.clearStreak) ? source.clearStreak : DEFAULT_PROGRESS.clearStreak,
+      lastCompletedGameId: source.lastCompletedGameId === null || isValidGameId(source.lastCompletedGameId)
+        ? source.lastCompletedGameId
+        : DEFAULT_PROGRESS.lastCompletedGameId,
+    };
+  }
+
+  // Consecutive clears are intentionally separate from records and table
+  // preferences: they drive visual variety, not competitive results. The
+  // completed game id makes the increment idempotent across reloads.
+  function createProgressStore({ storage = defaultStorage() } = {}) {
+    function read() {
+      const raw = safeGet(storage, PROGRESS_KEY);
+      if (!raw) return { ...DEFAULT_PROGRESS };
+      try { return normalizeProgress(JSON.parse(raw)); } catch { return { ...DEFAULT_PROGRESS }; }
+    }
+    function write(progress) {
+      const clean = normalizeProgress(progress);
+      return safeSet(storage, PROGRESS_KEY, JSON.stringify({ version: 1, ...clean }));
+    }
+    function recordClear(gameId) {
+      const current = read();
+      if (!isValidGameId(gameId) || current.lastCompletedGameId === gameId.toLowerCase()) return current;
+      const next = { clearStreak: current.clearStreak + 1, lastCompletedGameId: gameId.toLowerCase() };
+      return write(next) ? next : current;
+    }
+    function reset() {
+      const next = { ...DEFAULT_PROGRESS };
+      write(next);
+      return next;
+    }
+    return Object.freeze({ read, recordClear, reset });
+  }
+
+  function tileThemeForStreak(clearStreak) {
+    const streak = finiteInteger(clearStreak) ? clearStreak : 0;
+    return TILE_THEMES[Math.floor(streak / CLEARS_PER_TILE_THEME) % TILE_THEMES.length];
+  }
+
+  function celebrationStyleForStreak(clearStreak) {
+    const streak = finiteInteger(clearStreak) ? clearStreak : 0;
+    if (streak === 1 || (streak > 0 && streak % 9 === 0)) return 'horizon-bloom';
+    if (streak > 0 && streak % 3 === 0) return 'tile-echo';
+    return 'gilded-fan';
   }
 
   // 'first' when a layout gains its first record, 'record' when an existing
@@ -1268,6 +1321,7 @@
     RECORDS_KEY,
     RECORD_EVENT_PREFIX,
     PREFS_KEY,
+    PROGRESS_KEY,
     V2_GAME_KEY_PREFIX,
     V2_GAME_ACCESS_PREFIX,
     V2_RECORDS_KEY,
@@ -1285,6 +1339,8 @@
     BURST_RULES,
     TRAY_SCORING_REVISION,
     MANUAL_TRAY_SCORING_REVISION,
+    TILE_THEMES,
+    CLEARS_PER_TILE_THEME,
     isValidGameId,
     mintGameId,
     ensureGameId,
@@ -1296,6 +1352,9 @@
     createGameStore,
     resumeCandidate,
     createPrefsStore,
+    createProgressStore,
+    tileThemeForStreak,
+    celebrationStyleForStreak,
     completionOutcome,
     describeDailyResult,
     shiftDailyKey,

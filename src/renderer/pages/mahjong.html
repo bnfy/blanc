@@ -55,7 +55,25 @@
     <section class="mj-game" aria-label="Mahjong game surface" data-i18n-aria-label="mahjong.surface">
       <div class="mj-board-frame">
         <div id="mjCelebrate" class="mj-celebrate" aria-hidden="true" hidden>
-          <div class="mj-celebrate-mark"></div>
+          <div class="mj-celebrate-art mj-celebrate-horizon-bloom">
+            <img class="mj-celebrate-landscape" src="start-page-sunrise.png" alt="" />
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+            <span class="mj-celebrate-orbit"></span>
+          </div>
+          <div class="mj-celebrate-art mj-celebrate-tile-echo">
+            <span class="mj-echo-tile" data-celebrate-kind="dot-1"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="bam-1"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="wind-n-motif"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="drg-c-motif"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="flower-1"></span>
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+          </div>
+          <div class="mj-celebrate-art mj-celebrate-gilded-fan">
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+          </div>
         </div>
         <div class="mj-board-wrap" id="mjBoardWrap">
           <div id="mjBoard" class="mj-board" role="group" tabindex="-1" aria-label="Mahjong tiles. Use arrow keys to move and Enter or Spacebar to select." data-i18n-aria-label="mahjong.board"></div>
@@ -92,8 +110,9 @@
 
     <section id="mjWin" class="mj-win mj-card-overlay" role="dialog" aria-modal="true" aria-labelledby="mjWinTitle" hidden>
       <div class="mj-win-visual" aria-hidden="true">
-        <img class="mj-win-particles" src="mahjong-combo-particles.png" alt="" />
-        <img class="mj-win-glint" src="mahjong-combo-glint.png" alt="" />
+        <img class="mj-win-mark" src="sunrise-mark.png" alt="" />
+        <span class="mj-win-horizon"></span>
+        <img class="mj-win-landscape" src="start-page-sunrise.png" alt="" />
       </div>
       <div class="mj-win-copy">
         <p class="mj-overline" data-i18n="mahjong.win.kicker">board cleared</p>

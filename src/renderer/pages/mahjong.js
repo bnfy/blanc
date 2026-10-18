@@ -44,9 +44,9 @@ function setLayoutGeometry(layoutId) {
 }
 
 // --- tile faces -----------------------------------------------------------
-// Tile-face artwork: dots/bamboo pictorial, characters numeral + rule,
-// landscape winds, emblematic dragons, and distinct botanical bonus-family
-// engravings. All art stays local to the flat-served internal pages directory.
+// Tile-face artwork: themed dots/bamboo pictorials, Inter Bold character
+// numerals, compass winds, emblematic dragons, and botanical bonus-family art.
+// All art stays local to the flat-served internal pages directory.
 
 // Traditional arrangements. Dot tiles use centered ring compositions rather
 // than domino diagonals; bamboo overrides the counts where sticks stack
@@ -64,40 +64,55 @@ const DOT_SPOTS = {
   8: [[12, 9], [32, 9], [12, 23], [32, 23], [12, 37], [32, 37], [12, 51], [32, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
-const DOT_ART = 'mahjong-dot-pip.png';
-const WIND_ART = Object.freeze({
-  n: 'mahjong-wind-north.png',
-  e: 'mahjong-wind-east.png',
-  s: 'mahjong-wind-south.png',
-  w: 'mahjong-wind-west.png',
+let activeTileTheme = 'porcelain';
+const THEME_SHEETS = Object.freeze({
+  porcelain: 'mahjong-theme-porcelain-sheet.png',
+  carved: 'mahjong-theme-carved-sheet.png',
+  inlay: 'mahjong-theme-inlay-sheet.png',
 });
-const WIND_SEAL_ART = 'mahjong-wind-compass.png';
-const WIND_SEAL_ROTATION = Object.freeze({ n: 0, e: 90, s: 180, w: 270 });
-const WIND_DIRECTION_LABEL = Object.freeze({ n: 'N', e: 'E', s: 'S', w: 'W' });
-const DRAGON_ART = Object.freeze({
-  c: 'mahjong-dragon-red.png',
-  f: 'mahjong-dragon-green.png',
-  p: 'mahjong-dragon-white.png',
-});
-const DRAGON_SEAL_ART = Object.freeze({
-  c: 'mahjong-dragon-red-seal.png',
-  f: 'mahjong-dragon-green-seal.png',
-  p: 'mahjong-dragon-white-seal.png',
-});
-const BONUS_ART = Object.freeze({
-  flower: 'mahjong-flower.png',
-  season: 'mahjong-season.png',
+const SHEET_SIZE = Object.freeze({ width: 1487, height: 1058 });
+// Literal face crops from the approved concept sheets. Rendering the source
+// sheets as sprites keeps their exact linework, texture, color and ornaments.
+const THEME_CROPS = Object.freeze({
+  porcelain: Object.freeze({
+    chr: Object.freeze({ 1: [52, 54, 190, 270], 5: [288, 54, 190, 270], 9: [527, 54, 190, 270] }),
+    dot: Object.freeze({ 1: [766, 54, 190, 270], 5: [1005, 54, 190, 270], 9: [1243, 54, 190, 270] }),
+    bam: Object.freeze({ 1: [52, 392, 180, 265], 5: [280, 392, 180, 265], 9: [478, 392, 180, 265] }),
+    wind: Object.freeze({ n: [674, 392, 182, 266], e: [851, 392, 182, 266], s: [1028, 392, 182, 266], w: [1218, 392, 182, 266] }),
+    drg: Object.freeze({ c: [53, 708, 225, 280], f: [330, 708, 225, 280], p: [610, 708, 225, 280] }),
+    flower: [888, 708, 225, 280], season: [1170, 708, 235, 280],
+    pip: [1017, 106, 62, 62], bamboo: [324, 398, 48, 105],
+  }),
+  carved: Object.freeze({
+    chr: Object.freeze({ 1: [58, 54, 190, 270], 5: [289, 54, 190, 270], 9: [522, 54, 190, 270] }),
+    dot: Object.freeze({ 1: [770, 54, 190, 270], 5: [1000, 54, 190, 270], 9: [1234, 54, 190, 270] }),
+    bam: Object.freeze({ 1: [55, 403, 180, 255], 5: [291, 403, 180, 255], 9: [504, 403, 180, 255] }),
+    wind: Object.freeze({ n: [704, 403, 180, 255], e: [880, 403, 180, 255], s: [1065, 403, 180, 255], w: [1252, 403, 180, 255] }),
+    drg: Object.freeze({ c: [82, 720, 220, 280], f: [326, 720, 220, 280], p: [651, 720, 205, 280] }),
+    flower: [896, 720, 210, 280], season: [1190, 720, 215, 280],
+    pip: [1012, 185, 62, 62], bamboo: [338, 413, 48, 105],
+  }),
+  inlay: Object.freeze({
+    chr: Object.freeze({ 1: [68, 54, 190, 270], 5: [295, 54, 190, 270], 9: [520, 54, 190, 270] }),
+    dot: Object.freeze({ 1: [780, 54, 190, 270], 5: [1007, 54, 190, 270], 9: [1230, 54, 190, 270] }),
+    bam: Object.freeze({ 1: [48, 384, 190, 267], 5: [277, 384, 185, 267], 9: [486, 384, 185, 267] }),
+    wind: Object.freeze({ n: [706, 384, 180, 267], e: [884, 384, 180, 267], s: [1066, 384, 180, 267], w: [1257, 384, 180, 267] }),
+    drg: Object.freeze({ c: [82, 707, 220, 280], f: [337, 707, 220, 280], p: [667, 707, 205, 280] }),
+    flower: [920, 707, 205, 280], season: [1175, 707, 225, 280],
+    chrMotif: [320, 225, 150, 95],
+    pip: [1010, 95, 62, 62], bamboo: [329, 395, 48, 105],
+  }),
 });
 const DOT_PIP_SIZES = Object.freeze({
-  1: 26,
-  2: 15,
-  3: 13.5,
-  4: 12.5,
-  5: 11.75,
-  6: 10.5,
-  7: 9.75,
-  8: 9.5,
-  9: 9,
+  1: 32,
+  2: 18,
+  3: 16.5,
+  4: 15.5,
+  5: 14.5,
+  6: 13,
+  7: 12,
+  8: 11.75,
+  9: 11.25,
 });
 const BAM_SPOTS = {
   1: [[22, 30]],
@@ -113,20 +128,15 @@ const BAM_SPOTS = {
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 
-const BAMBOO_ART = Object.freeze({
-  one: 'mahjong-bamboo-one.png',
-  jade: 'mahjong-bamboo-jade.png',
-  gold: 'mahjong-bamboo-gold.png',
-});
 const BAMBOO_STICK_SIZES = Object.freeze({
-  2: [13, 36],
-  3: [12, 24],
-  4: [11, 21],
-  5: [10.5, 19],
-  6: [10, 18],
-  7: [9.5, 17],
-  8: [9, 15.5],
-  9: [8.5, 14.5],
+  2: [17, 42],
+  3: [15.5, 29],
+  4: [14.5, 26],
+  5: [13.5, 24],
+  6: [12.75, 22],
+  7: [12, 20.5],
+  8: [11.5, 19],
+  9: [11, 18],
 });
 
 function el(tag, attrs) {
@@ -135,88 +145,102 @@ function el(tag, attrs) {
   return node;
 }
 
-function faceImage(href, x, y, width, height, className) {
-  return el('image', {
-    href,
-    x: x - width / 2,
-    y: y - height / 2,
-    width,
-    height,
+function sheetCrop(crop, {
+  x = 0, y = 0, width = 44, height = 60, className = 'mj-sheet-face',
+} = {}) {
+  const nested = el('svg', {
+    x, y, width, height,
+    viewBox: crop.join(' '),
+    preserveAspectRatio: 'none',
     class: className,
-    preserveAspectRatio: 'xMidYMid meet',
+    overflow: 'hidden',
   });
+  nested.append(el('image', {
+    href: THEME_SHEETS[activeTileTheme],
+    x: 0,
+    y: 0,
+    width: SHEET_SIZE.width,
+    height: SHEET_SIZE.height,
+    preserveAspectRatio: 'none',
+  }));
+  return nested;
 }
 
 function dotFace(count) {
+  const crops = THEME_CROPS[activeTileTheme];
+  if (crops.dot[count]) return sheetCrop(crops.dot[count], { className: `mj-sheet-face mj-dot-art-${count}` });
   const group = el('g', { class: `mj-dot-art mj-dot-art-${count}` });
   const size = DOT_PIP_SIZES[count];
-  for (const [x, y] of DOT_SPOTS[count]) {
-    group.append(faceImage(DOT_ART, x, y, size, size, 'mj-dot-source'));
+  DOT_SPOTS[count].forEach(([x, y]) => {
+    group.append(sheetCrop(crops.pip, {
+      x: x - size / 2,
+      y: y - size / 2,
+      width: size,
+      height: size,
+      className: 'mj-dot-source',
+    }));
+  });
+  return group;
+}
+
+function characterFace(count) {
+  const crops = THEME_CROPS[activeTileTheme];
+  const sample = count <= 3 ? 1 : count <= 7 ? 5 : 9;
+  const group = el('g', { class: `mj-character-art mj-character-art-${activeTileTheme}` });
+  group.append(sheetCrop(crops.chr[sample]));
+  if (count === sample) return group;
+
+  const carved = activeTileTheme === 'carved';
+  group.append(el('rect', {
+    x: carved ? 1.5 : 5,
+    y: 1.5,
+    width: carved ? 23 : 34,
+    height: carved ? 34 : activeTileTheme === 'inlay' ? 40 : 28,
+    rx: 2,
+    class: 'mj-character-number-patch',
+  }));
+  if (activeTileTheme === 'inlay') {
+    // The inlay numeral reaches into the sunrise in the approved 5 tile. Paint
+    // that exact lower-sheet ornament back after masking the source numeral.
+    group.append(sheetCrop(crops.chrMotif, {
+      x: 5.8, y: 38, width: 34.7, height: 21.1,
+      className: 'mj-character-motif',
+    }));
   }
+  const number = textEl(carved ? 11.5 : 22, carved ? 13.5 : 14, carved ? 19 : 21, count);
+  number.classList.add('mj-character-number');
+  group.append(number);
   return group;
 }
 
 function windFace(id, variant = 'motif') {
-  const group = el('g', { class: `mj-wind-art mj-wind-art-${id} mj-wind-art-${variant}` });
-  if (variant === 'seal') {
-    const compass = faceImage(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal');
-    compass.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 30)`);
-    const badge = el('g', { class: `mj-wind-direction mj-wind-direction-${id}` });
-    badge.append(el('rect', { x: 15, y: 46, width: 14, height: 10, rx: 4 }));
-    const direction = textEl(22, 51, 7.5, WIND_DIRECTION_LABEL[id]);
-    direction.classList.add('mj-wind-direction-label');
-    badge.append(direction);
-    group.append(compass, badge);
-  } else {
-    group.append(faceImage(WIND_ART[id], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'));
-  }
-  return group;
+  return sheetCrop(THEME_CROPS[activeTileTheme].wind[id], {
+    className: `mj-sheet-face mj-wind-art mj-wind-art-${id} mj-wind-art-${variant}`,
+  });
 }
 
 function dragonFace(id, variant = 'motif') {
-  const group = el('g', { class: `mj-dragon-art mj-dragon-art-${id} mj-dragon-art-${variant}` });
-  const source = variant === 'seal' ? DRAGON_SEAL_ART[id] : DRAGON_ART[id];
-  const [width, height] = variant === 'seal' ? [40, 40] : [42, 48];
-  group.append(faceImage(
-    source,
-    22,
-    30,
-    width,
-    height,
-    `mj-dragon-source mj-dragon-source-${variant}`
-  ));
-  return group;
+  return sheetCrop(THEME_CROPS[activeTileTheme].drg[id], {
+    className: `mj-sheet-face mj-dragon-art mj-dragon-art-${id} mj-dragon-art-${variant}`,
+  });
 }
 
-function bambooStickAsset(count, index, x) {
-  const goldAccent =
-    (count === 3 && index === 0) ||
-    (count === 5 && index === 2) ||
-    (count === 7 && index === 0) ||
-    ((count === 6 || count === 9) && x === 22);
-  return goldAccent ? BAMBOO_ART.gold : BAMBOO_ART.jade;
-}
-
-// One bamboo keeps its special panda emblem. The numbered suit uses bold,
-// segmented lacquer sticks with restrained brass accents, borrowing Mahjong
-// Blast's at-a-glance clarity while keeping Blanc's engraved material finish.
+// One bamboo keeps its special emblem. The numbered suit uses bold, segmented
+// sticks with restrained gold accents for at-a-glance clarity.
 function bambooFace(count) {
+  const crops = THEME_CROPS[activeTileTheme];
+  if (crops.bam[count]) return sheetCrop(crops.bam[count], { className: `mj-sheet-face mj-bamboo-art-${count}` });
   const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
-  if (count === 1) {
-    group.append(faceImage(BAMBOO_ART.one, 22, 30, 42, 48, 'mj-bamboo-source mj-bamboo-source-one'));
-  } else {
-    const [width, height] = BAMBOO_STICK_SIZES[count];
-    BAM_SPOTS[count].forEach(([x, y], index) => {
-      group.append(faceImage(
-        bambooStickAsset(count, index, x),
-        x,
-        y,
-        width,
-        height,
-        'mj-bamboo-source mj-bamboo-source-stick'
-      ));
-    });
-  }
+  const [width, height] = BAMBOO_STICK_SIZES[count];
+  BAM_SPOTS[count].forEach(([x, y]) => {
+    group.append(sheetCrop(crops.bamboo, {
+      x: x - width / 2,
+      y: y - height / 2,
+      width,
+      height,
+      className: 'mj-bamboo-source mj-bamboo-source-stick',
+    }));
+  });
   return group;
 }
 
@@ -238,9 +262,9 @@ function textEl(x, y, size, content) {
 // avoids the false promise of exact matching created by unrelated UI glyphs
 // and corner numerals while keeping the underlying four-tile sets intact.
 function bonusFace(family) {
-  const group = el('g', { class: `mj-bonus-art mj-bonus-${family}` });
-  group.append(faceImage(BONUS_ART[family], 22, 30, 42, 48, 'mj-bonus-source'));
-  return group;
+  return sheetCrop(THEME_CROPS[activeTileTheme][family], {
+    className: `mj-sheet-face mj-bonus-art mj-bonus-${family}`,
+  });
 }
 
 // Accessible tile names. Numbers are words ("three dot"), so each language
@@ -303,9 +327,7 @@ function faceSVG(kind) {
   } else if (family === 'bam') {
     svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {
-    const number = textEl(22, 30, 42, id);
-    number.classList.add('mj-character-number');
-    svg.append(number);
+    svg.append(characterFace(Number(id)));
   } else if (family === 'wind') {
     svg.append(windFace(id, variant));
   } else if (family === 'drg') {
@@ -1360,6 +1382,9 @@ function recordCompletion() {
   if (game.zen) {
     game.completionRecorded = true;
     game._outcome = 'zen';
+    const progress = progressStore?.recordClear(gameId) || { clearStreak: 0 };
+    game._clearStreak = progress.clearStreak;
+    game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
     saveAfterMutation();
     return true;
   }
@@ -1382,6 +1407,9 @@ function recordCompletion() {
   game.completionRecorded = Boolean(updated);
   const after = bestForGame();
   game._outcome = S.completionOutcome({ mode: game.mode, before, after });
+  const progress = progressStore?.recordClear(gameId) || { clearStreak: 0 };
+  game._clearStreak = progress.clearStreak;
+  game._celebrationStyle = S.celebrationStyleForStreak(progress.clearStreak);
   saveAfterMutation();
   return Boolean(updated);
 }
@@ -1416,6 +1444,7 @@ function cancelCelebration() {
   if (layer) {
     layer.hidden = true;
     delete layer.dataset.tier;
+    delete layer.dataset.style;
   }
   document.body.classList.remove('is-celebrating');
 }
@@ -1424,7 +1453,7 @@ function cancelCelebration() {
 // tier's duration, on any click or key, or when a hidden tab becomes visible.
 // Timers rather than animationend, because a hidden tab never runs the
 // animation and the card must still arrive.
-function playCelebration(tier, done) {
+function playCelebration(tier, style, done) {
   cancelCelebration();
   if (tier === 'still') {
     document.body.classList.add('is-celebrating-still');
@@ -1436,6 +1465,10 @@ function playCelebration(tier, done) {
     return;
   }
   layer.dataset.tier = tier;
+  layer.dataset.style = style;
+  for (const tile of layer.querySelectorAll('[data-celebrate-kind]')) {
+    tile.replaceChildren(faceSVG(tile.dataset.celebrateKind));
+  }
   layer.hidden = false;
   document.body.classList.add('is-celebrating');
   const skip = () => {
@@ -1509,7 +1542,9 @@ function showWin({ celebrate = false } = {}) {
   const tier = celebrate
     ? FX.celebrationTier({ zen: isZen, outcome: game._outcome || null, reducedMotion, hidden: document.hidden })
     : 'none';
-  playCelebration(tier, () => setDialogVisible(win, true));
+  const clearStreak = game._clearStreak ?? progressStore?.read().clearStreak ?? 0;
+  const celebrationStyle = game._celebrationStyle || S.celebrationStyleForStreak(clearStreak);
+  playCelebration(tier, celebrationStyle, () => setDialogVisible(win, true));
 }
 
 // --- lifecycle ------------------------------------------------------------
@@ -1519,6 +1554,7 @@ let gameId = null;
 let gameStore = null;
 let recordStore = null;
 let prefsStore = null;
+let progressStore = null;
 let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
@@ -1546,6 +1582,8 @@ function configureGame(nextGame) {
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
+  activeTileTheme = S.tileThemeForStreak(progressStore?.read().clearStreak ?? 0);
+  document.body.dataset.tileTheme = activeTileTheme;
   focusIndex = nearestVisibleIndex(0);
   hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
     game.tray.length > 0 || game.selected !== null;
@@ -1576,6 +1614,7 @@ function startGame({
   zen = false,
 }, { soundCue = true, rememberPreferences = true, shared = false } = {}) {
   pauseTimer();
+  if (game && !E.isWon(game)) progressStore?.reset();
   // Remember the table so the next fresh tab deals the same kind of game.
   if (rememberPreferences) {
     prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random', burstRules });
@@ -2009,6 +2048,7 @@ function bootstrap() {
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
   recordStore = S.createRecordStore({ storage: localStorage });
   prefsStore = S.createPrefsStore({ storage: localStorage });
+  progressStore = S.createProgressStore({ storage: localStorage });
   recordStore.migrateLegacy();
 
   let hadSave = false;
