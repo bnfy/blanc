@@ -1,0 +1,226 @@
+{
+  "checkedAt": "2026-10-16T14:14:44.503Z",
+  "windowId": 60440617,
+  "fixtureId": 60440618,
+  "method": "Physical macOS CGEvent mouse and keyboard, DevTools geometry and state readback",
+  "results": [
+    {
+      "name": "Cmd+A selects the whole Island address",
+      "result": "pass",
+      "detail": {
+        "before": {
+          "value": "http://127.0.0.1:18763/react",
+          "start": 28,
+          "end": 28,
+          "focused": true,
+          "documentFocused": true
+        },
+        "after": {
+          "value": "http://127.0.0.1:18763/react",
+          "start": 0,
+          "end": 28,
+          "focused": true,
+          "documentFocused": true
+        }
+      }
+    },
+    {
+      "name": "Selected address replaced by native typing and Enter",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a"
+      }
+    },
+    {
+      "name": "Cmd+L from page opens and selects Island address",
+      "result": "pass",
+      "detail": {
+        "value": "http://127.0.0.1:18763/a",
+        "start": 0,
+        "end": 24,
+        "focused": true,
+        "documentFocused": true
+      }
+    },
+    {
+      "name": "Native tab strip, omnibox and toolbar hidden",
+      "result": "pass",
+      "detail": {
+        "nativeToolbar": false,
+        "nativeOmnibox": false,
+        "windowControls": true
+      }
+    },
+    {
+      "name": "Cmd+T creates exactly one native tab and focuses blank Island input",
+      "result": "pass",
+      "detail": {
+        "beforeCount": 1,
+        "afterCount": 2,
+        "activeTabId": 60440619,
+        "input": {
+          "value": "",
+          "start": 0,
+          "end": 0,
+          "focused": true,
+          "documentFocused": true
+        }
+      }
+    },
+    {
+      "name": "Repeated Cmd+T while Island open creates one more tab",
+      "result": "pass",
+      "detail": {
+        "beforeCount": 2,
+        "afterCount": 3
+      }
+    },
+    {
+      "name": "Unsupported buttons are hidden; supported footer remains visible",
+      "result": "pass",
+      "detail": {
+        "unsupported": {
+          "heart": false,
+          "panelHeart": false,
+          "pin": false,
+          "glance": false,
+          "history": false,
+          "favorites": false,
+          "private": false,
+          "spaces": false,
+          "settings": false,
+          "vertical": false
+        },
+        "supported": {
+          "newTab": true,
+          "downloads": true
+        }
+      }
+    },
+    {
+      "name": "Slash menu lists only implemented commands",
+      "result": "pass",
+      "detail": [
+        "/downloads",
+        "/new",
+        "/close"
+      ]
+    },
+    {
+      "name": "Long panel fits short window, scrolls, and footer Downloads remains clickable",
+      "result": "pass",
+      "detail": {
+        "viewportHeight": 420,
+        "panelBottom": 408,
+        "footerBottom": 376.5,
+        "listHeight": 269,
+        "listScrollHeight": 608,
+        "rows": 19,
+        "hostHeight": 420,
+        "available": 420,
+        "clickedDestination": "chrome://downloads/"
+      }
+    },
+    {
+      "name": "Expanded panel grows correctly when window is restored",
+      "result": "pass",
+      "detail": {
+        "x": 477,
+        "y": 30,
+        "width": 1200,
+        "height": 640,
+        "source": "native window with measured Island offset"
+      }
+    },
+    {
+      "name": "Native Bitwarden action inside Island opens popup",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+        "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip"
+      }
+    },
+    {
+      "name": "Extensions menu inside Island lists all six extensions",
+      "result": "pass",
+      "detail": {
+        "extensions": 6
+      }
+    },
+    {
+      "name": "Island extension menu launches React Developer Tools",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/popups/development.html",
+        "text": "This page is using the development build of React. 🚧\n\nNote that the development build is not suitable for production.\nMake sure to use the production build before deployment.\n\nOpen the developer tools, and \"Components\" and \"Profiler\" tabs will appear to the right.",
+        "expectedBrand": "React"
+      }
+    },
+    {
+      "name": "Island extension menu launches Grammarly",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/popup.html",
+        "text": "Grammarly is active, but key features are missing.\n\nSign up now to unlock the following:\n\nPersonal dictionary\nSave and access your documents\nGet weekly writing statistics and tips\nSign up\nOpens a new tab\nAlready have an account?\nSign in\nOpens a new tab",
+        "expectedBrand": "Grammarly"
+      }
+    },
+    {
+      "name": "Island extension menu launches Tampermonkey",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html",
+        "text": "Please enable the `Allow User Scripts` extension setting. Click here for more info how to do this.\n\tScan the QR code to use Tampermonkey on your phone or tablet.\nLearn more\n\t",
+        "expectedBrand": "Tampermonkey"
+      }
+    },
+    {
+      "name": "Island extension menu launches 1Password",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/app/app.html#/page/welcome?language=en",
+        "text": "Start setup\nAdd account\n\nIf you have a 1Password account, sign in to get started.\n\nCreate your 1Password account\nSign in\nLearn how to use 1Password (tutorial)\nPin the 1Password extension to your browser's toolbar",
+        "expectedBrand": "1Password"
+      }
+    },
+    {
+      "name": "Island extension menu launches MetaMask",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet",
+        "expectedBrand": "MetaMask"
+      }
+    },
+    {
+      "name": "Header whitespace drags native window",
+      "result": "pass",
+      "detail": {
+        "before": {
+          "left": 477,
+          "top": 30
+        },
+        "after": {
+          "left": 527,
+          "top": 70
+        }
+      }
+    },
+    {
+      "name": "Browser fullscreen retains usable Island and extension popup",
+      "result": "pass",
+      "detail": {
+        "fullscreen": "fullscreen",
+        "restored": "normal"
+      }
+    },
+    {
+      "name": "No host error banner after supported interactions",
+      "result": "pass",
+      "detail": {
+        "text": "",
+        "visible": false
+      }
+    }
+  ]
+}

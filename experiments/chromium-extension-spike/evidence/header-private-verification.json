@@ -1,0 +1,11 @@
+{
+  "privateHeader": {
+    "expanded": true,
+    "color": "rgb(10, 10, 10)"
+  },
+  "closedPrivateWindow": true,
+  "originalTabs": [
+    "chrome://newtab/",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+  ]
+}

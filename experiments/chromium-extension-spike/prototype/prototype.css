@@ -1,0 +1,42 @@
+/* The prototype exposes only controls backed by its native bridge. The pill
+   and panel hearts and the Favorites/History footer buttons are backed by
+   Chromium's bookmark and history services; the row pin and mute controls and
+   drag-to-reorder by TabStripModel. Glance has no native counterpart yet. */
+#pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
+#pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
+#footerNewPrivate, #footerWorkspace,
+#footerTabLayout, #footerSettings, .row-glance {
+  display: none !important;
+}
+/* Private windows have no Favorites (Electron: private tabs never populate
+   them). The copied renderers set this theme from the active tab's `private`. */
+:root[data-theme="private"] #pillHeart,
+:root[data-theme="private"] #heartBtn {
+  display: none !important;
+}
+
+/* Native Chromium extension views occupy this measured slot in the pill. */
+#nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
+#islandPill { --pill-zoom: 1.15; gap: 6px; }
+#pillDomain { min-width: 24px; flex-shrink: 1; }
+/* Native controls cannot inherit a renderer transform. Keep their shared frame stable. */
+#islandPill.proximity-active { transform: none !important; }
+
+/* At narrow widths the expanded panel crosses the native button cluster.
+   Leave the real macOS controls clear and keep the panel's bottom inset. */
+@media (max-width: 800px) {
+  #panelAnchor { top: 48px; }
+  #islandPanel { max-height: calc(100vh - 60px); }
+}
+
+/* Keep the three actions visually consistent with the native Extensions inkdrop.
+   26px is the rendered circle diameter; the pill scales CSS by --pill-zoom. */
+#pillActions .pill-btn {
+  width: calc(26px / var(--pill-zoom));
+  height: calc(26px / var(--pill-zoom));
+}
+#pillActions .pill-btn:not(:disabled):hover,
+#pillActions .pill-btn:not(:disabled):active {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}

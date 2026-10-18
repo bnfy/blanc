@@ -1,0 +1,20 @@
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+iframe { position: absolute; inset: 0; width: 100%; border: 0; }
+#strip { height: 68px; }
+#overlay { height: 100%; }
+[hidden] { display: none !important; }
+#status {
+  position: fixed; left: 8px; right: 8px; bottom: 2px; z-index: 10;
+  border-radius: 4px; padding: 4px 8px; color: #742b13; background: #fff3d7;
+  font: 11px system-ui;
+}
+
+/* Only the 68px header is opaque. Expanded panels still float over the page. */
+:root { --header-fallback: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --header-fallback: #0e0e0e; } }
+#headerBackdrop {
+  position: absolute; inset: 0 0 auto; height: 68px;
+  background: var(--page-bg, var(--header-fallback));
+  transition: background-color 80ms linear;
+  pointer-events: none;
+}

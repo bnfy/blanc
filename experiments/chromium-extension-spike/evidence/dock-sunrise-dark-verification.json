@@ -1,0 +1,27 @@
+{
+  "colorway": "sunrise-dark",
+  "catalogName": "BlancDK",
+  "bundleIdentifier": "day.blanc.prototype",
+  "sourcePlistBytes": 17941,
+  "bundleResourceSha256": {
+    "app.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+    "Assets.car": "470559e38cd60f2ae76a1423d6d63d0f6d22c2970e748a9a3998c568c3652645"
+  },
+  "actualDockTileVisuallyVerified": true,
+  "startupIconRefresh": true,
+  "restoredTabs": [
+    "chrome://newtab/",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome"
+  ],
+  "enabledExtensionActions": 6,
+  "nativeBitwardenPopup": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+  "repeatPreparation": "compiled icon reused; source timestamps preserved; zero pending native actions",
+  "finalBuild": "7 steps, 33.48 seconds",
+  "cacheRecoveryBuild": "401 steps, 1m26.51s",
+  "stoppedBuild": "A longer icon name changed APP_INFO_PLIST_FILE_SIZE; five-step preflight missed generated dependents. Interrupted after 31 seconds, 229 steps. Restored original metadata length and added generated-buildflag guard regression.",
+  "checks": [
+    "8 build-guard tests passed",
+    "targeted ESLint passed",
+    "Node syntax and git diff checks passed"
+  ]
+}

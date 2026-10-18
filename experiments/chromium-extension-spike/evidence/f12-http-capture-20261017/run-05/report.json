@@ -1,0 +1,111 @@
+{
+  "kind": "instrumented-electron-http-capture-pilot",
+  "passed": false,
+  "started": "2026-10-17T17:52:41.901Z",
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "appVersion": "1.36.0",
+  "instrumentationSha256": "ff2cbb29e2a2c7d201aa42e5944686a3eaec37a934349fc0af3a830f56ab7473",
+  "harnessSha256": "9993d7aff0fc074ff9fe236bd3dcb7bde00fcedd813d21bc7b2cb39ca2bbc9e3",
+  "sourceFiles": {
+    "src/main/adblock.js": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+    "src/main/blocking-coordinator.js": "bd67244c7e721a13ee107cda48a3a6567416ae0282730d0dce1aa5cafc1cb6b7",
+    "node_modules/@ghostery/adblocker-electron/dist/commonjs/index.js": "d5b2d32cd82724695a03320689926116bb590b7359ed2c863ad2f9efa92125b4",
+    "adblock/sources/pinned.json": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc"
+  },
+  "fixtures": [
+    {
+      "url": "http://page.blanc-fixture.test/pilot.html",
+      "contentType": "text/html",
+      "sha256": "008bfcfff365e0b1546e3cef2a30f2a8c34941cd5b5a6f17ea5043b35b8c9e14"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/control.js",
+      "contentType": "text/javascript",
+      "sha256": "eb166445a1ba0c1450efa1a738b53bded6a1a354249709929c5061aa286a23a7"
+    },
+    {
+      "url": "http://ad.doubleclick.net/advertisement.js",
+      "contentType": "text/javascript",
+      "sha256": "540f65d303ce256b68fcea73b1758bdeb15d3ab1c4512492f81d6cc111f75721"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/data.json",
+      "contentType": "application/json",
+      "sha256": "69fa5e6f7532946e1eb8d6b5651f75fa4857aefc75a3f59d9ea892188f9f5214"
+    },
+    {
+      "url": "http://doubleclick.net/pagead/ads?client=fixture",
+      "contentType": "application/json",
+      "sha256": "0d3e7634efbcbfb2d930025921f740617bc4fe5766685e7283aa43f0c04cb28c"
+    }
+  ],
+  "limits": [
+    "Instrumented extracted app source on stock Electron; not a signed-package acceptance run.",
+    "HTTP-only transport pilot; no TLS/CA, workers, redirects, private teardown or 157 replay yet.",
+    "Authored fixture traffic, not the 4000-request acceptance corpus; no latency result."
+  ],
+  "profiles": {},
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "childExited": true,
+    "disposableTreeRemoved": true
+  },
+  "filterManifest": {
+    "version": 1,
+    "date": "2026-07-09",
+    "lists": [
+      {
+        "file": "easylist.txt",
+        "url": "https://easylist.to/easylist/easylist.txt",
+        "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+      },
+      {
+        "file": "easyprivacy.txt",
+        "url": "https://easylist.to/easylist/easyprivacy.txt",
+        "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+      }
+    ],
+    "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+    "ghosteryResources": {
+      "file": "ghostery-resources.json",
+      "packageVersion": "2.18.2",
+      "commit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+      "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+    }
+  },
+  "runtime": {
+    "node": "24.22.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026d",
+    "undici": "7.29.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.43-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.8.0",
+    "chrome": "152.0.7977.167"
+  },
+  "error": "Error: Timed out: regular fixture\n    at until (file:///private/tmp/blanc-f12-spike-a/experiments/chromium-extension-spike/fixtures/replay/pilot/run.mjs:55:9)\n    at async file:///private/tmp/blanc-f12-spike-a/experiments/chromium-extension-spike/fixtures/replay/pilot/run.mjs:80:18",
+  "finished": "2026-10-17T17:53:42.896Z"
+}

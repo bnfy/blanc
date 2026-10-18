@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-16T13:15:42.527Z",
+  "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html",
+  "openResult": "opened",
+  "content": {
+    "title": "",
+    "state": "complete",
+    "text": "Please enable the `Allow User Scripts` extension setting. Click here for more info how to do this.\n\tScan the QR code to use Tampermonkey on your phone or tablet.\nLearn more\n\t\n\tEnabled\n\tTampermonkey has no access to this page\n\tFind new scripts...\n\tCreate a new script...\n\n\n\tPlease send a donation\n\n\t\nUtilities\n\t\n\tDashboard\n\tHelp | Changelog | "
+  }
+}
