@@ -3213,109 +3213,100 @@ body:not([data-layout="ledger"]) .ledger-footer {
   left: 12px;
   background: var(--bg);
 }
-/* F49 Wallpaper section: two preview cards like the layouts above, then
-   the chosen wallpaper's options in one label column. */
-/* Doubled class: .layout-thumb's background shorthand comes later. */
-.layout-thumb.wallpaper-thumb {
-  padding: 0;
-  overflow: hidden;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+/* F49 Wallpaper section, shaped like a page cover: a segmented choice, a
+   preview of what the Start Page will show, then that wallpaper's options. */
+.wallpaper-seg {
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
 }
-.wallpaper-thumb[data-thumb="sunrise"] { background-image: url("start-page-sunrise.png"); }
-/* Your image: its own picture once chosen, a quiet plus until then. */
-.wallpaper-thumb[data-thumb="custom"] { background-image: var(--wallpaper-thumb, none); }
-.wallpaper-thumb[data-thumb="custom"]:not(.has-image) { display: grid; place-items: center; }
-.wallpaper-thumb[data-thumb="custom"]:not(.has-image)::after {
-  content: '+';
+.wallpaper-seg > button {
+  flex: 1;
+  min-height: 24px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text-dim);
-  font: 400 18px/1 var(--font-text);
+  font: 500 11px/1.2 var(--font-text);
+  white-space: nowrap;
+  cursor: pointer;
 }
-.wallpaper-options { margin-top: 12px; }
-.wallpaper-picker-row {
+.wallpaper-seg > button:hover { color: var(--text); }
+.wallpaper-seg > button:focus-visible { outline-offset: 1px; }
+.wallpaper-seg > button:disabled { cursor: default; }
+.wallpaper-seg > button[aria-pressed="true"] {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 0 0 0.5px rgb(0 0 0 / 0.08);
+}
+.wallpaper-cover {
+  position: relative;
+  height: 124px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--surface-raised) url("start-page-sunrise.png") center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+}
+/* Under Sunrise the preview follows the time-of-day phase on screen, and
+   keeps the horizon in view as the Start Page does. */
+.wallpaper-cover[data-source="sunrise"] { background-position: center bottom; }
+.ledger-body[data-wallpaper-phase="day"] .wallpaper-cover[data-source="sunrise"] { background-image: url("start-page-day.png"); }
+.ledger-body[data-wallpaper-phase="dusk"] .wallpaper-cover[data-source="sunrise"] { background-image: url("start-page-dusk.png"); }
+.ledger-body[data-wallpaper-phase="night"] .wallpaper-cover[data-source="sunrise"] { background-image: url("start-page-night.png"); }
+.wallpaper-cover[data-source="custom"] { background-image: var(--wallpaper-thumb); }
+.wallpaper-caption {
   display: flex;
   align-items: center;
-  gap: 18px;
+  justify-content: space-between;
+  margin-top: 8px;
 }
-/* Stacked in the room the two missing layout cards leave. */
-.wallpaper-image-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-.wallpaper-tone {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  column-gap: 24px;
-}
-.wallpaper-tone-column {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.wallpaper-style-grid {
-  display: grid;
-  grid-template-columns: repeat(2, max-content);
-  justify-content: start;
-  gap: 6px;
-}
-/* Each chip fills its column, so the 2×2 grid lines up. */
-.wallpaper-style-grid .wallpaper-style { width: 100%; }
-.wallpaper-fade-column { align-items: center; }
-/* A short vertical Fade: top is the full wash, bottom the bare image. */
-.wallpaper-fade {
-  writing-mode: vertical-lr;
-  direction: rtl;
-  width: 18px;
-  height: 64px;
-  margin: 0;
-  accent-color: var(--text);
-}
-.wallpaper-option-label {
-  color: var(--text-dim);
-  font-size: 11px;
-}
-.wallpaper-action {
-  min-height: 24px;
+.wallpaper-caption-action {
+  min-height: 22px;
   padding: 2px 0;
   border: 0;
   background: transparent;
-  color: var(--text-dim);
-  font-size: inherit;
-  line-height: 1.25;
-}
-.wallpaper-action:hover { color: var(--text); }
-.wallpaper-action:focus-visible { outline-offset: 3px; }
-.wallpaper-action:disabled { cursor: default; opacity: 0.6; }
-/* Change… is the row's main action, so it reads as a button like the Wash
-   chips; Remove stays a quiet link. */
-.wallpaper-action-primary {
-  min-height: 22px;
-  padding: 2px 10px;
-  border: 1px solid var(--text-dim);
-  border-radius: 999px;
   color: var(--text);
+  font: 500 12px/1.25 var(--font-text);
+  cursor: pointer;
 }
-.wallpaper-action-primary:hover { border-color: var(--text); }
-.wallpaper-style {
-  min-height: 22px;
-  padding: 2px 9px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: transparent;
+.wallpaper-caption-quiet { color: var(--text-dim); }
+.wallpaper-caption-action:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.wallpaper-caption-action:focus-visible { outline-offset: 2px; }
+.wallpaper-caption-action:disabled { cursor: default; opacity: 0.6; text-decoration: none; }
+.wallpaper-lines { margin-top: 12px; }
+.wallpaper-tuning {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wallpaper-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wallpaper-line-label {
+  flex: none;
+  width: 36px;
   color: var(--text-dim);
-  font-size: inherit;
-  line-height: 1.25;
+  font: 500 11px/1.2 var(--font-text);
 }
-.wallpaper-style:hover { color: var(--text); }
-.wallpaper-style[aria-pressed="true"] {
-  border-color: var(--text);
-  background: var(--text);
-  color: var(--bg);
+.wallpaper-seg-fill { flex: 1; }
+.wallpaper-fade {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--text);
 }
-.wallpaper-style:focus-visible { outline-offset: 2px; }
+.wallpaper-fade-value {
+  min-width: 30px;
+  color: var(--text-dim);
+  font: 500 11px/1 var(--font-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
 .wallpaper-error {
   max-width: 240px;
   margin: 6px 0 0;

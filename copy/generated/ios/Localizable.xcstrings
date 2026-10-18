@@ -55592,43 +55592,85 @@
       }
     },
     "newtab.wallpaper.change": {
-      "comment": "Start page → Customize popover and Settings: button that replaces the stored wallpaper image.",
+      "comment": "Settings → General → Start Page image: button that replaces the stored wallpaper image with another picked file.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change…"
+            "value": "Change"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ändern …"
+            "value": "Ändern"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar…"
+            "value": "Cambiar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Modifier…"
+            "value": "Modifier"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambia…"
+            "value": "Cambia"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trocar…"
+            "value": "Trocar"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.chooseAnother": {
+      "comment": "Start page → Customize popover: link-style button under the wallpaper preview that opens a file picker to replace the person’s own image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes Bild wählen …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir otra imagen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir une autre image…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli un’altra immagine…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher outra imagem…"
           }
         }
       }

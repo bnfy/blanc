@@ -883,7 +883,7 @@ const wallpaperToggle = document.getElementById('dynamicWallpaperToggle');
 const customWallpaperToggle = document.getElementById('customWallpaperToggle');
 const sunriseWallpaperPick = document.getElementById('sunriseWallpaperPick');
 const customWallpaperRow = document.getElementById('customWallpaperRow');
-const customWallpaperThumb = document.getElementById('customWallpaperThumb');
+const customWallpaperCover = document.getElementById('customWallpaperCover');
 const customWallpaperActions = document.getElementById('customWallpaperActions');
 const customWallpaperChange = document.getElementById('customWallpaperChange');
 const customWallpaperRemove = document.getElementById('customWallpaperRemove');
@@ -901,12 +901,18 @@ let dynamicWallpaperEnabled = false;
 let wallpaperState = { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto' };
 let washDragging = false;
 // The wash is a 0–1 multiplier on the theme's image overlay in pages.css.
+const washPercent = new Intl.NumberFormat(blancI18n.formatLocale(), { style: 'percent' });
+const customWallpaperWashValue = document.getElementById('customWallpaperWashValue');
 function paintWash(percent) {
   document.body.style.setProperty('--start-wallpaper-wash', String(percent / 100));
+  customWallpaperWashValue.textContent = washPercent.format(percent / 100);
 }
 let wallpaperUpdatePending = false;
 // A private Start Page never shows the person's own image, so it offers no choice.
-if (isPrivate) document.getElementById('wallpaperSourcePicker').hidden = true;
+if (isPrivate) {
+  document.getElementById('wallpaperSourcePicker').hidden = true;
+  customWallpaperCover.hidden = true;
+}
 function renderWallpaperControls() {
   const custom = wallpaperState.source === 'custom';
   sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom));
@@ -916,10 +922,10 @@ function renderWallpaperControls() {
   wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
   customWallpaperRow.hidden = !custom;
   customWallpaperActions.hidden = !custom;
-  // The card previews your picture whenever one is stored.
-  customWallpaperThumb.classList.toggle('has-image', Boolean(wallpaperState.image));
-  if (wallpaperState.image) customWallpaperThumb.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
-  else customWallpaperThumb.style.removeProperty('--wallpaper-thumb');
+  // The cover previews whatever the Start Page shows.
+  customWallpaperCover.dataset.source = custom ? 'custom' : 'sunrise';
+  if (wallpaperState.image) customWallpaperCover.style.setProperty('--wallpaper-thumb', `url("${wallpaperState.image}")`);
+  else customWallpaperCover.style.removeProperty('--wallpaper-thumb');
   const style = wallpaperState.style ?? 'auto';
   for (const button of customWallpaperStyles) {
     button.setAttribute('aria-pressed', String(button.dataset.wallpaperStylePick === style));

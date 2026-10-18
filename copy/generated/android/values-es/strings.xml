@@ -1400,7 +1400,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_wallpaper_custom">Tu imagen</string>
     <string name="newtab_wallpaper_image_label">Imagen</string>
     <string name="newtab_wallpaper_choose">Elegir imagen…</string>
-    <string name="newtab_wallpaper_change">Cambiar…</string>
+    <string name="newtab_wallpaper_change">Cambiar</string>
+    <string name="newtab_wallpaper_choose_another">Elegir otra imagen…</string>
     <string name="newtab_wallpaper_remove">Quitar</string>
     <string name="newtab_wallpaper_wash">Velo</string>
     <string name="newtab_wallpaper_style_label">Estilo</string>

@@ -5131,9 +5131,13 @@
     "maxLength": 18
   },
   "newtab.wallpaper.change": {
-    "message": "Change…",
-    "note": "Start page → Customize popover and Settings: button that replaces the stored wallpaper image.",
-    "maxLength": 12
+    "message": "Change",
+    "note": "Settings → General → Start Page image: button that replaces the stored wallpaper image with another picked file.",
+    "maxLength": 10
+  },
+  "newtab.wallpaper.chooseAnother": {
+    "message": "Choose another image…",
+    "note": "Start page → Customize popover: link-style button under the wallpaper preview that opens a file picker to replace the person’s own image."
   },
   "newtab.wallpaper.remove": {
     "message": "Remove",

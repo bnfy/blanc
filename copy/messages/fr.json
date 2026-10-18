@@ -4964,8 +4964,12 @@
     "source": "sha256:a56bfa577511a793140c79bbccd3f3d0183b5309411b09d2b7b7e9426f47a6a8"
   },
   "newtab.wallpaper.change": {
-    "message": "Modifier…",
-    "source": "sha256:9e32ce81e7465e3839a6613bfdc8b6c6de0af350ea5fe58ab0e9ad4b6bb33267"
+    "message": "Modifier",
+    "source": "sha256:d177aa7255e0f889ba8216589241c97fcdafd5423f24ac556dfaf81b3a3d5599"
+  },
+  "newtab.wallpaper.chooseAnother": {
+    "message": "Choisir une autre image…",
+    "source": "sha256:fdc2a8f4b2fe764ad5c4ac731e54c6e08aabc6f628a0b6c5a02ca6cbcd2b5575"
   },
   "newtab.wallpaper.remove": {
     "message": "Retirer",

@@ -1357,7 +1357,7 @@ shared bookmarks or resetting them on every selection.
 The Start Page can show the person's own picture instead of the bundled
 Sunrise artwork. F35's Customize popover offers a Wallpaper choice,
 **Sunrise** or **Your image**, and shows only the chosen wallpaper's options:
-"Change with time of day" under Sunrise; Change…, Remove, Wash and Fade under
+"Change with time of day" under Sunrise; Change, Remove, Wash and Fade under
 your image, so the clock switch never seems to apply to a photo. Settings →
 General → Start Page image offers the same.
 

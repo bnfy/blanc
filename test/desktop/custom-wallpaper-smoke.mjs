@@ -156,7 +156,7 @@ try {
   const sheet = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://settings/'), Boolean, 'settings sheet');
   await sheet.waitForFunction(() => document.getElementById('newtabCustomWallpaper').checked
     && !document.getElementById('customWallpaperRemove').hidden);
-  assert.equal(await sheet.locator('#customWallpaperChoose').textContent(), 'Change…');
+  assert.equal(await sheet.locator('#customWallpaperChoose').textContent(), 'Change');
   await sheet.locator('#customWallpaperRemove').click();
   await sheet.waitForFunction(() => !document.getElementById('newtabCustomWallpaper').checked
     && document.getElementById('customWallpaperRemove').hidden);

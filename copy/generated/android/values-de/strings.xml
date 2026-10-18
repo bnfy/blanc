@@ -1363,7 +1363,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_wallpaper_custom">Eigenes Bild</string>
     <string name="newtab_wallpaper_image_label">Bild</string>
     <string name="newtab_wallpaper_choose">Bild wählen …</string>
-    <string name="newtab_wallpaper_change">Ändern …</string>
+    <string name="newtab_wallpaper_change">Ändern</string>
+    <string name="newtab_wallpaper_choose_another">Anderes Bild wählen …</string>
     <string name="newtab_wallpaper_remove">Entfernen</string>
     <string name="newtab_wallpaper_wash">Schleier</string>
     <string name="newtab_wallpaper_style_label">Schleier-Stil</string>

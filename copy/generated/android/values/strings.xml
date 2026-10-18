@@ -1363,7 +1363,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_wallpaper_custom">Your image</string>
     <string name="newtab_wallpaper_image_label">Image</string>
     <string name="newtab_wallpaper_choose">Choose image…</string>
-    <string name="newtab_wallpaper_change">Change…</string>
+    <string name="newtab_wallpaper_change">Change</string>
+    <string name="newtab_wallpaper_choose_another">Choose another image…</string>
     <string name="newtab_wallpaper_remove">Remove</string>
     <string name="newtab_wallpaper_wash">Fade</string>
     <string name="newtab_wallpaper_style_label">Wash</string>

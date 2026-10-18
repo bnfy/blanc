@@ -89,6 +89,14 @@ What this means for Blanc:
   then "Change with time of day"). The Wallpaper section is now a choice of
   **Sunrise** or **Your image**, and only the chosen wallpaper's options show.
 
+- **Cover-preview layout** (chosen by the owner from three mock-ups: a
+  settings list, actions on the tile, and a cover preview). The Wallpaper
+  section is a Sunrise | Your image segmented control over a wide preview of
+  what the Start Page shows. Under Sunrise, that's the artwork for the current
+  phase, with the clock switch below. Under Your image, it's the photo, with
+  Change and Remove chips on it, then a Wash segmented control and a Fade
+  slider with its percentage. Private tabs keep only the clock switch.
+
 ## Serving
 
 `blanc://` answers requests from any page, so the address holds a random name
