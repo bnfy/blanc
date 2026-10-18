@@ -14,3 +14,10 @@ test('wrong sender origin, duplicate identity and absent receiver fail',()=>{con
 test('repeated bodies and direct-eval substitution fail',()=>{const r=sample();r.checks[2].afterExtension.counts.bodies=2;assert.throws(()=>verifyFallback(r));const s=sample();s.checks[2].afterDirect={};assert.throws(()=>verifyFallback(s));});
 test('unmatched-origin delivery or widened manifest scope fail',()=>{const r=sample();r.outsideMessages.push({});assert.throws(()=>verifyFallback(r));const s=sample();s.manifest.content_scripts[0].matches=['<all_urls>'];assert.throws(()=>verifyFallback(s));});
 test('missing responses and payload tampering fail',()=>{const r=sample();r.checks[2].delivery.attempts[0].response=null;assert.throws(()=>verifyFallback(r));assert.throws(()=>verifyFallback(sample(),()=>Buffer.from('changed')));});
+
+test('diagnostic receiver starts when secure-context randomUUID is unavailable',async()=>{
+ const fs=await import('node:fs'),vm=await import('node:vm');let hello;
+ const context={crypto:{getRandomValues:bytes=>{bytes.fill(7);return bytes;}},document:{querySelector:()=>({textContent:'authored fixture data'})},location:{href:'data:text/html,fixture'},self:{origin:'null'},chrome:{runtime:{id:'test',onMessage:{addListener:()=>{}},sendMessage:message=>{hello=message;}}}};
+ vm.runInNewContext(fs.readFileSync(new URL('./origin-fallback-content.js',import.meta.url),'utf8'),context);
+ assert.equal(hello.instance,'07'.repeat(16));assert.equal(hello.origin,'null');
+});

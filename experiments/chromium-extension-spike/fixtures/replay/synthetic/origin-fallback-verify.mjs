@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';import fs from 'node:fs';import path fro
 import {diagnosticEntry} from './origin-fallback-payload.mjs';import {sha} from './generate.mjs';
 export const fallbackCases=['http-control','inherited-srcdoc','opaque-srcdoc','data','blob','sandbox-blob','nested-srcdoc','nested-data','nested-blob','child-origin-blob'];
 const top='https://page.blanc-fixture.test',child='https://child.blanc-control.test';
-export function expectedFallback(mode,name){return ['http-control','inherited-srcdoc'].includes(name)||(mode==='origin'&&['opaque-srcdoc','blob','sandbox-blob','nested-srcdoc','child-origin-blob'].includes(name));}
+export function expectedFallback(mode,name,identifier){return ['http-control','inherited-srcdoc'].includes(name)||(mode==='origin'&&(identifier==='getRandomValues-128'||['opaque-srcdoc','blob','sandbox-blob','nested-srcdoc','child-origin-blob'].includes(name)));}
 export function verifyFallback(r,readPayload){
  assert(r.completed&&r.cleanup.removed);assert.equal(r.latencyMeasured,false);assert(['about','origin'].includes(r.mode));assert.equal(r.source.browserKind,'chromium');assert.equal(r.source.kind,'regular');assert.equal(r.source.isOffTheRecord,false);
  assert.equal(r.manifest.manifest_version,2);assert.equal(r.manifest.incognito,'not_allowed');assert.deepEqual(r.manifest.content_scripts.at(-1),diagnosticEntry(r.mode));
@@ -15,7 +15,7 @@ export function verifyFallback(r,readPayload){
   for(const key of ['before','afterExtension']){const s=row[key];assert.equal(s.origin,origin);assert(s.flag&&s.first.flag&&s.first.getter);assert.equal(s.counts.bodies,1);assert(s.counts.attempts>=1);assert.equal(s.first.topSelection,selection===top);assert.equal(s.first.childSelection,selection===child);}
   assert(!('afterDirect' in row),'direct evaluation cannot establish this result');
   const matches=d.messages.filter(x=>x.sender.url===row.url&&x.message.href===row.url&&x.message.frameName==='authored fixture '+row.name&&x.sender.frameId>0&&x.sender.documentId);
-  if(expectedFallback(r.mode,row.name)){
+  if(expectedFallback(r.mode,row.name,r.receiverIdentifier)){
    assert.equal(matches.length,1);assert.deepEqual(d.target,matches[0]);const {message,sender}=d.target;
    assert.equal(sender.id,'oddhmofgkplblkmckempfepikkophank');assert.equal(sender.origin,origin);assert.equal(message.origin,origin);assert.equal(sender.tabId,d.tabId);assert.equal(typeof sender.documentId,'string');
    assert(!ids.has(sender.documentId));ids.add(sender.documentId);assert.equal(typeof message.instance,'string');assert(!instances.has(message.instance));instances.add(message.instance);

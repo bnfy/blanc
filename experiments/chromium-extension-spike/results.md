@@ -1856,3 +1856,25 @@ counter at all. The final control checks actual fixture-specific effects instead
 Claude Code plan and routine ledger updated. Spike B remains in progress. Qualified
 latency remains deferred; harness wall times are not latency measurements. Electron
 diagnostic build §8 remains unchecked/unstarted. Task 0 and items 3–6 are unchanged.
+
+
+## Static origin fallback integrated — October 17, 2026
+
+[Evidence and exact limits](evidence/f12-static-integration-20261017/README.md).
+Browser-owned live document/tab/frame/origin, precursor/ancestor selection and
+reload generation now bind the automatic static late path to the real uBO engine.
+Two fresh profiles: **36 non-HTTP late-delivery passes + four HTTP early controls**,
+one body per document; **26 identity/generation checks**. No fixture context or
+harness payload delivery supplies those results. The former data/nested-data/
+nested-blob receiver gaps were a diagnostic `crypto.randomUUID()` failure in
+insecure contexts; its corrected diagnostic passes **20/20**, superseding that
+hypothesis. Existing private/non-HTTP matrix **30 passes/six boundary gaps**,
+exceptions/fresh restore **14/four**, and **seven gate safety checks** pass.
+
+**228 tests / 119-file lint pass.** One incremental build **35.12 s wrapper /
+31.49 s Siso, six steps**; final guard zero actions. Fresh footprint **31 files /
+74 hunks**. Exploratory/failed attempts and cleanup are retained in the evidence.
+No full network-corpus or Electron rerun. In-flight delivery/reload atomicity,
+broader CSP/Trusted Types, lifecycle/owners/scriptlets/containment and Electron
+identity remain open. Latency deferred; Electron build §8 unchecked/unstarted.
+No baseline promotion or change to plan items 3–6.

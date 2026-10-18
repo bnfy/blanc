@@ -228,6 +228,17 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
           }
           ReplyControl(current ? 200 : 409, base::WriteJson(work).value_or("[]")); return;
         }
+        if (request_.url.path() == "/late-context" && request_.method == "POST") {
+          std::string body;
+          if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {
+            if (element.type() != network::DataElement::Tag::kBytes) { body.clear(); break; }
+            body += element.As<network::DataElementBytes>().AsStringView();
+            if (body.size() > 64 * 1024) { body.clear(); break; }
+          }
+          auto parsed = base::JSONReader::ReadDict(body, base::JSON_PARSE_RFC);
+          auto result = current && parsed ? LateContext(context_.browser_context.get(), *parsed) : std::nullopt;
+          ReplyControl(result ? 200 : 403, result ? base::WriteJson(*result).value_or("{}") : "{}"); return;
+        }
         if (request_.url.path() == "/script" && request_.method == "POST") {
           std::string body;
           if (request_.request_body) for (const auto& element : *request_.request_body->elements()) {

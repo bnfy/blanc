@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (static origin-fallback delivery investigated)
+### 1.1 Progress checkpoint — October 17, 2026 (static origin fallback integrated; diagnostic receiver gaps corrected)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,21 +49,18 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-origin-fallback-20261017/` compares two
-fixture-only diagnostic manifest entries, with unchanged extension permissions.
-About-only mode has four positive-control passes and 16 receiver gaps. Static
-origin fallback reaches opaque srcdoc and several blob kinds: 14 diagnostic
-late-delivery passes / six receiver gaps, repeated in two fresh profiles (28/12).
-Actual browser sender identity and main-world counters prove late delivery with
-one body execution; no direct evaluation. Static data/nested-data/nested-blob
-receivers remain gaps. Unmatched HTTP/opaque controls pass in all three profiles.
-This is mechanism evidence, not provider integration: fixture-supplied rule context
-must be replaced by authenticated selection and lifetime/generation/CSP checks.
-216 tests / 114-file lint pass; zero-action guard and unchanged native binaries,
-no compilation. The existing prototype payload is untouched. Latency deferred;
-Electron diagnostic build §8 unchecked/unstarted. Footprint remains last-measured
-31 files / 74 hunks; broader acceptance and containment remain open.
-Following paragraphs are historical.
+Current follow-up: `evidence/f12-static-integration-20261017/` integrates
+static origin fallback with actual MessageSender identity, browser-owned live
+precursor/ancestor context and generation checks around real engine selection.
+Two fresh profiles: 36 automatic non-HTTP late deliveries + four HTTP controls,
+one body each, 26 identity/generation checks. The prior data/nested-data/nested-blob
+receiver gaps were diagnostic `crypto.randomUUID()` failures in insecure contexts;
+corrected diagnostic 20/20. Private/non-HTTP and exception regressions retain
+explicit boundary gaps; seven gate safety checks pass. 228 tests, 119-file lint,
+one 35.12-second incremental build, final zero-action guard; fresh footprint 31/74.
+In-flight reload/delivery atomicity, broader CSP/Trusted Types, lifecycle,
+scriptlets and containment remain unqualified. Latency deferred; Electron build
+§8 unchecked/unstarted. Prior full network parity remains historical, not rerun.
 
 Service lifecycle behavior is now measured in eight fresh regular/private
 Electron/Chromium sessions: failed registration, controlled network fetch, cache
@@ -565,4 +562,4 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: bounded inherited deduplication remains measured; mixed-owner/unknown-precursor chains, top-level non-HTTP documents, opaque late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified.
+Current follow-up limitation: bounded inherited deduplication remains measured; mixed-owner/unknown-precursor chains, top-level non-HTTP documents, broader CSP/Trusted Types late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified; the bounded automatic late matrix is now measured above.

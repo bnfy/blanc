@@ -24,7 +24,7 @@ const replay = await startSynthetic({ fixtures: authored, tlsMaterial: certifica
 fs.writeFileSync(path.join(evidence, 'fixtures.json'), JSON.stringify([...authored], null, 2));
 const selected = cases.filter(c => c.admitted);
 selected.unshift({ name:'http-control',mode:'http',origin:child,admitted:true },{ name:'inherited-srcdoc',mode:'srcdoc',origin:top,admitted:true },{ name: 'opaque-srcdoc', mode: 'srcdoc', sandbox: true, origin: 'null', admitted: true });
-const report = { completed: false, checks: [], latencyMeasured: false, mode: config.fallbackMode, sources: {} };
+const report = { completed: false, checks: [], latencyMeasured: false, mode: config.fallbackMode, receiverIdentifier: 'getRandomValues-128', sources: {} };
 for (const name of ['origin-fallback-run.mjs','origin-fallback-content.js','origin-fallback-payload.mjs','nonhttp-context-fixtures.mjs','opaque-frame-fixtures.mjs','session.mjs']) report.sources[name] = sha(fs.readFileSync(new URL(name, import.meta.url)));
 fs.writeFileSync(path.join(evidence, 'filters.txt'), filters);
 let session;

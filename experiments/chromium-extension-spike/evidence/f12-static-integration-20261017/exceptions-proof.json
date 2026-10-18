@@ -1,0 +1,110 @@
+{
+  "verified": true,
+  "runs": [
+    {
+      "kind": "regular",
+      "phase": "exception",
+      "results": [
+        {
+          "name": "data",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "blob",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-blob",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "nested-srcdoc",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "nested-data",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "nested-blob",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "child-origin-blob",
+          "status": "pass-exception",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "cross-owner-blob",
+          "status": "gap-browser-rejected-navigation",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "mismatched-chain-data",
+          "status": "gap-mismatched-owner-chain",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "kind": "regular",
+      "phase": "restored",
+      "results": [
+        {
+          "name": "data",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "blob",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "sandbox-blob",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "nested-srcdoc",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "nested-data",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "nested-blob",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "child-origin-blob",
+          "status": "pass-early",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "cross-owner-blob",
+          "status": "gap-browser-rejected-navigation",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "mismatched-chain-data",
+          "status": "gap-mismatched-owner-chain",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    }
+  ],
+  "latencyMeasured": false
+}

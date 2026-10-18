@@ -53,11 +53,15 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
   replace('js/scriptlet-filtering.js','        const contentScript = [];', `        if (scriptletDetails.mainWorld) scriptletDetails.mainWorld = (${wrapperSource})(scriptletDetails.mainWorld, ${JSON.stringify(onceKey)}, ${JSON.stringify(observe)});\n        const contentScript = [];`);
   changes.push('shared native/extension main-world per-document once marker; observe-only counters');
   fs.copyFileSync(new URL('./ubo-document-start.js',import.meta.url),path.join(output,'js/blanc-document-start.js'));
+  fs.copyFileSync(new URL('./ubo-static-content.js',import.meta.url),path.join(output,'js/blanc-static-content.js'));
+  manifest.content_scripts.push({ matches: ['http://*/*','https://*/*'], js: ['js/blanc-static-content.js'], all_frames: true, run_at: 'document_idle', match_origin_as_fallback: true });
+  fs.writeFileSync(path.join(output,'manifest.json'),JSON.stringify(manifest,null,2));
+  changes.push('static origin-fallback isolated receiver; browser-owned live context and generation revalidation');
   replace('js/scriptlet-filtering.js','let scriptletDetails = this.scriptletCache.lookup(hostname);','let scriptletDetails = request.nocache === true ? undefined : this.scriptletCache.lookup(hostname);');
   replace('js/scriptlet-filtering.js','            bcSecret,','            bcSecret,\n            mainWorld: scriptletDetails.mainWorld || "",\n            isolatedCode: scriptletDetails.isolatedWorld ? isolatedWorldInjector.assemble(hostname, scriptletDetails) : "",');
   replace('js/scriptlet-filtering.js','const contentScript = [ scriptletDetails.code ];','const contentScript = [ /^https?:/.test(details.url) ? scriptletDetails.isolatedCode : scriptletDetails.code ];');
   replace('js/start.js','await blancGuard.activate(selfieIsValid);',"await blancGuard.activate(selfieIsValid);\n(await import('./blanc-document-start.js')).start();");
-  if (observe) replace('js/start.js',"(await import('./blanc-document-start.js')).start();","(await import('./blanc-document-start.js')).start();\nglobalThis.__blancScriptletEngine = (await import('./scriptlet-filtering.js')).default;");
+  if (observe) replace('js/start.js',"(await import('./blanc-document-start.js')).start();","(await import('./blanc-document-start.js')).start(true);\nglobalThis.__blancScriptletEngine = (await import('./scriptlet-filtering.js')).default;");
   changes.push('HTTP(S) frame main-world document-bound synchronous gate; ancestor-aware uncached selection; isolated/non-HTTP retain upstream path','js/blanc-document-start.js');
  }
  if(observe){
