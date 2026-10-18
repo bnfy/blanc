@@ -205,7 +205,7 @@ test('character numerals fill their tile faces in ink without underline marks', 
   assert.match(controller, /number\.classList\.add\('mj-character-number'\)/);
   assert.match(controller, /'text-anchor': 'middle',[\s\S]{0,80}'dominant-baseline': 'central'/);
   assert.doesNotMatch(controller, /family === 'chr'[\s\S]{0,180}el\('rect'/);
-  assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-ink\);\s*\}/);
+  assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-tile-ink\);\s*\}/);
   assert.doesNotMatch(styles, /\.mj-tile\[data-suit="chr"\][^{]*\{[^}]*var\(--mj-red\)/);
   assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*800;[^}]*stroke-width:\s*0\.7px;[^}]*paint-order:\s*stroke fill;/);
 });
@@ -392,7 +392,7 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.doesNotMatch(styles, /\.mj-burst-score::(?:before|after)/);
   assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*none;[^}]*-webkit-text-fill-color:\s*currentColor;[^}]*text-shadow:\s*none;/);
   assert.match(styles, /@keyframes mj-score-flight/);
-  assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
+  assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-tile-ink\)/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
   assert.match(styles, /\.mj-tile\.shake::before/);
   assert.match(controller, /callout\.replaceChildren\(\)[\s\S]*label\.textContent = result\.milestone \? tier\.label : t\('mahjong\.combo\.combo'\)[\s\S]*multiplier\.textContent = `×\$\{result\.comboCount\}`/);
@@ -438,7 +438,7 @@ test('hints use safe selection, cycle Classic pairs, and include a parked Burst 
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
   assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
   assert.match(styles, /\.mj-tray-slot\.hinted/);
-  assert.match(styles, /--mj-hint:\s*#8db7c2/);
+  assert.match(mahjongStyles, /--mj-cue:\s*#2f86c9/, 'hints glow sky blue, distinct from the orange selection');
 });
 
 function contrast(a, b) {
@@ -482,9 +482,35 @@ test('suit inks stay legible on both tile faces', () => {
   }
 });
 
-test('layout-card hover and focus preserve readable lacquer text colors', () => {
-  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\)/);
-  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\) small\s*\{[^}]*color:\s*var\(--mj-muted\)/);
+test('no lacquer-era token or hard-coded dark surface survives', () => {
+  assert.doesNotMatch(mahjongStyles, /--mj-(table|panel|brass|ivory|line|muted|tile-side|focus|hint)\b/);
+  assert.doesNotMatch(mahjongStyles, /rgba\((5, 42, 34|3, 29, 25|0, 10, 8|2, 25, 20)/);
+  assert.match(mahjongStyles, /\.mj-tile:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--mj-accent\)/);
+});
+
+test('blocked tiles soften instead of turning gray on the light sky', () => {
+  const rule = mahjongStyles.match(/\.mj-tile\[data-blocked\]\s*\{([^}]*)\}/)[1];
+  const brightness = Number(rule.match(/brightness\(([\d.]+)\)/)[1]);
+  assert.ok(brightness >= 0.88, `blocked brightness ${brightness} reads as gray`);
+  assert.doesNotMatch(rule, /opacity/, 'stacked tiles must not show through');
+  assert.doesNotMatch(rule, /contrast\(0\.[0-8]/, 'low contrast pulls the cream face to gray');
+  assert.match(mahjongStyles, /\.mj-tile\[data-blocked\]::after\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--mj-sky-1\)/, 'blocked tiles take a cool sky wash');
+});
+
+test('a daily deal still shows which board it picked', () => {
+  assert.match(mahjongStyles, /\.mj-layout-choice:disabled\.selected\s*\{[^}]*opacity:\s*1;/);
+});
+
+test('text on the accent stays readable', () => {
+  for (const [accent, ink] of [['#ff9f43', '#2a1606'], ['#ffb35c', '#2a1606'], ['#b07ce0', '#1d0f2b'], ['#d2a8f0', '#1d0f2b']]) {
+    assert.ok(contrast(accent, ink) >= 4.5, `${ink} on ${accent}`);
+  }
+  assert.match(mahjongStyles, /--mj-on-accent:\s*#2a1606/);
+});
+
+test('layout-card hover and focus keep readable Dawn sky text colors', () => {
+  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-text\)/);
+  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\) small\s*\{[^}]*color:\s*var\(--mj-text-muted\)/);
 });
 
 test('Mahjong launches from a separate footer link and owns its game URL', () => {
@@ -511,13 +537,13 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(desktop, /\.mj-head\s*\{[^}]*grid-column:\s*1;/);
   assert.match(desktop, /\.mj-game\s*\{[^}]*grid-column:\s*1;/);
-  assert.match(desktop, /\.mj-board-frame\s*\{\s*anchor-name:\s*--mj-table;\s*\}/);
+  assert.match(desktop, /\.mj-board-frame\s*\{\s*anchor-name:\s*--mj-board;\s*\}/);
   assert.match(desktop, /\.mj-board-wrap\s*\{\s*--mj-board-safe-side:\s*88px;\s*\}/);
   assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;/);
-  assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-board;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
   assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(6,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
-  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*background:\s*var\(--mj-panel-solid\);[^}]*box-shadow:\s*0 12px 22px var\(--mj-shadow\);/);
+  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*background:\s*var\(--mj-pill\);[^}]*box-shadow:\s*0 2px 8px var\(--mj-pill-shadow\);/);
   assert.doesNotMatch(desktop, /rgba\(21,\s*78,\s*63/);
   assert.match(desktop, /\.mj-dock > button:active\s*\{[^}]*translate:\s*0 1px;[^}]*inset 0 2px 6px/);
   assert.match(desktop, /\.mj-dock-icon\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*flex-basis:\s*34px;/);
@@ -561,9 +587,9 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(controller, /separator\.className = 'mj-win-score-separator'/);
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
   assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);
-  assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*background:\s*var\(--mj-table\);[^}]*box-shadow:/);
+  assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*background:\s*var\(--mj-surface\);[^}]*box-shadow:/);
   assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(46px, 6\.2vw, 64px\)[^}]*text-shadow:/);
-  assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*var\(--mj-ivory-deep\);[^}]*text-shadow:\s*none/);
+  assert.match(styles, /\.mj-win-score-separator\s*\{[^}]*-webkit-text-fill-color:\s*var\(--mj-text-muted\);[^}]*text-shadow:\s*none/);
   assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@keyframes mj-win-particles/);
   assert.match(styles, /@keyframes mj-win-glint/);
@@ -576,13 +602,13 @@ test('completion results promote the score and separate time from Burst performa
 });
 
 test('dialog actions keep readable dusk contrast through hover and keyboard focus', () => {
-  assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*background:\s*var\(--mj-panel-solid\);[^}]*box-shadow:/);
+  assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*background:\s*var\(--mj-surface\);[^}]*box-shadow:/);
   assert.match(styles, /\.mj-modal h1,\s*\.mj-card-overlay h1\s*\{[^}]*clamp\(30px, 3\.6vw, 40px\)/);
   assert.match(styles, /\.mj-button\s*\{[^}]*min-height:\s*48px;[^}]*font-size:\s*14px;[^}]*font-weight:\s*660/);
   assert.match(styles, /\.mj-rescue-card > p:not\(\.mj-overline\)\s*\{[^}]*font-size:\s*15px;[^}]*line-height:\s*1\.55/);
   assert.match(styles, /\.mj-rescue-actions \.mj-button\s*\{[^}]*min-height:\s*52px/);
-  assert.match(styles, /\.mj-button:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\);[^}]*border-color:\s*var\(--mj-brass\);[^}]*translate:\s*0 -1px;/);
-  assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-table-ink\);[^}]*background:\s*#fffaf0;/);
+  assert.match(styles, /\.mj-button:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-text\);[^}]*border-color:\s*var\(--mj-accent\);[^}]*translate:\s*0 -1px;/);
+  assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-on-accent\);[^}]*background:\s*var\(--mj-accent\);/);
   assert.match(styles, /\.mj-button:active\s*\{[^}]*translate:\s*0 1px;/);
 });
 
@@ -776,9 +802,9 @@ test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () 
 });
 
 test('notices are dusk pills anchored inside the table instead of loose text at its edge', () => {
-  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-panel\);[^}]*box-shadow:/);
+  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-pill\);[^}]*box-shadow:/);
   const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
   assert.ok(desktop, 'desktop media block present');
-  assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*top:\s*calc\(anchor\(top\) \+ 14px\);[^}]*left:\s*anchor\(center\);[^}]*width:\s*min\(640px, calc\(anchor-size\(width\) - 208px\)\);[^}]*transform:\s*translateX\(-50%\);/);
+  assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-board;[^}]*top:\s*calc\(anchor\(top\) \+ 14px\);[^}]*left:\s*anchor\(center\);[^}]*width:\s*min\(640px, calc\(anchor-size\(width\) - 208px\)\);[^}]*transform:\s*translateX\(-50%\);/);
   assert.doesNotMatch(mahjongStyles, /\.mj-feedback\s*\{[^}]*top:\s*calc\(var\(--mj-shell-block\)/);
 });
