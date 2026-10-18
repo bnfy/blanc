@@ -2008,3 +2008,8 @@ Electron and meta-CSP matrices not rerun. Latency deferred; Electron build §8 u
 Previous-head 79588947 CodeQL passed with no new alerts; oauth-compatibility failed in
 wallpaper smoke line 151 (30 s private fade wait), not OAuth itself. No rerun. Current
 checkpoint CI remains to be evaluated. Plan items 3–6 and Task0 promotion gate unchanged.
+
+
+## Procedural helper completion drains — October 18, 2026
+
+Four additional messaging API sites join the upstream barrier; awaited results are preserved. Two procedural drain/timeout schedules and four existing native/upstream schedules pass. 272 regression tests pass; 127 scoped lint checks pass. Zero-action guard in 5.06 s, no compile; binary hashes unchanged. Runtime durations are diagnostic execution brackets, not latency or owner-attention measurements. Logger/noscript/picker runtime, exact document identity, other injection channels and lifecycle/async semantics remain gaps. Latency deferred; Electron build unapproved. See [evidence](evidence/f12-helper-delivery-20261018/README.md). Task 0 and baseline unchanged.

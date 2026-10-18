@@ -55,6 +55,16 @@ export function generateComponent(output, reloadGuard=false, observe=false, docu
   replace('js/scriptlet-filtering.js',"import µb from './background.js';", "import µb from './background.js';\nimport { executeScript as blancExecuteScript } from './blanc-upstream-delivery.js';");
   replace('js/scriptlet-filtering.js','vAPI.tabs.executeScript(details.tabId, {','blancExecuteScript(details.tabId, {');
   replace('js/scriptlet-filtering.js','vAPI.tabs.executeScript(tab.id, {','blancExecuteScript(tab.id, {');
+  replace('js/messaging.js',"import µb from './background.js';", "import µb from './background.js';\nimport { executeScript as blancExecuteScript } from './blanc-upstream-delivery.js';");
+  // Restrict this checkpoint to the contentscript and elementPicker channels.
+  // Earlier dashboard/logger survey injections remain explicitly outside it.
+  for (const anchor of [
+   "await vAPI.tabs.executeScript(tabId, {\n            allFrames: false,\n            file: '/js/contentscript-extra.js'",
+   "vAPI.tabs.executeScript(tabId, {\n                allFrames: false,\n                file: '/js/scriptlets/cosmetic-logger.js'",
+   "vAPI.tabs.executeScript(sender.tabId, {\n                file: '/js/scriptlets/noscript-spoof.js'",
+   "return vAPI.tabs.executeScript(sender.tabId, {\n            allFrames: false,\n            file: '/js/contentscript-extra.js'",
+  ]) replace('js/messaging.js',anchor,anchor.replace('vAPI.tabs.executeScript','blancExecuteScript'));
+  changes.push('contentscript procedural helper, cosmetic logger, noscript helper and picker helper API completion drains; awaited result preserved');
   replace('js/start.js','await blancGuard.activate(selfieIsValid);','blancGuard.enableEarlyDrain();\nawait blancGuard.activate(selfieIsValid);');
   const onceKey = '__blancUboOnce_' + crypto.randomBytes(16).toString('hex');
   const wrapperSource = wrapMainWorld.toString();

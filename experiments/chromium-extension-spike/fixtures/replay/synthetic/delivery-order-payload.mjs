@@ -7,7 +7,7 @@ export function createDeliveryPayload(source,output){
  const edit=(file,anchor,value)=>{const p=path.join(output,file),s=fs.readFileSync(p,'utf8');assert.equal(s.split(anchor).length,2);fs.writeFileSync(p,s.replace(anchor,value));edits.push({file,anchor});};
  edit('js/blanc-upstream-delivery.js','// No await separates',`globalThis.__blancDeliveryProbe = {armed:null, state:current, size:()=>upstreamDeliveries.size(), events:[],resume:null};\n// No await separates`);
  edit('js/blanc-upstream-delivery.js','    try {',`    const probe=globalThis.__blancDeliveryProbe;
-    const hold=probe.armed==='upstream';if(hold) {probe.armed=null;probe.events.push({path:'upstream',tabId,frameId:options.frameId});}
+    const hold=probe.armed==='upstream'||(probe.armed==='procedural'&&options.file==='/js/contentscript-extra.js');const heldPath=probe.armed;if(hold) {probe.armed=null;probe.events.push({path:heldPath,tabId,frameId:options.frameId,file:options.file});}
     try {`);
  edit('js/blanc-upstream-delivery.js','Promise.resolve(vAPI.tabs.executeScript(tabId, options)).finally(',`Promise.resolve(vAPI.tabs.executeScript(tabId, options)).then(async result=>{if(hold){probe.events[probe.events.length-1].resultLength=result.length;await new Promise(resolve=>{probe.resume=resolve;});probe.resume=null;}return result;}).finally(`);
  edit('js/blanc-document-start.js',"body: JSON.stringify({token: job.token, code: details?.mainWorld || ''})",`body: JSON.stringify({token: job.token, code: (()=>{const p=globalThis.__blancDeliveryProbe;if(p.armed!=='native')return details?.mainWorld||'';p.armed=null;p.events.push({path:'native',token:job.token,tabId:job.tabId,frameId:job.frameId});return 'debugger;\\n'+(details?.mainWorld||'');})()})`);

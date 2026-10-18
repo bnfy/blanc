@@ -6,16 +6,17 @@ import { current } from './blanc-reload-guard.js';
 // The pinned API settles after execution replies, refusal, or target destruction.
 // It does not identify the exact document or cover asynchronous scriptlet effects.
 export function executeScript(tabId, options) {
-    if ( !current().ready ) { return; }
+    if ( !current().ready ) { return Promise.resolve([]); }
     const sender = {id:'upstream-api', tab:{id:tabId}, frameId:options.frameId};
     const token = upstreamDeliveries.acquire(sender);
-    if ( !token ) { return; }
+    if ( !token ) { return Promise.resolve([]); }
     try {
-        Promise.resolve(vAPI.tabs.executeScript(tabId, options)).finally(() => {
+        return Promise.resolve(vAPI.tabs.executeScript(tabId, options)).finally(() => {
             upstreamDeliveries.acknowledge(token, sender);
-        }).catch(() => {});
+        }).catch(() => []);
     } catch {
         // A synchronous throw has not queued a browser API invocation.
         upstreamDeliveries.acknowledge(token, sender);
+        return Promise.resolve([]);
     }
 }

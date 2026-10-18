@@ -573,11 +573,11 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up: bounded native early and upstream completion ordering now join
-static-delivery/reset ordering and lost-ack recovery. Four controlled schedules pass;
-upstream tests delay actual API completion acknowledgement, not renderer execution.
-Exact upstream document targeting across navigation, other injection channels,
-changed-rule/async semantics, BFCache/prerender/crash and background-recreation runtime
-coverage, and full containment remain gaps. Spikes A/B remain in progress; items 3–6
-are not started. See `evidence/f12-delivery-order-20261018/`. Latency stays deferred;
-Electron diagnostic build §8 remains unchecked/unstarted. No promotion or gate closure.
+Current follow-up: two procedural-helper completion schedules now pass alongside
+four native/upstream schedules. Four additional messaging injection sites use the
+completion barrier and preserve awaited results. Logger/noscript/picker runtime
+coverage, exact upstream document identity across navigation, other injection
+channels, changed-rule/async semantics and lifecycle/containment remain gaps.
+Spikes A/B remain in progress; items 3–6 are not started. See
+`evidence/f12-helper-delivery-20261018/`. Latency stays deferred; Electron diagnostic
+build §8 remains unchecked/unstarted. No promotion or gate closure.
