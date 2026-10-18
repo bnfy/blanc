@@ -243,3 +243,13 @@ test('the end of the list is below a band that sits last', () => {
   assert.deepEqual(h.order(), ['L2', 'L1']);
   assert.equal(h.runtime.closedSlot, 1, 'the band stays above the dropped tab');
 });
+
+test('imported tabs land at the bottom, never inside or above the user\'s sections', () => {
+  // Bring Your Tabs used to splice after the active tab. With the tab order
+  // drawn as is, that pulled a same-named group up or split a run (final
+  // review, Important 2). Handoff already appends.
+  const apply = mainSource.slice(mainSource.indexOf('const plan = planTabImportApply({'));
+  const call = apply.match(/const insertAt = ([^;]+);\n\s*const batch = createQuietTabsBatch\(rt\(\), plan\.tabs, \{ insertAt \}\);/);
+  assert.ok(call, 'the Bring Your Tabs batch call was not found — update this test with it');
+  assert.equal(call[1], 'rt().tabOrder.length');
+});

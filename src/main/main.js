@@ -1277,7 +1277,10 @@ function applyTabImport(sessionId, request = {}) {
 
   tabImportApplyBroadcasted = false;
   const priorTabOrder = [...rt().tabOrder];
-  const insertAt = computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+  // Imported tabs and groups land at the bottom, like any new tab: the tab
+  // order is drawn as is, so splicing beside the active tab would pull a
+  // same-named group up or split a run (spec 2026-10-17).
+  const insertAt = rt().tabOrder.length;
   const batch = createQuietTabsBatch(rt(), plan.tabs, { insertAt });
   if (batch.error) return batch;
 
