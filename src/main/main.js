@@ -10334,7 +10334,7 @@ function windowRuntimeSnapshots() {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
     }).filter(Boolean),
-    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),
   }));
 }

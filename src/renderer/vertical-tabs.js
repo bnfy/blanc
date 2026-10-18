@@ -53,7 +53,7 @@
   function railSignature(payload) {
     return JSON.stringify({
       activeTabId: payload.activeTabId,
-      groups: (payload.groups || []).map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+      groups: (payload.groups || []).map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
         title: tab.title,

@@ -1,7 +1,7 @@
 # Tab group colors: the Spaces palette for groups
 
 **Date:** 2026-10-17
-**Status:** the owner decided D1–D7 on 2026-10-17 (§12); the spec is ready for the owner's review before a plan. Nothing is built.
+**Status:** the owner decided D1–D7 on 2026-10-17 (§12) and asked for it to be built; implementation plan in `docs/superpowers/plans/2026-10-17-tab-group-colors.md`.
 **Mockup:** [the three looks compared](assets/2026-10-17-tab-group-colors-options.png). Option A (left) was chosen.
 **Builds on:** [2026-10-13 Blanc Spaces redesign](2026-10-13-blanc-spaces-redesign-design.md) (the palette, the readability guard in `src/renderer/space-identity.js`, the overlay color picker `space-picker.js`), [2026-10-16 Island lower section](2026-10-16-island-lower-section-design.md) §9 (group names keep their case, the group header menu), and the 2026-10-17 ungrouped tab placement spec in PR #933, not yet merged (groups drawn as tinted blocks in both the ⌘L panel and the side tab list).
 **References:** Helium's vertical tabs, shared by the owner on 2026-10-17:

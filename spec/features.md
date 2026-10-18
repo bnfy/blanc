@@ -87,14 +87,18 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F3 — Tab groups
 
-- Groups have **names, not colors**, kept in the case typed and matched in any
+- Groups have **names**, kept in the case typed and matched in any
   case: `/group research` joins "Research", and two groups can't differ only
   by case. A group exists only while it holds ≥1 tab (auto-pruned when empty).
 - Create/join via `/group <name>` (find-or-create; typing new capitals for an
   existing group re-cases it) or an inline picker on the tab row; leave via
-  `/ungroup`; close all via `/close-group`. A group header's right-click menu
-  offers **Rename Group…** (a name another group already has is refused, not
-  merged), **Ungroup** and **Close Group**.
+  `/ungroup`; close all via `/close-group`. A group's menu (below) renames it;
+  a name another group already has is refused, not merged.
+- A group may have an optional **color**, one of the eight Spaces presets, off
+  by default. A colored group's block takes a light tint of it, a dot sits
+  before its name, and the Island's dots take it. Right-clicking a group header
+  or its ⋮ opens the group menu: the name, the colors, New Tab in Group, Move
+  Group to New Window, Ungroup and Close Group.
 - The pill's direct dots show standalone pins followed by the active section:
   the active named group, the active tab's run of ungrouped tabs, or the
   pinned shelf itself.

@@ -831,6 +831,8 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
+        // A colored group's dots take its color (tab group colors spec §5).
+        color: t.groupId ? (state.groups || []).find((g) => g.id === t.groupId)?.color ?? null : null,
         title: t.title || 'untitled',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the
