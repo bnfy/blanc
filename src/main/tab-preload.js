@@ -89,6 +89,10 @@ if (window.location.protocol === 'blanc:') {
         openSpaces: () => invoke('pages:start:open-spaces'),
         setLayout: (name) => invoke('pages:start:set-layout', name),
         setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),
         openIsland: (char) => invoke('pages:start:open-island', char),
@@ -214,6 +218,10 @@ if (window.location.protocol === 'blanc:') {
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         language: (code, restart) => invoke('pages:settings:language', code, restart),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));

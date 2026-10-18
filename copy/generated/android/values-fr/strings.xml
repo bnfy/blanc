@@ -937,6 +937,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_newtab_layout_tally">tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Fond selon l’heure</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Le fond suit l’heure locale de cet ordinateur.</string>
+    <string name="settings_general_newtab_custom_wallpaper_label">Image de la page d’accueil</string>
+    <string name="settings_general_newtab_custom_wallpaper_hint">Sur cet appareil uniquement, jamais dans les onglets privés. Blanc garde une copie réduite sans lieu ni données d’appareil photo.</string>
     <string name="settings_general_tab_layout_label">Disposition des onglets</string>
     <string name="settings_general_tab_layout_hint">Gardez les onglets dans l’Island ou affichez-les dans une barre à gauche ; la recherche et les commandes restent toujours dans l’Island</string>
     <string name="settings_general_tab_layout_island">Island</string>
@@ -1393,6 +1395,15 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_layout_shelf">Shelf</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Fond dynamique</string>
+    <string name="newtab_wallpaper_custom">Votre image</string>
+    <string name="newtab_wallpaper_choose">Choisir une image…</string>
+    <string name="newtab_wallpaper_change">Modifier…</string>
+    <string name="newtab_wallpaper_remove">Retirer</string>
+    <string name="newtab_wallpaper_choose_title">Choisissez une image pour la page d’accueil</string>
+    <string name="newtab_wallpaper_filter">Images</string>
+    <string name="newtab_wallpaper_error_too_large">Cette image dépasse 25 Mo.</string>
+    <string name="newtab_wallpaper_error_unsupported">Choisissez une image JPEG ou PNG.</string>
+    <string name="newtab_wallpaper_error_unreadable">Impossible d’ouvrir cette image.</string>
     <string name="newtab_mahjong">Mahjong</string>
     <string name="newtab_go_anywhere">%1$s pour aller n’importe où</string>
     <string name="newtab_private_footer">aucun historique · séparé des onglets ordinaires · se termine à la fermeture, clés d’accès créées ici comprises</string>

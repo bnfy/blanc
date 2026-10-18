@@ -880,28 +880,95 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 
 const wallpaper = window.blancNewtabWallpaper.mount(document, window);
 const wallpaperToggle = document.getElementById('dynamicWallpaperToggle');
+const customWallpaperToggle = document.getElementById('customWallpaperToggle');
+const customWallpaperChange = document.getElementById('customWallpaperChange');
+const customWallpaperRemove = document.getElementById('customWallpaperRemove');
+const customWallpaperError = document.getElementById('customWallpaperError');
+const WALLPAPER_ERRORS = {
+  'too-large': 'newtab.wallpaper.error.tooLarge',
+  unsupported: 'newtab.wallpaper.error.unsupported',
+  unreadable: 'newtab.wallpaper.error.unreadable',
+};
 let dynamicWallpaperEnabled = false;
+// Main's projection for this page (F49): { source, hasImage, image }.
+let wallpaperState = { source: 'sunrise', hasImage: false, image: null };
 let wallpaperUpdatePending = false;
+// A private Start Page never shows the person's own image, so it offers none.
+if (isPrivate) document.getElementById('customWallpaperRow').hidden = true;
+function renderWallpaperControls() {
+  const custom = wallpaperState.source === 'custom';
+  wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled && !custom));
+  customWallpaperToggle.setAttribute('aria-pressed', String(custom));
+  customWallpaperChange.hidden = !wallpaperState.hasImage;
+  customWallpaperRemove.hidden = !wallpaperState.hasImage;
+  for (const control of [wallpaperToggle, customWallpaperToggle, customWallpaperChange, customWallpaperRemove]) {
+    control.disabled = wallpaperUpdatePending;
+  }
+}
+function applyWallpaper(state) {
+  if (state && typeof state === 'object') wallpaperState = state;
+  wallpaper.setSource(wallpaperState);
+  renderWallpaperControls();
+}
 function applyDynamicWallpaper(enabled) {
   dynamicWallpaperEnabled = enabled === true;
-  wallpaper.setEnabled(dynamicWallpaperEnabled);
-  wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
-  wallpaperToggle.disabled = wallpaperUpdatePending;
+  // The synced switch decides the artwork unless this device shows its own image.
+  if (wallpaperState.source === 'custom') renderWallpaperControls();
+  else applyWallpaper({ ...wallpaperState, source: dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise' });
 }
-wallpaperToggle.addEventListener('click', async () => {
+function showWallpaperError(code) {
+  const key = WALLPAPER_ERRORS[code];
+  customWallpaperError.hidden = !key;
+  customWallpaperError.textContent = key ? t(key) : '';
+}
+async function updateWallpaper(write) {
   wallpaperUpdatePending = true;
-  wallpaperToggle.disabled = true;
+  renderWallpaperControls();
   try {
-    applyDynamicWallpaper(await window.bowserPages.start.setDynamicWallpaper(!dynamicWallpaperEnabled));
+    await write();
   } catch {
     // Keep the last acknowledged state when the write fails.
   } finally {
     wallpaperUpdatePending = false;
-    wallpaperToggle.disabled = false;
+    renderWallpaperControls();
+  }
+}
+const chooseWallpaperImage = () => updateWallpaper(async () => {
+  const reply = await window.bowserPages.start.chooseWallpaper();
+  showWallpaperError(reply?.error);
+  applyWallpaper(reply?.wallpaper);
+});
+wallpaperToggle.addEventListener('click', () => updateWallpaper(async () => {
+  showWallpaperError(null);
+  // From your own image, the switch means "show the time of day instead".
+  if (wallpaperState.source === 'custom') {
+    applyWallpaper(await window.bowserPages.start.setWallpaper('time-of-day'));
+    applyDynamicWallpaper(true);
+    return;
+  }
+  applyDynamicWallpaper(await window.bowserPages.start.setDynamicWallpaper(!dynamicWallpaperEnabled));
+}));
+customWallpaperToggle.addEventListener('click', () => {
+  showWallpaperError(null);
+  if (wallpaperState.source === 'custom') {
+    updateWallpaper(async () => applyWallpaper(
+      await window.bowserPages.start.setWallpaper(dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise')));
+  } else if (wallpaperState.hasImage) {
+    updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('custom')));
+  } else {
+    chooseWallpaperImage();
   }
 });
+customWallpaperChange.addEventListener('click', () => chooseWallpaperImage());
+customWallpaperRemove.addEventListener('click', () => updateWallpaper(async () => {
+  showWallpaperError(null);
+  applyWallpaper(await window.bowserPages.start.removeWallpaper());
+}));
 const dataReady = window.bowserPages?.start.data().then((data) => {
   wallpaper.setVisible(data.wallpaperVisible === true);
+  // The projection first, so the switch below cannot paint a frame the
+  // projection then replaces.
+  applyWallpaper(data.wallpaper);
   applyDynamicWallpaper(data.dynamicWallpaperEnabled);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
@@ -937,6 +1004,7 @@ window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible
 window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
+  if (status && 'wallpaper' in status) applyWallpaper(status.wallpaper);
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }

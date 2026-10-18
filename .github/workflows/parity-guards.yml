@@ -144,6 +144,8 @@ jobs:
         run: xvfb-run -a npm run test:favorites-picker:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
+      - name: Custom Start Page wallpaper (F49)
+        run: xvfb-run -a npm run test:custom-wallpaper:desktop
 
   modified-link-clicks:
     needs: changes

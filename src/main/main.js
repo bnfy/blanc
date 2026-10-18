@@ -185,6 +185,8 @@ const { closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-con
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
+const wallpaper = require('./wallpaper');
+const { effectiveSource } = require('./wallpaper-model');
 // Bangs: the pure grammar and the generated catalog the Island shares with
 // main, and main's resolver over the settings (spec
 // docs/superpowers/specs/2026-10-16-bangs-design.md).
@@ -6097,6 +6099,8 @@ const workspaceController = createWorkspaceController({
 // platform, the real dialog, and never consults these.
 let arcTestPlatform = 'darwin';
 let arcTestChosenFile = null;
+// Acceptance-only stand-in for the wallpaper file picker (F49).
+let wallpaperTestChosenFile = null;
 let arcSidebarReadCount = 0;
 function arcDiscoveryOptions() {
   const home = acceptanceTestMode ? process.env.BLANC_TEST_BROWSER_HOME : undefined;
@@ -11305,6 +11309,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     windowCount: 0,
     error: null,
   };
+  // F49: what a Start Page draws. A private tab never receives the custom
+  // image; `hasImage` lets the page offer Change/Remove.
+  const wallpaperState = (isPrivate) => {
+    const current = settings.getSettings();
+    const hasImage = wallpaper.current() !== null;
+    const source = effectiveSource({
+      dynamic: current.newtabDynamicWallpaper,
+      custom: current.newtabCustomWallpaper,
+      hasImage,
+      isPrivate,
+    });
+    return { source, hasImage, image: source === 'custom' ? wallpaper.imageUrl() : null };
+  };
   const startPageStatus = () => {
     const current = settings.getSettings();
     return {
@@ -11327,6 +11344,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // The What's new pill after an update: { version, url } or null.
       whatsNew: whatsNewState(current, { version: app.getVersion(), now: Date.now() }),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
+      wallpaper: wallpaperState(false),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
       migrationChecklist: migrationChecklistState({
@@ -11346,6 +11364,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) {
         liveUtilitySheet(runtime)?.wc.send('pages:settings:appearance', {
           newtabDynamicWallpaper: settings.getSettings().newtabDynamicWallpaper,
+          wallpaper: status.wallpaper,
         });
       }
     }
@@ -11353,6 +11372,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
       liveContents(tab)?.send('pages:start:status', {
         ...status,
+        wallpaper: tab.private ? wallpaperState(true) : status.wallpaper,
         migrationChecklist: migrationChecklistForTab(
           status.migrationChecklist,
           tab,
@@ -11402,6 +11422,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: () => (hasLiveWindow() ? rt().window : undefined),
+    wallpaperTestFile: () => (acceptanceTestMode ? wallpaperTestChosenFile : null),
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
@@ -11505,6 +11526,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       remoteDevices: () => knownRemoteDevices(),
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
+      // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
+      wallpaperFor: (wc) => wallpaperState(tabs.get(tabIdByWebContentsId.get(wc.id))?.private === true),
+      wallpaperChanged: () => broadcastStartPageStatus(),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,
         tabs.get(tabIdByWebContentsId.get(wc.id)),
@@ -11725,6 +11749,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
+      chooseWallpaperFileForTest: (file) => { wallpaperTestChosenFile = file ? String(file) : null; return true; },
       arcImportTest(action, args = []) {
         if (action === 'platform') { arcTestPlatform = String(args[0]); return true; }
         if (action === 'choose-file') { arcTestChosenFile = args[0] ? String(args[0]) : null; return true; }

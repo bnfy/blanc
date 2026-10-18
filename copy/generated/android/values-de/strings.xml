@@ -910,6 +910,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_newtab_layout_tally">tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Hintergrund nach Tageszeit</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Der Hintergrund folgt der Ortszeit dieses Geräts.</string>
+    <string name="settings_general_newtab_custom_wallpaper_label">Bild für die Startseite</string>
+    <string name="settings_general_newtab_custom_wallpaper_hint">Nur auf diesem Gerät, nie in privaten Tabs. Blanc speichert eine kleinere Kopie ohne Standort- oder Kameradaten.</string>
     <string name="settings_general_tab_layout_label">Tab-Layout</string>
     <string name="settings_general_tab_layout_hint">Tabs in der Island behalten oder in einer linken Leiste zeigen; Suche und Befehle bleiben immer in der Island</string>
     <string name="settings_general_tab_layout_island">Island</string>
@@ -1356,6 +1358,15 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_layout_shelf">Shelf</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Dynamischer Hintergrund</string>
+    <string name="newtab_wallpaper_custom">Eigenes Bild</string>
+    <string name="newtab_wallpaper_choose">Bild wählen …</string>
+    <string name="newtab_wallpaper_change">Ändern …</string>
+    <string name="newtab_wallpaper_remove">Entfernen</string>
+    <string name="newtab_wallpaper_choose_title">Bild für die Startseite wählen</string>
+    <string name="newtab_wallpaper_filter">Bilder</string>
+    <string name="newtab_wallpaper_error_too_large">Das Bild ist größer als 25 MB.</string>
+    <string name="newtab_wallpaper_error_unsupported">Wähle ein JPEG- oder PNG-Bild.</string>
+    <string name="newtab_wallpaper_error_unreadable">Das Bild konnte nicht geöffnet werden.</string>
     <string name="newtab_mahjong">Mahjong</string>
     <string name="newtab_go_anywhere">%1$s, um überallhin zu gelangen</string>
     <string name="newtab_private_footer">kein Verlauf · getrennt von normalen Tabs · endet beim Beenden, auch hier erstellte Passkeys</string>

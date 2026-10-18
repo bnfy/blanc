@@ -3271,6 +3271,14 @@
     "message": "Lo sfondo segue l’ora locale di questo computer.",
     "source": "sha256:20ef44cd8d6d8f1fa026aa4a8f1f35e96dd0491c388fc5b72a8502acd1df076f"
   },
+  "settings.general.newtabCustomWallpaper.label": {
+    "message": "Immagine della pagina iniziale",
+    "source": "sha256:22a0f836514ecf783846111f761bb54e0b8740863830a9c5759c395453005b20"
+  },
+  "settings.general.newtabCustomWallpaper.hint": {
+    "message": "Solo su questo dispositivo, mai nelle schede private. Blanc conserva una copia più piccola senza posizione né dati della fotocamera.",
+    "source": "sha256:c1728e03adfb31a17323479f50976c0814afe4f2f49057a1016ff5f6efdb3bcb"
+  },
   "settings.general.tabLayout.label": {
     "message": "Layout delle schede",
     "source": "sha256:02ebe82f380afb4c6e8de87a29ed911b7df6dc56a1ba7d679ffa691d4358e166"
@@ -4934,6 +4942,42 @@
   "newtab.customize.wallpaper": {
     "message": "Sfondo dinamico",
     "source": "sha256:f801de03f27cd3937f16577b563fae6c36be5120fdb6bc914757b243061de042"
+  },
+  "newtab.wallpaper.custom": {
+    "message": "La tua immagine",
+    "source": "sha256:75571ecb41c42e82eaf89d680e67d2a1d109a7645fb9b0866d8d45d2c660067b"
+  },
+  "newtab.wallpaper.choose": {
+    "message": "Scegli immagine…",
+    "source": "sha256:a56bfa577511a793140c79bbccd3f3d0183b5309411b09d2b7b7e9426f47a6a8"
+  },
+  "newtab.wallpaper.change": {
+    "message": "Cambia…",
+    "source": "sha256:9e32ce81e7465e3839a6613bfdc8b6c6de0af350ea5fe58ab0e9ad4b6bb33267"
+  },
+  "newtab.wallpaper.remove": {
+    "message": "Rimuovi",
+    "source": "sha256:b4b3a2f52e1986974f9efe25bab3a11ebb410e4077ada3d74d6cb74a842a12e2"
+  },
+  "newtab.wallpaper.chooseTitle": {
+    "message": "Scegli un’immagine per la pagina iniziale",
+    "source": "sha256:2000a47e1b32ca9c3334a4dfbe7be6b03538908d7b38a355a8313e2ad46db5cb"
+  },
+  "newtab.wallpaper.filter": {
+    "message": "Immagini",
+    "source": "sha256:01cebbedd00a7ab091d0d0b8aba3ba1a3ac73107928bfa017d16db52bf1469aa"
+  },
+  "newtab.wallpaper.error.tooLarge": {
+    "message": "L’immagine supera i 25 MB.",
+    "source": "sha256:abcd9a0307919d343a4b0010c585aebd3b351a3c84a0cc7ce767a315ed3f5c50"
+  },
+  "newtab.wallpaper.error.unsupported": {
+    "message": "Scegli un’immagine JPEG o PNG.",
+    "source": "sha256:b949c16de26744a315fb36a4a165889b4bbfc9ca2f5f532158f7d4eacf26a3b1"
+  },
+  "newtab.wallpaper.error.unreadable": {
+    "message": "Impossibile aprire l’immagine.",
+    "source": "sha256:9c1a9f72a8d692c9f5ba7a87b40a3f042c3b9492b7400fc62db79551ea6bf166"
   },
   "newtab.mahjong": {
     "message": "Mahjong",

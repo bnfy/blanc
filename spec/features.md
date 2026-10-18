@@ -1351,3 +1351,32 @@ shared bookmarks or resetting them on every selection.
   (`@F48`, bound in `test/desktop/steps/pinned-home.steps.js`), plus
   `test/desktop/pinned-home-recovery-smoke.mjs` and
   `test/unit/pinned-home*.test.js`.
+
+## F49 — Start Page wallpaper image (desktop)
+
+The Start Page can show the person's own picture instead of the bundled
+Sunrise artwork (F35's Customize popover, below the time-of-day switch, and
+Settings → General → Start Page image).
+
+- **Sources.** Three choices: Sunrise, time of day (the synced
+  `newtabDynamicWallpaper`), and **Your image** (device-local
+  `newtabCustomWallpaper`). Choosing your image leaves the synced time-of-day
+  choice alone, so other devices keep what they show; a device without an
+  image draws the bundled artwork that choice selects.
+- **The image.** JPEG or PNG up to 25 MB. It is decoded, fitted inside 3840 px
+  and re-encoded, so the stored copy keeps no location, camera or time
+  metadata. Only the EXIF orientation is written back, so phone photos stay
+  upright. It lives in this device's data folder (owner-only), never in
+  settings and never in Profile Sync. Remove deletes it.
+- **Private tabs.** A private Start Page never shows or offers it.
+- **Legibility.** The image is cropped to fill and centred. The footer takes
+  the neutral day fog and ink, and the header keeps the theme's overlay.
+- **Serving.** The page receives an address with a random per-launch name
+  (`blanc://newtab/user-wallpaper-<token>.jpg`), answered from that file
+  alone, so no website can embed it by guessing. In a Chromium port, this
+  becomes a WebUI data-source path, and the policy module moves unchanged.
+- **Portability.** `src/main/wallpaper-model.js` (source choice, size and
+  record rules, the orientation reader and writer) has no Electron
+  dependency; `src/main/wallpaper.js` is the Electron adapter.
+- **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
+  `test/unit/wallpaper-model.test.js` and `test/unit/newtab-wallpaper.test.js`.

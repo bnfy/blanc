@@ -1,4 +1,5 @@
-/* Shared local-clock policy; the browser adapter only loads bundled artwork. */
+/* Shared local-clock policy. The adapter loads bundled artwork, or the
+   person's own image (F49) at the address main gives this page. */
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) module.exports = factory();
   else root.blancNewtabWallpaper = factory();
@@ -17,8 +18,10 @@
   }
   function createController({ now = () => new Date(), isVisible, loadImage, render,
     reducedMotion = () => false, schedule = setTimeout, cancel = clearTimeout }) {
-    let enabled = false, timer = null, generation = 0, applied = null;
+    let dynamic = false, custom = null, timer = null, generation = 0, applied = null;
     let receivedPreference = false, animateEnable = false;
+    const active = () => custom !== null || dynamic;
+    const sourceKey = () => (custom !== null ? `custom:${custom}` : dynamic ? 'time-of-day' : 'sunrise');
     function stop() {
       if (timer !== null) cancel(timer);
       timer = null;
@@ -26,17 +29,26 @@
     }
     function refresh() {
       stop();
-      if (!enabled || !isVisible()) return;
-      const date = now();
-      // A new local Date on each tick handles timezone and wall-clock changes.
-      timer = schedule(refresh, 60_000 - (date.getSeconds() * 1000 + date.getMilliseconds()));
-      const phase = phaseForTime(date);
-      if (phase === applied) return;
+      if (!active() || !isVisible()) return;
+      let phase, image;
+      if (custom !== null) {
+        // The person's own image does not follow the clock.
+        phase = 'custom';
+        image = custom;
+      } else {
+        const date = now();
+        // A new local Date on each tick handles timezone and wall-clock changes.
+        timer = schedule(refresh, 60_000 - (date.getSeconds() * 1000 + date.getMilliseconds()));
+        phase = phaseForTime(date);
+        image = ARTWORK[phase];
+      }
+      const key = phase === 'custom' ? `custom:${image}` : phase;
+      if (key === applied) return;
       const token = generation;
-      Promise.resolve().then(() => loadImage(ARTWORK[phase])).then(() => {
-        if (token !== generation || !enabled || !isVisible()) return;
-        render({ phase, image: ARTWORK[phase], animate: (applied !== null || animateEnable) && !reducedMotion() });
-        applied = phase;
+      Promise.resolve().then(() => loadImage(image)).then(() => {
+        if (token !== generation || !active() || !isVisible()) return;
+        render({ phase, image, animate: (applied !== null || animateEnable) && !reducedMotion() });
+        applied = key;
         animateEnable = false;
       }).catch(() => {
         if (token !== generation) return;
@@ -44,29 +56,39 @@
         render(null); // Existing static Sunrise always remains underneath.
       });
     }
+    function configure(next) {
+      const before = sourceKey();
+      dynamic = next.dynamic === true;
+      custom = typeof next.custom === 'string' && next.custom ? next.custom : null;
+      const changed = sourceKey() !== before;
+      const animate = receivedPreference && changed && isVisible() && !reducedMotion();
+      const first = !receivedPreference;
+      receivedPreference = true;
+      if (!active()) {
+        stop();
+        animateEnable = false;
+        // Repeated status broadcasts must not interrupt a fade to static.
+        if (changed || first) render(null, { animate: animate && applied !== null });
+        applied = null;
+      } else {
+        if (changed) animateEnable = animate;
+        refresh();
+      }
+    }
     return {
-      setEnabled(value) {
-        const next = value === true;
-        const changed = next !== enabled;
-        const animate = receivedPreference && changed && isVisible() && !reducedMotion();
-        const first = !receivedPreference;
-        receivedPreference = true;
-        enabled = next;
-        if (!enabled) {
-          stop();
-          animateEnable = false;
-          // Repeated status broadcasts must not interrupt a fade to static.
-          if (changed || first) render(null, { animate: animate && applied !== null });
-          applied = null;
-        } else {
-          if (changed) animateEnable = animate;
-          refresh();
-        }
+      setEnabled(value) { configure({ dynamic: value, custom }); },
+      /** `wallpaper` is main's { source, image } projection for this page. */
+      setSource(wallpaper) {
+        const source = wallpaper?.source;
+        configure({
+          dynamic: source === 'time-of-day',
+          custom: source === 'custom' ? wallpaper.image : null,
+        });
       },
       refresh,
       suspend: stop,
       visibilityChanged() { if (isVisible()) refresh(); else stop(); },
-      dispose() { enabled = false; stop(); render(null); },
+      dispose() { dynamic = false; custom = null; stop(); render(null); },
     };
   }
   function mount(doc, win) {
@@ -115,7 +137,8 @@
         }
         // Reuse the same layer when reversing an off fade, so CSS continues
         // from its current opacity instead of flashing the static background.
-        const previous = layers.findIndex((layer) => layer.dataset.wallpaperPhase === frame.phase);
+        const previous = layers.findIndex((layer) => layer.dataset.wallpaperPhase === frame.phase
+          && layer.dataset.wallpaperImage === frame.image);
         const next = active === null && previous !== -1 ? previous : active === 0 ? 1 : 0;
         const layer = layers[next];
         const reversing = active === null && previous === next;
@@ -123,6 +146,7 @@
           layer.classList.remove('is-fading', 'is-visible');
           layer.style.setProperty('--wallpaper-image', `url("${frame.image}")`);
           layer.dataset.wallpaperPhase = frame.phase;
+          layer.dataset.wallpaperImage = frame.image;
         }
         // Flush the starting opacity before transitioning a freshly loaded layer.
         void layer.offsetWidth;

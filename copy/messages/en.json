@@ -3353,6 +3353,14 @@
     "message": "Wallpaper follows this machine’s local time.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.newtabCustomWallpaper.label": {
+    "message": "Start Page image",
+    "note": "Settings → General: label of the row for the person’s own Start Page wallpaper image."
+  },
+  "settings.general.newtabCustomWallpaper.hint": {
+    "message": "Shown on this device only, never in private tabs. Blanc keeps a smaller copy without location or camera details.",
+    "note": "Settings → General: hint under the Start Page image row."
+  },
   "settings.general.tabLayout.label": {
     "message": "Tab layout",
     "note": "Settings → General: setting name."
@@ -5098,6 +5106,45 @@
   "newtab.customize.wallpaper": {
     "message": "Dynamic wallpaper",
     "note": "Start page → Customize popover: switch for the time-of-day wallpaper."
+  },
+  "newtab.wallpaper.custom": {
+    "message": "Your image",
+    "note": "Start page → Customize popover: switch that shows the person’s own image as the wallpaper."
+  },
+  "newtab.wallpaper.choose": {
+    "message": "Choose image…",
+    "note": "Start page → Customize popover and Settings: button that opens a file picker for the wallpaper image.",
+    "maxLength": 18
+  },
+  "newtab.wallpaper.change": {
+    "message": "Change…",
+    "note": "Start page → Customize popover and Settings: button that replaces the stored wallpaper image.",
+    "maxLength": 12
+  },
+  "newtab.wallpaper.remove": {
+    "message": "Remove",
+    "note": "Start page → Customize popover and Settings: button that deletes the stored wallpaper image.",
+    "maxLength": 12
+  },
+  "newtab.wallpaper.chooseTitle": {
+    "message": "Choose a Start Page image",
+    "note": "Title of the native file picker for the Start Page wallpaper image."
+  },
+  "newtab.wallpaper.filter": {
+    "message": "Images",
+    "note": "File picker filter name for JPEG and PNG wallpaper images."
+  },
+  "newtab.wallpaper.error.tooLarge": {
+    "message": "That image is larger than 25 MB.",
+    "note": "Start page → Customize popover: shown when the chosen wallpaper file is too big."
+  },
+  "newtab.wallpaper.error.unsupported": {
+    "message": "Choose a JPEG or PNG image.",
+    "note": "Start page → Customize popover: shown when the chosen file is not a JPEG or PNG image."
+  },
+  "newtab.wallpaper.error.unreadable": {
+    "message": "That image couldn’t be opened.",
+    "note": "Start page → Customize popover: shown when the chosen wallpaper file can’t be read or saved."
   },
   "newtab.mahjong": {
     "message": "Mahjong",

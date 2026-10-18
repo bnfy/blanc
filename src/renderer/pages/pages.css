@@ -2939,6 +2939,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background-color: var(--bg);
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.94) 0%, rgba(247, 240, 229, 0.84) 60%, rgba(247, 240, 229, 0.35) 100%);
   --start-wallpaper-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.76) 0%, rgba(247, 240, 229, 0.28) 49%, rgba(247, 240, 229, 0.04) 100%);
+  /* A photo has no calm band behind the text, so it gets an even wash. */
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(247, 240, 229, 0.78) 0%, rgba(247, 240, 229, 0.66) 55%, rgba(247, 240, 229, 0.5) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   background-position: center, center, center bottom;
   background-repeat: no-repeat;
@@ -2966,6 +2968,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --start-footer-ink-evening: #cfc2b0;
     --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
     --start-wallpaper-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
+    --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   }
 }
@@ -2988,6 +2991,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --start-footer-ink-evening: #ccbba6;
   --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
   --start-wallpaper-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(12, 10, 8, 0.9) 0%, rgba(19, 15, 12, 0.8) 52%, rgba(10, 8, 7, 0.78) 100%);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
 }
 
@@ -3028,6 +3032,11 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ledger-body[data-wallpaper-phase="night"] {
   --start-footer-tint: var(--start-footer-tint-night);
   --start-footer-ink: var(--start-footer-ink-evening);
+}
+/* A photo has no tint of its own, so its footer takes the neutral day fog. */
+.ledger-body[data-wallpaper-phase="custom"] {
+  --start-footer-tint: var(--start-footer-tint-day);
+  --start-footer-ink: var(--start-footer-ink-day);
 }
 @media (prefers-reduced-motion: reduce) {
   .ledger-body { transition: none; }
@@ -3199,6 +3208,32 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .wallpaper-toggle[aria-pressed="true"] .wallpaper-toggle-track::after {
   left: 12px;
   background: var(--bg);
+}
+/* F49: the person's own image, below the time-of-day switch. */
+.wallpaper-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.wallpaper-action {
+  min-height: 24px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: inherit;
+  line-height: 1.25;
+}
+.wallpaper-action:hover { color: var(--text); }
+.wallpaper-action:focus-visible { outline-offset: 3px; }
+.wallpaper-action:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-error {
+  max-width: 240px;
+  margin: 6px 0 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.4;
 }
 .ledger-version { font-size: 10px; }
 #goAnywhere { font-family: var(--font-text); }
@@ -4380,6 +4415,11 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
 }
 .start-wallpaper-layer[data-wallpaper-phase="night"] {
   --start-wallpaper-scrim: var(--start-footer-tint-night);
+}
+.start-wallpaper-layer[data-wallpaper-phase="custom"] {
+  --start-wallpaper-scrim: var(--start-footer-tint-day);
+  --start-wallpaper-overlay: var(--start-wallpaper-custom-overlay);
+  background-position: center;
 }
 
 .about-build-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0 0 20px; }
