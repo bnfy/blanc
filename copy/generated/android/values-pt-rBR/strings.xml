@@ -1400,6 +1400,11 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_wallpaper_change">Trocar…</string>
     <string name="newtab_wallpaper_remove">Remover</string>
     <string name="newtab_wallpaper_wash">Véu</string>
+    <string name="newtab_wallpaper_style_label">Estilo</string>
+    <string name="newtab_wallpaper_style_auto">Auto</string>
+    <string name="newtab_wallpaper_style_light">Claro</string>
+    <string name="newtab_wallpaper_style_dark">Escuro</string>
+    <string name="newtab_wallpaper_style_spotlight">Holofote</string>
     <string name="newtab_wallpaper_choose_title">Escolha uma imagem para a página inicial</string>
     <string name="newtab_wallpaper_filter">Imagens</string>
     <string name="newtab_wallpaper_error_too_large">A imagem tem mais de 25 MB.</string>

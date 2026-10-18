@@ -207,6 +207,13 @@
           <button id="customWallpaperChange" class="wallpaper-action" type="button" hidden data-i18n="newtab.wallpaper.change">Change…</button>
           <button id="customWallpaperRemove" class="wallpaper-action" type="button" hidden data-i18n="newtab.wallpaper.remove">Remove</button>
         </div>
+        <div id="customWallpaperStyleRow" class="wallpaper-styles" role="group" aria-labelledby="customWallpaperStyleLabel" hidden>
+          <span id="customWallpaperStyleLabel" data-i18n="newtab.wallpaper.styleLabel">Wash</span>
+          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="auto" aria-pressed="true" data-i18n="newtab.wallpaper.styleAuto">Auto</button>
+          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="light" aria-pressed="false" data-i18n="newtab.wallpaper.styleLight">Light</button>
+          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="dark" aria-pressed="false" data-i18n="newtab.wallpaper.styleDark">Dark</button>
+          <button type="button" class="wallpaper-style" data-wallpaper-style-pick="spotlight" aria-pressed="false" data-i18n="newtab.wallpaper.styleSpotlight">Spotlight</button>
+        </div>
         <label id="customWallpaperWashRow" class="wallpaper-wash" hidden>
           <span data-i18n="newtab.wallpaper.wash">Fade</span>
           <input id="customWallpaperWash" type="range" min="0" max="100" step="5" value="100" />

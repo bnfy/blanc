@@ -4963,6 +4963,26 @@
     "message": "Schleier",
     "source": "sha256:07b86a23ce4881b6ae6f8f8716adf251b024424903f864beb057bb57e8983ddc"
   },
+  "newtab.wallpaper.styleLabel": {
+    "message": "Schleier-Stil",
+    "source": "sha256:dcd193fb56c3a7422d884f896a6dc58afa10a01c693aa27171e715f9ab2e1965"
+  },
+  "newtab.wallpaper.styleAuto": {
+    "message": "Auto",
+    "source": "sha256:89708b0c1110548fc8ace1362b91c42bd04afd14d53fbf31b6719d4e6e197160"
+  },
+  "newtab.wallpaper.styleLight": {
+    "message": "Hell",
+    "source": "sha256:ee4533491fdd4bc1a538a24aced3e97fc72c89ba2d9840224d7727d99bfbe588"
+  },
+  "newtab.wallpaper.styleDark": {
+    "message": "Dunkel",
+    "source": "sha256:6540a3e7292156cc6f39794b37fdae6debcc10792ac96ef5e8a6f1de4360b1d9"
+  },
+  "newtab.wallpaper.styleSpotlight": {
+    "message": "Spotlight",
+    "source": "sha256:adba11996fa4271e3e1e9ab7cf52a73668efa24ceb18c85fbeacb2a43b198596"
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Bild für die Startseite wählen",
     "source": "sha256:2000a47e1b32ca9c3334a4dfbe7be6b03538908d7b38a355a8313e2ad46db5cb"

@@ -5131,6 +5131,31 @@
     "note": "Start page → Customize popover: label of the slider for how strongly a light or dark wash covers the person’s own wallpaper image, keeping text readable.",
     "maxLength": 12
   },
+  "newtab.wallpaper.styleLabel": {
+    "message": "Wash",
+    "note": "Start page → Customize popover: label before the choices for the wash over the person’s own wallpaper image (it keeps text readable).",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleAuto": {
+    "message": "Auto",
+    "note": "Wash choice: follow the app’s light or dark theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleLight": {
+    "message": "Light",
+    "note": "Wash choice: a light wash with dark text, whatever the theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleDark": {
+    "message": "Dark",
+    "note": "Wash choice: a dark wash with light text, whatever the theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleSpotlight": {
+    "message": "Spotlight",
+    "note": "Wash choice: wash only behind the clock and content, leaving the image’s edges clear.",
+    "maxLength": 14
+  },
   "newtab.wallpaper.chooseTitle": {
     "message": "Choose a Start Page image",
     "note": "Title of the native file picker for the Start Page wallpaper image."

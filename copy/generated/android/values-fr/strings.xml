@@ -1400,6 +1400,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_wallpaper_change">Modifier…</string>
     <string name="newtab_wallpaper_remove">Retirer</string>
     <string name="newtab_wallpaper_wash">Voile</string>
+    <string name="newtab_wallpaper_style_label">Style</string>
+    <string name="newtab_wallpaper_style_auto">Auto</string>
+    <string name="newtab_wallpaper_style_light">Clair</string>
+    <string name="newtab_wallpaper_style_dark">Sombre</string>
+    <string name="newtab_wallpaper_style_spotlight">Projecteur</string>
     <string name="newtab_wallpaper_choose_title">Choisissez une image pour la page d’accueil</string>
     <string name="newtab_wallpaper_filter">Images</string>
     <string name="newtab_wallpaper_error_too_large">Cette image dépasse 25 Mo.</string>

@@ -4,11 +4,20 @@
 // wallpaper.js is the replaceable Electron adapter.
 
 const SOURCES = Object.freeze(['sunrise', 'time-of-day', 'custom']);
+// The wash over your image: auto follows the app theme; light and dark force
+// that wash (and matching text) whatever the theme; spotlight follows the
+// theme but covers only the area behind the content, leaving the edges bare.
+const WASH_STYLES = Object.freeze(['auto', 'light', 'dark', 'spotlight']);
 const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 // Long edge of the stored copy: sharp on a 4K display, small enough to decode
 // on every new tab without a visible delay.
 const MAX_EDGE = 3840;
 const JPEG_QUALITY = 85;
+/** A stored or sent wash style, or null. */
+function normalizeWashStyle(value) {
+  return WASH_STYLES.includes(value) ? value : null;
+}
+
 /**
  * How strongly the theme's wash covers your image, as an integer percent
  * (100, the default, puts legibility first), or null for anything else.
@@ -129,6 +138,8 @@ function withOrientation(jpeg, orientation) {
 
 module.exports = {
   SOURCES,
+  WASH_STYLES,
+  normalizeWashStyle,
   MAX_INPUT_BYTES,
   MAX_EDGE,
   JPEG_QUALITY,

@@ -32,7 +32,7 @@ try {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForFunction(() => !document.getElementById('customWallpaperToggle').disabled);
   assert.deepEqual(await page.evaluate(() => window.bowserPages.start.wallpaper()),
-    { source: 'sunrise', hasImage: false, image: null, wash: 100 });
+    { source: 'sunrise', hasImage: false, image: null, wash: 100, style: 'auto' });
 
   // Fixtures, made by Electron itself: a wide photo tagged "rotate 90°" with
   // a fake GPS block, an oversized one, and a file that is not an image.
@@ -110,13 +110,29 @@ try {
   await waitForValue(async () => settingsFile(), (value) => value.newtabWallpaperWash === 40, 'saved fade');
   assert.equal((await page.evaluate(() => window.bowserPages.start.wallpaper())).wash, 40);
 
+  // Wash style: Dark forces light text even under the light app theme;
+  // Spotlight follows the theme; nothing else is accepted.
+  await page.emulateMedia({ colorScheme: 'light' });
+  assert.equal(await page.evaluate(() => document.body.dataset.wallpaperStyle), 'auto');
+  assert.equal((await page.evaluate(() => window.bowserPages.start.setWallpaperStyle('gradient'))).style, 'auto');
+  const textColor = () => page.evaluate(() => getComputedStyle(document.body).getPropertyValue('--text').trim());
+  const autoText = await textColor();
+  await page.getByRole('button', { name: 'Spotlight', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperStyle === 'spotlight');
+  assert.equal(await textColor(), autoText, 'spotlight keeps the theme colors');
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperStyle === 'dark');
+  assert.equal(await textColor(), '#f7f0e5', 'dark wash brings light text');
+  assert.equal(await page.getByRole('button', { name: 'Dark', exact: true }).getAttribute('aria-pressed'), 'true');
+  await waitForValue(async () => settingsFile(), (value) => value.newtabWallpaperStyle === 'dark', 'saved wash style');
+
   // A private Start Page never shows or offers it.
   await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
   const privatePage = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/?private=1'), Boolean, 'private start page');
   await privatePage.waitForLoadState('domcontentloaded');
   await privatePage.waitForFunction(() => window.bowserPages && document.getElementById('customWallpaperRow').hidden);
   const privateState = await privatePage.evaluate(() => window.bowserPages.start.data().then((d) => d.wallpaper));
-  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null, wash: 40 });
+  assert.deepEqual(privateState, { source: 'sunrise', hasImage: true, image: null, wash: 40, style: 'dark' });
   assert.notEqual(await privatePage.evaluate(() => document.body.dataset.wallpaperPhase), 'custom');
   const publicId = (await callTestHook(app, 'state')).tabs.find((tab) => tab.url === 'blanc://newtab/').id;
   await callTestHook(app, 'activateTab', [publicId, true]);
@@ -143,7 +159,7 @@ try {
   await waitForValue(async () => settingsFile(), (value) => value.newtabCustomWallpaper === false, 'saved removal');
   assert.equal(await loads(page, `${state.image}&after-remove`), false);
   await callTestHook(app, 'chooseWallpaperFile', [null]);
-  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, unguessable address, private exclusion, time-of-day handoff, Settings remove with live Start Page update');
+  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, wash styles, unguessable address, private exclusion, time-of-day handoff, Settings remove with live Start Page update');
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

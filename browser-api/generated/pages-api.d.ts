@@ -37,6 +37,8 @@ export interface NewtabPagesAPI {
     setWallpaper: (source: unknown) => Promise<unknown>;
     /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
     setWallpaperWash: (wash: unknown) => Promise<unknown>;
+    /** Choose the wash over the Start Page image: auto, light, dark or spotlight. IPC: invoke `pages:start:set-wallpaper-style`. */
+    setWallpaperStyle: (style: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
@@ -197,6 +199,8 @@ export interface SettingsPagesAPI {
     setWallpaper: (source: unknown) => Promise<unknown>;
     /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
     setWallpaperWash: (wash: unknown) => Promise<unknown>;
+    /** Choose the wash over the Start Page image: auto, light, dark or spotlight. IPC: invoke `pages:start:set-wallpaper-style`. */
+    setWallpaperStyle: (style: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */

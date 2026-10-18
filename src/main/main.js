@@ -11321,7 +11321,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       isPrivate,
     });
     return {
-      source, hasImage, image: source === 'custom' ? wallpaper.imageUrl() : null, wash: current.newtabWallpaperWash,
+      source,
+      hasImage,
+      image: source === 'custom' ? wallpaper.imageUrl() : null,
+      wash: current.newtabWallpaperWash,
+      style: current.newtabWallpaperStyle,
     };
   };
   const startPageStatus = () => {

@@ -371,6 +371,22 @@
         "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
+        "name": "start.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
+      },
+      {
         "name": "start.chooseWallpaper",
         "kind": "invoke",
         "channel": "pages:start:choose-wallpaper",
@@ -1126,6 +1142,22 @@
         ],
         "returns": "unknown",
         "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+      },
+      {
+        "name": "settings.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
       },
       {
         "name": "settings.chooseWallpaper",

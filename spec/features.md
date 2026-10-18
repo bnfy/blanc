@@ -1371,8 +1371,12 @@ Settings → General → Start Page image).
 - **Private tabs.** A private Start Page never shows or offers it.
 - **Legibility.** The image is cropped to fill and centred under an even
   theme wash. A **Fade** slider (device-local `newtabWallpaperWash`, 0–100,
-  default 100) lets the person trade that wash for more of the picture; the
-  footer always keeps the neutral day fog and ink.
+  default 100) lets the person trade that wash for more of the picture. A
+  **Wash** choice (device-local `newtabWallpaperStyle`) sets its kind: Auto
+  follows the app theme; Light and Dark force that wash and switch the page's
+  text and surfaces to match, whatever the theme; Spotlight follows the theme
+  but washes only behind the content and header, leaving the image's edges
+  bare. The footer always keeps its fog and ink.
 - **Serving.** The page receives an address with a random per-launch name
   (`blanc://newtab/user-wallpaper-<token>.jpg`), answered from that file
   alone, so no website can embed it by guessing. In a Chromium port, this

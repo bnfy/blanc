@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  SOURCES, MAX_EDGE, normalizeWash, effectiveSource, settingsForSource, scaledSize, normalizeMeta,
+  SOURCES, WASH_STYLES, MAX_EDGE, normalizeWash, normalizeWashStyle, effectiveSource, settingsForSource, scaledSize, normalizeMeta,
   readJpegOrientation, withOrientation,
 } = require('../../src/main/wallpaper-model');
 
@@ -90,4 +90,10 @@ test('the re-encoded copy carries only the orientation, so it still draws uprigh
 test('the Fade value is an integer percent or nothing', () => {
   for (const ok of [0, 5, 55, 100]) assert.equal(normalizeWash(ok), ok);
   for (const bad of [-1, 101, 50.5, '50', null, undefined, NaN, Infinity]) assert.equal(normalizeWash(bad), null, String(bad));
+});
+
+test('wash styles are a closed list', () => {
+  assert.deepEqual(WASH_STYLES, ['auto', 'light', 'dark', 'spotlight']);
+  for (const ok of WASH_STYLES) assert.equal(normalizeWashStyle(ok), ok);
+  for (const bad of ['Auto', 'gradient', '', null, 1, {}]) assert.equal(normalizeWashStyle(bad), null, String(bad));
 });

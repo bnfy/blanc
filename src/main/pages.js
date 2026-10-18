@@ -586,6 +586,11 @@ function setupPages(hooks = {}) {
     settings.setSettings({ newtabWallpaperWash: wash });
     return wallpaperReply(event);
   });
+  // The wash style (auto | light | dark | spotlight); anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-style', ['newtab', 'settings'], (event, style) => {
+    settings.setSettings({ newtabWallpaperStyle: style });
+    return wallpaperReply(event);
+  });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;
     if (!file) {

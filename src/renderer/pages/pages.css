@@ -2942,6 +2942,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   /* A photo has no calm band behind the text, so it gets an even wash,
      scaled by the Fade slider (--start-wallpaper-wash, 0–1, set by newtab.js). */
   --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(247, 240, 229, calc(0.78 * var(--start-wallpaper-wash, 1))) 0%, rgba(247, 240, 229, calc(0.66 * var(--start-wallpaper-wash, 1))) 55%, rgba(247, 240, 229, calc(0.5 * var(--start-wallpaper-wash, 1))) 100%);
+  /* Spotlight: the wash only behind the content and the header. */
+  --start-wallpaper-spotlight-overlay: radial-gradient(ellipse 62% 52% at 50% 46%, rgba(247, 240, 229, calc(0.82 * var(--start-wallpaper-wash, 1))) 0%, rgba(247, 240, 229, calc(0.6 * var(--start-wallpaper-wash, 1))) 45%, rgba(247, 240, 229, 0) 100%), linear-gradient(180deg, rgba(247, 240, 229, calc(0.7 * var(--start-wallpaper-wash, 1))) 0, rgba(247, 240, 229, 0) 180px);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   background-position: center, center, center bottom;
   background-repeat: no-repeat;
@@ -2970,6 +2972,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
     --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
     --start-wallpaper-overlay: linear-gradient(180deg, rgba(18, 15, 12, 0.84) 0%, rgba(24, 19, 15, 0.72) 50%, rgba(18, 15, 12, 0.66) 100%);
     --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 19, 15, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(18, 15, 12, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
+    --start-wallpaper-spotlight-overlay: radial-gradient(ellipse 62% 52% at 50% 46%, rgba(18, 15, 12, calc(0.86 * var(--start-wallpaper-wash, 1))) 0%, rgba(18, 15, 12, calc(0.66 * var(--start-wallpaper-wash, 1))) 45%, rgba(18, 15, 12, 0) 100%), linear-gradient(180deg, rgba(18, 15, 12, calc(0.74 * var(--start-wallpaper-wash, 1))) 0, rgba(18, 15, 12, 0) 180px);
   background-image: var(--start-wallpaper-scrim-image), var(--start-wallpaper-overlay), url("start-page-sunrise.png");
   }
 }
@@ -3229,6 +3232,32 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .wallpaper-action:hover { color: var(--text); }
 .wallpaper-action:focus-visible { outline-offset: 3px; }
 .wallpaper-action:disabled { cursor: default; opacity: 0.6; }
+.wallpaper-styles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.wallpaper-style {
+  min-height: 22px;
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: inherit;
+  line-height: 1.25;
+}
+.wallpaper-style:hover { color: var(--text); }
+.wallpaper-style[aria-pressed="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+.wallpaper-style:focus-visible { outline-offset: 2px; }
 .wallpaper-wash {
   display: flex;
   align-items: center;
@@ -4435,6 +4464,47 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   --start-wallpaper-overlay: var(--start-wallpaper-custom-overlay);
   background-position: center;
 }
+.ledger-body[data-wallpaper-style="spotlight"] .start-wallpaper-layer[data-wallpaper-phase="custom"] {
+  --start-wallpaper-overlay: var(--start-wallpaper-spotlight-overlay);
+}
+
+/* F49 wash styles: Light and Dark force that wash and the page's matching
+   colors whatever the app theme, so text always contrasts with the wash.
+   newtab.js sets data-wallpaper-style only while your image is showing. */
+.ledger-body[data-wallpaper-style="light"] {
+  color-scheme: light;
+  --bg: #f8f2e8;
+  --surface: rgba(242, 234, 222, 0.78);
+  --surface-raised: rgba(255, 255, 255, 0.88);
+  --onboarding-surface: #ffffff;
+  --border: #e1d7c9;
+  --text: #12100b;
+  --text-dim: #6b6257;
+  --accent: #805d28;
+  --accent-dim: rgba(128, 93, 40, 0.16);
+  --start-footer-tint-day: #f4f1ee;
+  --start-footer-ink-day: #6b6257;
+  --start-card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.55);
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(247, 240, 229, calc(0.78 * var(--start-wallpaper-wash, 1))) 0%, rgba(247, 240, 229, calc(0.66 * var(--start-wallpaper-wash, 1))) 55%, rgba(247, 240, 229, calc(0.5 * var(--start-wallpaper-wash, 1))) 100%);
+}
+.ledger-body[data-wallpaper-style="dark"] {
+  color-scheme: dark;
+  --bg: #17130f;
+  --surface: rgba(45, 37, 29, 0.78);
+  --surface-raised: rgba(34, 29, 23, 0.9);
+  --onboarding-surface: #221d17;
+  --border: #4a3e31;
+  --text: #f7f0e5;
+  --text-dim: #b8aa98;
+  --accent: #d4ad66;
+  --accent-dim: rgba(212, 173, 102, 0.2);
+  --start-footer-tint-day: #4d4a46;
+  --start-footer-ink-day: #cfc2b0;
+  --start-card-highlight: inset 0 0 0 transparent;
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 19, 15, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(18, 15, 12, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
+}
+/* The clock's glow is a light halo; on a dark wash it would smear. */
+.ledger-body[data-wallpaper-style="dark"] .bb-clock { text-shadow: none; }
 
 .about-build-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 0 0 20px; }
 .about-build-details dt { color: var(--text-dim); font-size: 12px; margin-bottom: 5px; }

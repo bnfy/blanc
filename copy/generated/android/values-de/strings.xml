@@ -1363,6 +1363,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_wallpaper_change">Ändern …</string>
     <string name="newtab_wallpaper_remove">Entfernen</string>
     <string name="newtab_wallpaper_wash">Schleier</string>
+    <string name="newtab_wallpaper_style_label">Schleier-Stil</string>
+    <string name="newtab_wallpaper_style_auto">Auto</string>
+    <string name="newtab_wallpaper_style_light">Hell</string>
+    <string name="newtab_wallpaper_style_dark">Dunkel</string>
+    <string name="newtab_wallpaper_style_spotlight">Spotlight</string>
     <string name="newtab_wallpaper_choose_title">Bild für die Startseite wählen</string>
     <string name="newtab_wallpaper_filter">Bilder</string>
     <string name="newtab_wallpaper_error_too_large">Das Bild ist größer als 25 MB.</string>

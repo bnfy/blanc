@@ -73,6 +73,17 @@ What this means for Blanc:
   device-local. The synced `newtabDynamicWallpaper` is never changed by picking
   your image, so other devices keep their own choice.
 
+- **Wash style** (added after the owner's review, modeled on the overlay
+  choices CMS hero banners offer). Above Fade, a **Wash** row offers Auto ·
+  Light · Dark · Spotlight, stored in the device-local `newtabWallpaperStyle`.
+  Light and Dark override the Start Page's whole color set: text, surfaces,
+  footer tint, `color-scheme`, and dropping the clock glow under Dark. Text
+  therefore contrasts with the wash even when the app theme is the opposite.
+  Spotlight is an oval wash behind the clock and content plus a band behind
+  the header, fading to the bare photo at the edges. Fade scales every style.
+  `newtab.js` sets `body[data-wallpaper-style]` only while your image is
+  showing, so the bundled artwork never sees these overrides.
+
 ## Serving
 
 `blanc://` answers requests from any page, so the address holds a random name

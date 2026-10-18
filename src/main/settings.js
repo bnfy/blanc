@@ -10,7 +10,7 @@ const {
 } = require('./chrome-layout');
 const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
-const { normalizeWash } = require('./wallpaper-model');
+const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
@@ -193,6 +193,8 @@ const DEFAULTS = {
   newtabCustomWallpaper: false,
   // How much of the theme's wash covers that image (0–100). Device-local too.
   newtabWallpaperWash: 100,
+  // Which wash: auto (theme), light, dark or spotlight. Device-local too.
+  newtabWallpaperStyle: 'auto',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Paint the Island strip with the active site's top-edge/theme color.
@@ -462,6 +464,7 @@ function getSettings() {
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
   if (typeof data.newtabCustomWallpaper !== 'boolean') data.newtabCustomWallpaper = false;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
+  if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   if (!isUiLanguageValue(data.uiLanguage)) data.uiLanguage = DEFAULTS.uiLanguage;
@@ -543,6 +546,7 @@ function sanitize(partial) {
   if (typeof partial.newtabDynamicWallpaper === 'boolean') clean.newtabDynamicWallpaper = partial.newtabDynamicWallpaper;
   if (typeof partial.newtabCustomWallpaper === 'boolean') clean.newtabCustomWallpaper = partial.newtabCustomWallpaper;
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
+  if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
