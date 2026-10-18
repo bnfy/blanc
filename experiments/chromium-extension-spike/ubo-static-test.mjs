@@ -13,3 +13,17 @@ test('wrong sender private profile unready and absent store cannot get a payload
 test('dead document or mismatched context rejects both before and after engine work',async()=>{for(const config of [{deny:1},{deny:2},{changedContext:true}])assert.equal((await run(config)).result,undefined);});
 test('reload during selection discards stale generation',async()=>assert.equal((await run({change:true})).result,undefined));
 test('disabled site returns empty and never queries scriptlet engine',async()=>{const r=await run({enabled:false});assert.equal(r.result.code,'');assert.equal(r.requests.length,0);});
+
+async function dispatch(stateAfter) {
+ let listener,finish,reply,state={ready:false,generation:4};
+ const context={chrome:{runtime:{onMessage:{addListener:f=>{listener=f;}}}},current:()=>state,setTimeout:()=>{},pending:new Promise(resolve=>{finish=resolve;})};
+ vm.runInNewContext(`${text};lateScript=()=>pending;start(true);`,context);
+ state={ready:true,generation:4};assert.equal(listener({type:'blanc-static-script'},{},r=>{reply=r;}),true);
+ state=stateAfter;finish({code:'selected-at-generation-four',generation:4});await new Promise(resolve=>setImmediate(resolve));return {reply,row:context.__blancStaticRows[0]};
+}
+test('dispatch drops selected code while reload is held or a newer generation is ready',async()=>{
+ for(const state of [{ready:false,generation:5},{ready:true,generation:5},{ready:false,generation:4}]){const r=await dispatch(state);assert.equal(r.reply,undefined);assert.equal(r.row.replied,false);}
+});
+test('dispatch still releases a selection in the current ready generation',async()=>{
+ const r=await dispatch({ready:true,generation:4});assert.equal(r.reply.code,'selected-at-generation-four');assert.equal(r.row.replied,true);
+});

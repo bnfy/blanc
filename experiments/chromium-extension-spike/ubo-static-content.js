@@ -4,8 +4,9 @@
     if ( !/^(about:|data:|blob:)/.test(location.href) ) { return; }
     chrome.runtime.sendMessage({ type: 'blanc-static-script' }, response => {
         if ( chrome.runtime.lastError || !response || typeof response.code !== 'string' || !response.code ) { return; }
-        // This retains the document's CSP. Callback completion alone does not
-        // prove execution; runtime acceptance checks actual main-world effects.
+        // This extension-world insertion can be exempt from page CSP/Trusted
+        // Types. Keep that privilege explicit; callback completion alone does
+        // not prove execution. Acceptance checks actual main-world effects.
         const script = document.createElement('script');
         script.textContent = response.code;
         (document.head || document.documentElement)?.appendChild(script);

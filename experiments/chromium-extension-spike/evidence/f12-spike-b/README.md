@@ -554,3 +554,23 @@ No full network-corpus or Electron rerun. In-flight delivery/reload atomicity,
 broader CSP/Trusted Types, lifecycle/owners/scriptlets/containment and Electron
 identity remain open. Latency deferred; Electron build §8 unchecked/unstarted.
 No baseline promotion or change to plan items 3–6.
+
+
+## Static fallback reload schedules and CSP — October 17, 2026
+
+[Evidence and exact limits](../f12-static-race-csp-20261017/README.md).
+Assets-only final reply generation check: final **45 diagnostic schedules** include
+15 actual filter-list reloads; **36 pre-dispatch drops / nine after-delivery stale
+attempts**, no duplicate bodies. Explicit diagnostic pauses establish controlled
+behavior, not natural race incidence. **After-dispatch atomicity remains a gap**;
+unchanged-rule reloads do not qualify in-place changed-rule semantics.
+
+Ordinary provider CSP matrix **15/15** actual late attempts with one body. Page
+nonce/script-none and Trusted Types controls remain enforced; extension-world
+insertion is privileged/exempt in this pin. Receiver comment corrected, no policy
+weakening; full CSP/containment remains open. Ordinary regression **18 late + two
+HTTP controls + 13 identity checks** passes. **238 tests / 126-file lint** pass.
+Zero-action guard **4.57 s**, no compile; last upstream footprint31/74 unchanged,
+not remeasured. Initial lint and all runtime attempts retained. No full network,
+Electron/private/safety reruns. Parent32790e0b CodeQL four alerts remain unresolved.
+Latency deferred; Electron build §8 unchecked/unstarted; Task0/items3–6 unchanged.

@@ -1,0 +1,11 @@
+{
+  "verified": true,
+  "diagnosticSchedules": 30,
+  "droppedBeforeDelivery": 24,
+  "staleDeliveryAttempts": 6,
+  "duplicateBodies": 0,
+  "actualFilterReloadCases": 0,
+  "fullAcceptance": false,
+  "afterDispatchAtomicity": false,
+  "latencyMeasured": false
+}

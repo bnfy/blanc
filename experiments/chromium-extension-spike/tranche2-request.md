@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (static origin fallback integrated; diagnostic receiver gaps corrected)
+### 1.1 Progress checkpoint — October 17, 2026 (static fallback reload scheduling and CSP measured)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -562,4 +562,4 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up limitation: bounded inherited deduplication remains measured; mixed-owner/unknown-precursor chains, top-level non-HTTP documents, broader CSP/Trusted Types late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified; the bounded automatic late matrix is now measured above.
+Current follow-up limitation: bounded CSP/Trusted Types component exemption is now measured (15 cases with page-policy negative controls); 45 diagnostic reload schedules drop 36 pre-dispatch responses but nine already-delivered stale attempts remain a gap. Full CSP/containment and in-place changed-rule semantics remain open. See `evidence/f12-static-race-csp-20261017/`. Bounded inherited deduplication remains measured; mixed-owner/unknown-precursor chains, top-level non-HTTP documents, broader CSP/Trusted Types late delivery, arbitrary scriptlets and in-place filter-generation semantics remain unqualified; the bounded automatic late matrix is now measured above.

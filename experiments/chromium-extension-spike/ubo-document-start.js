@@ -81,6 +81,10 @@ export function start(observe = false) {
         const row = rows ? {sender: {id: sender.id, tabId: sender.tab?.id, frameId: sender.frameId, documentId: sender.documentId, url: sender.url, origin: sender.origin}, stages: []} : null;
         if ( row ) { rows.push(row); if ( rows.length > 256 ) { rows.shift(); } }
         void lateScript(message, sender, event => row?.stages.push(event)).then(result => {
+            // Revalidate at dispatch as well as around engine selection. This
+            // cannot revoke a response already delivered to the renderer.
+            const state = current();
+            if ( !state.ready || result?.generation !== state.generation ) { result = undefined; }
             if ( row ) { row.replied = !!result; }
             reply(result);
         }, () => reply());
