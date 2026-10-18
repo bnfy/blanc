@@ -706,6 +706,19 @@ export interface DisplayPickerChoice {
   cancelled?: boolean;
 }
 
+/** A strip tooltip: its text, the button it belongs to and the size the strip measured for it. */
+export interface TooltipRequest {
+  text: string;
+  /** The button's rectangle in the strip. */
+  anchor: Rect;
+  /** The measured tooltip width; main caps it. */
+  width: number;
+  /** The measured tooltip height; main caps it. */
+  height: number;
+  /** Whether the strip is in its private theme. */
+  privateTheme?: boolean;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -939,6 +952,16 @@ export interface BlancBrowserAPI {
    * IPC: send `chrome:island-rect`.
    */
   reportIslandRect(rect: IslandRectReport): void;
+  /**
+   * Float the tooltip view under a strip button.
+   * IPC: send `chrome:tooltip-show`.
+   */
+  showTooltip(tip: TooltipRequest): void;
+  /**
+   * Hide the strip's tooltip view.
+   * IPC: send `chrome:tooltip-hide`.
+   */
+  hideTooltip(): void;
   /**
    * Where the shield popover should anchor.
    * IPC: event `overlay:shield-anchor`.

@@ -30,20 +30,20 @@
     <div id="islandPanel">
       <div class="panel-row">
         <button id="panelSiteInfo" class="site-info-button" type="button"
-          title="Site information" aria-label="Site information" data-i18n-title="panel.siteInfo" data-i18n-aria-label="panel.siteInfo" aria-expanded="false" hidden></button>
+          data-tooltip="Site information" aria-label="Site information" data-i18n-tooltip="panel.siteInfo" data-i18n-aria-label="panel.siteInfo" aria-expanded="false" hidden></button>
         <input id="addressInput" spellcheck="false" autocomplete="off" placeholder="Search, enter address, or / for commands" data-i18n-placeholder="panel.addressPlaceholder" />
         <div class="panel-actions">
-          <button id="backBtn" class="act-btn" title="Back" data-i18n-title="pill.back" disabled>
+          <button id="backBtn" class="act-btn" aria-label="Back" data-tooltip="Back" data-i18n-aria-label="pill.back" data-i18n-tooltip="pill.back" disabled>
             <svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>
           </button>
-          <button id="fwdBtn" class="act-btn" title="Forward" data-i18n-title="pill.forward" disabled>
+          <button id="fwdBtn" class="act-btn" aria-label="Forward" data-tooltip="Forward" data-i18n-aria-label="pill.forward" data-i18n-tooltip="pill.forward" disabled>
             <svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
           </button>
-          <button id="reloadBtn" class="act-btn" title="Reload" data-i18n-title="pill.reload"></button>
-          <button id="heartBtn" class="act-btn" title="Favorite this page (Ctrl/Cmd+D)" data-i18n-title="panel.favoriteShortcut">
+          <button id="reloadBtn" class="act-btn" aria-label="Reload" data-tooltip="Reload" data-i18n-aria-label="pill.reload" data-i18n-tooltip="pill.reload"></button>
+          <button id="heartBtn" class="act-btn" aria-label="Favorite this page (Ctrl/Cmd+D)" data-tooltip="Favorite this page (Ctrl/Cmd+D)" data-i18n-aria-label="panel.favoriteShortcut" data-i18n-tooltip="panel.favoriteShortcut">
             <svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>
           </button>
-          <button id="dismissBtn" class="act-btn" title="Collapse island (Esc)" aria-label="Collapse island" data-i18n-title="panel.collapse.title" data-i18n-aria-label="panel.collapse.label">
+          <button id="dismissBtn" class="act-btn" data-tooltip="Collapse island (Esc)" aria-label="Collapse island" data-i18n-tooltip="panel.collapse.title" data-i18n-aria-label="panel.collapse.label">
             <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
           </button>
         </div>
@@ -73,9 +73,9 @@
           id="footerWorkspace"
           class="footer-act ws"
           type="button"
-          title="Spaces"
+          data-tooltip="Spaces"
           aria-label="Spaces"
-          data-i18n-title="footer.workspaces"
+          data-i18n-tooltip="footer.workspaces"
           data-i18n-aria-label="footer.workspaces"
           aria-expanded="false"
           aria-haspopup="true"
@@ -87,28 +87,28 @@
             <path d="M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37"/>
           </svg>
         </button>
-        <button id="footerFavorites" class="footer-act" title="Favorites" data-i18n-title="footer.favorites">
+        <button id="footerFavorites" class="footer-act" aria-label="Favorites" data-tooltip="Favorites" data-i18n-aria-label="footer.favorites" data-i18n-tooltip="footer.favorites">
           <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
         </button>
-        <button id="footerHistory" class="footer-act" title="History" data-i18n-title="footer.history">
+        <button id="footerHistory" class="footer-act" aria-label="History" data-tooltip="History" data-i18n-aria-label="footer.history" data-i18n-tooltip="footer.history">
           <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg>
         </button>
-        <button id="footerDownloads" class="footer-act" title="Downloads" data-i18n-title="pill.downloads">
+        <button id="footerDownloads" class="footer-act" aria-label="Downloads" data-tooltip="Downloads" data-i18n-aria-label="pill.downloads" data-i18n-tooltip="pill.downloads">
           <svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>
         </button>
         <button
           id="footerTabLayout"
           class="footer-act"
           type="button"
-          title="Turn vertical tabs on"
+          data-tooltip="Turn vertical tabs on"
           aria-label="Vertical tabs"
-          data-i18n-title="footer.tabLayoutOn"
+          data-i18n-tooltip="footer.tabLayoutOn"
           data-i18n-aria-label="rail.label"
           aria-pressed="false"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.75" width="11" height="10.5" rx="1.5"/><path d="M6 2.75v10.5"/></svg>
         </button>
-        <button id="footerSettings" class="footer-act" title="Settings" data-i18n-title="footer.settings">
+        <button id="footerSettings" class="footer-act" aria-label="Settings" data-tooltip="Settings" data-i18n-aria-label="footer.settings" data-i18n-tooltip="footer.settings">
           <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
         </button>
         </div>
@@ -128,7 +128,7 @@
   <div id="glancePicker" class="glance-picker" role="dialog" aria-labelledby="glancePickerTitle" hidden>
     <header class="glance-picker-head">
       <h2 id="glancePickerTitle" data-i18n="glance.picker.title">Choose a tab for Glance</h2>
-      <button id="glancePickerClose" class="glance-picker-close" type="button" title="Cancel" aria-label="Cancel choosing a Glance tab" data-i18n-title="common.cancel" data-i18n-aria-label="glance.picker.cancelLabel">
+      <button id="glancePickerClose" class="glance-picker-close" type="button" data-tooltip="Cancel" aria-label="Cancel choosing a Glance tab" data-i18n-tooltip="common.cancel" data-i18n-aria-label="glance.picker.cancelLabel">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
       </button>
     </header>
@@ -159,13 +159,13 @@
   <div id="findBar" hidden>
     <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" data-i18n-placeholder="find.placeholder" />
     <div id="findCount"></div>
-    <button id="findPrevBtn" class="act-btn" title="Previous match" data-i18n-title="find.prev">
+    <button id="findPrevBtn" class="act-btn" aria-label="Previous match" data-tooltip="Previous match" data-i18n-aria-label="find.prev" data-i18n-tooltip="find.prev">
       <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
     </button>
-    <button id="findNextBtn" class="act-btn" title="Next match" data-i18n-title="find.next">
+    <button id="findNextBtn" class="act-btn" aria-label="Next match" data-tooltip="Next match" data-i18n-aria-label="find.next" data-i18n-tooltip="find.next">
       <svg viewBox="0 0 16 16"><path d="M4.5 5.75 8 9.25l3.5-3.5"/></svg>
     </button>
-    <button id="findCloseBtn" class="act-btn" title="Close" data-i18n-title="window.close">
+    <button id="findCloseBtn" class="act-btn" aria-label="Close" data-tooltip="Close" data-i18n-aria-label="window.close" data-i18n-tooltip="window.close">
       <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>

@@ -355,8 +355,8 @@
     close.type = 'button';
     close.className = 'vertical-tab-close';
     close.innerHTML = ICONS.close;
-    close.title = blancI18n.t('rail.close', { title });
-    close.setAttribute('aria-label', close.title);
+    close.dataset.tooltip = blancI18n.t('rail.close', { title });
+    close.setAttribute('aria-label', close.dataset.tooltip);
     close.dataset.focusKey = `close:${tab.id}`;
     // ArrowRight from the row primary reaches this sibling without placing
     // every close action into the document's sequential Tab order.

@@ -9,6 +9,7 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_TOOLTIP_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
 } = require('../../src/main/chrome-protocol');
@@ -177,4 +178,16 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
     'file:///etc/passwd',
     'not a url',
   ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
+test('tooltip host serves its scriptless document and shared styles only', () => {
+  assert.equal(CHROME_TOOLTIP_URL, 'blanc-chrome://tooltip/');
+  assert.equal(chromeResourcePath(CHROME_TOOLTIP_URL), path.join(renderer, 'tooltip.html'));
+  assert.equal(chromeResourcePath('blanc-chrome://tooltip/styles.css'), path.join(renderer, 'styles.css'));
+  for (const file of ['renderer.js', 'overlay.js', 'fill-status.js', 'permission.js', '../preload.js']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://tooltip/${file}`), null, file);
+  }
+  const html = fs.readFileSync(path.join(renderer, 'tooltip.html'), 'utf8');
+  assert.doesNotMatch(html, /<script/i, 'main writes the text; the document runs no script');
+  assert.match(html, /default-src 'none'/);
 });

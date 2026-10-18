@@ -1892,6 +1892,111 @@
         }
       ]
     },
+    "showTooltip": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:tooltip-show",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "text": "tooltip-request-1",
+              "anchor": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "width": 1,
+              "height": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-show",
+              "args": [
+                {
+                  "text": "tooltip-request-1",
+                  "anchor": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "width": 1,
+                  "height": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tip = {\"text\":\"tooltip-request-1\",\"anchor\":{\"x",
+          "args": [
+            {
+              "text": "tooltip-request-1",
+              "anchor": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "width": 1,
+              "height": 1,
+              "privateTheme": true
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-show",
+              "args": [
+                {
+                  "text": "tooltip-request-1",
+                  "anchor": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "width": 1,
+                  "height": 1,
+                  "privateTheme": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "hideTooltip": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:tooltip-hide",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:tooltip-hide",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
     "onShieldAnchor": {
       "kind": "event",
       "platforms": [

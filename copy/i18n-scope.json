@@ -52,6 +52,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/tooltip.html": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/fill-status.js": {
       "state": "guarded",
       "allow": []
