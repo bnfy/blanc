@@ -826,6 +826,40 @@ test('auto-clears get their own delayed trail', () => {
   assert.match(controller, /generation === tileAnimationGeneration\) launchPairTrail\(/);
 });
 
+test('win shows the card after a tiered celebration that can be skipped', () => {
+  assert.match(html, /<div id="mjCelebrate" class="mj-celebrate" aria-hidden="true" hidden>/);
+  assert.match(controller, /celebrationTier\(\{ zen: isZen, outcome: game\._outcome \|\| null, reducedMotion, hidden: document\.hidden \}\)/);
+  assert.match(controller, /function playCelebration\(tier, done\)/);
+  assert.match(controller, /addEventListener\('pointerdown', skip/);
+  assert.match(controller, /addEventListener\('keydown', skip/);
+  assert.match(controller, /SKY\.animate\(canvas, \{ night, tier, duration: FX\.CELEBRATION_MS\[tier\] \}\)/);
+});
+
+test('the celebration renders a photoreal sky on a canvas', () => {
+  const layer = html.match(/<div id="mjCelebrate"[\s\S]*?\n {8}<\/div>/)[0];
+  assert.match(layer, /<canvas class="mj-celebrate-canvas"><\/canvas>/);
+  assert.doesNotMatch(layer, /<img|mj-celebrate-sun|mj-celebrate-rays/);
+  assert.match(html, /<script src="mahjong-sky\.js"><\/script>\s*<script src="mahjong\.js">/);
+  assert.match(controller, /const night = Boolean\(window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)\.matches\)/);
+  assert.match(controller, /prefers-color-scheme: dark/);
+  assert.match(mahjongStyles, /\.mj-celebrate-canvas\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;/);
+});
+
+test('the celebration runs on timers and finishes when the tab returns', () => {
+  const play = controller.match(/function playCelebration\(tier, done\)[\s\S]*?\n\}/)[0];
+  assert.match(play, /window\.setTimeout\(/);
+  assert.doesNotMatch(play, /animationend/);
+  assert.match(play, /visibilitychange/);
+});
+
+test('only a fresh win celebrates; restores and undo show the card directly', () => {
+  assert.match(controller, /function invalidateTileAnimations\(\)\s*\{[^}]*cancelCelebration\(\)/);
+  assert.match(controller, /function checkEndStates\(\{ fresh = false \} = \{\}\)/);
+  assert.match(controller, /showWin\(\{ celebrate: fresh \}\)/);
+  assert.equal((controller.match(/checkEndStates\(\{ fresh: true \}\)/g) || []).length, 1);
+  assert.match(controller.match(/function finishTileResult[\s\S]*?\n\}/)[0], /checkEndStates\(\{ fresh: true \}\)/);
+});
+
 test('notices are dusk pills anchored inside the table instead of loose text at its edge', () => {
   assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-pill\);[^}]*box-shadow:/);
   const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];

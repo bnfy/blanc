@@ -7,6 +7,7 @@ const E = window.MahjongEngine;
 const S = window.MahjongState;
 const sound = window.MahjongSound;
 const FX = window.MahjongFx;
+const SKY = window.MahjongSky;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
@@ -570,6 +571,7 @@ function invalidateTileAnimations() {
   scoreAnimationGeneration += 1;
   comboAnimationPauseCount = 0;
   clearTransientMotion();
+  cancelCelebration();
   if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
   comboFxTimer = null;
   const fx = document.getElementById('mjComboFx');
@@ -650,14 +652,16 @@ function spatialNeighbor(origin, key) {
   return winner;
 }
 
-function checkEndStates() {
+// `fresh` marks a win the player just made; restores, undo and refits of an
+// already-won board show the results card without celebrating again.
+function checkEndStates({ fresh = false } = {}) {
   const notice = document.getElementById('mjNotice');
   if (E.isWon(game)) {
     stopTimer();
     if (notice) notice.hidden = true;
     setDialogVisible(document.getElementById('mjRescue'), false);
     recordCompletion();
-    showWin();
+    showWin({ celebrate: fresh });
     return;
   }
   setDialogVisible(document.getElementById('mjWin'), false);
@@ -688,7 +692,7 @@ function finishTileResult(result, index, { unlockInput = false, endAnimationPaus
   if (unlockInput) setTileAnimationBusy(false);
   if (endAnimationPause) endComboAnimationPause();
   refreshTiles({ recoverFocus: ['pair', 'tray-pair', 'tray-park', 'rescue'].includes(result.type) });
-  checkEndStates();
+  checkEndStates({ fresh: true });
   // Several counts, so several sentences: a message holds at most one plural.
   if (result.type === 'tray-pair') {
     announce([
@@ -1403,7 +1407,62 @@ function renderWinScore(target, { isBurst, score, time }) {
   }
 }
 
-function showWin() {
+let celebration = null;
+function cancelCelebration() {
+  if (!celebration) return;
+  window.clearTimeout(celebration.timer);
+  celebration.detach();
+  celebration.stopSky?.();
+  celebration = null;
+  const layer = document.getElementById('mjCelebrate');
+  if (layer) {
+    layer.hidden = true;
+    delete layer.dataset.tier;
+  }
+  document.body.classList.remove('is-celebrating');
+}
+
+// Plays the board-cleared moment, then calls `done` exactly once: after the
+// tier's duration, on any click or key, or when a hidden tab becomes visible.
+// Timers rather than animationend, because a hidden tab never runs the
+// animation and the card must still arrive.
+function playCelebration(tier, done) {
+  cancelCelebration();
+  if (tier === 'still') {
+    document.body.classList.add('is-celebrating-still');
+    window.setTimeout(() => document.body.classList.remove('is-celebrating-still'), 400);
+  }
+  const layer = document.getElementById('mjCelebrate');
+  if (!FX.CELEBRATION_MS[tier] || !layer) {
+    done();
+    return;
+  }
+  layer.dataset.tier = tier;
+  layer.hidden = false;
+  document.body.classList.add('is-celebrating');
+  const canvas = layer.querySelector('.mj-celebrate-canvas');
+  const night = Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  const stopSky = canvas && SKY ? SKY.animate(canvas, { night, tier, duration: FX.CELEBRATION_MS[tier] }) : null;
+  const skip = () => {
+    if (document.hidden) return;
+    cancelCelebration();
+    done();
+  };
+  window.addEventListener('pointerdown', skip, true);
+  window.addEventListener('keydown', skip, true);
+  document.addEventListener('visibilitychange', skip);
+  celebration = {
+    stopSky,
+    timer: window.setTimeout(skip, FX.CELEBRATION_MS[tier]),
+    detach() {
+      window.removeEventListener('pointerdown', skip, true);
+      window.removeEventListener('keydown', skip, true);
+      document.removeEventListener('visibilitychange', skip);
+    },
+  };
+}
+
+function showWin({ celebrate = false } = {}) {
   const best = bestForGame();
   const win = document.getElementById('mjWin');
   const isBurst = game.mode === 'tray';
@@ -1451,8 +1510,12 @@ function showWin() {
   document.getElementById('mjWinAutoStat').hidden = isManual;
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
   document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
-  setDialogVisible(win, true);
   announce(announcement);
+  const reducedMotion = Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const tier = celebrate
+    ? FX.celebrationTier({ zen: isZen, outcome: game._outcome || null, reducedMotion, hidden: document.hidden })
+    : 'none';
+  playCelebration(tier, () => setDialogVisible(win, true));
 }
 
 // --- lifecycle ------------------------------------------------------------

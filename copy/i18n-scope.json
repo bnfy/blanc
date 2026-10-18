@@ -336,6 +336,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/pages/mahjong-sky.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/pages/mahjong-engine.js": {
       "state": "guarded",
       "allow": []
