@@ -1,0 +1,10 @@
+{
+  "Blanc Prototype.app/Contents/MacOS/Blanc Prototype": {
+    "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+    "bytes": 76016
+  },
+  "Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework": {
+    "sha256": "023ff1da1557929cadc5c8dead2b39a8df553ed00415c4a884303cebeea9d2d1",
+    "bytes": 594899584
+  }
+}

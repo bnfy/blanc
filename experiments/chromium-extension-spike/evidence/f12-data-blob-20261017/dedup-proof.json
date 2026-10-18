@@ -1,0 +1,8 @@
+{
+  "verified": true,
+  "inheritedRepeatPasses": 4,
+  "opaqueEarlyOnly": 2,
+  "opaqueRepeatDeliveryGaps": 2,
+  "fullAcceptance": false,
+  "latencyMeasured": false
+}

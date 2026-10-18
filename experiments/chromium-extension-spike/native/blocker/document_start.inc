@@ -36,25 +36,31 @@ DocumentScript::DocumentScript(content::RenderFrameHost& frame, mojo::PendingRec
 void DocumentScript::GetScript(const std::string& url, GetScriptCallback callback) {
     auto& frame = render_frame_host(); auto* context = frame.GetBrowserContext();
     if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") || context->IsOffTheRecord()) { std::move(callback).Run(true, ""); return; }
-    // Rule-selection fallback only for browser-verified inherited about documents.
-    // This never changes the document/security origin or the network context log.
+    // Non-network rule selection uses only browser-owned committed context.
+    // The tuple/precursor is never an origin grant or a network-log substitute.
     const auto& committed = frame.GetLastCommittedURL();
     GURL selection = committed;
     if (!committed.SchemeIsHTTPOrHTTPS()) {
-      const auto& origin = frame.GetLastCommittedOrigin();
+      const auto supported = [](const GURL& candidate) {
+        return candidate.IsAboutBlank() || candidate.IsAboutSrcdoc() ||
+               candidate.SchemeIs("data") || candidate.SchemeIs("blob");
+      };
+      const auto& tuple = frame.GetLastCommittedOrigin().GetTupleOrPrecursorTupleIfOpaque();
       auto* parent = frame.GetParent();
-      if ((!committed.IsAboutBlank() && !committed.IsAboutSrcdoc()) ||
-          committed.spec() != url || !parent ||
-          parent->GetLastCommittedOrigin().opaque() ||
-          origin.GetTupleOrPrecursorTupleIfOpaque() !=
-              parent->GetLastCommittedOrigin().GetTupleOrPrecursorTupleIfOpaque() ||
-          !parent->GetLastCommittedOrigin().GetURL().SchemeIsHTTPOrHTTPS()) {
-        std::move(callback).Run(true, ""); return; // Explicitly unsupported, no guessed fallback.
+      bool matched = false;
+      if (supported(committed) && committed.spec() == url && tuple.GetURL().SchemeIsHTTPOrHTTPS()) {
+        // Every opaque hop must retain the same precursor. Stop at the first
+        // non-opaque parent; never skip a mismatch to borrow a visible top tab.
+        for (int depth = 0; parent && depth < 64; ++depth, parent = parent->GetParent()) {
+          const auto& parent_origin = parent->GetLastCommittedOrigin();
+          if (parent_origin.GetTupleOrPrecursorTupleIfOpaque() != tuple) break;
+          if (!parent_origin.opaque()) { matched = true; break; }
+          const auto& parent_url = parent->GetLastCommittedURL();
+          if (!parent_url.SchemeIsHTTPOrHTTPS() && !supported(parent_url)) break;
+        }
       }
-      // Sandboxed about documents retain a browser-owned precursor tuple.
-      // Use it only after matching the actual non-opaque parent, never as
-      // the document origin or an observation substitute.
-      selection = parent->GetLastCommittedOrigin().GetURL();
+      if (!matched) { std::move(callback).Run(true, ""); return; }
+      selection = tuple.GetURL();
     } else if (committed.spec() != url) { std::move(callback).Run(false, ""); return; }
     auto& state = UboState(context);
     if (!state.ready || !state.document.AsRenderFrameHostIfValid()) { std::move(callback).Run(false, ""); return; }
