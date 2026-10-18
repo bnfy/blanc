@@ -1391,6 +1391,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_customize_label">Personalizza la pagina iniziale</string>
     <string name="newtab_customize_layout">Layout</string>
     <string name="newtab_customize_wallpaper_heading">Sfondo</string>
+    <string name="newtab_wallpaper_sunrise">Sunrise</string>
     <string name="newtab_wallpaper_time_of_day">Cambia con l’ora del giorno</string>
     <string name="newtab_layout_ledger">Ledger</string>
     <string name="newtab_layout_billboard">Billboard</string>

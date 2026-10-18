@@ -84,6 +84,11 @@ What this means for Blanc:
   `newtab.js` sets `body[data-wallpaper-style]` only while your image is
   showing, so the bundled artwork never sees these overrides.
 
+- **Popover structure** (revised after review). Labelling alone kept the
+  clock switch looking as if it applied to your photo ("Dynamic wallpaper",
+  then "Change with time of day"). The Wallpaper section is now a choice of
+  **Sunrise** or **Your image**, and only the chosen wallpaper's options show.
+
 ## Serving
 
 `blanc://` answers requests from any page, so the address holds a random name

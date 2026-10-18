@@ -4927,9 +4927,13 @@
     "message": "Fondo",
     "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
   },
+  "newtab.wallpaper.sunrise": {
+    "message": "Sunrise",
+    "source": "sha256:72c31dc9ab3b984b0f5c3c2738c30f20b95ce96f87be7d22d3c5504f6dfbf636"
+  },
   "newtab.wallpaper.timeOfDay": {
     "message": "Cambiar según la hora del día",
-    "source": "sha256:dc8af6b34bc1cd2b8ce2e9f0321719ef4c4c10355a4012d671d40fe444de49d3"
+    "source": "sha256:c6bc79cbf829d744c8401da8938bd4cd684786ab0a1678c2bfa7b66f9161b364"
   },
   "newtab.layout.ledger": {
     "message": "Ledger",
@@ -4949,7 +4953,7 @@
   },
   "newtab.wallpaper.custom": {
     "message": "Tu imagen",
-    "source": "sha256:75571ecb41c42e82eaf89d680e67d2a1d109a7645fb9b0866d8d45d2c660067b"
+    "source": "sha256:93bf4e318c953e0f759958f3974fcc257a156a330c136a0b5c2761477ea90ea4"
   },
   "newtab.wallpaper.choose": {
     "message": "Elegir imagen…",

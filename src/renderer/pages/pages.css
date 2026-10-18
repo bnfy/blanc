@@ -3268,6 +3268,11 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--bg);
 }
 .wallpaper-style:focus-visible { outline-offset: 2px; }
+.wallpaper-sources {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
 .wallpaper-wash {
   display: flex;
   align-items: center;

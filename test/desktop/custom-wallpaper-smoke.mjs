@@ -137,12 +137,19 @@ try {
   const publicId = (await callTestHook(app, 'state')).tabs.find((tab) => tab.url === 'blanc://newtab/').id;
   await callTestHook(app, 'activateTab', [publicId, true]);
 
-  // The time-of-day switch takes over from the image and hands back.
-  await page.getByRole('button', { name: 'Change with time of day', exact: true }).click();
-  await page.waitForFunction(() => ['dawn', 'day', 'dusk', 'night'].includes(document.body.dataset.wallpaperPhase));
+  // Each wallpaper shows only its own options: the clock switch belongs to
+  // Sunrise and is hidden while your image is chosen.
+  const clockSwitch = page.getByRole('button', { name: 'Change with time of day', exact: true });
+  assert.equal(await clockSwitch.isHidden(), true, 'no clock switch beside your image');
+  await page.getByRole('button', { name: 'Sunrise', exact: true }).click();
+  await page.waitForFunction(() => document.body.dataset.wallpaperPhase !== 'custom'
+    && document.getElementById('customWallpaperRow').hidden);
   assert.equal(await custom.getAttribute('aria-pressed'), 'false');
+  await clockSwitch.click();
+  await page.waitForFunction(() => ['dawn', 'day', 'dusk', 'night'].includes(document.body.dataset.wallpaperPhase));
   await custom.click();
   await page.waitForFunction(() => document.body.dataset.wallpaperPhase === 'custom');
+  assert.equal(await clockSwitch.isHidden(), true);
 
   // Settings shows the same state and can remove it; the page follows live.
   await callTestHook(app, 'openSettings');
@@ -154,12 +161,12 @@ try {
   await sheet.waitForFunction(() => !document.getElementById('newtabCustomWallpaper').checked
     && document.getElementById('customWallpaperRemove').hidden);
   await page.waitForFunction(() => document.body.dataset.wallpaperPhase !== 'custom'
-    && document.getElementById('customWallpaperRemove').hidden);
+    && document.getElementById('customWallpaperRow').hidden);
   assert.equal(fs.existsSync(path.join(userData, 'wallpaper', 'current.jpg')), false);
   await waitForValue(async () => settingsFile(), (value) => value.newtabCustomWallpaper === false, 'saved removal');
   assert.equal(await loads(page, `${state.image}&after-remove`), false);
   await callTestHook(app, 'chooseWallpaperFile', [null]);
-  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, wash styles, unguessable address, private exclusion, time-of-day handoff, Settings remove with live Start Page update');
+  console.log('custom-wallpaper-smoke PASS: refusals, choose, upright drawing, metadata strip, owner-only file, Fade slider bounds and save, wash styles, unguessable address, private exclusion, Sunrise/your-image choice with scoped options, Settings remove with live Start Page update');
 } finally {
   if (app) await app.close();
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';

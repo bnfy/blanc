@@ -1355,8 +1355,11 @@ shared bookmarks or resetting them on every selection.
 ## F49 — Start Page wallpaper image (desktop)
 
 The Start Page can show the person's own picture instead of the bundled
-Sunrise artwork (F35's Customize popover, below the time-of-day switch, and
-Settings → General → Start Page image).
+Sunrise artwork. F35's Customize popover offers a Wallpaper choice,
+**Sunrise** or **Your image**, and shows only the chosen wallpaper's options:
+"Change with time of day" under Sunrise; Change…, Remove, Wash and Fade under
+your image, so the clock switch never seems to apply to a photo. Settings →
+General → Start Page image offers the same.
 
 - **Sources.** Three choices: Sunrise, time of day (the synced
   `newtabDynamicWallpaper`), and **Your image** (device-local

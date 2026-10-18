@@ -55213,8 +55213,50 @@
         }
       }
     },
+    "newtab.wallpaper.sunrise": {
+      "comment": "Start page → Customize popover, under Wallpaper: choice for Blanc’s own Sunrise artwork (the artwork’s name, kept in every language), beside “Your image”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        }
+      }
+    },
     "newtab.wallpaper.timeOfDay": {
-      "comment": "Start page → Customize popover, under Wallpaper: switch that makes Blanc’s own Sunrise artwork follow the computer’s clock (dawn, day, dusk, night). It does not affect the person’s own image.",
+      "comment": "Start page → Customize popover, under Wallpaper: switch shown only while Sunrise is chosen; it makes Blanc’s Sunrise artwork follow the computer’s clock (dawn, day, dusk, night).",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -55424,7 +55466,7 @@
       }
     },
     "newtab.wallpaper.custom": {
-      "comment": "Start page → Customize popover: switch that shows the person’s own image as the wallpaper.",
+      "comment": "Start page → Customize popover, under Wallpaper: choice that shows the person’s own image instead of Blanc’s Sunrise artwork.",
       "extractionState": "manual",
       "localizations": {
         "en": {

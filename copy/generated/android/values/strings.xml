@@ -1354,6 +1354,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_customize_label">Customize start page</string>
     <string name="newtab_customize_layout">Layout</string>
     <string name="newtab_customize_wallpaper_heading">Wallpaper</string>
+    <string name="newtab_wallpaper_sunrise">Sunrise</string>
     <string name="newtab_wallpaper_time_of_day">Change with time of day</string>
     <string name="newtab_layout_ledger">Ledger</string>
     <string name="newtab_layout_billboard">Billboard</string>

@@ -5091,9 +5091,14 @@
     "message": "Wallpaper",
     "note": "Start page → Customize popover: label above the wallpaper choices."
   },
+  "newtab.wallpaper.sunrise": {
+    "message": "Sunrise",
+    "note": "Start page → Customize popover, under Wallpaper: choice for Blanc’s own Sunrise artwork (the artwork’s name, kept in every language), beside “Your image”.",
+    "maxLength": 14
+  },
   "newtab.wallpaper.timeOfDay": {
     "message": "Change with time of day",
-    "note": "Start page → Customize popover, under Wallpaper: switch that makes Blanc’s own Sunrise artwork follow the computer’s clock (dawn, day, dusk, night). It does not affect the person’s own image."
+    "note": "Start page → Customize popover, under Wallpaper: switch shown only while Sunrise is chosen; it makes Blanc’s Sunrise artwork follow the computer’s clock (dawn, day, dusk, night)."
   },
   "newtab.layout.ledger": {
     "message": "Ledger",
@@ -5113,7 +5118,7 @@
   },
   "newtab.wallpaper.custom": {
     "message": "Your image",
-    "note": "Start page → Customize popover: switch that shows the person’s own image as the wallpaper."
+    "note": "Start page → Customize popover, under Wallpaper: choice that shows the person’s own image instead of Blanc’s Sunrise artwork."
   },
   "newtab.wallpaper.choose": {
     "message": "Choose image…",

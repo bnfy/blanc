@@ -196,17 +196,19 @@
         </div>
         <hr class="customize-divider" />
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
+        <!-- Two wallpapers; each shows only its own options, so the clock
+             switch can never look like it applies to your image. -->
+        <div id="wallpaperSourcePicker" class="wallpaper-sources" role="group" aria-labelledby="customizeWallpaperLabel">
+          <button id="sunriseWallpaperPick" class="wallpaper-style" type="button" aria-pressed="true" disabled data-i18n="newtab.wallpaper.sunrise">Sunrise</button>
+          <button id="customWallpaperToggle" class="wallpaper-style" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.custom">Your image</button>
+        </div>
         <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>
           <span class="wallpaper-toggle-track" aria-hidden="true"></span>
           <span data-i18n="newtab.wallpaper.timeOfDay">Change with time of day</span>
         </button>
-        <div id="customWallpaperRow" class="wallpaper-custom">
-          <button id="customWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>
-            <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-            <span data-i18n="newtab.wallpaper.custom">Your image</span>
-          </button>
-          <button id="customWallpaperChange" class="wallpaper-action wallpaper-action-primary" type="button" hidden data-i18n="newtab.wallpaper.change">Change…</button>
-          <button id="customWallpaperRemove" class="wallpaper-action" type="button" hidden data-i18n="newtab.wallpaper.remove">Remove</button>
+        <div id="customWallpaperRow" class="wallpaper-custom" hidden>
+          <button id="customWallpaperChange" class="wallpaper-action wallpaper-action-primary" type="button" data-i18n="newtab.wallpaper.change">Change…</button>
+          <button id="customWallpaperRemove" class="wallpaper-action" type="button" data-i18n="newtab.wallpaper.remove">Remove</button>
         </div>
         <div id="customWallpaperStyleRow" class="wallpaper-styles" role="group" aria-labelledby="customWallpaperStyleLabel" hidden>
           <span id="customWallpaperStyleLabel" data-i18n="newtab.wallpaper.styleLabel">Wash</span>

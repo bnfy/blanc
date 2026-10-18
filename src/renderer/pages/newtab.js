@@ -881,6 +881,8 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 const wallpaper = window.blancNewtabWallpaper.mount(document, window);
 const wallpaperToggle = document.getElementById('dynamicWallpaperToggle');
 const customWallpaperToggle = document.getElementById('customWallpaperToggle');
+const sunriseWallpaperPick = document.getElementById('sunriseWallpaperPick');
+const customWallpaperRow = document.getElementById('customWallpaperRow');
 const customWallpaperChange = document.getElementById('customWallpaperChange');
 const customWallpaperRemove = document.getElementById('customWallpaperRemove');
 const customWallpaperError = document.getElementById('customWallpaperError');
@@ -902,14 +904,16 @@ function paintWash(percent) {
   document.body.style.setProperty('--start-wallpaper-wash', String(percent / 100));
 }
 let wallpaperUpdatePending = false;
-// A private Start Page never shows the person's own image, so it offers none.
-if (isPrivate) document.getElementById('customWallpaperRow').hidden = true;
+// A private Start Page never shows the person's own image, so it offers no choice.
+if (isPrivate) document.getElementById('wallpaperSourcePicker').hidden = true;
 function renderWallpaperControls() {
   const custom = wallpaperState.source === 'custom';
-  wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled && !custom));
+  sunriseWallpaperPick.setAttribute('aria-pressed', String(!custom));
   customWallpaperToggle.setAttribute('aria-pressed', String(custom));
-  customWallpaperChange.hidden = !wallpaperState.hasImage;
-  customWallpaperRemove.hidden = !wallpaperState.hasImage;
+  // Each wallpaper shows only its own options.
+  wallpaperToggle.hidden = custom;
+  wallpaperToggle.setAttribute('aria-pressed', String(dynamicWallpaperEnabled));
+  customWallpaperRow.hidden = !custom;
   customWallpaperWashRow.hidden = !custom;
   customWallpaperStyleRow.hidden = !custom;
   const style = wallpaperState.style ?? 'auto';
@@ -924,7 +928,7 @@ function renderWallpaperControls() {
     customWallpaperWash.value = String(wallpaperState.wash);
     paintWash(wallpaperState.wash);
   }
-  for (const control of [wallpaperToggle, customWallpaperToggle, customWallpaperChange, customWallpaperRemove, ...customWallpaperStyles]) {
+  for (const control of [wallpaperToggle, sunriseWallpaperPick, customWallpaperToggle, customWallpaperChange, customWallpaperRemove, ...customWallpaperStyles]) {
     control.disabled = wallpaperUpdatePending;
   }
 }
@@ -962,21 +966,19 @@ const chooseWallpaperImage = () => updateWallpaper(async () => {
   applyWallpaper(reply?.wallpaper);
 });
 wallpaperToggle.addEventListener('click', () => updateWallpaper(async () => {
-  showWallpaperError(null);
-  // From your own image, the switch means "show the time of day instead".
-  if (wallpaperState.source === 'custom') {
-    applyWallpaper(await window.bowserPages.start.setWallpaper('time-of-day'));
-    applyDynamicWallpaper(true);
-    return;
-  }
   applyDynamicWallpaper(await window.bowserPages.start.setDynamicWallpaper(!dynamicWallpaperEnabled));
 }));
+sunriseWallpaperPick.addEventListener('click', () => {
+  showWallpaperError(null);
+  if (wallpaperState.source !== 'custom') return;
+  // Back to Sunrise, keeping whatever the time-of-day switch says.
+  updateWallpaper(async () => applyWallpaper(
+    await window.bowserPages.start.setWallpaper(dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise')));
+});
 customWallpaperToggle.addEventListener('click', () => {
   showWallpaperError(null);
-  if (wallpaperState.source === 'custom') {
-    updateWallpaper(async () => applyWallpaper(
-      await window.bowserPages.start.setWallpaper(dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise')));
-  } else if (wallpaperState.hasImage) {
+  if (wallpaperState.source === 'custom') return;
+  if (wallpaperState.hasImage) {
     updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('custom')));
   } else {
     chooseWallpaperImage();

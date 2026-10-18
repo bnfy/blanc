@@ -1391,6 +1391,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_customize_label">Personalizar la página de inicio</string>
     <string name="newtab_customize_layout">Diseño</string>
     <string name="newtab_customize_wallpaper_heading">Fondo</string>
+    <string name="newtab_wallpaper_sunrise">Sunrise</string>
     <string name="newtab_wallpaper_time_of_day">Cambiar según la hora del día</string>
     <string name="newtab_layout_ledger">Ledger</string>
     <string name="newtab_layout_billboard">Billboard</string>
