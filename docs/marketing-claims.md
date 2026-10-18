@@ -213,8 +213,9 @@ original reports:
   by default), drawn as a tint on its block, a dot before its name and its
   tabs' Island dots. Right-clicking a group header, or its ⋮ button, opens a
   group menu with the name, the color, New Tab in Group, Move Group to New
-  Window, Ungroup and Close Group. Move Group to New Window wasn't
-  hand-checked on Linux before release, so don't claim it there. A link
+  Window, Ungroup and Close Group. On Linux, Move Group to New Window was
+  checked after release in an ARM64 VM on an unpackaged build, not on the x64
+  AppImage or a physical machine. A link
   opened in a new tab from a grouped tab opens ungrouped, like any new tab.
 - **Drag to reorder:** Since v1.30.0 the user can drag tabs and group headers
   in the expanded Island and in vertical tabs, or use Alt/Option+Shift+Up and
