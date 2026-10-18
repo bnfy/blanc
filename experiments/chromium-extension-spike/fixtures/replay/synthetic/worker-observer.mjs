@@ -3,18 +3,21 @@
 import net from 'node:net';
 import assert from 'node:assert/strict';
 import {pageAgentSource} from './shared-client-observer.mjs';
+export function detachedSetup(error,events){
+ return (error.code===-32001||(error.code===-32000&&error.protocolMessage==='Inspected target navigated or closed'))&&typeof error.sessionId==='string'&&events.some(e=>e.method==='Target.detachedFromTarget'&&e.params.sessionId===error.sessionId);
+}
 export async function freePort(){const server=net.createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const port=server.address().port;await new Promise(resolve=>server.close(resolve));return port;}
 export async function observeWorkers(port,fixtures){
  let endpoint;
  for(let i=0;i<100;i++){try{endpoint=(await(await fetch(`http://127.0.0.1:${port}/json/version`,{signal:AbortSignal.timeout(1000)})).json()).webSocketDebuggerUrl;if(endpoint)break;}catch{ /* The owned browser may still be starting. */ }await new Promise(resolve=>setTimeout(resolve,100));}
  assert(endpoint,'Owned browser CDP endpoint unavailable');const address=new URL(endpoint);assert.equal(address.hostname,'127.0.0.1');assert.equal(Number(address.port),port);
- const ws=new WebSocket(endpoint),pending=new Map(),ready=new Map(),events=[],faults=[],pageSessions=new Set();let sequence=0,closed=false;
+ const ws=new WebSocket(endpoint),pending=new Map(),ready=new Map(),events=[],faults=[],setupErrors=[],pageSessions=new Set();let sequence=0,closed=false;
  await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});
- const send=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++sequence;const timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout '+method));},10000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});
+ const send=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++sequence;const timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout '+method));},10000);pending.set(id,{resolve,reject,timer,method,sessionId});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});
  ws.onclose=()=>{closed=true;for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('Observer connection closed'));}pending.clear();};
  ws.onmessage=event=>{
   const message=JSON.parse(event.data);
-  if(message.id){const p=pending.get(message.id);if(p){clearTimeout(p.timer);pending.delete(message.id);message.error?p.reject(Error(JSON.stringify(message.error))):p.resolve(message.result);}return;}
+  if(message.id){const p=pending.get(message.id);if(p){clearTimeout(p.timer);pending.delete(message.id);message.error?p.reject(Object.assign(Error(JSON.stringify(message.error)),{method:p.method,sessionId:p.sessionId,code:message.error.code,protocolMessage:message.error.message})):p.resolve(message.result);}return;}
   const {method,params,sessionId}=message;let saved;
   if(method==='Network.requestWillBeSent'){
    if(!fixtures.has(params.request.url))return;
@@ -27,10 +30,13 @@ export async function observeWorkers(port,fixtures){
   if(saved)events.push({method,params:saved,...(sessionId?{sessionId}:{}),sequence:events.length,observedAt:Date.now()});
   if(method==='Target.attachedToTarget'){
    const child=params.sessionId;
-   const task=(async()=>{try{await send('Network.enable',{},child);await send('Runtime.enable',{},child);await send('Runtime.addBinding',{name:'__blancWorkerOwnership'},child);if(params.targetInfo.type==='page'){await send('Page.enable',{},child);await send('Page.addScriptToEvaluateOnNewDocument',{source:pageAgentSource},child);await send('ServiceWorker.enable',{},child);}}finally{if(params.waitingForDebugger)await send('Runtime.runIfWaitingForDebugger',{},child);}})();
-   ready.set(child,task);task.catch(error=>faults.push(String(error)));
+   // The protocol error can precede its detach event. Reconcile at close, never
+   // by URL or by assuming every session error is an expected failed startup.
+   const recordError=error=>setupErrors.push({error,targetId:params.targetInfo.targetId});
+   const task=(async()=>{try{await send('Network.enable',{},child);await send('Runtime.enable',{},child);await send('Runtime.addBinding',{name:'__blancWorkerOwnership'},child);if(params.targetInfo.type==='page'){await send('Page.enable',{},child);await send('Page.addScriptToEvaluateOnNewDocument',{source:pageAgentSource},child);await send('ServiceWorker.enable',{},child);}}catch(error){recordError(error);}finally{if(params.waitingForDebugger&&!events.some(e=>e.method==='Target.detachedFromTarget'&&e.params.sessionId===child)){try{await send('Runtime.runIfWaitingForDebugger',{},child);}catch(error){recordError(error);}}}})();
+   ready.set(child,task);task.catch(error=>faults.push(JSON.stringify({message:String(error),method:error.method,sessionId:error.sessionId,code:error.code})));
   }
  };
  await send('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter:[{type:'shared_worker'},{type:'service_worker'},{exclude:true}]});
- return {events,faults,attachPage:async targetId=>{const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});assert(ready.has(sessionId));await ready.get(sessionId);pageSessions.add(sessionId);return sessionId;},close:async()=>{if(!closed){try{for(const pageSession of pageSessions){const before=events.length;try{await send('ServiceWorker.disable',{},pageSession);await send('ServiceWorker.enable',{},pageSession);for(let i=0;i<50&&!events.slice(before).some(e=>e.method==='ServiceWorker.workerVersionUpdated');i++)await new Promise(resolve=>setTimeout(resolve,20));if(!events.slice(before).some(e=>e.method==='ServiceWorker.workerVersionUpdated'))faults.push('Missing final client snapshot');}catch(error){if(!events.some(e=>e.method==='Target.detachedFromTarget'&&e.params.sessionId===pageSession))faults.push(String(error));}}await send('Target.setAutoAttach',{autoAttach:false,waitForDebuggerOnStart:false,flatten:true});}finally{ws.close();}}}};
+ return {events,faults,attachPage:async targetId=>{const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});assert(ready.has(sessionId));await ready.get(sessionId);pageSessions.add(sessionId);return sessionId;},close:async()=>{if(!closed){try{for(const pageSession of pageSessions){const before=events.length;try{await send('ServiceWorker.disable',{},pageSession);await send('ServiceWorker.enable',{},pageSession);for(let i=0;i<50&&!events.slice(before).some(e=>e.method==='ServiceWorker.workerVersionUpdated');i++)await new Promise(resolve=>setTimeout(resolve,20));if(!events.slice(before).some(e=>e.method==='ServiceWorker.workerVersionUpdated'))faults.push('Missing final client snapshot');}catch(error){if(!events.some(e=>e.method==='Target.detachedFromTarget'&&e.params.sessionId===pageSession))faults.push(String(error));}}await send('Target.setAutoAttach',{autoAttach:false,waitForDebuggerOnStart:false,flatten:true});}finally{await Promise.allSettled([...ready.values()]);for(const {error,targetId} of setupErrors){if(detachedSetup(error,events))events.push({method:'Observer.detachedDuringSetup',params:{sessionId:error.sessionId,targetId,command:error.method,code:error.code,contextComplete:false},sequence:events.length,observedAt:Date.now()});else faults.push(JSON.stringify({message:String(error),method:error.method,sessionId:error.sessionId,code:error.code}));}ws.close();}}}};
 }

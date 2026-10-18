@@ -722,3 +722,27 @@ prepare, GN, output, toolchain or args change; zero upstream patch delta. This i
 routine tranche work, not Task 0 cold time. Owner attention and agent time are not
 measured. Latency remains deferred; 156, permanent profiles/tabs and Task 0's
 extension-upgrade gate are unchanged. Plan progress table and coverage gaps updated.
+
+### Component-loading audit and same-URL service updates — October 17, 2026
+
+[Component audit](evidence/f12-spike-b/README.md) traces allowlisting, required
+manifest key, component feature auto-grants, background-page creation and updater
+ownership. Component loading is not ordinary MV2 compatibility. Runtime remains
+unproven; no extension-system patch or component privilege was introduced.
+
+[Service update evidence](evidence/f12-service-update-20261017/README.md) records
+8 passing same-URL changed-byte update sessions, twice per runtime/profile, with
+actual v1/v2 response hashes and controller version. The 404 startup target explains
+the observer failures: original setup errors were masked by resume in finally.
+Exact-session detach reconciliation now records incomplete lifecycle observations;
+unknown errors remain faults. All final sessions have zero unexplained faults.
+Strict failed-script/controlled-fetch context, unchanged-byte/cache-validator
+updates and broader lifecycle coverage remain gaps; acceptance stays open.
+
+Existing ten-case worker-path regression passes across eight sessions. 92 focused
+tests pass; 58-file lint clean. Three sandbox-only loopback EPERM test failures
+and the failed first update attempt are retained beside successful runs. Five
+archives have verified member hashes. No native build/prepare/GN, no upstream
+patch delta, no new output. Latency deferred. Test invocation timestamps are in
+reports; owner attention/agent time not measured. Plan and coverage updated;
+156, permanent profiles/tabs and Task 0 extension-upgrade gate unchanged.

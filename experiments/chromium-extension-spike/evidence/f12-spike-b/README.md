@@ -37,3 +37,24 @@ route is possible within scope; otherwise stop Spike B with the audit artifact.
 An exhaustive gate inventory, runtime load, blocking/cosmetic parity, list-reload
 hold, patch cost and runtime persistence are still pending. Spike B is in progress,
 not passed or stopped. No production baseline or Decision 2 change follows.
+
+## Component-loading follow-up — October 17, 2026
+
+Source audit only; no component privilege was granted and no runtime load attempted.
+
+| Gate / behavior | Pinned source | Consequence for packaged uBO |
+| --- | --- | --- |
+| Admission | `chrome/browser/extensions/component_extensions_allowlist/allowlist.cc:37`; `component_loader.cc:373-402` | uBO is not a built-in allowlisted component. Ordinary Add checks the ID. AddOrReplace explicitly skips the allowlist for developer testing; that bypass is not production acceptance. A product integration needs deliberate browser-owned admission, not an ordinary unpacked install. |
+| Manifest identity | `component_loader.cc:644-659` | Component creation uses REQUIRE_KEY and kComponent. The pinned uBO manifest has no key. A generated packaged manifest/stable identity is required; the upstream payload must remain attributable and its modification recorded. No key or package generated here. |
+| Privilege difference | `extensions/common/features/simple_feature.cc:764-790` | After type/blocklist checks, features with component-auto-grant become available before ordinary allowlist/location/version checks. Component loading is materially more privileged; it cannot stand in for ordinary MV2 compatibility. Audit and constrain this privilege before runtime adoption. |
+| Background page | `extensions/browser/process_manager.cc:305-335`; `chrome/browser/extensions/chrome_process_manager_delegate.cc:66-103` | Background-page creation remains, subject to embedder/profile permission and shutdown checks. No additional Mac MV2-version rejection found in this path. uBO declares background.html; execution and startup readiness remain runtime questions. |
+| Updates | `extensions/common/manifest.h:72-77`; `chrome/browser/extensions/updater/extension_updater.cc:422`; `extensions/browser/extension_registrar.cc:575-622` | kComponent is not an ordinary auto-updateable location. AddComponentExtension handles packaged version changes/browser reloads. Blanc would own payload delivery and persistence tests; Store updates are not proven or implied. |
+| Payload permissions | `ublock/upstream/manifest.json:98-109` | alarms, contextMenus, privacy, storage, tabs, unlimitedStorage, webNavigation, webRequest, webRequestBlocking and all URLs. These require a runtime/API review, particularly component privileges and content-script behavior; declaration is not proof. |
+
+The component exception is a technically distinct integration candidate, not a
+restoration of ordinary MV2. This audit establishes the loading chain and its
+privilege/update costs but does not establish that a production integration meets
+the no-extension-core-patch constraint. No core patch is justified by the audit.
+Next decision requires classifying a narrow browser-owned admission hook against
+that constraint, plus privilege containment and the list-reload hold design before
+runtime work. Spike B stays in progress; ordinary MV2's hard gate is unchanged.

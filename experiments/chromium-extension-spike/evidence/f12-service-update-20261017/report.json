@@ -1,0 +1,153 @@
+{
+  "started": "2026-10-18T00:03:37.146Z",
+  "behaviorPassed": true,
+  "acceptance": false,
+  "updateMode": "same-url-registration-update",
+  "sources": {
+    "service-lifecycle-run.mjs": "d69c8104bc46e0f65fd771ecbe674d9d8f9489ff0f861bd97de6965485e3b0ea",
+    "session.mjs": "2b3c9199e55aa949767034aaa091d9e61e97398cdd269fc382b90385fe49df3a",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "worker-observer.mjs": "9a6dcedc6a993f5dd6ec7a41d5f31f9b0ac97e03152e590c67c4208d3360d1e8"
+  },
+  "runs": [
+    {
+      "label": "electron-regular-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-regular-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-private-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-private-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-regular-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 9,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-regular-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 10,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-private-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 10,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-private-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 10,
+      "workerObservationFaults": [],
+      "contextAcceptance": false
+    }
+  ],
+  "gaps": [
+    "strict per-request controlled-fetch context comparison",
+    "failed script correlation without worker realm",
+    "unchanged-byte update and HTTP validator/cache variants",
+    "client reassignment during in-flight requests",
+    "cache eviction and worker restart"
+  ],
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-18T00:03:57.018Z"
+}

@@ -159,7 +159,7 @@
         "worker-origin"
       ],
       "status": "gap",
-      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Eight additional behavior runs pass failed registration, controlled network/cache/blocked fetch and different-URL replacement across both runtimes/profiles; observer session-loss errors prevent strict context acceptance. Same-URL updates, failed scripts without a realm, multi-client/teardown, controlled-fetch ownership and cache eviction/restart remain gaps. See evidence/f12-service-lifecycle-20261017."
+      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Eight behavior runs now pass same-URL changed-byte registration.update(), failed registration and controlled network/cache/blocked fetch. Expected setup detachments are explicit incomplete observations; zero unexplained observer faults. Strict failed-script and controlled-fetch ownership, unchanged-byte/cache-validator updates, multi-client/teardown and cache eviction/restart remain gaps. See evidence/f12-service-update-20261017."
     },
     {
       "priority": 2,

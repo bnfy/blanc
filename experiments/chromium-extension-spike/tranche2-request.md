@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (MV2 audit and service lifecycle)
+### 1.1 Progress checkpoint — October 17, 2026 (component audit and same-URL updates)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -53,7 +53,13 @@ Service lifecycle behavior is now measured in eight fresh regular/private
 Electron/Chromium sessions: failed registration, controlled network fetch, cache
 response, blocked fetch and different-URL worker replacement. See
 `evidence/f12-service-lifecycle-20261017/README.md`. Observer session-loss errors
-keep strict context acceptance open; same-URL updates remain untested.
+were traced to failed-startup detach races and are now retained as explicit
+incomplete observations when exact-session detach proves the cause. Eight same-URL
+changed-byte update runs pass; see `evidence/f12-service-update-20261017/README.md`.
+Strict failed-script and controlled-fetch context acceptance remain open, as do
+unchanged-byte and HTTP cache/validator variants. Spike B's component follow-up
+documents required manifest identity, broader feature privileges, background-page
+support and browser-owned payload updates; runtime loading is still unproven.
 
 No tranche kill criterion has been observed at this checkpoint. Spike A remains
 inside the fixed 40-file / 120-hunk budget. Every native build used the existing
