@@ -573,10 +573,12 @@ all unchanged limits above; anything beyond them requires another decision.
 Merging alone was not approval. The owner separately authorized merging
 #916 once CI on its current head is green and resuming the amended work.
 
-Current follow-up: six logger/noscript/picker completion schedules and two
-post-execution navigation identity schedules pass. Same-URL and same-origin
-cross-path navigation retain the old lease until its real completion. Exact
-pre-dispatch document targeting, broader lifecycle/async effects and other
-injection channels remain gaps. See `evidence/f12-helper-channels-20261018/`.
-Spikes A/B remain in progress; items 3–6 not started. Latency deferred; Electron
-diagnostic build §8 unchecked/unstarted. No promotion or gate closure.
+Current follow-up: browser-side pre-dispatch document constraints pass eleven
+runtime checks across same-document, same-URL, cross-path and cross-origin
+navigation, plus six helper/four completion regressions. Readiness leases cover
+browser snapshots and bounded all-frame fanout; stale IDs are rejected after file
+loading. Renderer-boundary navigation and original caller identity before the
+snapshot remain gaps, alongside lifecycle/async effects. Evidence:
+`evidence/f12-document-target-20261018/`. Footprint: 35 files / 79 hunks; one 317-second
+incremental build, final guard zero actions. Spikes A/B in progress; items 3–6 not started.
+Latency deferred; Electron diagnostic build §8 unchecked/unstarted. No promotion.

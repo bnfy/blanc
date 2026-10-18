@@ -4,6 +4,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { prepareMacIcon } from './mac-icon.mjs';
 import { prepareComponent } from './ubo-component.mjs';
+import { prepareDocumentTarget } from './ubo-document-target.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -560,5 +561,6 @@ edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
 ]);
 
 prepareComponent(edit);
+prepareDocumentTarget(edit);
 console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
 console.log(`Assets: ${generated}`);
