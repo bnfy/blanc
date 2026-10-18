@@ -13092,6 +13092,20 @@
             "after": "<p>Switch spaces from the Island. Each space&rsquo;s tabs and groups come back, even after you restart.</p>"
           }
         ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026, after public v1.38.0: adds a wallpaper section for your own Start Page image (F49, #945) and the Start Page Color wallpaper with Match each space's color (F50, #952), plus one truth-note line on what syncs. No existing sentence changes; the new wording is recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">",
+            "after": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-wallpaper-title\">\n    <div><h2 id=\"start-page-wallpaper-title\">Your own image, or a color.</h2></div>\n    <div class=\"feature-copy-list\">\n      <article><h3>Use your own image</h3><p>Open Customize on the Start Page and choose Your image under Wallpaper to show a JPEG or PNG of your own, up to 25 MB. Settings → General → Start Page image offers the same choice.</p></article>\n      <article><h3>Keep the page readable</h3><p>Wash covers your image so the page stays easy to read: Auto follows your theme, Light and Dark pick one whatever your theme, and Spotlight washes only behind the content. Fade sets how strongly the wash covers the image, down to none.</p></article>\n      <article><h3>Your image stays on this device</h3><p>Blanc keeps a resized copy with location, camera and time details removed. It isn’t synced, and private tabs never show it.</p></article>\n      <article><h3>Or paint it a color</h3><p>Choose Color under Wallpaper for one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.</p></article>\n      <article><h3>Match each space</h3><p>Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on its Start Page.</p></article>\n    </div>\n  </section>\n  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">"
+          },
+          {
+            "before": "private-tab feature activity is excluded.</p>\n",
+            "after": "private-tab feature activity is excluded.</p>\n    <p>Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.</p>\n"
+          }
+        ]
       }
     ]
   },
