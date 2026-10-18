@@ -285,3 +285,24 @@ test('a legacy band after the last group stays above the ungrouped tabs', () => 
   assert.deepEqual(h.order(), ['a', 'b', 'L1', 'L2']);
   assert.equal(h.runtime.closedSlot, 2, 'between g2 and L1');
 });
+
+test('unpinning an ungrouped pin returns it to the bottom, like a new tab', () => {
+  // Pins sit first in the tab order; unpinned there, a tab used to jump above
+  // every group (final review, Important 5).
+  const h = harness(['P!', 'a:g1', 'L1']);
+  h.sync();
+  h.toggleTabPinned('P');
+  h.sync();
+  assert.deepEqual(h.order(), ['a', 'L1', 'P']);
+});
+
+test('unpinning a grouped pin keeps it in its group', () => {
+  const h = harness(['L0', 'p:g1!', 'a:g1']);
+  h.tabs.get('p').pinned = true;
+  h.tabs.get('p').groupId = 'g1';
+  h.sync();
+  h.toggleTabPinned('p');
+  h.sync();
+  assert.equal(h.tabs.get('p').groupId, 'g1');
+  assert.deepEqual(h.order(), ['L0', 'p', 'a']);
+});

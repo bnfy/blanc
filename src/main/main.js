@@ -6232,6 +6232,12 @@ function toggleTabPinned(id) {
   tab.pinnedHomeUrl = tab.pinned
     ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
     : null;
+  // Ungrouped pins sit first in the tab order; an unpinned one goes to the
+  // bottom with the other new ungrouped tabs, not above every group.
+  if (!tab.pinned && !tab.groupId) {
+    const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
+    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => tabId !== id), id];
+  }
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.pinned;
