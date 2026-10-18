@@ -1394,7 +1394,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Fond dynamique</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Onglet privé</string>
     <string name="newtab_go_anywhere">%1$s pour aller n’importe où</string>
     <string name="newtab_private_footer">aucun historique · séparé des onglets ordinaires · se termine à la fermeture, clés d’accès créées ici comprises</string>
     <string name="newtab_version">v%1$s</string>

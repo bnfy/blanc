@@ -1357,7 +1357,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_layout_tally">Tally</string>
     <string name="newtab_customize_wallpaper">Dynamic wallpaper</string>
     <string name="newtab_mahjong">Mahjong</string>
-    <string name="newtab_private_tab">Private tab</string>
     <string name="newtab_go_anywhere">%1$s to go anywhere</string>
     <string name="newtab_private_footer">no history · separate from regular tabs · ends at quit, passkeys made here too</string>
     <string name="newtab_version">v%1$s</string>

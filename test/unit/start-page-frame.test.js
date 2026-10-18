@@ -134,8 +134,9 @@ test('labels are sentence case without tracking, and the date keeps locale case'
     assert.match(html, new RegExp(`>${label}<`), `label "${label}"`);
   }
   assert.doesNotMatch(html, />(favorites|pick up where you left off|on your other devices|blocked this week|blocked)</);
-  assert.match(js, /const dateText = isPrivate\s*\? t\('newtab\.privateTab'\)/);
-  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'].message, 'Private tab');
+  // Private tabs show the date as well; the Island's chip marks the mode.
+  assert.match(js, /const dateText = new Date\(\)\.toLocaleDateString\(/);
+  assert.equal(JSON.parse(read('copy/messages/en.json'))['newtab.privateTab'], undefined);
   assert.doesNotMatch(js.match(/const dateText[\s\S]*?;\n/)[0], /toLowerCase/);
   const css = frameCss();
   assert.match(css, /\.ledger-label,\s*\.shelf-label \{[^}]*font: 600 12px\/1\.3 var\(--font-text\);[^}]*letter-spacing: 0\.005em;[^}]*text-transform: none;/s);

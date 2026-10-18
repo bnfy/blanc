@@ -4939,10 +4939,6 @@
     "message": "Mahjong",
     "source": "sha256:dd4f136ecd04f5d18653e40e1ea981f4226f76e84dcef419af0e57e1faefc500"
   },
-  "newtab.privateTab": {
-    "message": "Scheda privata",
-    "source": "sha256:d99627331a63a4ae7d5208f45697810f37853ed64da69ce15402a634a0f8a29b"
-  },
   "newtab.goAnywhere": {
     "message": "{shortcut} per andare ovunque",
     "source": "sha256:a2e053e67ded0995a2a6a62797fa2b71568d1886162718096b5461f2a0ac7ace"

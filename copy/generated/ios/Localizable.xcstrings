@@ -55339,48 +55339,6 @@
         }
       }
     },
-    "newtab.privateTab": {
-      "comment": "Start page: shown in place of the date in a private tab.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Private tab"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Privater Tab"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pestaña privada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Onglet privé"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scheda privata"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aba privada"
-          }
-        }
-      }
-    },
     "newtab.goAnywhere": {
       "comment": "Start page footer: hint; {shortcut} is the keyboard shortcut, e.g. ⌘L.",
       "extractionState": "manual",

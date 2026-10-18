@@ -5104,10 +5104,6 @@
     "note": "Start page footer: link that opens the Mahjong solitaire game.",
     "maxLength": 12
   },
-  "newtab.privateTab": {
-    "message": "Private tab",
-    "note": "Start page: shown in place of the date in a private tab."
-  },
   "newtab.goAnywhere": {
     "message": "{shortcut} to go anywhere",
     "note": "Start page footer: hint; {shortcut} is the keyboard shortcut, e.g. ⌘L."
