@@ -11,6 +11,8 @@ const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
+const wallpaper = require('./wallpaper');
+const { settingsForSource } = require('./wallpaper-model');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
@@ -103,6 +105,9 @@ function setupPages(hooks = {}) {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return net.fetch(pathToFileURL(branding).toString());
     const { host, pathname } = new URL(request.url);
+    // The custom Start Page image is a userData file, so it is answered by
+    // its own exact name, never through the flat PAGES_DIR resolver below.
+    if (host === 'newtab' && wallpaper.isServedPath(pathname)) return wallpaper.serve();
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     // Unknown host → 404; malformed name on a known host → 400.
@@ -538,6 +543,8 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
+    // Per-tab: a private Start Page never receives the custom image.
+    wallpaper: hooks.startPage?.wallpaperFor?.(event.sender) ?? null,
     // Per-tab guard: the shared status never carries profile or privacy.
     migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
     // A utility sheet is a separate WebContentsView layered over this tab;
@@ -564,6 +571,48 @@ function setupPages(hooks = {}) {
   handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {
     if (typeof enabled === 'boolean') settings.setSettings({ newtabDynamicWallpaper: enabled });
     return settings.isDynamicWallpaperEnabled();
+  });
+  // F49 custom wallpaper. Replies carry only the sender's projection
+  // ({ source, hasImage, image }), never a file path or the image bytes.
+  const wallpaperReply = (event) => hooks.startPage?.wallpaperFor?.(event.sender) ?? null;
+  handleEvent('pages:start:wallpaper', ['newtab', 'settings'], (event) => wallpaperReply(event));
+  handleEvent('pages:start:set-wallpaper', ['newtab', 'settings'], (event, source) => {
+    const write = settingsForSource(source);
+    if (write) settings.setSettings(write);
+    return wallpaperReply(event);
+  });
+  // The Fade slider: only an integer 0–100 is saved; anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-wash', ['newtab', 'settings'], (event, wash) => {
+    settings.setSettings({ newtabWallpaperWash: wash });
+    return wallpaperReply(event);
+  });
+  // The wash style (auto | light | dark | spotlight); anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-style', ['newtab', 'settings'], (event, style) => {
+    settings.setSettings({ newtabWallpaperStyle: style });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
+    let file = hooks.wallpaperTestFile?.() ?? null;
+    if (!file) {
+      const picked = await dialog.showOpenDialog(hooks.getMainWindow?.() ?? undefined, {
+        title: t('newtab.wallpaper.chooseTitle'),
+        filters: [{ name: t('newtab.wallpaper.filter'), extensions: ['jpg', 'jpeg', 'png'] }],
+        properties: ['openFile'],
+      });
+      if (picked.canceled || !picked.filePaths.length) return { cancelled: true, wallpaper: wallpaperReply(event) };
+      file = picked.filePaths[0];
+    }
+    const result = await wallpaper.importFile(file);
+    if (result.error) return { error: result.error, wallpaper: wallpaperReply(event) };
+    settings.setSettings({ newtabCustomWallpaper: true });
+    hooks.startPage?.wallpaperChanged?.();
+    return { ok: true, wallpaper: wallpaperReply(event) };
+  });
+  handleEvent('pages:start:remove-wallpaper', ['newtab', 'settings'], async (event) => {
+    await wallpaper.remove();
+    settings.setSettings({ newtabCustomWallpaper: false });
+    hooks.startPage?.wallpaperChanged?.();
+    return wallpaperReply(event);
   });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);

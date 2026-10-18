@@ -328,6 +328,87 @@
         "doc": "Turn the dynamic Start Page wallpaper on or off."
       },
       {
+        "name": "start.wallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read this page's Start Page wallpaper state: source, whether an image is stored, and its address."
+      },
+      {
+        "name": "start.setWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "source",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
+      },
+      {
+        "name": "start.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+      },
+      {
+        "name": "start.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
+      },
+      {
+        "name": "start.chooseWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:choose-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Pick an image file for the Start Page wallpaper and show it."
+      },
+      {
+        "name": "start.removeWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:remove-wallpaper",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Delete the stored Start Page image and return to Sunrise."
+      },
+      {
         "name": "start.openMahjong",
         "kind": "invoke",
         "channel": "pages:start:open-mahjong",
@@ -1018,6 +1099,87 @@
         ],
         "returns": "unknown",
         "doc": "Write a partial settings update."
+      },
+      {
+        "name": "settings.wallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read this page's Start Page wallpaper state: source, whether an image is stored, and its address."
+      },
+      {
+        "name": "settings.setWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "source",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the Start Page wallpaper: sunrise, time-of-day or custom."
+      },
+      {
+        "name": "settings.setWallpaperWash",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-wash",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "wash",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
+      },
+      {
+        "name": "settings.setWallpaperStyle",
+        "kind": "invoke",
+        "channel": "pages:start:set-wallpaper-style",
+        "hosts": [
+          "settings"
+        ],
+        "params": [
+          {
+            "name": "style",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Choose the wash over the Start Page image: auto, light, dark or spotlight."
+      },
+      {
+        "name": "settings.chooseWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:choose-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Pick an image file for the Start Page wallpaper and show it."
+      },
+      {
+        "name": "settings.removeWallpaper",
+        "kind": "invoke",
+        "channel": "pages:start:remove-wallpaper",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Delete the stored Start Page image and return to Sunrise."
       },
       {
         "name": "settings.language",

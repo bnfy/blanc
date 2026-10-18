@@ -3353,6 +3353,14 @@
     "message": "Wallpaper follows this machine’s local time.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.newtabCustomWallpaper.label": {
+    "message": "Start Page image",
+    "note": "Settings → General: label of the row for the person’s own Start Page wallpaper image."
+  },
+  "settings.general.newtabCustomWallpaper.hint": {
+    "message": "Shown on this device only, never in private tabs. Blanc keeps a smaller copy without location or camera details.",
+    "note": "Settings → General: hint under the Start Page image row."
+  },
   "settings.general.tabLayout.label": {
     "message": "Tab layout",
     "note": "Settings → General: setting name."
@@ -5079,6 +5087,19 @@
     "message": "Layout",
     "note": "Start page → Customize popover: label above the layout choices."
   },
+  "newtab.customize.wallpaperHeading": {
+    "message": "Wallpaper",
+    "note": "Start page → Customize popover: label above the wallpaper choices."
+  },
+  "newtab.wallpaper.sunrise": {
+    "message": "Sunrise",
+    "note": "Start page → Customize popover, under Wallpaper: choice for Blanc’s own Sunrise artwork (the artwork’s name, kept in every language), beside “Your image”.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.timeOfDay": {
+    "message": "Change with time of day",
+    "note": "Start page → Customize popover, under Wallpaper: switch shown only while Sunrise is chosen; it makes Blanc’s Sunrise artwork follow the computer’s clock (dawn, day, dusk, night)."
+  },
   "newtab.layout.ledger": {
     "message": "Ledger",
     "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
@@ -5095,9 +5116,83 @@
     "message": "Tally",
     "note": "Start page → Customize popover: layout name (kept in every language, like the Settings choice)."
   },
-  "newtab.customize.wallpaper": {
-    "message": "Dynamic wallpaper",
-    "note": "Start page → Customize popover: switch for the time-of-day wallpaper."
+  "newtab.wallpaper.custom": {
+    "message": "Your image",
+    "note": "Start page → Customize popover, under Wallpaper: choice that shows the person’s own image instead of Blanc’s Sunrise artwork."
+  },
+  "newtab.wallpaper.imageLabel": {
+    "message": "Image",
+    "note": "Start page → Customize popover, under Your image: row label before the Change… and Remove buttons.",
+    "maxLength": 12
+  },
+  "newtab.wallpaper.choose": {
+    "message": "Choose image…",
+    "note": "Start page → Customize popover and Settings: button that opens a file picker for the wallpaper image.",
+    "maxLength": 18
+  },
+  "newtab.wallpaper.change": {
+    "message": "Change",
+    "note": "Settings → General → Start Page image: button that replaces the stored wallpaper image with another picked file.",
+    "maxLength": 10
+  },
+  "newtab.wallpaper.chooseAnother": {
+    "message": "Choose another image…",
+    "note": "Start page → Customize popover: link-style button under the wallpaper preview that opens a file picker to replace the person’s own image."
+  },
+  "newtab.wallpaper.remove": {
+    "message": "Remove",
+    "note": "Start page → Customize popover and Settings: button that deletes the stored wallpaper image.",
+    "maxLength": 12
+  },
+  "newtab.wallpaper.wash": {
+    "message": "Fade",
+    "note": "Start page → Customize popover: label of the slider for how strongly a light or dark wash covers the person’s own wallpaper image, keeping text readable.",
+    "maxLength": 12
+  },
+  "newtab.wallpaper.styleLabel": {
+    "message": "Wash",
+    "note": "Start page → Customize popover: label before the choices for the wash over the person’s own wallpaper image (it keeps text readable).",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleAuto": {
+    "message": "Auto",
+    "note": "Wash choice: follow the app’s light or dark theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleLight": {
+    "message": "Light",
+    "note": "Wash choice: a light wash with dark text, whatever the theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleDark": {
+    "message": "Dark",
+    "note": "Wash choice: a dark wash with light text, whatever the theme.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.styleSpotlight": {
+    "message": "Spotlight",
+    "note": "Wash choice: wash only behind the clock and content, leaving the image’s edges clear.",
+    "maxLength": 14
+  },
+  "newtab.wallpaper.chooseTitle": {
+    "message": "Choose a Start Page image",
+    "note": "Title of the native file picker for the Start Page wallpaper image."
+  },
+  "newtab.wallpaper.filter": {
+    "message": "Images",
+    "note": "File picker filter name for JPEG and PNG wallpaper images."
+  },
+  "newtab.wallpaper.error.tooLarge": {
+    "message": "That image is larger than 25 MB.",
+    "note": "Start page → Customize popover: shown when the chosen wallpaper file is too big."
+  },
+  "newtab.wallpaper.error.unsupported": {
+    "message": "Choose a JPEG or PNG image.",
+    "note": "Start page → Customize popover: shown when the chosen file is not a JPEG or PNG image."
+  },
+  "newtab.wallpaper.error.unreadable": {
+    "message": "That image couldn’t be opened.",
+    "note": "Start page → Customize popover: shown when the chosen wallpaper file can’t be read or saved."
   },
   "newtab.mahjong": {
     "message": "Mahjong",

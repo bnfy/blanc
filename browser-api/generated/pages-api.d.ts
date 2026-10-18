@@ -31,6 +31,18 @@ export interface NewtabPagesAPI {
     setLayout: (name: unknown) => Promise<unknown>;
     /** Turn the dynamic Start Page wallpaper on or off. IPC: invoke `pages:start:set-dynamic-wallpaper`. */
     setDynamicWallpaper: (enabled: unknown) => Promise<unknown>;
+    /** Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. IPC: invoke `pages:start:wallpaper`. */
+    wallpaper: () => Promise<unknown>;
+    /** Choose the Start Page wallpaper: sunrise, time-of-day or custom. IPC: invoke `pages:start:set-wallpaper`. */
+    setWallpaper: (source: unknown) => Promise<unknown>;
+    /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
+    setWallpaperWash: (wash: unknown) => Promise<unknown>;
+    /** Choose the wash over the Start Page image: auto, light, dark or spotlight. IPC: invoke `pages:start:set-wallpaper-style`. */
+    setWallpaperStyle: (style: unknown) => Promise<unknown>;
+    /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
+    chooseWallpaper: () => Promise<unknown>;
+    /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
+    removeWallpaper: () => Promise<unknown>;
     /** Open blanc://mahjong as an ordinary tab. IPC: invoke `pages:start:open-mahjong`. */
     openMahjong: (background?: boolean) => Promise<unknown>;
     /** Record the once-per-session newtab_layout usage event (subject to telemetry consent). IPC: invoke `pages:start:layout-used`. */
@@ -181,6 +193,18 @@ export interface SettingsPagesAPI {
     get: () => Promise<unknown>;
     /** Write a partial settings update. IPC: invoke `pages:settings:set`. */
     set: (partial: unknown) => Promise<unknown>;
+    /** Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. IPC: invoke `pages:start:wallpaper`. */
+    wallpaper: () => Promise<unknown>;
+    /** Choose the Start Page wallpaper: sunrise, time-of-day or custom. IPC: invoke `pages:start:set-wallpaper`. */
+    setWallpaper: (source: unknown) => Promise<unknown>;
+    /** Set how strongly the theme wash covers the Start Page image (integer 0–100). IPC: invoke `pages:start:set-wallpaper-wash`. */
+    setWallpaperWash: (wash: unknown) => Promise<unknown>;
+    /** Choose the wash over the Start Page image: auto, light, dark or spotlight. IPC: invoke `pages:start:set-wallpaper-style`. */
+    setWallpaperStyle: (style: unknown) => Promise<unknown>;
+    /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
+    chooseWallpaper: () => Promise<unknown>;
+    /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
+    removeWallpaper: () => Promise<unknown>;
     /** Choose the interface language; optionally relaunch to apply it. IPC: invoke `pages:settings:language`. */
     language: (code: unknown, restart: unknown) => Promise<unknown>;
     /** Blocking provider status. IPC: invoke `pages:blocking:status`. */

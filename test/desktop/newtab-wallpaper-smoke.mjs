@@ -30,7 +30,7 @@ const openCustomize = async (target) => {
 try {
   app = await _electron.launch({ chromiumSandbox: true, args: [path.resolve('.'), `--user-data-dir=${profile}`], env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: uncaught } });
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
-  const footerToggle = page.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
+  const footerToggle = page.getByRole('button', { name: 'Change with time of day', exact: true });
   await page.waitForLoadState('domcontentloaded'); // found by URL while <head> scripts may still load
   await page.waitForFunction(() => !document.getElementById('dynamicWallpaperToggle').disabled);
   const data = await page.evaluate(() => window.bowserPages.start.data());
@@ -89,7 +89,7 @@ try {
       }
       // Use the Customize popover in every layout and styling combination.
       await openCustomize(current);
-      const switcher = current.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
+      const switcher = current.getByRole('button', { name: 'Change with time of day', exact: true });
       for (const width of [640, 800, 1040, 1041, 1200]) {
         await app.evaluate(({ BrowserWindow }, width) => BrowserWindow.getAllWindows()[0].setContentSize(width, 820), width);
         await current.waitForFunction((width) => innerWidth === width, width);
@@ -146,7 +146,7 @@ try {
   await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   await openCustomize(privatePage);
-  const privateSwitch = privatePage.getByRole('button', { name: 'Time-of-day wallpaper', exact: true });
+  const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
   await privateSwitch.click();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && [...document.querySelectorAll('.start-wallpaper-layer')].some((layer) => {

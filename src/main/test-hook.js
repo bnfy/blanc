@@ -477,6 +477,8 @@ function install(refs) {
     // F45 Arc import: discovery platform, the stand-in for the file dialog,
     // the read count and saved space records.
     arcImport(action, ...args) { return refs.arcImportTest(action, args); },
+    // F49: the stand-in for the wallpaper file picker (null restores the dialog).
+    chooseWallpaperFile(file) { return refs.chooseWallpaperFileForTest(file); },
     /** Run a script in the Bring Your Tabs sheet; refuses any other page. */
     arcImportPage(script) {
       const wc = getUtilitySheetWebContents();
