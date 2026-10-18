@@ -1294,15 +1294,14 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 #islandPill.measuring #pillDomain { flex: 0 0 10ch; }
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
-.pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }
+/* Disabled glyphs fade to a lighter shade of the same ink rather than the
+   border color, which all but erased them beside their live neighbours. */
+.pill-btn:disabled { color: color-mix(in srgb, var(--text-dim) 45%, transparent); cursor: default; background: transparent; }
 .pill-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .pill-btn.on { color: var(--accent); }
 .pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
 .pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
 
-/* The pill ✕ is the one destructive action in the cluster — DS .bw-pill-close
-   fills it on hover so it can't be hit absentmindedly. */
-.pill-close:hover { background: var(--accent) !important; color: var(--surface-raised) !important; }
 
 /* Downloads cistern: while a download is in flight the button fills like a
    vessel (--dl-progress is 0..1, set from renderer.js), its surface a pair of

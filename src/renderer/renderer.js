@@ -211,9 +211,11 @@
     stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
     download: `<svg viewBox="0 0 16 16"><path d="${DOWNLOAD_D}"/></svg>`,
-    // Same cut as the panel row's close (overlay.js ICONS.close) — both mean
-    // "close tab". The only ✕ in the pill; see `stop` above.
-    close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    // The only ✕ in the pill; see `stop` above. Drawn 8 units across — larger
+    // than the panel row's close (overlay.js ICONS.close) — so it carries the
+    // same optical weight as its neighbours, reload's r=5 ring and the heart,
+    // instead of reading a size smaller beside them.
+    close: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
   };
 
   // The reference header reuses the pill's own back and reload glyphs.
