@@ -34,7 +34,7 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 17, 2026 (data/blob and nested-opaque chains measured)
+### 1.1 Progress checkpoint — October 17, 2026 (opaque late delivery and duplicate suppression measured)
 
 This table is the live map from implementation work back to the approved plan.
 Detailed measurements remain in `rebase-ledger.md`; test outcomes and evidence
@@ -49,18 +49,19 @@ links remain in `results.md`. A row marked in progress is not acceptance.
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
 
-Current follow-up: `evidence/f12-data-blob-20261017/` adds browser-owned
-non-HTTP origin/precursor-chain selection and nine-case native regular/private
-coverage. Of36cases,14regular early and16private actual-cancellation proofs pass;
-six mismatch/browser-rejected cases remain gaps. Seven exception and seven
-fresh-session baseline checks pass, four gaps retained. The cross-runtime56case
-matrix verifies44scoped passes/12Electron early gaps; four inherited dedup and
-seven gate-safety checks pass, opaque late delivery remains unproved.
-202 tests/106-file lint pass; one36.01s/eight-step incremental build, final guard0,
-measured31/74 footprint. No cold output. Latency deferred. Electron diagnostic
-build §8 remains unchecked/unstarted. Next: broader owner/precursor/CSP/lifecycle
-boundaries and containment; independent Electron identity awaits separate build
-approval. Full prior corpus remains historical, not rerun for this follow-up.
+Current follow-up: `evidence/f12-opaque-late-20261017/` records two fresh
+native regular profiles, 32 document cases: eight real extension repeat-delivery
+passes for data/nested-data, eight opaque-srcdoc permission-denied gaps and
+16 blob identity/delivery gaps. A separate direct diagnostic in each of the
+32 realms proves one body execution after repeated payload evaluation; those
+mechanism passes do not close extension delivery gaps. Raw callbacks, sender
+metadata and exact real-engine payloads are archived, with strict negative tests.
+209 tests / 109-file lint pass. No native/payload changes; zero-action guarded
+plan, unchanged binary hashes, no compilation. Last measured footprint remains
+31 files / 74 hunks. Previous corpus/private/safety results stay historical.
+Latency deferred. Electron diagnostic build §8 remains unchecked/unstarted.
+Next: production late-delivery reachability, containment and broader lifecycle/
+CSP boundaries. No permission bypass or guessed frame/origin correlation added.
 Following paragraphs are historical.
 
 Service lifecycle behavior is now measured in eight fresh regular/private

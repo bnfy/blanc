@@ -420,3 +420,56 @@ passes /12 Electron early gaps** (native12early,24private attribution and8sandbo
 no-script enforcement). Four inherited repeat-delivery proofs and seven gate
 safety checks pass; two opaque extension late-delivery attempts remain unproved.
 These scoped categories are not summed into full provider acceptance.
+
+## Opaque late delivery and duplicate suppression — October 17, 2026
+
+Evidence: [late-delivery checkpoint](../f12-opaque-late-20261017/README.md).
+Two fresh native regular profiles each create eight document kinds twice: opaque
+srcdoc, data, blob, sandboxed blob, nested opaque srcdoc/data/blob, and child-origin
+blob. Native first-inline effects and original security origins are checked before
+any diagnostic delivery. No private uBO or Electron parity claim is added.
+
+- **8 actual extension repeat-delivery passes:** data and nested-data documents
+  receive two deliberate late deliveries through raw `chrome.tabs.executeScript`.
+  The real engine's assembled injector executes, its main-world attempt count rises
+  by at least two, and its body count remains one. The upstream isolated injector
+  sentinel is deliberately reset; the shared main-world once marker is not reset.
+- **8 opaque-srcdoc delivery gaps:** direct and nested sandboxed srcdoc callbacks
+  explicitly refuse access at origin `null`, even with `matchAboutBlank: true`.
+  The earlier wrapper hid this error; it is now archived. Permissions are unchanged.
+- **16 blob delivery gaps:** `webNavigation.getAllFrames` omits the blob leaf.
+  A separate all-frames diagnostic message probe supplies browser-owned sender
+  metadata for reachable parents, but no matching blob document. No frame id or
+  parent origin is substituted. The pinned `IsValidUrl` source excludes blob from
+  webNavigation's accepted schemes; the all-frames omission's deeper cause remains
+  unproved. An omitted frame is not proof that every possible extension path fails.
+- **32 direct mechanism passes:** the same real engine main-world payload is also
+  delivered twice by explicit Playwright evaluation in each actual document realm.
+  Attempts rise by exactly two, bodies remain one, origins and early effects stay
+  unchanged. This is diagnostic duplicate-suppression evidence, **not extension
+  delivery acceptance**. The fixture supplies the selection origin for this direct
+  test; unresolved extension frame ids use a diagnostic-only `-1`. New document
+  cycles prove marker state is per realm, not retained from the previous document.
+
+Seven negative verifier tests reject missing main-world arrival despite successful
+API callbacks, repeated bodies, missing direct attempts, replaced opaque origins,
+stale/wrong document identity, silently discarded blob candidates and changed
+payload bytes. Both final runs independently verify. Three failed harness attempts
+remain excluded: Playwright's stale empty opaque URL twice, then assuming blob
+appeared in webNavigation. The final harness reads `location.href` in the actual
+realm and records absent extension identity as a gap.
+
+**209 focused tests and 109-file lint pass.** The first sandboxed unit invocation
+failed on loopback `listen EPERM`; the permitted run passed without code changes.
+No native or payload code changed. Guarded plan: **zero actions, 3.77 seconds**;
+no compile launched. App/framework hashes match the prior checkpoint. The last
+measured upstream footprint remains 31 files / 74 hunks (not remeasured here).
+Both final runs took 13.33 and 13.07 seconds; these are harness wall times, not
+latency measurements. All five attempted disposable profiles were removed.
+
+Claude Code plan: Spike B remains in progress. Production opaque-srcdoc/blob late
+reachability, mixed/unknown/top-level/deeper/fenced contexts, ancestor/CSP rules,
+arbitrary scriptlets, lifecycle/filter generations and privilege containment remain
+open. Previous network, private and gate-safety matrices were not rerun for this
+harness-only change. Latency stays deferred. Electron diagnostic proposal §8 is
+still unchecked; no checkout/build started. Task 0 and plan items 3–6 are unchanged.
