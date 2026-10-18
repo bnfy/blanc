@@ -127,7 +127,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F17-1 | Current app icon applies | D6 | ✅ | ⬜ | ⬜ |
 | F17-2 | Patron cannot restore retired icon | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
-| F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
+| F19-1 | Background tab opens ungrouped | D4, D7 | ✅ | ⬜ | ⬜ |
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
 | F19-3 | Paste and Go navigates + closes island | D20 | ✅ | ➖ | ➖ |
 | F20-1 | Basic-auth prompt | — | ✅ | ⬜ | ⬜ |

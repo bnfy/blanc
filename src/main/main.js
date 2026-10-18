@@ -8221,9 +8221,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Only window.open/context-
-    // menu children inherit the opener's group (see CLAUDE.md → Tab groups);
-    // don't copy that `groupId: tab.groupId` pattern into new-tab entry points.
+    // to null and we intentionally don't pass one. Link children
+    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
     const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
       private: isPrivate,
     });

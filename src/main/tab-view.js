@@ -608,8 +608,10 @@ function wireTabView(tab, view, { owner, adopted }) {
           // the reference, leaving the main page and its focus untouched.
           const role = foregroundOpenRole(getOwner(), tab.id);
           // A discarded opener leaves this child's window.opener unusable.
+          // Like a plain new tab, a link child opens ungrouped (CLAUDE.md →
+          // Tab groups): it inherits the opener's privacy, not its group.
           const newId = createTab(targetUrl, {
-            private: tab.private, groupId: tab.groupId, view: childView, managedExtension,
+            private: tab.private, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
             // Custom creation bypasses Electron's normal construction and
             // navigation. Keep the inherited HTML/CSP sandbox and referrer
@@ -647,13 +649,13 @@ function wireTabView(tab, view, { owner, adopted }) {
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
-      createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
+      createTab(targetUrl, { private: tab.private });
     }),
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       if (isForbiddenTopLevelUrl(targetUrl)) return;
       const role = foregroundOpenRole(getOwner(), tab.id);
-      showOpenedTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }), role);
+      showOpenedTab(createTab(targetUrl, { private: tab.private }), role);
     }),
     // Open Link in Glance: main owns the guards and the role change.
     openInGlance: boundToTab((targetUrl) => deps.openLinkInGlance?.(tab, targetUrl)),

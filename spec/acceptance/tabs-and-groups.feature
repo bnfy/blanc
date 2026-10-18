@@ -137,6 +137,14 @@ Feature: Tabs and tab groups
     Then the group "Work" no longer exists
     And the tabs on "rename-first" and "rename-other" are ungrouped
 
+  @F3-21 @F3 @desktop
+  Scenario: A link opened from a grouped tab opens ungrouped, where a new tab goes
+    Given a tab in a group named "Work" with a link that opens a new tab
+    When I click that link in the grouped tab
+    Then the linked page opens in a new tab with no group
+    And that tab comes after the other ungrouped tabs
+    And the group "Work" still holds only the opener
+
   @F46-1 @F46 @desktop
   Scenario: Rename Tab… names the right-clicked tab
     Given a tab open on "rename-first"

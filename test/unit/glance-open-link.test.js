@@ -31,13 +31,13 @@ function harness({ handedOff = false, forbidden = false } = {}) {
 }
 const opener = { id: 'ref', private: true, groupId: 'g1' };
 
-test('Open Link in Glance creates the tab in the opener\'s profile, private flag and group and makes it the reference', async () => {
+test('Open Link in Glance creates an ungrouped tab in the opener\'s profile and private flag and makes it the reference', async () => {
   const { calls, deps } = harness();
   assert.equal(await openLinkInGlance(opener, 'https://a.test/x', deps), true);
   assert.deepEqual(calls, [
     ['handOff', 'https://a.test/x'],
     ['forbidden', 'https://a.test/x'],
-    ['create', 'https://a.test/x', { private: true, groupId: 'g1' }],
+    ['create', 'https://a.test/x', { private: true }],
     ['glance', 'new-id'],
   ]);
 });
