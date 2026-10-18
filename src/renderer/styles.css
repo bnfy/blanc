@@ -2334,8 +2334,9 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
    close). macOS overlay scroll bars take no space, so they painted over the
    rows' right edge; a styled ::-webkit-scrollbar is always a classic one, so
    it takes the same reserved 8px on macOS (either "Show scroll bars" choice),
-   Windows and Linux. both-edges keeps the left inset equal, and the gutter is
-   there even when the list fits, so nothing shifts when it starts scrolling.
+   Windows and Linux. Reserving the gutter on both edges keeps the left inset
+   equal to the right, and the gutter is there even when the list fits, so
+   nothing shifts when it starts scrolling.
    (Chromium ignores these pseudo-elements on an element that sets
    scrollbar-width or scrollbar-color.) */
 #islandList,
@@ -2352,7 +2353,7 @@ body[data-glance-purpose="change"] .glance-picker[hidden] { transform: scale(.92
 #islandList::-webkit-scrollbar-thumb,
 #islandDrawer::-webkit-scrollbar-thumb,
 .vertical-tabs-list::-webkit-scrollbar-thumb {
-  /* A 4px bar centred in the gutter, clear of the rows on both sides. */
+  /* A 4px bar centered in the gutter, clear of the rows on both sides. */
   border: 2px solid transparent;
   border-radius: 4px;
   background: var(--border) padding-box;
