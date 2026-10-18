@@ -1692,6 +1692,34 @@
       "doc": "Give a group one of the Spaces preset colors, or none with null. Anything else is refused and changes nothing."
     },
     {
+      "name": "newTabInGroup",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:new-tab",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open a new tab at the end of a group and select it. Resolves false for an unknown group."
+    },
+    {
+      "name": "moveGroupToNewWindow",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:move-to-new-window",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state."
+    },
+    {
       "name": "ungroupGroup",
       "group": "groups",
       "kind": "invoke",

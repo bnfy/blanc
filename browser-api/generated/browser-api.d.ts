@@ -794,6 +794,16 @@ export interface BlancBrowserAPI {
    */
   setGroupColor(groupId: GroupId, color: string | null): Promise<GroupColorResult>;
   /**
+   * Open a new tab at the end of a group and select it. Resolves false for an unknown group.
+   * IPC: invoke `groups:new-tab`.
+   */
+  newTabInGroup(groupId: GroupId): Promise<boolean>;
+  /**
+   * Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state.
+   * IPC: invoke `groups:move-to-new-window`.
+   */
+  moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
+  /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
    */

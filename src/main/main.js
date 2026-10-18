@@ -8454,6 +8454,8 @@ function registerIpcHandlers() {
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
   chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
+  chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
+  chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -9872,26 +9874,34 @@ function openNewWindow(options = {}) {
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
     let tabId = null;
-    if (options.adoptTabId != null && tabs.has(options.adoptTabId)) {
-      // Adopt an existing tab (Move Tab to New Window) instead of seeding a
-      // fresh one — the caller has already detached it from its old window.
-      tabId = options.adoptTabId;
-      const tab = tabs.get(tabId);
-      tab.runtimeId = runtime.id;
-      windowRuntimes.attachTab(runtime, tabId);
-      runtime.tabOrder = [tabId];
-      // Re-home the per-tab listener set: wireTabView binds its owner runtime
-      // once at attach time, so without this every media/find/beforeunload/
-      // window.open handler would keep acting on the OLD window. A retained-
-      // storage quiet tab keeps a live, still-wired WebContents in its sleep
-      // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-      // that view needs the same treatment as an awake one.
-      const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tabId)?.view ?? null);
-      const wiredWc = wiredView?.webContents;
-      if (wiredWc && !wiredWc.isDestroyed()) {
-        unwireTabView(wiredWc);
-        wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+    const adoptIds = (options.adoptTabIds ?? (options.adoptTabId != null ? [options.adoptTabId] : []))
+      .filter((id) => tabs.has(id));
+    if (adoptIds.length) {
+      // Adopt existing tabs (Move Tab / Move Group to New Window) instead of
+      // seeding a fresh one — the caller has already detached them from
+      // their old window, in order.
+      runtime.tabOrder = [...adoptIds];
+      // A moved group arrives whole: the same record (name, color, fold).
+      if (options.group) runtime.groups = [groupRecord(options.group)];
+      for (const id of adoptIds) {
+        const tab = tabs.get(id);
+        tab.runtimeId = runtime.id;
+        if (options.group) tab.groupId = options.group.id;
+        windowRuntimes.attachTab(runtime, id);
+        // Re-home the per-tab listener set: wireTabView binds its owner runtime
+        // once at attach time, so without this every media/find/beforeunload/
+        // window.open handler would keep acting on the OLD window. A retained-
+        // storage quiet tab keeps a live, still-wired WebContents in its sleep
+        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
+        // that view needs the same treatment as an awake one.
+        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
+        const wiredWc = wiredView?.webContents;
+        if (wiredWc && !wiredWc.isDestroyed()) {
+          unwireTabView(wiredWc);
+          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+        }
       }
+      tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
     } else {
       tabId = options.private
@@ -9909,33 +9919,22 @@ function openNewWindow(options = {}) {
   });
 }
 
-/** "Move Tab to New Window": detach the tab from its window and adopt it into
- * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
- * guards and bring-up sequencing). Ungrouped on move — a group spanning two
- * windows isn't a modeled concept (context-menus design §6). Pin and mute
- * state travel with the tab. */
-function moveTabToNewWindow(id) {
+/** Detach a tab from `source` before it moves to a new window: cancel its
+ * permission prompts, hand off Glance and the selection, drop it from the
+ * order and ungroup it (a group spanning two windows isn't modeled). Shared
+ * by Move Tab and Move Group to New Window. */
+function detachTabForMove(source, id) {
   const tab = tabs.get(id);
-  if (!tab) return;
-  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
-  // sleepTab's revalidation now also refuses a tab that changed runtimes.
-  if (tab.sleeping || tab.waking) return;
-  const source = windowRuntimes.runtimeForTab(id);
-  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
-  // Checked BEFORE the source surgery: openNewWindow throws on a pending
-  // profile deletion, which would otherwise strand a detached tab.
-  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
-
-  // 1. Detach from the source window. A pending permission prompt belongs to
-  //    this window's runtime and would float over unrelated content (and its
-  //    per-tab cancel path could never find it again post-move) — cancel it,
-  //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active with a reference beside it,
-  //    promote the reference (closeTab's rule); otherwise hand focus to the
-  //    MRU survivor with the right-neighbour as fallback. The view is hidden
-  //    at that point (active → survivor selection, Glance → closeGlance). On
-  //    Linux a view shown here before stays a child of this window until the
-  //    new one attaches it (tab-view-lifecycle.js).
+  // Detach from the source window. A pending permission prompt belongs to
+  // this window's runtime and would float over unrelated content (and its
+  // per-tab cancel path could never find it again post-move) — cancel it,
+  // same as closeTab; the page re-requests in the new window. If the tab
+  // is the Glance pane, close that; if active with a reference beside it,
+  // promote the reference (closeTab's rule); otherwise hand focus to the
+  // MRU survivor with the right-neighbour as fallback. The view is hidden
+  // at that point (active → survivor selection, Glance → closeGlance). On
+  // Linux a view shown here before stays a child of this window until the
+  // new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
@@ -9959,11 +9958,75 @@ function moveTabToNewWindow(id) {
     pruneEmptyGroups();
     broadcastTabs(); // persists the session as part of the broadcast
   });
+}
+
+/** "Move Tab to New Window": detach the tab from its window and adopt it into
+ * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
+ * guards and bring-up sequencing). Ungrouped on move — a group spanning two
+ * windows isn't a modeled concept (context-menus design §6). Pin and mute
+ * state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
+  // sleepTab's revalidation now also refuses a tab that changed runtimes.
+  if (tab.sleeping || tab.waking) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+  // Checked BEFORE the source surgery: openNewWindow throws on a pending
+  // profile deletion, which would otherwise strand a detached tab.
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
+
+  // 1. Detach from the source window (detachTabForMove).
+  detachTabForMove(source, id);
 
   // 2. Shared window bring-up + adoption (runtimeId, attachTab, listener
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** "New Tab in Group" (group menu): a new tab at the end of the group,
+ * selected with the address field focused. */
+function newTabInGroup(groupId) {
+  const runtime = rt();
+  if (!runtime.groups.some((group) => group.id === groupId)) return null;
+  const id = createTab(newTabUrl(), { groupId });
+  if (!id) return null;
+  runtime.tabOrder = placeInGroup(runtime.tabOrder, tabLayoutList(runtime), id, groupId);
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** "Move Group to New Window" (group menu): every member, in order, into a
+ * fresh window with the same group record. Refused while a member is mid
+ * sleep transition, when the group holds every tab in its window, or while
+ * the profile is being deleted. */
+function moveGroupToNewWindow(groupId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const ids = source.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!ids.length || ids.length >= source.tabOrder.length) return false;
+  if (ids.some((id) => tabs.get(id)?.sleeping || tabs.get(id)?.waking)) return false;
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return false;
+  const record = groupRecord(group);
+  const activeTabId = ids.includes(source.activeTabId) ? source.activeTabId : null;
+  // Select a tab that stays first, so detaching never selects (and wakes)
+  // a member that is about to leave too.
+  if (activeTabId) {
+    withWindowRuntime(source, () => {
+      if (rt().glanceTabId && ids.includes(rt().glanceTabId)) closeGlance({ focusContent: false });
+      const stays = (tid) => !ids.includes(tid) && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === source;
+      const survivor = previousSurvivor(source.activationHistory, stays)
+        ?? source.tabOrder.find(stays);
+      if (survivor) setActiveTab(survivor, { focusContent: false });
+    });
+  }
+  for (const id of ids) detachTabForMove(source, id);
+  openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
 }
 
 function openNewProfileWindow(name) {

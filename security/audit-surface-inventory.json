@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "5d18b88b8cec8a4b52c04de49e16951430e7ea667c76b56546edefa1c60289bd",
+      "sha256": "db60ed7ad30b0d9bdef9869dec701d8bdcb1058edb70b84f43c5ae479f7593f3",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -333,6 +333,8 @@
         "fill:reply",
         "focus",
         "groups:move-closed",
+        "groups:move-to-new-window",
+        "groups:new-tab",
         "groups:rename",
         "groups:reorder",
         "groups:set-color",
@@ -573,7 +575,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "8a73e83a006ee2053d67eca38101870394942f38e85b05a8d19f3e328f3c49ca",
+      "sha256": "569e2b63a66ad9e0db3aed7163fb672f2d6fe2821b7be5d546c0901041772d1f",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -640,6 +642,8 @@
         "display-capture:picker-resolve",
         "display-capture:stop",
         "groups:move-closed",
+        "groups:move-to-new-window",
+        "groups:new-tab",
         "groups:rename",
         "groups:reorder",
         "groups:set-color",

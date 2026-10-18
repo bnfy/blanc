@@ -39,6 +39,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   moveClosedSection: (beforeGroupId) => ipcRenderer.invoke('groups:move-closed', beforeGroupId),
   renameGroup: (groupId, name) => ipcRenderer.invoke('groups:rename', groupId, name),
   setGroupColor: (groupId, color) => ipcRenderer.invoke('groups:set-color', groupId, color),
+  newTabInGroup: (groupId) => ipcRenderer.invoke('groups:new-tab', groupId),
+  moveGroupToNewWindow: (groupId) => ipcRenderer.invoke('groups:move-to-new-window', groupId),
   ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),

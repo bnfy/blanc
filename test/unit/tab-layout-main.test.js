@@ -17,7 +17,7 @@ const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) 
 const names = [
   'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
   'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
-  'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor',
+  'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor', 'newTabInGroup',
 ];
 const sources = names.map(lift);
 
@@ -52,6 +52,7 @@ function harness(spec, { groups = null, closedSlot: slot = 0 } = {}) {
     resolveTabMove: tabOrder.moveTab,
     windowRuntimes: { runtimeForTab: () => runtime },
     pinnedHomeFor: () => null,
+    newTabUrl: () => 'NEWTAB',
     ...require('../../src/main/group-color'),
     ...tabSections,
     ...groupNameCase,
@@ -327,4 +328,14 @@ test('a reopened group keeps its color', () => {
     tabs: [{ url: 'x' }],
   });
   assert.equal(h.runtime.groups.find((g) => g.id === 'g2').color, '#376694');
+});
+
+test('newTabInGroup lands at the group\'s end', () => {
+  const h = harness(['a:g1', 'b:g1', 'L1']);
+  h.sync();
+  assert.equal(h.newTabInGroup('g1'), 'NEWTAB');
+  h.sync();
+  assert.deepEqual(h.order(), ['a', 'b', 'NEWTAB', 'L1']);
+  assert.equal(h.tabs.get('NEWTAB').groupId, 'g1');
+  assert.equal(h.newTabInGroup('nope'), null);
 });
