@@ -1,6 +1,6 @@
 # Sunrise Gold app icon — design
 
-Date: 2026-10-19. Status: draft for owner review.
+Date: 2026-10-19. Status: approved; Mac only.
 
 ## Intent
 
@@ -15,7 +15,7 @@ Today **Sunrise** switches between a cream and a near-black tile with the system
 - The icon is identical in macOS Default and Dark. macOS still restyles it in Clear and Tinted, as it does every app icon. `macos-styles.png` shows, in order: Default, Dark, Clear light, Clear dark, Tinted light, Tinted dark.
 - **This PR is macOS only.**
   - **Linux is dropped.** Blanc runs on Wayland whenever a Wayland session exists (`src/main/display-capture-flags.js`), and on X11 the docks draw the `.desktop` icon.
-  - **Windows is decided after a VM spike**, in its own session. Packaged Blanc shares its app ID with the installer's Start menu shortcut, so Windows may draw the taskbar button from the shortcut and ignore `BrowserWindow.setIcon`. The spike tests `setIcon` and Electron's per-window `setAppDetails` relaunch icon on a packaged build. Windows work starts only if something visible changes.
+  - **Windows is out.** The October 19 VM spike (PR #979, `docs/research/windows-runtime-app-icon-spike-2026-10-19.md`) found that `setIcon` reaches only Alt-Tab and `setAppDetails` changes nothing. Only rewriting the installer-owned Start menu and pinned shortcuts turns the taskbar gold. The owner decided the same day to leave Windows as it is and ship Sunrise Gold for Mac only.
 
 ## Goals
 
@@ -87,7 +87,3 @@ An Icon Composer document with two groups:
   - `npm run dist:dir` on this Mac (macOS 26), select Gold, and screenshot the Dock in Light and Dark.
   - Switch back to Sunrise and confirm the adaptive icon returns.
   - Render the compiled stack's source `.icon` with `ictool` (Default and Dark) and compare it with `options.png` B3.
-
-## Follow-up (separate session)
-
-**Windows Gold spike.** On a packaged build in the Windows VM, find out what `BrowserWindow.setIcon` and `setAppDetails({ appIconPath })` actually change, pinned and unpinned: the taskbar, Alt-Tab, and the jump list. Report back with screenshots. No product code merges from the spike.
