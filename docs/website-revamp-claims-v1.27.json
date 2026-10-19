@@ -8121,17 +8121,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-03",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "In May 2025, The Browser Company wrote that it had stopped actively building new features for Arc, while continuing Chromium upgrades and security fixes. If you are deciding what to use next, this page sets out what Blanc offers today, and what it does not.",
-      "subject": "Blanc",
-      "evidenceGroups": [],
-      "verdict": "qualified",
-      "externalSources": [
-        "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
-      ]
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-05",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "A calm browser built around one small island.",
@@ -8280,26 +8269,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-25",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc is not a copy of Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-28",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "See if one small island suits you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
       ],
       "verdict": "qualified"
     },
@@ -8531,6 +8500,40 @@
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
   "supersededClaims": [
+    {
+      "id": "seo-2026-10-05-arc-alternative-03",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "In May 2025, The Browser Company wrote that it had stopped actively building new features for Arc, while continuing Chromium upgrades and security fixes. If you are deciding what to use next, this page sets out what Blanc offers today, and what it does not.",
+      "subject": "Blanc",
+      "evidenceGroups": [],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
+      ],
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-25",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc is not a copy of Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-28",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "See if one small island suits you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
     {
       "id": "website-115-051",
       "historicalLedger": "docs/website-trust-claims-v1.25.json",

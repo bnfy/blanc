@@ -14,6 +14,7 @@ const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const v132Ledger = JSON.parse(read('docs/website-v1.32-claims.json'));
 const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
+const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1.38.json'));
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
@@ -69,9 +70,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
-    for (const match of page.matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
     }
     // A claim about another product rests on a recorded first-party source the page links.
@@ -83,6 +84,24 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
       }
     }
   }
+});
+
+test('Arc switching guide and support link resolve to public v1.38.0 evidence', () => {
+  const record = arcSwitchingLedger;
+  assert.equal(record.publicRelease, 'v1.38.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    assert.ok(claim.evidenceGroups.length, claim.id);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, claim.id);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  assert.match(read('site/src/pages/support.astro'), /href="\/arc-alternative"/);
 });
 
 test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => {
@@ -129,7 +148,7 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   // Any sentence on these pages about importing from Arc or about Blanc's
   // interface languages must be a recorded claim in this ledger, a later one
   // (v1.33, v1.35: Italian since v1.33.0) or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
