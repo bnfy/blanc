@@ -10,6 +10,7 @@ const {
   BUNDLE_APP_ICON_NAME,
   applyDockAppIcon,
   createDockIconApplier,
+  isMonochromeIconStyle,
   macOSMajorVersion,
   nativeIconNameFor,
   setWindowsAppUserModelId,
@@ -281,8 +282,8 @@ test('uses an explicit candidate icon only for an unpackaged macOS preview', () 
     platform: 'darwin',
     systemVersion: '26.0',
   });
-  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
-  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
+  assert.deepEqual(packagedResult, { source: 'bundle', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['setIcon', null]);
 });
 
 test('uses the dark candidate in dark appearance and keeps packaged adaptation native', () => {
@@ -308,8 +309,8 @@ test('uses the dark candidate in dark appearance and keeps packaged adaptation n
     platform: 'darwin',
     systemVersion: '26.0',
   });
-  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
-  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
+  assert.deepEqual(packagedResult, { source: 'bundle', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['setIcon', null]);
 });
 
 test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark', () => {
@@ -355,15 +356,15 @@ test('falls back to the PNG if the packaged asset catalog cannot resolve a name'
   const h = harness({ namedEmpty: true });
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'sunrise',
+    appIcon: 'sunrise-gold',
     platform: 'darwin',
     systemVersion: '27.0',
     iconsDirectory: '/icons',
   });
-  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise' });
+  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise-gold' });
   assert.deepEqual(h.calls.slice(0, 2), [
-    ['named', 'Icon'],
-    ['path', path.join('/icons', 'icon-sunrise.png')],
+    ['named', 'SunriseGold'],
+    ['path', path.join('/icons', 'icon-sunrise-gold.png')],
   ]);
 });
 
@@ -430,9 +431,13 @@ test('the default icon is set again once another icon has replaced it', () => {
   const h = harness({ packaged: true });
   const apply = dockApplier(h, { systemVersion: '26.6.2' });
   assert.deepEqual(apply({ appIcon: 'sunrise-dark' }), { source: 'native', nativeName: 'SunriseDark' });
-  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
-  assert.deepEqual(h.calls.filter(([kind]) => kind === 'named').map(([, name]) => name), ['SunriseDark', BUNDLE_APP_ICON_NAME]);
-  assert.equal(h.calls.filter(([kind]) => kind === 'setIcon').length, 2);
+  // Clearing the custom image puts back the live bundle icon, which macOS
+  // keeps restyling; loading it by name would hand back a fixed bitmap.
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(h.calls.filter(([kind]) => kind === 'named').map(([, name]) => name), ['SunriseDark']);
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
+  // Back on the bundle icon, later writes cost nothing again.
+  assert.equal(apply({ appIcon: 'sunrise', darkAppearance: true }), null);
 });
 
 test('a failed apply after a replacement never mistakes the Dock for the bundle icon', () => {
@@ -442,8 +447,8 @@ test('a failed apply after a replacement never mistakes the Dock for the bundle 
   h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(true));
   h.nativeImage.createFromPath = (file) => (h.calls.push(['path', file]), image(true));
   assert.equal(apply({ appIcon: 'sunrise-dark' }, { force: true }), null);
-  h.nativeImage.createFromNamedImage = (name) => (h.calls.push(['named', name]), image(false));
-  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'native', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(apply({ appIcon: 'sunrise' }), { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME });
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
 });
 
 test('older macOS, development builds and forced reapplies still set the icon', () => {
@@ -454,7 +459,47 @@ test('older macOS, development builds and forced reapplies still set the icon', 
   const forced = harness({ packaged: true });
   assert.deepEqual(
     dockApplier(forced, { systemVersion: '26.6.2' })({ appIcon: 'sunrise' }, { force: true }),
-    { source: 'native', nativeName: BUNDLE_APP_ICON_NAME },
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+});
+
+// macOS restyles only the bundle's own icon for the Clear and Tinted Icon &
+// widget styles; an image given to dock.setIcon stays as drawn.
+test('Clear and Tinted icon styles show the live bundle icon', () => {
+  assert.equal(isMonochromeIconStyle('ClearLight'), true);
+  assert.equal(isMonochromeIconStyle('ClearDark'), true);
+  assert.equal(isMonochromeIconStyle('TintedAutomatic'), true);
+  assert.equal(isMonochromeIconStyle('RegularDark'), false);
+  assert.equal(isMonochromeIconStyle(''), false);
+  assert.equal(isMonochromeIconStyle(null), false);
+
+  const h = harness({ packaged: true });
+  const apply = dockApplier(h, { systemVersion: '26.6.2' });
+  assert.deepEqual(apply({ appIcon: 'sunrise-gold' }), { source: 'native', nativeName: 'SunriseGold' });
+  assert.deepEqual(
+    apply({ appIcon: 'sunrise-gold', iconStyle: 'ClearDark' }),
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+  assert.deepEqual(h.calls.at(-1), ['setIcon', null]);
+  assert.equal(apply({ appIcon: 'sunrise-gold', iconStyle: 'TintedLight' }), null, 'already the bundle icon');
+  assert.deepEqual(
+    apply({ appIcon: 'sunrise-gold', iconStyle: 'RegularLight' }),
+    { source: 'native', nativeName: 'SunriseGold' },
+  );
+
+  // Launching in Clear with Gold selected leaves the bundle icon untouched.
+  const launch = harness({ packaged: true });
+  assert.deepEqual(
+    dockApplier(launch, { systemVersion: '26.6.2' })({ appIcon: 'sunrise-gold', iconStyle: 'ClearLight' }),
+    { source: 'bundle', nativeName: BUNDLE_APP_ICON_NAME },
+  );
+  assert.deepEqual(launch.calls, []);
+
+  // Development builds and older macOS have no bundle stack to fall back to.
+  const dev = harness({ packaged: false });
+  assert.deepEqual(
+    applyDockAppIcon({ ...dev, appIcon: 'sunrise-gold', iconStyle: 'ClearDark', platform: 'darwin', iconsDirectory: '/icons' }),
+    { source: 'png', appIcon: 'sunrise-gold' },
   );
 });
 

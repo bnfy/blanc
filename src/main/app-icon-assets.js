@@ -1,7 +1,8 @@
 // Native Icon Composer asset names and source colors for every Dock colorway.
-// `scripts/after-pack-app-icons.js` compiles these into one Assets.car; the
-// runtime selects the named icon stack without flattening it, so macOS remains
-// free to render Default, Dark, Clear, or Tinted (including the user's tint).
+// `scripts/after-pack-app-icons.js` compiles these into one Assets.car. A
+// named stack handed to the Dock follows Light and Dark by itself; Clear and
+// Tinted restyle only the bundle icon, so app-icon.js shows that in those
+// styles (verified in the live Dock, 2026-10-19).
 // Keep ids aligned with settings.js APP_ICON_LABELS.
 module.exports = {
   sunrise: {

@@ -17,7 +17,12 @@ Today **Sunrise** switches between a cream and a near-black tile with the system
   - **G1 Specular rims** for the glass, over G2 See-through.
   
   The result is in `final-light-dark.png`. This replaces the first version's "identical in Default and Dark".
-- **Clear and Tinted.** In those styles macOS draws its own glass or tint background, so both gold tiles hide there and only the glass mark remains, as with Sunrise. The owner found that the first build left the opaque tiles covering that background. `macos-styles.png` compares Sunrise (top) with Gold (bottom) in all six styles.
+- **Clear and Tinted.** In those styles macOS draws its own glass or tint background, so both gold tiles hide there and only the glass mark remains, as with Sunrise (`macos-styles.png`: Sunrise on top, Gold below, all six styles). In the live Dock, though, macOS restyles only the app's bundle icon for Clear and Tinted. An image given to `app.dock.setIcon` stays as drawn, while a named stack still follows Light and Dark. So in Clear and Tinted the Dock shows the bundle icon:
+  - Blanc reads `AppleIconAppearanceTheme` (for example `ClearLight` or `TintedDark`; absent in Default).
+  - It checks again when it becomes active and every 10 s, because macOS sends apps no notice of the change.
+  - It clears the custom image with `app.dock.setIcon(null)`.
+  
+  Switching back to Sunrise now clears the image the same way. Loading the bundle stack by name had frozen it, so Sunrise lost Clear and Tinted until relaunch. The owner verified Clear, Tinted, Default and Dark in a packaged build on October 19.
 - **This PR is macOS only.**
   - **Linux is dropped.** Blanc runs on Wayland whenever a Wayland session exists (`src/main/display-capture-flags.js`), and on X11 the docks draw the `.desktop` icon.
   - **Windows is out.** The October 19 VM spike (PR #979, `docs/research/windows-runtime-app-icon-spike-2026-10-19.md`) found that `setIcon` reaches only Alt-Tab and `setAppDetails` changes nothing. Only rewriting the installer-owned Start menu and pinned shortcuts turns the taskbar gold. The owner decided the same day to leave Windows as it is and ship Sunrise Gold for Mac only.
@@ -75,7 +80,10 @@ An Icon Composer document with two groups:
   - an optional tile group, with an optional Dark tile shown through `hidden-specializations`; every tile hides in the `tinted` appearance.
   
   It copies images from the definition's own directory. The `Icon` (default) skip stays.
-- **`src/main/app-icon.js`:** the flat fallback uses the definition's `darkFlatIcon` in Dark (`flatIconIdFor`), instead of special-casing Sunrise.
+- **`src/main/app-icon.js`:**
+  - The flat fallback uses the definition's `darkFlatIcon` in Dark (`flatIconIdFor`), instead of special-casing Sunrise.
+  - In Clear and Tinted (`isMonochromeIconStyle`), and whenever the bundle icon is the target, it clears the Dock image instead of loading a stack by name.
+- **`src/main/main.js`:** passes `iconStyle` and watches it (`watchIconStyle`: `did-become-active` plus a 10 s check, packaged macOS only). `security/audit-surface-inventory.json` is refreshed with it.
 - **`src/main/settings.js`:** `APP_ICON_LABELS` gains `'sunrise-gold': 'Sunrise Gold'` after Sunrise Dark. The existing startup guard requires the matching `app-icon-assets.js` entry.
 - **`settings-schema/schema.json`:** `appIcons` gains the same entry, and the `appIcon` note describes Gold. Then run `settings:build`.
 - **Copy:** none. Labels are proper names (`data-i18n-ignore`), and the macOS hint is unchanged.

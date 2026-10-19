@@ -1,7 +1,7 @@
 // electron-builder afterPack hook: compile every user-selectable macOS
 // colorway into a named Icon Composer stack inside one Assets.car. Selecting a
-// colorway at runtime therefore preserves macOS's own Default/Dark/Clear/Tinted
-// rendering (and its live tint color) instead of replacing it with a flat PNG.
+// colorway at runtime keeps macOS's own Light/Dark rendering instead of a flat
+// PNG; for Clear and Tinted, app-icon.js falls back to the bundle icon.
 const { spawn } = require('node:child_process');
 const fs = require('node:fs/promises');
 const os = require('node:os');
