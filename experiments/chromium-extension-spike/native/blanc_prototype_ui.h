@@ -8,6 +8,7 @@
 #include "content/public/browser/webui_config.h"
 
 class BrowserWindowInterface;
+class ToolbarButtonProvider;
 namespace views {
 class View;
 class WebView;
@@ -28,6 +29,8 @@ class Config : public content::DefaultWebUIConfig<UI> {
   bool IsWebUIEnabled(content::BrowserContext* context) override;
 };
 
+ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
+                                      ToolbarButtonProvider* delegate);
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);

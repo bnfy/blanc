@@ -244,6 +244,11 @@ writeIfChanged(browserViewFile, fs.readFileSync(browserViewFile, 'utf8')
 
 edit('chrome/browser/ui/views/frame/browser_view.cc', [
   {
+    anchor: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return ToolbarButtonProvider::From(browser_);\n}',
+    replacement: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));\n}',
+    present: 'return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));',
+  },
+  {
     anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
     replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
     present: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n',

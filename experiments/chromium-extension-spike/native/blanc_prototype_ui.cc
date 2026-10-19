@@ -30,6 +30,7 @@
 #include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "base/scoped_observation.h"
+#include "ui/views/view_observer.h"
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
@@ -70,6 +71,8 @@
 #include "components/tab_groups/tab_group_visual_data.h"
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
+#include "chrome/browser/ui/views/toolbar/app_menu_control.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
 #include "ui/gfx/geometry/rect.h"
@@ -353,6 +356,129 @@ class SiteMuteTab : public base::SupportsUserData::Data,
 
 // Like Electron's faux header, use the mode of the rendered top two rows.
 // Only the active, visible page is sampled. Pixels never leave this process.
+// Preserve native controls while giving hidden-menu bubbles a real Island view
+// anchor, including before ElementTracker has exposed the startup fallback.
+class IslandToolbarProvider final : public ToolbarButtonProvider,
+                                    public AppMenuControl,
+                                    public views::ViewObserver {
+ public:
+  IslandToolbarProvider(ToolbarButtonProvider* delegate, views::View* anchor,
+                        views::View* toolbar)
+      : delegate_(delegate), anchor_(anchor) {
+    toolbar_observation_.Observe(toolbar);
+  }
+  void OnViewIsDeleting(views::View* view) override {
+    delegate_ = nullptr;
+    toolbar_observation_.Reset();
+  }
+  ~IslandToolbarProvider() override = default;
+  AppMenuControl* GetAppMenuControl() override {
+    return delegate_ && delegate_->GetAppMenuControl() ? this : nullptr;
+  }
+  views::BubbleAnchor GetAnchor() override { return views::BubbleAnchor(anchor_); }
+  ExtensionsContainerViews* GetExtensionsContainerViews() override {
+    return delegate_->GetExtensionsContainerViews();
+  }
+  PinnedToolbarActions* GetPinnedToolbarActions() override {
+    return delegate_->GetPinnedToolbarActions();
+  }
+  gfx::Size GetToolbarButtonSize() const override {
+    return delegate_->GetToolbarButtonSize();
+  }
+  views::BubbleAnchor GetDefaultExtensionDialogAnchor() override {
+    return delegate_->GetDefaultExtensionDialogAnchor();
+  }
+  page_actions::PageActionViewInterface* GetPageActionViewInterface(actions::ActionId id) override {
+    return delegate_->GetPageActionViewInterface(id);
+  }
+  gfx::Rect GetFindBarBoundingBox(int bottom) override {
+    return delegate_->GetFindBarBoundingBox(bottom);
+  }
+  void FocusToolbar() override {
+    return delegate_->FocusToolbar();
+  }
+  views::AccessiblePaneView* GetAsAccessiblePaneView() override {
+    return delegate_->GetAsAccessiblePaneView();
+  }
+  views::BubbleAnchor GetBubbleAnchor(std::optional<actions::ActionId> id) override {
+    return delegate_->GetBubbleAnchor(id);
+  }
+  views::BubbleAnchor GetPageActionBubbleAnchor(actions::ActionId id) override {
+    return delegate_->GetPageActionBubbleAnchor(id);
+  }
+  void ZoomChangedForActiveTab(bool show) override {
+    return delegate_->ZoomChangedForActiveTab(show);
+  }
+  AvatarToolbarButtonInterface* GetAvatarToolbarButtonInterface() override {
+    return delegate_->GetAvatarToolbarButtonInterface();
+  }
+  ToolbarButton* GetBackButton() override {
+    return delegate_->GetBackButton();
+  }
+  ReloadControl* GetReloadButton() override {
+    return delegate_->GetReloadButton();
+  }
+  ToolbarButton* GetDownloadButton() override {
+    return delegate_->GetDownloadButton();
+  }
+  WebUIToolbarWebView* GetWebUIToolbarViewForTesting() override {
+    return delegate_->GetWebUIToolbarViewForTesting();
+  }
+  bool IsDrawn() const override {
+    return delegate_->GetAppMenuControl()->IsDrawn();
+  }
+  bool IsMenuShowing() const override {
+    return delegate_->GetAppMenuControl()->IsMenuShowing();
+  }
+  views::DialogDelegate* GetDialogDelegate() override {
+    return delegate_->GetAppMenuControl()->GetDialogDelegate();
+  }
+  void CloseMenu() override {
+    return delegate_->GetAppMenuControl()->CloseMenu();
+  }
+  void ShowMenu() override {
+    return delegate_->GetAppMenuControl()->ShowMenu();
+  }
+  void ShowMenuWithFlags(int flags) override {
+    return delegate_->GetAppMenuControl()->ShowMenuWithFlags(flags);
+  }
+  views::MenuItemView* GetRootMenuItemViewForTesting() override {
+    return delegate_->GetAppMenuControl()->GetRootMenuItemViewForTesting();
+  }
+  void ExecuteCommandForTesting(int id, int flags) override {
+    return delegate_->GetAppMenuControl()->ExecuteCommandForTesting(id, flags);
+  }
+  void SetMenuTimerForTesting(base::ElapsedTimer timer) override {
+    return delegate_->GetAppMenuControl()->SetMenuTimerForTesting(std::move(timer));
+  }
+  void AddObserver(AppMenuButtonObserver* observer) override {
+    return delegate_->GetAppMenuControl()->AddObserver(observer);
+  }
+  void RemoveObserver(AppMenuButtonObserver* observer) override {
+    return delegate_->GetAppMenuControl()->RemoveObserver(observer);
+  }
+  bool HasFocus() const override {
+    return delegate_->GetAppMenuControl()->HasFocus();
+  }
+  void Focus(views::AccessiblePaneView* pane) override {
+    return delegate_->GetAppMenuControl()->Focus(pane);
+  }
+  void SetTypeAndSeverity(AppMenuIconController::TypeAndSeverity value) override {
+    return delegate_->GetAppMenuControl()->SetTypeAndSeverity(value);
+  }
+  void SetIsMaximizedOrFullscreen(bool value) override {
+    return delegate_->GetAppMenuControl()->SetIsMaximizedOrFullscreen(value);
+  }
+  views::View* GetFocusablePaneView() override {
+    return delegate_->GetAppMenuControl()->GetFocusablePaneView();
+  }
+ private:
+  base::ScopedObservation<views::View, views::ViewObserver>
+      toolbar_observation_{this};
+  raw_ptr<ToolbarButtonProvider> delegate_;
+  raw_ptr<views::View> anchor_;
+};
+
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
               public content::RenderWidgetHost::InputEventObserver,
@@ -364,6 +490,7 @@ class Owner : public base::SupportsUserData::Data,
   }
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
+  std::unique_ptr<IslandToolbarProvider> toolbar_provider;
   int height = 68;
   bool vertical = false;
   int rail_width = 248;
@@ -1614,6 +1741,19 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
           root));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
+}
+
+ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
+                                      ToolbarButtonProvider* delegate) {
+  if (!delegate || !IsIslandWindow(browser)) return delegate;
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(
+      parent->GetViewByID(kIslandViewId)) : nullptr;
+  auto* owner = view ? GetOwner(view->GetWebContents()) : nullptr;
+  if (!owner) return delegate;
+  if (!owner->toolbar_provider)
+    owner->toolbar_provider = std::make_unique<IslandToolbarProvider>(delegate, view, parent->toolbar());
+  return owner->toolbar_provider.get();
 }
 
 std::unique_ptr<views::WebView> CreateIsland(
