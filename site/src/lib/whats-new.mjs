@@ -145,6 +145,14 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
   return errors;
 }
 
+// The page's meta description: its own highlights, then what the page offers,
+// sized for search snippets (70–170 characters; scripts/verify-seo.mjs).
+export function pageDescription(page) {
+  const names = page.highlights.map((h) => h.tile);
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+  return `What’s new in Blanc ${page.release}: ${list}. A short tour of each, with steps to try it and the full changelog for every detail.`;
+}
+
 // The pages to build, newest first, with the date and changelog anchor of
 // their release's .0 version. Each page's entries lead with its own
 // highlights (current: true), then add those of the EARLIER_PAGES previous
