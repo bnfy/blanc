@@ -62,7 +62,7 @@ For each candidate, in one step:
 2. Close the tab through the normal `closeTab` path, but **without** recording a Recently closed entry and without parking a held view. Recently closed stays the person's own undo buffer.
 3. Drop the tab's `sleepSnapshots` entry, as any close does.
 
-There is no toast or notice. The Archive is where to look (§4). *(Open: §10 Q2.)*
+Apart from the one-time first-archive notice (D6), there is no toast or notice. The Archive is where to look (§4).
 
 ### 2.6 Restoring
 
@@ -110,7 +110,8 @@ Archive gets no new band in the ⌘L panel. It already holds tabs, groups and Re
 - **History sheet:** `blanc://history` gets an **Archived** view next to the visit list, with search, **Restore**, **Forget** (per entry) and **Clear Archive**. It is the same utility sheet, so it needs no new page or utility-page classification.
 - **Slash command:** `/archive` opens that Archived view. Hint: "See tabs Blanc archived for you". It is added through `copy/slash-commands.json` → `slash:build`, with every language updated in the same PR.
 - **Settings:** the row in §2.1.
-- **Onboarding:** the offer in §2.1. Where it sits is open (§10 Q1), and it will be mocked up before it's built, with two or three layout options shown first.
+- **Onboarding:** the offer in §2.1, as a compact choice in the "Meet the island" step (D5). It is mocked up before it's built, with two or three layout options shown first.
+- **First-archive notice:** the one-time "Blanc archived {count} tabs · View Archive" notice (D6), also mocked up first.
 
 All new strings go in `copy/messages/en.json` and are translated into `de`, `es`, `fr`, `pt-BR` and `it` in the same PR. User-facing copy says **Archive** and **archived**, never "sweep" or "candidate".
 
@@ -152,11 +153,13 @@ All new strings go in `copy/messages/en.json` and are translated into `de`, `es`
 - **D2:** A new saved, per-profile Archive with a 30-day expiry, searchable from the Quick Switcher. Recently closed isn't reused.
 - **D3:** Only ungrouped, unpinned tabs.
 - **D4:** Delays of 12 hours, 1 day, 7 days and 30 days; idle time counts across relaunches.
+- **D5 (was Q1):** The Tab Archive offer goes in the existing "Meet the island" onboarding step, not a seventh step, as a compact choice beneath the Island explanation, preset to After 7 days. If the person doesn't opt in, Tab Archive stays Off.
+- **D6 (was Q2):** A one-time notice per local profile after the first successful archive, reading "Blanc archived {count} tabs" with a **View Archive** action. It shows only when at least one tab was actually added to the Archive (`archived.length >= 1`; an idle blank New Tab closed without an entry doesn't count), its state is per profile and never synced, and it never shows again once it is dismissed or acted on. View Archive opens `blanc://history/?view=archived`.
 
 ## 10. Open questions
 
-- **Q1. Onboarding placement.** Add the offer to one of the six existing steps, or as a seventh step? Recommendation: an existing step, because a seventh step lengthens a walkthrough everyone sees. Which step to choose gets decided with the mockups.
-- **Q2. A notice the first time.** Should the first archive in a profile show a one-time capsule ("Blanc archived 3 tabs · View")? Recommendation: yes, once only, because otherwise a tab vanishing looks like a bug the first time.
+Q1 and Q2 were answered on 2026-10-19 and are now D5 and D6 (§9).
+
 - **Q3. ⌘W in Arc archives rather than closes.** Out of scope here. Blanc's close stays a close with Recently closed as undo.
 
 ## 11. Obligations elsewhere
