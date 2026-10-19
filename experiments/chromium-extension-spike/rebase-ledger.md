@@ -1638,3 +1638,30 @@ and agent time not measured. Latency deferred; Electron diagnostic build unappro
 No cold output/toolchain/GN argument change or 156/permanent-profile modification.
 Final footprint40files93hunks, within40/120; final plan0. Partial UI preview, not
 full UI parity or Task0/Tranche2 acceptance.
+
+## October 18 rail, Recently Closed, site mute and Store follow-up
+
+Implemented native page-width reservation and hit testing for the reviewed vertical rail,
+profile-local layout/width preferences, native TabRestoreService entries/restore/forget/clear,
+and exact-host session-only site mute with independent private policies and per-tab unmute.
+No new upstream path: 40 files / 94 hunks. Native rail switching, page click-through,
+keyboard width change, menu site mute and Recently Closed row restore were exercised.
+Bridge tests cover new/existing same-host tabs, host transitions, private isolation,
+restore/forget and native viewport resize. Restart preserved rail width and closed entries,
+cleared site mute, and showed an empty error status. Forget All passes on the final binary.
+
+The owner-requested Chrome Web Store promotion rule is exact-origin and download-campaign
+scoped, runs in Chromium's internal isolated world, and hides only the promotional container.
+Normal Google installation of Extensity 1.14.0 passed through the native permission sheet
+and success bubble; persistence and native removal passed. Test profile removed; original
+preview New Tab and Store tabs restored. This is not a UA spoof or permission bypass.
+
+Evidence: `evidence/ui138-rail-store-20261018/` (31 hashed archive members).
+Four focused tests and scoped lint pass. Incremental successful wrapper times:
+39.57, 57.36 and 41.97 seconds; failed 14.66/35.98-second attempts retained. Final guard zero.
+Remaining: full matched visuals, broader rail drag/group/window restoration qualification,
+and reconciliation of Chromium's profile-wide Recently Closed list with Electron's window-local
+semantics. Glance/Spaces remain unported. The promotion may briefly paint before load callbacks;
+its empty wrapper remains labelled in AX, and the separate inline Chrome-install banner is
+outside the popover rule. Latency stays deferred; Electron diagnostic build remains unapproved.
+Task 0 promotion/upgrade gate and F12 acceptance gaps are unchanged.

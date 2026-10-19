@@ -8,6 +8,20 @@
   let refreshing = false;
   let extensionsOpened = false;
   let geometry = "";
+  let layout = localStorage.getItem('blanc.prototype.tabLayout') === 'vertical' ? 'vertical' : 'island';
+  let railWidth = Math.max(200, Math.min(360, Number(localStorage.getItem('blanc.prototype.railWidth')) || 248));
+  let closedBefore = localStorage.getItem('blanc.prototype.closedBefore');
+  async function applyRail(persist = false) {
+    railWidth = await request('rail', [layout === 'vertical', Math.round(railWidth)]);
+    strip.style.height = layout === 'vertical' ? '100%' : '68px';
+    if (persist) {
+      localStorage.setItem('blanc.prototype.tabLayout', layout);
+      localStorage.setItem('blanc.prototype.railWidth', String(railWidth));
+    }
+    await refresh();
+    emit('onVerticalTabsWidth', snapshot);
+    return railWidth;
+  }
   const pending = new Map();
   const subscribers = new Map();
   const strip = document.getElementById('strip');
@@ -86,6 +100,9 @@
       // back through nativeId() on every call.
       for (const tab of snapshot.tabs) tab.id = String(tab.id);
       if (snapshot.activeTabId != null) snapshot.activeTabId = String(snapshot.activeTabId);
+      const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
+      const beforeIndex = items.findIndex(item => item.id === closedBefore);
+      snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
       paintHeader();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
@@ -196,6 +213,12 @@
 
   const implemented = {
     platform: 'darwin',
+    setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
+    setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
+    previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
+    activateTabFromRail: async id => { await request('switchTab', [nativeId(id)]); await request('focusPage'); await refresh(); },
+    toggleSiteMute: async id => { const result = await request('toggleSiteMute', [nativeId(id)]); await refresh(); return result; },
+    moveClosedSection: async before => { closedBefore = before == null ? null : String(before); localStorage.setItem('blanc.prototype.closedBefore', closedBefore ?? ''); await refresh(); return true; },
     showTooltip: ({ text, anchor, privateTheme }) => {
       if (opened || extensionsOpened || !anchor || !Number.isFinite(anchor.x)) return;
       tooltip.textContent = String(text).slice(0, 180);
@@ -315,6 +338,14 @@
     acknowledgeDownloads: () => {},
   };
 
+  for (const method of ['reopenClosedTab', 'reopenClosedEntry', 'forgetClosedEntry', 'clearClosedEntries']) {
+    implemented[method] = async (...args) => {
+      const result = await request(method, args.map(String));
+      await refresh();
+      return result;
+    };
+  }
+
   for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
     implemented[method] = async (id) => {
       await request(method, [nativeId(id)]);
@@ -354,5 +385,5 @@
   });
   window.addEventListener('resize', reportGeometry);
   setInterval(refresh, 300);
-  refresh();
+  applyRail().catch(error => notice(error.message));
 })();

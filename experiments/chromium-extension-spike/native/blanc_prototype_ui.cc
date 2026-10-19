@@ -1,5 +1,7 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "chrome/browser/ui/blanc_prototype_ui.h"
+#include "chrome/browser/ui/blanc_webstore_promotion.h"
+#include "chrome/common/chrome_isolated_world_ids.h"
 
 #include <algorithm>
 #include <memory>
@@ -31,6 +33,9 @@
 #include "base/strings/stringprintf.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/sessions/tab_restore_service_factory.h"
+#include "chrome/browser/ui/browser_live_tab_context.h"
+#include "components/sessions/core/tab_restore_service.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/history/top_sites_factory.h"
@@ -67,6 +72,8 @@
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
 #include "ui/gfx/geometry/rect.h"
+#include "ui/views/view_targeter.h"
+#include "ui/views/view_targeter_delegate.h"
 #include "ui/gfx/range/range.h"
 #include "components/sessions/content/session_tab_helper.h"
 #include "components/viz/common/frame_sinks/copy_output_result.h"
@@ -297,6 +304,51 @@ const tab_groups::TabGroupVisualData* GroupVisuals(TabStripModel* model,
   return record ? record->visual_data() : nullptr;
 }
 
+// Session-only, exact-host policy owned by each regular or private profile.
+class SiteMutePolicy : public base::SupportsUserData::Data {
+ public:
+  std::set<std::string> hosts;
+};
+SiteMutePolicy* SitePolicy(Profile* profile) {
+  static constexpr char key[] = "blanc-site-mutes";
+  if (!profile->GetUserData(key)) profile->SetUserData(key, std::make_unique<SiteMutePolicy>());
+  return static_cast<SiteMutePolicy*>(profile->GetUserData(key));
+}
+std::string AudioHost(content::WebContents* contents) {
+  const GURL& url = contents->GetLastCommittedURL();
+  return url.SchemeIsHTTPOrHTTPS() ? std::string(url.host()) : std::string();
+}
+class SiteMuteTab : public base::SupportsUserData::Data,
+                    public content::WebContentsObserver {
+ public:
+  explicit SiteMuteTab(content::WebContents* contents)
+      : content::WebContentsObserver(contents), manual_(contents->IsAudioMuted()) { Apply(); }
+  static SiteMuteTab* Get(content::WebContents* contents) {
+    static constexpr char key[] = "blanc-site-mute-tab";
+    if (!contents->GetUserData(key)) contents->SetUserData(key, std::make_unique<SiteMuteTab>(contents));
+    return static_cast<SiteMuteTab*>(contents->GetUserData(key));
+  }
+  bool SiteMuted() const {
+    return SitePolicy(Profile::FromBrowserContext(web_contents()->GetBrowserContext()))->hosts.contains(AudioHost(web_contents()));
+  }
+  void Apply(bool reset = false) {
+    const auto host = AudioHost(web_contents());
+    if (reset || host != host_) exempt_ = false;
+    host_ = host;
+    web_contents()->SetAudioMuted(manual_ || (SiteMuted() && !exempt_));
+  }
+  void ToggleTab() {
+    if (web_contents()->IsAudioMuted()) { manual_ = false; exempt_ = SiteMuted(); }
+    else manual_ = true;
+    Apply();
+  }
+  void PrimaryPageChanged(content::Page&) override { Apply(); }
+ private:
+  bool manual_ = false;
+  bool exempt_ = false;
+  std::string host_;
+};
+
 // Like Electron's faux header, use the mode of the rendered top two rows.
 // Only the active, visible page is sampled. Pixels never leave this process.
 class Owner : public base::SupportsUserData::Data,
@@ -311,6 +363,8 @@ class Owner : public base::SupportsUserData::Data,
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
   int height = 68;
+  bool vertical = false;
+  int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
   std::string page_tint;
@@ -347,6 +401,7 @@ class Owner : public base::SupportsUserData::Data,
     if (active != web_contents()) {
       Observe(active);
       ResetTint();
+      SuppressStorePromotion();
     }
     ObserveInput();
     if (!timer_.IsRunning() && !in_flight_ && CanSample()) RequestSample();
@@ -459,6 +514,8 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange&,
                               const TabStripSelectionChange& selection) override {
+    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
+      SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     if (!selection.active_tab_changed()) return;
     SyncActive();
     auto* host = view ? view->GetWebContents() : nullptr;
@@ -510,8 +567,17 @@ class Owner : public base::SupportsUserData::Data,
     ObserveInput();
     ResetTint();
   }
-  void DidStopLoading() override { RequestSample(); }
-  void DidFirstVisuallyNonEmptyPaint() override { RequestSample(); }
+  void SuppressStorePromotion() {
+    if (!web_contents()) return;
+    auto* frame = web_contents()->GetPrimaryMainFrame();
+    const GURL& url = frame->GetLastCommittedURL();
+    if (!frame->IsRenderFrameLive() || url.scheme() != "https" ||
+        url.host() != "chromewebstore.google.com" || url.EffectiveIntPort() != 443) return;
+    frame->ExecuteJavaScriptInIsolatedWorld(kBlancWebStorePromotion,
+        base::NullCallback(), ISOLATED_WORLD_ID_CHROME_INTERNAL);
+  }
+  void DidStopLoading() override { RequestSample(); SuppressStorePromotion(); }
+  void DidFirstVisuallyNonEmptyPaint() override { RequestSample(); SuppressStorePromotion(); }
   void DidGetUserInteraction(const blink::WebInputEvent&) override { RequestSample(); }
   void OnBackgroundColorChanged() override { RequestSample(); }
   void DidChangeThemeColor() override { RequestSample(); }
@@ -552,6 +618,21 @@ bool IsPageFullscreen(BrowserWindowInterface* browser) {
 Owner* GetOwner(content::WebContents* contents) {
   return static_cast<Owner*>(contents->GetUserData(kOwnerKey));
 }
+
+// The transparent area beside the rail must remain owned by the web page.
+class IslandView : public views::WebView, public views::ViewTargeterDelegate {
+ public:
+  explicit IslandView(Profile* profile) : views::WebView(profile) {
+    SetEventTargeter(std::make_unique<views::ViewTargeter>(this));
+  }
+  bool DoesIntersectRect(const views::View*, const gfx::Rect& rect) const override {
+    auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
+    if (!owner || !owner->vertical) return GetLocalBounds().Intersects(rect);
+    return gfx::Rect(0, 0, width(), 68).Intersects(rect) ||
+        gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect) ||
+        (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
+  }
+};
 
 // Key equivalents the Island's own renderer leaves unhandled (⌘D, ⌘L, ⌘R, …)
 // must reach the window's accelerators and the macOS menu, as they do from a
@@ -605,6 +686,49 @@ scoped_refptr<base::RefCountedMemory> ReadAsset(base::FilePath root,
   return base::MakeRefCounted<base::RefCountedString>(std::move(bytes));
 }
 
+sessions::TabRestoreService* ClosedService(Profile* profile) {
+  if (profile->IsOffTheRecord()) return nullptr;
+  auto* service = TabRestoreServiceFactory::GetForProfile(profile);
+  if (service) service->LoadTabsFromLastSession();
+  return service;
+}
+
+base::ListValue ClosedEntries(Profile* profile) {
+  base::ListValue result;
+  auto* service = ClosedService(profile);
+  if (!service) return result;
+  // The renderer expects oldest first; Chromium stores newest first.
+  for (auto it = service->entries().rbegin(); it != service->entries().rend(); ++it) {
+    const auto& entry = **it;
+    std::string title;
+    std::string url;
+    int count = 1;
+    using namespace sessions::tab_restore;
+    if (entry.type == TAB) {
+      const auto& tab = static_cast<const sessions::tab_restore::Tab&>(entry);
+      if (tab.navigations.empty()) continue;
+      const auto& nav = tab.navigations[tab.normalized_navigation_index()];
+      title = base::UTF16ToUTF8(nav.title());
+      url = nav.virtual_url().spec();
+      if (title.empty()) title = url;
+    } else if (entry.type == GROUP) {
+      const auto& group = static_cast<const Group&>(entry);
+      title = base::UTF16ToUTF8(group.visual_data.title());
+      count = group.tabs.size();
+      if (title.empty()) title = "Tab group";
+    } else if (entry.type == WINDOW) {
+      count = static_cast<const Window&>(entry).tabs.size();
+      title = "Window";
+    } else {
+      count = static_cast<const Split&>(entry).tabs.size();
+      title = "Split view";
+    }
+    result.Append(base::DictValue().Set("id", base::NumberToString(entry.id.id()))
+        .Set("title", title).Set("url", url).Set("tabCount", count));
+  }
+  return result;
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -613,6 +737,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   base::ListValue tabs;
   for (int index = 0; index < model->count(); ++index) {
     auto* contents = model->GetWebContentsAt(index);
+    auto* audio = SiteMuteTab::Get(contents);
     auto& controller = contents->GetController();
     const int tab_id = sessions::SessionTabHelper::IdForTab(contents).id();
     live_tab_ids.insert(tab_id);
@@ -638,6 +763,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("pinned", model->IsTabPinned(index))
                     // Electron reads the same two signals from its WebContents.
                     .Set("muted", contents->IsAudioMuted())
+                    .Set("siteMuted", AudioHost(contents).empty() ? base::Value() : base::Value(audio->SiteMuted()))
                     .Set("audible", contents->IsCurrentlyAudible())
                     .Set("private", browser->GetProfile()->IsOffTheRecord())
                     .Set("groupId", group ? base::Value(group->ToString()) : base::Value())
@@ -670,9 +796,13 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
       .Set("groups", std::move(groups))
-      .Set("closed", base::ListValue())
+      .Set("closed", ClosedEntries(browser->GetProfile()))
       .Set("glanceTabId", base::Value())
-      .Set("tabLayout", "island")
+      .Set("tabLayout", owner->vertical ? "vertical" : "island")
+      .Set("verticalTabsWidth", owner->rail_width)
+      .Set("verticalTabsPreferredWidth", owner->rail_width)
+      .Set("verticalTabsMinWidth", 200).Set("verticalTabsMaxWidth", 360)
+      .Set("verticalTabsDefaultWidth", 248)
       .Set("adblockEnabled", false)
       .Set("displayShares", base::ListValue());
 }
@@ -848,6 +978,38 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(Snapshot(browser, owner)));
       return;
     }
+    if (method == "reopenClosedTab" || method == "reopenClosedEntry" ||
+        method == "forgetClosedEntry" || method == "clearClosedEntries") {
+      auto* service = ClosedService(profile);
+      if (!service) { reply(true, base::Value(false)); return; }
+      if (method == "clearClosedEntries" && args.empty()) {
+        service->ClearEntries(); reply(true, base::Value(true)); return;
+      }
+      auto* context = BrowserLiveTabContext::From(browser);
+      if (method == "reopenClosedTab" && args.empty()) {
+        reply(true, base::Value(!service->RestoreMostRecentEntry(context).empty()));
+        return;
+      }
+      int entry_id = 0;
+      if (args.size() != 1 || !args[0].is_string() ||
+          !base::StringToInt(args[0].GetString(), &entry_id) || entry_id <= 0) {
+        reply(false, base::Value("Expected a closed entry ID.")); return;
+      }
+      // Only top-level entries from this profile can be addressed.
+      for (const auto& entry : service->entries()) {
+        if (entry->id.id() != entry_id) continue;
+        const auto id_to_restore = entry->id;
+        if (method == "forgetClosedEntry") {
+          service->RemoveEntryById(id_to_restore);
+          reply(true, base::Value(true));
+        } else {
+          reply(true, base::Value(service->RestoreEntryById(context, id_to_restore,
+              WindowOpenDisposition::NEW_FOREGROUND_TAB).has_value()));
+        }
+        return;
+      }
+      reply(true, base::Value(false)); return;
+    }
     if (method == "listFavorites" && args.empty()) {
       // A private window or a model still loading lists nothing.
       reply(true, base::Value(ListFavorites(LoadedBookmarkModel(profile))));
@@ -948,6 +1110,12 @@ class Handler : public content::WebUIMessageHandler {
       if (auto* active = model->GetActiveWebContents()) active->Focus();
       reply(true, base::Value());
       return;
+    }
+    if (method == "rail" && args.size() == 2 && args[0].is_bool() && args[1].is_int()) {
+      owner->vertical = args[0].GetBool();
+      owner->rail_width = std::clamp(args[1].GetInt(), 200, 360);
+      if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
+      reply(true, base::Value(owner->rail_width)); return;
     }
     if (method == "height" && args.size() == 1 && args[0].is_int()) {
       owner->height = std::clamp(args[0].GetInt(), 68, 640);
@@ -1153,9 +1321,26 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
       return;
     }
+    if (method == "toggleSiteMute" && args.size() == 1) {
+      const auto host = AudioHost(tab);
+      if (host.empty()) { reply(true, base::Value(false)); return; }
+      auto* policy = SitePolicy(profile);
+      const bool muted = !policy->hosts.contains(host);
+      if (muted) policy->hosts.insert(host); else policy->hosts.erase(host);
+      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* other) {
+        if (other->GetProfile() != profile) return true;
+        auto* other_model = other->GetTabStripModel();
+        for (int i = 0; i < other_model->count(); ++i) {
+          auto* other_tab = other_model->GetWebContentsAt(i);
+          if (AudioHost(other_tab) == host) SiteMuteTab::Get(other_tab)->Apply(true);
+        }
+        return true;
+      });
+      reply(true, base::Value(muted)); return;
+    }
     if (method == "toggleMuted" && args.size() == 1) {
       // Per-tab mute on the WebContents, as Electron's toggleTabMuted does.
-      tab->SetAudioMuted(!tab->IsAudioMuted());
+      SiteMuteTab::Get(tab)->ToggleTab();
       reply(true, base::Value(tab->IsAudioMuted()));
       return;
     }
@@ -1341,7 +1526,7 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
 
 std::unique_ptr<views::WebView> CreateIsland(
     BrowserWindowInterface* browser) {
-  auto view = std::make_unique<views::WebView>(browser->GetProfile());
+  auto view = std::make_unique<IslandView>(browser->GetProfile());
   view->SetID(kIslandViewId);
   auto owner = std::make_unique<Owner>(browser);
   owner->view = view.get();
@@ -1430,6 +1615,13 @@ bool HasIsland(views::View* parent) {
   return !IsPageFullscreen(static_cast<BrowserView*>(parent)->browser());
 }
 
+int RailWidth(views::View* parent) {
+  if (!HasIsland(parent)) return 0;
+  auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
+  auto* owner = GetOwner(view->GetWebContents());
+  return owner && owner->vertical ? owner->rail_width : 0;
+}
+
 bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view || !view->GetVisible() || y < view->y() || y >= view->y() + 68) return false;
@@ -1455,7 +1647,7 @@ void LayoutIsland(views::View* parent, int top) {
   auto* owner = GetOwner(view->GetWebContents());
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
-                  std::min(owner ? owner->height : 68, available));
+                  std::min(owner && owner->vertical ? available : owner ? owner->height : 68, available));
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;

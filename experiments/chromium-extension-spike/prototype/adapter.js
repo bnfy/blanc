@@ -62,6 +62,7 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       ['Close Tabs Below', () => window.browserAPI.closeBelow(id)],
       ['Close Tab', () => window.browserAPI.closeTab(id)],
     ];
+    if (typeof tab.siteMuted === 'boolean') actions.splice(3, 0, [tab.siteMuted ? 'Unmute Site' : 'Mute Site', () => window.browserAPI.toggleSiteMute(id)]);
     for (const [label, action] of actions) {
       const button = document.createElement('button');
       button.type = 'button'; button.textContent = label; button.setAttribute('role', 'menuitem');

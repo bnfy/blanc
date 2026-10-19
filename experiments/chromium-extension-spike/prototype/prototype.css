@@ -5,7 +5,7 @@
 #pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
 #pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
-#footerTabLayout, #footerSettings, .row-glance {
+#footerSettings, .row-glance {
   display: none !important;
 }
 /* Private windows have no Favorites (Electron: private tabs never populate
@@ -46,3 +46,6 @@
 .prototype-tab-menu button {display:block; width:100%; border:0; border-radius:5px; padding:7px 10px;
  background:transparent; color:inherit; text-align:left; font:12px system-ui;}
 .prototype-tab-menu button:hover,.prototype-tab-menu button:focus-visible {background:var(--accent-dim); outline:none;}
+
+/* Native header stays above the rail; native content reserves its width. */
+.vertical-tabs-rail { top:68px; }

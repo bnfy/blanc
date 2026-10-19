@@ -170,7 +170,7 @@ let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);
@@ -185,6 +185,11 @@ for (const name of ['blanc_prototype_ui.h', 'blanc_prototype_ui.cc']) {
   writeIfChanged(path.join(chromium, 'chrome/browser/ui', name),
     fs.readFileSync(path.join(here, 'native', name), 'utf8'));
 }
+
+// Keep the reviewed compatibility script byte-for-byte in a Blanc-owned header.
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_webstore_promotion.h'),
+  'inline constexpr char16_t kBlancWebStorePromotion[] = uR"BLANC(' +
+  fs.readFileSync(path.join(here, 'native/webstore-promotion.js'), 'utf8') + ')BLANC";\n');
 
 function edit(relative, edits) {
   const target = path.join(chromium, relative);
@@ -282,6 +287,9 @@ edit('chrome/browser/ui/views/frame/browser_view.cc', [
   },
 ]);
 edit('chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc', [
+  { anchor: '  // Lay out infobar container.\n',
+    replacement: '  params.InsetHorizontal(blanc_prototype::RailWidth(views().browser_view), /*leading=*/true);\n\n  // Lay out infobar container.\n',
+    present: 'params.InsetHorizontal(blanc_prototype::RailWidth' },
   {
     anchor: '  return info;\n}\n\nBrowserViewTabbedLayoutImpl::SidePanelContentAnimation',
     replacement: `  if (blanc_prototype::HasIsland(views().browser_view)) {

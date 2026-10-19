@@ -34,6 +34,17 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
+### UI follow-up — October 18, 2026 (EDT)
+
+Vertical rail, native Recently Closed and session-only site mute now have bounded native
+input, bridge, private-isolation and restart evidence. The Store popover is suppressed;
+normal Google installation, permission prompt, persistence and removal pass. Footprint
+40 files / 94 hunks; incremental builds only, final guard zero. Evidence:
+`evidence/ui138-rail-store-20261018/`. Matched visuals, broader drag/group/window restore,
+profile-wide history semantics, Glance/Spaces and prior F12/Task0 gaps remain explicit.
+Latency deferred; Electron diagnostic build unapproved/unstarted. This updates the UI
+follow-up, not acceptance of the full tranche or promotion of Chromium157.
+
 ### UI migration preview — October 18, 2026 (EDT)
 
 Owner-authorized 1.38 follow-up is partially implemented. Reviewed renderer sources,
