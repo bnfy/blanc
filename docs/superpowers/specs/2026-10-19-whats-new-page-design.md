@@ -112,8 +112,10 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
   *My call:* a test fails when the newest release in `releases.json` has no What's New
   entry *and* isn't listed in an explicit "no page" list in the same data file, so a skip
   is a decision rather than something forgotten.
-- **First page:** the first release that ships the app side of this feature gets the first
-  real page; earlier releases have no pages.
+- **First page:** 1.38 (already public, so its page is release-backed) gets the first real
+  page, so the template ships with real content and the owner can review it live before any
+  app release depends on it. Releases before 1.38 have no pages. *(Planning decision,
+  October 19, 2026; it needs the owner's sign-off like every page.)*
 
 ## The app
 
