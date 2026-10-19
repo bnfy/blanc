@@ -20,7 +20,6 @@ const {
   page = null,          // <body data-page>; legal pages pass nothing
   header = 'solid',     // 'island' | 'solid' | 'legal'
   analytics = true,     // footer privacy choices + site.js; false on legal pages
-  chrome = 'site',      // 'site' | 'bare' (no site header or footer: the What's New pages)
   social = 'standard',  // 'rich' | 'standard' | 'none'
   current = null,       // nav highlight
   robots = 'index,follow,max-image-preview:large',
@@ -87,11 +86,11 @@ const ogImageUrl = SITE + ogImage;
 </head>
 <body data-page={page ?? undefined}>
 <slot name="before-header" />
-{chrome === 'site' && <Header variant={header} current={current} />}
+<Header variant={header} current={current} />
 <slot />
-{chrome === 'site' && <Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
+<Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
   <slot name="footnotes" slot="notes" />
-</Footer>}
+</Footer>
 {newsletterPrompt && <NewsletterPrompt />}
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
