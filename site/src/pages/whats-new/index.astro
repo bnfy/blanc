@@ -1,0 +1,27 @@
+---
+// /whats-new always leads to the newest What's New page, or to the changelog
+// before any page exists.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import data from '../../data/whats-new.json';
+import releases from '../../data/releases.json';
+import { publishedPages } from '../../lib/whats-new.mjs';
+
+const newest = publishedPages(data, releases)[0];
+const target = newest ? `/whats-new/${newest.release}` : '/changelog';
+---
+<BaseLayout
+  title="What’s New in Blanc | Blanc Browser"
+  description="The highlights of Blanc’s newest feature release, one at a time, with a link to the full changelog for every detail."
+  path="/whats-new"
+  page="whats-new-index"
+  analytics={false}
+  newsletterPrompt={false}
+  social="none"
+  robots="noindex,follow"
+>
+  <meta slot="head" http-equiv="refresh" content={`0; url=${target}`} />
+  <main id="main-content" class="legal-page">
+    <h1>What’s new in Blanc</h1>
+    <p><a href={target}>See what’s new in the latest release</a></p>
+  </main>
+</BaseLayout>

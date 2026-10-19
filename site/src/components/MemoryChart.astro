@@ -3,7 +3,7 @@
  * Measured browser memory, six ad-heavy sites open in each (five news sites
  * and Speedtest; bench/memory/workloads.json).
  *
- * Source of truth: bench/memory/results/memory-2026-10-15T06-03-46-052Z.md —
+ * Source of truth: bench/memory/results/memory-2026-10-19T03-13-32-296Z.md —
  * a single-session run, three repetitions per browser, on one Mac. Every figure
  * here is the median of that run. If these numbers change, re-run the harness
  * and update BOTH this component and docs/press/fact-sheet.md; the
@@ -16,10 +16,11 @@
 const SCALE_GB = 8;
 
 const rows = [
-  { name: 'Brave', gb: 1.5 },
-  { name: 'Blanc', gb: 1.7, blanc: true },
-  { name: 'Zen', gb: 4.0 },
-  { name: 'Chrome', gb: 5.7 },
+  { name: 'Blanc', gb: 1.5, blanc: true },
+  { name: 'Brave', gb: 1.7 },
+  { name: 'Zen', gb: 4.7 },
+  { name: 'Chrome', gb: 4.9 },
+  { name: 'Edge', gb: 7.4 },
   { name: 'Vivaldi', gb: 7.4 },
 ];
 
@@ -42,7 +43,7 @@ const {
     <p>{intro}</p>
   </div>
 
-  <figure class="memchart">
+  <figure class="memchart" data-memchart>
     <table class="memchart-table">
       <caption class="sr-only">
         Memory used by each browser with six ad-heavy sites open, in gibibytes
@@ -54,12 +55,12 @@ const {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <tr class={row.blanc ? 'is-blanc' : undefined}>
             <th scope="row">{row.name}</th>
             <td>
               <span class="memchart-track" aria-hidden="true">
-                <span class="memchart-bar" style={`--fill:${(row.gb / SCALE_GB) * 100}%`}></span>
+                <span class="memchart-bar" style={`--fill:${(row.gb / SCALE_GB) * 100}%;--i:${index}`}></span>
               </span>
               <span class="memchart-val">{row.gb.toFixed(1)} GB</span>
             </td>
@@ -68,11 +69,28 @@ const {
       </tbody>
     </table>
     <figcaption class="memchart-note">
-      Measured 15 October 2026 with Blanc 1.34.0, on fresh profiles with
-      no extensions. Brave also blocks by default, and it used a little less.
-      With Blanc’s blocker turned off, the same pages used 5.4 GB, about the
-      same as Chrome, so the saving comes from blocking. Method and raw data are in
+      Measured 19 October 2026 with Blanc 1.38.0, on fresh profiles with
+      no extensions. Brave also blocks by default, and in this run it used a
+      little more. With Blanc’s blocker turned off, the same pages used 5.2 GB,
+      about the same as Chrome, so the saving comes from blocking. Method and raw data are in
       <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">our repository</a>.
     </figcaption>
   </figure>
 </section>
+
+<script>
+  // Grow the bars once the chart is mostly in view. Reduced motion and
+  // browsers without IntersectionObserver keep the finished chart.
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    for (const chart of document.querySelectorAll<HTMLElement>('[data-memchart]')) {
+      chart.dataset.animate = 'waiting';
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        chart.dataset.animate = 'shown';
+        observer.disconnect();
+      }, { threshold: 0.35 });
+      observer.observe(chart);
+    }
+  }
+</script>

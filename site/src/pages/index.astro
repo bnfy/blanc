@@ -247,9 +247,9 @@ const faqs = [
             <p class="proof-limit">Blanc Blocker reduces known ads and tracking; no blocker catches everything. Prefer uBlock Origin? Choose it on supported builds.</p>
           </article>
           <article class="proof-card rise">
-            <p class="proof-figure">1.7 GB</p>
-            <p class="proof-claim">Under a third of Chrome’s 5.7 GB, with six ad-heavy sites open.</p>
-            <p class="proof-limit">Brave, which also blocks by default, used a little less: 1.5 GB. With its blocker off, Blanc used 5.4 GB, about the same as Chrome. <a href="#note-memory">How it was measured<sup>1</sup></a></p>
+            <p class="proof-figure">1.5 GB</p>
+            <p class="proof-claim">Under a third of Chrome’s 4.9 GB, with six ad-heavy sites open.</p>
+            <p class="proof-limit">Brave, which also blocks by default, used a little more: 1.7 GB. With its blocker off, Blanc used 5.2 GB, about the same as Chrome. <a href="#note-memory">How it was measured<sup>1</sup></a></p>
           </article>
           <article class="proof-card rise">
             <p class="proof-figure">Free</p>
@@ -650,7 +650,7 @@ const faqs = [
     </section>
   </main>
   <ol class="page-notes" slot="footnotes">
-    <li id="note-memory">Measured October 15, 2026 on one Apple Silicon Mac with 8 GB of memory, with Blanc 1.34.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">the Blanc repository</a>.</li>
+    <li id="note-memory">Measured October 19, 2026 on one Apple Silicon Mac with 24 GB of memory, with Blanc 1.38.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">the Blanc repository</a>.</li>
     <li id="note-chrome">Chrome entries describe a default Chrome install, from Google’s own documentation, read October 15, 2026: <a href="https://support.google.com/chrome/answer/7632919">ad blocking</a>, <a href="https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline">the Manifest V2 timeline</a>, <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh">uBlock Origin Lite</a>, <a href="https://support.google.com/chrome/answer/95346">downloads and system requirements</a>, <a href="https://support.google.com/chrome_webstore/answer/2664769">extensions</a>, <a href="https://support.google.com/chrome/answer/95606">passwords</a>, <a href="https://developer.chrome.com/docs/chromium">Chromium</a>, <a href="https://support.google.com/chrome/a/answer/16190511">terms</a> and <a href="https://support.google.com/chrome/answer/4410268">protected content</a>.</li>
   </ol>
   <script src="../scripts/home.js"></script>

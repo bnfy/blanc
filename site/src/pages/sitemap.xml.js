@@ -4,10 +4,16 @@
 // every page with the build date.
 import topics from '../data/guide-topics.json';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
+import whatsNew from '../data/whats-new.json';
+import releases from '../data/releases.json';
+import { publishedPages } from '../lib/whats-new.mjs';
 
 const MANIFEST = ['/', '/download', '/mail', '/mail/pricing', '/mail/download', '/mail/support', '/mail/privacy', '/mail/terms', '/support', '/trust', '/changelog', '/roadmap', '/about', '/privacy', '/terms', '/media', '/ambassadors', '/patron', '/arc-alternative', '/ublock-origin-after-chrome', '/features', '/bangs', ...topics.map(topic => `/features/${topic.id}`)];
 
-const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]']);
+// /whats-new only forwards to the newest page; each release's page is listed
+// from the data, since the route itself is one dynamic file.
+const UNLISTED = new Set(['/404', '/import-tabs', '/[...legacy]', '/whats-new/', '/whats-new/[release]']);
+const WHATS_NEW = publishedPages(whatsNew, releases).map((page) => `/whats-new/${page.release}`);
 
 const SITE = SITE_ORIGIN;
 
@@ -30,7 +36,7 @@ export function GET() {
     );
   }
 
-  const urls = MANIFEST.map((path) => `  <url>
+  const urls = [...MANIFEST, ...WHATS_NEW].map((path) => `  <url>
     <loc>${SITE}${path}</loc>
   </url>`).join('\n');
 

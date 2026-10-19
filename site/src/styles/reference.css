@@ -261,6 +261,20 @@
   font: 500 17px/1.5 var(--font-brand-text);
   margin: 18px 0 10px;
 }
+.trust-overview .trust-baseline {
+  display: inline-flex;
+  margin-top: 14px;
+  border-radius: 3px;
+  transition: opacity 160ms ease;
+}
+.trust-overview .trust-baseline:hover {
+  opacity: 0.78;
+}
+.trust-overview .trust-baseline img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
 .trust-overview p {
   font-size: 14px;
   line-height: 1.8;
@@ -361,8 +375,12 @@
   .trust-overview h2 {
     margin: 0 0 8px;
   }
-  .trust-overview p {
+  .trust-overview p,
+  .trust-overview .trust-baseline {
     grid-column: 2;
+  }
+  .trust-overview .trust-baseline {
+    justify-self: start;
   }
   .trust-overview span {
     grid-row: 1/3;

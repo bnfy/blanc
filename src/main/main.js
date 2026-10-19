@@ -234,7 +234,8 @@ const {
   defaultTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
-const { whatsNewOnLaunch, whatsNewState } = require('./whats-new');
+const { whatsNewOnLaunch, whatsNewState, whatsNewCheckDue, whatsNewAfterCheck, whatsNewPageUrl } = require('./whats-new');
+const { checkWhatsNewPage } = require('./whats-new-check');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
@@ -1638,6 +1639,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 }
 
 let launchPingSent = false;
+let whatsNewCheckStarted = false;
+// Set once anything else asks Blanc for a tab (a link, a file, a tab import),
+// so the What's New tab never takes the foreground from it.
+let launchHandedUrls = false;
 const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
 const defaultBrowserSettable = () => canSetDefaultBrowser({ app, platform: process.platform });
 // The moving-in checklist's "Make Blanc your default" completes the first
@@ -1728,6 +1733,34 @@ function maybeSendLaunchPing() {
   dayOneSignals.start();
 }
 
+// After a feature update, open that release's What's New page on blanc.day
+// once, but only after asking whether it exists (the site deploy can trail the
+// release, and a release may have no page). One check per launch, while the
+// Start Page pill is live; the answer also points the pill at the page.
+async function maybeOpenWhatsNew() {
+  if (!app.isPackaged || whatsNewCheckStarted) return;
+  whatsNewCheckStarted = true;
+  const version = app.getVersion();
+  if (!whatsNewCheckDue(settings.getSettings(), { version, now: Date.now() })) return;
+  const url = whatsNewPageUrl(version);
+  if (!bananifyServiceAllowed(url)) return;
+  const found = await checkWhatsNewPage(url, { fetch: net.fetch });
+  // The window that gets the tab is the one focused once the answer arrives.
+  withWindowRuntime(focusedRuntime ?? primaryRuntime, () => {
+    const { patch, openUrl } = whatsNewAfterCheck(settings.getSettings(), {
+      version,
+      found,
+      // Never over a link, a tab import or an open sheet: the tab stays owed
+      // for a later launch instead.
+      canOpen: !isQuitting && hasLiveWindow() && !launchHandedUrls && !rt().utilitySheetUrl && !pendingTabHandoff,
+    });
+    if (!patch) return;
+    // Settings changes re-broadcast the Start Page status, pill included.
+    settings.setSettings(patch);
+    if (openUrl) setActiveTab(createTab(openUrl), { focusContent: true });
+  });
+}
+
 function maybeSendProductUsage(wc, report) {
   const tabId = tabIdByWebContentsId.get(wc?.id);
   const tab = tabId ? tabs.get(tabId) : null;
@@ -1750,10 +1783,12 @@ function resolveExternalRuntime(preferred = focusedRuntime) {
 }
 
 function openExternalUrls(urls) {
+  if (urls?.length) launchHandedUrls = true;
   externalUrlHandoff.open(urls);
 }
 
 function openLocalHtmlFiles(paths) {
+  if (paths?.length) launchHandedUrls = true;
   externalUrlHandoff.openLocalFiles(paths);
 }
 
@@ -13021,6 +13056,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
     scheduleDefaultBrowserReminder();
+    maybeOpenWhatsNew().catch(() => {});
 
     // Patron subscription revalidation — off the critical path, after the
     // navigation gate is released and session restore is done. The model's

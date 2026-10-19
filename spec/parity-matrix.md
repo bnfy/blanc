@@ -59,6 +59,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F48 | Pinned homes | PARTIAL | N/A | N/A | Desktop only. A pinned tab keeps browsing normally for the session, returns to the page where it was pinned after a clean relaunch, restores the last page after a crash, and changes home only through explicit pin or menu actions. Homes stay local and private-tab homes are memory-only. | — |
 | F49 | Start Page wallpaper image | PARTIAL | N/A | N/A | Desktop only. A JPEG or PNG the person chooses is downscaled, stripped of metadata except orientation, stored on this device only (never synced, never in private tabs) and served at an unguessable per-launch address. | — |
 | F50 | Start Page color wallpaper | PARTIAL | N/A | N/A | Desktop only. Soft, solid or gradient from the eight Spaces presets, synced; optionally follows the window's Space color; never in private tabs; inks checked at 4.5:1 in a pure paint module. | — |
+| F51 | What's New page | PARTIAL | N/A | N/A | Desktop only. Opens blanc.day's page for a feature release once after the update, only when the page exists; the Start Page pill links to it. | — |
 
 ## Notes on the "mobile-only wins"
 

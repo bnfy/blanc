@@ -32,6 +32,9 @@ const washStyle = process.env.BLANC_CAPTURE_WASH || 'auto';
 // Fraction trimmed from each edge of the sample, e.g. a scan's canvas border.
 const trim = Number(process.env.BLANC_CAPTURE_TRIM ?? 0);
 const color = process.env.BLANC_CAPTURE_COLOR || 'sky';
+// soft, solid or gradient (the released fills).
+const fill = process.env.BLANC_CAPTURE_FILL || 'gradient';
+assert.ok(['soft', 'solid', 'gradient'].includes(fill), `Unknown fill ${fill}`);
 const { executablePath, version, build } = await installedBlanc(expectedVersion);
 const outputDirectory = captureOutputDirectory('custom-wallpaper');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-installed-custom-wallpaper-raw-'));
@@ -82,7 +85,7 @@ function seedProfile(profile, state) {
     patronCalloutDismissedAt: now,
     ...(state.source === 'image'
       ? { newtabCustomWallpaper: true, newtabWallpaperStyle: washStyle, newtabWallpaperWash: fade }
-      : { newtabColorWallpaper: true, newtabWallpaperColor: color, newtabWallpaperFill: 'gradient', newtabFollowSpaceColor: false }),
+      : { newtabColorWallpaper: true, newtabWallpaperColor: color, newtabWallpaperFill: fill, newtabFollowSpaceColor: false }),
   });
   seedStartPageFixtures(profile, { favorites, now });
   if (state.source === 'image') {
@@ -150,8 +153,10 @@ async function captureState(state) {
 }
 
 try {
-  for (const state of states) await captureState(state);
-  process.stdout.write(`Captured installed Blanc ${version} (${build}) custom wallpaper set to ${outputDirectory} (image ${sha256(imagePath)}, trim ${trim}, wash ${washStyle}, fade ${fade}, color ${color}).\n`);
+  // BLANC_CAPTURE_STATES (e.g. "color") limits the run to the named states.
+  const only = process.env.BLANC_CAPTURE_STATES?.split(',').map((name) => name.trim()).filter(Boolean);
+  for (const state of states) if (!only || only.includes(state.name)) await captureState(state);
+  process.stdout.write(`Captured installed Blanc ${version} (${build}) custom wallpaper set to ${outputDirectory} (image ${sha256(imagePath)}, trim ${trim}, wash ${washStyle}, fade ${fade}, color ${color}, fill ${fill}).\n`);
 } finally {
   fs.rmSync(scratch, { recursive: true, force: true });
 }
