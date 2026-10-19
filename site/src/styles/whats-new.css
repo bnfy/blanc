@@ -1,0 +1,257 @@
+/* What's New pages (docs/superpowers/specs/2026-10-19-whats-new-page-design.md):
+   Chrome's one-highlight-at-a-time layout inside the site's own identity. The
+   masthead, footer, kicker (.section-kicker), primary button (.cta), text link
+   (.text-link) and capture frame (.product-capture) are the shared site styles;
+   the selected tile is outlined in the site ink, like the primary button;
+   this file only lays them out. Color comes from the captures themselves.
+   Highlights from earlier releases carry their version on the tile. */
+
+.wn {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 48px) max(16px, 4vw) clamp(56px, 8vw, 96px);
+}
+/* With the script, the first screen holds the stage and the tile row, as in
+   Chrome. The intro and every highlight share one grid cell, so the stage is
+   as tall as the tallest and the row never moves; the shown one
+   (data-current) crossfades in. Phones keep the plain flow below. */
+.wn.is-enhanced {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - var(--site-header-h));
+  padding-bottom: 24px;
+}
+.wn.is-enhanced .wn-stage {
+  flex: 1;
+  display: grid;
+  align-items: center;
+}
+.wn.is-enhanced .wn-stage > * {
+  grid-area: 1 / 1;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.wn.is-enhanced .wn-stage > [data-current] {
+  transition: opacity 0.3s ease, visibility 0s;
+}
+.wn.is-enhanced .wn-stage > :not([data-current]) {
+  opacity: 0;
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wn.is-enhanced .wn-stage > * { transition: none; }
+}
+@media (max-width: 760px) {
+  .wn.is-enhanced .wn-stage > :not([data-current]) { display: none; }
+}
+
+.wn-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(32px, 6vw, 72px) 0;
+  text-align: center;
+}
+.wn-intro-mark {
+  display: block;
+  width: clamp(88px, 10vw, 120px);
+  height: auto;
+  margin: 0 auto 28px;
+}
+.wn-intro h1 {
+  max-width: 11ch;
+  margin: 0 auto;
+  font-family: var(--site-font-display);
+  font-weight: 400;
+  font-size: clamp(2.8rem, 7vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.wn-highlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+  padding: 8px 0 clamp(36px, 5vw, 56px);
+}
+.wn:not(.is-enhanced) .wn-highlight + .wn-highlight {
+  padding-top: clamp(36px, 5vw, 56px);
+  border-top: 1px solid var(--site-border);
+}
+.wn-highlight h2 {
+  margin: 0 0 18px;
+  font-family: var(--site-font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+.wn-body,
+.wn-steps,
+.wn-note {
+  color: var(--site-text-dim);
+  line-height: 1.6;
+}
+.wn-body {
+  margin: 0 0 16px;
+  font-size: 1.08rem;
+}
+.wn-steps {
+  margin: 0 0 16px;
+  padding-left: 1.3em;
+}
+.wn-steps li + li {
+  margin-top: 4px;
+}
+.wn-note {
+  margin: 0 0 26px;
+  font-size: 0.95rem;
+}
+
+.wn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px;
+}
+.wn-actions .text-link {
+  margin-top: 0;
+}
+.wn-next {
+  border: 0;
+  cursor: pointer;
+}
+.wn-next:focus-visible {
+  outline: 2px solid var(--site-text);
+  outline-offset: 3px;
+}
+.wn:not(.is-enhanced) .wn-next {
+  display: none;
+}
+
+.wn-media {
+  position: relative;
+  margin: 0;
+}
+.wn-replay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--site-border);
+  border-radius: 50%;
+  background: var(--site-surface-raised);
+  color: var(--site-text);
+  cursor: pointer;
+}
+
+.wn-rail {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.wn:not(.is-enhanced) .wn-rail {
+  display: none;
+}
+.wn-arrows {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+.wn-arrow {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--site-border);
+  border-radius: 50%;
+  background: var(--site-surface-raised);
+  color: var(--site-text);
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.wn-arrow:hover {
+  border-color: var(--site-text);
+}
+.wn-arrow:focus-visible {
+  outline: 2px solid var(--site-text);
+  outline-offset: 2px;
+}
+.wn-tiles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  scroll-behavior: smooth;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scroll-snap-type: x proximity;
+}
+.wn-tile {
+  flex: 1 0 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 74px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid var(--site-border);
+  border-radius: 13px;
+  background: var(--site-surface-raised);
+  color: var(--site-text-dim);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: color 0.15s ease;
+}
+.wn-tile:hover {
+  color: var(--site-text);
+}
+.wn-tile[aria-current="true"] {
+  border-color: var(--site-text);
+  box-shadow: inset 0 0 0 1px var(--site-text);
+  color: var(--site-text);
+}
+.wn-tile:focus-visible {
+  outline: 2px solid var(--site-text);
+  outline-offset: 2px;
+}
+.wn-tile-version {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--site-gold);
+}
+.wn-tile-thumb {
+  flex: none;
+  width: 72px;
+  height: 45px;
+  margin-left: auto;
+  object-fit: cover;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+}
+
+.wn-changelog {
+  margin: 32px 0 0;
+  color: var(--site-text-dim);
+  text-align: center;
+}
+.wn-changelog a {
+  color: var(--site-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wn-tiles { scroll-behavior: auto; }
+}
+@media (max-width: 760px) {
+  .wn-highlight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wn-tile {
+    flex-basis: 220px;
+  }
+}

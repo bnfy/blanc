@@ -1,0 +1,60 @@
+---
+// One What's New highlight: its release, words, steps and buttons on the left,
+// its media on the right. A page shows its own release's highlights (current)
+// and then a few from earlier releases, each naming its own release. Without scripting every highlight shows in order; whats-new.js
+// shows one at a time (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
+import SpacesDemo from './SpacesDemo.astro';
+import TabDragFigure from './TabDragFigure.astro';
+import { chipSpans } from '../lib/whats-new.mjs';
+
+interface Props {
+  highlight: {
+    id: string;
+    title: string;
+    body: string;
+    steps?: string[];
+    note?: string;
+    learnMore?: string;
+    media:
+      | { kind: 'image'; src: string; width: number; height: number; alt: string; caption?: string }
+      | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
+      | { kind: 'demo'; demo: 'spaces' | 'tab-drag' };
+  };
+  release: string;   // the highlight's feature release, e.g. '1.38'
+  humanDate: string; // that release's date, e.g. 'October 18, 2026'
+  current: boolean;  // from this page's release, not an earlier one
+  first: boolean;
+}
+const { highlight: h, release, humanDate, current, first } = Astro.props;
+const media = h.media;
+// Backticked keys and codes render as the site's chip.
+const rich = (text: string) => chipSpans(text).map((span) => (span.chip ? { chip: span.text } : { text: span.text }));
+const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
+---
+<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
+  <div class="wn-copy">
+    <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release} · {shortDate}</p>
+    <h2 id={`${h.id}-title`}>{h.title}</h2>
+    <p class="wn-body">{rich(h.body).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>
+    {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{rich(step).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</li>)}</ol>}
+    {h.note && <p class="wn-note">{rich(h.note).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>}
+    <div class="wn-actions">
+      <button type="button" class="cta wn-next">next</button>
+      {h.learnMore && <a class="text-link wn-learn-more" href={h.learnMore}>learn more <span aria-hidden="true">›</span></a>}
+    </div>
+  </div>
+  <figure class:list={['wn-media', { 'product-capture released-capture': media.kind !== 'demo' }]}>
+    {media.kind === 'image' && (
+      <img src={media.src} width={media.width} height={media.height} alt={media.alt} loading={first ? 'eager' : 'lazy'} decoding="async" />
+    )}
+    {media.kind === 'video' && (
+      <>
+        <video src={media.src} poster={media.poster} aria-label={media.alt} muted playsinline loop preload="metadata"></video>
+        <button type="button" class="wn-replay" aria-label="Play from the start" hidden><span aria-hidden="true">↻</span></button>
+      </>
+    )}
+    {media.kind === 'demo' && media.demo === 'spaces' && <SpacesDemo />}
+    {media.kind === 'demo' && media.demo === 'tab-drag' && <TabDragFigure />}
+    {media.kind !== 'demo' && media.caption && <figcaption>{media.caption}</figcaption>}
+  </figure>
+</section>

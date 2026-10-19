@@ -1,0 +1,58 @@
+---
+// /whats-new/<major>.<minor>: the highlights of one feature release. Blanc opens
+// this page once after a feature update, only after checking that it exists
+// (src/main/whats-new.js), so it runs no analytics and carries no newsletter
+// prompt. It wears the site's own masthead, footer, kicker, buttons and capture
+// frames (docs/brand-usage.md). Every page needs the owner's sign-off before it
+// deploys (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WhatsNewHighlight from '../../components/WhatsNewHighlight.astro';
+import data from '../../data/whats-new.json';
+import releases from '../../data/releases.json';
+import { plainText, publishedPages, validateWhatsNew } from '../../lib/whats-new.mjs';
+import '../../styles/whats-new.css';
+
+export function getStaticPaths() {
+  const errors = validateWhatsNew(data, releases, { requireEveryRelease: false });
+  if (errors.length) throw new Error(`site/src/data/whats-new.json:\n${errors.join('\n')}`);
+  return publishedPages(data, releases).map((page) => ({ params: { release: page.release }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const { release, anchor, highlights, entries } = page;
+---
+<BaseLayout
+  title={`What’s New in Blanc ${release} | Blanc Browser`}
+  description={`The highlights of Blanc ${release}: ${highlights.map((h) => plainText(h.tile)).join(', ')}.`}
+  path={`/whats-new/${release}`}
+  page="whats-new"
+  analytics={false}
+  newsletterPrompt={false}
+>
+  <main id="main-content" class="wn" data-release={release}>
+    <div class="wn-stage">
+      <section class="wn-intro" aria-labelledby="wn-intro-title">
+        <img class="wn-intro-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt="" />
+        <h1 id="wn-intro-title">See what’s new in Blanc</h1>
+      </section>
+      {entries.map((entry, index) => <WhatsNewHighlight {...entry} first={index === 0} />)}
+    </div>
+    <div class="wn-rail">
+    <nav class="wn-tiles" aria-label="Highlights">
+      {entries.map(({ highlight: h, release: from, current }, index) => (
+        <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
+          <span class="wn-tile-label">{!current && <span class="wn-tile-version">{from}</span>}{h.tile}</span>
+          {h.media.kind === 'image' && <img class="wn-tile-thumb" src={h.media.src} width={h.media.width} height={h.media.height} alt="" loading="lazy" decoding="async" />}
+          {h.media.kind === 'video' && <img class="wn-tile-thumb" src={h.media.poster} alt="" loading="lazy" decoding="async" />}
+        </button>
+      ))}
+    </nav>
+    <div class="wn-arrows">
+      <button type="button" class="wn-arrow wn-arrow--prev" aria-label="Previous highlight"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="wn-arrow wn-arrow--next" aria-label="Next highlight"><span aria-hidden="true">›</span></button>
+    </div>
+    </div>
+    <p class="wn-changelog">Want every detail? <a href={`/changelog#${anchor}`}>Read the full changelog on blanc.day</a></p>
+  </main>
+  <script src="../../scripts/whats-new.js"></script>
+</BaseLayout>
