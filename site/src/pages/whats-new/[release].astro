@@ -13,7 +13,7 @@ import { plainText, publishedPages, validateWhatsNew } from '../../lib/whats-new
 import '../../styles/whats-new.css';
 
 export function getStaticPaths() {
-  const errors = validateWhatsNew(data, releases, { requireEveryRelease: false });
+  const errors = validateWhatsNew(data, releases, { requireEveryRelease: false, allowDrafts: import.meta.env.DEV });
   if (errors.length) throw new Error(`site/src/data/whats-new.json:\n${errors.join('\n')}`);
   return publishedPages(data, releases).map((page) => ({ params: { release: page.release }, props: { page } }));
 }

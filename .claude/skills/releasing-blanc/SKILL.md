@@ -195,8 +195,12 @@ short:
      Feature Roadmap and `release-feature-names.json` (see `site/CLAUDE.md`);
    - the release's What's New page in `site/src/data/whats-new.json` (or a
      `noPage` entry for a feature release without one; its unit test requires
-     one or the other). It needs the owner's explicit sign-off on its final
-     text and media before it deploys. After the first release that opens it,
+     one or the other). Draft it first with
+     `npm run site:whats-new -- --release X.Y`, which turns the release notes'
+     bold-named Added bullets into highlights with TODO media, lists candidate
+     captures and never overwrites a page (`--force` replaces only a draft).
+     It needs the owner's explicit sign-off on its final text and media
+     before it deploys. After the first release that opens it,
      add the What's New sentence to the privacy policy (see the spec
      `docs/superpowers/specs/2026-10-19-whats-new-page-design.md`);
    - the Bangs page re-pinned to the new tag,

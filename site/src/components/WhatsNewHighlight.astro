@@ -18,7 +18,9 @@ interface Props {
     media:
       | { kind: 'image'; src: string; width: number; height: number; alt: string; caption?: string }
       | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
-      | { kind: 'demo'; demo: 'spaces' | 'tab-drag' };
+      | { kind: 'demo'; demo: 'spaces' | 'tab-drag' }
+      // A draft's placeholder (site/scripts/whats-new-draft.mjs); only the dev server renders it.
+      | { kind: 'todo'; todo: string; candidates: string[] };
   };
   release: string;   // the highlight's feature release, e.g. '1.38'
   humanDate: string; // that release's date, e.g. 'October 18, 2026'
@@ -43,7 +45,7 @@ const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
       {h.learnMore && <a class="text-link wn-learn-more" href={h.learnMore}>learn more <span aria-hidden="true">›</span></a>}
     </div>
   </div>
-  <figure class:list={['wn-media', { 'product-capture released-capture': media.kind !== 'demo' }]}>
+  <figure class:list={['wn-media', { 'product-capture released-capture': media.kind !== 'demo' && media.kind !== 'todo' }]}>
     {media.kind === 'image' && (
       <img src={media.src} width={media.width} height={media.height} alt={media.alt} loading={first ? 'eager' : 'lazy'} decoding="async" />
     )}
@@ -55,6 +57,12 @@ const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
     )}
     {media.kind === 'demo' && media.demo === 'spaces' && <SpacesDemo />}
     {media.kind === 'demo' && media.demo === 'tab-drag' && <TabDragFigure />}
-    {media.kind !== 'demo' && media.caption && <figcaption>{media.caption}</figcaption>}
+    {media.kind === 'todo' && (
+      <div class="wn-media-todo">
+        <p><strong>TODO:</strong> {media.todo}</p>
+        {media.candidates.length > 0 && <ul>{media.candidates.map((src) => <li><code>{src}</code></li>)}</ul>}
+      </div>
+    )}
+    {media.kind !== 'demo' && media.kind !== 'todo' && media.caption && <figcaption>{media.caption}</figcaption>}
   </figure>
 </section>

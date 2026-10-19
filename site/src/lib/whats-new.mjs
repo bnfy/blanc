@@ -12,6 +12,10 @@ const FEATURE_RE = /^(\d+)\.(\d+)$/;
 // Only the demos that carry their own script and styles; Glance and gestures
 // still lean on the homepage's home.js and home.css.
 export const DEMOS = Object.freeze(['spaces', 'tab-drag']);
+// The media of a drafted highlight (site/scripts/whats-new-draft.mjs) until
+// someone chooses real media. Invalid outside the dev server's preview, so a
+// draft can neither pass the unit test nor build.
+export const TODO_MEDIA_KIND = 'todo';
 // Two to five of a release's own; earlier releases fill the page out.
 const MIN_HIGHLIGHTS = 2;
 const MAX_HIGHLIGHTS = 5;
@@ -54,9 +58,10 @@ const isSitePath = (url) => typeof url === 'string'
 
 const nonEmpty = (value) => typeof value === 'string' && value.trim() !== '';
 
-function mediaErrors(media, where, publicDir) {
+function mediaErrors(media, where, publicDir, allowDrafts) {
   const errors = [];
   if (!media || typeof media !== 'object') return [`${where}: media is missing`];
+  if (media.kind === TODO_MEDIA_KIND) return allowDrafts ? [] : [`${where}: media is still a TODO; choose an image, video or demo`];
   const local = [];
   if (media.kind === 'image') {
     if (!nonEmpty(media.src)) errors.push(`${where}: image needs src`);
@@ -86,8 +91,9 @@ function mediaErrors(media, where, publicDir) {
 // requireEveryRelease checks that each feature release from firstRelease on has
 // a page or a noPage entry. Both wait on the owner's sign-off, so only the unit
 // test asks for it; the build leaves it off, and the post-release changelog
-// deploy never waits on a page.
-export function validateWhatsNew(data, releases, { publicDir, requireEveryRelease = true } = {}) {
+// deploy never waits on a page. allowDrafts accepts TODO media, for the dev
+// server's preview only.
+export function validateWhatsNew(data, releases, { publicDir, requireEveryRelease = true, allowDrafts = false } = {}) {
   const errors = [];
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
@@ -122,7 +128,7 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
         if (typeof text === 'string') errors.push(...chipErrors(text, where));
       }
       if (h.learnMore !== undefined && !isSitePath(h.learnMore)) errors.push(`${where}: learnMore must be a blanc.day page`);
-      errors.push(...mediaErrors(h.media, where, publicDir));
+      errors.push(...mediaErrors(h.media, where, publicDir, allowDrafts));
     }
   }
   const skipped = new Set(data.noPage ?? []);
