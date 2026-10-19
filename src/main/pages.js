@@ -1,8 +1,8 @@
-const { app, protocol, net, ipcMain, session, dialog, shell } = require('electron');
+const { app, protocol, ipcMain, session, dialog, shell } = require('electron');
 const { execFileSync } = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
-const { pathToFileURL } = require('url');
+const { internalFileResponse } = require('./internal-file-response');
 const bookmarks = require('./bookmarks');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
@@ -101,7 +101,7 @@ function setupPages(hooks = {}) {
 
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
-    if (branding) return net.fetch(pathToFileURL(branding).toString());
+    if (branding) return internalFileResponse(branding);
     const { host, pathname } = new URL(request.url);
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
@@ -122,7 +122,7 @@ function setupPages(hooks = {}) {
       dockIconPath: developmentDockIconPath,
       darkDockIconPath: developmentDarkDockIconPath,
     });
-    return net.fetch(pathToFileURL(resource).toString());
+    return internalFileResponse(resource);
   };
 
   // The top-level `protocol` module binds only to the default session, so a

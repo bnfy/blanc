@@ -963,9 +963,32 @@ try {
   const failedId = await call('openTab', fixture + 'failure-gated');
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === failedId)?.isLoading, value => value === false, 'failed navigation settled');
   assert(!hits.includes('/failure-gated'));
-  assert.equal((await call('allowAdsOnActive')).error, 'blocking-not-ready');
-  const recovery = await waitForValue(async () => (await electron.windows()).find(item => item.url().startsWith('blanc://settings/')), Boolean, '/allow-ads recovery');
-  await recovery.locator('#ublockRetry').waitFor({ state: 'visible' });
+  // Recovery must not depend on nested file requests through Electron's
+  // network stack. Reproduce the stalled asset path that otherwise leaves
+  // Retry hidden until the utility sheet's eight-second watchdog closes it.
+  await electron.evaluate(({ net }) => {
+    const original = net.fetch;
+    globalThis.uboRecoveryFileFetch = { original, calls: [] };
+    net.fetch = function (input, ...args) {
+      const url = typeof input === 'string' ? input : input?.url;
+      if (url?.startsWith('file:')) {
+        globalThis.uboRecoveryFileFetch.calls.push(url);
+        return new Promise(() => {});
+      }
+      return original.call(this, input, ...args);
+    };
+  });
+  try {
+    assert.equal((await call('allowAdsOnActive')).error, 'blocking-not-ready');
+    const recovery = await waitForValue(async () => (await electron.windows()).find(item => item.url().startsWith('blanc://settings/')), Boolean, '/allow-ads recovery');
+    await recovery.locator('#ublockRetry').waitFor({ state: 'visible' });
+    assert.deepEqual(await electron.evaluate(() => globalThis.uboRecoveryFileFetch.calls), [], 'recovery assets bypass network fetch');
+  } finally {
+    await electron.evaluate(({ net }) => {
+      net.fetch = globalThis.uboRecoveryFileFetch.original;
+      delete globalThis.uboRecoveryFileFetch;
+    });
+  }
   await call('toggleAdblock');
   assert.equal((await call('blockingStatus')).enabled, false, '/block-ads must disable a failed provider');
   await call('setAdblock', true);

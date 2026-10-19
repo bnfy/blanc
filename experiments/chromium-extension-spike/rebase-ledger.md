@@ -2655,3 +2655,15 @@ Remaining: hot profile deletion/unload, genuine OS/provider failure modes and sa
 Evidence: `evidence/ui138-save-provider-20261019/`.
 
 Incremental wrapper times: failed diagnostic attempts 7.46s / 10.82s, successful diagnostic 33.24s, normal restore 33.58s. Final guard zero actions / 3.53s. 63 archived members verified against SHA-256. No new unit-test pass claimed for this evidence-only checkpoint.
+
+## Windows uBO Retry recovery asset fix — October 19, 2026
+
+The Windows desktop failure on caddd938 occurred while the browser was still alive: the provider reported failed/ubo-background-crashed with its recovery budget exhausted. Settings view 58 was focused at 1792449081225 and closed at 1792449089228 by discardFailedUtilitySheet, matching the eight-second navigation watchdog. The later process exit zero was test cleanup, not the initiating failure. The log does not identify which pending resource caused the Windows load stall.
+
+The recovery page previously re-entered Electron's network stack through net.fetch(file:) for bundled HTML/scripts/styles. It now reads already-allowlisted local assets asynchronously and returns explicit MIME types with nosniff, including the existing exact branding endpoint. URL resolution, IPC ownership, CSP, external blocking and the eight-second hung-sheet deadline are unchanged. This removes the internal file-fetch dependency during provider loss; it does not claim that a native Windows trace proved the exact blocked resource. The desktop regression deliberately holds file fetches and requires visible Retry with zero such calls. A focused native probe also clicks Retry and requires ready afterward. The audit inventory is refreshed.
+
+No Chromium source/output/profile changes or builds. Upstream footprint remains the prior measured 49 files/114 hunks; no fresh inventory claimed. Latency deferred, native input pending, Electron diagnostic build unapproved/unstarted. Windows acceptance remains dependent on new-head CI; no historical pass is substituted.
+
+Validation: focused native probe passes visible Retry, zero file-fetch dependency and actual Retry click to ready; the old source fails the same injected-stall probe before Settings becomes available. The original Mac full uBO suite and updated full suite both pass (natural Windows timing not reproduced locally). Unit batches pass 24/24 and 36/36, with overlap; scoped lint and audit inventory check pass. Missing-dependency/sandbox setup failures and an initial focused-probe hook typo are retained. No Electron source build was performed; tests use official Electron 44.8.0. New-head Windows CI remains pending.
+
+Evidence: `evidence/ui138-retry-assets-20261019/`.
