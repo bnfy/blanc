@@ -337,16 +337,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-008",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "A Start Page that follows the time of day",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-009",
       "source": "site/src/pages/features.astro",
       "exactWording": "Ads and trackers blocked by default",
@@ -733,16 +723,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "quietTabs"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-051",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "A Start Page that follows the time of day.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
       ],
       "verdict": "qualified"
     },

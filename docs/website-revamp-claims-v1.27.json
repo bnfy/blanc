@@ -4628,16 +4628,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-072",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-073",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Billboard puts frequently visited sites within reach. Sample browsing data shown.",
@@ -13108,6 +13098,34 @@
           {
             "before": "<figcaption>Standalone Mahjong — Bridge / Burst</figcaption>",
             "after": "<figcaption>Standalone Mahjong — Daily Turtle / Burst</figcaption>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026, owner request: the line under the new headline no longer repeats “Choose”, and names the wallpapers that shipped in v1.38.0. Recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.</p>",
+            "after": "<p>Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color. Every footer also opens Mahjong in its own tab and leaves your Start Page in place.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 18, 2026, after public v1.38.0: the time-of-day wallpaper tile and pop-up become the Start Page wallpaper tile and pop-up, adding your own image and the Color wallpaper (F49, F50). Recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>A Start Page that follows the time of day</h3>",
+            "after": "<h3>Choose your Start Page wallpaper</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-wallpaper-title\">A Start Page that follows the time of day.</h2>",
+            "after": "<h2 id=\"pop-wallpaper-title\">Choose your Start Page wallpaper.</h2>"
+          },
+          {
+            "before": "dawn, day, dusk and night with your computer’s clock.</p>\n",
+            "after": "dawn, day, dusk and night with your computer’s clock.</p>\n          <p>Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.</p>\n"
           }
         ]
       }

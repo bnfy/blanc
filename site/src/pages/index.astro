@@ -193,6 +193,7 @@ const faqs = [
         <div class="device-copy">
           <h2 id="wallpaper-title">Your Start Page, from dawn to night.</h2>
           <p class="lead">Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.</p>
+          <p class="lead">Or choose your own image or a color from Customize on the Start Page.</p>
         </div>
         <div class="device-frame">
           <img
@@ -208,7 +209,7 @@ const faqs = [
             aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
           >
             <img
-              src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp"
+              src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp"
               width="1440"
               height="900"
               alt=""
@@ -216,7 +217,7 @@ const faqs = [
               ["day", "dusk", "night"].map((time) => (
                 <img
                   class={`wallpaper-${time}`}
-                  src={`/feature-captures/home-wallpaper-${time}-v1.35.0.webp`}
+                  src={`/feature-captures/home-wallpaper-${time}-v1.38.0.webp`}
                   width="1440"
                   height="900"
                   loading="lazy"
@@ -370,24 +371,30 @@ const faqs = [
             </div>
           </article>
           <article class="tool-card tool-card-wide rise">
-            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-v1.35.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
+            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-v1.38.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
             <div class="tool-copy">
-              <h3>Start Page layouts</h3>
-              <p>Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock.</p>
-              <p class="tool-limit">Turn on Time-of-day wallpaper in Settings → General.</p>
-              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout" data-layouts hidden>
+              <h3>Start Page layouts and wallpaper</h3>
+              <p>Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.</p>
+              <p class="tool-limit">Your own image stays on this device and never shows in private tabs.</p>
+              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout or your own image" data-layouts hidden>
                 {
                   ["Ledger", "Billboard", "Shelf", "Tally"].map((name) => (
                     <button
                       type="button"
                       aria-pressed={String(name === "Billboard")}
-                      data-layout-src={`/feature-captures/${name.toLowerCase()}-v1.35.0.webp`}
+                      data-layout-src={`/feature-captures/${name.toLowerCase()}-v1.38.0.webp`}
                       data-layout-alt={`Blanc’s ${name} Start Page`}
                     >{name}</button>
                   ))
                 }
+                <button
+                  type="button"
+                  aria-pressed="false"
+                  data-layout-src="/feature-captures/billboard-image-v1.38.0.webp"
+                  data-layout-alt="Blanc’s Billboard Start Page over your own image, Van Gogh’s Wheat Field with Cypresses"
+                >Your image</button>
               </div>
-              <a class="more-link" href="/features/start-page">Start Page layouts <span aria-hidden="true">›</span></a>
+              <a class="more-link" href="/features/start-page">Start Page layouts and wallpaper <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card rise">

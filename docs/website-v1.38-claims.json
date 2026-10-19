@@ -2,7 +2,7 @@
   "publicRelease": "v1.38.0",
   "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
   "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
-  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim.",
+  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim. Later the same day: the line under the Start Page headline, the homepage's wallpaper scene and Start Page card, and the /features wallpaper tile and pop-up.",
   "prohibitedClaims": [
     "Bridge / Burst",
     "Four ways to begin. Mahjong when you want a break.",
@@ -89,6 +89,21 @@
         "src/renderer/pages/mahjong-engine.js"
       ],
       "qualification": "The capture shows a fresh profile's standalone Mahjong: the Daily deal, which that day was the Turtle board, in Burst mode."
+    },
+    "timeOfDay": {
+      "evidence": [
+        "src/renderer/pages/newtab-wallpaper.js",
+        "src/renderer/pages/newtab.html",
+        "settings-schema/schema.json"
+      ],
+      "qualification": "Time-of-day wallpaper (Settings → General or Customize) is unchanged since earlier releases and still available in v1.38.0 beside Color and Your image."
+    },
+    "mahjongFooter": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/mahjong.html"
+      ],
+      "qualification": "Every Start Page layout's footer links to standalone Mahjong, which opens as an ordinary tab."
     }
   },
   "labels": [
@@ -293,6 +308,119 @@
       ],
       "verdict": "verified",
       "replaces": "website-115-259"
+    },
+    {
+      "id": "v138-018",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-072"
+    },
+    {
+      "id": "v138-019",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Every footer also opens Mahjong in its own tab and leaves your Start Page in place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongFooter"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-072"
+    },
+    {
+      "id": "v138-020",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Or choose your own image or a color from Customize on the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-021",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Start Page layouts and wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-022",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-023",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your own image stays on this device and never shows in private tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose your Start Page wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "bento-130-008"
+    },
+    {
+      "id": "v138-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose your Start Page wallpaper.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "bento-130-051"
+    },
+    {
+      "id": "v138-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper",
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
     }
   ]
 }

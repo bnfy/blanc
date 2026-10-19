@@ -60,7 +60,7 @@ test('pages use the light copies while full-size links keep the pinned captures'
   // Below the opening screen, captures wait until they are scrolled near.
   const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // (The later wallpapers are lazy too: website-home-demos.test.js.)
-  for (const capture of ['billboard-v1.35.0']) {
+  for (const capture of ['billboard-v1.38.0']) {
     assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });
