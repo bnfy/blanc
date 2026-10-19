@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "f61284477a35e13ef3d9cc6aaf26d3edf3f4a3c1e6e0ddfe550076beca0aa26e",
+      "sha256": "5a5940fdf9caacc8cf4cdd91f98c7ac3085f96e6e55697a20eaa4cf10a2eb19a",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "25781d8371c82846a44ea1da1190c2f07fc41d8b4d4c6ee0647b186fa51d2636",
+      "sha256": "cfd7b7d053d544a5283e76ce2c4e5983132181944270a20d087f954eb2bad9f2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -313,6 +313,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -595,7 +596,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "4a9263e2b87fab44a3c4b282b46a9fd4b138b65142e9b3d7ec65c69bbfd8876a",
+      "sha256": "6f87406f848fc9572feea9de821c7e3e9d9a5cc1eacbc652222203a4d35b04b0",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -649,6 +650,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",

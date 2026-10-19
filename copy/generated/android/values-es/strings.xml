@@ -78,6 +78,7 @@
         <item quantity="many">%1$d pestañas más: abrir la lista</item>
         <item quantity="other">%1$d pestañas más: abrir la lista</item>
     </plurals>
+    <string name="island_auto_hide_intro">Lleva el puntero al borde superior o pulsa %1$s para que vuelva la Island.</string>
     <string name="dot_switch_to">Cambiar a %1$s</string>
     <string name="capture_both">cámara y micrófono en uso: abrir los controles de captura</string>
     <string name="capture_camera">cámara en uso: abrir los controles de captura</string>
@@ -741,6 +742,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="menu_zoom_out">Reducir</string>
     <string name="menu_actual_size">Tamaño real</string>
     <string name="menu_toggle_vertical_tabs">Activar o desactivar las pestañas verticales</string>
+    <string name="menu_auto_hide_island">Ocultar la Island automáticamente</string>
     <string name="menu_tab_layout">Disposición de las pestañas</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Pestañas verticales</string>
@@ -938,6 +940,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_island_site_colors_hint">Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema.</string>
     <string name="settings_general_island_hover_open_label">Abrir la Island al pasar el cursor</string>
     <string name="settings_general_island_hover_open_hint">Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic.</string>
+    <string name="settings_general_island_auto_hide_label">Ocultar la Island automáticamente</string>
+    <string name="settings_general_island_auto_hide_hint">Las páginas ocupan toda la ventana. Lleva el puntero al borde superior o abre la búsqueda y los comandos para que vuelva la Island.</string>
     <string name="settings_general_dark_websites_label">Sitios web oscuros</string>
     <string name="settings_general_dark_websites_hint">Mientras Blanc está oscuro, oscurece los sitios web que no tienen modo oscuro propio. Usa el motor de código abierto Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Los sitios de esta lista conservan sus propios colores. Escribe /dark-site en un sitio para añadirlo o quitarlo.</string>

@@ -24,6 +24,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/hover-panel-leave.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/overlay.html": {
       "state": "guarded",
       "allow": [

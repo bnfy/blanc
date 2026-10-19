@@ -176,6 +176,23 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     islandProximitySentAt: 0,
     islandProximityTimer: null,
     islandProximityPending: null,
+    /** Auto-hide Island: whether the strip is currently revealed, the check
+     * that hides it again, and the last macOS traffic-light visibility set. */
+    islandRevealed: false,
+    islandAutoHideTimer: null,
+    /** The page's slide while the strip comes and goes: {from, to, top,
+     * start, duration, timer}, or null. */
+    islandSlide: null,
+    /** Cursor sampling that reveals a hidden Island at the top edge. */
+    islandRevealWatchTimer: null,
+    islandRevealDwell: null,
+    lastPointer: null,
+    stripHiddenSent: null,
+    windowButtonsVisible: null,
+    /** The how-to tip shown when auto-hide is turned on, and the tooltip
+     * generation it drew under (a newer pill tooltip replaces it). */
+    islandAutoHideIntroTimer: null,
+    islandAutoHideIntroGeneration: 0,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
   };

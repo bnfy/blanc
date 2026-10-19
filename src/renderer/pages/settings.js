@@ -465,6 +465,17 @@
     document.getElementById('islandHoverOpenSetting')?.remove();
   }
 
+  if (supports('islandAutoHide')) {
+    const islandAutoHide = document.getElementById('islandAutoHide');
+    islandAutoHide.checked = settings.islandAutoHide === true;
+    islandAutoHide.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHide: islandAutoHide.checked });
+      islandAutoHide.checked = saved.islandAutoHide === true;
+    });
+  } else {
+    document.getElementById('islandAutoHideSetting')?.remove();
+  }
+
   // --- Quiet Tabs idle delay (device-local memory policy) ---
   // Device-local: the Island strip's site-color tint. Off leaves it on the
   // theme background (near-black in Dark).
