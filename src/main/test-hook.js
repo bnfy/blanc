@@ -76,6 +76,7 @@ function install(refs) {
     getOverlayShowCount,
     resetOverlayShowCount,
     setTestCursorPoint,
+    setTestCursorSamplingUnavailable,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -537,6 +538,8 @@ function install(refs) {
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
+    // Act as native Wayland does: no global pointer position to sample.
+    setCursorSamplingUnavailable(on) { return setTestCursorSamplingUnavailable(on); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
@@ -548,6 +551,12 @@ function install(refs) {
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
+    },
+    // The strip's window-drag region: the computed app-region of #strip.
+    async stripAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`getComputedStyle(document.getElementById('strip')).getPropertyValue('-webkit-app-region') || getComputedStyle(document.getElementById('strip')).appRegion`);
     },
     async overlayPanelRect() {
       const wc = getOverlayWebContents();
@@ -3487,6 +3496,7 @@ function install(refs) {
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       setTestCursorPoint(null);
+      setTestCursorSamplingUnavailable(false);
       beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.

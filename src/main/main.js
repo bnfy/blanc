@@ -2925,6 +2925,7 @@ let testSearchSuggestionRequests = [];
 let testSearchNavigationCapture = false;
 let testSearchSubmission = null;
 let testCursorPoint = null;
+let testCursorSamplingUnavailable = false;
 
 function setTestSearchSuggestionFixture(suggestions) {
   if (!acceptanceTestMode) return;
@@ -3150,6 +3151,7 @@ function watchCursorFor(wc, offset, bind) {
     if (!input || input.type !== 'mouseMove') return;
     if (!hasLiveWindow()) return;
     const point = toWindowPoint(input, typeof offset === 'function' ? offset() : offset);
+    rt().lastPointer = point;
     updateIslandProximity(point);
     updateIslandHover(rt(), point, {
       buttonsDown: input.modifiers?.some((modifier) => /buttondown$/i.test(modifier)) === true,
@@ -3186,11 +3188,28 @@ function islandStripHidden(runtime = rt()) {
   });
 }
 
-/** Window content coordinates of the cursor right now (or the test's). */
+/** Whether Chromium is drawing through the native Wayland platform. */
+function linuxWaylandOzone() {
+  const ozone = app.commandLine.getSwitchValue('ozone-platform');
+  return ozone === 'wayland'
+    || (!ozone && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY));
+}
+
+/** Native Wayland gives Electron no global pointer position:
+ * screen.getCursorScreenPoint() reads 0,0 wherever the pointer is (measured on
+ * GNOME with Electron 44), which held an auto-hidden Island up for good. */
+function cursorSamplingUnavailable() {
+  if (acceptanceTestMode && testCursorSamplingUnavailable) return true;
+  return process.platform === 'linux' && linuxWaylandOzone();
+}
+
+/** Window content coordinates of the cursor right now (or the test's). Where
+ * the cursor cannot be read, the last move a Blanc view saw stands in; a
+ * pointer outside the window then counts from where it left. */
 function sampledWindowCursor(runtime) {
-  const cursor = acceptanceTestMode && testCursorPoint
-    ? testCursorPoint
-    : screen.getCursorScreenPoint();
+  const testPoint = acceptanceTestMode && testCursorPoint;
+  if (!testPoint && cursorSamplingUnavailable()) return runtime.lastPointer ?? null;
+  const cursor = testPoint || screen.getCursorScreenPoint();
   const content = runtime.window.getContentBounds();
   return { x: cursor.x - content.x, y: cursor.y - content.y };
 }
@@ -3393,6 +3412,18 @@ function syncWindowButtons(runtime = rt()) {
   runtime.windowButtonsVisible = visible;
   runtime.window.setWindowButtonVisibility(visible);
   if (visible) runtime.window.setWindowButtonPosition(MAC_WINDOW_BUTTON_POSITION);
+}
+
+/** The strip is the window's own page, and its drag region hit-tests above
+ * every child view. Hidden under the page it would still drag the window from
+ * the page's top band, and on Wayland keep the page from seeing the pointer
+ * there, so the strip drops it while hidden. */
+function syncStripHidden(runtime = rt()) {
+  if (!runtime.chromeReady || !runtime.window || runtime.window.isDestroyed()) return;
+  const hidden = islandStripHidden(runtime);
+  if (runtime.stripHiddenSent === hidden) return;
+  runtime.stripHiddenSent = hidden;
+  runtime.window.webContents.send('chrome:strip-hidden', hidden);
 }
 
 function endIslandAutoHideIntro(runtime) {
@@ -4269,13 +4300,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
       // pill flat under a resting cursor until the mouse twitched.
-      const cursor = acceptanceTestMode && testCursorPoint
-        ? testCursorPoint
-        : screen.getCursorScreenPoint();
-      const content = rt().window.getContentBounds();
-      const point = { x: cursor.x - content.x, y: cursor.y - content.y };
-      updateIslandProximity(point);
-      updateIslandHover(rt(), point, { sampled: true });
+      const point = sampledWindowCursor(rt());
+      if (point) {
+        updateIslandProximity(point);
+        updateIslandHover(rt(), point, { sampled: true });
+      }
     }
   }
 }
@@ -5501,6 +5530,7 @@ function resizeActiveView() {
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
   rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
   syncWindowButtons();
+  syncStripHidden();
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -10289,6 +10319,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     () => {
       runtime.chromeReady = true;
       dockReopenLifecycle.onChromeReady();
+      syncStripHidden(runtime);
     }
   ));
   return runtime;
@@ -11420,11 +11451,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   };
   displayCapturePicker = createDisplayCapturePicker({
     platform: process.platform, desktopCapturer, ownerForRequest: pickerOwner,
-    portalSelection: process.platform === 'linux' && (
-      app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
-      || (!app.commandLine.getSwitchValue('ozone-platform')
-        && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY))
-    ),
+    portalSelection: process.platform === 'linux' && linuxWaylandOzone(),
     isOwnerSender: pickerSender,
     present: (owner, model) => withWindowRuntime(owner, () => {
       if (!hasLiveWindow() || !rt().overlayView) {
@@ -12291,6 +12318,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
       getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
       resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
+      setTestCursorSamplingUnavailable: (on) => {
+        if (!acceptanceTestMode) return false;
+        testCursorSamplingUnavailable = on === true;
+        return true;
+      },
       setTestCursorPoint: (point) => {
         if (!acceptanceTestMode) return false;
         if (point == null) {

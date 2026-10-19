@@ -130,6 +130,36 @@ Then('the Island stays hidden after {int} milliseconds', async function (ms) {
   assert.equal(state.pageY, 0);
 });
 
+// The strip's drag region hit-tests above the page view, so while hidden it
+// must be off, or the page's top band drags the window.
+Then('the strip has no window-drag region', async function () {
+  await waitForValue(() => this.call('stripAppRegion'), (region) => region === 'no-drag', 'the hidden strip to drop its drag region');
+});
+
+Then('the strip drags the window again', async function () {
+  await waitForValue(() => this.call('stripAppRegion'), (region) => region === 'drag', 'the revealed strip to drag the window');
+});
+
+// Native Wayland reads the global pointer as 0,0, so only the moves a Blanc
+// view sees count: drop the test cursor and send real page input.
+Given('the window has no global pointer position, as on native Wayland', async function () {
+  assert.equal(await this.call('setTestCursorPoint', null), true);
+  assert.equal(await this.call('setCursorSamplingUnavailable', true), true);
+});
+
+async function pageMove(world, y) {
+  const state = await world.call('state');
+  assert.equal(await world.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y }), true);
+}
+
+When('the page sees the pointer at the top edge', async function () {
+  await pageMove(this, 2);
+});
+
+When('the page sees the pointer well below the Island', async function () {
+  await pageMove(this, 400);
+});
+
 When('I move the pointer well below the Island', async function () {
   await restCursor(this, { x: 400, y: 400 });
 });
@@ -156,4 +186,5 @@ After({ tags: '@island-autohide' }, async function () {
   await this.call('setIslandAutoHide', false).catch(() => {});
   await this.call('setTabLayout', 'island').catch(() => {});
   await this.call('setTestCursorPoint', null).catch(() => {});
+  await this.call('setCursorSamplingUnavailable', false).catch(() => {});
 });

@@ -84,6 +84,19 @@ and the toolbar comes back on demand. Blanc has no such mode.
   fan-out.
 - Runtime fields (`window-runtime-registry.js`): `islandRevealed`,
   `islandAutoHideTimer`, `windowButtonsVisible`, cleared on window close.
+- The strip is the window's own page, and its `-webkit-app-region: drag`
+  hit-tests above every child view. `syncStripHidden` (end of
+  `resizeActiveView`, and once the chrome has loaded) sends
+  `chrome:strip-hidden`; the strip adds `.strip-hidden`, which is `no-drag`.
+  Without it, the page's top band dragged the window while the strip was
+  hidden (found 2026-10-19; it also kept native Wayland from passing pointer
+  moves there to the page).
+- **Native Wayland (added 2026-10-19).** `screen.getCursorScreenPoint()` reads
+  0,0 wherever the pointer is (measured on GNOME 50 with Electron 44), which
+  held the strip up for good. `cursorSamplingUnavailable()` (Linux with the
+  Wayland ozone platform, `linuxWaylandOzone()`) makes `sampledWindowCursor`
+  use `runtime.lastPointer`, the last move a Blanc view saw (`watchCursorFor`),
+  instead. The top edge, the rest band and leaving all work from those moves.
 
 ## Known limits
 
@@ -91,7 +104,12 @@ and the toolbar comes back on demand. Blanc has no such mode.
   strip, would need the strip drawn in a view above the page. That is a larger
   follow-up.
 - With the strip hidden in the Island layout, the window has no drag region
-  until it is revealed.
+  until it is revealed (and the page's top band is the page's, not a drag
+  handle).
+- On native Wayland the pointer outside the window cannot be seen, so the
+  band above a floating window's top edge does not reveal the strip, and a
+  pointer that leaves the window over the strip keeps it shown until it comes
+  back into the window. Point just inside the top edge instead.
 - No slash command yet. `/hide-island` would need the `copy/slash-commands.json`
   substrate and every language's copy.
 
@@ -100,6 +118,8 @@ and the toolbar comes back on demand. Blanc has no such mode.
 - Unit: `test/unit/island-autohide.test.js` (policy, layout, wiring) and
   `test/unit/island-autohide-settings.test.js` (default, sanitising, never
   synced, Settings placement).
-- Desktop acceptance: F1-15…F1-18 in `spec/acceptance/island-and-commands.feature`
+- Desktop acceptance: F1-15…F1-25 in `spec/acceptance/island-and-commands.feature`
+  (F1-24 runs with no global pointer position, as on Wayland; F1-25 checks the
+  hidden strip's drag region)
   (`test/desktop/steps/island-autohide.steps.js`), checking the real native
   view bounds. Divergence D29.

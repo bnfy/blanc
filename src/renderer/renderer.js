@@ -1408,6 +1408,13 @@
     if (islandMode === 'panel') islandPill.classList.add('covered');
   });
 
+  // Auto-hide moves the page over the strip, but the strip's drag region
+  // hit-tests above every view: left on, it would drag the window from the
+  // page's top band and (on Wayland) keep the page from seeing the pointer.
+  window.browserAPI.onStripHidden((hidden) => {
+    stripEl.classList.toggle('strip-hidden', hidden === true);
+  });
+
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger, nativePopup }) => {
     islandMode = mode;
     if (mode !== 'panel') islandPill.classList.remove('covered');

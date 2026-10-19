@@ -220,3 +220,14 @@ test('main feeds the sampled cursor to the dwell and resets it on reveal', () =>
   assert.match(main, /if \(islandHeldAt\(runtime, point\) \|\| dwell\.reveal\) \{/);
   assert.match(main, /runtime\.islandRevealDwell = null;/);
 });
+
+test('without a global pointer position (native Wayland) the last move a view saw stands in', () => {
+  assert.match(main, /function linuxWaylandOzone\(\) \{/);
+  assert.match(main, /function cursorSamplingUnavailable\(\) \{\s+if \(acceptanceTestMode && testCursorSamplingUnavailable\) return true;\s+return process\.platform === 'linux' && linuxWaylandOzone\(\);/);
+  const sample = main.slice(main.indexOf('function sampledWindowCursor(runtime)'), main.indexOf('function islandHeldAt('));
+  assert.match(sample, /if \(!testPoint && cursorSamplingUnavailable\(\)\) return runtime\.lastPointer \?\? null;/);
+  const watch = main.slice(main.indexOf('function watchCursorFor('), main.indexOf('const INTRO_TIP_MAX_WIDTH'));
+  assert.match(watch, /rt\(\)\.lastPointer = point;/);
+  // The display-share portal choice uses the same Wayland test.
+  assert.match(main, /portalSelection: process\.platform === 'linux' && linuxWaylandOzone\(\),/);
+});

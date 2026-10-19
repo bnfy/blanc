@@ -230,6 +230,9 @@ button svg {
 /* While the command bar overlay covers the strip, window-drag must not
    steal its clicks (drag regions hit-test above child views). */
 #strip.drag-suspended { -webkit-app-region: no-drag; }
+/* Auto-hide: the page covers the strip, so the page's top band must not
+   drag the window. */
+#strip.strip-hidden { -webkit-app-region: no-drag; }
 
 #strip {
   -webkit-app-region: drag;

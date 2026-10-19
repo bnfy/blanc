@@ -175,6 +175,25 @@ Feature: Island chrome, command palette, and slash commands
     When the pointer passes 30 pixels below the top edge for 150 milliseconds
     Then the Island stays hidden after 600 milliseconds
 
+  @F1-24 @F1 @desktop @island-autohide
+  Scenario: Without a global pointer position the page's own moves reveal and hide the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    And the window has no global pointer position, as on native Wayland
+    When the page sees the pointer at the top edge
+    Then the Island is shown above the page
+    When the page sees the pointer well below the Island
+    Then the Island hides again
+
+  @F1-25 @F1 @desktop @island-autohide
+  Scenario: A hidden strip does not drag the window from the page's top band
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    Then the strip has no window-drag region
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    And the strip drags the window again
+
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs
     Given a tab open on "autohide-page"
