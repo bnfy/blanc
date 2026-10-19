@@ -37,6 +37,7 @@
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser_live_tab_context.h"
 #include "components/sessions/core/tab_restore_service.h"
+#include "components/sessions/core/live_tab.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/history/top_sites_factory.h"
@@ -888,6 +889,53 @@ sessions::TabRestoreService* ClosedService(Profile* profile) {
   return service;
 }
 
+// Foreground activation can expand a restored group. Reapply only the saved
+// collapsed flag to groups identified by returned tabs or their saved identity.
+bool RestoreClosedGroupCollapsed(
+    BrowserWindowInterface* browser,
+    std::optional<bool> collapsed,
+    std::optional<base::Uuid> saved_group_id,
+    const std::vector<sessions::LiveTab*>& restored) {
+  if (!collapsed) return false;
+  auto* model = browser->GetTabStripModel();
+  std::set<tab_groups::TabGroupId> groups;
+  // Saved-group restoration can return no LiveTabs even after reopening the
+  // group. Resolve its stable saved identity through the native context.
+  if (saved_group_id) {
+    if (auto id = BrowserLiveTabContext::From(browser)->GetGroupIdForSavedGroup(
+            *saved_group_id)) groups.insert(*id);
+  }
+  for (auto* live : restored) {
+    if (!live) continue;
+    for (int i = 0; i < model->count(); ++i) {
+      if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)) !=
+          live->GetSessionID()) continue;
+      if (auto group = model->GetTabGroupForTab(i)) groups.insert(*group);
+    }
+  }
+  bool applied = false;
+  for (const auto& id : groups) {
+    const auto* group = model->group_model()->GetTabGroup(id);
+    if (!group) continue;
+    const auto* visual = group->visual_data();
+    model->ChangeTabGroupVisuals(id, tab_groups::TabGroupVisualData(
+        visual->title(), visual->color(), *collapsed));
+    applied = true;
+  }
+  return applied;
+}
+
+std::optional<base::Uuid> ClosedSavedGroup(const sessions::tab_restore::Entry& entry) {
+  if (entry.type != sessions::tab_restore::GROUP) return std::nullopt;
+  return static_cast<const sessions::tab_restore::Group&>(entry).saved_group_id;
+}
+
+std::optional<bool> ClosedGroupCollapsed(const sessions::tab_restore::Entry& entry) {
+  if (entry.type != sessions::tab_restore::GROUP) return std::nullopt;
+  return static_cast<const sessions::tab_restore::Group&>(entry)
+      .visual_data.is_collapsed();
+}
+
 base::ListValue ClosedEntries(Profile* profile) {
   base::ListValue result;
   auto* service = ClosedService(profile);
@@ -1182,7 +1230,14 @@ class Handler : public content::WebUIMessageHandler {
       }
       auto* context = BrowserLiveTabContext::From(browser);
       if (method == "reopenClosedTab" && args.empty()) {
-        reply(true, base::Value(!service->RestoreMostRecentEntry(context).empty()));
+        const auto collapsed = service->entries().empty() ? std::nullopt
+            : ClosedGroupCollapsed(*service->entries().front());
+        const auto saved_group = service->entries().empty() ? std::nullopt
+            : ClosedSavedGroup(*service->entries().front());
+        const auto restored = service->RestoreMostRecentEntry(context);
+        const bool group_restored = RestoreClosedGroupCollapsed(
+            browser, collapsed, saved_group, restored);
+        reply(true, base::Value(!restored.empty() || group_restored));
         return;
       }
       int entry_id = 0;
@@ -1198,8 +1253,12 @@ class Handler : public content::WebUIMessageHandler {
           service->RemoveEntryById(id_to_restore);
           reply(true, base::Value(true));
         } else {
-          reply(true, base::Value(service->RestoreEntryById(context, id_to_restore,
-              WindowOpenDisposition::NEW_FOREGROUND_TAB).has_value()));
+          const auto collapsed = ClosedGroupCollapsed(*entry);
+          const auto saved_group = ClosedSavedGroup(*entry);
+          const auto restored = service->RestoreEntryById(context, id_to_restore,
+              WindowOpenDisposition::NEW_FOREGROUND_TAB);
+          if (restored) RestoreClosedGroupCollapsed(browser, collapsed, saved_group, *restored);
+          reply(true, base::Value(restored.has_value()));
         }
         return;
       }
