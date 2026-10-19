@@ -1,4 +1,5 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
+#include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/ui/blanc_prototype_ui.h"
 #include "chrome/browser/ui/blanc_webstore_promotion.h"
 #include "chrome/common/chrome_isolated_world_ids.h"
@@ -510,6 +511,9 @@ class Owner : public base::SupportsUserData::Data,
   std::optional<base::DictValue> space_candidate;
   base::TimeTicks space_candidate_at;
   std::string space_error;
+  std::string space_transaction;
+  std::optional<base::DictValue> space_expected;
+  std::vector<int> space_destination_ids;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     Live().insert(this);
     browser->GetTabStripModel()->AddObserver(this);
@@ -1107,6 +1111,20 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
 }
 base::DictValue SpaceDisk(base::FilePath path, std::string method,
                           std::string name, base::DictValue capture) {
+  const auto journal = path.AddExtensionASCII("switch");
+  if (method == "spaceRollback" || method == "spaceCommit") {
+    if (!base::PathExists(journal)) return base::DictValue().Set("none", true);
+    std::string bytes;
+    if (!base::ReadFileToStringWithMaxSize(journal, &bytes, 4 * 1024 * 1024)) return base::DictValue().Set("error", "Switch recovery record unreadable.");
+    auto intent = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+    if (!intent || intent->FindInt("version") != 1 || !intent->FindString("id") || !intent->FindString("source_name") || !intent->FindDict("source") || !ValidSpace(*intent->FindDict("source")) || !intent->FindDict("destination") || !ValidSpace(*intent->FindDict("destination"))) return base::DictValue().Set("error", "Switch recovery record invalid; retained.");
+    if (method == "spaceCommit") {
+      if (*intent->FindString("id") != name || !base::DeleteFile(journal)) return base::DictValue().Set("error", "Switch completion could not be recorded.");
+      return base::DictValue();
+    }
+    return base::DictValue().Set("record", intent->FindDict("source")->Clone()).Set("transaction", *intent->FindString("id")).Set("source_name", *intent->FindString("source_name"));
+  }
+  if ((method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceRecover") && base::PathExists(journal)) return base::DictValue().Set("error", "Interrupted switch pending; saved spaces unchanged.");
   base::DictValue store;
   const bool recover = method == "previewSpaceRecover";
   const auto load_path = recover ? path.AddExtensionASCII("backup") : path;
@@ -1150,7 +1168,15 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   if (method == "previewSpaceOpen") {
     const auto* item = items->FindDict(name);
     if (!item) return base::DictValue().Set("error", "Space does not exist.");
-    return base::DictValue().Set("record", item->Clone());
+    const auto* source_key = capture.FindString("_source_name");
+    const std::string source_name = source_key ? *source_key : "";
+    capture.Remove("_source_name");
+    const auto* source = items->FindDict(source_name);
+    if (!source || *source != capture) return base::DictValue().Set("error", "Source space is not durably saved.");
+    const std::string transaction = base::Uuid::GenerateRandomV4().AsLowercaseString();
+    auto intent = base::WriteJson(base::DictValue().Set("version", 1).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
+    if (!intent || !base::ImportantFileWriter::WriteFileAtomically(journal, *intent)) return base::DictValue().Set("error", "Switch intent write failed; tabs unchanged.");
+    return base::DictValue().Set("record", item->Clone()).Set("transaction", transaction);
   }
   base::ListValue names;
   for (const auto [key, value] : *items) names.Append(key);
@@ -1393,8 +1419,40 @@ class Handler : public content::WebUIMessageHandler {
     if (const auto* error = result.FindString("error")) owner->space_error = *error;
     else owner->space_saved = std::move(capture);
   }
+  void SwitchCommitted(base::DictValue result) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    owner->space_busy = false;
+    if (const auto* error = result.FindString("error")) { owner->space_error = *error; return; }
+    owner->space_transaction.clear(); owner->space_expected.reset();
+  }
+  void MaybeRollback(Owner* owner) {
+    static base::NoDestructor<std::set<base::FilePath>> checked;
+    auto* profile = owner->browser->GetProfile();
+    if (profile->IsOffTheRecord() || owner->space_busy || SessionRestore::IsRestoring(profile) || checked->contains(profile->GetPath())) return;
+    auto before = CaptureNativeSpace(owner->browser);
+    if (!before) return;
+    checked->insert(profile->GetPath());
+    owner->space_pending_ids.clear();
+    auto* model = owner->browser->GetTabStripModel();
+    for (int i=0; i<model->count(); ++i) owner->space_pending_ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+    owner->space_busy = true;
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceRollback", "", base::DictValue()), base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), "", "spaceRollback", "", std::move(*before)));
+  }
   void MaybeAutosave(Owner* owner) {
     auto* profile = owner->browser->GetProfile();
+    if (owner->space_expected) {
+      if (owner->space_busy || !owner->space_error.empty()) return;
+      auto current = CaptureNativeSpace(owner->browser);
+      if (!current || *current != *owner->space_expected) return;
+      std::vector<int> ids;
+      auto* model = owner->browser->GetTabStripModel();
+      for (int i = 0; i < model->count(); ++i) ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+      if (ids != owner->space_destination_ids) return;
+      owner->space_busy = true;
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "spaceCommit", owner->space_transaction, base::DictValue()), base::BindOnce(&Handler::SwitchCommitted, weak_factory_.GetWeakPtr()));
+      return;
+    }
     if (profile->IsOffTheRecord() || owner->space_name.empty() || owner->space_busy || !owner->space_error.empty()) return;
     for (auto* other : Owner::Live())
       if (other != owner && other->browser->GetProfile() == profile && other->space_busy) return;
@@ -1419,8 +1477,10 @@ class Handler : public content::WebUIMessageHandler {
     if (!owner) return;
     owner->space_busy = false;
     if (const auto* error = result.FindString("error")) {
-      Reply(id, false, base::Value(*error)); return;
+      owner->space_error = *error;
+      if (!id.empty()) Reply(id, false, base::Value(*error)); return;
     }
+    if (result.FindBool("none").value_or(false)) return;
     auto* browser = owner->browser.get();
     if (method == "previewSpaceList" || method == "previewSpaceRecover") {
       if (method == "previewSpaceRecover") {
@@ -1429,6 +1489,15 @@ class Handler : public content::WebUIMessageHandler {
         }
       }
       Reply(id, true, base::Value(std::move(result))); return;
+    }
+    if (method == "spaceRollback") {
+      auto* tabs = before.FindList("tabs");
+      int windows = 0;
+      for (auto* live : Owner::Live()) if (live->browser->GetProfile() == browser->GetProfile()) ++windows;
+      if (windows != 1 || !tabs || tabs->size() != 1 || *(*tabs)[0].GetDict().FindString("url") != "chrome://newtab/" || browser->CreatedBySessionRestore() || SessionRestore::IsRestoring(browser->GetProfile())) {
+        owner->space_error = "Interrupted switch retained: startup window ownership is ambiguous."; return;
+      }
+      name = *result.FindString("source_name");
     }
     std::vector<int> live_ids;
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
@@ -1491,7 +1560,15 @@ class Handler : public content::WebUIMessageHandler {
     }
     owner->space_name = name;
     owner->space_saved = record->Clone();
-    Reply(id, true, base::Value(true));
+    owner->space_destination_ids.clear();
+    for (int i = 0; i < model->count(); ++i) {
+      auto* tab = model->GetWebContentsAt(i);
+      if (std::ranges::contains(added, tab)) owner->space_destination_ids.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
+    }
+    owner->space_expected = record->Clone();
+    owner->space_transaction = *result.FindString("transaction");
+    owner->space_error.clear();
+    if (!id.empty()) Reply(id, true, base::Value(true));
   }
 
   void Handle(const base::ListValue& message) {
@@ -1539,9 +1616,11 @@ class Handler : public content::WebUIMessageHandler {
       for (int i = 0; i < model->count(); ++i)
         owner->space_pending_ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
       owner->space_busy = true;
+      auto disk_capture = captured->Clone();
+      if (method == "previewSpaceOpen") disk_capture.Set("_source_name", owner->space_name);
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
-              method, name, captured->Clone()),
+              method, name, std::move(disk_capture)),
           base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id, method, name, std::move(*captured)));
       return;
     }
@@ -1593,6 +1672,7 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(false)); return;
     }
     if (method == "snapshot") {
+      MaybeRollback(owner);
       MaybeAutosave(owner);
       reply(true, base::Value(Snapshot(browser, owner)));
       return;
