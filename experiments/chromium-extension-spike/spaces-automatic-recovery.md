@@ -193,3 +193,19 @@ Remaining: hot profile deletion/unload, genuine OS/provider failure modes and sa
 Evidence: `evidence/ui138-save-provider-20261019/`.
 
 Incremental wrapper times: failed diagnostic attempts 7.46s / 10.82s, successful diagnostic 33.24s, normal restore 33.58s. Final guard zero actions / 3.53s. 63 archived members verified against SHA-256. No new unit-test pass claimed for this evidence-only checkpoint.
+
+## Identity replacement and session rebuild/rotation — 2026-10-19
+
+Tests exercise the real native UUID replacement, SessionService reset and current-to-last-session rotation APIs through a temporary control restricted to the exact disposable profile. The write interposer holds the first actual Session header write before its syscall; PID/path and zero-byte file are checked. Both explicit clear-only and encrypted-only session storage use the public mock keychain, never the real keychain.
+
+The established-profile matrix first performs a clean close and restore. Identity replacement while a save acknowledgement is pending rejects the switch before a journal or tab mutation; a fresh save/switch succeeds. Reset and rotation are requested both before acknowledgement starts and while it is pending. The switch stays pending with no journal while the write is held. Successful cases verify the source UUID and untouched decoy contents after an actual owned-browser SIGKILL and session restore. Rotation also requires an observed new Session filename. This does not prove power-loss durability, all rebuild reasons, or arbitrary simultaneous external writes.
+
+A separate fresh-profile first-crash attempt failed to restore the two windows, returning one new blank window instead. That remains an unresolved runtime gap, not a passing matrix cell. The initial cached-identity assertion has a preserved result. A later host-startup timeout and sandbox process-inspection refusal remain in the invocation history; their same-name log files were overwritten by later runs, as explicitly recorded in additional-attempts.txt. The final matrix uses a cleanly primed profile and must not be described as first-ever-session crash coverage.
+
+The first normal-binary smoke attempted to save/switch while restored pages still reported loading and timed out waiting for B; its result/log are preserved. The repeat waits for restored pages before saving. Temporary native diagnostics are removed byte-for-byte and the normal binary rebuilt and checked. Product source is unchanged. Fresh diagnostic inventory is 49 upstream files / 114 hunks; the native diagnostic is in a Blanc-owned file, excluded by the established counting rule. Normal source restoration preserves that footprint within 49/120. All builds use the existing incremental output; no cold-build figures change.
+
+Remaining: first-run crash restoration, arbitrary rebuild/rotation failure schedules, real keychain/provider faults, hot profile deletion and wider lifecycle/power-loss cases. Native input remains pending, latency deferred, and the Electron diagnostic build unapproved/unstarted. Retained preview is untouched; its host is unavailable, so original tabs are not reverified. Owned test profiles/server are removed.
+
+Evidence: `evidence/ui138-save-rotation-20261019/`.
+
+Ten final diagnostic schedules and one normal-binary smoke pass. Incremental wrapper times: diagnostic 41.29s, normal restore 41.27s. Final guard zero actions / 6.2s. 129 archived members verified against SHA-256. No new unit-test pass claimed for this evidence-only checkpoint.
