@@ -1,0 +1,302 @@
+[
+  {
+    "path": "barrier.c",
+    "bytes": 975,
+    "sha256": "80622bc129157baefe1ff45586f6bfb63845e4138c05ecb60de45bade5a62792"
+  },
+  {
+    "path": "budget.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "build.log",
+    "bytes": 14952,
+    "sha256": "42936ef96eeb327eb6069f0f9ce1310ba6833e195d493f66a907c6306cf6ca0f"
+  },
+  {
+    "path": "build2.log",
+    "bytes": 3102,
+    "sha256": "b623d36ea2b922a4f5d8a7d5b4bf7498490daf34ed05a24c5e544616852a8e99"
+  },
+  {
+    "path": "check.mjs",
+    "bytes": 4010,
+    "sha256": "bdef69952d5376bf45ac73a07a5fbd3302785e8aaf6e6578269b19f7067c05ec"
+  },
+  {
+    "path": "chromium.log",
+    "bytes": 8702,
+    "sha256": "be565f4420a17020f7d7cd5524a7917254eeec815f6340d18006ac4d44190479"
+  },
+  {
+    "path": "chromium.pid",
+    "bytes": 5,
+    "sha256": "32a58728d4ec6c696682fefcf877d7937e520448f12677c202065a0d5c1d6c26"
+  },
+  {
+    "path": "cleanup.json",
+    "bytes": 229,
+    "sha256": "f0a8ed5c158c01f53c8d00b991174019fbc4c81a0a13808d6fdc981031e9681d"
+  },
+  {
+    "path": "cleanup.mjs",
+    "bytes": 1289,
+    "sha256": "ee4c643d7eda64089e142e53abdeedf4e5ac854132a9a21b82847e46d2530178"
+  },
+  {
+    "path": "crash-distinct.json",
+    "bytes": 4653,
+    "sha256": "2e74364ad80bc919f27bfa30644240fd488bf2c931cc653132f13e027a317cb9"
+  },
+  {
+    "path": "crash.json",
+    "bytes": 6122,
+    "sha256": "cfa9114b82da77b7f8345a2246326471778481e6c0ca93f291be27abbe16bf02"
+  },
+  {
+    "path": "crash.log",
+    "bytes": 48,
+    "sha256": "7373278cca75416f759429411482f2752bf31c346f0be22d02892b293084ed4d"
+  },
+  {
+    "path": "final-cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "first-cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "guard.log",
+    "bytes": 196,
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+  },
+  {
+    "path": "helper-build.log",
+    "bytes": 1832,
+    "sha256": "2762ed7713ef3871af326784dc9bdb73d3020f30c5e616a8490fd78ee9e7f4f5"
+  },
+  {
+    "path": "intent-written-distinct.json",
+    "bytes": 133,
+    "sha256": "a18094c27edb62b815cca2827161322d1f08d3e8ce32709821d35b1c051bccb1"
+  },
+  {
+    "path": "intent-written.json",
+    "bytes": 133,
+    "sha256": "4c1d624116a9d3912abd05f85dfb683c7b8be595b607663fc7231108615a4e1e"
+  },
+  {
+    "path": "invocations.jsonl",
+    "bytes": 6685,
+    "sha256": "5cc2847255d4ec20c71d207988ecbec617235a20f504c25da7825971a34eef86"
+  },
+  {
+    "path": "invoke.py",
+    "bytes": 607,
+    "sha256": "d42bd60478c7796e5a57b007e6e206dae89afde3f2f04822a1fe3dfd1b9d65c9"
+  },
+  {
+    "path": "launch-injected.mjs",
+    "bytes": 856,
+    "sha256": "2a8b8f060da1a3af4a51e9b262d92e371a6a4f9f7f2635b8be617cc4d731afaa"
+  },
+  {
+    "path": "launch.mjs",
+    "bytes": 760,
+    "sha256": "892982091c55820b7415f3ff10a9ebac575d06a7b59df6d72a2e100ce22e1666"
+  },
+  {
+    "path": "lint-existing.log",
+    "bytes": 37,
+    "sha256": "970c4740d2d268ccf4dee0238e5781a7b823af602bd09b0be386e8c238acc37d"
+  },
+  {
+    "path": "lint.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "lint.mjs",
+    "bytes": 1133,
+    "sha256": "4a5cdad58b10876d43e8ac4337157af1f129ce2038e6239ffc70d685ebbbd56a"
+  },
+  {
+    "path": "missing-check.log",
+    "bytes": 33,
+    "sha256": "b3425312ff7046acca46a0de239f419c08183cabc3c0e01e3ccac8fcd73c503b"
+  },
+  {
+    "path": "missing-restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "missing-stop.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "missing.json",
+    "bytes": 5831,
+    "sha256": "1b4e632a303afce2af8af205ed5feb426ac2c3d041e758469b606380b33ff264"
+  },
+  {
+    "path": "missing.mjs",
+    "bytes": 1292,
+    "sha256": "c82c4bb87b8624d5d7c346220f0d8b1e62671c6d782613fbf7766561a4c0b6a5"
+  },
+  {
+    "path": "package.py",
+    "bytes": 5071,
+    "sha256": "15d73f622c52a163a036ef2394656759bc1480ecee10fcb4ebc16c9a2b1ae17b"
+  },
+  {
+    "path": "patch-budget.json",
+    "bytes": 43848,
+    "sha256": "2bb73fefd99113663d333de7e8d21312d411ea6704ef8c278ce2358f32773e5c"
+  },
+  {
+    "path": "prepare.log",
+    "bytes": 196,
+    "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+  },
+  {
+    "path": "prepare2.log",
+    "bytes": 196,
+    "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+  },
+  {
+    "path": "private-check.log",
+    "bytes": 33,
+    "sha256": "b3425312ff7046acca46a0de239f419c08183cabc3c0e01e3ccac8fcd73c503b"
+  },
+  {
+    "path": "private.json",
+    "bytes": 1079,
+    "sha256": "ccbe53ecc92e21b5ac0a3e80b046c65ac870553ff88a286eb4a56e68f94aa97c"
+  },
+  {
+    "path": "private.mjs",
+    "bytes": 1491,
+    "sha256": "4d28316a04e639541d9c67ed709a3ff0d9e286a47eb682efb7c27b2ac0b5671d"
+  },
+  {
+    "path": "recent-check.log",
+    "bytes": 33,
+    "sha256": "b3425312ff7046acca46a0de239f419c08183cabc3c0e01e3ccac8fcd73c503b"
+  },
+  {
+    "path": "recent-distinct.json",
+    "bytes": 3205,
+    "sha256": "24247b4bc692a005fdd234f0ffd297dcc3430b1aef436acf32841bccba5cdefa"
+  },
+  {
+    "path": "recent-start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "recent-stop.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "recent.json",
+    "bytes": 3205,
+    "sha256": "24247b4bc692a005fdd234f0ffd297dcc3430b1aef436acf32841bccba5cdefa"
+  },
+  {
+    "path": "recent.mjs",
+    "bytes": 1557,
+    "sha256": "a8caa77565aa7ca303943446fc0447fcf8dc981ad6e2e7440ea026d3b6f2d48c"
+  },
+  {
+    "path": "recover-distinct.json",
+    "bytes": 4082,
+    "sha256": "06c847e7bf3570ddcde541996d0a0cbee84ec662839486edbe12179fac6aa8aa"
+  },
+  {
+    "path": "recover.json",
+    "bytes": 5550,
+    "sha256": "96c6110c25eb22962a10d442814c60c98ad54f1f952d9362137606366e74f565"
+  },
+  {
+    "path": "recover.log",
+    "bytes": 50,
+    "sha256": "e58566f752086dd50d978dcd718ac5bbee7354516e5a7cccceb61a0eee6344f7"
+  },
+  {
+    "path": "restore-injected.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "restore.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "run.py",
+    "bytes": 563,
+    "sha256": "0077bfcb1ad3fd9d46806a77e1eea7d551e151a2d2609cb9cca136033faff1d5"
+  },
+  {
+    "path": "seed-distinct.json",
+    "bytes": 4419,
+    "sha256": "e62155dbc41a8d2d4ba4d7c36b017842cbf5deed10866dcd42682e51ca1acb38"
+  },
+  {
+    "path": "seed.json",
+    "bytes": 5889,
+    "sha256": "d085304514f9bbd83e063262f285f6918c9e7bff43d2a23296efec2a90d10185"
+  },
+  {
+    "path": "seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "server.cjs",
+    "bytes": 167,
+    "sha256": "4cbc3b989070d54123c78e4211bd9bfe9f42a2caaa52011150e4595f1f4b4eeb"
+  },
+  {
+    "path": "server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "server.pid",
+    "bytes": 5,
+    "sha256": "f6d4b2bb353988e59f9cc256303a1a2835f2e0e8dfc9c264c1e2646b8be87c6f"
+  },
+  {
+    "path": "start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "start.mjs",
+    "bytes": 478,
+    "sha256": "521321c4189c639e0e2d778cd8091cdba51c05df80d9438304a8243230580999"
+  },
+  {
+    "path": "stop.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "stop.mjs",
+    "bytes": 594,
+    "sha256": "818b4ecbcd095fdf953bcf5cf629239da67cb53cc67abc098495357b5120853b"
+  },
+  {
+    "path": "tests.log",
+    "bytes": 1047,
+    "sha256": "cb287794177411f80b6cd345346791da19c5b9d09f8a435de7244ac667b5dad4"
+  }
+]

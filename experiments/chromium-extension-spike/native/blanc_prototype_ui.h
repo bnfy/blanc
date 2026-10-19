@@ -2,6 +2,7 @@
 #ifndef CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 #define CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include "content/public/browser/web_ui_controller.h"
@@ -31,6 +32,10 @@ class Config : public content::DefaultWebUIConfig<UI> {
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
                                       ToolbarButtonProvider* delegate);
+inline constexpr char kWindowIdentityKey[] = "blanc.window.identity.v1";
+std::string WindowIdentity(BrowserWindowInterface* browser);
+void RestoreWindowIdentity(BrowserWindowInterface* browser,
+    const std::map<std::string, std::string>& extra_data);
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);

@@ -1,5 +1,6 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "chrome/browser/sessions/session_restore.h"
+#include "chrome/browser/sessions/session_service_factory.h"
 #include "chrome/browser/ui/blanc_prototype_ui.h"
 #include "chrome/browser/ui/blanc_webstore_promotion.h"
 #include "chrome/common/chrome_isolated_world_ids.h"
@@ -504,6 +505,8 @@ class Owner : public base::SupportsUserData::Data,
     return *owners;
   }
   ~Owner() override { Live().erase(this); }
+  bool identity_registered = false;
+  bool recovery_checked = false;
   bool space_busy = false;
   std::string space_name;
   std::vector<int> space_pending_ids;
@@ -1117,12 +1120,13 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     std::string bytes;
     if (!base::ReadFileToStringWithMaxSize(journal, &bytes, 4 * 1024 * 1024)) return base::DictValue().Set("error", "Switch recovery record unreadable.");
     auto intent = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
-    if (!intent || intent->FindInt("version") != 1 || !intent->FindString("id") || !intent->FindString("source_name") || !intent->FindDict("source") || !ValidSpace(*intent->FindDict("source")) || !intent->FindDict("destination") || !ValidSpace(*intent->FindDict("destination"))) return base::DictValue().Set("error", "Switch recovery record invalid; retained.");
+    if (!intent || (intent->FindInt("version") != 1 && intent->FindInt("version") != 2) || !intent->FindString("id") || !intent->FindString("source_name") || !intent->FindDict("source") || !ValidSpace(*intent->FindDict("source")) || !intent->FindDict("destination") || !ValidSpace(*intent->FindDict("destination"))) return base::DictValue().Set("error", "Switch recovery record invalid; retained.");
+    if (intent->FindInt("version") == 2 && (!intent->FindString("source_window") || !base::Uuid::ParseLowercase(*intent->FindString("source_window")).is_valid())) return base::DictValue().Set("error", "Switch window identity invalid; retained.");
     if (method == "spaceCommit") {
       if (*intent->FindString("id") != name || !base::DeleteFile(journal)) return base::DictValue().Set("error", "Switch completion could not be recorded.");
       return base::DictValue();
     }
-    return base::DictValue().Set("record", intent->FindDict("source")->Clone()).Set("transaction", *intent->FindString("id")).Set("source_name", *intent->FindString("source_name"));
+    return base::DictValue().Set("record", intent->FindDict("source")->Clone()).Set("transaction", *intent->FindString("id")).Set("source_name", *intent->FindString("source_name")).Set("source_window", intent->FindString("source_window") ? *intent->FindString("source_window") : "");
   }
   if ((method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceRecover") && base::PathExists(journal)) return base::DictValue().Set("error", "Interrupted switch pending; saved spaces unchanged.");
   base::DictValue store;
@@ -1170,11 +1174,15 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     if (!item) return base::DictValue().Set("error", "Space does not exist.");
     const auto* source_key = capture.FindString("_source_name");
     const std::string source_name = source_key ? *source_key : "";
+    const auto* window_key = capture.FindString("_source_window");
+    const std::string window_id = window_key ? *window_key : "";
     capture.Remove("_source_name");
+    capture.Remove("_source_window");
+    if (!base::Uuid::ParseLowercase(window_id).is_valid()) return base::DictValue().Set("error", "Source window identity unavailable.");
     const auto* source = items->FindDict(source_name);
     if (!source || *source != capture) return base::DictValue().Set("error", "Source space is not durably saved.");
     const std::string transaction = base::Uuid::GenerateRandomV4().AsLowercaseString();
-    auto intent = base::WriteJson(base::DictValue().Set("version", 1).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
+    auto intent = base::WriteJson(base::DictValue().Set("version", 2).Set("source_window", window_id).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
     if (!intent || !base::ImportantFileWriter::WriteFileAtomically(journal, *intent)) return base::DictValue().Set("error", "Switch intent write failed; tabs unchanged.");
     return base::DictValue().Set("record", item->Clone()).Set("transaction", transaction);
   }
@@ -1251,6 +1259,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("spaceName", owner->space_name)
       .Set("spaceAutosaveError", owner->space_error)
       .Set("spaceBusy", owner->space_busy)
+      .Set("spaceWindowIdentity", WindowIdentity(browser))
       .Set("extensionsWidth", extension_width)
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
@@ -1427,12 +1436,20 @@ class Handler : public content::WebUIMessageHandler {
     owner->space_transaction.clear(); owner->space_expected.reset();
   }
   void MaybeRollback(Owner* owner) {
-    static base::NoDestructor<std::set<base::FilePath>> checked;
     auto* profile = owner->browser->GetProfile();
-    if (profile->IsOffTheRecord() || owner->space_busy || SessionRestore::IsRestoring(profile) || checked->contains(profile->GetPath())) return;
+    if (!owner->identity_registered && !profile->IsOffTheRecord()) {
+      const auto identity = WindowIdentity(owner->browser);
+      if (!identity.empty()) {
+        if (auto* service = SessionServiceFactory::GetForProfile(profile)) {
+          service->AddWindowExtraData(owner->browser->GetSessionID(), kWindowIdentityKey, identity);
+          owner->identity_registered = true;
+        }
+      }
+    }
+    if (profile->IsOffTheRecord() || owner->space_busy || SessionRestore::IsRestoring(profile) || owner->recovery_checked) return;
     auto before = CaptureNativeSpace(owner->browser);
     if (!before) return;
-    checked->insert(profile->GetPath());
+    owner->recovery_checked = true;
     owner->space_pending_ids.clear();
     auto* model = owner->browser->GetTabStripModel();
     for (int i=0; i<model->count(); ++i) owner->space_pending_ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
@@ -1494,7 +1511,14 @@ class Handler : public content::WebUIMessageHandler {
       auto* tabs = before.FindList("tabs");
       int windows = 0;
       for (auto* live : Owner::Live()) if (live->browser->GetProfile() == browser->GetProfile()) ++windows;
-      if (windows != 1 || !tabs || tabs->size() != 1 || *(*tabs)[0].GetDict().FindString("url") != "chrome://newtab/" || browser->CreatedBySessionRestore() || SessionRestore::IsRestoring(browser->GetProfile())) {
+      const auto* source_window = result.FindString("source_window");
+      if (source_window && !source_window->empty()) {
+        int matches = 0;
+        for (auto* live : Owner::Live()) if (live->browser->GetProfile() == browser->GetProfile() && WindowIdentity(live->browser) == *source_window) ++matches;
+        if (matches != 1 || WindowIdentity(browser) != *source_window || SessionRestore::IsRestoring(browser->GetProfile())) {
+          owner->space_error = "Interrupted switch retained: no unique matching window identity."; return;
+        }
+      } else if (windows != 1 || !tabs || tabs->size() != 1 || *(*tabs)[0].GetDict().FindString("url") != "chrome://newtab/" || browser->CreatedBySessionRestore() || SessionRestore::IsRestoring(browser->GetProfile())) {
         owner->space_error = "Interrupted switch retained: startup window ownership is ambiguous."; return;
       }
       name = *result.FindString("source_name");
@@ -1617,7 +1641,10 @@ class Handler : public content::WebUIMessageHandler {
         owner->space_pending_ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
       owner->space_busy = true;
       auto disk_capture = captured->Clone();
-      if (method == "previewSpaceOpen") disk_capture.Set("_source_name", owner->space_name);
+      if (method == "previewSpaceOpen") {
+        disk_capture.Set("_source_name", owner->space_name);
+        disk_capture.Set("_source_window", WindowIdentity(browser));
+      }
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               method, name, std::move(disk_capture)),
@@ -2223,7 +2250,34 @@ class Handler : public content::WebUIMessageHandler {
   base::CancelableTaskTracker tracker_;
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };
+struct WindowIdentityState {
+  base::WeakPtr<BrowserWindowInterface> browser;
+  std::string id;
+};
+auto& WindowIdentities() {
+  static base::NoDestructor<std::map<BrowserWindowInterface*, WindowIdentityState>> states;
+  std::erase_if(*states, [](const auto& item) { return !item.second.browser; });
+  return *states;
+}
 }  // namespace
+
+std::string WindowIdentity(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return "";
+  auto& states = WindowIdentities();
+  auto found = states.find(browser);
+  if (found != states.end()) return found->second.id;
+  // Missing restored identity must not become a newly invented match.
+  std::string id = browser->CreatedBySessionRestore() ? "" : base::Uuid::GenerateRandomV4().AsLowercaseString();
+  states.emplace(browser, WindowIdentityState{browser->GetWeakPtr(), id});
+  return id;
+}
+void RestoreWindowIdentity(BrowserWindowInterface* browser,
+    const std::map<std::string, std::string>& extra_data) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return;
+  auto found = extra_data.find(kWindowIdentityKey);
+  const std::string id = found != extra_data.end() && base::Uuid::ParseLowercase(found->second).is_valid() ? found->second : "";
+  WindowIdentities().insert_or_assign(browser, WindowIdentityState{browser->GetWeakPtr(), id});
+}
 
 Config::Config() : DefaultWebUIConfig("chrome", kHost) {}
 

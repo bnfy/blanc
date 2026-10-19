@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (41 files, 120 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (44 files, 120 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1175,7 +1175,7 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Patch budget, amended October 19:** **41 upstream files
+**Patch budget, amended October 19:** **44 upstream files
 and 120 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 41 files or 120 hunks and
+From plan §5: criterion 2 (the count above exceeds 44 files or 120 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -1405,3 +1405,21 @@ Evidence: `evidence/ui138-spaces-journal-ownership-20261019/`.
 ## Durable window identity budget request — October 19
 
 Unapplied hook sketch: three new upstream paths / seven hunks, projected44files/107hunks. Existing41/120 ceiling unchanged; explicit owner budget response pending. Design and acceptance contract: `evidence/ui138-window-identity-design-20261019/README.md`. No product source/build/profile changes or new runtime claims. Identity save acknowledgement remains a prerequisite to prove. Latency deferred; native input/Electron diagnostic build pending.
+
+## October 19 durable identity budget approval
+
+Owner explicitly approved: **Raise to 44 files; keep 120 hunks**. This supersedes the 41-file ceiling only for the three reviewed durable-window identity paths. All other scope and stop conditions remain unchanged. Draft hook footprint44/107; actual implementation must be recounted.
+
+## Durable window identity — October 19, 2026
+
+Owner explicitly approved: **Raise to 44 files; keep 120 hunks**. The counter and §7 now use that ceiling. Actual measured footprint: **44 upstream files / 107 hunks**, with exactly the three reviewed new paths. No further expansion.
+
+Regular prototype windows receive a browser-owned UUID. Session rebuild serializes it, normal session restoration reattaches it, and native Recently Closed exports/imports it. Private windows have no identity. New version-2 switch journals bind their saved source to that UUID; recovery requires one matching same-profile window after session restoration settles. Missing/invalid/duplicate matches are refused instead of choosing by URL, title or window order. Version-1 journals retain their earlier restricted fallback. Current-session tab IDs/capture are still revalidated after disk work. Incremental identity metadata is queued through SessionService; an acknowledgement of durable save is not available from the inspected interface and is not claimed.
+
+Two real two-window runs pass: first distinct content, then identical two-tab URL/layout contents. UUIDs survive normal restart; the owned browser is then SIGKILLed while a diagnostic rename hook holds immediately after the version-2 journal is atomically installed. Restart with Chromium session restore automatically recovers the UUID-matching source, clears intent, preserves both saved records and leaves the other window's content/identity unchanged. This is a before-staging journal-commit crash point, not all prior staging/removal points rerun under version 2. Native Recently Closed window restoration independently preserves the source UUID and two-tab content. Private window identity is empty and saving is refused. A valid but nonmatching UUID in a synthetic version-2 intent leaves both restored windows unchanged and retains the journal.
+
+Five focused tests and three scoped module lint checks pass. First build failed on two diagnostics from one dictionary chaining expression; repaired without changing args or cleaning output. Initial incremental wrapper38.12s failed, continuation56.99s succeeded (50.68s Siso,9steps). Final guard0/4.44s. A package-resolving lint invocation was canceled because this worktree has no node_modules; the existing installed scoped linter passed. Actual runtime proofs and failures are retained. No Electron diagnostic build or latency run. Owned profiles/server removed; retained preview untouched, host unavailable so original tabs not reverified.
+
+Remaining: crash before newly queued identity metadata reaches disk, explicit session-rebuild fault injection, duplicate/malformed persisted UUID runtime tests, version-2 crashes during staging/removal/recovery, late overlapping restore windows, original-session unsaved state, deletion/power-loss durability and public recovery UX. Missing identity intentionally leaves recovery pending; successful full multiwindow/lifecycle acceptance is not claimed. Nonowner windows can retain a recovery-status error until reinitialization. Public Spaces controls remain hidden. Native input pending; latency deferred; Electron diagnostic build unapproved. Task 0/F12 and plan item4 remain open.
+
+Evidence: `evidence/ui138-window-identity-20261019/`. Routine implementation/test time only; Task0 cold column unchanged.

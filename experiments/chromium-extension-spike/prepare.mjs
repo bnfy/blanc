@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { prepareMacIcon } from './mac-icon.mjs';
 import { prepareComponent } from './ubo-component.mjs';
 import { prepareDocumentTarget } from './ubo-document-target.mjs';
+import { prepareWindowIdentity } from './window-identity.mjs';
 import { prepareGroupPersistence } from './group-persistence.mjs';
 import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 
@@ -611,3 +612,5 @@ prepareDocumentTarget(edit);
 prepareRendererTarget(edit, chromium);
 console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
 console.log(`Assets: ${generated}`);
+
+prepareWindowIdentity(edit);
