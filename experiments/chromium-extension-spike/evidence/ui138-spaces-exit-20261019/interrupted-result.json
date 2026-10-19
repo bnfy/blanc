@@ -1,0 +1,5 @@
+{
+  "pass": false,
+  "error": "Error: timeout",
+  "stack": "Error: timeout\n    at wait (file:///private/tmp/blanc-spaces-exit/interrupted-check.mjs:2:246)\n    at async file:///private/tmp/blanc-spaces-exit/interrupted-check.mjs:3:13"
+}

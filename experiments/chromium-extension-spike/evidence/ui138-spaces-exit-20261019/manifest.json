@@ -1,0 +1,182 @@
+[
+  {
+    "path": "barrier.c",
+    "bytes": 1674,
+    "sha256": "c506e577813ea428621a06e15840dc989092ddee29622398216829efa41893fb"
+  },
+  {
+    "path": "build.log",
+    "bytes": 2608,
+    "sha256": "6ab9c1dba608ca18d9a3c26ef20383dfa8f6604f524d97454bd56533a91ae04f"
+  },
+  {
+    "path": "capture-tests.log",
+    "bytes": 857,
+    "sha256": "9c1cbe3d4c16b8eb9757cb60f30d85fd72c8d669d8cec616e929cc3cd71cc2d8"
+  },
+  {
+    "path": "chromium.log",
+    "bytes": 1658,
+    "sha256": "1777c006897e630bf1fc68d38faf826f0b992a4c35b6e1976cf3b9c2962c10f4"
+  },
+  {
+    "path": "chromium.pid",
+    "bytes": 5,
+    "sha256": "15b75c24361d4ab459be3a5893e2323d1b018182ae8aa16f0e85f9c634e2388e"
+  },
+  {
+    "path": "cleanup.json",
+    "bytes": 279,
+    "sha256": "030fc3c1c02ab5fa485b54e5719ec867456c9966d39ed43f66bb5371e3061b53"
+  },
+  {
+    "path": "cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "cleanup.mjs",
+    "bytes": 1218,
+    "sha256": "de29e5d56ed5717fef76b12bb20c5aad9dd4b3c58bb6e8ec71eb78e465b8b365"
+  },
+  {
+    "path": "exit-check.log",
+    "bytes": 170,
+    "sha256": "859be8085813164b8bcd79849ec08d8bc5304a0f41de19f1064b91224ac25a02"
+  },
+  {
+    "path": "exit-check.mjs",
+    "bytes": 2118,
+    "sha256": "f63b8be5eb6412eaa2f937fa3c58ddb586478e6fd9097ebc2006d24ec04dbb1c"
+  },
+  {
+    "path": "exit-result.json",
+    "bytes": 867,
+    "sha256": "5655fc0cf5f9a2011c14b441d4b8b5530a3b809298a352af75d834ff1fa2765b"
+  },
+  {
+    "path": "final-guard.log",
+    "bytes": 196,
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+  },
+  {
+    "path": "helper-build.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "interrupted-check.log",
+    "bytes": 250,
+    "sha256": "f54a2ca4cfe23d9e061fbe4c8362e1278f89b02996e02f6a3178b67eb3ab33a2"
+  },
+  {
+    "path": "interrupted-check.mjs",
+    "bytes": 2068,
+    "sha256": "ba4ff2659a72993ca61e87772e641c04ffc55c8f0c0bb358bde065a7b2e568bd"
+  },
+  {
+    "path": "interrupted-result.json",
+    "bytes": 237,
+    "sha256": "46a5b7d71a589b2b72a2a5b0be53d8c6b1168bb9142bb58ce5e14fdc2edee79c"
+  },
+  {
+    "path": "invocations.jsonl",
+    "bytes": 2831,
+    "sha256": "c1ff70a4fd8820a1612737b5ff5b9941aeb61d7eecca4c9b6ec503a87fcfe61a"
+  },
+  {
+    "path": "invoke.py",
+    "bytes": 603,
+    "sha256": "dbc800d05c27b72ba3daac2ea10a0f63e1a1be2f72ed5dddb72e8c016ac0a9eb"
+  },
+  {
+    "path": "launch-interrupted.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "launch-interrupted.mjs",
+    "bytes": 798,
+    "sha256": "484db73e9a9d90650e48067dce93e69584fd4ce7cb8a4e9d151b7c65cdec3e1e"
+  },
+  {
+    "path": "launch.mjs",
+    "bytes": 702,
+    "sha256": "f51050aa26fd3a9c4821181dd30c8781ecbb3121bfc37ca799b2d66b72538299"
+  },
+  {
+    "path": "lint.mjs",
+    "bytes": 1135,
+    "sha256": "edd37f92179260630828d16cb46aedb559da7829acc1096903fbf1b38be9ba82"
+  },
+  {
+    "path": "patch-budget.json",
+    "bytes": 42949,
+    "sha256": "99ad166c10ee14f812a16ba4840acdf32d3b77dc22a679a3968e336d0ccec23b"
+  },
+  {
+    "path": "patch-budget.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "prepare.log",
+    "bytes": 196,
+    "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+  },
+  {
+    "path": "record.py",
+    "bytes": 2027,
+    "sha256": "12ced1c6a74b668acbd4bd3d3d2def5fdb777a674250a69e9d7fe54fdedcf149"
+  },
+  {
+    "path": "release",
+    "bytes": 1,
+    "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+  },
+  {
+    "path": "restart-check.log",
+    "bytes": 151,
+    "sha256": "e5509d8ccaccfb7d6738b025b2954245b1ceaaa0c8253bbb7fc5f9c13e174360"
+  },
+  {
+    "path": "restart-check.mjs",
+    "bytes": 1252,
+    "sha256": "a890c220f43b707e51ca69ced9d083ccc73d09673d4e96dd7060209d880a0e92"
+  },
+  {
+    "path": "restart-result.json",
+    "bytes": 540,
+    "sha256": "81445785342df17a57824562117898357d93946b8ba07c106cf36d17c7c5541c"
+  },
+  {
+    "path": "restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "server.cjs",
+    "bytes": 167,
+    "sha256": "4cbc3b989070d54123c78e4211bd9bfe9f42a2caaa52011150e4595f1f4b4eeb"
+  },
+  {
+    "path": "server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "server.pid",
+    "bytes": 5,
+    "sha256": "286fc4d27e4737d53443c877011051b72b3495b55db136b38247cb250cdbf676"
+  },
+  {
+    "path": "start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "start.mjs",
+    "bytes": 474,
+    "sha256": "f5de6c2199c044286c7337628eebe3f7ca4c88981d401df4de88916f151b2286"
+  }
+]

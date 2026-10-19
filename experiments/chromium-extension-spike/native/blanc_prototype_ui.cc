@@ -487,6 +487,11 @@ class IslandToolbarProvider final : public ToolbarButtonProvider,
   raw_ptr<views::View> anchor_;
 };
 
+scoped_refptr<base::SequencedTaskRunner> SpaceRunner();
+std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser);
+base::DictValue SpaceDisk(base::FilePath path, std::string method,
+                         std::string name, base::DictValue capture);
+
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
               public content::RenderWidgetHost::InputEventObserver,
@@ -741,6 +746,20 @@ class Owner : public base::SupportsUserData::Data,
       host->GetPrimaryMainFrame()->ExecuteJavaScript(
           u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
     }
+  }
+  void WillCloseAllTabs(TabStripModel*) override {
+    // Capture while the model still contains its tabs, bypassing the UI poll
+    // and debounce. The existing BLOCK_SHUTDOWN sequence orders this after any
+    // in-flight autosave; the task owns values, never this closing window.
+    if (space_name.empty() || !space_error.empty()) return;
+    auto capture = CaptureNativeSpace(browser);
+    if (!capture) return;
+    SpaceRunner()->PostTask(FROM_HERE, base::BindOnce(
+        [](base::FilePath path, std::string name, base::DictValue data) {
+          auto result = SpaceDisk(std::move(path), "previewSpaceSave", std::move(name), std::move(data));
+          if (const auto* error = result.FindString("error")) LOG(ERROR) << "Blanc Spaces exit flush: " << *error;
+        }, browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+        space_name, std::move(*capture)));
   }
   void OnTabStripModelDestroyed(TabStripModel*) override {
     closing_ = true;
