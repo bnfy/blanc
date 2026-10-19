@@ -34,7 +34,8 @@ if (root) {
     });
   }
 
-  // Scroll the tile row sideways to the current tile, never the page.
+  // Scroll the tile row sideways to the current tile, never the page; the
+  // row's own scroll-behavior makes it glide unless motion is reduced.
   function revealTile(tile) {
     if (!tile || !tileRow) return;
     const left = tile.offsetLeft - tileRow.offsetLeft;
@@ -45,8 +46,14 @@ if (root) {
 
   function show(index, { updateHash = true } = {}) {
     current = index === INTRO ? INTRO : wrap(index);
-    if (intro) intro.hidden = current !== INTRO;
-    sections.forEach((section, i) => { section.hidden = i !== current; });
+    // Every view stays laid out in one stacked cell, so the tile row never
+    // moves; the shown one carries data-current, the rest are inert.
+    [intro, ...sections].forEach((view, i) => {
+      if (!view) return;
+      const shown = i - 1 === current;
+      view.toggleAttribute('data-current', shown);
+      view.inert = !shown;
+    });
     tiles.forEach((tile, i) => tile.setAttribute('aria-current', i === current ? 'true' : 'false'));
     revealTile(tiles[current]);
     if (updateHash) history.replaceState(null, '', current === INTRO ? location.pathname + location.search : `#${sections[current].id}`);

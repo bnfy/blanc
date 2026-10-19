@@ -36,7 +36,10 @@ async function open(url, options = {}) {
   return { context, page, requests };
 }
 
-const visibleSections = (page) => page.$$eval('.wn-highlight', (els) => els.filter((el) => el.offsetParent !== null).map((el) => el.id));
+// Shown highlights: laid out and visible (inactive ones stay laid out, hidden).
+const visibleSections = (page) => page.$$eval('.wn-highlight', (els) => els
+  .filter((el) => el.offsetParent !== null && getComputedStyle(el).visibility === 'visible')
+  .map((el) => el.id));
 
 test('the 1.38 page opens on an intro: the Sunrise, the headline and the tiles, no highlight yet', async () => {
   const { context, page } = await open('/whats-new/1.38');
@@ -138,6 +141,37 @@ test('stepping into a taller highlight keeps the page at its top', async () => {
   await page.locator('.wn-arrow--next').click();
   await page.waitForTimeout(500);
   assert.equal(await page.evaluate(() => window.scrollY), 0);
+  await context.close();
+});
+
+test('the tile row stays put while you move through the intro and every highlight', async () => {
+  // Phones stack each highlight tall, so there the row follows the content.
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 1440, height: 900 }, { width: 1024, height: 700 }]) {
+    const { context, page } = await open('/whats-new/1.38', { viewport });
+    const railTop = () => page.locator('.wn-rail').evaluate((el) => Math.round(el.getBoundingClientRect().top + window.scrollY));
+    const tops = [await railTop()];
+    for (let i = 0; i < ids.length; i += 1) {
+      await page.locator('.wn-arrow--next').click();
+      tops.push(await railTop());
+    }
+    assert.equal(new Set(tops).size, 1, `${viewport.width}×${viewport.height}: ${tops.join(', ')}`);
+    await context.close();
+  }
+});
+
+test('the tile row glides to the chosen tile, and only the shown highlight can be reached', async () => {
+  const { context, page } = await open('/whats-new/1.38', { reducedMotion: 'no-preference' });
+  assert.equal(await page.locator('.wn-tiles').evaluate((el) => getComputedStyle(el).scrollBehavior), 'smooth');
+  await page.locator('.wn-tile').nth(ids.length - 1).click();
+  await page.waitForTimeout(800);
+  const fits = await page.locator('.wn-tiles').evaluate((row) => {
+    const last = row.lastElementChild.getBoundingClientRect();
+    const box = row.getBoundingClientRect();
+    return last.left >= box.left - 1 && last.right <= box.right + 1;
+  });
+  assert.ok(fits, 'the chosen tile ends fully in view');
+  const inert = await page.$$eval('.wn-highlight', (els) => els.map((el) => el.inert));
+  assert.deepEqual(inert, ids.map((id, i) => i !== ids.length - 1), 'hidden highlights are inert');
   await context.close();
 });
 

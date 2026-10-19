@@ -11,29 +11,42 @@
   margin: 0 auto;
   padding: clamp(28px, 4vw, 48px) max(16px, 4vw) clamp(56px, 8vw, 96px);
 }
-/* With the script, the intro or one highlight fills the first screen and the
-   tile row sits along its bottom, as in Chrome. */
+/* With the script, the first screen holds the stage and the tile row, as in
+   Chrome. The intro and every highlight share one grid cell, so the stage is
+   as tall as the tallest and the row never moves; the shown one
+   (data-current) crossfades in. Phones keep the plain flow below. */
 .wn.is-enhanced {
   display: flex;
   flex-direction: column;
   min-height: calc(100svh - var(--site-header-h));
   padding-bottom: 24px;
 }
-.wn.is-enhanced .wn-stage,
-.wn.is-enhanced .wn-intro {
+.wn.is-enhanced .wn-stage {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  align-items: center;
 }
-.wn.is-enhanced .wn-intro[hidden] {
-  display: none;
+.wn.is-enhanced .wn-stage > * {
+  grid-area: 1 / 1;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
-.wn.is-enhanced .wn-stage:not(:has(> .wn-highlight:not([hidden]))) {
-  display: none;
+.wn.is-enhanced .wn-stage > [data-current] {
+  transition: opacity 0.3s ease, visibility 0s;
+}
+.wn.is-enhanced .wn-stage > :not([data-current]) {
+  opacity: 0;
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wn.is-enhanced .wn-stage > * { transition: none; }
+}
+@media (max-width: 760px) {
+  .wn.is-enhanced .wn-stage > :not([data-current]) { display: none; }
 }
 
 .wn-intro {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   padding: clamp(32px, 6vw, 72px) 0;
   text-align: center;
@@ -64,17 +77,6 @@
 .wn:not(.is-enhanced) .wn-highlight + .wn-highlight {
   padding-top: clamp(36px, 5vw, 56px);
   border-top: 1px solid var(--site-border);
-}
-.wn.is-enhanced .wn-highlight:not([hidden]),
-.wn.is-enhanced .wn-intro:not([hidden]) {
-  animation: wn-enter 0.35s ease both;
-}
-@keyframes wn-enter {
-  from { opacity: 0; transform: translateY(8px); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .wn.is-enhanced .wn-highlight:not([hidden]),
-  .wn.is-enhanced .wn-intro:not([hidden]) { animation: none; }
 }
 .wn-highlight h2 {
   margin: 0 0 18px;
@@ -180,6 +182,7 @@
   flex: 1;
   min-width: 0;
   display: flex;
+  scroll-behavior: smooth;
   gap: 12px;
   overflow-x: auto;
   padding: 4px 2px 8px;
@@ -241,6 +244,9 @@
   color: var(--site-gold);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .wn-tiles { scroll-behavior: auto; }
+}
 @media (max-width: 760px) {
   .wn-highlight {
     grid-template-columns: minmax(0, 1fr);
