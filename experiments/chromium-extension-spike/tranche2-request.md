@@ -1,5 +1,9 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## Store promotion wrapper repair — 2026-10-19
+
+The exact campaign's empty dialog shell is now suppressed along with its content; mixed controls are excluded. Four unit tests and live 1600px Sign in hit-testing pass; navigation reaches Google Accounts without credentials. Official Extensity Add to Chrome remains enabled. Fresh native permission/install verification remains pending because CUA selects the retained older preview; closing it was rejected by automatic approval review to protect original tab state. No current native install pass is claimed. Original preview remains open on its previously loaded binary. Evidence: `evidence/ui138-store-promotion-wrapper-20261019/`. One guarded incremental build35.51s (six steps), finalguard0/5.86s; prior41files100hunks not re-enumerated, no new upstream paths. Latency deferred; Electron diagnostic build unapproved.
+
 ## October 19 encrypted legacy and private crash checks
 
 The current binary writes a closed-group fixture using its configured mock keychain. With the

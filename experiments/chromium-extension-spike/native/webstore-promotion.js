@@ -15,7 +15,17 @@
         if (box.textContent.length > 1200) break;
         if (!box.querySelector('h1,h2,h3,[role="heading"]') || !box.querySelector('button')) continue;
         if (box.querySelector('input,select,textarea') || box.querySelectorAll('a[href]').length !== 1) break;
-        box.style.setProperty('display', 'none', 'important');
+        // The Store wraps this aside in a dialog with an empty decorative span.
+        // Hide that shell too, but only when all content and controls belong to
+        // the already-validated promotion. Never hide a mixed-purpose dialog.
+        const shell = box.parentElement;
+        const decorationOnly = shell && shell.getAttribute('role') === 'dialog' &&
+          [...shell.childNodes].every(node => node === box ||
+            (node.nodeType === 3 ? !node.textContent.trim() :
+              node.nodeType === 1 && !node.textContent.trim() &&
+              !node.matches('a,button,input,select,textarea,iframe,[tabindex],[role]') &&
+              !node.querySelector('a,button,input,select,textarea,iframe,[tabindex],[role]')));
+        (decorationOnly ? shell : box).style.setProperty('display', 'none', 'important');
         break;
       }
     }

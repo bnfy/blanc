@@ -788,3 +788,7 @@ contexts and wider concurrent/crash/visual scenarios remain gaps. Plan/evidence 
 F12/Task0 and visualitem4 gates remain open. Routine testing only; cold column unchanged.
 
 Evidence: `evidence/ui138-group-encrypted-private-crash-20261019/`.
+
+## Store promotion wrapper repair — 2026-10-19
+
+The exact campaign's empty dialog shell is now suppressed along with its content; mixed controls are excluded. Four unit tests and live 1600px Sign in hit-testing pass; navigation reaches Google Accounts without credentials. Official Extensity Add to Chrome remains enabled. Fresh native permission/install verification remains pending because CUA selects the retained older preview; closing it was rejected by automatic approval review to protect original tab state. No current native install pass is claimed. Original preview remains open on its previously loaded binary. Evidence: `evidence/ui138-store-promotion-wrapper-20261019/`. One guarded incremental build35.51s (six steps), finalguard0/5.86s; prior41files100hunks not re-enumerated, no new upstream paths. Latency deferred; Electron diagnostic build unapproved.
