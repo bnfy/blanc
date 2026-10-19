@@ -1,6 +1,6 @@
 # Blanc governance and sensitive access
 
-Last verified: September 13, 2026
+Last verified: October 19, 2026
 
 Blanc is maintained by Bananify Creative. Anthony J. Loria
 ([`@bnfy`](https://github.com/bnfy)) is the sole human maintainer and the only
@@ -11,6 +11,12 @@ direct collaborator on `bnfy/blanc`.
 | Member | Role | Responsibilities |
 | --- | --- | --- |
 | Anthony J. Loria (`@bnfy`) | Project, release, and security maintainer | Product and architecture decisions; issue and pull-request review; repository administration; security-report triage and coordinated disclosure; dependency and Chromium updates; release approval, signing, publication, and verification; Blanc website and Worker operations; support contact. |
+| TODO before merge: name (`@login`) | Reviewer | Approves or requests changes on pull requests authored by others, including the maintainer's own and agent-authored ones, for scope, correctness, tests, and security impact. Write role only, with no administration, secrets, security advisories, signing, deployment, or service-account access. |
+
+The reviewer's identity, contribution history, GitHub MFA, and need for the
+role were verified on TODO (date) as required below. The plan for this role,
+and for the branch rule that will need their approval, is in
+[the OpenSSF Baseline Level 3 plan](openssf-baseline-level-3-plan-2026-10-19.md).
 
 The maintainer has access to the sensitive project resources needed for those
 responsibilities: GitHub repository administration, Actions secrets and
@@ -29,9 +35,10 @@ release and deployment procedures in this repository.
 ## Decision and review model
 
 The maintainer accepts changes through pull requests. Protected `main` requires
-the configured tests, CodeQL analysis, an up-to-date branch, and resolved review
-conversations; administrators are included. With one human maintainer, Blanc
-does not claim independent human review. Automated or agent review may inform
+the configured tests, CodeQL analysis, and resolved review conversations;
+administrators are included. It does not require the branch to be up to date
+with `main`. Until the reviewer's approval is required on `main`, Blanc does
+not claim independent human review. Automated or agent review may inform
 the maintainer but does not replace owner responsibility.
 
 Security-sensitive and platform-specific changes must include the evidence
