@@ -1021,7 +1021,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 .memchart-track { display: block; width: 100%; }
 .memchart-bar {
-  display: block; width: var(--fill); height: 30px; border-radius: 0 4px 4px 0;
+  display: block; width: var(--fill); height: 10px; border-radius: 999px;
   background: #c4c4c4; min-width: 3px;
 }
 .memchart-val {
@@ -1054,7 +1054,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 640px) {
   .memchart-table td { grid-template-columns: 1fr 4rem; gap: 12px; }
   .memchart-table th[scope="row"] { width: 5.5rem; padding-right: 12px; font-size: 0.95rem; }
-  .memchart-bar { height: 24px; }
+  .memchart-bar { height: 8px; }
   .memchart-table .is-blanc .memchart-val { font-size: 1.15rem; }
 }
 
