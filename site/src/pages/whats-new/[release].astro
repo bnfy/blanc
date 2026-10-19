@@ -14,7 +14,7 @@ import { publishedPages, tileColorsFrom, validateWhatsNew } from '../../lib/what
 import '../../styles/whats-new.css';
 
 export function getStaticPaths() {
-  const errors = validateWhatsNew(data, releases, { tileColors: tileColorsFrom(identitySource) });
+  const errors = validateWhatsNew(data, releases, { tileColors: tileColorsFrom(identitySource), requireEveryRelease: false });
   if (errors.length) throw new Error(`site/src/data/whats-new.json:\n${errors.join('\n')}`);
   return publishedPages(data, releases).map((page) => ({ params: { release: page.release }, props: { page } }));
 }

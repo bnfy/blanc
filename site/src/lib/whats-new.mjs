@@ -67,7 +67,11 @@ function mediaErrors(media, where, publicDir) {
 // Every problem with the data, as messages; [] when it is valid. tileColors
 // comes from tileColorsFrom(); publicDir, when given, checks that local media
 // exist (the unit test passes it; the build leaves it to the test).
-export function validateWhatsNew(data, releases, { tileColors, publicDir } = {}) {
+// requireEveryRelease checks that each feature release from firstRelease on has
+// a page or a noPage entry. Both wait on the owner's sign-off, so only the unit
+// test asks for it; the build leaves it off, and the post-release changelog
+// deploy never waits on a page.
+export function validateWhatsNew(data, releases, { tileColors, publicDir, requireEveryRelease = true } = {}) {
   const errors = [];
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
@@ -98,7 +102,7 @@ export function validateWhatsNew(data, releases, { tileColors, publicDir } = {})
   for (const release of skipped) if (paged.has(release)) errors.push(`${release} is both paged and in noPage`);
   if (!FEATURE_RE.test(data.firstRelease ?? '')) {
     errors.push('firstRelease must be major.minor');
-  } else {
+  } else if (requireEveryRelease) {
     for (const release of featureReleases) {
       if (compareFeature(release, data.firstRelease) >= 0 && !paged.has(release) && !skipped.has(release)) {
         errors.push(`${release} has no What's New page and is not in noPage`);

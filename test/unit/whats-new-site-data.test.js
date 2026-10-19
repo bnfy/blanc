@@ -92,6 +92,14 @@ test('every feature release from firstRelease on has a page or is skipped on pur
   assert.equal(validateWhatsNew(fixture([page('1.38')], { noPage: ['1.38', '1.39'] }), twoReleases, await options()).length, 1, 'both paged and skipped');
 });
 
+test('the build can skip the every-release check, which waits on the owner', async () => {
+  const { validateWhatsNew } = await lib();
+  const twoReleases = [{ version: '1.39.0' }, ...RELEASES];
+  assert.deepEqual(validateWhatsNew(fixture([page('1.38')]), twoReleases, { ...(await options()), requireEveryRelease: false }), []);
+  const route = fs.readFileSync(path.join(ROOT, 'site/src/pages/whats-new/[release].astro'), 'utf8');
+  assert.match(route, /requireEveryRelease: false/, 'a release without a signed-off page never blocks the site build');
+});
+
 test('every local media file exists', async () => {
   const { validateWhatsNew } = await lib();
   const missing = validateWhatsNew(fixture([page('1.38', 3, { media: { kind: 'video', src: '/nope.mp4', poster: '/nope.webp', alt: 'Alt.' } })]), RELEASES, await options());
