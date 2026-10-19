@@ -14,15 +14,13 @@ const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8
 const lib = () => import('../../site/src/lib/whats-new.mjs');
 const releases = readJson('site/src/data/releases.json');
 const data = readJson('site/src/data/whats-new.json');
-const identitySource = fs.readFileSync(path.join(ROOT, 'src/renderer/space-identity.js'), 'utf8');
-const options = async () => ({ tileColors: (await lib()).tileColorsFrom(identitySource), publicDir: path.join(ROOT, 'site/public') });
+const options = async () => ({ publicDir: path.join(ROOT, 'site/public') });
 
 const highlight = (id, extra = {}) => ({
   id,
   tile: `Tile ${id}`,
   title: `Title ${id}`,
   body: 'Body.',
-  color: 'rose',
   media: { kind: 'image', src: '/feature-captures/start-page-color-v1.38.0.webp', width: 1440, height: 900, alt: 'Alt.' },
   ...extra,
 });
@@ -32,11 +30,6 @@ const page = (release, count = 3, extra = {}) => ({
 });
 const fixture = (pages, more = {}) => ({ firstRelease: '1.38', noPage: [], pages, ...more });
 const RELEASES = [{ version: '1.38.0', humanDate: 'October 18, 2026', anchor: 'v1-38-0' }];
-
-test('the tile colors are the eight Spaces presets', async () => {
-  const { tileColorsFrom } = await lib();
-  assert.deepEqual(Object.keys(tileColorsFrom(identitySource)), ['sage', 'sky', 'iris', 'rose', 'clay', 'sand', 'slate', 'graphite']);
-});
 
 test('featureRelease keeps major.minor of a release version only', async () => {
   const { featureRelease } = await lib();
@@ -69,7 +62,7 @@ test('each highlight is checked', async () => {
   const { validateWhatsNew } = await lib();
   const opts = await options();
   const bad = (extra) => validateWhatsNew(fixture([page('1.38', 3, extra)]), RELEASES, opts).length > 0;
-  assert.ok(bad({ color: 'teal' }), 'color outside the eight Spaces presets');
+  assert.ok(bad({ color: 'rose' }), 'website pages use the site palette, not Spaces colors');
   assert.ok(bad({ media: { kind: 'gif', src: '/x.gif' } }), 'unknown media kind');
   assert.ok(bad({ media: { kind: 'demo', demo: 'mahjong' } }), 'unknown demo');
   assert.ok(bad({ media: { kind: 'image', src: '/feature-captures/start-page-color-v1.38.0.webp', width: 1440, height: 900 } }), 'image without alt');

@@ -2,28 +2,25 @@
 // /whats-new/<major>.<minor>: the highlights of one feature release. Blanc opens
 // this page once after a feature update, only after checking that it exists
 // (src/main/whats-new.js), so it runs no analytics and carries no newsletter
-// prompt. Every page needs the owner's sign-off before it deploys
-// (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
+// prompt. It wears the site's own masthead, footer, kicker, buttons and capture
+// frames (docs/brand-usage.md). Every page needs the owner's sign-off before it
+// deploys (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import WhatsNewHeader from '../../components/WhatsNewHeader.astro';
 import WhatsNewHighlight from '../../components/WhatsNewHighlight.astro';
 import data from '../../data/whats-new.json';
 import releases from '../../data/releases.json';
-import identitySource from '../../../../src/renderer/space-identity.js?raw';
-import { publishedPages, tileColorsFrom, validateWhatsNew } from '../../lib/whats-new.mjs';
+import { publishedPages, validateWhatsNew } from '../../lib/whats-new.mjs';
 import '../../styles/whats-new.css';
 
 export function getStaticPaths() {
-  const errors = validateWhatsNew(data, releases, { tileColors: tileColorsFrom(identitySource), requireEveryRelease: false });
+  const errors = validateWhatsNew(data, releases, { requireEveryRelease: false });
   if (errors.length) throw new Error(`site/src/data/whats-new.json:\n${errors.join('\n')}`);
   return publishedPages(data, releases).map((page) => ({ params: { release: page.release }, props: { page } }));
 }
 
 const { page } = Astro.props;
 const { release, humanDate, anchor, highlights } = page;
-// The tile colors come from the app's Spaces palette, as CSS rather than
-// per-element styles.
-const tileColors = Object.entries(tileColorsFrom(identitySource)).map(([id, hex]) => `.wn [data-color="${id}"]{--tile:${hex}}`).join('');
+const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
 ---
 <BaseLayout
   title={`What’s New in Blanc ${release} | Blanc Browser`}
@@ -32,18 +29,16 @@ const tileColors = Object.entries(tileColorsFrom(identitySource)).map(([id, hex]
   page="whats-new"
   analytics={false}
   newsletterPrompt={false}
-  chrome="bare"
 >
-  <style is:inline slot="head" set:html={tileColors} />
-  <WhatsNewHeader version={release} humanDate={humanDate} />
   <main id="main-content" class="wn" data-release={release}>
+    <p class="section-kicker">What’s new · Blanc {release} · {shortDate}</p>
     <h1 class="sr-only">What’s new in Blanc {release}</h1>
     <div class="wn-stage">
       {highlights.map((highlight, index) => <WhatsNewHighlight highlight={highlight} first={index === 0} />)}
     </div>
     <nav class="wn-tiles" aria-label="Highlights">
       {highlights.map((h, index) => (
-        <button type="button" class="wn-tile" data-color={h.color} aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
+        <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
           <span class="wn-tile-label">{h.tile}</span>
           {h.media.kind === 'image' && <img class="wn-tile-thumb" src={h.media.src} width={h.media.width} height={h.media.height} alt="" loading="lazy" decoding="async" />}
           {h.media.kind === 'video' && <img class="wn-tile-thumb" src={h.media.poster} alt="" loading="lazy" decoding="async" />}

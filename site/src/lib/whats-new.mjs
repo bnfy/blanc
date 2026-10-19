@@ -5,17 +5,10 @@
 // after checking that the page exists (src/main/whats-new.js).
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadSpaceIdentity } from './native-island-art.mjs';
 
 const RELEASE_RE = /^(\d+)\.(\d+)\.(\d+)$/;
 const FEATURE_RE = /^(\d+)\.(\d+)$/;
 
-// The eight Spaces presets, from the app's own src/renderer/space-identity.js
-// source (callers read it: the page through Vite, the unit test from disk), so
-// a tile can only ever use a color the app's Spaces use.
-export function tileColorsFrom(identitySource) {
-  return Object.fromEntries(loadSpaceIdentity(identitySource).PRESETS.map((p) => [p.id, p.hex]));
-}
 // Only the demos that carry their own script and styles; Glance and gestures
 // still lean on the homepage's home.js and home.css.
 export const DEMOS = Object.freeze(['spaces', 'tab-drag']);
@@ -64,14 +57,14 @@ function mediaErrors(media, where, publicDir) {
   return errors;
 }
 
-// Every problem with the data, as messages; [] when it is valid. tileColors
-// comes from tileColorsFrom(); publicDir, when given, checks that local media
-// exist (the unit test passes it; the build leaves it to the test).
+// Every problem with the data, as messages; [] when it is valid. publicDir,
+// when given, checks that local media exist (the unit test passes it; the
+// build leaves it to the test).
 // requireEveryRelease checks that each feature release from firstRelease on has
 // a page or a noPage entry. Both wait on the owner's sign-off, so only the unit
 // test asks for it; the build leaves it off, and the post-release changelog
 // deploy never waits on a page.
-export function validateWhatsNew(data, releases, { tileColors, publicDir, requireEveryRelease = true } = {}) {
+export function validateWhatsNew(data, releases, { publicDir, requireEveryRelease = true } = {}) {
   const errors = [];
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
@@ -92,7 +85,9 @@ export function validateWhatsNew(data, releases, { tileColors, publicDir, requir
       if (ids.has(h.id)) errors.push(`${where}: duplicate id`);
       ids.add(h.id);
       for (const key of ['tile', 'title', 'body']) if (!nonEmpty(h[key])) errors.push(`${where}: ${key} is missing`);
-      if (!tileColors || !(h.color in tileColors)) errors.push(`${where}: color "${h.color}" is not a Spaces preset`);
+      // Website chrome keeps the site palette (docs/brand-usage.md); color
+      // comes from the captures themselves.
+      if ('color' in h) errors.push(`${where}: highlights take no color; the page uses the site palette`);
       if (h.steps !== undefined && (!Array.isArray(h.steps) || !h.steps.every(nonEmpty))) errors.push(`${where}: steps must be a list of text`);
       if (h.learnMore !== undefined && !isSitePath(h.learnMore)) errors.push(`${where}: learnMore must be a blanc.day page`);
       errors.push(...mediaErrors(h.media, where, publicDir));

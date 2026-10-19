@@ -30,15 +30,18 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
 3. **Loaded from the website.** The page is a blanc.day page (option 1 of two offered),
    so its content can change without a new app build. The alternative, a `blanc://` page
    pulling remote content, was declined.
-4. **Chrome's layout.** One highlight at a time, colored tiles along the bottom, demo panel
+4. **Chrome's layout.** One highlight at a time, tiles along the bottom, demo panel
    on the right (layout-v4 mockup).
 5. **The demos are a mix.** Each highlight uses whatever fits: a still capture, a short clip,
    or an animated demo reused from the website's existing components (`SpacesDemo`,
    `GlanceDemo`, `GestureDemo`, `TabDragFigure`, the captures in `site/public/revamp/` and
    `site/public/shots/`).
-6. **The header carries the full Blanc lockup:** the small-header lockup (Sunrise mark and
-   the "Blanc" word, `.site-lockup--small`, per `docs/brand-usage.md` → *Blanc lockup*), a thin
-   divider, then "What's new"; version and release date at the right.
+6. **The header carries the full Blanc lockup.** After a first build drifted off-brand
+   (owner, October 19, 2026), the page wears the site's own shared masthead (which carries the
+   small lockup) and footer, a gold `.section-kicker` "What's new · Blanc X.Y · <date>", the
+   dark `.cta` for **next**, a `.text-link` for **learn more**, and `.product-capture` frames,
+   per `docs/brand-usage.md`. No Spaces colors on website chrome: color comes from the
+   captures.
 7. **The auto-open rules below were played back and accepted** ("looks good").
 
 ## Goals
@@ -72,17 +75,15 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
 - **URL:** `https://blanc.day/whats-new/<major>.<minor>` (for example `/whats-new/1.38`),
   one page per feature release. `https://blanc.day/whats-new` always leads to the newest one.
 - **Layout (from the mockup):**
-  - Header: lockup, divider, "What's new"; right side "Version 1.38 · October 18"
-    (date from `site/src/data/releases.json`). The lockup links to the homepage.
-    *My call:* the page uses this slim header instead of the full site navigation, as Chrome
-    does.
+  - Header and footer: the site's shared masthead and footer (decision 6). Above the stage, a
+    gold kicker "What's new · Blanc 1.38 · October 18" (date from
+    `site/src/data/releases.json`).
   - Stage: the current highlight. Left: headline, short paragraph, optional numbered steps,
     optional note (e.g. privacy detail), **Learn more ↗** (only when the highlight has a URL)
     and **Next** (moves to the next highlight; on the last one it wraps to the first;
     *my call*). Right: the demo in a soft rounded panel; clips get a replay control.
-  - Tile row: one tile per highlight, each tinted with one of the eight Spaces colors
-    (`SpaceIdentity.PRESETS`) as a pale wash, with its name and a small thumbnail; the current
-    tile has a stronger outline. Clicking a tile shows that highlight.
+  - Tile row: one white tile per highlight with its name and a small thumbnail; the current
+    tile has a gold outline. Clicking a tile shows that highlight.
   - Footer line: "Want every detail? Read the full changelog on blanc.day", linking to that
     release's anchor on `/changelog`.
   - Background: the warm Sunrise page color. Type: the site's Blubird faces, per site rules;
@@ -99,7 +100,7 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
 - **Content lives in one data file** (*my call on the shape*), e.g.
   `site/src/data/whats-new.json`: per feature release, its version and three to five
   highlights, each with title, tile label, body, optional steps, optional note, optional
-  `learnMore` URL, tile color id, and media (`{ kind: "image" | "video" | "demo", ... }`
+  `learnMore` URL, and media (`{ kind: "image" | "video" | "demo", ... }`
   where `demo` names one of the existing site demo components). Media files reuse the
   existing site assets; new captures go through the usual capture rules (Retina density,
   credits in the folder's `credits.txt` for any third-party page shown).

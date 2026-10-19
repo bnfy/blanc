@@ -13,7 +13,6 @@ interface Props {
     steps?: string[];
     note?: string;
     learnMore?: string;
-    color: string;
     media:
       | { kind: 'image'; src: string; width: number; height: number; alt: string; caption?: string }
       | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
@@ -24,18 +23,18 @@ interface Props {
 const { highlight: h, first } = Astro.props;
 const media = h.media;
 ---
-<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`} data-color={h.color}>
+<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
   <div class="wn-copy">
     <h2 id={`${h.id}-title`}>{h.title}</h2>
     <p class="wn-body">{h.body}</p>
     {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{step}</li>)}</ol>}
     {h.note && <p class="wn-note">{h.note}</p>}
     <div class="wn-actions">
-      {h.learnMore && <a class="wn-button wn-button--primary wn-learn-more" href={h.learnMore}>Learn more <span aria-hidden="true">↗</span></a>}
-      <button type="button" class="wn-button wn-next">Next</button>
+      <button type="button" class="cta wn-next">next</button>
+      {h.learnMore && <a class="text-link wn-learn-more" href={h.learnMore}>learn more <span aria-hidden="true">›</span></a>}
     </div>
   </div>
-  <figure class="wn-media">
+  <figure class:list={['wn-media', { 'product-capture released-capture': media.kind !== 'demo' }]}>
     {media.kind === 'image' && (
       <img src={media.src} width={media.width} height={media.height} alt={media.alt} loading={first ? 'eager' : 'lazy'} decoding="async" />
     )}

@@ -17,7 +17,6 @@
           ],
           "note": "Blanc keeps a resized copy on this device only, without location, camera or time details. It isn't synced, and private tabs never show it.",
           "learnMore": "/features/start-page",
-          "color": "rose",
           "media": {
             "kind": "image",
             "src": "/feature-captures/start-page-image-v1.38.0.webp",
@@ -39,7 +38,6 @@
           ],
           "note": "The color settings sync with Profile Sync. An image chosen on this device still comes first here, and private tabs never show the color.",
           "learnMore": "/features/start-page",
-          "color": "sky",
           "media": {
             "kind": "image",
             "src": "/feature-captures/start-page-color-v1.38.0.webp",
@@ -58,7 +56,6 @@
             "Turn on Match each space’s color."
           ],
           "learnMore": "/features/workspaces",
-          "color": "iris",
           "media": {
             "kind": "image",
             "src": "/feature-captures/start-page-color-customize-v1.38.0.webp",

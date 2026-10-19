@@ -34,13 +34,24 @@ async function open(url, options = {}) {
 
 const visibleSections = (page) => page.$$eval('.wn-highlight', (els) => els.filter((el) => el.offsetParent !== null).map((el) => el.id));
 
-test('the 1.38 page shows the lockup header, the version line and the first highlight', async () => {
+test('the 1.38 page wears the site masthead and footer, a gold kicker and the first highlight', async () => {
   const { context, page } = await open('/whats-new/1.38');
-  const header = page.locator('.wn-header');
-  assert.equal(await header.locator('.site-lockup').count(), 1);
-  assert.match(await header.innerText(), /What’s new/);
-  assert.match(await header.locator('.wn-version').innerText(), /^Version 1\.38 · October 18$/);
+  assert.equal(await page.locator('.site-header .site-lockup').count(), 1, 'the shared masthead with the lockup');
+  assert.equal(await page.locator('.website-footer').count(), 1, 'the shared footer and its horizon rule');
+  assert.equal(await page.locator('.wn .section-kicker').innerText(), 'WHAT’S NEW · BLANC 1.38 · OCTOBER 18');
   assert.deepEqual(await visibleSections(page), [ids[0]]);
+  await context.close();
+});
+
+test('controls use the site\'s own button, link and capture styles', async () => {
+  const { context, page } = await open('/whats-new/1.38');
+  const section = page.locator(`#${ids[0]}`);
+  assert.equal(await section.locator('button.cta.wn-next').count(), 1, 'Next is the dark primary button');
+  assert.equal(await section.locator('a.text-link.wn-learn-more').count(), 1, 'Learn more is a text link');
+  assert.equal(await section.locator('figure.product-capture.released-capture').count(), 1, 'captures sit in the site frame');
+  const ink = await section.locator('.wn-next').evaluate((el) => getComputedStyle(el).backgroundColor);
+  assert.equal(ink, 'rgb(17, 17, 17)', 'the shared --site-accent ink');
+  assert.equal(await page.locator('[data-color]').count(), 0, 'no Spaces colors on website chrome');
   await context.close();
 });
 
@@ -83,7 +94,6 @@ test('no analytics, no consent banner, no newsletter prompt', async () => {
   assert.ok(!requests.some((p) => /site\.[^/]*\.js$|googletagmanager|gtag/.test(p)), requests.join('\n'));
   assert.equal(await page.locator('[data-consent], .consent, #consent').count(), 0);
   assert.equal(await page.locator('[data-newsletter-prompt]').count(), 0);
-  assert.equal(await page.locator('.website-footer, .site-header').count(), 0, 'no site header or footer');
   await context.close();
 });
 
