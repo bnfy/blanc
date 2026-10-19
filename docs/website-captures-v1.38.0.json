@@ -5,7 +5,7 @@
   "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
   "captureDate": "2026-10-18",
   "timezone": "America/New_York",
-  "replaces": "Nothing: these are the first captures of the v1.38.0 wallpapers (F49 your own image, F50 Color), added beside the existing Start Page captures on /features/start-page.",
+  "replaces": "On /features/start-page: billboard, ledger, shelf and tally -v1.31.0 (docs/website-captures-v1.31.0.json) and mahjong-v1.21.0 (docs/website-captures-v1.21.json), which predate the Instrument Sans interface text, the footer that sits on the wallpaper and the Customize popover's Wallpaper section. The older files stay in place with their ledgers; the homepage keeps its v1.35.0 captures. The four wallpaper captures are new.",
   "source": {
     "artifact": "Public release asset Blanc-1.38.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.38.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
     "dmgSha256": "09a08b51f4b64e85d3b9165e7a56ff8b56685a1bd8121723544299d8def681eb",
@@ -116,6 +116,102 @@
       "webp": {
         "file": "site/public/feature-captures/start-page-color-customize-v1.38.0.webp",
         "sha256": "b79a895e954430b2611fd9d248cbf1ea424cb1d8b24a0e414e3ae8f933eb9aa5"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/ledger-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "75e250b5a8ad775b68f94f55be8aa3e09d90d7dfa7cddc4b47616786ea72f9e9",
+      "capturedAt": "2026-10-19T01:27:32Z",
+      "state": "Ledger: \"Where to?\" with four Favorites on the left and Pick up where you left off (Research, Reading, 2 tabs each) on the right; the footer shows 328 ads blocked this week, v1.38.0, Customize, Mahjong and ⌘L to go anywhere.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/ledger-v1.38.0.webp",
+        "sha256": "a36f58eab1e3e501930360c366e211a5f2245f8d2ee97693e23e8f4bcc71d799"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "2c6eb750a6d29294abad0c76393a0d3c46de3d597c47c9857c5e2c60d698c43e",
+      "capturedAt": "2026-10-19T01:27:34Z",
+      "state": "Billboard: date, the clock, 328 ads blocked this week, six frequently visited sites and the Research and Reading group pills, over the Sunrise wallpaper.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-v1.38.0.webp",
+        "sha256": "228f6f3c7f84bd81e96dac7da577b573488332f1ca80d2e8160a731d238970ea"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/shelf-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "e5298347d9ce0e4262590ca5540ecd79ad4e53f8e797a39ff5fd3e9f2d04b0e5",
+      "capturedAt": "2026-10-19T01:27:36Z",
+      "state": "Shelf: four Favorites as tiles, Pick up where you left off with Research and Reading, and the Blocked card with 328 ads this week.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/shelf-v1.38.0.webp",
+        "sha256": "726f6881b67077ca9823b100a062f2e9452d97b088de611d8298d00222ae430e"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tally-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "20b7d95d2b70faa5806785d934c607356a88c6f735deb76b2603717340b700ca",
+      "capturedAt": "2026-10-19T01:27:38Z",
+      "state": "Tally: Favorites and Pick up where you left off beside Blocked this week (328) with a day-by-day chart and 'busiest day tuesday'.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tally-v1.38.0.webp",
+        "sha256": "7cfbb1376f1ef1da5890b981894e6b0a59b5477b9489ee630a792ab0feaa6e15"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/mahjong-v1.38.0.png",
+      "width": 2880,
+      "height": 1800,
+      "sha256": "52b7ec2a297dd4009929df1a98c284c607588e569d697ce0d9f42ea2af9e8d86",
+      "capturedAt": "2026-10-19T01:27:42Z",
+      "state": "Standalone Mahjong opened from the Start Page footer: the Daily deal on Turtle in Burst mode (Auto), 72 pairs left, the Burst rack and the side tools.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 node scripts/capture-installed-start-page.mjs in one disposable profile seeded with the shared Start Page fixtures (six sample Favorites, four of them bookmarked; a weekly blocked total of 328), two named groups (Research, Reading) of two tabs each, lastRunVersion 1.38.0 and a dismissed Patron callout; adblockEnabled false, as in earlier runs of this script. The script picks each layout through the shipped Customize popover, closes it with Escape, then opens Mahjong from the footer's own link. Each is a Chromium page screenshot (Page.captureScreenshot) of the Start Page or Mahjong view at 1440×900 CSS px and device scale 2 (2880×1800) with reduced motion, after every running animation has finished; the native Island strip is not part of a page screenshot. Each PNG has a same-size WebP companion (quality 85).",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/mahjong.html",
+        "v1.38.0:src/renderer/pages/mahjong.js",
+        "v1.38.0:src/renderer/pages/mahjong-engine.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-v1.38.0.webp",
+        "sha256": "770ca3e5a644f2233028b2d379b54040f67e08e0ab018ddf5d74e9aa553a7f6d"
       }
     }
   ]
