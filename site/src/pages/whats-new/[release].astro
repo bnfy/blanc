@@ -30,10 +30,14 @@ const { release, anchor, highlights, entries } = page;
   newsletterPrompt={false}
 >
   <main id="main-content" class="wn" data-release={release}>
-    <h1 class="sr-only">What’s new in Blanc {release}</h1>
+    <section class="wn-intro" aria-labelledby="wn-intro-title">
+      <img class="wn-intro-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt="" />
+      <h1 id="wn-intro-title">See what’s new in Blanc</h1>
+    </section>
     <div class="wn-stage">
       {entries.map((entry, index) => <WhatsNewHighlight {...entry} first={index === 0} />)}
     </div>
+    <div class="wn-rail">
     <nav class="wn-tiles" aria-label="Highlights">
       {entries.map(({ highlight: h, release: from, current }, index) => (
         <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
@@ -43,6 +47,11 @@ const { release, anchor, highlights, entries } = page;
         </button>
       ))}
     </nav>
+    <div class="wn-arrows">
+      <button type="button" class="wn-arrow wn-arrow--prev" aria-label="Previous highlight"><span aria-hidden="true">‹</span></button>
+      <button type="button" class="wn-arrow wn-arrow--next" aria-label="Next highlight"><span aria-hidden="true">›</span></button>
+    </div>
+    </div>
     <p class="wn-changelog">Want every detail? <a href={`/changelog#${anchor}`}>Read the full changelog on blanc.day</a></p>
   </main>
   <script src="../../scripts/whats-new.js"></script>

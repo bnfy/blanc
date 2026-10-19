@@ -233,6 +233,85 @@
         "file": "site/public/feature-captures/billboard-image-v1.38.0.webp",
         "sha256": "78a6baee8180c870631b4b66ac56bfd7861277e51c1013ec6b2c9bd63a1de21c"
       }
+    },
+    {
+      "file": "site/public/feature-captures/start-page-color-rose-solid-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "7b5d89d6a7eefd3bf5e63e0def38d556a87345dac863ff601e2db9f9129c34d6",
+      "capturedAt": "2026-10-19T18:56:00Z",
+      "state": "Billboard with the Color wallpaper: the Rose preset (#9b4761) with the Solid fill and the page's light-on-color ink. Customize closed. Added for the What's New page so its panels don't repeat the Sky capture.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_COLOR=rose BLANC_CAPTURE_FILL=solid BLANC_CAPTURE_STATES=color node scripts/capture-installed-custom-wallpaper.mjs.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/start-page-paint.js",
+        "v1.38.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/start-page-color-rose-solid-v1.38.0.webp",
+        "sha256": "b3f5c9ead0048b7ed3fb7fbcc2179730f0d1741f74fa82524564c6e3542d7c23"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/tab-group-colors-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "aa95cfc158ed3cc4b93d8a25264f89b99a8835119ff84b9a9945118fe14e11a9",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The ⌘L panel opened through the shipped openIsland action over Wikipedia's Stockholm Public Library article, with the group Inspiration in Rose (#9b4761) and Reading in Sage (#426c4c): tinted blocks and a colored dot before each name.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_GROUP_COLORS='#9b4761,#426c4c' BLANC_CAPTURE_FRONT=3 node scripts/capture-installed-media.mjs (island-expanded). Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/overlay.js",
+        "v1.38.0:src/renderer/tab-sections.js",
+        "v1.38.0:src/main/group-color.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/tab-group-colors-v1.38.0.webp",
+        "sha256": "7cf12b000425646fb91a36d9237e7483e7b70c1604ab9fc1b4701c243b626893"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/island-hover-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "5224a009ff46c55114b8353d0dd73952550d04dfc37d6cfa19e64119a31f0f2c",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The resting Island over the Smithsonian Open Access page, with the tab dots of the Rose-colored Inspiration group, +3 for the rest, and the blocked count. Used for Open the Island on hover, which opens the panel from this resting address.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_GROUP_COLORS='#9b4761,#426c4c' BLANC_CAPTURE_FRONT=2 node scripts/capture-installed-media.mjs (island-resting). Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/index.html",
+        "v1.38.0:src/renderer/renderer.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/island-hover-v1.38.0.webp",
+        "sha256": "2b87b7a357283542ef20e11f6fb4628de54ec24534d96f3fa0d5b8df9f7f0151"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "4dcde0b1bfdfd816aeed583663eef945d1dba4a314fc6c52c4db6dd160bc47b3",
+      "capturedAt": "2026-10-19T19:20:00Z",
+      "state": "The ⌘L panel over The Met's public-domain Under the Wave off Kanagawa (Hokusai), with Recently closed unfolded: Lisbon trip · 2 tabs (a closed group) and Vincent van Gogh - Wikipedia, above the open Painting class group.",
+      "source": "Installed /Applications/Blanc.app, whose executable SHA-256 equals source.executableSha256 (the verified public v1.38.0 build 1380, Team ID XYGUCY4498), launched as a separate instance in a disposable profile. BLANC_CAPTURE_VERSION=1.38.0 BLANC_CAPTURE_FRONT_URL=https://www.metmuseum.org/art/collection/search/45434 BLANC_CAPTURE_FRONT_TITLE='Under the Wave off Kanagawa' node scripts/capture-installed-reopen-closed-tabs.mjs. Resized to 1440×900 sRGB with a quality 85 WebP companion.",
+      "evidence": [
+        "v1.38.0:src/renderer/overlay.js",
+        "v1.38.0:src/main/closed-tabs.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.webp",
+        "sha256": "757be7d5220801a398bad77ae890db2d28b4b2614d3719b78816f5a230b35d5a"
+      }
     }
   ],
   "wallpaperSettings": {
@@ -316,6 +395,7 @@
   "shownOn": [
     "site/src/pages/features/start-page.astro",
     "site/src/pages/index.astro",
-    "site/src/pages/features.astro"
+    "site/src/pages/features.astro",
+    "site/src/pages/whats-new/[release].astro"
   ]
 }

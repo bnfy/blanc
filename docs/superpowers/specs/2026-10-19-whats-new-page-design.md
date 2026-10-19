@@ -80,7 +80,10 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
   eight in all (its own always fit). Releases in `noPage` add nothing. Each highlight's gold
   kicker names its release ("What's new · Blanc 1.39 · …" or "Recently · Blanc 1.38 · …"),
   and an earlier release's tile carries its version. Highlight ids are unique across every
-  page.
+  page. A release has two to five highlights of its own, and no page shows the same image
+  or demo twice. After the owner found the first draft too repetitive (all Start Page
+  wallpaper, mostly blue), 1.37 and 1.36 got pages too, so 1.38's page shows six different
+  features from three releases, each with its own capture.
 - **Layout (from the mockup):**
   - Header and footer: the site's shared masthead and footer (decision 6). Above the stage, a
     gold kicker "What's new · Blanc 1.38 · October 18" (date from
@@ -120,8 +123,8 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
   *My call:* a test fails when the newest release in `releases.json` has no What's New
   entry *and* isn't listed in an explicit "no page" list in the same data file, so a skip
   is a decision rather than something forgotten.
-- **First page:** 1.38 (already public, so its page is release-backed) gets the first real
-  page, so the template ships with real content and the owner can review it live before any
+- **First pages:** 1.36, 1.37 and 1.38 (all public, so release-backed) get the first real
+  pages, so the template ships with real content and the owner can review it live before any
   app release depends on it. Releases before 1.38 have no pages. *(Planning decision,
   October 19, 2026; it needs the owner's sign-off like every page.)*
 

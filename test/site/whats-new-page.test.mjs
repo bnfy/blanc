@@ -13,7 +13,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/whats-new.json'), 'utf8'));
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const page138 = data.pages.find((p) => p.release === '1.38');
-const ids = page138.highlights.map((h) => h.id);
+// The 1.38 page's own highlights, then the two previous releases' (newest first).
+const byRelease = [...data.pages].sort((a, b) => b.release.localeCompare(a.release, undefined, { numeric: true }));
+const at = byRelease.findIndex((p) => p.release === '1.38');
+const entries = byRelease.slice(at, at + 3).flatMap((p) => p.highlights.map((h) => ({ id: h.id, release: p.release }))).slice(0, 8);
+const ids = entries.map((e) => e.id);
 let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
@@ -34,13 +38,40 @@ async function open(url, options = {}) {
 
 const visibleSections = (page) => page.$$eval('.wn-highlight', (els) => els.filter((el) => el.offsetParent !== null).map((el) => el.id));
 
-test('the 1.38 page wears the site masthead and footer, a gold kicker and the first highlight', async () => {
+test('the 1.38 page opens on an intro: the Sunrise, the headline and the tiles, no highlight yet', async () => {
   const { context, page } = await open('/whats-new/1.38');
   assert.equal(await page.locator('.site-header .site-lockup').count(), 1, 'the shared masthead with the lockup');
   assert.equal(await page.locator('.website-footer').count(), 1, 'the shared footer and its horizon rule');
-  assert.equal(await page.locator(`#${ids[0]} .section-kicker`).innerText(), 'WHAT’S NEW · BLANC 1.38 · OCTOBER 18', 'each highlight names its release');
-  assert.equal(await page.locator('.wn-tile-version').count(), 0, 'only earlier releases\' tiles carry a version tag');
+  const intro = page.locator('.wn-intro');
+  assert.ok(await intro.isVisible());
+  assert.equal(await intro.locator('h1').innerText(), 'See what’s new in Blanc');
+  assert.equal(await intro.locator('img.wn-intro-mark').getAttribute('src'), '/lockup/sunrise-mark-256.webp', 'the original Sunrise artwork');
+  assert.deepEqual(await visibleSections(page), [], 'no highlight until one is chosen');
+  assert.equal(await page.locator('.wn-tile[aria-current="true"]').count(), 0);
+  const tiles = await page.locator('.wn-tiles').boundingBox();
+  assert.ok(tiles.y + tiles.height <= 900, 'the tiles sit on the first screen, like Chrome');
+  await context.close();
+});
+
+test('each highlight names its release, and earlier releases\' tiles carry their version', async () => {
+  const { context, page } = await open('/whats-new/1.38');
+  assert.equal(await page.locator(`#${ids[0]} .section-kicker`).textContent(), 'What’s new · Blanc 1.38 · October 18');
+  const earlier = entries.filter((e) => e.release !== '1.38');
+  assert.equal(await page.locator('.wn-tile-version').count(), earlier.length);
+  assert.equal(await page.locator(`#${earlier[0].id} .section-kicker`).textContent(), `Recently · Blanc ${earlier[0].release} · October 18`);
+  await context.close();
+});
+
+test('the arrows step from the intro into the highlights and back', async () => {
+  const { context, page } = await open('/whats-new/1.38');
+  await page.locator('.wn-arrow--next').click();
   assert.deepEqual(await visibleSections(page), [ids[0]]);
+  assert.equal(await page.locator('.wn-intro').isVisible(), false);
+  assert.equal(await page.locator('.wn-tile').nth(0).getAttribute('aria-current'), 'true');
+  await page.locator('.wn-arrow--prev').click();
+  assert.ok(await page.locator('.wn-intro').isVisible(), 'back to the intro from the first highlight');
+  assert.deepEqual(await visibleSections(page), []);
+  assert.equal(new URL(page.url()).hash, '');
   await context.close();
 });
 
@@ -61,9 +92,12 @@ test('tiles, Next and arrow keys move between highlights and Next wraps', async 
   await page.locator('.wn-tile').nth(1).click();
   assert.deepEqual(await visibleSections(page), [ids[1]]);
   assert.equal(await page.locator('.wn-tile').nth(1).getAttribute('aria-current'), 'true');
+  const selected = await page.locator('.wn-tile').nth(1).evaluate((el) => getComputedStyle(el).borderTopColor);
+  assert.equal(selected, 'rgb(14, 14, 14)', 'the selected card is outlined in the site ink, not gold');
   assert.equal(new URL(page.url()).hash, `#${ids[1]}`);
   await page.locator(`#${ids[1]} .wn-next`).click();
   assert.deepEqual(await visibleSections(page), [ids[2]]);
+  await page.locator('.wn-tile').nth(ids.length - 1).click();
   await page.locator(`#${ids.at(-1)} .wn-next`).click();
   assert.deepEqual(await visibleSections(page), [ids[0]], 'Next on the last highlight wraps to the first');
   await page.locator('.wn-tile').nth(0).focus();
@@ -86,6 +120,24 @@ test('a hash on arrival keeps the page at the top, header in view', async () => 
   await page.waitForTimeout(100);
   assert.equal(await page.evaluate(() => window.scrollY), 0);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= 375), true);
+  await context.close();
+});
+
+test('changing the hash on an open page shows that highlight without scrolling away', async () => {
+  const { context, page } = await open('/whats-new/1.38', { viewport: { width: 1280, height: 700 } });
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await page.evaluate((id) => { location.hash = id; }, ids[2]);
+  await page.waitForTimeout(150);
+  assert.deepEqual(await visibleSections(page), [ids[2]]);
+  assert.equal(await page.evaluate(() => window.scrollY), 0);
+  await context.close();
+});
+
+test('stepping into a taller highlight keeps the page at its top', async () => {
+  const { context, page } = await open('/whats-new/1.38', { viewport: { width: 1280, height: 800 }, reducedMotion: 'no-preference' });
+  await page.locator('.wn-arrow--next').click();
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => window.scrollY), 0);
   await context.close();
 });
 
@@ -118,6 +170,7 @@ test('Learn more opens the feature page, only where a highlight has one', async 
 
 test('without scripting every highlight reads in order', async () => {
   const { context, page } = await open('/whats-new/1.38', { javaScriptEnabled: false });
+  assert.ok(await page.locator('.wn-intro').isVisible(), 'the intro leads');
   assert.deepEqual(await visibleSections(page), ids);
   await context.close();
 });

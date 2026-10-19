@@ -16,12 +16,16 @@ const releases = readJson('site/src/data/releases.json');
 const data = readJson('site/src/data/whats-new.json');
 const options = async () => ({ publicDir: path.join(ROOT, 'site/public') });
 
+// Real captures, handed out in turn so no two fixture highlights share one.
+const CAPTURES = fs.readdirSync(path.join(ROOT, 'site/public/feature-captures')).filter((f) => f.endsWith('.webp')).sort();
+let nextCapture = 0;
+const capture = () => ({ kind: 'image', src: `/feature-captures/${CAPTURES[nextCapture++ % CAPTURES.length]}`, width: 1440, height: 900, alt: 'Alt.' });
 const highlight = (id, extra = {}) => ({
   id,
   tile: `Tile ${id}`,
   title: `Title ${id}`,
   body: 'Body.',
-  media: { kind: 'image', src: '/feature-captures/start-page-color-v1.38.0.webp', width: 1440, height: 900, alt: 'Alt.' },
+  media: capture(),
   ...extra,
 });
 const page = (release, count = 3, extra = {}) => ({
@@ -51,10 +55,11 @@ test('a page must belong to a published release', async () => {
   assert.match(errors[0], /1\.39/);
 });
 
-test('a page holds three to five highlights', async () => {
+test('a page holds two to five highlights of its own', async () => {
   const { validateWhatsNew } = await lib();
-  assert.equal(validateWhatsNew(fixture([page('1.38', 2)]), RELEASES, await options()).length, 1);
+  assert.equal(validateWhatsNew(fixture([page('1.38', 1)]), RELEASES, await options()).length, 1);
   assert.equal(validateWhatsNew(fixture([page('1.38', 6)]), RELEASES, await options()).length, 1);
+  assert.deepEqual(validateWhatsNew(fixture([page('1.38', 2)]), RELEASES, await options()), []);
   assert.deepEqual(validateWhatsNew(fixture([page('1.38', 5)]), RELEASES, await options()), []);
 });
 
@@ -70,7 +75,8 @@ test('each highlight is checked', async () => {
   assert.ok(bad({ learnMore: 'https://example.com/x' }), 'learnMore off the site');
   assert.ok(!bad({ learnMore: '/features/start-page' }));
   assert.ok(!bad({ learnMore: 'https://blanc.day/features/start-page' }));
-  assert.ok(!bad({ media: { kind: 'demo', demo: 'spaces' } }));
+  const oneDemo = fixture([{ release: '1.38', highlights: [highlight('a', { media: { kind: 'demo', demo: 'spaces' } }), highlight('b'), highlight('c')] }]);
+  assert.deepEqual(validateWhatsNew(oneDemo, RELEASES, opts), [], 'a demo is fine');
   const duplicate = fixture([{ release: '1.38', highlights: [highlight('a'), highlight('a'), highlight('b')] }]);
   assert.equal(validateWhatsNew(duplicate, RELEASES, await options()).length, 1, 'duplicate ids');
 });
@@ -152,4 +158,24 @@ test('highlight ids are unique across every page, so a link to one never clashes
   const clash = fixture([page('1.39'), page('1.38')], { firstRelease: '1.38' });
   const errors = validateWhatsNew(clash, LADDER, await options());
   assert.ok(errors.some((e) => /duplicate id/.test(e)), errors.join('\n'));
+});
+
+test('a page never shows the same image or demo twice', async () => {
+  const { validateWhatsNew } = await lib();
+  const same = { kind: 'image', src: '/feature-captures/start-page-color-v1.38.0.webp', width: 1440, height: 900, alt: 'Alt.' };
+  const repeated = fixture([{ release: '1.38', highlights: [highlight('a', { media: same }), highlight('b', { media: same }), highlight('c', { media: { kind: 'demo', demo: 'spaces' } })] }]);
+  assert.ok(validateWhatsNew(repeated, RELEASES, await options()).some((e) => /repeats/.test(e)));
+});
+
+test('the 1.38 page shows six different features from three releases, each with its own visual', async () => {
+  const { publishedPages } = await lib();
+  const newest = publishedPages(data, releases).find((p) => p.release === '1.38');
+  assert.deepEqual(newest.entries.map((e) => `${e.release} ${e.highlight.id}`), [
+    '1.38 your-image', '1.38 start-page-color',
+    '1.37 group-colors', '1.37 island-hover',
+    '1.36 bangs', '1.36 recently-closed',
+  ]);
+  const visuals = newest.entries.map((e) => e.highlight.media.src ?? e.highlight.media.demo);
+  assert.equal(new Set(visuals).size, visuals.length, 'no visual twice');
+  assert.equal(newest.entries[1].highlight.media.src, '/feature-captures/start-page-color-rose-solid-v1.38.0.webp');
 });

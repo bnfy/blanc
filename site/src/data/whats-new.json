@@ -1,5 +1,5 @@
 {
-  "firstRelease": "1.38",
+  "firstRelease": "1.36",
   "noPage": [],
   "pages": [
     {
@@ -30,7 +30,7 @@
           "id": "start-page-color",
           "tile": "A Start Page color",
           "title": "Paint the Start Page in a color",
-          "body": "Choose one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.",
+          "body": "Choose one of the eight colors Spaces use, as a Soft, Solid or Gradient fill. Turn on Match each space’s color, and a window that belongs to a space shows that space’s color instead.",
           "steps": [
             "Open Customize at the bottom of the Start Page.",
             "Under Wallpaper, choose Color.",
@@ -40,28 +40,96 @@
           "learnMore": "/features/start-page",
           "media": {
             "kind": "image",
-            "src": "/feature-captures/start-page-color-v1.38.0.webp",
+            "src": "/feature-captures/start-page-color-rose-solid-v1.38.0.webp",
             "width": 1440,
             "height": 900,
-            "alt": "Blanc’s Billboard Start Page painted in the Sky color with the Gradient fill."
+            "alt": "Blanc’s Billboard Start Page painted in the Rose color with the Solid fill."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.37",
+      "highlights": [
+        {
+          "id": "group-colors",
+          "tile": "Tab group colors",
+          "title": "Give each tab group a color",
+          "body": "A group can take one of the eight colors Spaces use. Its block in the ⌘L panel takes a light tint, its name gets a dot, and its tabs’ dots in the Island take the color.",
+          "steps": [
+            "Right-click a group’s header in the ⌘L panel, or press its ⋮.",
+            "Pick a color."
+          ],
+          "note": "Groups have no color unless you choose one.",
+          "learnMore": "/features/tab-groups",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-group-colors-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over a Wikipedia article, with an Inspiration group tinted rose and a Reading group tinted green."
           }
         },
         {
-          "id": "match-space-color",
-          "tile": "Match each space’s color",
-          "title": "Let each space bring its own color",
-          "body": "Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on the Start Page.",
+          "id": "island-hover",
+          "tile": "Open the Island on hover",
+          "title": "Open the Island just by pointing",
+          "body": "Rest the pointer on the Island’s address for a moment, and the panel opens.",
           "steps": [
-            "In Customize, choose Color under Wallpaper.",
-            "Turn on Match each space’s color."
+            "Open Settings → General.",
+            "Turn on Open the Island on hover."
           ],
-          "learnMore": "/features/workspaces",
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
           "media": {
             "kind": "image",
-            "src": "/feature-captures/start-page-color-customize-v1.38.0.webp",
+            "src": "/feature-captures/island-hover-v1.38.0.webp",
             "width": 1440,
             "height": 900,
-            "alt": "The Customize popover with Color selected under Wallpaper, the eight color swatches, the Fill choice and the Match each space’s color switch."
+            "alt": "Blanc’s resting Island over the Smithsonian Open Access page, with the address and the tab dots of a rose-colored group."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.36",
+      "highlights": [
+        {
+          "id": "bangs",
+          "tile": "Bangs",
+          "title": "Search any site from the address bar",
+          "body": "Type an exclamation mark and a site’s code before your search, like !yt lofi, and Blanc opens that site’s results directly, whichever search engine you use.",
+          "steps": [
+            "Press ⌘L, or Ctrl+L on Windows and Linux.",
+            "Type !yt lofi and press Return."
+          ],
+          "note": "Type ! on its own to see popular bangs. The list ships inside Blanc, so Blanc never looks bangs up online.",
+          "learnMore": "/bangs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/bangs-v1.36.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel on the Start Page with !yt lofi typed and the bang row Search YouTube for “lofi”."
+          }
+        },
+        {
+          "id": "recently-closed",
+          "tile": "Recently closed",
+          "title": "Bring back what you closed",
+          "body": "Recently closed sits as a band in the ⌘L panel. Unfold it to see every closed tab Blanc keeps, up to 25, newest first.",
+          "steps": [
+            "Press ⌘L, or Ctrl+L on Windows and Linux.",
+            "Unfold Recently closed and pick what to bring back."
+          ],
+          "learnMore": "/features/reopen-closed-tabs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over The Met’s page for Hokusai’s Under the Wave off Kanagawa, with Recently closed unfolded above a Painting class group.",
+            "caption": "Katsushika Hokusai, Under the Wave off Kanagawa, The Met (public domain)."
           }
         }
       ]

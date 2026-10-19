@@ -1,6 +1,6 @@
 // The What's New pages (docs/superpowers/specs/2026-10-19-whats-new-page-design.md):
 // site/src/data/whats-new.json holds one page per feature release (major.minor),
-// three to five highlights each. Pure: no Astro imports, so the unit test and
+// two to five highlights each, and each page also shows a few from earlier releases. Pure: no Astro imports, so the unit test and
 // the page share one validator. The app opens /whats-new/<major>.<minor> only
 // after checking that the page exists (src/main/whats-new.js).
 import fs from 'node:fs';
@@ -12,7 +12,8 @@ const FEATURE_RE = /^(\d+)\.(\d+)$/;
 // Only the demos that carry their own script and styles; Glance and gestures
 // still lean on the homepage's home.js and home.css.
 export const DEMOS = Object.freeze(['spaces', 'tab-drag']);
-const MIN_HIGHLIGHTS = 3;
+// Two to five of a release's own; earlier releases fill the page out.
+const MIN_HIGHLIGHTS = 2;
 const MAX_HIGHLIGHTS = 5;
 // A page shows its own highlights, then up to this many earlier pages'.
 const EARLIER_PAGES = 2;
@@ -83,8 +84,13 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
     if (highlights.length < MIN_HIGHLIGHTS || highlights.length > MAX_HIGHLIGHTS) {
       errors.push(`page ${release}: needs ${MIN_HIGHLIGHTS} to ${MAX_HIGHLIGHTS} highlights, has ${highlights.length}`);
     }
+    // Each panel shows something different: no image or demo twice on a page.
+    const visuals = new Set();
     for (const h of highlights) {
       const where = `page ${release}, highlight "${h.id}"`;
+      const visual = h.media?.kind === 'demo' ? `demo:${h.media.demo}` : h.media?.src;
+      if (visual && visuals.has(visual)) errors.push(`${where}: repeats ${visual}`);
+      visuals.add(visual);
       if (!/^[a-z0-9-]+$/.test(h.id ?? '')) errors.push(`${where}: id must be lowercase words joined by hyphens`);
       if (ids.has(h.id)) errors.push(`${where}: duplicate id`);
       ids.add(h.id);

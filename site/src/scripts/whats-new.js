@@ -1,14 +1,19 @@
 // What's New pages: one highlight at a time, after Chrome's What's New tab.
-// Without this script every highlight shows in order and the tile row stays
-// hidden. Tiles, Next and the arrow keys (in the tile row) move between
-// highlights; Next and the arrows wrap. The URL hash follows the highlight
-// shown, and a hash on arrival selects it. Clips play only when the visitor
+// The page opens on the intro (the Sunrise and the headline) with the tile row
+// below and nothing selected; a tile or the › arrow moves into a highlight,
+// and ‹ from the first one returns to the intro. Without this script the
+// intro and every highlight show in order and the tile row stays hidden.
+// Tiles, Next and the arrow keys (in the tile row) move between highlights
+// and wrap. The URL hash follows the highlight shown, and a hash on arrival
+// selects it. Clips play only when the visitor
 // allows motion; under reduced motion they wait on their poster.
 const root = document.querySelector('.wn');
 if (root) {
   const sections = [...root.querySelectorAll('.wn-highlight')];
   const tiles = [...root.querySelectorAll('.wn-tile')];
   const tileRow = root.querySelector('.wn-tiles');
+  const intro = root.querySelector('.wn-intro');
+  const INTRO = -1;
   const motionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
   let current = -1;
 
@@ -39,16 +44,17 @@ if (root) {
   }
 
   function show(index, { updateHash = true } = {}) {
-    current = wrap(index);
+    current = index === INTRO ? INTRO : wrap(index);
+    if (intro) intro.hidden = current !== INTRO;
     sections.forEach((section, i) => { section.hidden = i !== current; });
     tiles.forEach((tile, i) => tile.setAttribute('aria-current', i === current ? 'true' : 'false'));
     revealTile(tiles[current]);
-    if (updateHash) history.replaceState(null, '', `#${sections[current].id}`);
+    if (updateHash) history.replaceState(null, '', current === INTRO ? location.pathname + location.search : `#${sections[current].id}`);
     settleVideos();
   }
 
   root.classList.add('is-enhanced');
-  show(Math.max(0, indexOfId(decodeURIComponent(location.hash.slice(1)))), { updateHash: false });
+  show(indexOfId(decodeURIComponent(location.hash.slice(1))), { updateHash: false });
   // A hash names a highlight, not a place to scroll: the page opens at its
   // top, header in view, as it does without one.
   // The browser's own jump to the fragment can land after this script runs,
@@ -63,9 +69,16 @@ if (root) {
     tile.addEventListener('keydown', (event) => {
       if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
       event.preventDefault();
-      show(current + (event.key === 'ArrowRight' ? 1 : -1));
+      // The keys wrap among the highlights; only ‹ visits the intro.
+      show(wrap(current + (event.key === 'ArrowRight' ? 1 : -1)));
       tiles[current].focus();
     });
+  });
+  // The arrows run intro → first … last → first; ‹ on the first returns to
+  // the intro, and on the intro goes to the last.
+  root.querySelector('.wn-arrow--next')?.addEventListener('click', () => show(current + 1));
+  root.querySelector('.wn-arrow--prev')?.addEventListener('click', () => {
+    show(current === 0 ? INTRO : current === INTRO ? sections.length - 1 : current - 1);
   });
   for (const next of root.querySelectorAll('.wn-next')) {
     next.addEventListener('click', () => {
@@ -82,6 +95,9 @@ if (root) {
   }
   window.addEventListener('hashchange', () => {
     const index = indexOfId(decodeURIComponent(location.hash.slice(1)));
-    if (index >= 0 && index !== current) show(index, { updateHash: false });
+    if (index < 0) return;
+    if (index !== current) show(index, { updateHash: false });
+    // The browser also jumps to the fragment; keep the page where it opens.
+    window.scrollTo(0, 0);
   });
 }
