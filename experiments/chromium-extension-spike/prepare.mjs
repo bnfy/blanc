@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { prepareMacIcon } from './mac-icon.mjs';
 import { prepareComponent } from './ubo-component.mjs';
 import { prepareDocumentTarget } from './ubo-document-target.mjs';
+import { prepareGroupPersistence } from './group-persistence.mjs';
 import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -604,6 +605,7 @@ edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
     present: 'if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();' },
 ]);
 
+prepareGroupPersistence(edit);
 prepareComponent(edit);
 prepareDocumentTarget(edit);
 prepareRendererTarget(edit, chromium);

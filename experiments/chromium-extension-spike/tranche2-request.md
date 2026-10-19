@@ -1,5 +1,37 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## October 19 closed-group persistence repair
+
+The pinned closed-group writer now appends the collapsed boolean after its existing timestamp.
+The reader optionally reads that trailing field, initialized false for legacy records. The
+existing record prefix/command ID is unchanged; old readers ignore the extra field. This
+compatibility conclusion is source-backed, not a legacy-binary runtime acceptance claim.
+Already-written old records have no recoverable collapse bit and still restore expanded.
+The transform has exact anchors and independent presence markers for repeat preparation.
+
+All six strict final-binary native bridge cases pass: collapsed blue and expanded pink,
+each restored cross-window, from a persisted closed-group entry after SIGKILL, and as a
+saved whole window after a second SIGKILL. Exact colors/names/two-tab membership survive;
+the same-named decoy stays unchanged. Four kills verify the owned profile and Crashed marker,
+with bounded six-second persistence waits. This repairs the previously archived failing
+collapsed closed-group case. No native-button, power-loss or mid-write syscall claim.
+
+One guarded incremental build:30.42s Siso/35.98s wrapper,six steps. Final guard0/6.00s.
+Fresh footprint **41 upstream files / 100 hunks**, within the narrow October19 amendment
+(41/120) applying the owner's earlier allowance to raise the40-file ceiling if needed.
+Only new upstream path:components/sessions/core/tab_restore_service_impl.cc. No other budget,
+scope, GN/toolchain/cache or acceptance relaxation. Future patch-consolidation audit remains.
+Eleven patch-counter tests and two-module scoped ESLint pass; syntax and whitespace pass.
+Initial npx ESLint attempt could not resolve the registry; existing local ESLint was used.
+
+Disposable profile/server removed; final preview restarted with original two tabs/empty status.
+Native input pending unlock, latency deferred, Electron diagnostic build unapproved/unstarted.
+Legacy/malformed trailing field runtime, private/multi-profile/unsaved/multiple concurrent
+restores, mid-write/OS reboot and broader lifecycle/visual cases remain gaps. EarlierF12/Task0
+and planitem4 remain open. Cold-build column unchanged; this is routine repair/testing.
+
+Evidence: `evidence/ui138-group-persistence-fix-20261019/`.
+
 ## October 19 cross-window group and crash persistence checks
 
 Two regular-profile fixtures: blue/collapsed and pink/expanded, each with two URLs. A second
@@ -728,7 +760,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's fixed tranche budget (40 files, 120 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (41 files, 120 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1059,7 +1091,7 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Provisional patch budget, fixed for this tranche:** **40 upstream files
+**Patch budget, amended October 19:** **41 upstream files
 and 120 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
@@ -1097,7 +1129,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 40 files or 120 hunks and
+From plan §5: criterion 2 (the count above exceeds 41 files or 120 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -1139,3 +1171,13 @@ snapshot remain gaps, alongside lifecycle/async effects. Evidence:
 `evidence/f12-document-target-20261018/`. Footprint: 35 files / 79 hunks; one 317-second
 incremental build, final guard zero actions. Spikes A/B in progress; items 3–6 not started.
 Latency deferred; Electron diagnostic build §8 unchecked/unstarted. No promotion.
+
+## October 19 narrow patch-budget amendment
+
+The owner previously said “We can raise the 40-limit if we need to” while authorizing
+continued UI migration, and now explicitly requested the closed-group persistence repair.
+That allowance is applied here to one additional upstream file:
+`components/sessions/core/tab_restore_service_impl.cc`. The file ceiling becomes 41;
+the hunk ceiling remains 120. No general relaxation of scope, build guards or acceptance
+gates is implied. Historical 40-file measurements remain unchanged. The deterministic
+counter uses the amended ceiling. Patch consolidation remains a future audit.
