@@ -44,9 +44,11 @@ async function open(options = {}, { blockData = false, icons = 'png' } = {}) {
 }
 
 const visibleRows = (page) => page.locator('#bangs-rows li:not([hidden])');
+// Typing waits 120 ms before the list updates; wait for the page to apply
+// this query rather than a fixed delay, which a slow runner can outlast.
 const search = async (page, text) => {
   await page.locator('#bangs-search').fill(text);
-  await page.waitForTimeout(250);
+  await page.waitForFunction((q) => document.querySelector('[data-view]')?.dataset.query === q, text);
 };
 
 test('the page leads with its headline, search and the popular bangs', async () => {

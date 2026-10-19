@@ -917,7 +917,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_nav_patron">Patron</string>
     <string name="settings_nav_help">Aide</string>
     <string name="settings_general_title">Général</string>
-    <string name="settings_general_theme_label">Apparence</string>
+    <string name="settings_general_cards_island">Island</string>
+    <string name="settings_general_cards_appearance">Apparence</string>
+    <string name="settings_general_cards_start_page">Page d’accueil</string>
+    <string name="settings_general_cards_search">Recherche</string>
+    <string name="settings_general_cards_browsing">Navigation</string>
+    <string name="settings_general_theme_label">Thème</string>
     <string name="settings_general_theme_hint">Système suit le thème de macOS ou Windows</string>
     <string name="settings_general_theme_system">Système</string>
     <string name="settings_general_theme_light">Clair</string>

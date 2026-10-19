@@ -917,7 +917,12 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_nav_patron">Patron</string>
     <string name="settings_nav_help">Aiuto</string>
     <string name="settings_general_title">Generali</string>
-    <string name="settings_general_theme_label">Aspetto</string>
+    <string name="settings_general_cards_island">Island</string>
+    <string name="settings_general_cards_appearance">Aspetto</string>
+    <string name="settings_general_cards_start_page">Pagina iniziale</string>
+    <string name="settings_general_cards_search">Ricerca</string>
+    <string name="settings_general_cards_browsing">Navigazione</string>
+    <string name="settings_general_theme_label">Tema</string>
     <string name="settings_general_theme_hint">Sistema segue il tema di macOS o Windows</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Chiaro</string>
