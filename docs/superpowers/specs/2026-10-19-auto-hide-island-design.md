@@ -97,6 +97,10 @@ and the toolbar comes back on demand. Blanc has no such mode.
   Wayland ozone platform, `linuxWaylandOzone()`) makes `sampledWindowCursor`
   use `runtime.lastPointer`, the last move a Blanc view saw (`watchCursorFor`),
   instead. The top edge, the rest band and leaving all work from those moves.
+- Hover-open: `updateIslandHover` counts a move as inside the address only
+  while the strip is shown. A hidden pill cannot be hovered; counting moves
+  over its hidden position disarmed hover-open before the rest band revealed
+  the Island under the pointer (acceptance F1-26).
 
 ## Known limits
 
@@ -118,8 +122,9 @@ and the toolbar comes back on demand. Blanc has no such mode.
 - Unit: `test/unit/island-autohide.test.js` (policy, layout, wiring) and
   `test/unit/island-autohide-settings.test.js` (default, sanitising, never
   synced, Settings placement).
-- Desktop acceptance: F1-15…F1-25 in `spec/acceptance/island-and-commands.feature`
+- Desktop acceptance: F1-15…F1-26 in `spec/acceptance/island-and-commands.feature`
   (F1-24 runs with no global pointer position, as on Wayland; F1-25 checks the
-  hidden strip's drag region)
+  hidden strip's drag region; F1-26 hover-open after resting where the hidden
+  address will appear)
   (`test/desktop/steps/island-autohide.steps.js`), checking the real native
   view bounds. Divergence D29.

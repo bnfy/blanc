@@ -231,3 +231,7 @@ test('without a global pointer position (native Wayland) the last move a view sa
   // The display-share portal choice uses the same Wayland test.
   assert.match(main, /portalSelection: process\.platform === 'linux' && linuxWaylandOzone\(\),/);
 });
+
+test('an auto-hidden pill cannot be hovered, so resting where it will appear does not disarm hover-open', () => {
+  assert.match(main, /type: 'move', inside: !islandStripHidden\(runtime\) && pointInRect\(point, runtime\.islandHoverRect\),/);
+});

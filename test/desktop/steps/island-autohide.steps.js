@@ -130,6 +130,34 @@ Then('the Island stays hidden after {int} milliseconds', async function (ms) {
   assert.equal(state.pageY, 0);
 });
 
+// A hidden pill cannot be hovered: the page's moves over where the address
+// will appear must not count as entering it, or hover-open is disarmed by the
+// time the rest band reveals the Island under the pointer.
+When('the pointer rests on the page where the hidden address will appear', async function () {
+  const rect = this.hoverIslandRect;
+  assert.ok(rect, 'the hover-open steps recorded the address rectangle');
+  const point = { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+  this.hiddenAddressPoint = point;
+  await restCursor(this, point);
+  const state = await this.call('state');
+  assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', ...point }), true);
+});
+
+Then('hover-open is still armed', async function () {
+  const state = await this.call('islandHoverState');
+  assert.equal(state?.armed, true, `a move over the hidden address disarmed hover-open: ${JSON.stringify(state)}`);
+});
+
+When('I move within the revealed address', async function () {
+  const point = this.hiddenAddressPoint;
+  // The reveal re-lays out the page, and Chromium then sends the page a move
+  // at its last (now shifted) point, outside the address; with a test cursor
+  // that move would cancel a dwell begun before it. A real pointer reports
+  // where it is, so wait for that move to pass before entering.
+  await sleep(400);
+  assert.equal(await this.call('sendChromeMouseInput', { type: 'mouseMove', x: point.x + 3, y: point.y }), true);
+});
+
 // The strip's drag region hit-tests above the page view, so while hidden it
 // must be off, or the page's top band drags the window.
 Then('the strip has no window-drag region', async function () {

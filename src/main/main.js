@@ -3130,8 +3130,11 @@ function applyIslandHoverStep(runtime, event) {
 function updateIslandHover(runtime, point, { buttonsDown = false, sampled = false } = {}) {
   const hover = islandHoverRecord(runtime);
   hover.point = point;
+  // An auto-hidden pill cannot be hovered: the pointer is over the page. Were
+  // that counted as entering, the entry would disarm hover-open before the
+  // rest band reveals the Island under a resting pointer.
   return applyIslandHoverStep(runtime, {
-    type: 'move', inside: pointInRect(point, runtime.islandHoverRect),
+    type: 'move', inside: !islandStripHidden(runtime) && pointInRect(point, runtime.islandHoverRect),
     eligible: islandHoverEligible(runtime), buttonsDown, sampled,
   });
 }

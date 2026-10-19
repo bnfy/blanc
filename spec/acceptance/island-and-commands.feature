@@ -194,6 +194,17 @@ Feature: Island chrome, command palette, and slash commands
     Then the Island is shown above the page
     And the strip drags the window again
 
+  @F1-26 @F1 @desktop @island-autohide @island-hover
+  Scenario: Resting where the hidden address will appear still lets hover open the Island
+    Given a tab open on "autohide-page"
+    And Island hover-open is on
+    And the Island auto-hides
+    When the pointer rests on the page where the hidden address will appear
+    Then hover-open is still armed
+    And the Island is shown above the page
+    When I move within the revealed address
+    Then the Island panel opens from hover
+
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs
     Given a tab open on "autohide-page"
