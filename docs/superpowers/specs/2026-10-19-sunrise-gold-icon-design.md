@@ -17,7 +17,7 @@ Today **Sunrise** switches between a cream and a near-black tile with the system
   - **G1 Specular rims** for the glass, over G2 See-through.
   
   The result is in `final-light-dark.png`. This replaces the first version's "identical in Default and Dark".
-- macOS still restyles the icon in Clear and Tinted, as it does every app icon (`macos-styles.png`, from the first version).
+- **Clear and Tinted.** In those styles macOS draws its own glass or tint background, so both gold tiles hide there and only the glass mark remains, as with Sunrise. The owner found that the first build left the opaque tiles covering that background. `macos-styles.png` compares Sunrise (top) with Gold (bottom) in all six styles.
 - **This PR is macOS only.**
   - **Linux is dropped.** Blanc runs on Wayland whenever a Wayland session exists (`src/main/display-capture-flags.js`), and on X11 the docks draw the `.desktop` icon.
   - **Windows is out.** The October 19 VM spike (PR #979, `docs/research/windows-runtime-app-icon-spike-2026-10-19.md`) found that `setIcon` reaches only Alt-Tab and `setAppDetails` changes nothing. Only rewriting the installer-owned Start menu and pinned shortcuts turns the taskbar gold. The owner decided the same day to leave Windows as it is and ship Sunrise Gold for Mac only.
@@ -43,8 +43,8 @@ An Icon Composer document with two groups:
 | Group | Layer | Glass | Notes |
 |---|---|---|---|
 | front | `sunrise-mark-cream.png`, the Sunrise mark as a cream `#FFF7E6` silhouette | **true** | group: `specular: true`, `lighting: "individual"`, shadow `layer-color` at 0.6, translucency enabled at 0.25 |
-| back | `gold-tile-dark.png`, a full 1024 canvas | false | `hidden-specializations`: hidden by default, shown in Dark |
-| back | `gold-tile.png`, a full 1024 canvas | false | `hidden-specializations`: hidden in Dark |
+| back | `gold-tile-dark.png`, a full 1024 canvas | false | `hidden-specializations`: hidden by default, shown in Dark, hidden in `tinted` (Clear and Tinted) |
+| back | `gold-tile.png`, a full 1024 canvas | false | `hidden-specializations`: hidden in Dark and in `tinted` |
 
 - **Light tile:** a vertical gradient from `#E3BF78` (top) to `#BE8D40` (bottom), screened with a soft radial glow so a little warmth sits behind the sun. The glow fades from `#383838` to black over a 310 px radius, centered at (512, 482).
 - **Dark tile (D2 Polished):**
@@ -72,7 +72,7 @@ An Icon Composer document with two groups:
 - **`scripts/after-pack-app-icons.js`:** `createIconDocument` gains:
   - optional group `shadow`, `specular`, `lighting` and `translucency`, with the old values as defaults;
   - per-layer `glass`;
-  - an optional tile group, with an optional Dark tile shown through `hidden-specializations`.
+  - an optional tile group, with an optional Dark tile shown through `hidden-specializations`; every tile hides in the `tinted` appearance.
   
   It copies images from the definition's own directory. The `Icon` (default) skip stays.
 - **`src/main/app-icon.js`:** the flat fallback uses the definition's `darkFlatIcon` in Dark (`flatIconIdFor`), instead of special-casing Sunrise.
@@ -104,4 +104,4 @@ An Icon Composer document with two groups:
 - **Packaged:**
   - `npm run dist:dir` on this Mac (macOS 26), select Gold, and screenshot the Dock in Light and Dark.
   - Switch back to Sunrise and confirm the adaptive icon returns.
-  - Render the generated stack with `ictool` (Default and Dark) and compare it with `final-light-dark.png`.
+  - Render the generated stack with `ictool` in all six styles and compare it with `final-light-dark.png` and `macos-styles.png`.

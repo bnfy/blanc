@@ -68,20 +68,29 @@ function createIconDocument({
       translucency,
     },
     // The tile drawn as an image behind the mark, so no appearance recolors
-    // it; a dark tile, when given, replaces it in Dark.
+    // it; a dark tile, when given, replaces it in Dark. Both hide in the
+    // Clear and Tinted styles ('tinted'), where an opaque image would cover
+    // the glass or tint background macOS draws there.
     ...(tileImageName ? [{
       layers: [
         ...(darkTileImageName ? [{
           glass: false,
           'image-name': darkTileImageName,
           name: 'DarkTile',
-          'hidden-specializations': [{ value: true }, { appearance: 'dark', value: false }],
+          'hidden-specializations': [
+            { value: true },
+            { appearance: 'dark', value: false },
+            { appearance: 'tinted', value: true },
+          ],
         }] : []),
         {
           glass: false,
           'image-name': tileImageName,
           name: 'Tile',
-          ...(darkTileImageName ? { 'hidden-specializations': [{ appearance: 'dark', value: true }] } : {}),
+          'hidden-specializations': [
+            ...(darkTileImageName ? [{ appearance: 'dark', value: true }] : []),
+            { appearance: 'tinted', value: true },
+          ],
         },
       ],
     }] : [])],

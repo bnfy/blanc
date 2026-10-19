@@ -84,10 +84,15 @@ test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', ()
   assert.deepEqual(mark.translucency, { enabled: true, value: 0.25 });
   const byName = Object.fromEntries(tiles.layers.map((layer) => [layer['image-name'], layer]));
   assert.deepEqual(Object.keys(byName).sort(), ['gold-tile-dark.png', 'gold-tile.png']);
-  assert.deepEqual(byName['gold-tile.png']['hidden-specializations'], [{ appearance: 'dark', value: true }]);
+  // Clear and Tinted ('tinted') hide both tiles so macOS draws its own glass
+  // or tint background, as it does for Sunrise; an opaque tile covered it.
+  assert.deepEqual(
+    byName['gold-tile.png']['hidden-specializations'],
+    [{ appearance: 'dark', value: true }, { appearance: 'tinted', value: true }],
+  );
   assert.deepEqual(
     byName['gold-tile-dark.png']['hidden-specializations'],
-    [{ value: true }, { appearance: 'dark', value: false }],
+    [{ value: true }, { appearance: 'dark', value: false }, { appearance: 'tinted', value: true }],
   );
   for (const layer of tiles.layers) assert.equal(layer.glass, false);
 });
