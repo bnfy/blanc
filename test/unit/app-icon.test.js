@@ -57,7 +57,7 @@ test('every selectable colorway has a named native icon stack', () => {
     const imageDir = path.join(root, definition.imageDir ?? 'build/app-icons/Icon.icon/Assets');
     const document = createIconDocument(definition);
     assert.equal(document.groups[0].layers[0]['image-name'], definition.imageName);
-    for (const image of [definition.imageName, definition.tileImageName].filter(Boolean)) {
+    for (const image of [definition.imageName, definition.tileImageName, definition.darkTileImageName].filter(Boolean)) {
       assert.ok(fs.existsSync(path.join(imageDir, image)), `${image} exists in ${imageDir}`);
     }
   }
@@ -68,18 +68,38 @@ test('every selectable colorway has a named native icon stack', () => {
   );
 });
 
-test('the Sunrise Gold stack is fixed glass on an image tile', () => {
+test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', () => {
   const document = createIconDocument(APP_ICON_ASSETS['sunrise-gold']);
   assert.equal(APP_ICON_ASSETS['sunrise-gold'].nativeName, 'SunriseGold');
-  // A dark fill specialization (or Icon Composer's own darkening of a fill)
-  // would turn Gold black in Dark mode; the opaque tile layer prevents that.
+  // Icon Composer darkens a plain fill by itself in Dark; the gold must come
+  // from image layers, so the fill carries no appearance specialization.
   assert.equal(document['fill-specializations'], undefined);
   assert.equal(document.groups.length, 2);
-  assert.equal(document.groups[0].layers[0].glass, true);
-  assert.equal(document.groups[0].layers[0]['image-name'], 'sunrise-mark-cream.png');
-  assert.deepEqual(document.groups[0].shadow, { kind: 'neutral', opacity: 0.3 });
-  assert.equal(document.groups[1].layers[0].glass, false);
-  assert.equal(document.groups[1].layers[0]['image-name'], 'gold-tile.png');
+  const [mark, tiles] = document.groups;
+  assert.equal(mark.layers[0].glass, true);
+  assert.equal(mark.layers[0]['image-name'], 'sunrise-mark-cream.png');
+  assert.equal(mark.specular, true);
+  assert.equal(mark.lighting, 'individual');
+  assert.deepEqual(mark.shadow, { kind: 'layer-color', opacity: 0.6 });
+  assert.deepEqual(mark.translucency, { enabled: true, value: 0.25 });
+  const byName = Object.fromEntries(tiles.layers.map((layer) => [layer['image-name'], layer]));
+  assert.deepEqual(Object.keys(byName).sort(), ['gold-tile-dark.png', 'gold-tile.png']);
+  assert.deepEqual(byName['gold-tile.png']['hidden-specializations'], [{ appearance: 'dark', value: true }]);
+  assert.deepEqual(
+    byName['gold-tile-dark.png']['hidden-specializations'],
+    [{ value: true }, { appearance: 'dark', value: false }],
+  );
+  for (const layer of tiles.layers) assert.equal(layer.glass, false);
+});
+
+test('other colorways keep a single-group stack with the default shadow', () => {
+  for (const id of ['sunrise', 'sunrise-dark']) {
+    const document = createIconDocument(APP_ICON_ASSETS[id]);
+    assert.equal(document.groups.length, 1);
+    assert.deepEqual(document.groups[0].shadow, { kind: 'neutral', opacity: 0.25 });
+    assert.equal(document.groups[0].specular, undefined);
+    assert.equal(document.groups[0].layers[0].glass, false);
+  }
 });
 
 test('packaging wires the Icon Composer source and multi-colorway compiler', () => {
@@ -311,17 +331,19 @@ test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark
   assert.deepEqual(explicit.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
 });
 
-test('the flat Sunrise Gold fallback stays gold in dark appearance', () => {
-  const h = harness({ packaged: false });
-  const result = applyDockAppIcon({
-    ...h,
-    appIcon: 'sunrise-gold',
-    darkAppearance: true,
-    platform: 'darwin',
-    iconsDirectory: '/icons',
-  });
-  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise-gold' });
-  assert.deepEqual(h.calls[0], ['path', path.join('/icons', 'icon-sunrise-gold.png')]);
+test('the flat Sunrise Gold fallback follows appearance', () => {
+  for (const [darkAppearance, file] of [[false, 'icon-sunrise-gold.png'], [true, 'icon-sunrise-gold-dark.png']]) {
+    const h = harness({ packaged: false });
+    const result = applyDockAppIcon({
+      ...h,
+      appIcon: 'sunrise-gold',
+      darkAppearance,
+      platform: 'darwin',
+      iconsDirectory: '/icons',
+    });
+    assert.deepEqual(result, { source: 'png', appIcon: file.slice(5, -4) });
+    assert.deepEqual(h.calls[0], ['path', path.join('/icons', file)]);
+  }
 });
 
 test('falls back to the PNG if the packaged asset catalog cannot resolve a name', () => {
@@ -615,6 +637,19 @@ test('the Sunrise Gold artwork matches the flat icon scale and stays a fixed gol
   const flatOffset = ((flatMark.minX + flatMark.maxX) / 2 - (tile.minX + tile.maxX) / 2) / tile.width;
   const nativeOffset = ((native.minX + native.maxX) / 2 - (CANVAS - 1) / 2) / CANVAS;
   assert.ok(Math.abs(nativeOffset - flatOffset) < 0.005, 'the Gold mark sits where the native one does');
+
+  const darkTilePath = path.join(root, 'build/app-icons/colorways/gold-tile-dark.png');
+  const mean = async (file) => (await sharp(file).stats()).channels.slice(0, 3).reduce((sum, c) => sum + c.mean, 0) / 3;
+  assert.equal((await pixel(darkTilePath, 512, 512))[3], 255, 'the dark tile is opaque');
+  assert.ok(await mean(darkTilePath) < (await mean(tilePath)) - 60, 'the Dark tile is a much deeper gold');
+  const darkPixel = await pixel(darkTilePath, 512, 512);
+  assert.ok(darkPixel[0] > darkPixel[2] + 20, 'the Dark tile stays gold, not gray');
+
+  const flatDark = path.join(root, 'src/renderer/pages/icon-sunrise-gold-dark.png');
+  const darkTileBounds = await markBoundsOf(sharp(flatDark), (_r, _g, _b, a) => a > 250);
+  const darkMark = await markBoundsOf(sharp(flatDark), (_r, _g, b, a) => a > 24 && b > 200);
+  assert.equal(darkTileBounds.height, 824);
+  assert.ok(Math.abs(darkMark.height / darkTileBounds.height - flatRatio) < 0.01, 'both flat icons draw the mark at one size');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

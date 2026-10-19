@@ -415,9 +415,10 @@ async function buildSunriseAssets(master) {
   };
 }
 
-// Sunrise Gold: a fixed icon that reads on a light or a dark Dock. A cream,
-// seam-closed silhouette (glass in Icon Composer) over a gold tile drawn as an
-// image layer, because Icon Composer darkens a plain fill by itself in Dark.
+// Sunrise Gold: soft gold in Light, polished gold in Dark, so it reads on
+// either Dock. A cream, seam-closed silhouette (glass in Icon Composer) over a
+// gold tile drawn as an image layer, because Icon Composer darkens a plain
+// fill by itself in Dark; the Dark tile is a second image layer it swaps in.
 const SUNRISE_GOLD_CREAM = [255, 247, 230];
 const SUNRISE_GOLD_TILE_SVG = Buffer.from(`
   <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
@@ -433,6 +434,45 @@ const SUNRISE_GOLD_GLOW_SVG = Buffer.from(`
     </radialGradient></defs>
     <rect width="1024" height="1024" fill="url(#glow)"/>
   </svg>`);
+// Polished gold: diagonal metallic bands with one highlight sweep.
+const SUNRISE_GOLD_DARK_TILE_SVG = Buffer.from(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b2709"/><stop offset=".22" stop-color="#7d5a22"/>
+      <stop offset=".36" stop-color="#b48d45"/><stop offset=".46" stop-color="#805c23"/>
+      <stop offset=".7" stop-color="#432d0d"/><stop offset=".86" stop-color="#6a4a1b"/>
+      <stop offset="1" stop-color="#241705"/>
+    </linearGradient></defs>
+    <rect width="1024" height="1024" fill="url(#g)"/>
+  </svg>`);
+
+// Horizontal brushed-metal grain around mid gray, from a fixed seed so every
+// build draws the same streaks.
+async function brushedGrain() {
+  let seed = 0x5eed;
+  const random = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const noise = Buffer.alloc(ICON_CANVAS * ICON_CANVAS);
+  for (let i = 0; i < noise.length; i += 1) noise[i] = Math.floor(random() * 256);
+  const streak = 121;
+  return sharp(noise, { raw: { width: ICON_CANVAS, height: ICON_CANVAS, channels: 1 } })
+    // sharp's kernels are at least 3px tall; only the middle row is set.
+    .convolve({
+      width: streak,
+      height: 3,
+      kernel: [...new Array(streak).fill(0), ...new Array(streak).fill(1), ...new Array(streak).fill(0)],
+      scale: streak,
+    })
+    .normalise()
+    .linear(0.2, 0.4 * 255)
+    .toColourspace('srgb')
+    .png()
+    .toBuffer();
+}
 
 // A motif's alpha painted one solid color, at the motif's own size.
 async function recolor(motif, color) {
@@ -444,17 +484,10 @@ async function recolor(motif, color) {
     .toBuffer();
 }
 
-async function buildSunriseGoldAssets(sunrise) {
-  const tile = await sharp(SUNRISE_GOLD_TILE_SVG)
-    .composite([{ input: SUNRISE_GOLD_GLOW_SVG, blend: 'screen' }])
-    .removeAlpha()
-    .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toBuffer();
-  const nativeMark = await recolor(sunrise.inkNativeLayer, SUNRISE_GOLD_CREAM);
-
-  // The flat Dock copy: the tile clipped to the flat 824px rounded rect with
-  // the flat icons' drop shadow, and a soft shadow under the mark standing in
-  // for the glass layer's.
+// The flat Dock copy: the tile clipped to the flat 824px rounded rect with the
+// flat icons' drop shadow, and a soft halo under the mark standing in for the
+// glass layer's shadow (dark under the light tile, a cream glow on the dark).
+async function flatSunriseGold(sunrise, tile, halo) {
   const tileFace = await sharp(tile).resize(824, 824).png().toBuffer();
   const frame = Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
@@ -464,25 +497,44 @@ async function buildSunriseGoldAssets(sunrise) {
           <feDropShadow dx="0" dy="15" stdDeviation="18" flood-color="#000000" flood-opacity="0.24"/>
         </filter>
       </defs>
-      <rect x="100" y="100" width="824" height="824" rx="184" fill="#be8d40" filter="url(#shadow)"/>
+      <rect x="100" y="100" width="824" height="824" rx="184" fill="#000000" filter="url(#shadow)"/>
       <image x="100" y="100" width="824" height="824" clip-path="url(#tile)" xlink:href="${pngDataUri(tileFace)}"/>
     </svg>`);
-  const flatMark = await recolor(sunrise.inkMotif, SUNRISE_GOLD_CREAM);
-  const markShadow = await sharp(await recolor(sunrise.inkMotif, [0, 0, 0]))
-    .linear([1, 1, 1, 0.22], [0, 0, 0, 0])
-    .extend({ top: 20, bottom: 20, left: 20, right: 20, background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .blur(5)
+  const pad = 20;
+  const haloLayer = await sharp(await recolor(sunrise.inkMotif, halo.color))
+    .linear([1, 1, 1, halo.opacity], [0, 0, 0, 0])
+    .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .blur(halo.blur)
     .png()
     .toBuffer();
-  const flat = await sharp({
+  return sharp({
     create: { width: ICON_CANVAS, height: ICON_CANVAS, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
   }).composite([
     { input: frame, left: 0, top: 0 },
-    { input: markShadow, left: SUNRISE_FLAT_POSITION - 20, top: SUNRISE_FLAT_POSITION - 20 + 6 },
-    { input: flatMark, left: SUNRISE_FLAT_POSITION, top: SUNRISE_FLAT_POSITION },
+    { input: haloLayer, left: SUNRISE_FLAT_POSITION - pad, top: SUNRISE_FLAT_POSITION - pad + halo.dy },
+    { input: await recolor(sunrise.inkMotif, SUNRISE_GOLD_CREAM), left: SUNRISE_FLAT_POSITION, top: SUNRISE_FLAT_POSITION },
   ]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+}
 
-  return { tile, nativeMark, flat };
+async function buildSunriseGoldAssets(sunrise) {
+  const png = { compressionLevel: 9, adaptiveFiltering: true };
+  const tile = await sharp(SUNRISE_GOLD_TILE_SVG)
+    .composite([{ input: SUNRISE_GOLD_GLOW_SVG, blend: 'screen' }])
+    .removeAlpha()
+    .png(png)
+    .toBuffer();
+  const darkTile = await sharp(SUNRISE_GOLD_DARK_TILE_SVG)
+    .composite([{ input: await brushedGrain(), blend: 'soft-light' }])
+    .removeAlpha()
+    .png(png)
+    .toBuffer();
+  return {
+    tile,
+    darkTile,
+    nativeMark: await recolor(sunrise.inkNativeLayer, SUNRISE_GOLD_CREAM),
+    flat: await flatSunriseGold(sunrise, tile, { color: [0, 0, 0], opacity: 0.22, blur: 5, dy: 6 }),
+    flatDark: await flatSunriseGold(sunrise, darkTile, { color: SUNRISE_GOLD_CREAM, opacity: 0.45, blur: 9, dy: 0 }),
+  };
 }
 
 async function raster(svg, width, height = width) {
@@ -689,6 +741,8 @@ async function main() {
   await emit('build/app-icons/colorways/gold-tile.png', gold.tile);
   await emit('build/app-icons/colorways/sunrise-mark-cream.png', gold.nativeMark);
   await emit('src/renderer/pages/icon-sunrise-gold.png', gold.flat);
+  await emit('build/app-icons/colorways/gold-tile-dark.png', gold.darkTile);
+  await emit('src/renderer/pages/icon-sunrise-gold-dark.png', gold.flatDark);
 
   await buildSiteAssets(sunrise);
 

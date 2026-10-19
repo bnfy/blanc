@@ -33,8 +33,12 @@ function createIconDocument({
   preserveColor = true,
   layerName = 'Sunrise',
   glass = false,
-  shadowOpacity = 0.25,
+  specular,
+  lighting,
+  shadow = { kind: 'neutral', opacity: 0.25 },
+  translucency = { enabled: false, value: 0.5 },
   tileImageName = null,
+  darkTileImageName = null,
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -58,13 +62,28 @@ function createIconDocument({
     } : {}),
     groups: [{
       layers: [layer],
-      shadow: { kind: 'neutral', opacity: shadowOpacity },
-      translucency: { enabled: false, value: 0.5 },
+      shadow,
+      ...(specular !== undefined ? { specular } : {}),
+      ...(lighting ? { lighting } : {}),
+      translucency,
     },
-    // A fixed tile drawn as an image, behind the mark, so no appearance
-    // recolors it.
+    // The tile drawn as an image behind the mark, so no appearance recolors
+    // it; a dark tile, when given, replaces it in Dark.
     ...(tileImageName ? [{
-      layers: [{ glass: false, 'image-name': tileImageName, name: 'Tile' }],
+      layers: [
+        ...(darkTileImageName ? [{
+          glass: false,
+          'image-name': darkTileImageName,
+          name: 'DarkTile',
+          'hidden-specializations': [{ value: true }, { appearance: 'dark', value: false }],
+        }] : []),
+        {
+          glass: false,
+          'image-name': tileImageName,
+          name: 'Tile',
+          ...(darkTileImageName ? { 'hidden-specializations': [{ appearance: 'dark', value: true }] } : {}),
+        },
+      ],
     }] : [])],
     'supported-platforms': { squares: ['macOS'] },
   };
@@ -119,7 +138,11 @@ module.exports = async function afterPackAppIcons(context) {
       const imageDir = definition.imageDir
         ? path.join(root, definition.imageDir)
         : path.join(sourceIcon, 'Assets');
-      const images = [definition.imageName ?? 'sunrise-mark.png', definition.tileImageName].filter(Boolean);
+      const images = [
+        definition.imageName ?? 'sunrise-mark.png',
+        definition.tileImageName,
+        definition.darkTileImageName,
+      ].filter(Boolean);
       for (const imageName of images) {
         await fs.copyFile(path.join(imageDir, imageName), path.join(assetsDir, imageName));
       }

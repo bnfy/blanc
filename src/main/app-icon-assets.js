@@ -9,6 +9,7 @@ module.exports = {
     background: '#F7F0E5',
     darkBackground: '#1C1A16',
     imageName: 'sunrise-mark.png',
+    darkFlatIcon: 'sunrise-dark',
     preserveColor: true,
     layerName: 'Sunrise',
   },
@@ -20,8 +21,9 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
-  // Fixed in every appearance: a cream glass mark over a gold image layer.
-  // The gold cannot be the fill, which Icon Composer darkens itself in Dark.
+  // Soft gold in Light, polished gold in Dark: a cream glass mark over gold
+  // image layers. The gold cannot be the fill, which Icon Composer darkens
+  // itself in Dark, so each appearance gets its own tile layer instead.
   // Its layers live in build/app-icons/colorways (npm run brand:build).
   'sunrise-gold': {
     nativeName: 'SunriseGold',
@@ -29,8 +31,13 @@ module.exports = {
     imageDir: 'build/app-icons/colorways',
     imageName: 'sunrise-mark-cream.png',
     glass: true,
+    specular: true,
+    lighting: 'individual',
+    shadow: { kind: 'layer-color', opacity: 0.6 },
+    translucency: { enabled: true, value: 0.25 },
     tileImageName: 'gold-tile.png',
-    shadowOpacity: 0.3,
+    darkTileImageName: 'gold-tile-dark.png',
+    darkFlatIcon: 'sunrise-gold-dark',
     preserveColor: true,
     layerName: 'Sunrise',
   },
