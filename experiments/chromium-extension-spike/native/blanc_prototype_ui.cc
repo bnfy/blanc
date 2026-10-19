@@ -45,6 +45,7 @@
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser_live_tab_context.h"
 #include "components/sessions/core/tab_restore_service.h"
+#include "components/prefs/pref_service.h"
 #include "components/sessions/core/live_tab.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
@@ -1444,7 +1445,43 @@ class Handler : public content::WebUIMessageHandler {
     }
     Reply(id, false, base::Value("Session metadata save acknowledgement timed out."));
   }
+  void SpacePreferencesCommitted(std::string id, std::string name,
+      base::DictValue captured, base::DictValue disk_capture,
+      base::WeakPtr<BrowserWindowInterface> expected_browser,
+      std::string identity, uint64_t generation) {
+    if (!space_save_pending_ || generation != space_save_generation_ ||
+        !expected_browser) return;
+    // PrefService's completion orders writes but does not report disk errors.
+    // A readable dictionary is required so restart will not create a new profile
+    // and silently ignore the persisted session. Never write preferences here.
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce([](base::FilePath path) {
+          std::string bytes;
+          return base::ReadFileToString(path, &bytes) &&
+              base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS).has_value();
+        }, expected_browser->GetProfile()->GetPath().AppendASCII("Preferences")),
+        base::BindOnce(&Handler::SpaceProfileAcknowledged,
+            weak_factory_.GetWeakPtr(), id, name, std::move(captured),
+            std::move(disk_capture), expected_browser, identity, generation));
+  }
   void SpaceSaveAcknowledged(std::string id, std::string name,
+      base::DictValue captured, base::DictValue disk_capture,
+      base::WeakPtr<BrowserWindowInterface> expected_browser,
+      std::string identity, uint64_t generation, bool success) {
+    if (!space_save_pending_ || generation != space_save_generation_) return;
+    if (!success || !expected_browser) {
+      SpaceProfileAcknowledged(id, name, std::move(captured),
+          std::move(disk_capture), expected_browser, identity, generation, false);
+      return;
+    }
+    // Session bytes alone are insufficient on the first run: without the
+    // Preferences file, ProfileImpl::IsNewProfile suppresses session restore.
+    expected_browser->GetProfile()->GetPrefs()->CommitPendingWrite(
+        base::BindOnce(&Handler::SpacePreferencesCommitted,
+            weak_factory_.GetWeakPtr(), id, name, std::move(captured),
+            std::move(disk_capture), expected_browser, identity, generation));
+  }
+  void SpaceProfileAcknowledged(std::string id, std::string name,
       base::DictValue captured, base::DictValue disk_capture,
       base::WeakPtr<BrowserWindowInterface> expected_browser,
       std::string identity, uint64_t generation, bool success) {

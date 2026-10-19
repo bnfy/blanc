@@ -209,3 +209,19 @@ Remaining: first-run crash restoration, arbitrary rebuild/rotation failure sched
 Evidence: `evidence/ui138-save-rotation-20261019/`.
 
 Ten final diagnostic schedules and one normal-binary smoke pass. Incremental wrapper times: diagnostic 41.29s, normal restore 41.27s. Final guard zero actions / 6.2s. 129 archived members verified against SHA-256. No new unit-test pass claimed for this evidence-only checkpoint.
+
+## First-run profile prerequisite for session acknowledgement — 2026-10-19
+
+Reproduced on the prior normal binary: a first-run Spaces switch completes with a 20,992-byte Session file but no Default/Preferences. After SIGKILL, --restore-last-session produces one new blank window. ProfileImpl::IsNewProfile derives new-profile status from preference-store initialization, and StartupBrowserCreator::GetSessionStartupPref ignores forced restoration for new profiles. This is separate from Chromium's intentional crash-loop protection, which normally requires the recovery prompt after a persisted Crashed exit marker.
+
+The existing Blanc integration now waits for PrefService::CommitPendingWrite after successful authoritative Session save/flush, then checks on the disk sequence that Preferences is a readable JSON dictionary. PrefService's callback alone does not report write failure. The original owner/UUID/capture/generation guards and eight-second timeout still gate journal creation; late completion cannot start a switch. No preferences are fabricated or directly written by Blanc. This checks profile initialization readiness, not that every changed preference has persisted when an older valid Preferences file already exists.
+
+Six bounded runtime checks pass: first-ever-profile crash restoration with clear-only and encrypted-only sessions, held Preferences rename/release, rename EIO refusal, held replacement beyond timeout with stale completion ignored, and source navigation while replacement is held. Both first-run cases verify Preferences exists with Crashed exit marker, exact source UUID/URLs, and untouched decoy identity/URLs after restore. Automated restoration uses --hide-crash-restore-bubble only on the disposable restart so the native engine can be tested while native input is pending. Production crash prompting is unchanged; physical Restore-button acceptance is not claimed. This is not general automatic crash recovery or first-run recovery without a Spaces acknowledgement.
+
+The old-source failure and an initial observer failure that assumed Preferences already existed are retained. Injected errors target only the disposable Preferences rename; no real disk, keychain or retained profile is changed. Five capture/window-identity unit tests pass. Prior ten rebuild/rotation schedules are not rerun on this checkpoint; broader lifecycle/provider/power-loss qualification remains open.
+
+One guarded incremental build: 38.38s wrapper / 34.54s Siso, six steps. Final guard: zero actions / 3.59s. Product changes are confined to the Blanc-owned integration file; upstream footprint remains the prior measured 49 files / 114 hunks within 49/120, not newly re-enumerated. No diagnostic native control remains. Latency deferred; native input pending; Electron diagnostic build unapproved/unstarted. Plan remains in progress.
+
+Evidence: `evidence/ui138-first-session-20261019/`.
+
+67 archive members verified against SHA-256. Owned profile/server and stopped raw profile snapshot removed; retained preview untouched, host unavailable so original tabs not reverified.
