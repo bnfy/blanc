@@ -4,6 +4,7 @@
 #include "base/json/json_reader.h"
 #include "base/task/single_thread_task_runner.h"
 #include "content/public/browser/document_service.h"
+#include "content/public/browser/mojo_binder_policy_map.h"
 #include "content/public/browser/web_contents.h"
 #include "components/sessions/content/session_tab_helper.h"
 #include "services/network/public/cpp/resource_request_body.h"
@@ -487,6 +488,15 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   Context context_;
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
+}
+void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;
+  // A deferred binder would deadlock the synchronous document-start request.
+  // Cancel speculative documents rather than bypassing protection or granting
+  // this experimental interface new prerender capabilities. Active loads retain
+  // the ordinary document gate; prerender support remains unqualified.
+  policy_map.SetNonAssociatedPolicy<mojom::DocumentStart>(
+      content::MojoBinderNonAssociatedPolicy::kCancel);
 }
 void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver) {
   new DocumentScript(*frame, std::move(receiver));

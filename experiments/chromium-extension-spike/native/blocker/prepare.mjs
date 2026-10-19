@@ -55,3 +55,7 @@ patch('chrome/renderer/BUILD.gn','"//chrome/services/blanc_blocker:mojom"','    
 patch('content/browser/service_worker/service_worker_update_checker.cc','blanc_update_identity.inc','#include "content/browser/service_worker/service_worker_update_checker.h"','#include "content/browser/service_worker/service_worker_update_checker.h"\n#include "content/browser/service_worker/blanc_update_identity.inc"');
 patch('content/browser/service_worker/service_worker_update_checker.cc','BlancUpdateFactory(loader_factory_','      context_->wrapper()->browser_context(), loader_factory_,','      context_->wrapper()->browser_context(),\n      BlancUpdateFactory(loader_factory_, version_to_update_->registration_id(),\n          version_to_update_->version_id(), version_to_update_->scope(),\n          version_to_update_->key(), context_->wrapper()->browser_context()->IsOffTheRecord(), is_main_script),');
 write(path.join(src,'content/browser/service_worker/blanc_update_identity.inc'),fs.readFileSync(path.join(here,'update_identity.inc')));
+
+patch('chrome/browser/chrome_content_browser_client.cc','blanc::SetDocumentStartPrerenderPolicy(policy_map);',
+  '  RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);',
+  '  RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);\n  blanc::SetDocumentStartPrerenderPolicy(policy_map);');

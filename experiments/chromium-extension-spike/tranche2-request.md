@@ -34,27 +34,26 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 UTC (lifecycle coverage)
+### 1.1 Progress checkpoint — October 18, 2026 (EDT; prerender recovery)
 
-The unchanged renderer-token build now has bounded regular main-frame BFCache
-and renderer-crash evidence: same-document persisted restoration, cached/stale
-target refusal, pending document_end cancellation on a real crash, and new-document
-recovery with untouched DOM and a positive current-target control. Prerender
-activation remains a gap even with a raw background-only observer; its cause
-is unresolved. Ordinary navigation is never a pass.
-287 regression tests and 139 module lint checks pass. No native edits or compilation; zero-action guard.
-Footprint remains **40 files / 91 hunks**, at the file ceiling. Evidence and
-failed harness attempts: `evidence/f12-lifecycle-20261018/`.
-Broader lifecycle, original caller identity, permission replies and asynchronous
-scriptlet effects remain unqualified. Latency remains deferred and the Electron
-diagnostic build remains unapproved/unstarted. Detailed measurements remain in
-`rebase-ledger.md`; test outcomes remain in `results.md`. In progress is not acceptance.
+The synchronous document-start binder now explicitly cancels prerender instead
+of inheriting deferred binding. Runtime evidence proves Mojo-policy cancellation
+and protected normal navigation with first-inline scriptlet success; actual
+prerender activation remains unsupported. Two queued upstream lease schedules
+also pass: subframe removal and renderer crash release the lease and complete a
+held reload, with clean surviving/recovered DOM. Broader native-execution crashes,
+background recreation, caller identity and asynchronous effects remain gaps.
+294 tests and 142 module lint checks pass; one 46.43-second incremental build,
+final guard zero actions. Footprint **40 files / 92 hunks**, still at the file
+ceiling. Evidence and failed controls: `evidence/f12-prerender-recovery-20261018/`.
+Latency stays deferred; Electron diagnostic build unapproved/unstarted. This is
+bounded mitigation and lifecycle evidence, not full Spike A/B acceptance.
 
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
 | 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. `evidence/f12-ubo-cosmetics-20261017/` adds eight matching regular main-frame pages: static CSS, has-text mutations and late fetch scriptlets pass; historical document-start failure is superseded for Chromium main frames by `evidence/f12-document-gate-20261017/`: 12/12 early constant/fetch passes versus Electron 0/12, seven safety probes and 12 native-only update-loader joins. The subframe follow-up `evidence/f12-subframe-trace-20261017/` adds 16/16 early native cases and identifies two late Electron ancestor misses per session. Cross-runtime identity remains open. Broader cosmetics/scriptlets/paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
-| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 40 files / 91 hunks; the renderer token follows the document-start and local update-factory patches. Design artifact remains required. |
+| 3. A1 patch-budget design | **Not started** | Current measured upstream footprint is 40 files / 92 hunks; the renderer token follows the document-start and local update-factory patches. Design artifact remains required. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
