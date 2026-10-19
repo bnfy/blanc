@@ -1,0 +1,73 @@
+{
+  "firstRelease": "1.38",
+  "noPage": [],
+  "pages": [
+    {
+      "release": "1.38",
+      "highlights": [
+        {
+          "id": "your-image",
+          "tile": "Your own Start Page image",
+          "title": "Make the Start Page your own",
+          "body": "Put a photo of your own behind the Start Page. Wash and Fade keep the page easy to read over it.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Your image.",
+            "Pick a JPEG or PNG, up to 25 MB."
+          ],
+          "note": "Blanc keeps a resized copy on this device only, without location, camera or time details. It isn't synced, and private tabs never show it.",
+          "learnMore": "/features/start-page",
+          "color": "rose",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-image-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page over Van Gogh’s Wheat Field with Cypresses, with the Spotlight wash behind the clock and favorites.",
+            "caption": "Van Gogh, Wheat Field with Cypresses, The Met (public domain)."
+          }
+        },
+        {
+          "id": "start-page-color",
+          "tile": "A Start Page color",
+          "title": "Paint the Start Page in a color",
+          "body": "Choose one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Color.",
+            "Pick a color and a fill."
+          ],
+          "note": "The color settings sync with Profile Sync. An image chosen on this device still comes first here, and private tabs never show the color.",
+          "learnMore": "/features/start-page",
+          "color": "sky",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-color-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page painted in the Sky color with the Gradient fill."
+          }
+        },
+        {
+          "id": "match-space-color",
+          "tile": "Match each space’s color",
+          "title": "Let each space bring its own color",
+          "body": "Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on the Start Page.",
+          "steps": [
+            "In Customize, choose Color under Wallpaper.",
+            "Turn on Match each space’s color."
+          ],
+          "learnMore": "/features/workspaces",
+          "color": "iris",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-color-customize-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Customize popover with Color selected under Wallpaper, the eight color swatches, the Fill choice and the Match each space’s color switch."
+          }
+        }
+      ]
+    }
+  ]
+}
