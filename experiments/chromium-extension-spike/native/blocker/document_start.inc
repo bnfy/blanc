@@ -30,7 +30,12 @@ void CancelScripts(content::BrowserContext* context) {
 }
 size_t PendingDeliveries(content::BrowserContext* context) {
   auto& deliveries = Jobs(context).deliveries;
-  std::erase_if(deliveries, [](const auto& item) { return !item.second.AsRenderFrameHostIfValid(); });
+  std::erase_if(deliveries, [](const auto& item) {
+    auto* frame = item.second.AsRenderFrameHostIfValid();
+    // A crashed renderer can leave its document/RFH alive for the crash page.
+    // No script can complete there. Inactive live (e.g. BFCache) frames remain held.
+    return !frame || !frame->IsRenderFrameLive();
+  });
   return deliveries.size();
 }
 std::optional<GURL> ScriptSelection(content::RenderFrameHost& frame, const std::string& url) {

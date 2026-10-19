@@ -2238,3 +2238,19 @@ Evidence: `evidence/f12-prerender-recovery-20261018/`.
 Final-binary regressions also pass: the bounded BFCache/crash targeting pair
 and eight renderer-token/queued-navigation cases, with independent report proofs.
 The lifecycle harness still correctly labels prerender activation as a gap.
+
+## Native execution crash recovery — October 18, 2026 EDT
+
+Evidence: [bounded crash and background recreation](evidence/f12-native-recovery-20261018/README.md).
+A paused native ExecuteScript plus actual Page.crash exposed a retained weak
+document lease; the browser now retires only absent or non-live-renderer
+documents. The repaired schedule drains pending1→0, releases held reload and
+verifies protected replacement DOM. Actual background-document reload produces
+a new realm and ready engine, preserving authored blocking and first-inline
+protection. Background-process crash/restart policy and async effects stay open.
+One guarded incremental build: 35.07 s wrapper / 31.39 s Siso, six steps from
+one planned action. Final guard0; fresh budget40files/92hunks, no new upstream
+file. This is routine repair/testing, never Task0's cold-build column.
+Latency deferred; Electron diagnostic build unapproved/unstarted. UI migration
+to the recent Electron releases is the next owner-requested task, inventoried in
+`ui-refresh-20261018.md`; no new UI parity is claimed by this checkpoint.

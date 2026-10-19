@@ -34,20 +34,25 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
-### 1.1 Progress checkpoint — October 18, 2026 (EDT; prerender recovery)
+### 1.1 Progress checkpoint — October 18, 2026 (EDT; native crash recovery)
 
-The synchronous document-start binder now explicitly cancels prerender instead
-of inheriting deferred binding. Runtime evidence proves Mojo-policy cancellation
-and protected normal navigation with first-inline scriptlet success; actual
-prerender activation remains unsupported. Two queued upstream lease schedules
-also pass: subframe removal and renderer crash release the lease and complete a
-held reload, with clean surviving/recovered DOM. Broader native-execution crashes,
-background recreation, caller identity and asynchronous effects remain gaps.
-294 tests and 142 module lint checks pass; one 46.43-second incremental build,
-final guard zero actions. Footprint **40 files / 92 hunks**, still at the file
-ceiling. Evidence and failed controls: `evidence/f12-prerender-recovery-20261018/`.
-Latency stays deferred; Electron diagnostic build unapproved/unstarted. This is
-bounded mitigation and lifecycle evidence, not full Spike A/B acceptance.
+Native execution leases now retire when the exact document is gone **or its
+renderer frame is no longer live**. A real renderer crash during paused native
+ExecuteScript previously left a valid WeakDocumentPtr and held reload forever;
+the bounded repaired schedule drains pending1 to0 and completes reload, then
+loads a protected replacement. Inactive live documents are not retired.
+Background-document recreation also passes new-realm readiness plus first-inline,
+allowed and blocked controls; this is not a background-process crash or an
+automatic restart policy. Background process loss, asynchronous effects, original
+caller identity and broader lifecycle coverage remain gaps. Prerender activation
+remains unsupported, with the prior protected cancellation fallback retained.
+Evidence: `evidence/f12-native-recovery-20261018/`. One 35.07-second incremental
+build; footprint remains **40 files / 92 hunks**, final guard zero actions.
+Latency stays deferred; Electron diagnostic build unapproved/unstarted.
+
+The owner requested migrating recent Electron UI/UX next. The pinned 1.38.0
+inventory and verification order are in `ui-refresh-20261018.md`; migration is
+pending, not part of this recovery acceptance. Spikes A/B remain in progress.
 
 | Item | Status | Evidence / next gate |
 | --- | --- | --- |
