@@ -1,6 +1,7 @@
 ---
-// One What's New highlight: words, steps and buttons on the left, its media on
-// the right. Without scripting every highlight shows in order; whats-new.js
+// One What's New highlight: its release, words, steps and buttons on the left,
+// its media on the right. A page shows its own release's highlights (current)
+// and then a few from earlier releases, each naming its own release. Without scripting every highlight shows in order; whats-new.js
 // shows one at a time (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
 import SpacesDemo from './SpacesDemo.astro';
 import TabDragFigure from './TabDragFigure.astro';
@@ -18,13 +19,18 @@ interface Props {
       | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
       | { kind: 'demo'; demo: 'spaces' | 'tab-drag' };
   };
+  release: string;   // the highlight's feature release, e.g. '1.38'
+  humanDate: string; // that release's date, e.g. 'October 18, 2026'
+  current: boolean;  // from this page's release, not an earlier one
   first: boolean;
 }
-const { highlight: h, first } = Astro.props;
+const { highlight: h, release, humanDate, current, first } = Astro.props;
 const media = h.media;
+const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
 ---
 <section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
   <div class="wn-copy">
+    <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release} · {shortDate}</p>
     <h2 id={`${h.id}-title`}>{h.title}</h2>
     <p class="wn-body">{h.body}</p>
     {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{step}</li>)}</ol>}

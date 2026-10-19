@@ -2,7 +2,8 @@
    Chrome's one-highlight-at-a-time layout inside the site's own identity. The
    masthead, footer, kicker (.section-kicker), primary button (.cta), text link
    (.text-link) and capture frame (.product-capture) are the shared site styles;
-   this file only lays them out. Color comes from the captures themselves. */
+   this file only lays them out. Color comes from the captures themselves.
+   Highlights from earlier releases carry their version on the tile. */
 
 .wn {
   max-width: 1180px;
@@ -127,6 +128,14 @@
 .wn-tile:focus-visible {
   outline: 2px solid var(--site-text);
   outline-offset: 2px;
+}
+.wn-tile-version {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--site-gold);
 }
 .wn-tile-thumb {
   flex: none;

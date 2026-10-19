@@ -38,7 +38,8 @@ test('the 1.38 page wears the site masthead and footer, a gold kicker and the fi
   const { context, page } = await open('/whats-new/1.38');
   assert.equal(await page.locator('.site-header .site-lockup').count(), 1, 'the shared masthead with the lockup');
   assert.equal(await page.locator('.website-footer').count(), 1, 'the shared footer and its horizon rule');
-  assert.equal(await page.locator('.wn .section-kicker').innerText(), 'WHAT’S NEW · BLANC 1.38 · OCTOBER 18');
+  assert.equal(await page.locator(`#${ids[0]} .section-kicker`).innerText(), 'WHAT’S NEW · BLANC 1.38 · OCTOBER 18', 'each highlight names its release');
+  assert.equal(await page.locator('.wn-tile-version').count(), 0, 'only earlier releases\' tiles carry a version tag');
   assert.deepEqual(await visibleSections(page), [ids[0]]);
   await context.close();
 });

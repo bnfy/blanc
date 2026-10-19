@@ -46,7 +46,7 @@ test('the committed What\'s New data is valid against the committed releases', a
 
 test('a page must belong to a published release', async () => {
   const { validateWhatsNew } = await lib();
-  const errors = validateWhatsNew(fixture([page('1.38'), page('1.39')]), RELEASES, await options());
+  const errors = validateWhatsNew(fixture([named('1.38', 3), named('1.39', 3)]), RELEASES, await options());
   assert.equal(errors.length, 1);
   assert.match(errors[0], /1\.39/);
 });
@@ -108,4 +108,48 @@ test('published pages come newest first with their release date and changelog an
   assert.equal(first.version, '1.38.0');
   assert.equal(first.humanDate, 'October 18, 2026');
   assert.equal(first.anchor, 'v1-38-0');
+});
+
+// Recent releases: each page leads with its own highlights, then adds the
+// highlights of the two previous feature releases that have pages, newest
+// first, up to eight in all.
+const named = (release, count) => ({
+  release,
+  highlights: Array.from({ length: count }, (_, i) => highlight(`r${release.replace('.', '-')}-h${i}`)),
+});
+const LADDER = ['1.39', '1.38', '1.37', '1.36'].map((r, i) => ({ version: `${r}.0`, humanDate: `October ${19 - i}, 2026`, anchor: `v${r.replace('.', '-')}-0` }));
+
+test('a page adds the two previous releases\' highlights after its own, up to eight', async () => {
+  const { publishedPages } = await lib();
+  const ladder = fixture([named('1.39', 3), named('1.38', 3), named('1.37', 3), named('1.36', 3)], { firstRelease: '1.36' });
+  const pages = publishedPages(ladder, LADDER);
+  const newest = pages.find((p) => p.release === '1.39');
+  assert.deepEqual(newest.entries.map((e) => `${e.release}:${e.current}`), [
+    '1.39:true', '1.39:true', '1.39:true', '1.38:false', '1.38:false', '1.38:false', '1.37:false', '1.37:false',
+  ]);
+  assert.equal(newest.entries[3].humanDate, 'October 18, 2026');
+  assert.deepEqual(newest.highlights.map((h) => h.id), ladder.pages[0].highlights.map((h) => h.id), 'its own highlights stay separate');
+  const oldest = pages.find((p) => p.release === '1.36');
+  assert.deepEqual(oldest.entries.map((e) => e.release), ['1.36', '1.36', '1.36'], 'nothing older to add');
+});
+
+test('a full release keeps all its own highlights and older ones fill what is left', async () => {
+  const { publishedPages } = await lib();
+  const ladder = fixture([named('1.39', 5), named('1.38', 5)], { firstRelease: '1.38' });
+  const newest = publishedPages(ladder, LADDER).find((p) => p.release === '1.39');
+  assert.deepEqual(newest.entries.map((e) => e.release), ['1.39', '1.39', '1.39', '1.39', '1.39', '1.38', '1.38', '1.38']);
+});
+
+test('a release skipped on purpose adds nothing; the next page with highlights does', async () => {
+  const { publishedPages } = await lib();
+  const ladder = fixture([named('1.39', 3), named('1.37', 3), named('1.36', 3)], { firstRelease: '1.36', noPage: ['1.38'] });
+  const newest = publishedPages(ladder, LADDER).find((p) => p.release === '1.39');
+  assert.deepEqual([...new Set(newest.entries.map((e) => e.release))], ['1.39', '1.37', '1.36']);
+});
+
+test('highlight ids are unique across every page, so a link to one never clashes', async () => {
+  const { validateWhatsNew } = await lib();
+  const clash = fixture([page('1.39'), page('1.38')], { firstRelease: '1.38' });
+  const errors = validateWhatsNew(clash, LADDER, await options());
+  assert.ok(errors.some((e) => /duplicate id/.test(e)), errors.join('\n'));
 });

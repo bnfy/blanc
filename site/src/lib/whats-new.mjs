@@ -14,6 +14,9 @@ const FEATURE_RE = /^(\d+)\.(\d+)$/;
 export const DEMOS = Object.freeze(['spaces', 'tab-drag']);
 const MIN_HIGHLIGHTS = 3;
 const MAX_HIGHLIGHTS = 5;
+// A page shows its own highlights, then up to this many earlier pages'.
+const EARLIER_PAGES = 2;
+const MAX_ENTRIES = 8;
 
 export function featureRelease(version) {
   const match = RELEASE_RE.exec(typeof version === 'string' ? version : '');
@@ -69,6 +72,8 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
   const paged = new Set();
+  // Ids are unique across every page, since a page also shows earlier ones.
+  const ids = new Set();
   for (const pageData of data.pages ?? []) {
     const release = pageData.release;
     if (!FEATURE_RE.test(release ?? '')) { errors.push(`page "${release}": release must be major.minor`); continue; }
@@ -78,7 +83,6 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
     if (highlights.length < MIN_HIGHLIGHTS || highlights.length > MAX_HIGHLIGHTS) {
       errors.push(`page ${release}: needs ${MIN_HIGHLIGHTS} to ${MAX_HIGHLIGHTS} highlights, has ${highlights.length}`);
     }
-    const ids = new Set();
     for (const h of highlights) {
       const where = `page ${release}, highlight "${h.id}"`;
       if (!/^[a-z0-9-]+$/.test(h.id ?? '')) errors.push(`${where}: id must be lowercase words joined by hyphens`);
@@ -108,14 +112,22 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
 }
 
 // The pages to build, newest first, with the date and changelog anchor of
-// their release's .0 version.
+// their release's .0 version. Each page's entries lead with its own
+// highlights (current: true), then add those of the EARLIER_PAGES previous
+// pages, newest first, up to MAX_ENTRIES in all; its own always fit.
 export function publishedPages(data, releases) {
   const byVersion = new Map(releases.map((r) => [r.version, r]));
-  return (data.pages ?? [])
+  const pages = (data.pages ?? [])
     .filter((p) => byVersion.has(`${p.release}.0`))
     .map((p) => {
       const release = byVersion.get(`${p.release}.0`);
       return { release: p.release, version: release.version, humanDate: release.humanDate, anchor: release.anchor, highlights: p.highlights };
     })
     .sort((a, b) => compareFeature(b.release, a.release));
+  const entriesOf = (page, current) => page.highlights.map((highlight) => ({ highlight, release: page.release, humanDate: page.humanDate, current }));
+  return pages.map((page, index) => {
+    const own = entriesOf(page, true);
+    const earlier = pages.slice(index + 1, index + 1 + EARLIER_PAGES).flatMap((p) => entriesOf(p, false));
+    return { ...page, entries: [...own, ...earlier].slice(0, Math.max(MAX_ENTRIES, own.length)) };
+  });
 }

@@ -19,8 +19,7 @@ export function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const { release, humanDate, anchor, highlights } = page;
-const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
+const { release, anchor, highlights, entries } = page;
 ---
 <BaseLayout
   title={`What’s New in Blanc ${release} | Blanc Browser`}
@@ -31,15 +30,14 @@ const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
   newsletterPrompt={false}
 >
   <main id="main-content" class="wn" data-release={release}>
-    <p class="section-kicker">What’s new · Blanc {release} · {shortDate}</p>
     <h1 class="sr-only">What’s new in Blanc {release}</h1>
     <div class="wn-stage">
-      {highlights.map((highlight, index) => <WhatsNewHighlight highlight={highlight} first={index === 0} />)}
+      {entries.map((entry, index) => <WhatsNewHighlight {...entry} first={index === 0} />)}
     </div>
     <nav class="wn-tiles" aria-label="Highlights">
-      {highlights.map((h, index) => (
+      {entries.map(({ highlight: h, release: from, current }, index) => (
         <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
-          <span class="wn-tile-label">{h.tile}</span>
+          <span class="wn-tile-label">{!current && <span class="wn-tile-version">{from}</span>}{h.tile}</span>
           {h.media.kind === 'image' && <img class="wn-tile-thumb" src={h.media.src} width={h.media.width} height={h.media.height} alt="" loading="lazy" decoding="async" />}
           {h.media.kind === 'video' && <img class="wn-tile-thumb" src={h.media.poster} alt="" loading="lazy" decoding="async" />}
         </button>

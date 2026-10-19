@@ -36,8 +36,8 @@ const ALLOWED = [
   'pages/roadmap.astro → Feature Roadmap',
   'pages/support.astro → Blanc Support',
   'pages/trust.astro → Privacy & security',
-  // A release's version and date above its What's New highlights.
-  'pages/whats-new/[release].astro → What’s new · Blanc {release} · {shortDate}',
+  // Each What's New highlight names its release: this one's, or an earlier one's.
+  'components/WhatsNewHighlight.astro → {current ? \'What’s new\' : \'Recently\'} · Blanc {release} · {shortDate}',
 ];
 
 function eyebrows(markup) {

@@ -74,6 +74,13 @@ The approved mockup is `.superpowers/brainstorm/64575-1792432344/content/layout-
 
 - **URL:** `https://blanc.day/whats-new/<major>.<minor>` (for example `/whats-new/1.38`),
   one page per feature release. `https://blanc.day/whats-new` always leads to the newest one.
+- **Recent releases too (owner decision, October 19, 2026):** like Chrome's tab, a page also
+  surfaces recently launched features. Each page leads with its own release's highlights,
+  then adds those of the two previous feature releases that have pages, newest first, up to
+  eight in all (its own always fit). Releases in `noPage` add nothing. Each highlight's gold
+  kicker names its release ("What's new · Blanc 1.39 · …" or "Recently · Blanc 1.38 · …"),
+  and an earlier release's tile carries its version. Highlight ids are unique across every
+  page.
 - **Layout (from the mockup):**
   - Header and footer: the site's shared masthead and footer (decision 6). Above the stage, a
     gold kicker "What's new · Blanc 1.38 · October 18" (date from
