@@ -150,7 +150,7 @@ test('main, the bridge and the start page are wired together', () => {
   assert.match(main, /dismissWhatsNew: \(\) => \{\s*settings\.setSettings\(\{ whatsNewVersion: '' \}\);\s*return true;/);
   assert.match(pages, /handle\('pages:start:whats-new-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissWhatsNew\?\.\(\) === true\)/);
   assert.match(preload, /dismissWhatsNew: \(\) => invoke\('pages:start:whats-new-dismiss'\)/);
-  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewSince']) {
+  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewSince', 'whatsNewPageVersion', 'whatsNewTabRelease']) {
     assert.ok(schema.internalDefaults.includes(key), key);
     assert.match(settings, new RegExp(`\\b${key}: `), key);
   }
