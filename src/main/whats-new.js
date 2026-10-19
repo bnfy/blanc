@@ -71,9 +71,11 @@ function whatsNewOnLaunch(settings = {}, { version, now, firstRunComplete } = {}
 }
 
 // Whether to ask blanc.day for the page this launch: only while the pill is
-// live and the page has not been found for this version.
+// live, and while the page has not been found for this version or its
+// feature release still owes a tab (found, but no window could take it).
 function whatsNewCheckDue(settings = {}, { version, now } = {}) {
-  return pillLive(settings, { version, now }) && settings.whatsNewPageVersion !== version;
+  if (!pillLive(settings, { version, now })) return false;
+  return settings.whatsNewPageVersion !== version || settings.whatsNewTabRelease !== featureRelease(version);
 }
 
 // What the answer changes: { patch, openUrl }. A found page points the pill

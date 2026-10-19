@@ -101,7 +101,7 @@ test('the page check runs only while the pill is live and the page is not yet fo
   assert.equal(whatsNewCheckDue(live, { version: '1.39.0', now: NOW + DAY }), true);
   assert.equal(whatsNewCheckDue(live, { version: '1.39.0', now: NOW + WHATS_NEW_WINDOW_MS }), false, 'after seven days');
   assert.equal(whatsNewCheckDue({ ...live, whatsNewVersion: '' }, { version: '1.39.0', now: NOW }), false, 'pill closed');
-  assert.equal(whatsNewCheckDue({ ...live, whatsNewPageVersion: '1.39.0' }, { version: '1.39.0', now: NOW }), false, 'already found');
+  assert.equal(whatsNewCheckDue({ ...live, whatsNewPageVersion: '1.39.0', whatsNewTabRelease: '1.39' }, { version: '1.39.0', now: NOW }), false, 'found and no tab owed');
 });
 
 test('a found page opens the tab once and points the pill at it', () => {
@@ -120,6 +120,17 @@ test('with no window the tab stays owed', () => {
     whatsNewAfterCheck({ whatsNewTabRelease: '1.38' }, { version: '1.39.0', found: true, canOpen: false }),
     { patch: { whatsNewPageVersion: '1.39.0' }, openUrl: null },
   );
+});
+
+test('a tab owed because no window could take it opens on a later launch', () => {
+  let settings = { lastRunVersion: '1.39.0', whatsNewVersion: '1.39.0', whatsNewSince: NOW, whatsNewPageVersion: '', whatsNewTabRelease: '1.38' };
+  const first = whatsNewAfterCheck(settings, { version: '1.39.0', found: true, canOpen: false });
+  settings = { ...settings, ...first.patch };
+  assert.equal(whatsNewCheckDue(settings, { version: '1.39.0', now: NOW + DAY }), true, 'still owed, so the next launch acts');
+  const second = whatsNewAfterCheck(settings, { version: '1.39.0', found: true, canOpen: true });
+  assert.equal(second.openUrl, 'https://blanc.day/whats-new/1.39');
+  settings = { ...settings, ...second.patch };
+  assert.equal(whatsNewCheckDue(settings, { version: '1.39.0', now: NOW + DAY }), false, 'paid');
 });
 
 test('a missing page changes nothing', () => {
@@ -151,7 +162,11 @@ test('main, the bridge and the start page are wired together', () => {
   assert.match(main, /if \(!app\.isPackaged \|\| whatsNewCheckStarted\) return;/, 'packaged builds, once per launch');
   assert.match(main, /checkWhatsNewPage\(url, \{ fetch: net\.fetch \}\)/);
   assert.match(main, /bananifyServiceAllowed\(url\)/, 'a renamed build never asks blanc.day');
-  assert.match(main, /canOpen: !isQuitting && hasLiveWindow\(\)/);
+  assert.match(main, /canOpen: !isQuitting && hasLiveWindow\(\) && !launchHandedUrls && !rt\(\)\.utilitySheetUrl && !pendingTabHandoff,/,
+    'never over a link, a tab import or an open sheet; the tab stays owed instead');
+  for (const fn of ['openExternalUrls', 'openLocalHtmlFiles']) {
+    assert.match(main, new RegExp(`function ${fn}\\((\\w+)\\) \\{\\s*if \\(\\1\\?\\.length\\) launchHandedUrls = true;`), fn);
+  }
   assert.match(main, /setActiveTab\(createTab\(openUrl\), \{ focusContent: true \}\)/, 'an ordinary, active tab; never private');
   assert.match(main, /dismissWhatsNew: \(\) => \{\s*settings\.setSettings\(\{ whatsNewVersion: '' \}\);\s*return true;/);
   assert.match(pages, /handle\('pages:start:whats-new-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissWhatsNew\?\.\(\) === true\)/);

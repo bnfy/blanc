@@ -1639,6 +1639,9 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 
 let launchPingSent = false;
 let whatsNewCheckStarted = false;
+// Set once anything else asks Blanc for a tab (a link, a file, a tab import),
+// so the What's New tab never takes the foreground from it.
+let launchHandedUrls = false;
 const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
 const defaultBrowserSettable = () => canSetDefaultBrowser({ app, platform: process.platform });
 // The moving-in checklist's "Make Blanc your default" completes the first
@@ -1746,7 +1749,9 @@ async function maybeOpenWhatsNew() {
     const { patch, openUrl } = whatsNewAfterCheck(settings.getSettings(), {
       version,
       found,
-      canOpen: !isQuitting && hasLiveWindow(),
+      // Never over a link, a tab import or an open sheet: the tab stays owed
+      // for a later launch instead.
+      canOpen: !isQuitting && hasLiveWindow() && !launchHandedUrls && !rt().utilitySheetUrl && !pendingTabHandoff,
     });
     if (!patch) return;
     // Settings changes re-broadcast the Start Page status, pill included.
@@ -1777,10 +1782,12 @@ function resolveExternalRuntime(preferred = focusedRuntime) {
 }
 
 function openExternalUrls(urls) {
+  if (urls?.length) launchHandedUrls = true;
   externalUrlHandoff.open(urls);
 }
 
 function openLocalHtmlFiles(paths) {
+  if (paths?.length) launchHandedUrls = true;
   externalUrlHandoff.openLocalFiles(paths);
 }
 
