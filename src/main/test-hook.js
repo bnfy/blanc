@@ -11,6 +11,7 @@
 const settings = require('./settings');
 const sync = require('./sync');
 const history = require('./history');
+const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
 const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
@@ -920,7 +921,7 @@ function install(refs) {
       }
       return history.listTopSites({ limit: 48 }).map((site) => site.key);
     },
-    clearHistory() { history.clearHistory(); },
+    clearHistory() { history.clearHistory(); archive.clearArchive(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
     // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
@@ -3490,6 +3491,7 @@ function install(refs) {
       clearClosedEntries();
       getGroups().length = 0;
       history.clearHistory();
+      archive.clearArchive();
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',

@@ -208,6 +208,7 @@ const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
@@ -9070,6 +9071,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:history-clear', () => {
     history.clearHistory();
+    // Archived tabs are browsing history too (F52).
+    archive.clearArchive();
     clearSessionMeta();
     // Which bangs were used goes with the history (the History page's own
     // clear does the same through onHistoryCleared).
@@ -11491,6 +11494,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     onDataChanged: refreshBookmarkFlags,
     onHistoryCleared: () => {
       clearSessionMeta();
+      archive.clearArchive();
       clearRecentBangsAndIcons();
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
