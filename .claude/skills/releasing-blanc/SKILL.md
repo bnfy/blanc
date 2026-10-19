@@ -193,6 +193,12 @@ short:
    - the capability boundaries in `docs/marketing-claims.md`;
    - `site/src/data/releases.json` (`npm run site:changelog`), plus the
      Feature Roadmap and `release-feature-names.json` (see `site/CLAUDE.md`);
+   - the release's What's New page in `site/src/data/whats-new.json` (or a
+     `noPage` entry for a feature release without one; its unit test requires
+     one or the other). It needs the owner's explicit sign-off on its final
+     text and media before it deploys. After the first release that opens it,
+     add the What's New sentence to the privacy policy (see the spec
+     `docs/superpowers/specs/2026-10-19-whats-new-page-design.md`);
    - the Bangs page re-pinned to the new tag,
      `npm run site:bangs -- --ref vX.Y.Z --release vX.Y.Z`. Its data test
      requires the newest tag in `releases.json`, so it fails until this runs;
