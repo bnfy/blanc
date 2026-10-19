@@ -1680,3 +1680,20 @@ and 43.66s; final guard zero. Budget unchanged at 40 files / 94 hunks; no increa
 Disposable profiles removed; original two preview tabs restored. Recently Closed remains
 profile-wide; Spaces/Glance unported. Plan item 4 started, incomplete; items 3/5/6 unchanged.
 Latency deferred, Electron diagnostic build unapproved/unstarted; F12/Task0 gates unchanged.
+
+## October 18 narrow/palette/find diagnostic checkpoint
+
+Native command entry now selects palette mode, full-window scrim/hit region and copied
+repeat-command selection behavior; click/typing/new-tab entries remain panel mode. Five
+actual Chromium sizes, 1280x700 through 500x400 pass bounded palette geometry/typed-selection
+checks. Crowded 500x400 panel/list/footer and rail scrolling pass. Electron reference uses
+renderer viewport emulation and diagnostic palette CSS, not native window/keyboard input.
+Electron actual find API returns 1/1 fixture match at five sizes; Chromium Blanc find capsule
+and bridge remain unported (/find filtered out), native Find not tested while locked.
+Native Cmd-L/Escape/outside-click acceptance awaits unlock; no physical checks claimed.
+At <=800px native controls require Chromium panel y48 vs Electron y12; full composed/DPI/
+private parity remains open. Evidence: `evidence/ui138-narrow-palette-20261018/`.
+One 37.69s incremental build, six steps; final guard zero; 40 files / 94 hunks unchanged. Four regressions
+and focused host lint pass. Disposable fixtures removed, original preview two tabs restored.
+Plan item4 in progress; previous F12/Task0 gates unchanged. Latency deferred; Electron
+diagnostic build unapproved/unstarted. Find migration and unlocked input are next gaps.

@@ -1118,7 +1118,9 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(owner->rail_width)); return;
     }
     if (method == "height" && args.size() == 1 && args[0].is_int()) {
-      owner->height = std::clamp(args[0].GetInt(), 68, 640);
+      // LayoutIsland bounds this requested height to the real window. The
+      // summoned palette needs its scrim to reach below the 640px panel.
+      owner->height = std::clamp(args[0].GetInt(), 68, 10000);
       if (owner->view->parent()) owner->view->parent()->InvalidateLayout();
       if (owner->height > 68) {
         owner->view->RequestFocus();

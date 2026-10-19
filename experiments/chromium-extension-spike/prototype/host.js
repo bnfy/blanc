@@ -5,6 +5,7 @@
   let serialized = '';
   let pillRect = null;
   let opened = false;
+  let overlayMode = null;
   let refreshing = false;
   let extensionsOpened = false;
   let geometry = "";
@@ -125,7 +126,11 @@
       : opened ? overlay.contentDocument?.getElementById('islandPanel')
       : strip.contentDocument?.getElementById('islandPill');
     if (!slot || !panel) return;
-    const a = slot.getBoundingClientRect(), b = panel.getBoundingClientRect();
+    const a = slot.getBoundingClientRect();
+    // The palette scrim owns outside clicks across the whole viewport.
+    const b = opened && overlayMode === 'palette'
+      ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
+      : panel.getBoundingClientRect();
     const values = [a.x, a.y, a.width, a.height, b.x, b.y, b.width, b.height].map(Math.round);
     const next = JSON.stringify(values);
     if (next !== geometry) {
@@ -134,18 +139,20 @@
     }
   }
 
-  async function show(prefill) {
+  async function show(prefill, mode = 'panel') {
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
     await refresh();
-    await request('height', [640]);
+    await request('height', [mode === 'palette' ? 10000 : 640]);
+    overlayMode = mode;
     opened = true;
     overlay.hidden = false;
-    emit('onIslandState', { mode: 'panel' });
+    emit('onIslandState', { mode });
     requestAnimationFrame(() => {
-      emit('onOverlayShow', { mode: 'panel', prefill, pillRect });
+      emit('onOverlayShow', { mode, prefill, pillRect });
+      reportGeometry();
       if (prefill !== undefined) {
         const input = overlay.contentDocument.getElementById('addressInput');
         input.value = prefill;
@@ -163,6 +170,7 @@
     emit('onOverlayHide', {});
     emit('onIslandState', { mode: null });
     opened = false;
+    overlayMode = null;
     overlay.hidden = true;
     await request('height', [68]);
     // Escape and outside clicks return focus to the page (Electron's
@@ -180,6 +188,7 @@
     emit('onOverlayHide', {});
     emit('onIslandState', { mode: null });
     opened = false;
+    overlayMode = null;
     overlay.hidden = true;
     extensionsOpened = true;
     strip.style.visibility = 'hidden';
@@ -368,7 +377,10 @@
   window.BlancPrototypeHost = {
     api,
     notice,
-    open: (newTab = false, text = '') => show(newTab ? text : undefined),
+    open: (newTab = false, text = '') => {
+      if (!newTab && opened) { emit('onOverlayToggle'); return; }
+      return show(newTab ? text : undefined, newTab ? 'panel' : 'palette');
+    },
     extensions: showExtensions,
     escape: () => opened || extensionsOpened ? close() : undefined,
     refresh,
