@@ -3257,8 +3257,28 @@
     "message": "General",
     "note": "Settings → General: section heading."
   },
-  "settings.general.theme.label": {
+  "settings.general.cards.island": {
+    "message": "Island",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.appearance": {
     "message": "Appearance",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.startPage": {
+    "message": "Start Page",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.search": {
+    "message": "Search",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.browsing": {
+    "message": "Browsing",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.theme.label": {
+    "message": "Theme",
     "note": "Settings → General: setting name."
   },
   "settings.general.theme.hint": {

@@ -888,7 +888,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_nav_patron">Patron</string>
     <string name="settings_nav_help">Hilfe</string>
     <string name="settings_general_title">Allgemein</string>
-    <string name="settings_general_theme_label">Erscheinungsbild</string>
+    <string name="settings_general_cards_island">Island</string>
+    <string name="settings_general_cards_appearance">Erscheinungsbild</string>
+    <string name="settings_general_cards_start_page">Startseite</string>
+    <string name="settings_general_cards_search">Suche</string>
+    <string name="settings_general_cards_browsing">Surfen</string>
+    <string name="settings_general_theme_label">Design</string>
     <string name="settings_general_theme_hint">System folgt dem Design von macOS/Windows</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Hell</string>

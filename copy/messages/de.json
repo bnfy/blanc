@@ -3181,9 +3181,29 @@
     "message": "Allgemein",
     "source": "sha256:c0d54a06a31ec270fe6ae5b7115ab3e55b78fb91351f7246577d221f26748fef"
   },
-  "settings.general.theme.label": {
+  "settings.general.cards.island": {
+    "message": "Island",
+    "source": "sha256:4bb8942c10a49fd2ec6fb7fd8bfa94ca489366818f22d60a4c072c8578df6185"
+  },
+  "settings.general.cards.appearance": {
     "message": "Erscheinungsbild",
-    "source": "sha256:52b09162f68b5ad1cb1c27c30b0ad203225aca30b36893fecc34b6dba05da47d"
+    "source": "sha256:1c63c160ca08afe5f5d0da16bf64aea79b05fc070f1288f29ed9b17796ce637e"
+  },
+  "settings.general.cards.startPage": {
+    "message": "Startseite",
+    "source": "sha256:6bf09565100e3b5b02c3194f4d896fdb40445255286a910060d9b4340e989950"
+  },
+  "settings.general.cards.search": {
+    "message": "Suche",
+    "source": "sha256:4efc29ebe90fcc4000e73eeda6ffb88c6251bfe5b1735c564eb96822a6390e76"
+  },
+  "settings.general.cards.browsing": {
+    "message": "Surfen",
+    "source": "sha256:b5d2ae1a08d68e131187b61f01fc708c4cb3560723828e98a07be19735a5038c"
+  },
+  "settings.general.theme.label": {
+    "message": "Design",
+    "source": "sha256:9f26b42c1f26d6b316e6ba7046aef543e22232ad9046dafd8711f4a0d8932a5c"
   },
   "settings.general.theme.hint": {
     "message": "System folgt dem Design von macOS/Windows",
