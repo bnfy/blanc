@@ -610,6 +610,14 @@ class Owner : public base::SupportsUserData::Data,
     ++generation_;
     timer_.Stop();
   }
+  void PrimaryMainFrameRenderProcessGone(base::TerminationStatus) override {
+    // A crashed renderer cannot complete its pending find. Retire the session
+    // without sending StopFinding to the dead process, and clear stale UI.
+    find_request_ = -1;
+    find_query_.clear();
+    find_matches_ = find_ordinal_ = 0;
+    FindEvent(u"window.BlancPrototypeHost?.findReset()");
+  }
   void PrimaryPageChanged(content::Page&) override {
     StopFind(true);
     ObserveInput();

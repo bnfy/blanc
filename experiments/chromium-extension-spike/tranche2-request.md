@@ -1,5 +1,15 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## October 18 expanded find progress
+
+Eight cross-runtime query comparisons, six component style pairs and three result states now
+have bounded automated evidence. Fixed stale find UI on an exact active renderer crash; reload
+recovery passes. Client/scroll metric differences are recorded; no whole-window pixel claim.
+One41.02s incremental build, finalguard0,40files96hunks. Item4 remains incomplete, native input
+pending unlock. Evidence: `evidence/ui138-find-expanded-20261018/`. Latency deferred; Electron
+diagnostic build unapproved/unstarted; prior F12/Task0 gates unchanged.
+
+
 ## October 18 find-capsule progress update
 
 Find capsule and native bridge are implemented with bounded automated Electron comparison,
