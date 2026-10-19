@@ -12627,8 +12627,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     tabHandoffsFlushable = true;
     withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
-    maybeOpenWhatsNew().catch(() => {});
     scheduleDefaultBrowserReminder();
+    maybeOpenWhatsNew().catch(() => {});
 
     // Patron subscription revalidation — off the critical path, after the
     // navigation gate is released and session restore is done. The model's
