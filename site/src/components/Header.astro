@@ -1,5 +1,6 @@
 ---
 import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
+import SiteLockup from "./SiteLockup.astro";
 const { current = null } = Astro.props;
 const onHome = pagePath(Astro.url.pathname) === "/";
 const mailPath = pagePath(Astro.url.pathname);
@@ -13,21 +14,7 @@ const hrefFor = (href) =>
 <header class="site-header revamp-header">
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
     <a class="site-brand" href="/" aria-label="Blanc Browser home"
-      ><span class="site-lockup site-lockup--small" aria-hidden="true"
-        ><img
-          class="site-lockup-mark"
-          src="/lockup/sunrise-mark-256.webp"
-          width="256"
-          height="256"
-          alt=""
-        /><img
-          class="site-lockup-word"
-          src="/lockup/blanc-word-small-ink.svg"
-          width="2466"
-          height="762"
-          alt=""
-        /></span
-      ></a
+      ><SiteLockup /></a
     >
     <div class="site-nav-links" id="site-menu">
       <div class="site-browser-menu" data-browser-menu>
