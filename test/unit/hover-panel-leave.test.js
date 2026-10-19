@@ -92,4 +92,7 @@ test('wiring: main marks hover opens; the overlay watches and closes them', () =
   assert.match(html, /<script src="hover-panel-leave\.js"><\/script>\s*(<script[^>]*><\/script>\s*)*<script src="overlay\.js"><\/script>/);
   assert.match(overlay, /hoverOpened: next === 'panel' && purpose\?\.hoverOpened === true/);
   assert.match(overlay, /window\.browserAPI\.closeOverlay\('hover-leave'\)/);
+  // The pointer has already left the panel; a retract would keep the overlay
+  // view over the strip for OVERLAY_RETRACT_MS, swallowing the next press.
+  assert.match(main, /const retracts = \(closingMode === 'panel' \|\| closingMode === 'palette'\) && reason !== 'hover-leave';/);
 });

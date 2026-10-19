@@ -35,7 +35,10 @@ and the toolbar comes back on demand. Blanc has no such mode.
   drift up to 8px) also reveals it: hand testing found the 10px edge alone too
   high a reach on a floating window. The dwell keeps a quick reach for a
   website's own top links from revealing the strip and moving the page under
-  the pointer.
+  the pointer. Both bands start at the page pane's left edge: in the vertical
+  layout the rail keeps its column and its top rows (the layout button, the
+  first tab) never reveal the strip (acceptance F1-27, added 2026-10-19 after
+  review).
   Pages move down to make room, exactly as with the setting
   off. They are not overlaid, because the strip is the window's own
   webContents and always draws beneath child views.
@@ -97,6 +100,10 @@ and the toolbar comes back on demand. Blanc has no such mode.
   Wayland ozone platform, `linuxWaylandOzone()`) makes `sampledWindowCursor`
   use `runtime.lastPointer`, the last move a Blanc view saw (`watchCursorFor`),
   instead. The top edge, the rest band and leaving all work from those moves.
+- `revealGeometry(runtime)` reads the window's content bounds, the page
+  pane's left edge and the band above the window once per reveal tick, hide
+  check or edge move; `revealIslandAtPoint` runs on every pointer move, so it
+  rejects any move below the 10px edge before reading anything native.
 - Hover-open: `updateIslandHover` counts a move as inside the address only
   while the strip is shown. A hidden pill cannot be hovered; counting moves
   over its hidden position disarmed hover-open before the rest band revealed
@@ -122,9 +129,9 @@ and the toolbar comes back on demand. Blanc has no such mode.
 - Unit: `test/unit/island-autohide.test.js` (policy, layout, wiring) and
   `test/unit/island-autohide-settings.test.js` (default, sanitising, never
   synced, Settings placement).
-- Desktop acceptance: F1-15…F1-26 in `spec/acceptance/island-and-commands.feature`
+- Desktop acceptance: F1-15…F1-27 in `spec/acceptance/island-and-commands.feature`
   (F1-24 runs with no global pointer position, as on Wayland; F1-25 checks the
   hidden strip's drag region; F1-26 hover-open after resting where the hidden
-  address will appear)
+  address will appear; F1-27 the vertical rail)
   (`test/desktop/steps/island-autohide.steps.js`), checking the real native
   view bounds. Divergence D29.

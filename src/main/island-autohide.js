@@ -41,14 +41,16 @@ function finite(value) {
 /**
  * Whether a pointer position (window content coordinates) reveals the Island
  * or keeps it revealed. A position outside the window holds it only in the
- * `reachAbove` px directly above the window's top edge.
+ * `reachAbove` px directly above the window's top edge. The bands start at
+ * `left`, the page pane's left edge: the vertical rail's column is its own.
  * @param {{x: number, y: number}|null} point
- * @param {{revealed: boolean, chromeHeight: number, width: number, height: number, reachAbove?: number}} state
+ * @param {{revealed: boolean, chromeHeight: number, width: number, height: number, reachAbove?: number, left?: number}} state
  */
-function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachAbove = 0 }) {
+function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachAbove = 0, left = 0 }) {
   if (!point || !finite(point.x) || !finite(point.y)) return false;
   const above = finite(reachAbove) ? Math.max(0, reachAbove) : 0;
-  if (point.x < 0 || point.y < -above || point.x > width || point.y > height) return false;
+  const from = finite(left) ? Math.max(0, left) : 0;
+  if (point.x < from || point.y < -above || point.x > width || point.y > height) return false;
   if (point.y <= REVEAL_EDGE_PX) return true;
   return revealed === true && point.y < Math.max(0, chromeHeight) + HIDE_SLACK_PX;
 }
@@ -61,11 +63,12 @@ function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachA
  * @param {{anchor: {x: number, y: number}, since: number}|null} dwell
  * @param {{x: number, y: number}|null} point window content coordinates
  * @param {number} now ms
- * @param {{width: number}} window
+ * @param {{width: number, left?: number}} window `left` is the page pane's left edge
  */
-function revealDwellStep(dwell, point, now, { width }) {
+function revealDwellStep(dwell, point, now, { width, left = 0 }) {
+  const from = finite(left) ? Math.max(0, left) : 0;
   const inBand = !!point && finite(point.x) && finite(point.y) &&
-    point.x >= 0 && point.x <= width &&
+    point.x >= from && point.x <= width &&
     point.y > REVEAL_EDGE_PX && point.y <= REVEAL_DWELL_BAND_PX;
   if (!inBand) return { dwell: null, reveal: false };
   const resting = !!dwell && Math.abs(point.x - dwell.anchor.x) <= REVEAL_DWELL_DRIFT_PX &&

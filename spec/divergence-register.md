@@ -667,7 +667,8 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   few seconds with a tip on how to bring it back. On macOS the window buttons hide and
   return with it, except beside the vertical rail, which owns that corner.
   While hidden, the page's top band belongs to the page: it does not drag the
-  window. On Linux under native Wayland, which gives apps no pointer position
+  window. With vertical tabs the rail is never reveal territory; only the page
+  pane's top band is. On Linux under native Wayland, which gives apps no pointer position
   outside their windows, the strip is revealed from just inside the top edge
   only, not from the band above a floating window.
 - **iOS and Android:** not offered. Mobile Island placement and any

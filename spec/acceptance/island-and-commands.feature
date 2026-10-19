@@ -117,6 +117,7 @@ Feature: Island chrome, command palette, and slash commands
     And the Island panel has opened from hover
     When I move the pointer off the panel
     Then the Island panel closes after its grace period
+    And the overlay is gone with the panel
 
   @F1-21 @F1 @desktop @island-hover
   Scenario: A hover-opened panel stays open once it is used
@@ -204,6 +205,17 @@ Feature: Island chrome, command palette, and slash commands
     And the Island is shown above the page
     When I move within the revealed address
     Then the Island panel opens from hover
+
+  @F1-27 @F1 @desktop @island-autohide
+  Scenario: The vertical rail is never reveal territory
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    When the pointer rests at the top edge over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests 30 pixels down over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests at the top edge over the page pane
+    Then the Island is shown above the page
 
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs

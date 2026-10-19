@@ -75,7 +75,8 @@ test('the hide check is bound to its window, re-samples the cursor and stops on 
     main.indexOf('function revealIsland(')
   );
   assert.match(check, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
-  assert.match(check, /islandHeldAt\(runtime, sampledWindowCursor\(runtime\)\)/);
+  assert.match(check, /const geometry = revealGeometry\(runtime\);/);
+  assert.match(check, /islandHeldAt\(runtime, sampledWindowCursor\(runtime, geometry\), geometry\)/);
   assert.match(main, /'closed', bindWindowRuntime\(runtime, \(\) => \{\s+clearIslandHoverTimer\(runtime\);\s+clearIslandAutoHideTimer\(runtime\);/);
 });
 
@@ -125,8 +126,8 @@ test('a window against the top of the work area reaches to the top of the screen
 test('a hidden strip in the focused window samples the cursor rather than waiting for page moves', () => {
   const watch = main.slice(main.indexOf('function watchIslandReveal(runtime)'), main.indexOf('/** Move the strip in or out'));
   assert.match(watch, /runtime\.window\.isFocused\(\)/);
-  assert.match(watch, /const point = sampledWindowCursor\(runtime\);/);
-  assert.match(watch, /islandHeldAt\(runtime, point\)/);
+  assert.match(watch, /const geometry = revealGeometry\(runtime\);\s+const point = sampledWindowCursor\(runtime, geometry\);/);
+  assert.match(watch, /islandHeldAt\(runtime, point, geometry\)/);
   assert.match(watch, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
   assert.match(main, /'blur', bindWindowRuntime\(runtime, \(\) => \{\s+stopIslandRevealWatch\(runtime\);/);
   assert.match(main, /focusedRuntime = runtime;\s+if \(!runtime\.islandRevealed\) watchIslandReveal\(runtime\);/);
@@ -216,15 +217,15 @@ test('the dwell band sits below the instant edge and inside the window', () => {
 });
 
 test('main feeds the sampled cursor to the dwell and resets it on reveal', () => {
-  assert.match(main, /const dwell = islandAutoHideModule\.revealDwellStep\(runtime\.islandRevealDwell, point, Date\.now\(\), runtime\.window\.getContentBounds\(\)\);/);
-  assert.match(main, /if \(islandHeldAt\(runtime, point\) \|\| dwell\.reveal\) \{/);
+  assert.match(main, /const dwell = islandAutoHideModule\.revealDwellStep\(runtime\.islandRevealDwell, point, Date\.now\(\), geometry\);/);
+  assert.match(main, /if \(islandHeldAt\(runtime, point, geometry\) \|\| dwell\.reveal\) \{/);
   assert.match(main, /runtime\.islandRevealDwell = null;/);
 });
 
 test('without a global pointer position (native Wayland) the last move a view saw stands in', () => {
   assert.match(main, /function linuxWaylandOzone\(\) \{/);
   assert.match(main, /function cursorSamplingUnavailable\(\) \{\s+if \(acceptanceTestMode && testCursorSamplingUnavailable\) return true;\s+return process\.platform === 'linux' && linuxWaylandOzone\(\);/);
-  const sample = main.slice(main.indexOf('function sampledWindowCursor(runtime)'), main.indexOf('function islandHeldAt('));
+  const sample = main.slice(main.indexOf('function sampledWindowCursor(runtime'), main.indexOf('function islandHeldAt('));
   assert.match(sample, /if \(!testPoint && cursorSamplingUnavailable\(\)\) return runtime\.lastPointer \?\? null;/);
   const watch = main.slice(main.indexOf('function watchCursorFor('), main.indexOf('const INTRO_TIP_MAX_WIDTH'));
   assert.match(watch, /rt\(\)\.lastPointer = point;/);
@@ -234,4 +235,38 @@ test('without a global pointer position (native Wayland) the last move a view sa
 
 test('an auto-hidden pill cannot be hovered, so resting where it will appear does not disarm hover-open', () => {
   assert.match(main, /type: 'move', inside: !islandStripHidden\(runtime\) && pointInRect\(point, runtime\.islandHoverRect\),/);
+});
+
+test('the reveal bands start at the page pane, so the vertical rail is never reveal territory', () => {
+  const base = { revealed: false, chromeHeight: 68, width: 1200, height: 800, left: 248 };
+  assert.equal(pointHoldsIsland({ x: 100, y: 2 }, base), false, 'the rail column at the top edge');
+  assert.equal(pointHoldsIsland({ x: 248, y: 2 }, base), true, 'the page pane starts at the rail edge');
+  assert.equal(pointHoldsIsland({ x: 100, y: 30 }, { ...base, revealed: true }), false, 'the rail does not hold a revealed strip');
+  assert.equal(pointHoldsIsland({ x: 100, y: 2 }, { ...base, left: 0 }), true, 'no rail, no exclusion');
+  const win = { width: 1200, left: 248 };
+  assert.deepEqual(revealDwellStep(null, { x: 100, y: 30 }, 0, win), { dwell: null, reveal: false }, 'no dwell starts over the rail');
+  assert.ok(revealDwellStep(null, { x: 300, y: 30 }, 0, win).dwell, 'a dwell starts over the page pane');
+  assert.deepEqual(revealDwellStep({ anchor: { x: 300, y: 30 }, since: 0 }, { x: 100, y: 30 }, 1000, win),
+    { dwell: null, reveal: false }, 'drifting onto the rail ends the dwell');
+});
+
+test('reveal geometry is read once per tick and move, and a move below the edge reads none', () => {
+  const geometry = main.slice(main.indexOf('function revealGeometry(runtime)'), main.indexOf('/** Window content coordinates of the cursor right now'));
+  assert.match(geometry, /const content = runtime\.window\.getContentBounds\(\);/);
+  assert.match(geometry, /left: withWindowRuntime\(runtime, \(\) => currentChromeLayout\(content\)\.pageBounds\.x\)/);
+  assert.equal((geometry.match(/getContentBounds\(\)/g) || []).length, 1, 'one bounds read in revealGeometry');
+  assert.match(main, /function currentChromeLayout\(content = rt\(\)\.window\.getContentBounds\(\)\) \{/);
+  const atPoint = main.slice(main.indexOf('function revealIslandAtPoint(runtime, point)'), main.indexOf('/** macOS\'s standard traffic-light'));
+  assert.match(atPoint, /if \(!point \|\| !\(point\.y <= islandAutoHideModule\.REVEAL_EDGE_PX\)\) return;/);
+  assert.ok(atPoint.indexOf('REVEAL_EDGE_PX') < atPoint.indexOf('isFocused()'), 'the cheap rejection comes before any native call');
+});
+
+test('a closed window forgets what its strip was told (macOS Dock reopen gets a fresh document)', () => {
+  assert.match(main, /runtime\.windowButtonsVisible = null;\s+runtime\.stripHiddenSent = null;\s+runtime\.lastPointer = null;/);
+});
+
+test('the auto-hide shortcut matches the physical key only on macOS, where Option changes the key value', () => {
+  const shortcut = main.slice(main.indexOf('function installIslandAutoHideShortcut('), main.indexOf('// Windows/Linux only: macOS keeps its native menu key equivalent.'));
+  assert.match(shortcut, /String\(input\.key\)\.toLowerCase\(\) === 'b'\s*\|\| \(process\.platform === 'darwin' && input\.code === 'KeyB'\)/);
+  assert.doesNotMatch(shortcut, /input\.code !== 'KeyB'/);
 });

@@ -3040,8 +3040,8 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
  * first (two right-clicks racing the handler's await), the stale popup's
  * close callback must not disarm the guard under the live one. 0 = no menu. */
 
-function currentChromeLayout() {
-  const { width, height } = rt().window.getContentBounds();
+function currentChromeLayout(content = rt().window.getContentBounds()) {
+  const { width, height } = content;
   return calculateChromeLayout({
     width,
     height,
@@ -3241,23 +3241,15 @@ function cursorSamplingUnavailable() {
   return process.platform === 'linux' && linuxWaylandOzone();
 }
 
-/** Window content coordinates of the cursor right now (or the test's). Where
- * the cursor cannot be read, the last move a Blanc view saw stands in; a
- * pointer outside the window then counts from where it left. */
-function sampledWindowCursor(runtime) {
-  const testPoint = acceptanceTestMode && testCursorPoint;
-  if (!testPoint && cursorSamplingUnavailable()) return runtime.lastPointer ?? null;
-  const cursor = testPoint || screen.getCursorScreenPoint();
-  const content = runtime.window.getContentBounds();
-  return { x: cursor.x - content.x, y: cursor.y - content.y };
-}
-
-function islandHeldAt(runtime, point) {
+/** What a reveal or hide decision needs of the window, read once: its
+ * content bounds, the page pane's left edge (the vertical rail owns the
+ * column before it) and how far above it the pointer may be. */
+function revealGeometry(runtime) {
   const content = runtime.window.getContentBounds();
   const display = screen.getDisplayMatching(content);
-  return islandAutoHideModule.pointHoldsIsland(point, {
-    revealed: runtime.islandRevealed,
-    chromeHeight: runtime.chromeHeight,
+  return {
+    content,
+    left: withWindowRuntime(runtime, () => currentChromeLayout(content).pageBounds.x),
     width: content.width,
     height: content.height,
     reachAbove: islandAutoHideModule.reachAboveWindow({
@@ -3265,6 +3257,28 @@ function islandHeldAt(runtime, point) {
       workAreaTop: display.workArea.y,
       displayTop: display.bounds.y,
     }),
+  };
+}
+
+/** Window content coordinates of the cursor right now (or the test's). Where
+ * the cursor cannot be read, the last move a Blanc view saw stands in; a
+ * pointer outside the window then counts from where it left. */
+function sampledWindowCursor(runtime, geometry = null) {
+  const testPoint = acceptanceTestMode && testCursorPoint;
+  if (!testPoint && cursorSamplingUnavailable()) return runtime.lastPointer ?? null;
+  const cursor = testPoint || screen.getCursorScreenPoint();
+  const content = geometry?.content ?? runtime.window.getContentBounds();
+  return { x: cursor.x - content.x, y: cursor.y - content.y };
+}
+
+function islandHeldAt(runtime, point, geometry = revealGeometry(runtime)) {
+  return islandAutoHideModule.pointHoldsIsland(point, {
+    revealed: runtime.islandRevealed,
+    chromeHeight: runtime.chromeHeight,
+    width: geometry.width,
+    height: geometry.height,
+    reachAbove: geometry.reachAbove,
+    left: geometry.left,
   });
 }
 
@@ -3285,10 +3299,11 @@ function watchIslandReveal(runtime) {
     if (!islandAutoHide || !runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
     if (!runtime.islandRevealed) {
       // The top edge reveals at once; resting just below it, after a dwell.
-      const point = sampledWindowCursor(runtime);
-      const dwell = islandAutoHideModule.revealDwellStep(runtime.islandRevealDwell, point, Date.now(), runtime.window.getContentBounds());
+      const geometry = revealGeometry(runtime);
+      const point = sampledWindowCursor(runtime, geometry);
+      const dwell = islandAutoHideModule.revealDwellStep(runtime.islandRevealDwell, point, Date.now(), geometry);
       runtime.islandRevealDwell = dwell.dwell;
-      if (islandHeldAt(runtime, point) || dwell.reveal) {
+      if (islandHeldAt(runtime, point, geometry) || dwell.reveal) {
         revealIsland(runtime);
         return;
       }
@@ -3408,7 +3423,8 @@ function scheduleIslandAutoHideCheck(runtime) {
     runtime.islandAutoHideTimer = null;
     if (!islandAutoHide || !runtime.islandRevealed) return;
     if (!runtime.window || runtime.window.isDestroyed()) return;
-    if (islandAutoHidePinned(runtime) || islandHeldAt(runtime, sampledWindowCursor(runtime))) {
+    const geometry = revealGeometry(runtime);
+    if (islandAutoHidePinned(runtime) || islandHeldAt(runtime, sampledWindowCursor(runtime, geometry), geometry)) {
       scheduleIslandAutoHideCheck(runtime);
       return;
     }
@@ -3425,6 +3441,9 @@ function revealIsland(runtime = rt()) {
 
 function revealIslandAtPoint(runtime, point) {
   if (!islandAutoHide || runtime.islandRevealed) return;
+  // Only the top edge reveals from a move (the rest band is the watch's), so
+  // a move anywhere below it costs no native call: this runs on every move.
+  if (!point || !(point.y <= islandAutoHideModule.REVEAL_EDGE_PX)) return;
   if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
   if (!islandHeldAt(runtime, point)) return;
   revealIsland(runtime);
@@ -4290,7 +4309,10 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // the pill, and a view that has already been removed has nothing left to
     // draw. Only the pixels linger: focus and island state hand over below at
     // once, so the user is never waiting on the animation.
-    const retracts = closingMode === 'panel' || closingMode === 'palette';
+    // A panel closing because the pointer left it (hover-panel-leave.js)
+    // goes at once: a retract would keep the overlay view over the strip for
+    // OVERLAY_RETRACT_MS and swallow the press the pointer was heading for.
+    const retracts = (closingMode === 'panel' || closingMode === 'palette') && reason !== 'hover-leave';
     rt().overlayView.webContents.send('overlay:hide', { retract: retracts });
     if (rt().overlayExitTimer) {
       clearTimeout(rt().overlayExitTimer);
@@ -5650,15 +5672,19 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
 }
 
 // Cmd/Ctrl+Alt+B: same before-dispatch handling as the vertical tabs shortcut.
-// The physical key is matched too, because Option changes macOS's key value.
 function installIslandAutoHideShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     const primaryModifier = process.platform === 'darwin'
       ? input.meta && !input.control
       : input.control && !input.meta;
+    // On macOS Option changes the key value (⌥B is ∫), so the physical key
+    // counts too. On Windows and Linux Ctrl+Alt is AltGr, and AltGr+B types a
+    // character on some layouts (Hungarian: {), so only the letter counts.
+    const keyMatches = String(input.key).toLowerCase() === 'b'
+      || (process.platform === 'darwin' && input.code === 'KeyB');
     if (
       input.type !== 'keyDown' ||
-      (String(input.key).toLowerCase() !== 'b' && input.code !== 'KeyB') ||
+      !keyMatches ||
       !input.alt ||
       !primaryModifier ||
       input.shift
@@ -10267,6 +10293,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     stopIslandSlide(runtime);
     runtime.islandRevealed = false;
     runtime.windowButtonsVisible = null;
+    runtime.stripHiddenSent = null;
+    runtime.lastPointer = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);

@@ -294,6 +294,12 @@ Then('the Island panel closes after its grace period', async function () {
     'the hover-opened panel to close', 2000);
 });
 
+// A leave close detaches the overlay view at once (no retract): the pointer
+// is heading for the strip beneath it.
+Then('the overlay is gone with the panel', async function () {
+  assert.equal(await this.call('overlayViewAttached'), false, 'the overlay view stayed attached after a hover-leave close');
+});
+
 Then('the Island panel stays open after {int} milliseconds', async function (ms) {
   await sleep(ms);
   assert.equal(await this.call('overlayMode'), 'panel');

@@ -130,6 +130,23 @@ Then('the Island stays hidden after {int} milliseconds', async function (ms) {
   assert.equal(state.pageY, 0);
 });
 
+// The rail keeps its column with auto-hide on, so its top is not a reveal
+// band: only the page pane's is. The rail is 248 px wide by default.
+When('the pointer rests at the top edge over the rail', async function () {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 100, y: 2 });
+});
+
+When('the pointer rests {int} pixels down over the rail', async function (y) {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 100, y });
+});
+
+When('the pointer rests at the top edge over the page pane', async function () {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 400, y: 2 });
+});
+
 // A hidden pill cannot be hovered: the page's moves over where the address
 // will appear must not count as entering it, or hover-open is disarmed by the
 // time the rest band reveals the Island under the pointer.

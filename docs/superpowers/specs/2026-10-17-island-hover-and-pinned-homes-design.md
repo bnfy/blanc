@@ -116,8 +116,11 @@ passing pointer swallowed the next grab of the strip (found while testing
 auto-hide, where revealing the Island brings the pointer down over the pill).
 Main marks the open with `purpose: { hoverOpened: true }`; the overlay owns
 the watch (`src/renderer/hover-panel-leave.js`) and closes through
-`closeOverlay('hover-leave')`. Panels opened by click, ⌘L or typing are
-unchanged. Acceptance F1-20 and F1-21.
+`closeOverlay('hover-leave')`; `hideOverlay` skips the retract for that
+reason and detaches the overlay view at once, since a retracting view would
+sit over the strip for `OVERLAY_RETRACT_MS` and swallow the press the pointer
+was heading for. Panels opened by click, ⌘L or typing are unchanged.
+Acceptance F1-20 and F1-21.
 
 **An auto-hidden pill cannot be hovered (added 2026-10-19).** While auto-hide
 keeps the strip hidden, moves over where the address will appear are page
