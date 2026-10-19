@@ -21,7 +21,7 @@ test('packaged UI excludes retired B app icons and keeps Sunrise and Mahjong til
   const icons = fs.readdirSync(pages).filter((name) => /^icon-.*\.png$/.test(name));
   for (const name of ['icon.svg', ...icons]) {
     const file = path.join(pages, name);
-    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png'].includes(name);
+    const current = ['icon-sunrise.png', 'icon-sunrise-dark.png', 'icon-sunrise-gold.png', 'icon-sunrise-gold-dark.png'].includes(name);
     assert.equal(filter(file, fs.statSync(file)), current, `${name}: shipped only for current Sunrise variants`);
   }
   for (const name of fs.readdirSync(pages).filter((name) => name.startsWith('mahjong-'))) {

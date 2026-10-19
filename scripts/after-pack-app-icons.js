@@ -1,7 +1,7 @@
 // electron-builder afterPack hook: compile every user-selectable macOS
 // colorway into a named Icon Composer stack inside one Assets.car. Selecting a
-// colorway at runtime therefore preserves macOS's own Default/Dark/Clear/Tinted
-// rendering (and its live tint color) instead of replacing it with a flat PNG.
+// colorway at runtime keeps macOS's own Light/Dark rendering instead of a flat
+// PNG; for Clear and Tinted, app-icon.js falls back to the bundle icon.
 const { spawn } = require('node:child_process');
 const fs = require('node:fs/promises');
 const os = require('node:os');
@@ -32,6 +32,13 @@ function createIconDocument({
   imageName = 'sunrise-mark.png',
   preserveColor = true,
   layerName = 'Sunrise',
+  glass = false,
+  specular,
+  lighting,
+  shadow = { kind: 'neutral', opacity: 0.25 },
+  translucency = { enabled: false, value: 0.5 },
+  tileImageName = null,
+  darkTileImageName = null,
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -41,7 +48,7 @@ function createIconDocument({
         { appearance: 'tinted', value: solid('#FFFFFF') },
       ],
     } : {}),
-    glass: false,
+    glass,
     'image-name': imageName,
     name: layerName,
   };
@@ -55,9 +62,38 @@ function createIconDocument({
     } : {}),
     groups: [{
       layers: [layer],
-      shadow: { kind: 'neutral', opacity: 0.25 },
-      translucency: { enabled: false, value: 0.5 },
-    }],
+      shadow,
+      ...(specular !== undefined ? { specular } : {}),
+      ...(lighting ? { lighting } : {}),
+      translucency,
+    },
+    // The tile drawn as an image behind the mark, so no appearance recolors
+    // it; a dark tile, when given, replaces it in Dark. Both hide in the
+    // Clear and Tinted styles ('tinted'), where an opaque image would cover
+    // the glass or tint background macOS draws there.
+    ...(tileImageName ? [{
+      layers: [
+        ...(darkTileImageName ? [{
+          glass: false,
+          'image-name': darkTileImageName,
+          name: 'DarkTile',
+          'hidden-specializations': [
+            { value: true },
+            { appearance: 'dark', value: false },
+            { appearance: 'tinted', value: true },
+          ],
+        }] : []),
+        {
+          glass: false,
+          'image-name': tileImageName,
+          name: 'Tile',
+          'hidden-specializations': [
+            ...(darkTileImageName ? [{ appearance: 'dark', value: true }] : []),
+            { appearance: 'tinted', value: true },
+          ],
+        },
+      ],
+    }] : [])],
     'supported-platforms': { squares: ['macOS'] },
   };
 }
@@ -108,11 +144,17 @@ module.exports = async function afterPackAppIcons(context) {
       const iconDir = path.join(workDir, `${definition.nativeName}.icon`);
       const assetsDir = path.join(iconDir, 'Assets');
       await fs.mkdir(assetsDir, { recursive: true });
-      const imageName = definition.imageName ?? 'sunrise-mark.png';
-      await fs.copyFile(
-        path.join(sourceIcon, 'Assets', imageName),
-        path.join(assetsDir, imageName),
-      );
+      const imageDir = definition.imageDir
+        ? path.join(root, definition.imageDir)
+        : path.join(sourceIcon, 'Assets');
+      const images = [
+        definition.imageName ?? 'sunrise-mark.png',
+        definition.tileImageName,
+        definition.darkTileImageName,
+      ].filter(Boolean);
+      for (const imageName of images) {
+        await fs.copyFile(path.join(imageDir, imageName), path.join(assetsDir, imageName));
+      }
       await fs.writeFile(
         path.join(iconDir, 'icon.json'),
         `${JSON.stringify(createIconDocument(definition), null, 2)}\n`,

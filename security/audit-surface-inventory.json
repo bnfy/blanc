@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "cfd7b7d053d544a5283e76ce2c4e5983132181944270a20d087f954eb2bad9f2",
+      "sha256": "d66057aea5f77528a4c25f43b0c1d7277b442a71298ba19fb195c5abe9469550",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -334,6 +334,7 @@
         "close",
         "closed",
         "detach",
+        "did-become-active",
         "did-fail-load",
         "did-finish-load",
         "did-navigate",

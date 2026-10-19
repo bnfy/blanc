@@ -16,6 +16,26 @@ function nativeIconNameFor(appIcon) {
   return (APP_ICON_ASSETS[appIcon] ?? APP_ICON_ASSETS.sunrise).nativeName;
 }
 
+// macOS 26's Icon & widget style, as the AppleIconAppearanceTheme default
+// reports it (for example ClearLight or TintedDark). macOS restyles only the
+// bundle's own icon for Clear and Tinted; an image handed to dock.setIcon
+// stays as drawn. In those styles every colorway is the mark over the
+// system's background anyway, so the Dock shows the bundle icon.
+function isMonochromeIconStyle(iconStyle) {
+  return /^(?:Clear|Tinted)/.test(String(iconStyle ?? ''));
+}
+
+function nativeTargetFor(appIcon, iconStyle) {
+  return isMonochromeIconStyle(iconStyle) ? BUNDLE_APP_ICON_NAME : nativeIconNameFor(appIcon);
+}
+
+// The flat PNG (icon-<id>.png) for an icon in the given appearance; icons
+// that follow the appearance name their Dark PNG as darkFlatIcon.
+function flatIconIdFor(appIcon, darkAppearance) {
+  const safeId = APP_ICON_ASSETS[appIcon] ? appIcon : 'sunrise';
+  return (darkAppearance && APP_ICON_ASSETS[safeId].darkFlatIcon) || safeId;
+}
+
 /** Set the process identity before Windows creates its taskbar button. */
 function setWindowsAppUserModelId({ app, platform = process.platform }) {
   if (platform !== 'win32' || !app?.isPackaged) return false;
@@ -35,9 +55,11 @@ function windowsDevelopmentIconPath({
 
 /**
  * Apply the selected Dock icon without taking macOS's appearance choice away.
- * Packaged macOS 26+ builds load a named Icon Composer stack from Assets.car;
- * AppKit then renders Default, Dark, Clear, or Tinted itself. Dev builds and
- * older macOS releases retain the existing flat-PNG fallback.
+ * Packaged macOS 26+ builds load a named Icon Composer stack from Assets.car,
+ * which AppKit keeps rendering for Light and Dark. Clear and Tinted restyle
+ * only the bundle icon, so in those styles (and for Sunrise itself) the custom
+ * image is cleared to show it. Dev builds and older macOS releases retain the
+ * existing flat-PNG fallback.
  */
 function applyDockAppIcon({
   app,
@@ -46,6 +68,7 @@ function applyDockAppIcon({
   developmentPreviewPath = null,
   developmentDarkPreviewPath = null,
   darkAppearance = false,
+  iconStyle = null,
   platform = process.platform,
   systemVersion = typeof process.getSystemVersion === 'function'
     ? process.getSystemVersion()
@@ -68,7 +91,14 @@ function applyDockAppIcon({
   }
 
   if (app.isPackaged && macOSMajorVersion(systemVersion) >= NATIVE_ICON_MIN_MACOS) {
-    const nativeName = nativeIconNameFor(appIcon);
+    const nativeName = nativeTargetFor(appIcon, iconStyle);
+    // Clearing the custom image puts back the live bundle icon, which macOS
+    // keeps restyling for appearance and Icon & widget style. Loading the same
+    // stack by name would hand back a fixed bitmap of it instead.
+    if (nativeName === BUNDLE_APP_ICON_NAME) {
+      app.dock.setIcon(null);
+      return { source: 'bundle', nativeName };
+    }
     const adaptiveIcon = nativeImage.createFromNamedImage(nativeName);
     if (!adaptiveIcon.isEmpty()) {
       app.dock.setIcon(adaptiveIcon);
@@ -76,8 +106,7 @@ function applyDockAppIcon({
     }
   }
 
-  const safeId = APP_ICON_ASSETS[appIcon] ? appIcon : 'sunrise';
-  const renderedId = safeId === 'sunrise' && darkAppearance ? 'sunrise-dark' : safeId;
+  const renderedId = flatIconIdFor(appIcon, darkAppearance);
   const flatIcon = nativeImage.createFromPath(path.join(iconsDirectory, `icon-${renderedId}.png`));
   if (flatIcon.isEmpty()) return null;
   app.dock.setIcon(flatIcon);
@@ -112,16 +141,17 @@ function createDockIconApplier({
   // Whether this process has handed the Dock any image yet. Tracked apart from
   // `shown`, which resets when an apply fails without changing the Dock.
   let replaced = false;
-  const targetFor = ({ appIcon, developmentPreviewPath = null, developmentDarkPreviewPath = null, darkAppearance = false }) => {
-    const safeId = APP_ICON_ASSETS[appIcon] ? appIcon : 'sunrise';
+  const targetFor = ({
+    appIcon, developmentPreviewPath = null, developmentDarkPreviewPath = null, darkAppearance = false, iconStyle = null,
+  }) => {
     return {
       preview: !app.isPackaged && developmentPreviewPath
         ? (darkAppearance && developmentDarkPreviewPath ? developmentDarkPreviewPath : developmentPreviewPath)
         : null,
       native: app.isPackaged && macOSMajorVersion(systemVersion) >= NATIVE_ICON_MIN_MACOS
-        ? nativeIconNameFor(appIcon)
+        ? nativeTargetFor(appIcon, iconStyle)
         : null,
-      png: safeId === 'sunrise' && darkAppearance ? 'sunrise-dark' : safeId,
+      png: flatIconIdFor(appIcon, darkAppearance),
     };
   };
   // A source earlier in applyDockAppIcon's order that failed before fails
@@ -146,7 +176,7 @@ function createDockIconApplier({
       app, nativeImage, platform, systemVersion, iconsDirectory, ...inputs,
     });
     shown = result ? { result, target } : null;
-    if (result) replaced = true;
+    if (result) replaced = result.source !== 'bundle';
     return result;
   };
 }
@@ -158,6 +188,7 @@ module.exports = {
   NATIVE_ICON_MIN_MACOS,
   applyDockAppIcon,
   createDockIconApplier,
+  isMonochromeIconStyle,
   macOSMajorVersion,
   nativeIconNameFor,
   setWindowsAppUserModelId,

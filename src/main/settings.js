@@ -103,6 +103,7 @@ const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', '
 const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
+  'sunrise-gold': 'Sunrise Gold',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 

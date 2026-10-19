@@ -415,9 +415,10 @@ From the desktop `DEFAULTS`:
 
 ## F17 — Patron & app icons
 
-- macOS Settings offers four Dock colorways: `sunrise` (default),
-  `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
-  hand-set retired id falls back to `sunrise`.
+- macOS Settings offers three Dock colorways: `sunrise` (default, follows the
+  system appearance), `sunrise-dark`, and `sunrise-gold` (soft gold in Light,
+  polished gold in Dark). Older ids, including the monogram `gold`, are retired; any
+  stale or hand-set retired id falls back to `sunrise`.
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
   ever see a derived `patronActive` boolean; the entitlement record stays in

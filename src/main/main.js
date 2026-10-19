@@ -2084,7 +2084,33 @@ function applyAppIcon({ force = false } = {}) {
     developmentPreviewPath,
     developmentDarkPreviewPath,
     darkAppearance: nativeTheme.shouldUseDarkColors,
+    iconStyle: currentIconStyle(),
   }, { force });
+}
+
+// macOS 26's Icon & widget style (Default, Dark, Clear or Tinted). Only the
+// bundle icon follows Clear and Tinted, so app-icon.js shows it in those
+// styles. macOS sends apps no notice when the style changes, so Blanc looks
+// again when it becomes active and every 10 s; reading the default is cheap,
+// and the Dock is touched only when the style actually changed.
+const ICON_STYLE_CHECK_MS = 10_000;
+function currentIconStyle() {
+  return process.platform === 'darwin'
+    ? systemPreferences.getUserDefault('AppleIconAppearanceTheme', 'string')
+    : null;
+}
+let lastIconStyle = null;
+function watchIconStyle() {
+  if (process.platform !== 'darwin' || !app.isPackaged) return;
+  lastIconStyle = currentIconStyle();
+  const refresh = () => {
+    const style = currentIconStyle();
+    if (style === lastIconStyle) return;
+    lastIconStyle = style;
+    applyAppIcon();
+  };
+  app.on('did-become-active', refresh);
+  setInterval(refresh, ICON_STYLE_CHECK_MS).unref?.();
 }
 
 function developmentPreviewPath(environmentKey) {
@@ -11600,6 +11626,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
+  watchIconStyle();
   // Unpackaged Electron can restore Electron.app's bundle icon when the first
   // native window is realized. Reapply Blanc's selected flat icon afterward
   // so the development Dock tile matches Settings from the first launch.
