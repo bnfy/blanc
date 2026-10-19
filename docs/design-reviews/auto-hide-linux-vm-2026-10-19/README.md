@@ -20,6 +20,14 @@ with a real pointer. The real-pointer check found two bugs; both are fixed in
 | `@F1` (Island, hover-open, auto-hide) on native Wayland | 23 of 23 pass, including F1-24 and F1-25 |
 | `@vertical-tabs` on native Wayland | 15 of 17 pass. The two that fail ask GNOME for a window of exactly 640 by 480 and get 660 by 500; both fail the same way on `main` here. |
 
+## Re-run at `490067b1` (after the code-review fixes)
+
+The review fixes (`751cd0e`: the vertical rail is never reveal territory, one
+geometry read per tick, the hover-leave close detaches at once) touch the
+Linux paths too, so the Island and vertical-tab sets ran again at the merged
+head `490067b1`: 42 of 42 under xvfb, and on native Wayland 40 of 42, the two
+failures the same exact-size resizes as above, which fail on `main` there too.
+
 ## The real-pointer check
 
 Blanc from the branch, started in the GNOME session with a throwaway profile

@@ -109,6 +109,49 @@ hover-open working with its state machine armed and correct. The packaged
 build has no test hook to read that state on Windows, so the cause is not
 yet known; a click on the pill still opens the panel.
 
+## Re-run at `490067b1` (after the code-review fixes), eleven runs
+
+Signed validation build of `490067b1` (run `39328475135`,
+`Blanc-Setup-1.38.0.exe` SHA-256 `da454a39…b4a4` matching its
+`windows-signature.json`; staged `app.asar` SHA-256 `f7be01e2…`, confirmed in
+the VM before the runs). The hand check now waits on what the screen shows
+rather than fixed sleeps: it polls the page's top until it has been at the
+window's top for two reads before 5b and 5c, polls for the strip to show after
+a reveal, and polls for the panel after resting on the address. With `-Cdp`
+it also reads `#strip`'s class list and computed app-region over the build's
+remote-debugging port before 5b, after it and before 5c.
+
+| Check | Result (11 runs, 26–36) |
+| --- | --- |
+| 5b. The hidden strip's band drags the window | no: 0 px in 11 of 11, with `strip-hidden \| no-drag` read from the strip each time |
+| 5c. A click on the page's top band reaches the page | 11 of 11 (see run 27 below) |
+| Steps 1 to 5, 6 and 8 | as before in every run |
+| 7. Hover-open | opened in 9 of the 10 runs that measured it |
+| 7. The panel closes once the pointer leaves it | 10 of 10 runs that measured it |
+
+Run 27's pixel read said the click missed, but its capture shows the square
+blue with the strip revealed: the pointer's 420 ms at 20 px down is a rest in
+the 40 px band, so the Island came back and moved the page under the pixel
+the check reads. Run 36 measured nothing at step 7: a console window from the
+Mac-side `prlctl exec` had opened over Blanc and covered the sampled pixel
+(its capture shows it). Run 26's hover-open did not open within 4 s; its
+capture shows the pill's tooltip under the resting pointer and no panel. The
+console windows seen in run 36 make a focus loss during the 300 ms dwell the
+likely cause (hover-open needs the focused window), but that is not proven.
+
+**Not reproduced: the previous package's band drag.** On the `e4bd03cf`
+package, 3 of 11 runs (14, 18, 21) had the hidden band drag the window and
+the top-band click fail, run 21 with the page confirmed at the window's top
+by two screen reads first. From source in the same VM, with the strip's
+region read through the test hook, the band never dragged (10 of 10 across
+two batches) and the region read `no-drag` each time. On the `490067b1`
+package the class and region were confirmed on every run and the band never
+dragged. Nothing in `490067b1` changes how the strip learns it is hidden
+(`chrome:strip-hidden`), so the cause of the earlier runs is not established;
+runs 19 to 24, meant for `490067b1`, measured `e4bd03cf` again because the
+staging step's `prlctl exec` failed silently and the previous copy stayed
+(the hash check before the next series caught it).
+
 ## What this does not cover
 
 The vertical tab layout, Glance and a second display were not exercised on
