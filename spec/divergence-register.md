@@ -663,7 +663,8 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   View → Auto-hide the Island, ⌘⌥B / Ctrl+Alt+B) gives the page the whole
   window. The pointer at the top edge, or any Island surface (palette, find,
   popovers, Glance), shows the strip and moves pages down to make room; it
-  hides again once the pointer leaves it. On macOS the window buttons hide and
+  hides again once the pointer leaves it. Turning it on shows the strip for a
+  few seconds with a tip on how to bring it back. On macOS the window buttons hide and
   return with it, except beside the vertical rail, which owns that corner.
 - **iOS and Android:** not offered. Mobile Island placement and any
   scroll-driven collapse are each platform's own presentation (D11).

@@ -2706,6 +2706,14 @@ body.tooltip-surface { background: transparent; }
   vertical-align: top;
   transition: none;
 }
+/* Auto-hide's how-to tip (main.js showIslandAutoHideIntro) is a sentence, so
+   it wraps instead of truncating. Sized from its own text, never the view's
+   width: main measures it before the view has resized. */
+.tooltip-surface .island-tip.intro {
+  width: max-content;
+  max-width: 280px;
+  white-space: normal;
+}
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is

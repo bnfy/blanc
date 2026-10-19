@@ -181,6 +181,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     islandRevealed: false,
     islandAutoHideTimer: null,
     windowButtonsVisible: null,
+    /** The how-to tip shown when auto-hide is turned on, and the tooltip
+     * generation it drew under (a newer pill tooltip replaces it). */
+    islandAutoHideIntroTimer: null,
+    islandAutoHideIntroGeneration: 0,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
   };

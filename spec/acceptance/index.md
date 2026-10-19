@@ -63,7 +63,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
 | F1-13 | A pending permission prompt blocks hover-open | D28 | ✅ | ➖ | ➖ |
 | F1-14 | Only the address area opens the Island on hover | D28 | ✅ | ➖ | ➖ |
-| F1-15 | Auto-hide gives the page the whole window | D29 | ✅ | ➖ | ➖ |
+| F1-15 | Turning auto-hide on explains the way back, then gives the page the whole window | D29 | ✅ | ➖ | ➖ |
 | F1-16 | The top edge reveals the Island and leaving hides it | D29 | ✅ | ➖ | ➖ |
 | F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
 | F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |

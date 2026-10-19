@@ -281,6 +281,10 @@
     "message": "{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}",
     "note": "Tooltip of the +N overflow beside the pill's tab dots; opens the tab list."
   },
+  "island.autoHide.intro": {
+    "message": "Point at the top edge, or press {shortcut}, to bring the Island back.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere."
+  },
   "dot.switchTo": {
     "message": "Switch to {title}",
     "note": "Accessible name of a tab dot or rail row; {title} is the tab's title."

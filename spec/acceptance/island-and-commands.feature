@@ -114,8 +114,9 @@ Feature: Island chrome, command palette, and slash commands
   @F1-15 @F1 @desktop @island-autohide
   Scenario: Auto-hide gives the page the whole window
     Given a tab open on "autohide-page"
-    And the Island auto-hides
-    Then the page starts at the top of the window
+    When I turn on auto-hide
+    Then the Island stays shown with a tip on bringing it back
+    And then the page starts at the top of the window
     When auto-hide is turned off
     Then the page starts below the Island
 

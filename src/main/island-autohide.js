@@ -15,6 +15,8 @@ const REVEAL_EDGE_PX = 6;
 const HIDE_SLACK_PX = 24;
 /** How often a revealed Island checks whether the pointer has left it. */
 const HIDE_CHECK_MS = 450;
+/** How long turning the setting on shows the Island with its how-to tip. */
+const INTRO_MS = 5000;
 
 function finite(value) {
   return Number.isFinite(value);
@@ -36,10 +38,11 @@ function pointHoldsIsland(point, { revealed, chromeHeight, width, height }) {
 /**
  * Surfaces that are drawn from, or anchored to, the Island keep it revealed
  * whatever the pointer does.
- * @param {{overlayMode?: string|null, glanceOpen?: boolean, popupOpen?: boolean}} state
+ * So does the how-to tip shown when the setting is turned on.
+ * @param {{overlayMode?: string|null, glanceOpen?: boolean, popupOpen?: boolean, introducing?: boolean}} state
  */
-function islandPinned({ overlayMode = null, glanceOpen = false, popupOpen = false } = {}) {
-  return !!overlayMode || glanceOpen === true || popupOpen === true;
+function islandPinned({ overlayMode = null, glanceOpen = false, popupOpen = false, introducing = false } = {}) {
+  return !!overlayMode || glanceOpen === true || popupOpen === true || introducing === true;
 }
 
 /**
@@ -54,6 +57,7 @@ module.exports = {
   REVEAL_EDGE_PX,
   HIDE_SLACK_PX,
   HIDE_CHECK_MS,
+  INTRO_MS,
   pointHoldsIsland,
   islandPinned,
   stripHidden,

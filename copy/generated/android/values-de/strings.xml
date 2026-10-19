@@ -75,6 +75,7 @@
         <item quantity="one">%1$d weiterer Tab – Liste öffnen</item>
         <item quantity="other">%1$d weitere Tabs – Liste öffnen</item>
     </plurals>
+    <string name="island_auto_hide_intro">Zeige auf den oberen Rand oder drücke %1$s, um die Island zurückzuholen.</string>
     <string name="dot_switch_to">Zu %1$s wechseln</string>
     <string name="capture_both">Kamera &amp; Mikrofon in Verwendung – Aufnahme-Steuerung öffnen</string>
     <string name="capture_camera">Kamera in Verwendung – Aufnahme-Steuerung öffnen</string>

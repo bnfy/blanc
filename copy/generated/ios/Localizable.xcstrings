@@ -3049,6 +3049,48 @@
         }
       }
     },
+    "island.autoHide.intro": {
+      "comment": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point at the top edge, or press %1$@, to bring the Island back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeige auf den oberen Rand oder drücke %1$@, um die Island zurückzuholen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lleva el puntero al borde superior o pulsa %1$@ para que vuelva la Island."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pointez le bord supérieur ou appuyez sur %1$@ pour faire revenir l’Island."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta il puntatore al bordo superiore o premi %1$@ per far tornare l’Island."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aponte para a borda superior ou pressione %1$@ para trazer a Island de volta."
+          }
+        }
+      }
+    },
     "dot.switchTo": {
       "comment": "Accessible name of a tab dot or rail row; {title} is the tab's title.",
       "extractionState": "manual",

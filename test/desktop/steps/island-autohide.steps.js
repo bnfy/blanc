@@ -23,15 +23,41 @@ async function restCursor(world, point) {
   }), true);
 }
 
-async function prepare(world, layout) {
+// Turning auto-hide on keeps the strip up for its how-to tip (INTRO_MS, 5 s).
+const INTRO_WAIT_MS = 9000;
+
+async function turnOn(world, layout) {
   await world.call('setTabLayout', layout);
   await world.call('closeOverlay');
   await frontChromeWindow(world);
   // Somewhere well below the strip, so nothing holds it on.
   await restCursor(world, { x: 400, y: 400 });
   assert.equal(await world.call('setIslandAutoHide', true), true);
-  await waitForAutoHide(world, (state) => state?.stripHidden === true, 'the strip to hide');
 }
+
+async function prepare(world, layout) {
+  await turnOn(world, layout);
+  await waitForValue(() => autoHideState(world), (state) => state?.stripHidden === true,
+    'the strip to hide after its tip', INTRO_WAIT_MS);
+}
+
+When('I turn on auto-hide', async function () {
+  await turnOn(this, 'island');
+});
+
+Then('the Island stays shown with a tip on bringing it back', async function () {
+  const state = await waitForAutoHide(this, (value) => value?.introTipShown === true, 'the how-to tip');
+  assert.equal(state.stripHidden, false);
+  assert.ok(state.pageY > 0, 'the page still sits below the strip');
+  assert.equal(state.activeBounds.y, state.pageY, 'the page view moved below the strip');
+});
+
+Then('then the page starts at the top of the window', async function () {
+  const state = await waitForValue(() => autoHideState(this), (value) => value?.pageY === 0,
+    'the page to reach the top edge after the tip', INTRO_WAIT_MS);
+  assert.equal(state.introducing, false);
+  assert.equal(state.activeBounds.y, 0);
+});
 
 Given('the Island auto-hides', async function () {
   await prepare(this, 'island');

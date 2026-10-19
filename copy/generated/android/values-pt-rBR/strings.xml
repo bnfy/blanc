@@ -77,6 +77,7 @@
         <item quantity="many">Mais %1$d abas — abrir a lista</item>
         <item quantity="other">Mais %1$d abas — abrir a lista</item>
     </plurals>
+    <string name="island_auto_hide_intro">Aponte para a borda superior ou pressione %1$s para trazer a Island de volta.</string>
     <string name="dot_switch_to">Mudar para %1$s</string>
     <string name="capture_both">câmera e microfone em uso — abrir os controles de captura</string>
     <string name="capture_camera">câmera em uso — abrir os controles de captura</string>

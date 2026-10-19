@@ -41,6 +41,15 @@ and the toolbar comes back on demand. Blanc has no such mode.
   sit on the page, so `setWindowButtonVisibility(false)` hides them with the
   strip. In the vertical layout the rail owns that corner and they stay.
 - **Hover-open (F1-3…14):** never eligible while the strip is hidden.
+- **Turning it on:** in the window where it was turned on, the strip stays
+  shown for 5 seconds with a tip under the pill: "Point at the top edge, or
+  press ⌘L (Ctrl+L), to bring the Island back." Without the tip, the Island
+  would disappear with no word on how to get it back, and Windows and Linux
+  have no native menu bar to fall back on. The tip reuses the pill's tooltip
+  view (`tooltip.html`) with a wrapping `.intro` style, measured in that view
+  (`width: max-content`, so not by the view's width), and is pinned like any
+  other Island surface until it ends. Any other pill tooltip, an overlay or a
+  resize replaces it.
 
 ## Code
 

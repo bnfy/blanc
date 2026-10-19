@@ -277,6 +277,11 @@
     "message": "{count, plural, one {# scheda in più — apri l’elenco} many {# schede in più — apri l’elenco} other {# schede in più — apri l’elenco}}",
     "source": "sha256:223dbc55be62b11cf0ef0fffc65479abea129999eceefb446253155639ffb7d5"
   },
+  "island.autoHide.intro": {
+    "message": "Porta il puntatore al bordo superiore o premi {shortcut} per far tornare l’Island.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+    "source": "sha256:cf7d536bfe25f81579a78097a6cad5b7277965bed9d958987940d0e74fe3c513"
+  },
   "dot.switchTo": {
     "message": "Passa a {title}",
     "source": "sha256:8cd93dcac1d354c4891b429c8dc0c19b1f9e08de34a4c3a68098f355d850300b"

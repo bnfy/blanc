@@ -75,6 +75,7 @@
         <item quantity="one">%1$d more tab — open the list</item>
         <item quantity="other">%1$d more tabs — open the list</item>
     </plurals>
+    <string name="island_auto_hide_intro">Point at the top edge, or press %1$s, to bring the Island back.</string>
     <string name="dot_switch_to">Switch to %1$s</string>
     <string name="capture_both">camera &amp; microphone in use — open capture controls</string>
     <string name="capture_camera">camera in use — open capture controls</string>

@@ -42,6 +42,7 @@ test('Island surfaces pin it and the strip is hidden only when nothing holds it'
   assert.equal(islandPinned({ overlayMode: 'find' }), true);
   assert.equal(islandPinned({ glanceOpen: true }), true);
   assert.equal(islandPinned({ popupOpen: true }), true);
+  assert.equal(islandPinned({ introducing: true }), true);
   assert.equal(stripHidden({ autoHide: false, revealed: false, pinned: false }), false);
   assert.equal(stripHidden({ autoHide: true, revealed: false, pinned: false }), true);
   assert.equal(stripHidden({ autoHide: true, revealed: true, pinned: false }), false);
@@ -85,4 +86,15 @@ test('hover-open never fires on a hidden pill and macOS hides its traffic lights
 test('View menu toggle and shortcut', () => {
   assert.match(main, /label: t\('menu\.autoHideIsland'\),\s+type: 'checkbox',\s+checked: islandAutoHide,\s+accelerator: 'CmdOrCtrl\+Alt\+B'/);
   assert.match(main, /installIslandAutoHideShortcut\(webContents, owner\);/);
+});
+
+test('turning auto-hide on shows the way back in the window it was turned on in', () => {
+  const apply = main.slice(main.indexOf('function applyIslandAutoHide(next)'), main.indexOf('function setIslandAutoHide('));
+  assert.match(apply, /const target = focusedRuntime;/);
+  assert.match(apply, /if \(islandAutoHide && target\?\.window/);
+  assert.match(apply, /showIslandAutoHideIntro\(target\)/);
+  assert.match(main, /introducing: !!runtime\.islandAutoHideIntroTimer,/);
+  assert.match(main, /mainI18n\.t\('island\.autoHide\.intro'/);
+  // An ordinary pill tooltip reusing the view must not keep the wrapping style.
+  assert.match(main, /getElementById\('tip'\)\.classList\.remove\('intro'\)/);
 });

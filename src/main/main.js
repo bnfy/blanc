@@ -3156,6 +3156,9 @@ function watchCursorFor(wc, offset, bind) {
   }));
 }
 
+const INTRO_TIP_MAX_WIDTH = 300;
+const INTRO_TIP_MAX_HEIGHT = 64;
+
 /* ---- Auto-hide Island ---------------------------------------------------
  * With the setting on, the page fills the window and the strip waits beneath
  * it. The cursor moves watched above reveal it at the window's top edge; once
@@ -3169,6 +3172,7 @@ function islandAutoHidePinned(runtime = rt()) {
     overlayMode: runtime.overlayMode,
     glanceOpen: !!runtime.glanceTabId,
     popupOpen: ublockPopups.has(runtime.id),
+    introducing: !!runtime.islandAutoHideIntroTimer,
   });
 }
 
@@ -3204,12 +3208,13 @@ function clearIslandAutoHideTimer(runtime) {
   runtime.islandAutoHideTimer = null;
 }
 
-/** Move the strip in or out, re-laying the page views in the same turn. */
+/** Move the strip in or out, re-laying the page views in the same turn.
+ * Always re-lays: a pin set just before (the intro tip) changes the layout
+ * without anyone having applied it yet. */
 function setIslandRevealed(runtime, revealed) {
   if (runtime.islandRevealed === revealed) return;
-  const wasHidden = islandStripHidden(runtime);
   runtime.islandRevealed = revealed;
-  if (wasHidden !== islandStripHidden(runtime)) withWindowRuntime(runtime, () => resizeActiveView());
+  if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
 }
 
 function scheduleIslandAutoHideCheck(runtime) {
@@ -3251,13 +3256,72 @@ function syncWindowButtons(runtime = rt()) {
   runtime.window.setWindowButtonVisibility(visible);
 }
 
+function endIslandAutoHideIntro(runtime) {
+  if (!runtime.islandAutoHideIntroTimer) return;
+  clearTimeout(runtime.islandAutoHideIntroTimer);
+  runtime.islandAutoHideIntroTimer = null;
+  if (runtime.islandAutoHideIntroGeneration === runtime.tooltipGeneration) hidePillTooltip(runtime);
+}
+
+/** Turning the setting on would otherwise make the Island vanish with no
+ * word on how to get it back. In the window where it was turned on, keep the
+ * strip up for a few seconds with a tip under the pill. The tip reuses the
+ * pill's tooltip view; it wraps, so that view measures it here rather than
+ * the strip (which only measures single-line tips). */
+async function showIslandAutoHideIntro(runtime) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  endIslandAutoHideIntro(runtime);
+  withWindowRuntime(runtime, () => revealIsland(runtime));
+  runtime.islandAutoHideIntroTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    endIslandAutoHideIntro(runtime);
+  }), islandAutoHideModule.INTRO_MS);
+  if (runtime.overlayMode) return;
+  const generation = ++runtime.tooltipGeneration;
+  runtime.islandAutoHideIntroGeneration = generation;
+  const view = withWindowRuntime(runtime, () => ensureTooltipView());
+  const contents = view.webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== runtime.tooltipGeneration || contents.isDestroyed() || window.isDestroyed()) return;
+  // Laid out just below the window's visible area at its largest size, then
+  // moved under the pill at its measured size.
+  const { width, height } = window.getContentBounds();
+  view.setBounds({ x: 0, y: height, width: INTRO_TIP_MAX_WIDTH, height: INTRO_TIP_MAX_HEIGHT });
+  showOverlayView(window, view);
+  runtime.tooltipViewAttached = true;
+  const text = mainI18n.t('island.autoHide.intro', {
+    shortcut: process.platform === 'darwin' ? '⌘L' : 'Ctrl+L',
+  });
+  // JSON.stringify makes the text a plain string literal; it is never markup.
+  const size = await contents.executeJavaScript(`(() => {
+    const tip = document.getElementById('tip');
+    tip.classList.add('intro');
+    tip.textContent = ${JSON.stringify(text)};
+    delete document.documentElement.dataset.theme;
+    const box = tip.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  })()`);
+  if (generation !== runtime.tooltipGeneration || window.isDestroyed() || runtime.tooltipView !== view) return;
+  const anchor = runtime.islandRect ?? { x: width / 2, y: 0, width: 0, height: runtime.chromeHeight };
+  view.setBounds(tooltipBounds({
+    anchor,
+    width: Math.min(INTRO_TIP_MAX_WIDTH, Math.ceil(size?.width) || INTRO_TIP_MAX_WIDTH),
+    height: Math.min(INTRO_TIP_MAX_HEIGHT, Math.ceil(size?.height) || INTRO_TIP_MAX_HEIGHT),
+  }, { windowWidth: width, windowHeight: height }));
+}
+
 function applyIslandAutoHide(next) {
   if (next === islandAutoHide) return;
   islandAutoHide = next;
   for (const runtime of windowRuntimes.all()) {
     clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
     runtime.islandRevealed = false;
     if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  }
+  const target = focusedRuntime;
+  if (islandAutoHide && target?.window && !target.window.isDestroyed()) {
+    showIslandAutoHideIntro(target).catch(() => endIslandAutoHideIntro(target));
   }
   scheduleMenuRebuild();
 }
@@ -3678,6 +3742,7 @@ async function showPillTooltip(request) {
   if (generation !== owner.tooltipGeneration || contents.isDestroyed()) return;
   // JSON.stringify makes the text a plain string literal; it is never markup.
   await contents.executeJavaScript(`(() => {
+    document.getElementById('tip').classList.remove('intro');
     document.getElementById('tip').textContent = ${JSON.stringify(request.text)};
     if (${request.privateTheme}) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -9978,6 +10043,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
     runtime.islandRevealed = false;
     runtime.windowButtonsVisible = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag
@@ -12061,6 +12127,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getIslandAutoHideState: () => ({
         enabled: islandAutoHide,
         revealed: rt().islandRevealed === true,
+        introducing: !!rt().islandAutoHideIntroTimer,
+        introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
+          && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
         stripHidden: islandStripHidden(),
         pageY: currentChromeLayout().pageBounds.y,
         // The active view's real native bounds, not the computed layout.
