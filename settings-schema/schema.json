@@ -28,7 +28,8 @@
   "tabSleepDelays": ["off", "30m", "1h", "6h"],
   "appIcons": [
     { "id": "sunrise", "label": "Sunrise" },
-    { "id": "sunrise-dark", "label": "Sunrise Dark" }
+    { "id": "sunrise-dark", "label": "Sunrise Dark" },
+    { "id": "sunrise-gold", "label": "Sunrise Gold" }
   ],
   "supporterIcons": [],
   "defaults": {
@@ -83,7 +84,7 @@
     { "key": "webrtcAudioBuffer", "type": "enum", "enum": "webrtcAudioBuffers", "default": "automatic", "note": "device-local; Stable targets 400 ms and Resilient targets 1000 ms for audio receivers through the W3C jitterBufferTarget API; Automatic leaves Chromium untouched" },
     { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "app.configureHostResolver secureDnsMode; strict positions hard-fail" },
     { "key": "secureDnsTemplate", "type": "string", "default": "", "note": "custom DoH RFC8484 template; validated raw (not URL-normalized)" },
-    { "key": "appIcon", "type": "enum", "enum": "appIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; sanitize-on-read == validate-on-write" },
+    { "key": "appIcon", "type": "enum", "enum": "appIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; Sunrise Gold is a fixed glass icon, the same in light and dark; sanitize-on-read == validate-on-write" },
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
     { "key": "usagePing", "type": "boolean", "default": true },
     { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },

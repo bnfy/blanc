@@ -20,4 +20,18 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
+  // Fixed in every appearance: a cream glass mark over a gold image layer.
+  // The gold cannot be the fill, which Icon Composer darkens itself in Dark.
+  // Its layers live in build/app-icons/colorways (npm run brand:build).
+  'sunrise-gold': {
+    nativeName: 'SunriseGold',
+    background: '#CFA65C',
+    imageDir: 'build/app-icons/colorways',
+    imageName: 'sunrise-mark-cream.png',
+    glass: true,
+    tileImageName: 'gold-tile.png',
+    shadowOpacity: 0.3,
+    preserveColor: true,
+    layerName: 'Sunrise',
+  },
 };

@@ -32,6 +32,9 @@ function createIconDocument({
   imageName = 'sunrise-mark.png',
   preserveColor = true,
   layerName = 'Sunrise',
+  glass = false,
+  shadowOpacity = 0.25,
+  tileImageName = null,
 }) {
   const layer = {
     ...(!preserveColor ? {
@@ -41,7 +44,7 @@ function createIconDocument({
         { appearance: 'tinted', value: solid('#FFFFFF') },
       ],
     } : {}),
-    glass: false,
+    glass,
     'image-name': imageName,
     name: layerName,
   };
@@ -55,9 +58,14 @@ function createIconDocument({
     } : {}),
     groups: [{
       layers: [layer],
-      shadow: { kind: 'neutral', opacity: 0.25 },
+      shadow: { kind: 'neutral', opacity: shadowOpacity },
       translucency: { enabled: false, value: 0.5 },
-    }],
+    },
+    // A fixed tile drawn as an image, behind the mark, so no appearance
+    // recolors it.
+    ...(tileImageName ? [{
+      layers: [{ glass: false, 'image-name': tileImageName, name: 'Tile' }],
+    }] : [])],
     'supported-platforms': { squares: ['macOS'] },
   };
 }
@@ -108,11 +116,13 @@ module.exports = async function afterPackAppIcons(context) {
       const iconDir = path.join(workDir, `${definition.nativeName}.icon`);
       const assetsDir = path.join(iconDir, 'Assets');
       await fs.mkdir(assetsDir, { recursive: true });
-      const imageName = definition.imageName ?? 'sunrise-mark.png';
-      await fs.copyFile(
-        path.join(sourceIcon, 'Assets', imageName),
-        path.join(assetsDir, imageName),
-      );
+      const imageDir = definition.imageDir
+        ? path.join(root, definition.imageDir)
+        : path.join(sourceIcon, 'Assets');
+      const images = [definition.imageName ?? 'sunrise-mark.png', definition.tileImageName].filter(Boolean);
+      for (const imageName of images) {
+        await fs.copyFile(path.join(imageDir, imageName), path.join(assetsDir, imageName));
+      }
       await fs.writeFile(
         path.join(iconDir, 'icon.json'),
         `${JSON.stringify(createIconDocument(definition), null, 2)}\n`,

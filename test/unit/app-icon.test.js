@@ -50,12 +50,36 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 }
 
 test('every selectable colorway has a named native icon stack', () => {
-  const selectable = ['sunrise', 'sunrise-dark'].sort();
+  const selectable = ['sunrise', 'sunrise-dark', 'sunrise-gold'].sort();
   assert.deepEqual(Object.keys(APP_ICON_ASSETS).sort(), selectable);
   assert.equal(new Set(Object.values(APP_ICON_ASSETS).map((x) => x.nativeName)).size, selectable.length);
   for (const definition of Object.values(APP_ICON_ASSETS)) {
-    assert.equal(createIconDocument(definition).groups[0].layers[0]['image-name'], 'sunrise-mark.png');
+    const imageDir = path.join(root, definition.imageDir ?? 'build/app-icons/Icon.icon/Assets');
+    const document = createIconDocument(definition);
+    assert.equal(document.groups[0].layers[0]['image-name'], definition.imageName);
+    for (const image of [definition.imageName, definition.tileImageName].filter(Boolean)) {
+      assert.ok(fs.existsSync(path.join(imageDir, image)), `${image} exists in ${imageDir}`);
+    }
   }
+  // Colorway layers live outside the default package so it stays unchanged.
+  assert.deepEqual(
+    fs.readdirSync(path.join(root, 'build/app-icons/Icon.icon/Assets')).sort(),
+    ['blanc-mark.svg', 'sunrise-mark.png'],
+  );
+});
+
+test('the Sunrise Gold stack is fixed glass on an image tile', () => {
+  const document = createIconDocument(APP_ICON_ASSETS['sunrise-gold']);
+  assert.equal(APP_ICON_ASSETS['sunrise-gold'].nativeName, 'SunriseGold');
+  // A dark fill specialization (or Icon Composer's own darkening of a fill)
+  // would turn Gold black in Dark mode; the opaque tile layer prevents that.
+  assert.equal(document['fill-specializations'], undefined);
+  assert.equal(document.groups.length, 2);
+  assert.equal(document.groups[0].layers[0].glass, true);
+  assert.equal(document.groups[0].layers[0]['image-name'], 'sunrise-mark-cream.png');
+  assert.deepEqual(document.groups[0].shadow, { kind: 'neutral', opacity: 0.3 });
+  assert.equal(document.groups[1].layers[0].glass, false);
+  assert.equal(document.groups[1].layers[0]['image-name'], 'gold-tile.png');
 });
 
 test('packaging wires the Icon Composer source and multi-colorway compiler', () => {
@@ -285,6 +309,19 @@ test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark
   });
   assert.deepEqual(explicitResult, { source: 'png', appIcon: 'sunrise-dark' });
   assert.deepEqual(explicit.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
+});
+
+test('the flat Sunrise Gold fallback stays gold in dark appearance', () => {
+  const h = harness({ packaged: false });
+  const result = applyDockAppIcon({
+    ...h,
+    appIcon: 'sunrise-gold',
+    darkAppearance: true,
+    platform: 'darwin',
+    iconsDirectory: '/icons',
+  });
+  assert.deepEqual(result, { source: 'png', appIcon: 'sunrise-gold' });
+  assert.deepEqual(h.calls[0], ['path', path.join('/icons', 'icon-sunrise-gold.png')]);
 });
 
 test('falls back to the PNG if the packaged asset catalog cannot resolve a name', () => {
@@ -531,6 +568,53 @@ test('the adaptive Sunrise artwork matches the flat icon scale and omits the det
   }
   assert.ok(lowestRow > 0);
   assert.ok(lowestMaxX - lowestMinX < 100, 'the removed detached baseline must not return');
+});
+
+test('the Sunrise Gold artwork matches the flat icon scale and stays a fixed gold tile', async () => {
+  const CANVAS = 1024;
+  const near = (pixel, hex, tolerance) => {
+    const want = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16));
+    return want.every((value, channel) => Math.abs(pixel[channel] - value) <= tolerance);
+  };
+  const pixel = async (file, x, y) => {
+    const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const offset = ((y * info.width) + x) * info.channels;
+    return Array.from(data.subarray(offset, offset + 4));
+  };
+
+  const tilePath = path.join(root, 'build/app-icons/colorways/gold-tile.png');
+  const tileMeta = await sharp(tilePath).metadata();
+  assert.equal(tileMeta.width, CANVAS);
+  assert.equal(tileMeta.height, CANVAS);
+  const top = await pixel(tilePath, 512, 8);
+  assert.ok(near(top, '#E3BF78', 12), `tile top is ${top}`);
+  assert.ok(near(await pixel(tilePath, 512, 1015), '#BE8D40', 12), 'tile bottom is the deep gold');
+  const center = await pixel(tilePath, 512, 482);
+  const edge = await pixel(tilePath, 8, 482);
+  assert.ok(center[0] + center[1] + center[2] > edge[0] + edge[1] + edge[2] + 30, 'a glow sits behind the sun');
+  assert.equal(top[3], 255, 'the tile is opaque');
+
+  const markPath = path.join(root, 'build/app-icons/colorways/sunrise-mark-cream.png');
+  const { data, info } = await sharp(markPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(info.width, CANVAS);
+  assert.equal(info.height, CANVAS);
+  for (let offset = 0; offset < data.length; offset += info.channels) {
+    if (data[offset + 3] <= 24) continue;
+    assert.ok(near(data.subarray(offset, offset + 3), '#FFF7E6', 4), 'the glass layer is a cream silhouette');
+  }
+  const native = await markBoundsOf(sharp(markPath), (_r, _g, _b, a) => a > 24);
+  assert.ok(native.height > 780 && native.height < 820, 'artwork stays large within the icon safe area');
+
+  const flat = path.join(root, 'src/renderer/pages/icon-sunrise-gold.png');
+  const tile = await markBoundsOf(sharp(flat), (_r, _g, _b, a) => a > 250);
+  const flatMark = await markBoundsOf(sharp(flat), (_r, _g, b, a) => a > 24 && b > 200);
+  assert.equal(tile.height, 824, 'the flat Gold icon keeps the 824px visible tile');
+  const flatRatio = flatMark.height / tile.height;
+  const nativeRatio = native.height / CANVAS;
+  assert.ok(Math.abs(nativeRatio - flatRatio) < 0.01, `native ${nativeRatio} vs flat ${flatRatio}`);
+  const flatOffset = ((flatMark.minX + flatMark.maxX) / 2 - (tile.minX + tile.maxX) / 2) / tile.width;
+  const nativeOffset = ((native.minX + native.maxX) / 2 - (CANVAS - 1) / 2) / CANVAS;
+  assert.ok(Math.abs(nativeOffset - flatOffset) < 0.005, 'the Gold mark sits where the native one does');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

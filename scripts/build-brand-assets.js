@@ -364,27 +364,32 @@ async function buildSunriseAssets(master) {
     })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
-  const nativeMotif = await sharp(cleaned, sourceOptions)
-    .extract(SUNRISE_CROP)
-    .resize(SUNRISE_NATIVE_SIZE, SUNRISE_NATIVE_SIZE, {
-      fit: 'contain',
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-      kernel: sharp.kernel.lanczos3,
-    })
-    .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toBuffer();
-  const nativeLayer = await sharp({
-    create: {
-      width: ICON_CANVAS,
-      height: ICON_CANVAS,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  }).composite([{
-    input: nativeMotif,
-    left: SUNRISE_NATIVE_POSITION,
-    top: SUNRISE_NATIVE_POSITION,
-  }]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+  // The mark at the Icon Composer layer's size and position on a 1024 canvas.
+  const nativeLayerOf = async (buffer) => {
+    const motif = await sharp(buffer, sourceOptions)
+      .extract(SUNRISE_CROP)
+      .resize(SUNRISE_NATIVE_SIZE, SUNRISE_NATIVE_SIZE, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+        kernel: sharp.kernel.lanczos3,
+      })
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toBuffer();
+    return sharp({
+      create: {
+        width: ICON_CANVAS,
+        height: ICON_CANVAS,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    }).composite([{
+      input: motif,
+      left: SUNRISE_NATIVE_POSITION,
+      top: SUNRISE_NATIVE_POSITION,
+    }]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+  };
+  const nativeLayer = await nativeLayerOf(cleaned);
+  const inkNativeLayer = await nativeLayerOf(inked);
 
   const buildFlat = (dark) => sharp({
     create: {
@@ -406,7 +411,78 @@ async function buildSunriseAssets(master) {
     inkMotif,
     inkFaviconMotif,
     nativeLayer,
+    inkNativeLayer,
   };
+}
+
+// Sunrise Gold: a fixed icon that reads on a light or a dark Dock. A cream,
+// seam-closed silhouette (glass in Icon Composer) over a gold tile drawn as an
+// image layer, because Icon Composer darkens a plain fill by itself in Dark.
+const SUNRISE_GOLD_CREAM = [255, 247, 230];
+const SUNRISE_GOLD_TILE_SVG = Buffer.from(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3bf78"/><stop offset="1" stop-color="#be8d40"/>
+    </linearGradient></defs>
+    <rect width="1024" height="1024" fill="url(#g)"/>
+  </svg>`);
+const SUNRISE_GOLD_GLOW_SVG = Buffer.from(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+    <defs><radialGradient id="glow" cx="512" cy="482" r="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#383838"/><stop offset="1" stop-color="#000000"/>
+    </radialGradient></defs>
+    <rect width="1024" height="1024" fill="url(#glow)"/>
+  </svg>`);
+
+// A motif's alpha painted one solid color, at the motif's own size.
+async function recolor(motif, color) {
+  const { width, height } = await sharp(motif).metadata();
+  const alpha = await sharp(motif).ensureAlpha().extractChannel(3).raw().toBuffer();
+  return sharp({ create: { width, height, channels: 3, background: { r: color[0], g: color[1], b: color[2] } } })
+    .joinChannel(alpha, { raw: { width, height, channels: 1 } })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+}
+
+async function buildSunriseGoldAssets(sunrise) {
+  const tile = await sharp(SUNRISE_GOLD_TILE_SVG)
+    .composite([{ input: SUNRISE_GOLD_GLOW_SVG, blend: 'screen' }])
+    .removeAlpha()
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  const nativeMark = await recolor(sunrise.inkNativeLayer, SUNRISE_GOLD_CREAM);
+
+  // The flat Dock copy: the tile clipped to the flat 824px rounded rect with
+  // the flat icons' drop shadow, and a soft shadow under the mark standing in
+  // for the glass layer's.
+  const tileFace = await sharp(tile).resize(824, 824).png().toBuffer();
+  const frame = Buffer.from(`
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+      <defs>
+        <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="184"/></clipPath>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+          <feDropShadow dx="0" dy="15" stdDeviation="18" flood-color="#000000" flood-opacity="0.24"/>
+        </filter>
+      </defs>
+      <rect x="100" y="100" width="824" height="824" rx="184" fill="#be8d40" filter="url(#shadow)"/>
+      <image x="100" y="100" width="824" height="824" clip-path="url(#tile)" xlink:href="${pngDataUri(tileFace)}"/>
+    </svg>`);
+  const flatMark = await recolor(sunrise.inkMotif, SUNRISE_GOLD_CREAM);
+  const markShadow = await sharp(await recolor(sunrise.inkMotif, [0, 0, 0]))
+    .linear([1, 1, 1, 0.22], [0, 0, 0, 0])
+    .extend({ top: 20, bottom: 20, left: 20, right: 20, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .blur(5)
+    .png()
+    .toBuffer();
+  const flat = await sharp({
+    create: { width: ICON_CANVAS, height: ICON_CANVAS, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  }).composite([
+    { input: frame, left: 0, top: 0 },
+    { input: markShadow, left: SUNRISE_FLAT_POSITION - 20, top: SUNRISE_FLAT_POSITION - 20 + 6 },
+    { input: flatMark, left: SUNRISE_FLAT_POSITION, top: SUNRISE_FLAT_POSITION },
+  ]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+
+  return { tile, nativeMark, flat };
 }
 
 async function raster(svg, width, height = width) {
@@ -608,6 +684,11 @@ async function main() {
     color: '#0e0e0e',
   }));
   await emit('build/app-icons/Icon.icon/Assets/sunrise-mark.png', sunrise.nativeLayer);
+
+  const gold = await buildSunriseGoldAssets(sunrise);
+  await emit('build/app-icons/colorways/gold-tile.png', gold.tile);
+  await emit('build/app-icons/colorways/sunrise-mark-cream.png', gold.nativeMark);
+  await emit('src/renderer/pages/icon-sunrise-gold.png', gold.flat);
 
   await buildSiteAssets(sunrise);
 
