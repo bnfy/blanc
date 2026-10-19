@@ -34,17 +34,25 @@
       <div class="settings-content">
         <section class="settings-group" id="group-general">
           <h2 class="group-title" data-i18n="settings.general.title">General</h2>
-          <div class="settings-card">
-            <div class="setting">
+          <div class="settings-card settings-card--mixed">
+            <h3 class="card-title" data-i18n="settings.general.cards.island">Island</h3>
+            <div class="setting" id="tabLayoutSetting">
               <div class="label">
-                <span data-i18n="settings.general.theme.label">Appearance</span>
-                <span class="hint" data-i18n="settings.general.theme.hint">System follows your macOS/Windows theme</span>
+                <span data-i18n="settings.general.tabLayout.label">Tab layout</span>
+                <span class="hint" data-i18n="settings.general.tabLayout.hint">Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island</span>
               </div>
-              <select id="theme">
-                <option value="system" data-i18n="settings.general.theme.system">System</option>
-                <option value="light" data-i18n="settings.general.theme.light">Light</option>
-                <option value="dark" data-i18n="settings.general.theme.dark">Dark</option>
+              <select id="tabLayout" aria-label="Tab layout" data-i18n-aria-label="settings.general.tabLayout.label">
+                <option value="island" data-i18n="settings.general.tabLayout.island">Island</option>
+                <option value="vertical" data-i18n="settings.general.tabLayout.vertical">Vertical tabs</option>
               </select>
+            </div>
+
+            <div class="setting" id="islandHoverOpenSetting">
+              <div class="label">
+                <span data-i18n="settings.general.islandHoverOpen.label">Open the Island on hover</span>
+                <span class="hint" id="islandHoverOpenHint" data-i18n="settings.general.islandHoverOpen.hint">Rest the pointer on the Island’s address to open it without clicking.</span>
+              </div>
+              <label class="toggle"><input id="islandHoverOpen" type="checkbox" aria-label="Open the Island on hover" aria-describedby="islandHoverOpenHint" data-i18n-aria-label="settings.general.islandHoverOpen.label"/><span class="track"></span></label>
             </div>
 
             <div class="setting" id="islandSiteColorsSetting">
@@ -54,6 +62,21 @@
               </div>
               <label class="toggle"><input id="islandSiteColors" type="checkbox" aria-label="Match site colors" aria-describedby="islandSiteColorsHint"  data-i18n-aria-label="settings.general.islandSiteColors.label"/><span class="track"></span></label>
             </div>
+          </div>
+
+          <div class="settings-card settings-card--mixed">
+            <h3 class="card-title" data-i18n="settings.general.cards.appearance">Appearance</h3>
+            <div class="setting">
+              <div class="label">
+                <span data-i18n="settings.general.theme.label">Theme</span>
+                <span class="hint" data-i18n="settings.general.theme.hint">System follows your macOS/Windows theme</span>
+              </div>
+              <select id="theme">
+                <option value="system" data-i18n="settings.general.theme.system">System</option>
+                <option value="light" data-i18n="settings.general.theme.light">Light</option>
+                <option value="dark" data-i18n="settings.general.theme.dark">Dark</option>
+              </select>
+            </div>
 
             <div class="setting" id="darkWebsitesSetting">
               <div class="label">
@@ -62,6 +85,7 @@
               </div>
               <label class="toggle"><input id="darkWebsites" type="checkbox" aria-label="Dark websites" aria-describedby="darkWebsitesHint"  data-i18n-aria-label="settings.general.darkWebsites.label"/><span class="track"></span></label>
             </div>
+
             <div id="darkWebsitesExceptionsBlock" class="site-list-block">
               <p class="section-hint" data-i18n="settings.general.sitesListedHereKeep">
                 Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.
@@ -75,6 +99,19 @@
               </div>
             </div>
 
+            <div class="setting" id="appIconSetting">
+              <div class="label">
+                <span data-i18n="settings.general.appIconSetting.label">App icon</span>
+                <span class="hint" id="appIconHint" data-i18n="settings.general.appIconSetting.hint">Choose the Blanc icon shown by your system</span>
+              </div>
+              <div class="icon-scroller">
+                <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon" data-i18n-aria-label="settings.general.appIconSetting.label"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card settings-card--mixed">
+            <h3 class="card-title" data-i18n="settings.general.cards.startPage">Start Page</h3>
             <div class="setting">
               <div class="label">
                 <span data-i18n="settings.general.newtabLayout.label">New tab layout</span>
@@ -106,106 +143,17 @@
               <label class="toggle"><input id="newtabCustomWallpaper" type="checkbox" aria-label="Start Page image" aria-describedby="customWallpaperHint" data-i18n-aria-label="settings.general.newtabCustomWallpaper.label"/><span class="track"></span></label>
             </div>
 
-            <div class="setting" id="tabLayoutSetting">
-              <div class="label">
-                <span data-i18n="settings.general.tabLayout.label">Tab layout</span>
-                <span class="hint" data-i18n="settings.general.tabLayout.hint">Keep tabs in the Island or show them in a left rail; search and commands always stay in the Island</span>
-              </div>
-              <select id="tabLayout" aria-label="Tab layout" data-i18n-aria-label="settings.general.tabLayout.label">
-                <option value="island" data-i18n="settings.general.tabLayout.island">Island</option>
-                <option value="vertical" data-i18n="settings.general.tabLayout.vertical">Vertical tabs</option>
-              </select>
-            </div>
-
-            <div class="setting" id="islandHoverOpenSetting">
-              <div class="label">
-                <span data-i18n="settings.general.islandHoverOpen.label">Open the Island on hover</span>
-                <span class="hint" id="islandHoverOpenHint" data-i18n="settings.general.islandHoverOpen.hint">Rest the pointer on the Island’s address to open it without clicking.</span>
-              </div>
-              <label class="toggle"><input id="islandHoverOpen" type="checkbox" aria-label="Open the Island on hover" aria-describedby="islandHoverOpenHint" data-i18n-aria-label="settings.general.islandHoverOpen.label"/><span class="track"></span></label>
-            </div>
-
-            <div class="setting" id="tabSleepSetting">
-              <div class="label">
-                <span data-i18n="settings.general.tabSleep.label">Quiet inactive tabs</span>
-                <span class="hint" data-i18n="settings.general.tabSleep.hint">Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them.</span>
-              </div>
-              <select id="tabSleep" aria-label="Quiet inactive tabs" data-i18n-aria-label="settings.general.tabSleep.label">
-                <option value="off" data-i18n="settings.general.tabSleep.off">Off</option>
-                <option value="30m" data-i18n="settings.general.tabSleep.30m">After 30 minutes</option>
-                <option value="1h" data-i18n="settings.general.tabSleep.1h">After 1 hour</option>
-                <option value="6h" data-i18n="settings.general.tabSleep.6h">After 6 hours</option>
-              </select>
-            </div>
-
-            <div class="setting" id="uiLanguageSetting" hidden>
-              <div class="label">
-                <span data-i18n="settings.language.label">Language</span>
-                <span class="hint" data-i18n="settings.language.hint">Translations are machine-generated.</span>
-              </div>
-              <select id="uiLanguage" aria-label="Language" data-i18n-aria-label="settings.language.label"></select>
-              <button id="uiLanguageRelaunch" type="button" hidden data-i18n="settings.language.relaunch">Relaunch to apply</button>
-            </div>
-
-            <div class="setting" id="mouseGesturesSetting">
-              <div class="label">
-                <span data-i18n="settings.general.mouseGesturesEnabled.label">Mouse gestures</span>
-                <span class="hint" data-i18n="settings.general.mouseGesturesEnabled.hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</span>
-              </div>
-              <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures"  data-i18n-aria-label="settings.general.mouseGesturesEnabled.ariaLabel"/><span class="track"></span></label>
-            </div>
-            <div id="mouseGestureEditor" class="gesture-editor" hidden>
-              <div class="gesture-editor-heading">
-                <span data-i18n="settings.general.assignedGestures">Assigned gestures</span>
-              </div>
-              <div id="mouseGestureRows" class="gesture-rows"></div>
-              <div class="gesture-editor-actions">
-                <button id="mouseGestureAdd" class="gesture-add" type="button" data-i18n="settings.general.mouseGestureAdd">Add gesture</button>
-                <button id="mouseGestureReset" class="gesture-reset" type="button" data-i18n="settings.general.mouseGestureReset">Restore defaults</button>
-              </div>
-              <div id="mouseGestureComposer" class="gesture-composer" hidden>
-                <p data-i18n="settings.general.drawUpToThree">Draw up to three directions, then choose an action.</p>
-                <div id="mouseGesturePad" class="gesture-pad" role="group" aria-label="Draw a new gesture with the primary button" data-i18n-aria-label="settings.general.mouseGesturePad.ariaLabel">
-                  <span id="mouseGesturePadPrompt" data-i18n="settings.general.mouseGesturePadPrompt">Press and drag here</span>
-                </div>
-                <div class="gesture-composer-actions">
-                  <label for="mouseGestureAction" data-i18n="settings.general.action">Action</label>
-                  <select id="mouseGestureAction"></select>
-                  <button id="mouseGestureSave" type="button" disabled data-i18n="settings.general.mouseGestureSave">Save gesture</button>
-                  <button id="mouseGestureCancel" type="button" data-i18n="settings.general.mouseGestureCancel">Cancel</button>
-                </div>
-              </div>
-              <p id="mouseGestureMessage" class="gesture-message" role="status" aria-live="polite"></p>
-            </div>
-
-
-            <div class="setting" id="appIconSetting">
-              <div class="label">
-                <span data-i18n="settings.general.appIconSetting.label">App icon</span>
-                <span class="hint" id="appIconHint" data-i18n="settings.general.appIconSetting.hint">Choose the Blanc icon shown by your system</span>
-              </div>
-              <div class="icon-scroller">
-                <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon" data-i18n-aria-label="settings.general.appIconSetting.label"></div>
-              </div>
-            </div>
-
-            <div class="setting" id="defaultBrowserSetting">
-              <div class="label">
-                <span data-i18n="settings.general.defaultBrowserBtn.label">Default browser</span>
-                <span class="hint" id="defaultBrowserHint" data-i18n="settings.general.defaultBrowserBtn.hint">Open web links from other apps in Blanc</span>
-              </div>
-              <button id="defaultBrowserBtn" data-i18n="settings.general.defaultBrowserBtn">Make default…</button>
-              <span id="defaultBrowserState" hidden data-i18n="settings.general.defaultBrowserState">Blanc is your default browser</span>
-            </div>
-
             <div class="setting">
               <div class="label">
-                <span data-i18n="settings.general.showWelcomeTour.label">Welcome tour</span>
-                <span class="hint" data-i18n="settings.general.showWelcomeTour.hint">Replay the first-run walkthrough; saved choices stay put</span>
+                <span data-i18n="settings.general.homePage.label">New tab page</span>
+                <span class="hint" data-i18n="settings.general.homePage.hint">Leave empty for the built-in new tab page</span>
               </div>
-              <button id="showWelcomeTour" type="button" data-i18n="settings.general.showWelcomeTour">Show welcome tour</button>
+              <input id="homePage" type="url" placeholder="blanc://newtab/"  data-i18n-ignore="placeholder"/>
             </div>
+          </div>
 
+          <div class="settings-card settings-card--mixed">
+            <h3 class="card-title" data-i18n="settings.general.cards.search">Search</h3>
             <div class="setting">
               <div class="label">
                 <span data-i18n="settings.general.searchEngine.label">Search engine</span>
@@ -262,13 +210,79 @@
                 <span class="track"></span>
               </label>
             </div>
+          </div>
+
+          <div class="settings-card settings-card--mixed">
+            <h3 class="card-title" data-i18n="settings.general.cards.browsing">Browsing</h3>
+            <div class="setting" id="tabSleepSetting">
+              <div class="label">
+                <span data-i18n="settings.general.tabSleep.label">Quiet inactive tabs</span>
+                <span class="hint" data-i18n="settings.general.tabSleep.hint">Blanc frees the memory of tabs you have not opened in a while, and reloads them when you come back to them.</span>
+              </div>
+              <select id="tabSleep" aria-label="Quiet inactive tabs" data-i18n-aria-label="settings.general.tabSleep.label">
+                <option value="off" data-i18n="settings.general.tabSleep.off">Off</option>
+                <option value="30m" data-i18n="settings.general.tabSleep.30m">After 30 minutes</option>
+                <option value="1h" data-i18n="settings.general.tabSleep.1h">After 1 hour</option>
+                <option value="6h" data-i18n="settings.general.tabSleep.6h">After 6 hours</option>
+              </select>
+            </div>
+
+            <div class="setting" id="mouseGesturesSetting">
+              <div class="label">
+                <span data-i18n="settings.general.mouseGesturesEnabled.label">Mouse gestures</span>
+                <span class="hint" data-i18n="settings.general.mouseGesturesEnabled.hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</span>
+              </div>
+              <label class="toggle"><input id="mouseGesturesEnabled" type="checkbox" aria-label="Enable mouse gestures"  data-i18n-aria-label="settings.general.mouseGesturesEnabled.ariaLabel"/><span class="track"></span></label>
+            </div>
+
+            <div id="mouseGestureEditor" class="gesture-editor" hidden>
+              <div class="gesture-editor-heading">
+                <span data-i18n="settings.general.assignedGestures">Assigned gestures</span>
+              </div>
+              <div id="mouseGestureRows" class="gesture-rows"></div>
+              <div class="gesture-editor-actions">
+                <button id="mouseGestureAdd" class="gesture-add" type="button" data-i18n="settings.general.mouseGestureAdd">Add gesture</button>
+                <button id="mouseGestureReset" class="gesture-reset" type="button" data-i18n="settings.general.mouseGestureReset">Restore defaults</button>
+              </div>
+              <div id="mouseGestureComposer" class="gesture-composer" hidden>
+                <p data-i18n="settings.general.drawUpToThree">Draw up to three directions, then choose an action.</p>
+                <div id="mouseGesturePad" class="gesture-pad" role="group" aria-label="Draw a new gesture with the primary button" data-i18n-aria-label="settings.general.mouseGesturePad.ariaLabel">
+                  <span id="mouseGesturePadPrompt" data-i18n="settings.general.mouseGesturePadPrompt">Press and drag here</span>
+                </div>
+                <div class="gesture-composer-actions">
+                  <label for="mouseGestureAction" data-i18n="settings.general.action">Action</label>
+                  <select id="mouseGestureAction"></select>
+                  <button id="mouseGestureSave" type="button" disabled data-i18n="settings.general.mouseGestureSave">Save gesture</button>
+                  <button id="mouseGestureCancel" type="button" data-i18n="settings.general.mouseGestureCancel">Cancel</button>
+                </div>
+              </div>
+              <p id="mouseGestureMessage" class="gesture-message" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="setting" id="uiLanguageSetting" hidden>
+              <div class="label">
+                <span data-i18n="settings.language.label">Language</span>
+                <span class="hint" data-i18n="settings.language.hint">Translations are machine-generated.</span>
+              </div>
+              <select id="uiLanguage" aria-label="Language" data-i18n-aria-label="settings.language.label"></select>
+              <button id="uiLanguageRelaunch" type="button" hidden data-i18n="settings.language.relaunch">Relaunch to apply</button>
+            </div>
+
+            <div class="setting" id="defaultBrowserSetting">
+              <div class="label">
+                <span data-i18n="settings.general.defaultBrowserBtn.label">Default browser</span>
+                <span class="hint" id="defaultBrowserHint" data-i18n="settings.general.defaultBrowserBtn.hint">Open web links from other apps in Blanc</span>
+              </div>
+              <button id="defaultBrowserBtn" data-i18n="settings.general.defaultBrowserBtn">Make default…</button>
+              <span id="defaultBrowserState" hidden data-i18n="settings.general.defaultBrowserState">Blanc is your default browser</span>
+            </div>
 
             <div class="setting">
               <div class="label">
-                <span data-i18n="settings.general.homePage.label">New tab page</span>
-                <span class="hint" data-i18n="settings.general.homePage.hint">Leave empty for the built-in new tab page</span>
+                <span data-i18n="settings.general.showWelcomeTour.label">Welcome tour</span>
+                <span class="hint" data-i18n="settings.general.showWelcomeTour.hint">Replay the first-run walkthrough; saved choices stay put</span>
               </div>
-              <input id="homePage" type="url" placeholder="blanc://newtab/"  data-i18n-ignore="placeholder"/>
+              <button id="showWelcomeTour" type="button" data-i18n="settings.general.showWelcomeTour">Show welcome tour</button>
             </div>
           </div>
         </section>

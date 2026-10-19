@@ -1393,9 +1393,9 @@
     }
   }
 
-  // A Privacy card whose every control was removed above (unsupported on this
-  // platform) would otherwise leave a lone title behind.
-  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+  // A General or Privacy card whose every control was removed above
+  // (unsupported on this platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-general .settings-card, #group-privacy .settings-card')) {
     if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 
