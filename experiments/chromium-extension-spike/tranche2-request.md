@@ -1,5 +1,15 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## October 19 PDF/private lifecycle progress
+
+Simple two-page PDF find passes regular/private counts, regular next/previous, no-match and
+PDF→HTML reset. Private forward BFCache restoration, iframe removal and active find-tab closure
+pass bounded checks. Evidence: `evidence/ui138-find-pdf-20261019/`. No code change/build; guard
+zero, native hashes unchanged, footprint remains 40 files /96 hunks. Broader PDF/cache/private/
+accessibility cases remain gaps; native input pending unlock and visual item4 incomplete.
+Latency deferred; Electron diagnostic build unapproved/unstarted; prior F12/Task0 unchanged.
+
+
 ## October 18 BFCache/private find progress
 
 Actual regular back/forward and private back-cache restoration now pass document-identity and
