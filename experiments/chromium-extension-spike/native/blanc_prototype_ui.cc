@@ -66,6 +66,7 @@
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -501,6 +502,9 @@ class Owner : public base::SupportsUserData::Data,
   std::string space_name;
   std::vector<int> space_pending_ids;
   std::optional<base::DictValue> space_saved;
+  std::optional<base::DictValue> space_candidate;
+  base::TimeTicks space_candidate_at;
+  std::string space_error;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     Live().insert(this);
     browser->GetTabStripModel()->AddObserver(this);
@@ -1085,9 +1089,15 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
 base::DictValue SpaceDisk(base::FilePath path, std::string method,
                           std::string name, base::DictValue capture) {
   base::DictValue store;
-  if (base::PathExists(path)) {
+  const bool recover = method == "previewSpaceRecover";
+  const auto load_path = recover ? path.AddExtensionASCII("backup") : path;
+  if (!recover && !base::PathExists(path) && base::PathExists(path.AddExtensionASCII("backup")))
+    return base::DictValue().Set("error", "Space store missing; recover the previous checkpoint explicitly.");
+  if (recover && !base::PathExists(load_path))
+    return base::DictValue().Set("error", "No previous space checkpoint exists.");
+  if (base::PathExists(load_path)) {
     std::string bytes;
-    if (!base::ReadFileToStringWithMaxSize(path, &bytes, 4 * 1024 * 1024))
+    if (!base::ReadFileToStringWithMaxSize(load_path, &bytes, 4 * 1024 * 1024))
       return base::DictValue().Set("error", "Space store unreadable; unchanged.");
     auto parsed = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
     if (!parsed || parsed->FindInt("version") != 1 || !parsed->FindDict("items"))
@@ -1103,10 +1113,20 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   if (method == "previewSpaceSave") {
     if (!ValidSpace(capture) || (!items->contains(name) && items->size() >= 25))
       return base::DictValue().Set("error", "Cannot save this space.");
+    // Preserve the validated previous generation before replacing the main
+    // file. Recovery is explicit; corrupt data is never silently overwritten.
+    auto previous = base::WriteJson(store);
+    if (!previous || !base::ImportantFileWriter::WriteFileAtomically(path.AddExtensionASCII("backup"), *previous))
+      return base::DictValue().Set("error", "Previous space checkpoint write failed.");
     items->Set(name, std::move(capture));
     auto json = base::WriteJson(store);
     if (!json || !base::ImportantFileWriter::WriteFileAtomically(path, *json))
       return base::DictValue().Set("error", "Space write failed.");
+  }
+  if (recover) {
+    auto json = base::WriteJson(store);
+    if (!json || !base::ImportantFileWriter::WriteFileAtomically(path, *json))
+      return base::DictValue().Set("error", "Space recovery write failed.");
   }
   if (method == "previewSpaceOpen") {
     const auto* item = items->FindDict(name);
@@ -1183,6 +1203,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
+      .Set("spaceName", owner->space_name)
+      .Set("spaceAutosaveError", owner->space_error)
+      .Set("spaceBusy", owner->space_busy)
       .Set("extensionsWidth", extension_width)
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
@@ -1344,6 +1367,33 @@ class Handler : public content::WebUIMessageHandler {
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  void AutosaveReady(base::DictValue capture, base::DictValue result) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    owner->space_busy = false;
+    if (const auto* error = result.FindString("error")) owner->space_error = *error;
+    else owner->space_saved = std::move(capture);
+  }
+  void MaybeAutosave(Owner* owner) {
+    auto* profile = owner->browser->GetProfile();
+    if (profile->IsOffTheRecord() || owner->space_name.empty() || owner->space_busy || !owner->space_error.empty()) return;
+    for (auto* other : Owner::Live())
+      if (other != owner && other->browser->GetProfile() == profile && other->space_busy) return;
+    auto capture = CaptureNativeSpace(owner->browser);
+    if (!capture) { owner->space_candidate.reset(); return; }
+    if (owner->space_saved && *capture == *owner->space_saved) return;
+    if (!owner->space_candidate || *capture != *owner->space_candidate) {
+      owner->space_candidate = capture->Clone();
+      owner->space_candidate_at = base::TimeTicks::Now();
+      return;
+    }
+    if (base::TimeTicks::Now() - owner->space_candidate_at < base::Seconds(1)) return;
+    owner->space_busy = true;
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+            "previewSpaceSave", owner->space_name, capture->Clone()),
+        base::BindOnce(&Handler::AutosaveReady, weak_factory_.GetWeakPtr(), std::move(*capture)));
+  }
   void SpaceReady(std::string id, std::string method, std::string name,
                   base::DictValue before, base::DictValue result) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -1353,7 +1403,14 @@ class Handler : public content::WebUIMessageHandler {
       Reply(id, false, base::Value(*error)); return;
     }
     auto* browser = owner->browser.get();
-    if (method == "previewSpaceList") { Reply(id, true, base::Value(std::move(result))); return; }
+    if (method == "previewSpaceList" || method == "previewSpaceRecover") {
+      if (method == "previewSpaceRecover") {
+        for (auto* live : Owner::Live()) if (live->browser->GetProfile() == browser->GetProfile()) {
+          live->space_name.clear(); live->space_saved.reset(); live->space_candidate.reset(); live->space_error.clear();
+        }
+      }
+      Reply(id, true, base::Value(std::move(result))); return;
+    }
     std::vector<int> live_ids;
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       live_ids.push_back(sessions::SessionTabHelper::IdForTab(browser->GetTabStripModel()->GetWebContentsAt(i)).id());
@@ -1367,6 +1424,7 @@ class Handler : public content::WebUIMessageHandler {
       }
     }
     if (method == "previewSpaceSave") {
+      owner->space_error.clear();
       owner->space_name = name;
       owner->space_saved = std::move(before);
       Reply(id, true, base::Value(std::move(result))); return;
@@ -1439,8 +1497,8 @@ class Handler : public content::WebUIMessageHandler {
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
-    if (method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceList") {
-      const bool list = method == "previewSpaceList";
+    if (method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceList" || method == "previewSpaceRecover") {
+      const bool list = method == "previewSpaceList" || method == "previewSpaceRecover";
       if (profile->IsOffTheRecord() || owner->space_busy ||
           (list ? !args.empty() : args.size() != 1 || !args[0].is_string() ||
               args[0].GetString().empty() || args[0].GetString().size() > 120)) {
@@ -1466,6 +1524,19 @@ class Handler : public content::WebUIMessageHandler {
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
               method, name, captured->Clone()),
           base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id, method, name, std::move(*captured)));
+      return;
+    }
+    if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string()) {
+      const std::map<std::string, int> commands = {
+        {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
+        {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
+        {"zoomReset", IDC_ZOOM_NORMAL}, {"print", IDC_PRINT}};
+      const auto command = commands.find(args[0].GetString());
+      if (command == commands.end()) { reply(false, base::Value("Unknown page command.")); return; }
+      if (command->second == IDC_CLOSE_TAB && model->count() < 2) { reply(true, base::Value(false)); return; }
+      // Browser commands already target the focused native WebContents. Do
+      // not rewrite explicit row close actions or main-scoped navigation IDs.
+      reply(true, base::Value(chrome::ExecuteCommand(browser, command->second)));
       return;
     }
     // Native split foundation only: UI exposure waits for Glance role/focus
@@ -1503,6 +1574,7 @@ class Handler : public content::WebUIMessageHandler {
       reply(true, base::Value(false)); return;
     }
     if (method == "snapshot") {
+      MaybeAutosave(owner);
       reply(true, base::Value(Snapshot(browser, owner)));
       return;
     }

@@ -374,6 +374,8 @@
     // Internal migration probes; no user-facing Glance acceptance yet.
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
+    previewPageCommand: command => request('previewPageCommand', [command]),
+    previewSpaceRecover: () => request('previewSpaceRecover'),
     previewSpaceSave: name => request('previewSpaceSave', [name]),
     previewSpaceList: () => request('previewSpaceList'),
     previewSpaceOpen: name => request('previewSpaceOpen', [name]),
