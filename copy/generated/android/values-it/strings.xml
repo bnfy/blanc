@@ -78,6 +78,7 @@
         <item quantity="many">%1$d schede in più — apri l’elenco</item>
         <item quantity="other">%1$d schede in più — apri l’elenco</item>
     </plurals>
+    <string name="island_auto_hide_intro">Porta il puntatore al bordo superiore o premi %1$s per far tornare l’Island.</string>
     <string name="dot_switch_to">Passa a %1$s</string>
     <string name="capture_both">fotocamera e microfono in uso — apri i controlli di acquisizione</string>
     <string name="capture_camera">fotocamera in uso — apri i controlli di acquisizione</string>
@@ -734,6 +735,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="menu_zoom_out">Riduci</string>
     <string name="menu_actual_size">Dimensioni reali</string>
     <string name="menu_toggle_vertical_tabs">Mostra/nascondi schede verticali</string>
+    <string name="menu_auto_hide_island">Nascondi automaticamente l’Island</string>
     <string name="menu_tab_layout">Layout delle schede</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Schede verticali</string>
@@ -931,6 +933,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_island_site_colors_hint">Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema.</string>
     <string name="settings_general_island_hover_open_label">Apri l’Island al passaggio del puntatore</string>
     <string name="settings_general_island_hover_open_hint">Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.</string>
+    <string name="settings_general_island_auto_hide_label">Nascondi automaticamente l’Island</string>
+    <string name="settings_general_island_auto_hide_hint">Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island.</string>
     <string name="settings_general_dark_websites_label">Siti web scuri</string>
     <string name="settings_general_dark_websites_hint">Quando Blanc è scuro, scurisce i siti web che non hanno una modalità scura propria. Usa il motore open source Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">I siti in questo elenco mantengono i propri colori. Digita /dark-site su un sito per aggiungerlo o rimuoverlo.</string>

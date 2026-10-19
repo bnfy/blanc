@@ -3150,7 +3150,43 @@
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -3224,6 +3260,7 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
     hideIslandTip();
     // Closing the overlay any other way than Escape keeps a typed name.

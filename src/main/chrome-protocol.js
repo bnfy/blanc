@@ -76,6 +76,9 @@ const HOST_ASSETS = new Map([
     ['/pages/bangs.js', 'pages/bangs.js'],
     ['/pages/bangs-catalog.js', 'pages/bangs-catalog.js'],
     ['/sunrise-hero-mark.png', 'sunrise-hero-mark.png'],
+    // Pure close-on-leave policy for a hover-opened panel. No IPC and no
+    // application data.
+    ['/hover-panel-leave.js', 'hover-panel-leave.js'],
   ])],
   ['permission', new Map([
     ['/', 'permission.html'],

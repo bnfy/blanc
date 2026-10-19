@@ -245,6 +245,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:island-covered', listener);
     return () => ipcRenderer.removeListener('chrome:island-covered', listener);
   },
+  onStripHidden: (callback) => {
+    const listener = (_e, hidden) => callback(hidden);
+    ipcRenderer.on('chrome:strip-hidden', listener);
+    return () => ipcRenderer.removeListener('chrome:strip-hidden', listener);
+  },
   onFindResult: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:find-result', listener);

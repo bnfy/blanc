@@ -281,6 +281,11 @@
     "message": "{count, plural, one {# scheda in più — apri l’elenco} many {# schede in più — apri l’elenco} other {# schede in più — apri l’elenco}}",
     "source": "sha256:223dbc55be62b11cf0ef0fffc65479abea129999eceefb446253155639ffb7d5"
   },
+  "island.autoHide.intro": {
+    "message": "Porta il puntatore al bordo superiore o premi {shortcut} per far tornare l’Island.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+    "source": "sha256:cf7d536bfe25f81579a78097a6cad5b7277965bed9d958987940d0e74fe3c513"
+  },
   "dot.switchTo": {
     "message": "Passa a {title}",
     "source": "sha256:8cd93dcac1d354c4891b429c8dc0c19b1f9e08de34a4c3a68098f355d850300b"
@@ -2617,6 +2622,11 @@
     "message": "Mostra/nascondi schede verticali",
     "source": "sha256:865466509e3065f3fcbd56c0c32ac3d8fe09d42053ff89337532291ba01d70b2"
   },
+  "menu.autoHideIsland": {
+    "message": "Nascondi automaticamente l’Island",
+    "note": "View menu checkbox item.",
+    "source": "sha256:29e502a4351e1fff43315628979999ab21829e54bcde36154a6a83c02578a567"
+  },
   "menu.tabLayout": {
     "message": "Layout delle schede",
     "source": "sha256:4c328813077335981a1240160d5f7fa2ac2a8c5790420bbc165ebdb61d464088"
@@ -3246,6 +3256,16 @@
     "message": "Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.",
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
+  },
+  "settings.general.islandAutoHide.label": {
+    "message": "Nascondi automaticamente l’Island",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:a28f3c41796f381ae34c70fdcc7729492aa7a4d1118c3d98ea2ea0a1d36abc8e"
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:e9d5fc10c99b5f7d7d86e4f1f0930d2be749730abf4cac6b2cadf8efc542a5cd"
   },
   "settings.general.darkWebsites.label": {
     "message": "Siti web scuri",

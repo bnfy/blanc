@@ -72,9 +72,12 @@ function install(refs) {
     getIslandHoverRect,
     getIslandHoverState,
     setIslandHoverOpen,
+    setIslandAutoHide,
+    getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
     setTestCursorPoint,
+    setTestCursorSamplingUnavailable,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -535,14 +538,39 @@ function install(refs) {
     islandHoverRect() { const r = getIslandHoverRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    /** Auto-hide state plus where the page view starts (0 = strip hidden). */
+    islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
+    // Act as native Wayland does: no global pointer position to sample.
+    setCursorSamplingUnavailable(on) { return setTestCursorSamplingUnavailable(on); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
+    },
+    sendOverlayInput(input) {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    // The strip's window-drag region: the computed app-region of #strip.
+    async stripAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`getComputedStyle(document.getElementById('strip')).getPropertyValue('-webkit-app-region') || getComputedStyle(document.getElementById('strip')).appRegion`);
+    },
+    async overlayPanelRect() {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const r = document.getElementById('islandPanel')?.getBoundingClientRect();
+        return r && r.width > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null;
+      })()`);
     },
     pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
@@ -3525,6 +3553,7 @@ function install(refs) {
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       setTestCursorPoint(null);
+      setTestCursorSamplingUnavailable(false);
       beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
@@ -3569,6 +3598,7 @@ function install(refs) {
         tabSleep: '1h',
         tabArchive: 'off',
         islandHoverOpen: false,
+        islandAutoHide: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

@@ -5740,6 +5740,37 @@
         }
       ]
     },
+    "onStripHidden": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:strip-hidden",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
+          ]
+        }
+      ]
+    },
     "onFindResult": {
       "kind": "event",
       "platforms": [

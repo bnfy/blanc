@@ -1364,6 +1364,11 @@ export interface BlancBrowserAPI {
    */
   onIslandCovered(callback: () => void): () => void;
   /**
+   * Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region.
+   * IPC: event `chrome:strip-hidden`.
+   */
+  onStripHidden(callback: (payload: boolean) => void): () => void;
+  /**
    * Find-in-page match counts changed.
    * IPC: event `chrome:find-result`.
    */

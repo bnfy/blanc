@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-126 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+127 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -131,6 +131,7 @@
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
 | `onIslandCovered` | island | event | `chrome:island-covered` | `() => void` | all |
+| `onStripHidden` | island | event | `chrome:strip-hidden` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types

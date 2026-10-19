@@ -3052,6 +3052,14 @@
       "doc": "The expanded panel now covers the resting pill, which may hide (strip only)."
     },
     {
+      "name": "onStripHidden",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:strip-hidden",
+      "payload": "boolean",
+      "doc": "Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region."
+    },
+    {
       "name": "onFindResult",
       "group": "find",
       "kind": "event",
