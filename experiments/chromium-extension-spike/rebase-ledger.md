@@ -2601,3 +2601,23 @@ Required checks: replay the held-first-write reproducer and prove switching cann
 Awaiting only the specific file-budget decision: raise44→49, retain120hunks. Plan remains in progress; save-acknowledgement runtime gap remains open. Native input pending; latency deferred; Electron diagnostic build unapproved.
 
 Evidence: `evidence/ui138-save-ack-design-20261019/`.
+
+## Metadata save acknowledgement implemented — October 19, 2026
+
+Owner approval recorded: **"Raise to 49 files; keep 120 hunks"**. Fresh inventory measures **49 upstream files / 114 hunks**, within that limit. Five new upstream session manager/backend/header paths provide a save-and-flush reply through the already-patched SessionServiceBase. The historical 44/107 measurements remain historical.
+
+Before a destructive Spaces switch, the browser queues its exact durable window UUID again, requests a save, and waits for the selected authoritative session backend's valid-file/initial-marker state and OS file-flush result. The requested append is queued before its flush on the same backend sequence; delayed encrypted operations queue append before flush. A failed append closes the backend file, so the immediately following flush refuses rather than acknowledging a later rebuild. No UI task yield occurs between scheduling the batch and its flush. The callback is bound to the owner browser, source capture and a monotonically increasing request generation. Missing/dead/changed owners or sources, errors and stale completions cannot create an intent or stage/remove tabs. This is an OS file-flush acknowledgement, not hardware or power-loss durability.
+
+An initial runtime test exposed a second bug: the native 15-second deadline exceeded the bridge's 10-second deadline, allowing a late completion after the caller timed out. The native deadline is now eight seconds. The failed test is retained. The corrected test receives the native timeout, releases the held write, proves the late callback does not switch, and then completes an explicit retry.
+
+Bounded runtime passes:
+- A real first Session write held before its syscall leaves the file at zero bytes, source tabs unchanged and no switch journal; releasing it permits the switch. Repeated with encrypted-only storage selected explicitly, holding the actual Sessions_Encrypted file.
+- Injected write EIO and both macOS flush mechanisms failing preserve source tabs and saved records, create no journal, return an error, and allow an explicit retry after injection is removed. Tested under the default configuration, explicit clear-only and explicit encrypted-only storage; default configuration is not assumed to select a particular authoritative backend.
+- Source navigation while acknowledgement is pending rejects the stale source capture; the changed page remains and an explicit save/retry succeeds.
+- The delayed Session read/third-window restoration schedule passes again. Duplicate persisted UUID, invalid UUID and uppercase UUID regressions safely refuse recovery with records/windows preserved.
+
+Build accounting: one retained compile failure (38.61s wrapper; incomplete SingleThreadTaskRunner type), successful continuation 57.32s, timeout repair 39.36s. All incremental, same output and unchanged GN/toolchain. Final guard schedules zero actions (6.04s). Five focused tests, 11 patch-budget tests and three-module lint pass. Disposable profiles and servers cleaned; retained preview untouched, its host unavailable so original tabs are not reverified.
+
+Remaining qualification gaps: forced delayed-encryptor initialization, explicit owner destruction while waiting, identity replacement during the wait, adversarial rebuild/rotation schedules, late duplicate/overlapping restores, malformed serialization, power-loss/hardware durability and arbitrary lifecycle interleavings. Prior staging/removal crash schedules were not rerun this checkpoint. No full Spaces acceptance or public-controls promotion. Native input pending; latency deferred; Electron diagnostic build unapproved/unstarted. Task 0/F12 gates and cold-build accounting unchanged.
+
+Evidence: `evidence/ui138-save-ack-20261019/` (runtime failures retained alongside final passes).

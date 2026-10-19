@@ -1435,6 +1435,37 @@ class Handler : public content::WebUIMessageHandler {
     if (const auto* error = result.FindString("error")) { owner->space_error = *error; return; }
     owner->space_transaction.clear(); owner->space_expected.reset();
   }
+  void SpaceSaveTimeout(std::string id, uint64_t generation) {
+    if (!space_save_pending_ || generation != space_save_generation_) return;
+    space_save_pending_ = false;
+    if (auto* owner = GetOwner(web_ui()->GetWebContents())) {
+      owner->space_busy = false;
+      owner->space_error = "Session metadata save acknowledgement timed out.";
+    }
+    Reply(id, false, base::Value("Session metadata save acknowledgement timed out."));
+  }
+  void SpaceSaveAcknowledged(std::string id, std::string name,
+      base::DictValue captured, base::DictValue disk_capture,
+      base::WeakPtr<BrowserWindowInterface> expected_browser,
+      std::string identity, uint64_t generation, bool success) {
+    if (!space_save_pending_ || generation != space_save_generation_) return;
+    space_save_pending_ = false;
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    auto current = CaptureNativeSpace(owner->browser);
+    if (!success || !expected_browser || owner->browser != expected_browser.get() ||
+        WindowIdentity(owner->browser) != identity || !current || *current != captured) {
+      owner->space_busy = false;
+      owner->space_error = "Session metadata save failed or source changed; tabs unchanged.";
+      Reply(id, false, base::Value(owner->space_error));
+      return;
+    }
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce(&SpaceDisk, owner->browser->GetProfile()->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+            "previewSpaceOpen", name, std::move(disk_capture)),
+        base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id,
+            "previewSpaceOpen", name, std::move(captured)));
+  }
   void MaybeRollback(Owner* owner) {
     auto* profile = owner->browser->GetProfile();
     if (!owner->identity_registered && !profile->IsOffTheRecord()) {
@@ -1643,7 +1674,23 @@ class Handler : public content::WebUIMessageHandler {
       auto disk_capture = captured->Clone();
       if (method == "previewSpaceOpen") {
         disk_capture.Set("_source_name", owner->space_name);
-        disk_capture.Set("_source_window", WindowIdentity(browser));
+        const auto identity = WindowIdentity(browser);
+        disk_capture.Set("_source_window", identity);
+        auto* service = SessionServiceFactory::GetForProfile(profile);
+        if (!service || identity.empty()) {
+          owner->space_busy = false;
+          reply(false, base::Value("Session metadata save unavailable.")); return;
+        }
+        space_save_pending_ = true;
+        const uint64_t generation = ++space_save_generation_;
+        service->AddWindowExtraData(browser->GetSessionID(), kWindowIdentityKey, identity);
+        service->SaveAndFlushSession(base::BindOnce(&Handler::SpaceSaveAcknowledged,
+            weak_factory_.GetWeakPtr(), id, name, std::move(*captured),
+            std::move(disk_capture), browser->GetWeakPtr(), identity, generation));
+        base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+            base::BindOnce(&Handler::SpaceSaveTimeout, weak_factory_.GetWeakPtr(), id, generation),
+            base::Seconds(8));
+        return;
       }
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
@@ -2247,6 +2294,8 @@ class Handler : public content::WebUIMessageHandler {
     }
     reply(true, base::Value());
   }
+  uint64_t space_save_generation_ = 0;
+  bool space_save_pending_ = false;
   base::CancelableTaskTracker tracker_;
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };

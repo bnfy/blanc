@@ -1,3 +1,4 @@
+import { prepareSaveAcknowledgement } from './save-ack.mjs';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -614,3 +615,4 @@ console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
 console.log(`Assets: ${generated}`);
 
 prepareWindowIdentity(edit);
+prepareSaveAcknowledgement(edit);
