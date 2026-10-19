@@ -1,0 +1,194 @@
+{
+  "publicRelease": "v1.38.0",
+  "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
+  "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
+  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim.",
+  "prohibitedClaims": [
+    "a different image for each space",
+    "per-space image",
+    "synced image"
+  ],
+  "evidenceGroups": {
+    "customImage": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Customize → Wallpaper → Your image, or Settings → General → Start Page image, shows a JPEG or PNG up to 25 MB (MAX_INPUT_BYTES), fitted inside 3840 px. Not in private tabs. Hand-checked on Windows; Linux waived (release report)."
+    },
+    "washAndFade": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Wash styles Auto, Light, Dark and Spotlight (newtabWallpaperStyle); Light and Dark also set the page's text colors whatever the app theme; Spotlight washes only behind the content and header. Fade (newtabWallpaperWash) runs 0–100, where 0 shows the image as chosen; the footer fog always stays."
+    },
+    "imagePrivacy": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "The stored copy is re-encoded with every metadata field except orientation removed, owner-only in userData/wallpaper/, device-local and never synced; private tabs never get the image or its controls."
+    },
+    "colorWallpaper": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/start-page-paint.js",
+        "test/unit/start-page-paint.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Color draws one of the eight Spaces presets as a Soft, Solid or Gradient fill. newtabColorWallpaper, newtabWallpaperColor, newtabWallpaperFill and newtabFollowSpaceColor are synced through Personal's optional Sync; a device's own image takes priority on that device; private tabs never show a color."
+    },
+    "matchSpace": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/start-page-paint.js",
+        "test/unit/start-page-paint.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "With Match each space's color on, a window that belongs to a space draws that space's color while the Color wallpaper shows; the page receives only the hex color. There is no separate image per space."
+    }
+  },
+  "labels": [
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Use your own image"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Keep the page readable"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your image stays on this device"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Or paint it a color"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Match each space"
+    }
+  ],
+  "claims": [
+    {
+      "id": "v138-001",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your own image, or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-002",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Open Customize on the Start Page and choose Your image under Wallpaper to show a JPEG or PNG of your own, up to 25 MB.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-003",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Settings → General → Start Page image offers the same choice.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-004",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Wash covers your image so the page stays easy to read: Auto follows your theme, Light and Dark pick one whatever your theme, and Spotlight washes only behind the content.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-005",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Fade sets how strongly the wash covers the image, down to none.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-006",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Blanc keeps a resized copy with location, camera and time details removed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-007",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "It isn’t synced, and private tabs never show it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-008",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose Color under Wallpaper for one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-009",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on its Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "matchSpace"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-010",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

@@ -365,6 +365,39 @@ test('v1.37.0 tab group copy resolves to verified public v1.37.0 evidence', () =
   assert.match(notes, /\*\*Links open as ungrouped tabs\.\*\*/);
 });
 
+// Your own Start Page image (F49) and the Start Page Color wallpaper (F50),
+// announced once public v1.38.0 shipped them.
+test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evidence', () => {
+  const v138 = JSON.parse(read('docs/website-v1.38-claims.json'));
+  assert.equal(v138.publicRelease, 'v1.38.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v138.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v138.sourceSha);
+  assert.ok(read(v138.releaseEvidence).includes(v138.sourceSha));
+  for (const claim of v138.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v138.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v138.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const label of v138.labels) assert.ok(normalize(read(label.source)).includes(label.exactWording), `label drifted: ${label.exactWording}`);
+  // Every wallpaper sentence on the page is recorded, and no per-space image is promised.
+  const raw = read('site/src/pages/features/start-page.astro');
+  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  assert.ok(section.includes('Your image'), 'the wallpaper section is on the page');
+  const recorded = new Set([...v138.claims, ...v138.labels].map(entry => entry.exactWording));
+  const sentences = section.split(/<[^>]+>/).map(node => normalize(node)).filter(node => /\p{L}/u.test(node))
+    .flatMap(node => node.split(/(?<=\.)\s+/));
+  assert.ok(sentences.length >= 14, 'every wallpaper sentence is read');
+  for (const sentence of sentences) assert.ok(recorded.has(sentence), `unrecorded wallpaper copy: ${sentence}`);
+  const page = normalize(raw).toLowerCase();
+  for (const retired of v138.prohibitedClaims) assert.ok(!page.includes(retired), `start page promises “${retired}”`);
+  const notes = execFileSync('git', ['show', `${v138.publicRelease}:docs/press/release-notes/v1.38.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Your own Start Page image\.\*\*/);
+  assert.match(notes, /\*\*A Start Page color\.\*\*/);
+});
+
 // Bangs page copy, written before v1.36.0 as candidates (owner decision,
 // October 17, 2026) and recorded against public v1.36.0 once it shipped.
 // The /bangs lines that bangs.astro builds from its pinned data, keyed by
