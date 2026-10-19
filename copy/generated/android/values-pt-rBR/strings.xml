@@ -433,6 +433,7 @@
         <item quantity="many">%1$d abas</item>
         <item quantity="other">%1$d abas</item>
     </plurals>
+    <string name="result_archived">Arquivada</string>
     <string name="result_tag_search">Pesquisa</string>
     <string name="menu_new_window">Nova janela</string>
     <string name="menu_new_private_window">Nova janela privada</string>

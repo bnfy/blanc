@@ -9012,6 +9012,12 @@ function registerIpcHandlers() {
 
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
+  // F52: a private tab never sees the Archive; restore re-resolves the id
+  // against the sender's own profile store, so a stale id opens nothing.
+  chromeHandle('chrome:archive-list', () => (
+    tabs.get(rt().activeTabId)?.private ? [] : archive.listArchive({ now: Date.now() })
+  ));
+  chromeHandle('chrome:archive-restore', (_e, id) => restoreArchivedEntry(typeof id === 'string' ? id : ''));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));

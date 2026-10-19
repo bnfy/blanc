@@ -433,6 +433,7 @@
         <item quantity="many">%1$d pestañas</item>
         <item quantity="other">%1$d pestañas</item>
     </plurals>
+    <string name="result_archived">Archivada</string>
     <string name="result_tag_search">Búsqueda</string>
     <string name="menu_new_window">Nueva ventana</string>
     <string name="menu_new_private_window">Nueva ventana privada</string>

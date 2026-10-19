@@ -1584,6 +1584,10 @@
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
+  "result.archived": {
+    "message": "Archived",
+    "note": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'."
+  },
   "result.tag.search": {
     "message": "Search",
     "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",

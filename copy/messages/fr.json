@@ -1525,6 +1525,10 @@
     "message": "{count, plural, one {# onglet} many {# onglets} other {# onglets}}",
     "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
   },
+  "result.archived": {
+    "message": "Archivé",
+    "source": "sha256:192a2958de4f03ebb2d906d631b240ba1ebd135c71a191dc55a34b2fc261da7b"
+  },
   "result.tag.search": {
     "message": "Recherche",
     "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"

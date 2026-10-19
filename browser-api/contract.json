@@ -1044,6 +1044,33 @@
         }
       }
     },
+    "ArchivedTab": {
+      "doc": "An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The tab's custom name, else its page title, or empty."
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        },
+        "archivedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds when the tab was archived."
+        },
+        "spaceName": {
+          "type": "string | null",
+          "doc": "The Space it was archived from, for display only."
+        }
+      }
+    },
     "FavoriteItem": {
       "doc": "A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.",
       "fields": {
@@ -2523,6 +2550,29 @@
       ],
       "returns": "HistoryEntry[]",
       "doc": "List history entries, newest first."
+    },
+    {
+      "name": "archiveList",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-list",
+      "params": [],
+      "returns": "ArchivedTab[]",
+      "doc": "List the profile's archived tabs (F52), newest first. Empty while the active tab is private."
+    },
+    {
+      "name": "archiveRestore",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-restore",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Restore one archived tab as a new ungrouped tab at the end of the window. False when the entry is already gone."
     },
     {
       "name": "listFavorites",

@@ -135,6 +135,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   },
 
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
+  // F52 Tab Archive: projected rows only; restore takes an entry id.
+  archiveList: () => ipcRenderer.invoke('chrome:archive-list'),
+  archiveRestore: (id) => ipcRenderer.invoke('chrome:archive-restore', id),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),

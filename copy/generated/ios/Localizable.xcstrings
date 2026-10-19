@@ -17209,6 +17209,48 @@
         }
       }
     },
+    "result.archived": {
+      "comment": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivada"
+          }
+        }
+      }
+    },
     "result.tag.search": {
       "comment": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
       "extractionState": "manual",

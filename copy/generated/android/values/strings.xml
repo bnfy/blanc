@@ -420,6 +420,7 @@
         <item quantity="one">%1$d tab</item>
         <item quantity="other">%1$d tabs</item>
     </plurals>
+    <string name="result_archived">Archived</string>
     <string name="result_tag_search">Search</string>
     <string name="menu_new_window">New Window</string>
     <string name="menu_new_private_window">New Private Window</string>

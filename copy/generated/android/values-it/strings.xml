@@ -433,6 +433,7 @@
         <item quantity="many">%1$d schede</item>
         <item quantity="other">%1$d schede</item>
     </plurals>
+    <string name="result_archived">Archiviata</string>
     <string name="result_tag_search">Ricerca</string>
     <string name="menu_new_window">Nuova finestra</string>
     <string name="menu_new_private_window">Nuova finestra privata</string>
