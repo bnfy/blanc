@@ -1627,6 +1627,26 @@ details[open] .faq-sign::after {
   min-height: 44px;
   text-decoration: none;
 }
+/* The Island scene's link to its feature page, below the three states. */
+/* Centered both in normal flow and on the sticky stage, a flex column. */
+.home-cinema .pin-more {
+  display: inline-flex;
+  align-self: center;
+  margin-top: 16px;
+}
+/* One quiet line of the feature pages the tool cards leave out. */
+.tools-more {
+  margin: 32px 0 0;
+  color: var(--night-dim);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.tools-more a {
+  text-decoration: none;
+}
+.tools-more a:hover {
+  text-decoration: underline;
+}
 
 /* ---------- Patron ---------- */
 .home-cinema .patron-section {
