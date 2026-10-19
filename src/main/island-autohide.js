@@ -10,7 +10,14 @@
 // command bar, find, the shield and Spaces menus, Glance) keeps it revealed.
 
 /** The band at the top of the window that reveals the Island, in px. */
-const REVEAL_EDGE_PX = 6;
+const REVEAL_EDGE_PX = 10;
+/** How far above a floating window's top edge the pointer still counts, in
+ * px: an upward move usually overshoots the window's border. */
+const REACH_ABOVE_PX = 16;
+/** How often a hidden Island in the focused window samples the cursor. The
+ * page's own mouse moves can't be relied on: the pointer may be outside the
+ * window, or over a band the platform keeps for itself. */
+const REVEAL_WATCH_MS = 120;
 /** How far below the strip the pointer may wander before it hides, in px. */
 const HIDE_SLACK_PX = 24;
 /** How often a revealed Island checks whether the pointer has left it. */
@@ -24,15 +31,30 @@ function finite(value) {
 
 /**
  * Whether a pointer position (window content coordinates) reveals the Island
- * or keeps it revealed. A position outside the window never holds it.
+ * or keeps it revealed. A position outside the window holds it only in the
+ * `reachAbove` px directly above the window's top edge.
  * @param {{x: number, y: number}|null} point
- * @param {{revealed: boolean, chromeHeight: number, width: number, height: number}} state
+ * @param {{revealed: boolean, chromeHeight: number, width: number, height: number, reachAbove?: number}} state
  */
-function pointHoldsIsland(point, { revealed, chromeHeight, width, height }) {
+function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachAbove = 0 }) {
   if (!point || !finite(point.x) || !finite(point.y)) return false;
-  if (point.x < 0 || point.y < 0 || point.x > width || point.y > height) return false;
+  const above = finite(reachAbove) ? Math.max(0, reachAbove) : 0;
+  if (point.x < 0 || point.y < -above || point.x > width || point.y > height) return false;
   if (point.y <= REVEAL_EDGE_PX) return true;
   return revealed === true && point.y < Math.max(0, chromeHeight) + HIDE_SLACK_PX;
+}
+
+/**
+ * How far above the window the pointer may be and still count as at its top
+ * edge. A window pushed up against the top of the work area (under the macOS
+ * menu bar) reaches up to the top of the screen; a floating window gets a
+ * short band for overshoot. Screen coordinates throughout.
+ * @param {{contentTop: number, workAreaTop: number, displayTop: number}} geometry
+ */
+function reachAboveWindow({ contentTop, workAreaTop, displayTop }) {
+  if (![contentTop, workAreaTop, displayTop].every(finite)) return 0;
+  if (contentTop <= workAreaTop + 2) return Math.max(0, contentTop - displayTop);
+  return REACH_ABOVE_PX;
 }
 
 /**
@@ -58,7 +80,10 @@ module.exports = {
   HIDE_SLACK_PX,
   HIDE_CHECK_MS,
   INTRO_MS,
+  REACH_ABOVE_PX,
+  REVEAL_WATCH_MS,
   pointHoldsIsland,
+  reachAboveWindow,
   islandPinned,
   stripHidden,
 };

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {
-  REVEAL_EDGE_PX, HIDE_SLACK_PX, pointHoldsIsland, islandPinned, stripHidden,
+  REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -97,4 +97,32 @@ test('turning auto-hide on shows the way back in the window it was turned on in'
   assert.match(main, /mainI18n\.t\('island\.autoHide\.intro'/);
   // An ordinary pill tooltip reusing the view must not keep the wrapping style.
   assert.match(main, /getElementById\('tip'\)\.classList\.remove\('intro'\)/);
+});
+
+test('a short band above a floating window also reveals it, for overshoot', () => {
+  const hidden = { ...window, revealed: false, reachAbove: REACH_ABOVE_PX };
+  assert.equal(pointHoldsIsland({ x: 600, y: -1 }, hidden), true);
+  assert.equal(pointHoldsIsland({ x: 600, y: -REACH_ABOVE_PX }, hidden), true);
+  assert.equal(pointHoldsIsland({ x: 600, y: -REACH_ABOVE_PX - 1 }, hidden), false);
+  assert.equal(pointHoldsIsland({ x: -1, y: -4 }, hidden), false, 'only directly above the window');
+});
+
+test('a window against the top of the work area reaches to the top of the screen', () => {
+  // Floating: the window's top sits below the work area's top.
+  assert.equal(reachAboveWindow({ contentTop: 300, workAreaTop: 25, displayTop: 0 }), REACH_ABOVE_PX);
+  // Under the macOS menu bar: the whole bar above the window counts.
+  assert.equal(reachAboveWindow({ contentTop: 25, workAreaTop: 25, displayTop: 0 }), 25);
+  // Windows/Linux maximized, or macOS full screen: nothing above the window.
+  assert.equal(reachAboveWindow({ contentTop: 0, workAreaTop: 0, displayTop: 0 }), 0);
+  assert.equal(reachAboveWindow({ contentTop: Number.NaN, workAreaTop: 0, displayTop: 0 }), 0);
+});
+
+test('a hidden strip in the focused window samples the cursor rather than waiting for page moves', () => {
+  const watch = main.slice(main.indexOf('function watchIslandReveal(runtime)'), main.indexOf('/** Move the strip in or out'));
+  assert.match(watch, /runtime\.window\.isFocused\(\)/);
+  assert.match(watch, /islandHeldAt\(runtime, sampledWindowCursor\(runtime\)\)/);
+  assert.match(watch, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
+  assert.match(main, /'blur', bindWindowRuntime\(runtime, \(\) => \{\s+stopIslandRevealWatch\(runtime\);/);
+  assert.match(main, /focusedRuntime = runtime;\s+if \(!runtime\.islandRevealed\) watchIslandReveal\(runtime\);/);
+  assert.match(main, /reachAbove: islandAutoHideModule\.reachAboveWindow\(/);
 });

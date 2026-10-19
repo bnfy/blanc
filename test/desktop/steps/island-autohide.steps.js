@@ -102,6 +102,13 @@ Then('the Island is shown above the page', async function () {
   assert.equal(state.activeBounds.y, state.pageY);
 });
 
+// Only the cursor sample moves: no input event reaches any view, as when the
+// pointer overshoots the window or the platform keeps the band for itself.
+When('the pointer rests at the top edge without the page seeing it move', async function () {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 400, y: 2 });
+});
+
 When('I move the pointer well below the Island', async function () {
   await restCursor(this, { x: 400, y: 400 });
 });

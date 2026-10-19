@@ -3194,13 +3194,41 @@ function sampledWindowCursor(runtime) {
 }
 
 function islandHeldAt(runtime, point) {
-  const { width, height } = runtime.window.getContentBounds();
+  const content = runtime.window.getContentBounds();
+  const display = screen.getDisplayMatching(content);
   return islandAutoHideModule.pointHoldsIsland(point, {
     revealed: runtime.islandRevealed,
     chromeHeight: runtime.chromeHeight,
-    width,
-    height,
+    width: content.width,
+    height: content.height,
+    reachAbove: islandAutoHideModule.reachAboveWindow({
+      contentTop: content.y,
+      workAreaTop: display.workArea.y,
+      displayTop: display.bounds.y,
+    }),
   });
+}
+
+function stopIslandRevealWatch(runtime) {
+  if (runtime.islandRevealWatchTimer) clearTimeout(runtime.islandRevealWatchTimer);
+  runtime.islandRevealWatchTimer = null;
+}
+
+/** While the strip is hidden in the focused window, sample the cursor so the
+ * top edge (or just above it) reveals the Island even when no view sees the
+ * pointer move. Stops on blur, close, reveal or turning the setting off. */
+function watchIslandReveal(runtime) {
+  if (runtime.islandRevealWatchTimer || !islandAutoHide) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  runtime.islandRevealWatchTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandRevealWatchTimer = null;
+    if (!islandAutoHide || !runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+    if (!runtime.islandRevealed && islandHeldAt(runtime, sampledWindowCursor(runtime))) {
+      revealIsland(runtime);
+      return;
+    }
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
+  }), islandAutoHideModule.REVEAL_WATCH_MS);
 }
 
 function clearIslandAutoHideTimer(runtime) {
@@ -3215,6 +3243,8 @@ function setIslandRevealed(runtime, revealed) {
   if (runtime.islandRevealed === revealed) return;
   runtime.islandRevealed = revealed;
   if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  if (revealed) stopIslandRevealWatch(runtime);
+  else watchIslandReveal(runtime);
 }
 
 function scheduleIslandAutoHideCheck(runtime) {
@@ -3316,8 +3346,10 @@ function applyIslandAutoHide(next) {
   for (const runtime of windowRuntimes.all()) {
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
     runtime.islandRevealed = false;
     if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+    watchIslandReveal(runtime);
   }
   const target = focusedRuntime;
   if (islandAutoHide && target?.window && !target.window.isDestroyed()) {
@@ -9977,6 +10009,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
@@ -9985,6 +10018,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     setImmediate(() => syncFocusedPane(runtime));
   }));
   rt().window.on('blur', bindWindowRuntime(runtime, () => {
+    stopIslandRevealWatch(runtime);
     suppressIslandHover(runtime);
     hidePillTooltip(runtime);
   }));
@@ -10044,6 +10078,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
     runtime.islandRevealed = false;
     runtime.windowButtonsVisible = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag

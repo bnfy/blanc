@@ -23,8 +23,15 @@ and the toolbar comes back on demand. Blanc has no such mode.
   `y = 0` and take the whole window height. The strip is still loaded
   underneath; only the child-view bounds change. In the vertical layout the
   rail keeps its column. Only the page pane's top band is given back.
-- **Reveal:** the pointer within 6px of the window's top edge, while that
-  window is focused. Pages move down to make room, exactly as with the setting
+- **Reveal:** the pointer within 10px of the window's top edge, or just above
+  it, while that window is focused. On a floating window the band continues
+  16px above its top border, since an upward move usually overshoots it; on a
+  window against the top of the work area (under the macOS menu bar) it
+  reaches to the top of the screen. While the strip is hidden, the focused
+  window samples the cursor every 120ms rather than waiting for the page's
+  mouse moves: hand testing on a floating macOS window found the page's moves
+  alone never revealed it, and a pointer outside the window sends none.
+  Pages move down to make room, exactly as with the setting
   off. They are not overlaid, because the strip is the window's own
   webContents and always draws beneath child views.
 - **Pinned:** every surface drawn from the Island keeps it shown: an

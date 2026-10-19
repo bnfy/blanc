@@ -129,6 +129,13 @@ Feature: Island chrome, command palette, and slash commands
     When I move the pointer well below the Island
     Then the Island hides again
 
+  @F1-19 @F1 @desktop @island-autohide
+  Scenario: Resting the pointer at the top edge reveals the Island without any page movement
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests at the top edge without the page seeing it move
+    Then the Island is shown above the page
+
   @F1-17 @F1 @desktop @island-autohide
   Scenario: The palette keeps an auto-hidden Island shown
     Given a tab open on "autohide-page"

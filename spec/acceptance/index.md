@@ -67,6 +67,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-16 | The top edge reveals the Island and leaving hides it | D29 | ✅ | ➖ | ➖ |
 | F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
 | F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |
+| F1-19 | Resting at the top edge reveals the Island without page movement | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

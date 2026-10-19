@@ -180,6 +180,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * that hides it again, and the last macOS traffic-light visibility set. */
     islandRevealed: false,
     islandAutoHideTimer: null,
+    /** Cursor sampling that reveals a hidden Island at the top edge. */
+    islandRevealWatchTimer: null,
     windowButtonsVisible: null,
     /** The how-to tip shown when auto-hide is turned on, and the tooltip
      * generation it drew under (a newer pill tooltip replaces it). */
