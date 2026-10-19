@@ -3,6 +3,8 @@
 #include "chrome/browser/ui/blanc_webstore_promotion.h"
 #include "chrome/common/chrome_isolated_world_ids.h"
 
+#include "chrome/browser/ui/tabs/split_tab_metrics.h"
+#include "components/split_tabs/split_tab_visual_data.h"
 #include <algorithm>
 #include <memory>
 #include <map>
@@ -1217,6 +1219,38 @@ class Handler : public content::WebUIMessageHandler {
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+    // Native split foundation only: UI exposure waits for Glance role/focus
+    // parity. Never merge pin/group ownership as a side effect of a probe.
+    if (method == "previewGlancePair" && args.size() == 2 &&
+        args[0].is_int() && args[1].is_int()) {
+      int first = -1, second = -1;
+      for (int i = 0; i < model->count(); ++i) {
+        const int tab_id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
+        if (tab_id == args[0].GetInt()) first = i;
+        if (tab_id == args[1].GetInt()) second = i;
+      }
+      if (first < 0 || second < 0 || first == second ||
+          model->IsTabPinned(first) || model->IsTabPinned(second) ||
+          model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second) ||
+          model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
+        reply(true, base::Value(false)); return;
+      }
+      const bool reverse = first > second;
+      const auto split = model->AddToNewSplit({first, second},
+          split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, 0.62),
+          split_tabs::SplitTabCreatedSource::kToolbarButton);
+      if (reverse) model->ReverseTabsInSplit(split);
+      reply(true, base::Value(true)); return;
+    }
+    if (method == "previewGlanceClose" && args.size() == 1 && args[0].is_int()) {
+      for (int i = 0; i < model->count(); ++i) {
+        if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
+        const auto split = model->GetSplitForTab(i);
+        if (split) model->RemoveSplit(*split);
+        reply(true, base::Value(split.has_value())); return;
+      }
+      reply(true, base::Value(false)); return;
+    }
     if (method == "snapshot") {
       reply(true, base::Value(Snapshot(browser, owner)));
       return;

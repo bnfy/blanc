@@ -368,6 +368,9 @@
       return request('listHistory', [Math.min(300, Math.max(1, limit))]);
     },
     listRemoteTabs: async () => [],
+    // Internal migration probes; no user-facing Glance acceptance yet.
+    previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
+    previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
     searchSuggestions: async () => [],
     openFindBar,
