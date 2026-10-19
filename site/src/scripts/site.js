@@ -267,13 +267,30 @@ try {
     }
   });
   document.addEventListener('click', event => {
-    if (!allowed() || typeof window.gtag !== 'function') return;
+    if (event.defaultPrevented || !allowed() || typeof window.gtag !== 'function') return;
     const target = event.target.closest('[data-track]');
     if (!target) return;
-    window.gtag('event', target.dataset.track, {
+    let eventName = target.dataset.track;
+    let platform = target.dataset.platform;
+    if (eventName === 'download_click') {
+      // The same CTA can open /download on Mac/mobile or request a Windows/
+      // Linux installer directly. Classify the final destination, not its label.
+      // Only the four same-origin installer endpoints are Ads conversions.
+      // This records request initiation, never completed transfers or installs.
+      let url;
+      try { url = new URL(target.href, location.href); } catch { return; }
+      const installer = url.origin === location.origin &&
+        /^\/dl\/(mac-arm64|mac-x64|win|linux)$/.exec(url.pathname);
+      if (installer) platform = installer[1];
+      else if (url.origin === location.origin && url.pathname === '/download') {
+        eventName = 'download_page_click';
+        platform = undefined;
+      } else return;
+    }
+    window.gtag('event', eventName, {
       source_page: document.body.dataset.page || location.pathname,
       cta_position: target.dataset.ctaPosition || undefined,
-      platform: target.dataset.platform || undefined,
+      platform: platform || undefined,
       feature: target.dataset.feature || undefined,
     });
   });
