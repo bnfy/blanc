@@ -175,6 +175,13 @@
     extensionsPanel.hide();
     strip.style.visibility = '';
     findTabId = snapshot.activeTabId;
+    // Find can open before the copied panel renderer applies its theme.
+    const findRoot = overlay.contentDocument?.documentElement;
+    if (findRoot) {
+      if (snapshot.tabs.find(tab => tab.id === findTabId)?.private)
+        findRoot.dataset.theme = 'private';
+      else delete findRoot.dataset.theme;
+    }
     overlayMode = 'find';
     overlay.dataset.mode = 'find';
     await request('height', [228]);

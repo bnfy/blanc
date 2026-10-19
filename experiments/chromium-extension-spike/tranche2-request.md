@@ -1,5 +1,16 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## October 18 BFCache/private find progress
+
+Actual regular back/forward and private back-cache restoration now pass document-identity and
+persisted-pageshow proofs, find reset and fresh search. Private isolation, navigation/tab reset
+and renderer crash/reload pass. Fixed direct-open private find theme in host assets only.
+No native build; guard zero; binary hashes unchanged; footprint remains 40 files /96 hunks.
+Evidence: `evidence/ui138-find-lifecycle-20261018/`. Native input pending unlock; broader lifecycle
+and visual gaps explicit, item4 incomplete. Latency deferred; Electron diagnostic build
+unapproved/unstarted; earlier F12/Task0 gates unchanged.
+
+
 ## October 18 expanded find progress
 
 Eight cross-runtime query comparisons, six component style pairs and three result states now
