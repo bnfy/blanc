@@ -102,13 +102,40 @@ const savedUrls = (session, runtimeId) =>
   session?.windows?.find((entry) => entry.id === runtimeId)?.urls ?? [];
 
 const waitForExit = async (app, exited, label) => {
-  const code = await Promise.race([
-    exited,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(
-      `${label}: Blanc still running 10s after its last window closed`,
-    )), 10_000)),
-  ]);
-  assert.equal(code, 0, `${label}: Blanc exits cleanly after its last window closes`);
+  let timer;
+  try {
+    const code = await Promise.race([
+      exited,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(
+          `${label}: Blanc still running 10s after its last window closed`,
+        )), 10_000);
+      }),
+    ]);
+    assert.equal(code, 0, `${label}: Blanc exits cleanly after its last window closes`);
+  } catch (error) {
+    // Preserve the original failure while bounding diagnostic collection if
+    // the main process itself is unresponsive.
+    let diagnosticTimer;
+    try {
+      const windows = await Promise.race([
+        describeWindows(app),
+        new Promise((resolve) => {
+          diagnosticTimer = setTimeout(() => resolve('main-process inspector unresponsive'), 1000);
+        }),
+      ]);
+      console.error(`${label} remaining windows:`, JSON.stringify(windows));
+      console.error(`${label} uncaught log:`, fs.existsSync(uncaughtLog)
+        ? fs.readFileSync(uncaughtLog, 'utf8') : '(absent)');
+    } catch (diagnosticError) {
+      console.error('Shutdown diagnostics unavailable:', diagnosticError.message);
+    } finally {
+      clearTimeout(diagnosticTimer);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 // A clean exit leaves no open run, no pending recovery and no crash events.
@@ -150,6 +177,17 @@ try {
   const before = await describeWindows(app);
   assert.ok(before.some((w) => w.visible), 'a visible browser window exists before the close');
   assert.ok(before.some((w) => !w.visible), 'the hidden display-capture helper exists (the precondition this test guards)');
+
+  // An internal helper must not be able to veto final application teardown.
+  // Model a helper whose cooperative close does not finish, without hanging
+  // a renderer or changing any user page's beforeunload behavior.
+  if (platform !== 'darwin') {
+    await app.evaluate(({ BrowserWindow }) => {
+      for (const window of BrowserWindow.getAllWindows()) {
+        if (!window.isVisible()) window.on('close', (event) => event.preventDefault());
+      }
+    });
+  }
 
   await simulatePlatform(app);
   const exited = new Promise((resolve) => app.process().once('exit', (code) => resolve(code)));

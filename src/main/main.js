@@ -9315,7 +9315,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // macOS keeps it: dock reopen reuses the broker's helper.
     if (releaseHiddenWindowsOnLastClose({ platform: process.platform, liveRuntimeWindows })
       && displayCaptureHelperWindow && !displayCaptureHelperWindow.isDestroyed()) {
-      displayCaptureHelperWindow.close();
+      // This is an internal helper, not a user document. The last visible
+      // window has already closed and checkpointed its session. Do not wait
+      // for a helper renderer's cooperative close to permit application quit.
+      displayCaptureHelperWindow.destroy();
     }
   }));
 
