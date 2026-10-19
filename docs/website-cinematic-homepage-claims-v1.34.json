@@ -492,16 +492,6 @@
       "verdict": "verified"
     },
     {
-      "id": "cinema-tools-start",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Start Page layouts Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock. Turn on Time-of-day wallpaper in Settings → General.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-tools-quiet",
       "source": "site/src/pages/index.astro",
       "exactWording": "Quiet Tabs",

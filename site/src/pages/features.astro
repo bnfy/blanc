@@ -65,19 +65,19 @@ import '../styles/features-bento.css';
       </BentoTile>
       <BentoTile id="wallpaper" href="/features/start-page" feature="time-of-day-wallpaper" area="R2" tone="daylight">
         <div slot="visual" class="bento-dayparts">
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dawn" src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp" width="1440" height="900" alt="" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--day" src="/feature-captures/home-wallpaper-day-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dusk" src="/feature-captures/home-wallpaper-dusk-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
-          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--night" src="/feature-captures/home-wallpaper-night-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dawn" src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp" width="1440" height="900" alt="" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--day" src="/feature-captures/home-wallpaper-day-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--dusk" src="/feature-captures/home-wallpaper-dusk-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img class="bento-img bento-img--cover bento-pos-clock bento-daypart bento-daypart--night" src="/feature-captures/home-wallpaper-night-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
         </div>
-        <h3>A Start Page that follows the time of day</h3>
+        <h3>Choose your Start Page wallpaper</h3>
       </BentoTile>
       <BentoTile id="ad-blocking" href="/features/ad-blocking" feature="ad-blocking" area="L2" fold>
         <BentoShield slot="visual" />
         <h3>Ads and trackers blocked by default</h3>
       </BentoTile>
       <BentoTile id="mahjong" href="/features/start-page" feature="mahjong" area="L3" tone="felt" label="top">
-        <img slot="visual" class="bento-img bento-img--cover bento-pos-mahjong" src="/feature-captures/mahjong-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
+        <img slot="visual" class="bento-img bento-img--cover bento-pos-mahjong" src="/feature-captures/mahjong-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
         <h3>Take a break to play Mahjong</h3>
       </BentoTile>
       <BentoTile id="blanc" href="/download" feature="blanc" area="C2" tone="hero" label="center">
@@ -174,10 +174,11 @@ import '../styles/features-bento.css';
           <p>When a background tab has gone unused for an hour (the default), Blanc releases the memory its page was using and dims it in the Island. Open it again and the page reloads with its address, title and back button. Choose 30 minutes, 1 hour, 6 hours or Off in Settings.</p>
           <p class="pop-note">Tabs playing sound, pinned tabs and pages with a half-filled form stay loaded. A quiet tab reloads; it does not resume exactly where the page’s scripts left off.</p>
         </FeaturePop>
-        <FeaturePop id="wallpaper" label="Time-of-day wallpaper" feature="time-of-day-wallpaper" href="/features/start-page" linkText="Read more about the Start Page">
-          <div slot="visual" class="pop-pair"><img src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-day-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-dusk-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-night-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
-          <h2 id="pop-wallpaper-title">A Start Page that follows the time of day.</h2>
+        <FeaturePop id="wallpaper" label="Start Page wallpaper" feature="time-of-day-wallpaper" href="/features/start-page" linkText="Read more about the Start Page">
+          <div slot="visual" class="pop-pair"><img src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/start-page-image-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/start-page-color-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/home-wallpaper-dusk-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+          <h2 id="pop-wallpaper-title">Choose your Start Page wallpaper.</h2>
           <p>Turn on time-of-day wallpaper in Settings → General, and the Start Page artwork moves through dawn, day, dusk and night with your computer’s clock.</p>
+          <p>Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.</p>
           <p class="pop-note">When Sync is on, the on/off choice follows you to your other devices; the artwork always follows each computer’s own clock.</p>
         </FeaturePop>
         <FeaturePop id="ad-blocking" label="Site protection" feature="ad-blocking" href="/features/ad-blocking" linkText="Read more about blocking" demo split>
@@ -188,7 +189,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">uBlock Origin is available on supported builds and applies after a restart. Private tabs always use Blanc Blocker. The 24 shown was measured on nytimes.com in Blanc 1.30.1.</p>
         </FeaturePop>
         <FeaturePop id="mahjong" label="Mahjong" feature="mahjong" href="/features/start-page" linkText="Read more about the Start Page">
-          <img slot="visual" class="pop-img" src="/feature-captures/mahjong-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" />
+          <img slot="visual" class="pop-img" src="/feature-captures/mahjong-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
           <h2 id="pop-mahjong-title">Play Mahjong from any Start Page.</h2>
           <p>Every Start Page footer opens Mahjong in its own tab, with eight boards, a Daily deal, hints, undo and records kept on this device.</p>
           <p class="pop-note">Mahjong is offline and single-player; nothing is synced.</p>
@@ -238,7 +239,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">Commands act only when you choose them.</p>
         </FeaturePop>
         <FeaturePop id="start-page" label="Start Page" feature="start-page" href="/features/start-page" linkText="Read more about the Start Page">
-          <div slot="visual" class="pop-pair"><img src="/feature-captures/ledger-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/billboard-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/shelf-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/tally-v1.35.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
+          <div slot="visual" class="pop-pair"><img src="/feature-captures/ledger-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/billboard-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/shelf-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /><img src="/feature-captures/tally-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" /></div>
           <h2 id="pop-start-page-title">Choose your Start Page layout.</h2>
           <p>Pick Ledger, Billboard, Shelf or Tally for new tabs. Billboard brings your frequent sites from local history, and Tally puts a big clock front and centre.</p>
           <p class="pop-note">Your layout choice can follow you through Sync; history stays on this device.</p>

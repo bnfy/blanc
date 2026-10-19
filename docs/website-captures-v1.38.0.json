@@ -5,7 +5,7 @@
   "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
   "captureDate": "2026-10-18",
   "timezone": "America/New_York",
-  "replaces": "On /features/start-page: billboard, ledger, shelf and tally -v1.31.0 (docs/website-captures-v1.31.0.json) and mahjong-v1.21.0 (docs/website-captures-v1.21.json), which predate the Instrument Sans interface text, the footer that sits on the wallpaper and the Customize popover's Wallpaper section. The older files stay in place with their ledgers; the homepage keeps its v1.35.0 captures. The four wallpaper captures are new.",
+  "replaces": "On /features/start-page: billboard, ledger, shelf and tally -v1.31.0 (docs/website-captures-v1.31.0.json) and mahjong-v1.21.0 (docs/website-captures-v1.21.json), which predate the Instrument Sans interface text, the footer that sits on the wallpaper and the Customize popover's Wallpaper section. The older files stay in place with their ledgers; the homepage keeps its v1.35.0 captures. The four wallpaper captures are new. On the homepage and /features: the v1.35.0 time-of-day wallpapers, layouts and Mahjong (docs/website-captures-v1.35.0.json), which keeps its files; /features/glance and the gesture demo keep their v1.35.0 captures.",
   "source": {
     "artifact": "Public release asset Blanc-1.38.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.38.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
     "dmgSha256": "09a08b51f4b64e85d3b9165e7a56ff8b56685a1bd8121723544299d8def681eb",
@@ -213,6 +213,109 @@
         "file": "site/public/feature-captures/mahjong-v1.38.0.webp",
         "sha256": "770ca3e5a644f2233028b2d379b54040f67e08e0ab018ddf5d74e9aa553a7f6d"
       }
+    },
+    {
+      "file": "site/public/feature-captures/billboard-image-v1.38.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "6bdbca634415e842170e77deea26edc6e5aac78e3c0fd8fd0519c04a660a4dab",
+      "capturedAt": "2026-10-19T01:53:47Z",
+      "state": "Billboard over the same Van Gogh sample, chosen in the Customize popover through the shipped Your image and Spotlight controls, popover closed: the Spotlight wash behind the header, clock, blocked total, six sites and the Research and Reading pills, the painting's edges bare.",
+      "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_SCALE=2 BLANC_CAPTURE_IMAGE=<the sample> BLANC_CAPTURE_TRIM=0.03 node scripts/capture-installed-start-page.mjs (the layouts run above, with the sample stored as the importer stores it). A 2880×1800 Chromium page screenshot after animations settle, resized to 1440×900 with lanczos3, with a same-size WebP companion (quality 85). The run's other outputs were not kept.",
+      "evidence": [
+        "v1.38.0:src/renderer/pages/newtab.html",
+        "v1.38.0:src/renderer/pages/newtab-wallpaper.js",
+        "v1.38.0:src/main/wallpaper.js",
+        "docs/release-incidents/2026-10-18-v1.38.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/billboard-image-v1.38.0.webp",
+        "sha256": "78a6baee8180c870631b4b66ac56bfd7861277e51c1013ec6b2c9bd63a1de21c"
+      }
     }
+  ],
+  "wallpaperSettings": {
+    "newtabDynamicWallpaper": true,
+    "layout": "billboard",
+    "theme": "light",
+    "usagePing": false,
+    "searchSuggestions": false
+  },
+  "wallpapers": [
+    {
+      "phase": "dawn",
+      "theme": "light",
+      "localHourFixture": 6,
+      "chromeTint": "#f8f1e7",
+      "file": "site/public/feature-captures/home-wallpaper-dawn-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "03da79cc90a2e8739678e9ff1a30793bf2ca95d59a252dd097a802a7de1375d9",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dawn-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "bdd34cb8f13c010e5f9b82ad84735304bd16fba0e94d1be4c1c367a5331e4aa3"
+      },
+      "capturedAt": "2026-10-19T01:52:58Z"
+    },
+    {
+      "phase": "day",
+      "theme": "light",
+      "localHourFixture": 12,
+      "chromeTint": "#e3e8e9",
+      "file": "site/public/feature-captures/home-wallpaper-day-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "f3217ceac9acc6ab667ffcc1d2a905a4feb32cbafe47a6369147c524d34c968b",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-day-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "034c3f5acf04458cd6181ba5b4694abc4fa1482ce290f045e77ba5db2c09bcde"
+      },
+      "capturedAt": "2026-10-19T01:53:01Z"
+    },
+    {
+      "phase": "dusk",
+      "theme": "light",
+      "localHourFixture": 18,
+      "chromeTint": "#f1e7df",
+      "file": "site/public/feature-captures/home-wallpaper-dusk-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "627209eb7fbf6f5b631f1398280db81834009e10dc3c305bb6ecb7c02a41f0d6",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-dusk-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "596f089347b1de9cb17bfc3bc897c755b938a03b470b9f7d98f2977a23b5b447"
+      },
+      "capturedAt": "2026-10-19T01:53:04Z"
+    },
+    {
+      "phase": "night",
+      "theme": "light",
+      "localHourFixture": 23,
+      "chromeTint": "#e9e4db",
+      "file": "site/public/feature-captures/home-wallpaper-night-v1.38.0.png",
+      "width": 2560,
+      "height": 1600,
+      "sha256": "f6244d83eb55f80dbe5dd032c15374355b6f1f28c441dec113ef8c2606c05118",
+      "displayAsset": {
+        "file": "site/public/feature-captures/home-wallpaper-night-v1.38.0.webp",
+        "width": 1440,
+        "height": 900,
+        "sha256": "5710cd9aea1255d19c9f1dc54c8a577a1cea77eb70513ac588d82476d4a9537e"
+      },
+      "capturedAt": "2026-10-19T01:53:07Z"
+    }
+  ],
+  "wallpaperMethod": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.38.0 npm run capture:wallpaper:installed, the procedure behind docs/website-captures-v1.35.0.json, now also seeding lastRunVersion 1.38.0 and a dismissed Patron callout so the footer shows no pill. A capture-only init script fixes the renderer clock at 6, 12, 18 or 23 h; reduced motion; native screencapture -l at 2560×1600 kept as source, with the tool's 1440px quality-90 WebP. Only the light set is kept. The chrome tint is read from the capture at 15% across, 2% down. Captured 2026-10-19 between 01:52:58Z and 01:53:07Z.",
+  "shownOn": [
+    "site/src/pages/features/start-page.astro",
+    "site/src/pages/index.astro",
+    "site/src/pages/features.astro"
   ]
 }
