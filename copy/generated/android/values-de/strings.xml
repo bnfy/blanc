@@ -422,6 +422,12 @@
         <item quantity="other">%1$d Tabs</item>
     </plurals>
     <string name="result_archived">Archiviert</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc hat %1$d Tab archiviert</item>
+        <item quantity="other">Blanc hat %1$d Tabs archiviert</item>
+    </plurals>
+    <string name="archive_notice_view">Archiv ansehen</string>
+    <string name="archive_notice_dismiss">Schließen</string>
     <string name="result_tag_search">Suche</string>
     <string name="menu_new_window">Neues Fenster</string>
     <string name="menu_new_private_window">Neues privates Fenster</string>
@@ -1451,6 +1457,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="onboarding_island_hint">Öffne sie mit &lt;0&gt;%1$s&lt;/0&gt;.</string>
     <string name="onboarding_island_shortcut_mac">Befehl L</string>
     <string name="onboarding_island_shortcut">Steuerung L</string>
+    <string name="onboarding_island_archive">Tabs nach 7 Tagen archivieren&lt;0&gt;Lose Tabs, die du 7 Tage nicht geöffnet hast, werden geschlossen und 30 Tage in deinem Archiv aufbewahrt. Angeheftete Tabs und Gruppen bleiben.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Tabs nach 7 Tagen archivieren</string>
     <string name="onboarding_blocking_title">Werbung &amp; Tracker blockieren</string>
     <string name="onboarding_blocking_body">Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus.</string>
     <string name="onboarding_blocking_toggle">Werbung &amp; Tracker blockieren</string>

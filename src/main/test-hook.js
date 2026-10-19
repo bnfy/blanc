@@ -1966,6 +1966,53 @@ function install(refs) {
         return true;
       })()`);
     },
+    /** Click Continue until the walkthrough shows `step`. */
+    advanceOnboardingTo(step) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(async () => {
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden) return false;
+        for (let i = 0; i < 200 && Number(dialog.dataset.step) < ${Number(step)}; i += 1) {
+          const next = document.getElementById('obNext');
+          if (!next.disabled) next.click();
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        return dialog.dataset.step === '${Number(step)}';
+      })()`);
+    },
+    // F52 spec D5: the Tab Archive row in "Meet the island".
+    readOnboardingArchiveOffer() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const row = document.getElementById('obArchiveRow');
+        const toggle = document.getElementById('obArchive');
+        return {
+          hidden: !row || row.hidden || row.closest('section')?.hidden === true,
+          checked: toggle?.getAttribute('aria-checked') === 'true',
+          label: row?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+        };
+      })()`);
+    },
+    clickOnboarding(selector) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.disabled || document.getElementById('onboardDialog').hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
+    /** The new tab page's own onboarding bridge, called directly. */
+    sendOnboardingSet(partial) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(
+        `window.bowserPages.start.onboardingSet(${JSON.stringify(partial ?? {})}).then(() => true)`);
+    },
+    tabArchiveSetting() { return settings.getSettings().tabArchive; },
     readOnboardingDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -3261,6 +3308,10 @@ function install(refs) {
     showTestFirstRunMigration() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      // The acceptance profile completes first run at launch; the synthetic
+      // status below stands for a fresh profile, so main's own first-run gate
+      // (the Tab Archive offer, spec D5) must agree with it.
+      refs.setFirstRunPendingForTest(true);
       tab.view.webContents.send('pages:start:status', {
         startup: { phase: 'skipped', attempt: 0, error: null },
         privacy: {
@@ -3490,6 +3541,7 @@ function install(refs) {
      *  set-aside Spaces included. */
     async runArchiveSweepInEveryWindow() { return runArchiveSweepInEveryWindow(); },
     archiveEntries() { return archive.listArchive({ now: Date.now() }); },
+    archiveNoticePending() { return archive.pendingNotice(); },
     restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
     /** Falsifiability hook: only an OS process count proves a discarded view
@@ -3548,7 +3600,9 @@ function install(refs) {
       getGroups().length = 0;
       history.clearHistory();
       archive.clearArchive();
+      archive.resetNoticeForTest();
       setArchiveGraceUntil(0);
+      refs.setFirstRunPendingForTest(false);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',

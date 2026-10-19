@@ -1592,6 +1592,18 @@
     "message": "Archived",
     "note": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'."
   },
+  "archive.notice.title": {
+    "message": "{count, plural, one {Blanc archived # tab} other {Blanc archived # tabs}}",
+    "note": "⌘L panel: one-time notice at the top of the tab list after Blanc first archives idle tabs (F52)."
+  },
+  "archive.notice.view": {
+    "message": "View Archive",
+    "note": "⌘L panel, first-archive notice: action that opens History on its Archived tabs view."
+  },
+  "archive.notice.dismiss": {
+    "message": "Dismiss",
+    "note": "⌘L panel, first-archive notice: accessible name and tooltip of the ✕ that hides the notice for good."
+  },
   "result.tag.search": {
     "message": "Search",
     "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
@@ -5452,6 +5464,14 @@
   "onboarding.island.shortcut": {
     "message": "Control L",
     "note": "Onboarding dialog → step 3: how a screen reader reads the Ctrl+L key."
+  },
+  "onboarding.island.archive": {
+    "message": "Archive tabs after 7 days<0>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</0>",
+    "note": "Onboarding → step 3 (the Island): Tab Archive switch name (F52), then (tag 0) its explanation in smaller type. Preset on for a fresh profile."
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Archive tabs after 7 days",
+    "note": "Onboarding → step 3: accessible name of the Tab Archive switch (F52)."
   },
   "onboarding.blocking.title": {
     "message": "Block ads & trackers",

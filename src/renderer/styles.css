@@ -2804,6 +2804,17 @@ body.tooltip-surface { background: transparent; }
 .closed-clear:hover,
 .closed-clear:focus-visible { color: var(--text); opacity: 1; }
 
+/* F52 spec D6: the one-time "Blanc archived N tabs" band at the top of the
+   resting list. Recently closed's band and glyph, but a notice reads at full
+   strength and keeps its two actions visible without hover. */
+.archive-notice .island-row { cursor: default; }
+.archive-notice .island-row:hover { background: transparent; }
+.archive-notice .row-title { color: var(--text); }
+.archive-notice .archive-notice-view { margin-left: auto; color: var(--text); opacity: 1; }
+.archive-notice .archive-notice-view:hover,
+.archive-notice .archive-notice-view:focus-visible { text-decoration: underline; }
+.archive-notice .row-close { opacity: 1; }
+
 /* Group results size to their text (flex 0 0 auto), so the overflow fade
    above would wash out every name's tail — exempt them. */
 .island-row .row-title.mono {

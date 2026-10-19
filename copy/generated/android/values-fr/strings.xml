@@ -435,6 +435,13 @@
         <item quantity="other">%1$d onglets</item>
     </plurals>
     <string name="result_archived">Archivé</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc a archivé %1$d onglet</item>
+        <item quantity="many">Blanc a archivé %1$d onglets</item>
+        <item quantity="other">Blanc a archivé %1$d onglets</item>
+    </plurals>
+    <string name="archive_notice_view">Voir les Archives</string>
+    <string name="archive_notice_dismiss">Ignorer</string>
     <string name="result_tag_search">Recherche</string>
     <string name="menu_new_window">Nouvelle fenêtre</string>
     <string name="menu_new_private_window">Nouvelle fenêtre privée</string>
@@ -1492,6 +1499,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; pour l’ouvrir.</string>
     <string name="onboarding_island_shortcut_mac">Commande L</string>
     <string name="onboarding_island_shortcut">Contrôle L</string>
+    <string name="onboarding_island_archive">Archiver les onglets après 7 jours&lt;0&gt;Les onglets isolés que vous n’avez pas ouverts depuis 7 jours sont fermés et gardés 30 jours dans vos Archives. Les onglets épinglés et les groupes restent.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archiver les onglets après 7 jours</string>
     <string name="onboarding_blocking_title">Bloquez les publicités et traceurs</string>
     <string name="onboarding_blocking_body">Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash.</string>
     <string name="onboarding_blocking_toggle">Bloquer les publicités et traceurs</string>

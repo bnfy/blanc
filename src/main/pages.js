@@ -713,13 +713,18 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
-  // Onboarding may change exactly these two settings, live — never the whole
+  // Onboarding may change exactly these settings, live — never the whole
   // settings surface. Values still pass setSettings' own validation.
   handle('pages:start:onboarding-set', 'newtab', (partial) => {
     const clean = {};
     if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
     if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
     if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
+    // F52 spec D5: the island step's Tab Archive offer — After 7 days or Off,
+    // and main accepts it only while first run is pending.
+    if (partial && (partial.tabArchive === '7d' || partial.tabArchive === 'off')) {
+      hooks.startPage?.offerTabArchive?.(partial.tabArchive);
+    }
   });
 
   // Replays the first-run walkthrough. Main creates and activates the tour

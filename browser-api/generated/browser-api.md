@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-126 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+128 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -87,6 +87,8 @@
 | `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
 | `archiveList` | history | invoke | `chrome:archive-list` | `() => Promise<ArchivedTab[]>` | all |
 | `archiveRestore` | history | invoke | `chrome:archive-restore` | `(id: string) => Promise<boolean>` | all |
+| `archiveNotice` | history | invoke | `chrome:archive-notice` | `() => Promise<ArchiveNotice \| null>` | all |
+| `archiveNoticeDone` | history | invoke | `chrome:archive-notice-done` | `(action: 'view' \| 'dismiss') => Promise<boolean>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
@@ -795,6 +797,14 @@ An archived tab (F52), from listArchive() in archive.js: the projected row a ren
 | `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
 | `archivedAt` | `number` | Epoch milliseconds when the tab was archived. |
 | `spaceName` | `string \| null` | The Space it was archived from, for display only. |
+
+### `ArchiveNotice`
+
+The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `count` | `number` | Tabs given an Archive entry since the notice was first recorded. |
 
 ### `FavoriteItem`
 

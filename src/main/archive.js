@@ -1,10 +1,11 @@
 // The Tab Archive store (F52): one per local profile, like history.json.
 // Entries come only from tab-archive.js's buildArchiveEntry allow-list, so no
 // snapshot, page state, back stack or opener can reach this file. Never synced;
-// cleared with history. See docs/superpowers/specs/2026-10-19-tab-archive-design.md.
+// cleared with history. Also holds the profile's one-time first-archive
+// notice state (spec D6). See docs/superpowers/specs/2026-10-19-tab-archive-design.md.
 
 const { JsonStore } = require('./store');
-const { expireArchive, projectArchive, searchArchive } = require('./tab-archive');
+const { expireArchive, projectArchive, searchArchive, cleanArchiveNotice, nextArchiveNotice } = require('./tab-archive');
 
 let store = null;
 const ensureStore = () => (store ??= new JsonStore(
@@ -48,11 +49,42 @@ function forgetEntry(id) {
   return takeEntry(id) !== null;
 }
 
+/** Clearing leaves nothing to view, so an unseen notice goes with it; a
+ *  finished one stays finished. */
 function clearArchive() {
   ensureStore().update((d) => {
     d.version = 1;
     d.entries = [];
+    if (cleanArchiveNotice(d.notice)?.state === 'pending') delete d.notice;
   });
+}
+
+// ---- The one-time first-archive notice (spec D6) ----
+
+/** Record a sweep that gave `count` tabs an Archive entry. */
+function noteArchived(count) {
+  ensureStore().update((d) => {
+    const next = nextArchiveNotice(d.notice, count);
+    if (next) d.notice = next;
+    else delete d.notice;
+  });
+}
+
+/** {count} while the notice waits to be seen, else null. */
+function pendingNotice() {
+  const notice = cleanArchiveNotice(ensureStore().data.notice);
+  return notice?.state === 'pending' ? { count: notice.count } : null;
+}
+
+/** Dismissed or acted on: never shown again. True when it was pending. */
+function finishNotice() {
+  const wasPending = pendingNotice() !== null;
+  ensureStore().update((d) => { d.notice = { state: 'done' }; });
+  return wasPending;
+}
+
+function resetNoticeForTest() {
+  ensureStore().update((d) => { delete d.notice; });
 }
 
 function flushArchive() {
@@ -66,4 +98,8 @@ module.exports = {
   forgetEntry,
   clearArchive,
   flushArchive,
+  noteArchived,
+  pendingNotice,
+  finishNotice,
+  resetNoticeForTest,
 };

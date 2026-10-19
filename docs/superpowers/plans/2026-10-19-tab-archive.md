@@ -208,7 +208,7 @@ No `require('electron')`. The clock is always injected.
 
 ### Task 9: Onboarding offer and first-archive notice (spec D5, D6)
 
-The owner answered spec §10 Q1 and Q2 on 2026-10-19 (now D5 and D6). This work lands separately from PR #977, on a branch stacked on it. First show two or three mockups each, using real CSS, of the compact Tab Archive choice inside the "Meet the island" step (preset to After 7 days) and of the one-time "Blanc archived {count} tabs · View Archive" notice, and wait for the owner to pick. Once one is chosen:
+The owner answered spec §10 Q1 and Q2 on 2026-10-19 (now D5 and D6). This work lands separately from PR #977, on a branch stacked on it. First show two or three mockups each, using real CSS, of the compact Tab Archive choice inside the "Meet the island" step (preset to After 7 days) and of the one-time "Blanc archived {count} tabs · View Archive" notice, and wait for the owner to pick. The owner chose onboarding A (the toggle row, preset on) and notice N2 (the top of the ⌘L panel) on 2026-10-19; spec §4 records both. Once one is chosen:
 
 **Files:** `src/renderer/pages/onboarding.js` and its step markup; the notice's surface (chosen with the mockups); `copy/messages/*.json`; `spec/acceptance/onboarding.feature`, `spec/acceptance/tab-archive.feature`; `src/main/test-hook.js`; a per-profile, never-synced notice state.
 

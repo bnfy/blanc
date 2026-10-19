@@ -138,7 +138,7 @@ When('the computer wakes from sleep and the archive sweep runs', async function 
   assert.equal(this.archiveResult.skippedReason, 'grace');
 });
 
-const { runSlashCommand } = require('../support/overlay');
+const { runSlashCommand, overlayPage, waitForPanelSettled } = require('../support/overlay');
 
 async function archivedSheetRows(world) {
   return world.call('historySheetArchivedRows');
@@ -245,4 +245,80 @@ When('I go back to that Space and the archive sweep runs in every window', async
   await this.waitForState((state) => state.tabs.some((t) => t.id === this.archiveCandidateId));
   await this.call('setArchiveGraceUntil', 0);
   this.archiveResults = await this.call('runArchiveSweepInEveryWindow');
+});
+
+// ---- Spec D6: the one-time first-archive notice in the ⌘L panel ----
+
+const { openOverlaySurface, waitForValue, clickWhenSettled } = require('../support/poll');
+
+async function openSettledPanel(world) {
+  await openOverlaySurface(world, 'openPanel', 'panel');
+  return waitForPanelSettled();
+}
+
+When('I open the island panel', async function () {
+  await openSettledPanel(this);
+});
+
+Then('the panel says Blanc archived 1 tab', async function () {
+  const page = await overlayPage();
+  const title = page.locator('#islandList .archive-notice .row-title');
+  await title.waitFor({ state: 'visible' });
+  assert.equal(await title.textContent(), 'Blanc archived 1 tab');
+  assert.equal(await page.locator('#islandList .archive-notice .archive-notice-view').textContent(), 'View Archive');
+});
+
+When('I choose View Archive', async function () {
+  const page = await overlayPage();
+  await clickWhenSettled(page.locator('#islandList .archive-notice .archive-notice-view'), 'View Archive');
+});
+
+When('I dismiss the archive notice', async function () {
+  const page = await overlayPage();
+  await clickWhenSettled(page.locator('#islandList .archive-notice .archive-notice-dismiss'), 'Dismiss');
+  await page.locator('#islandList .archive-notice').waitFor({ state: 'detached' });
+});
+
+Then('the History sheet shows the Archived view', async function () {
+  await waitForRows(this, (r) => r?.view === 'archived');
+});
+
+async function assertNoNotice(world) {
+  await waitForValue(() => world.call('archiveNoticePending'), (notice) => notice === null, 'no pending archive notice');
+  const page = await openSettledPanel(world);
+  assert.equal(await page.locator('#islandList .archive-notice').count(), 0);
+  await world.call('closeOverlay');
+}
+
+Then('the archive notice is not shown again', async function () {
+  await assertNoNotice(this);
+});
+
+Then('the archive notice is not shown', async function () {
+  await assertNoNotice(this);
+});
+
+When('another tab is archived', async function () {
+  const id = await openLoadedTab(this, 'archive-second');
+  await archiveTab(this, id);
+});
+
+Given('a blank New Tab in the background not viewed for 13 hours', async function () {
+  const previous = (await this.state()).activeTabId;
+  this.archiveCandidateId = await this.call('newTab');
+  // A loading tab is never a candidate: let the Start Page finish first.
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((t) => t.id === this.archiveCandidateId);
+    return tab && !tab.loading && tab.loadedUrl.startsWith('blanc://newtab');
+  });
+  await this.call('activateTab', previous);
+  await this.waitForState((state) => state.activeTabId === previous);
+  await this.call('setTabViewedSince', this.archiveCandidateId, 13 * HOUR);
+});
+
+Then('that tab is closed without an Archive entry', async function () {
+  assert.deepEqual(this.archiveResult.archived, []);
+  assert.deepEqual(this.archiveResult.closed, [this.archiveCandidateId]);
+  await this.waitForState((state) => !state.tabs.some((t) => t.id === this.archiveCandidateId));
+  assert.equal((await this.call('archiveEntries')).length, 0);
 });

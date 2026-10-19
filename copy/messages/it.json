@@ -1533,6 +1533,18 @@
     "message": "Archiviata",
     "source": "sha256:192a2958de4f03ebb2d906d631b240ba1ebd135c71a191dc55a34b2fc261da7b"
   },
+  "archive.notice.title": {
+    "message": "{count, plural, one {Blanc ha archiviato # scheda} many {Blanc ha archiviato # schede} other {Blanc ha archiviato # schede}}",
+    "source": "sha256:eada64636357582450f5c84631a1e953c48bea9ebd508108a33fbec8eef1940d"
+  },
+  "archive.notice.view": {
+    "message": "Vedi Archivio",
+    "source": "sha256:b9b13e5db74e47a02ef6e47678bbb2d7e31af153a36aa1c0f2c7c5fe00f965b4"
+  },
+  "archive.notice.dismiss": {
+    "message": "Ignora",
+    "source": "sha256:98d1fcff74566a6e97d4d5acd0922062309b31853038b20939f5c1bcb26709e9"
+  },
   "result.tag.search": {
     "message": "Ricerca",
     "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"
@@ -5266,6 +5278,14 @@
   "onboarding.island.shortcut": {
     "message": "Control L",
     "source": "sha256:ffbdc2079d2653a6c938eddff05942027e2793a9b7a1c24e29201600a4e60324"
+  },
+  "onboarding.island.archive": {
+    "message": "Archivia le schede dopo 7 giorni<0>Le schede sparse che non apri da 7 giorni vengono chiuse e conservate nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi restano.</0>",
+    "source": "sha256:bc560c72cdebab99d1b921aee522ce88d9629ba2d36a0ded17470bbf657a294a"
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Archivia le schede dopo 7 giorni",
+    "source": "sha256:d1abb4147431e6240fdcf51f2a4ce3f5635baad08235ebf794a194479b3bbccf"
   },
   "onboarding.blocking.title": {
     "message": "Blocca annunci e tracker",

@@ -526,6 +526,12 @@ export interface ArchivedTab {
   spaceName: string | null;
 }
 
+/** The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js. */
+export interface ArchiveNotice {
+  /** Tabs given an Archive entry since the notice was first recorded. */
+  count: number;
+}
+
 /** A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark. */
 export interface FavoriteItem {
   id: string;
@@ -1142,6 +1148,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:archive-restore`.
    */
   archiveRestore(id: string): Promise<boolean>;
+  /**
+   * The profile's one-time first-archive notice (F52 spec D6) while it waits to be seen, else null. Null while the active tab is private.
+   * IPC: invoke `chrome:archive-notice`.
+   */
+  archiveNotice(): Promise<ArchiveNotice | null>;
+  /**
+   * Finish the first-archive notice for good; 'view' also opens History on its Archived view. True when it was still pending.
+   * IPC: invoke `chrome:archive-notice-done`.
+   */
+  archiveNoticeDone(action: 'view' | 'dismiss'): Promise<boolean>;
   /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.
