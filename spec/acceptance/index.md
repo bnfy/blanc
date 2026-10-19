@@ -68,6 +68,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
 | F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |
 | F1-19 | Resting at the top edge reveals the Island without page movement | D29 | ✅ | ➖ | ➖ |
+| F1-20 | A hover-opened panel closes once the pointer leaves it | D28 | ✅ | ➖ | ➖ |
+| F1-21 | A hover-opened panel stays open once it is used | D28 | ✅ | ➖ | ➖ |
+| F1-22 | Resting just below the top edge reveals the Island after a moment | D29 | ✅ | ➖ | ➖ |
+| F1-23 | Passing just below the top edge does not reveal the Island | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

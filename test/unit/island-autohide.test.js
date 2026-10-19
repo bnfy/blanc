@@ -7,6 +7,7 @@ const path = require('node:path');
 const {
   REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
+  REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -124,7 +125,8 @@ test('a window against the top of the work area reaches to the top of the screen
 test('a hidden strip in the focused window samples the cursor rather than waiting for page moves', () => {
   const watch = main.slice(main.indexOf('function watchIslandReveal(runtime)'), main.indexOf('/** Move the strip in or out'));
   assert.match(watch, /runtime\.window\.isFocused\(\)/);
-  assert.match(watch, /islandHeldAt\(runtime, sampledWindowCursor\(runtime\)\)/);
+  assert.match(watch, /const point = sampledWindowCursor\(runtime\);/);
+  assert.match(watch, /islandHeldAt\(runtime, point\)/);
   assert.match(watch, /setTimeout\(bindWindowRuntime\(runtime, \(\) => \{/);
   assert.match(main, /'blur', bindWindowRuntime\(runtime, \(\) => \{\s+stopIslandRevealWatch\(runtime\);/);
   assert.match(main, /focusedRuntime = runtime;\s+if \(!runtime\.islandRevealed\) watchIslandReveal\(runtime\);/);
@@ -168,4 +170,53 @@ test('main slides rather than snaps, honors Reduce Motion, and turning on never 
   assert.match(main, /fromTop = runtime\.islandSlide \? runtime\.islandSlide\.top : pageTopFor\(runtime\)/);
   assert.match(main, /islandAutoHideModule\.slidingBounds\(bounds, \{ stripTop: layout\.pageBounds\.y, animatedTop: slide\.top \}\)/);
   assert.match(main, /runtime\.islandRevealed = islandAutoHide && runtime === target;/);
+});
+
+test('resting near the top reveals the Island after a short dwell', () => {
+  const win = { width: 1200, height: 800 };
+  const at = (x, y) => ({ x, y });
+  const y = REVEAL_EDGE_PX + 10;
+  assert.ok(y < REVEAL_DWELL_BAND_PX);
+  let step = revealDwellStep(null, at(400, y), 1000, win);
+  assert.equal(step.reveal, false);
+  assert.ok(step.dwell, 'a rest starts in the band');
+  step = revealDwellStep(step.dwell, at(402, y + 1), 1000 + REVEAL_DWELL_MS - 1, win);
+  assert.equal(step.reveal, false, 'not before the dwell');
+  step = revealDwellStep(step.dwell, at(401, y), 1000 + REVEAL_DWELL_MS, win);
+  assert.equal(step.reveal, true, 'a small tremor still counts as resting');
+});
+
+test('sweeping along the top does not count as resting', () => {
+  const win = { width: 1200, height: 800 };
+  const y = 30;
+  let step = revealDwellStep(null, { x: 100, y }, 0, win);
+  for (let t = 120, x = 100; t <= 1200; t += 120) {
+    x += REVEAL_DWELL_DRIFT_PX + 1;
+    step = revealDwellStep(step.dwell, { x, y }, t, win);
+    assert.equal(step.reveal, false, `moved at ${t}ms`);
+  }
+});
+
+test('the dwell band sits below the instant edge and inside the window', () => {
+  const win = { width: 1200, height: 800 };
+  for (const point of [
+    { x: 400, y: REVEAL_DWELL_BAND_PX + 1 },
+    { x: 400, y: REVEAL_EDGE_PX },
+    { x: 400, y: -4 },
+    { x: -1, y: 30 },
+    { x: 1201, y: 30 },
+    { x: Number.NaN, y: 30 },
+    null,
+  ]) {
+    const step = revealDwellStep({ anchor: { x: 400, y: 30 }, since: 0 }, point, 10000, win);
+    assert.deepEqual(step, { dwell: null, reveal: false }, JSON.stringify(point));
+  }
+  assert.ok(REVEAL_DWELL_BAND_PX >= 36 && REVEAL_DWELL_BAND_PX <= 48);
+  assert.ok(REVEAL_DWELL_MS >= 200 && REVEAL_DWELL_MS <= 400);
+});
+
+test('main feeds the sampled cursor to the dwell and resets it on reveal', () => {
+  assert.match(main, /const dwell = islandAutoHideModule\.revealDwellStep\(runtime\.islandRevealDwell, point, Date\.now\(\), runtime\.window\.getContentBounds\(\)\);/);
+  assert.match(main, /if \(islandHeldAt\(runtime, point\) \|\| dwell\.reveal\) \{/);
+  assert.match(main, /runtime\.islandRevealDwell = null;/);
 });

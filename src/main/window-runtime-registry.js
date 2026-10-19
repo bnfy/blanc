@@ -185,6 +185,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     islandSlide: null,
     /** Cursor sampling that reveals a hidden Island at the top edge. */
     islandRevealWatchTimer: null,
+    islandRevealDwell: null,
     windowButtonsVisible: null,
     /** The how-to tip shown when auto-hide is turned on, and the tooltip
      * generation it drew under (a newer pill tooltip replaces it). */

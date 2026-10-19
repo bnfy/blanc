@@ -3118,7 +3118,9 @@ function applyIslandHoverStep(runtime, event) {
       }
       const fired = hoverStep(hover.state, { type: 'fired' });
       hover.state = fired.state;
-      if (fired.effect === 'open') showOverlay('panel');
+      // Marked so the overlay closes it again once the pointer leaves it
+      // (hover-panel-leave.js): an open panel stops the strip dragging.
+      if (fired.effect === 'open') showOverlay('panel', { purpose: { hoverOpened: true } });
     }), HOVER_OPEN_DWELL_MS);
   }
   return next;
@@ -3212,6 +3214,7 @@ function islandHeldAt(runtime, point) {
 function stopIslandRevealWatch(runtime) {
   if (runtime.islandRevealWatchTimer) clearTimeout(runtime.islandRevealWatchTimer);
   runtime.islandRevealWatchTimer = null;
+  runtime.islandRevealDwell = null;
 }
 
 /** While the strip is hidden in the focused window, sample the cursor so the
@@ -3223,11 +3226,17 @@ function watchIslandReveal(runtime) {
   runtime.islandRevealWatchTimer = setTimeout(bindWindowRuntime(runtime, () => {
     runtime.islandRevealWatchTimer = null;
     if (!islandAutoHide || !runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
-    if (!runtime.islandRevealed && islandHeldAt(runtime, sampledWindowCursor(runtime))) {
-      revealIsland(runtime);
-      return;
+    if (!runtime.islandRevealed) {
+      // The top edge reveals at once; resting just below it, after a dwell.
+      const point = sampledWindowCursor(runtime);
+      const dwell = islandAutoHideModule.revealDwellStep(runtime.islandRevealDwell, point, Date.now(), runtime.window.getContentBounds());
+      runtime.islandRevealDwell = dwell.dwell;
+      if (islandHeldAt(runtime, point) || dwell.reveal) {
+        revealIsland(runtime);
+        return;
+      }
+      watchIslandReveal(runtime);
     }
-    if (!runtime.islandRevealed) watchIslandReveal(runtime);
   }), islandAutoHideModule.REVEAL_WATCH_MS);
 }
 

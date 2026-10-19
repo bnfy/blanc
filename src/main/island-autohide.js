@@ -14,6 +14,15 @@ const REVEAL_EDGE_PX = 10;
 /** How far above a floating window's top edge the pointer still counts, in
  * px: an upward move usually overshoots the window's border. */
 const REACH_ABOVE_PX = 16;
+/** Below that edge, resting this far from the window's top also reveals the
+ * Island, after REVEAL_DWELL_MS. A quick reach for a website's own top links
+ * passes through without revealing it (the page would move down under the
+ * pointer); pausing near the top does. */
+const REVEAL_DWELL_BAND_PX = 40;
+/** How long the pointer must rest in that band, in ms. */
+const REVEAL_DWELL_MS = 300;
+/** How far the pointer may drift and still count as resting, in px. */
+const REVEAL_DWELL_DRIFT_PX = 8;
 /** How often a hidden Island in the focused window samples the cursor. The
  * page's own mouse moves can't be relied on: the pointer may be outside the
  * window, or over a band the platform keeps for itself. */
@@ -42,6 +51,27 @@ function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachA
   if (point.x < 0 || point.y < -above || point.x > width || point.y > height) return false;
   if (point.y <= REVEAL_EDGE_PX) return true;
   return revealed === true && point.y < Math.max(0, chromeHeight) + HIDE_SLACK_PX;
+}
+
+/**
+ * One cursor sample for the dwell band. `dwell` is the rest in progress
+ * ({anchor, since}) or null; the result carries the next one and whether the
+ * rest has lasted long enough to reveal the Island. The instant edge band is
+ * pointHoldsIsland's; this covers the band below it.
+ * @param {{anchor: {x: number, y: number}, since: number}|null} dwell
+ * @param {{x: number, y: number}|null} point window content coordinates
+ * @param {number} now ms
+ * @param {{width: number}} window
+ */
+function revealDwellStep(dwell, point, now, { width }) {
+  const inBand = !!point && finite(point.x) && finite(point.y) &&
+    point.x >= 0 && point.x <= width &&
+    point.y > REVEAL_EDGE_PX && point.y <= REVEAL_DWELL_BAND_PX;
+  if (!inBand) return { dwell: null, reveal: false };
+  const resting = !!dwell && Math.abs(point.x - dwell.anchor.x) <= REVEAL_DWELL_DRIFT_PX &&
+    Math.abs(point.y - dwell.anchor.y) <= REVEAL_DWELL_DRIFT_PX;
+  if (!resting) return { dwell: { anchor: { x: point.x, y: point.y }, since: now }, reveal: false };
+  return { dwell, reveal: now - dwell.since >= REVEAL_DWELL_MS };
 }
 
 /**
@@ -109,6 +139,10 @@ module.exports = {
   INTRO_MS,
   REACH_ABOVE_PX,
   REVEAL_WATCH_MS,
+  REVEAL_DWELL_BAND_PX,
+  REVEAL_DWELL_MS,
+  REVEAL_DWELL_DRIFT_PX,
+  revealDwellStep,
   SLIDE_IN_MS,
   SLIDE_OUT_MS,
   easeOutCubic,

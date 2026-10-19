@@ -107,6 +107,18 @@ Pointer motion inside the pill does not restart the timer. Pointer proximity
 outside the pill continues to produce the existing rise/grow response but
 never starts the open timer.
 
+**Closing again on leave (added 2026-10-19).** A panel opened by hover closes
+once the pointer has been off its card (plus 8 px) or out of the overlay for
+200 ms, unless it has been used: any key, or a press or scroll on the card,
+keeps it open like a clicked panel. While any panel is open its overlay covers
+the strip and the strip stops dragging the window, so a panel opened by a
+passing pointer swallowed the next grab of the strip (found while testing
+auto-hide, where revealing the Island brings the pointer down over the pill).
+Main marks the open with `purpose: { hoverOpened: true }`; the overlay owns
+the watch (`src/renderer/hover-panel-leave.js`) and closes through
+`closeOverlay('hover-leave')`. Panels opened by click, ⌘L or typing are
+unchanged. Acceptance F1-20 and F1-21.
+
 ### 4.3 Input and accessibility
 
 - Click and Enter/Space still open immediately.

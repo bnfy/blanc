@@ -109,6 +109,27 @@ When('the pointer rests at the top edge without the page seeing it move', async 
   await restCursor(this, { x: 400, y: 2 });
 });
 
+// Below the instant edge the pointer must rest a moment (REVEAL_DWELL_MS) to
+// reveal the Island; the hidden strip's cursor sampling sees it either way.
+When('the pointer rests {int} pixels below the top edge', async function (y) {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 400, y });
+});
+
+When('the pointer passes {int} pixels below the top edge for {int} milliseconds', async function (y, ms) {
+  await this.call('focusWindow');
+  await restCursor(this, { x: 400, y });
+  await sleep(ms);
+  await restCursor(this, { x: 400, y: 400 });
+});
+
+Then('the Island stays hidden after {int} milliseconds', async function (ms) {
+  await sleep(ms);
+  const state = await autoHideState(this);
+  assert.equal(state.stripHidden, true);
+  assert.equal(state.pageY, 0);
+});
+
 When('I move the pointer well below the Island', async function () {
   await restCursor(this, { x: 400, y: 400 });
 });

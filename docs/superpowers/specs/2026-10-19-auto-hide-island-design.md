@@ -31,6 +31,11 @@ and the toolbar comes back on demand. Blanc has no such mode.
   window samples the cursor every 120ms rather than waiting for the page's
   mouse moves: hand testing on a floating macOS window found the page's moves
   alone never revealed it, and a pointer outside the window sends none.
+  Below that edge, resting the pointer for 300ms within 40px of the top (it may
+  drift up to 8px) also reveals it: hand testing found the 10px edge alone too
+  high a reach on a floating window. The dwell keeps a quick reach for a
+  website's own top links from revealing the strip and moving the page under
+  the pointer.
   Pages move down to make room, exactly as with the setting
   off. They are not overlaid, because the strip is the window's own
   webContents and always draws beneath child views.

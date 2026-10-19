@@ -111,6 +111,21 @@ Feature: Island chrome, command palette, and slash commands
     When I rest the pointer over the Island for 400 milliseconds
     Then the permission prompt remains open without the Island panel
 
+  @F1-20 @F1 @desktop @island-hover
+  Scenario: A panel opened by hover closes once the pointer leaves it
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I move the pointer off the panel
+    Then the Island panel closes after its grace period
+
+  @F1-21 @F1 @desktop @island-hover
+  Scenario: A hover-opened panel stays open once it is used
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I type in the panel
+    And I move the pointer off the panel
+    Then the Island panel stays open after 600 milliseconds
+
   @F1-15 @F1 @desktop @island-autohide
   Scenario: Auto-hide gives the page the whole window
     Given a tab open on "autohide-page"
@@ -145,6 +160,20 @@ Feature: Island chrome, command palette, and slash commands
     And the Island stays shown while the palette is open
     When the palette closes with the pointer well below the Island
     Then the Island hides again
+
+  @F1-22 @F1 @desktop @island-autohide
+  Scenario: Resting just below the top edge reveals the Island after a moment
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests 30 pixels below the top edge
+    Then the Island is shown above the page
+
+  @F1-23 @F1 @desktop @island-autohide
+  Scenario: Passing just below the top edge does not reveal the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer passes 30 pixels below the top edge for 150 milliseconds
+    Then the Island stays hidden after 600 milliseconds
 
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs
