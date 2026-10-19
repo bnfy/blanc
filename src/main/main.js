@@ -3364,6 +3364,11 @@ function revealIslandAtPoint(runtime, point) {
   revealIsland(runtime);
 }
 
+/** Where `hiddenInset` first draws the traffic lights. Showing them again with
+ * setWindowButtonVisibility drops that inset (Electron 44 puts them about 3pt
+ * up and left, tight against the corner), so it is set back after each show. */
+const HIDDEN_INSET_BUTTON_POSITION = Object.freeze({ x: 12, y: 11 });
+
 /** macOS draws its traffic lights over the top-left of the window; while the
  * strip is hidden they would sit on the page. The vertical rail owns that
  * corner in its own right, so they stay there. */
@@ -3373,6 +3378,7 @@ function syncWindowButtons(runtime = rt()) {
   if (runtime.windowButtonsVisible === visible) return;
   runtime.windowButtonsVisible = visible;
   runtime.window.setWindowButtonVisibility(visible);
+  if (visible) runtime.window.setWindowButtonPosition(HIDDEN_INSET_BUTTON_POSITION);
 }
 
 function endIslandAutoHideIntro(runtime) {

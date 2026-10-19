@@ -82,6 +82,9 @@ test('hover-open never fires on a hidden pill and macOS hides its traffic lights
   assert.match(main, /islandHoverCapable === true && !islandStripHidden\(runtime\)/);
   assert.match(main, /const visible = tabLayout === 'vertical' \|\| !islandStripHidden\(runtime\);/);
   assert.match(main, /setWindowButtonVisibility\(visible\)/);
+  // Showing them again drops hiddenInset's inset unless it is set back.
+  assert.match(main, /if \(visible\) runtime\.window\.setWindowButtonPosition\(HIDDEN_INSET_BUTTON_POSITION\);/);
+  assert.match(main, /HIDDEN_INSET_BUTTON_POSITION = Object\.freeze\(\{ x: 12, y: 11 \}\)/);
 });
 
 test('View menu toggle and shortcut', () => {
