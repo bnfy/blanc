@@ -97,6 +97,16 @@ test('only the overlay can load the Spaces colour picker', () => {
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
+test('only the overlay can load the hover-opened panel leave policy', () => {
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/hover-panel-leave.js'), path.join(renderer, 'hover-panel-leave.js'));
+  for (const url of [
+    'blanc-chrome://index/hover-panel-leave.js',
+    'blanc-chrome://permission/hover-panel-leave.js',
+    'blanc-chrome://fill-status/hover-panel-leave.js',
+    'blanc-chrome://overlay/hover-panel-leave.js?v=1',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
 test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
   const asset = path.join(renderer, 'sunrise-hero-mark.png');
   assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);

@@ -36,6 +36,11 @@ toolbar (Bowser Design System "Island Chrome").
   its buttons, dots and chips never hover-open. Leaving early cancels it; closing
   under a resting pointer requires leaving and re-entering before it can open
   again. Touch-only devices have no hover-open behavior (D28).
+- On desktop, an off-by-default **Auto-hide the Island** setting (also a View
+  menu toggle) lets the page fill the window. Pointing at the window's top edge
+  brings the strip back and pages make room for it; it hides again once the
+  pointer leaves the strip. Every expanded state, popover and Glance keeps it
+  shown while open (D29).
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
 - Below the list, one footer line holds **New tab** (the one solid pill, with
@@ -56,7 +61,8 @@ toolbar (Bowser Design System "Island Chrome").
   palette floats the command bar with the tab switcher listed. On desktop,
   enabling hover-open and dwelling on the Island's address opens the panel once;
   crossing it, resting on its buttons, hovering nearby, or disabling the setting
-  mid-dwell does not.
+  mid-dwell does not. With auto-hide on, the page starts at the window's top
+  edge; pointing there or summoning the palette shows the strip again.
 
 ## F2 — Tabs
 

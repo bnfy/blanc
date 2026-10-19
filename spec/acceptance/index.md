@@ -63,6 +63,19 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
 | F1-13 | A pending permission prompt blocks hover-open | D28 | ✅ | ➖ | ➖ |
 | F1-14 | Only the address area opens the Island on hover | D28 | ✅ | ➖ | ➖ |
+| F1-15 | Turning auto-hide on explains the way back, then gives the page the whole window | D29 | ✅ | ➖ | ➖ |
+| F1-16 | The top edge reveals the Island and leaving hides it | D29 | ✅ | ➖ | ➖ |
+| F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
+| F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |
+| F1-19 | Resting at the top edge reveals the Island without page movement | D29 | ✅ | ➖ | ➖ |
+| F1-20 | A hover-opened panel closes once the pointer leaves it | D28 | ✅ | ➖ | ➖ |
+| F1-21 | A hover-opened panel stays open once it is used | D28 | ✅ | ➖ | ➖ |
+| F1-22 | Resting just below the top edge reveals the Island after a moment | D29 | ✅ | ➖ | ➖ |
+| F1-23 | Passing just below the top edge does not reveal the Island | D29 | ✅ | ➖ | ➖ |
+| F1-24 | Without a global pointer position (Wayland) the page's moves reveal and hide the Island | D29 | ✅ | ➖ | ➖ |
+| F1-25 | A hidden strip does not drag the window from the page's top band | D29 | ✅ | ➖ | ➖ |
+| F1-26 | Resting where the hidden address will appear still lets hover open the Island | D29 | ✅ | ➖ | ➖ |
+| F1-27 | The vertical rail is never reveal territory | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

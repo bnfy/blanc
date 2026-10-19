@@ -111,6 +111,120 @@ Feature: Island chrome, command palette, and slash commands
     When I rest the pointer over the Island for 400 milliseconds
     Then the permission prompt remains open without the Island panel
 
+  @F1-20 @F1 @desktop @island-hover
+  Scenario: A panel opened by hover closes once the pointer leaves it
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I move the pointer off the panel
+    Then the Island panel closes after its grace period
+    And the overlay is gone with the panel
+
+  @F1-21 @F1 @desktop @island-hover
+  Scenario: A hover-opened panel stays open once it is used
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I type in the panel
+    And I move the pointer off the panel
+    Then the Island panel stays open after 600 milliseconds
+
+  @F1-15 @F1 @desktop @island-autohide
+  Scenario: Auto-hide gives the page the whole window
+    Given a tab open on "autohide-page"
+    When I turn on auto-hide
+    Then the Island stays shown with a tip on bringing it back
+    And then the page starts at the top of the window
+    When auto-hide is turned off
+    Then the page starts below the Island
+
+  @F1-16 @F1 @desktop @island-autohide
+  Scenario: The top edge reveals the Island and leaving hides it
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    When I move the pointer well below the Island
+    Then the Island hides again
+
+  @F1-19 @F1 @desktop @island-autohide
+  Scenario: Resting the pointer at the top edge reveals the Island without any page movement
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests at the top edge without the page seeing it move
+    Then the Island is shown above the page
+
+  @F1-17 @F1 @desktop @island-autohide
+  Scenario: The palette keeps an auto-hidden Island shown
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I open the command palette
+    Then the Island is shown above the page
+    And the Island stays shown while the palette is open
+    When the palette closes with the pointer well below the Island
+    Then the Island hides again
+
+  @F1-22 @F1 @desktop @island-autohide
+  Scenario: Resting just below the top edge reveals the Island after a moment
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests 30 pixels below the top edge
+    Then the Island is shown above the page
+
+  @F1-23 @F1 @desktop @island-autohide
+  Scenario: Passing just below the top edge does not reveal the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer passes 30 pixels below the top edge for 150 milliseconds
+    Then the Island stays hidden after 600 milliseconds
+
+  @F1-24 @F1 @desktop @island-autohide
+  Scenario: Without a global pointer position the page's own moves reveal and hide the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    And the window has no global pointer position, as on native Wayland
+    When the page sees the pointer at the top edge
+    Then the Island is shown above the page
+    When the page sees the pointer well below the Island
+    Then the Island hides again
+
+  @F1-25 @F1 @desktop @island-autohide
+  Scenario: A hidden strip does not drag the window from the page's top band
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    Then the strip has no window-drag region
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    And the strip drags the window again
+
+  @F1-26 @F1 @desktop @island-autohide @island-hover
+  Scenario: Resting where the hidden address will appear still lets hover open the Island
+    Given a tab open on "autohide-page"
+    And Island hover-open is on
+    And the Island auto-hides
+    When the pointer rests on the page where the hidden address will appear
+    Then hover-open is still armed
+    And the Island is shown above the page
+    When I move within the revealed address
+    Then the Island panel opens from hover
+
+  @F1-27 @F1 @desktop @island-autohide
+  Scenario: The vertical rail is never reveal territory
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    When the pointer rests at the top edge over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests 30 pixels down over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests at the top edge over the page pane
+    Then the Island is shown above the page
+
+  @F1-18 @F1 @desktop @island-autohide
+  Scenario: Auto-hide works with vertical tabs
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    Then the page starts at the top of the window beside the rail
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+
   @F6-1 @F6 @all
   Scenario: The Quick Switcher matches open tabs and favorites
     Given a tab open on "news.example"
