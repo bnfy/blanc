@@ -111,6 +111,41 @@ Feature: Island chrome, command palette, and slash commands
     When I rest the pointer over the Island for 400 milliseconds
     Then the permission prompt remains open without the Island panel
 
+  @F1-15 @F1 @desktop @island-autohide
+  Scenario: Auto-hide gives the page the whole window
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    Then the page starts at the top of the window
+    When auto-hide is turned off
+    Then the page starts below the Island
+
+  @F1-16 @F1 @desktop @island-autohide
+  Scenario: The top edge reveals the Island and leaving hides it
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    When I move the pointer well below the Island
+    Then the Island hides again
+
+  @F1-17 @F1 @desktop @island-autohide
+  Scenario: The palette keeps an auto-hidden Island shown
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I open the command palette
+    Then the Island is shown above the page
+    And the Island stays shown while the palette is open
+    When the palette closes with the pointer well below the Island
+    Then the Island hides again
+
+  @F1-18 @F1 @desktop @island-autohide
+  Scenario: Auto-hide works with vertical tabs
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    Then the page starts at the top of the window beside the rail
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+
   @F6-1 @F6 @all
   Scenario: The Quick Switcher matches open tabs and favorites
     Given a tab open on "news.example"

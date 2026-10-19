@@ -732,6 +732,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="menu_zoom_out">Diminuir zoom</string>
     <string name="menu_actual_size">Tamanho real</string>
     <string name="menu_toggle_vertical_tabs">Ativar ou desativar as abas verticais</string>
+    <string name="menu_auto_hide_island">Ocultar a Island automaticamente</string>
     <string name="menu_tab_layout">Layout das abas</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Abas verticais</string>
@@ -924,6 +925,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
     <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
+    <string name="settings_general_island_auto_hide_label">Ocultar a Island automaticamente</string>
+    <string name="settings_general_island_auto_hide_hint">As páginas ocupam a janela inteira. Leve o ponteiro à borda superior ou abra a busca e os comandos para trazer a Island de volta.</string>
     <string name="settings_general_dark_websites_label">Sites escuros</string>
     <string name="settings_general_dark_websites_hint">Enquanto o Blanc está escuro, escurece os sites que não têm modo escuro próprio. Usa o motor de código aberto Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Os sites listados aqui mantêm as próprias cores. Digite /dark-site em um site para adicioná-lo ou removê-lo.</string>

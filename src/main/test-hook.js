@@ -71,6 +71,8 @@ function install(refs) {
     getIslandHoverRect,
     getIslandHoverState,
     setIslandHoverOpen,
+    setIslandAutoHide,
+    getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
     setTestCursorPoint,
@@ -529,6 +531,9 @@ function install(refs) {
     islandHoverRect() { const r = getIslandHoverRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    /** Auto-hide state plus where the page view starts (0 = strip hidden). */
+    islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
@@ -3509,6 +3514,7 @@ function install(refs) {
         onePasswordAccount: '',
         tabSleep: '1h',
         islandHoverOpen: false,
+        islandAutoHide: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

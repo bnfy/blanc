@@ -2672,6 +2672,10 @@
     "message": "Toggle Vertical Tabs",
     "note": "View menu item and shortcut list entry."
   },
+  "menu.autoHideIsland": {
+    "message": "Auto-hide the Island",
+    "note": "View menu checkbox item."
+  },
   "menu.tabLayout": {
     "message": "Tab Layout",
     "note": "View menu submenu choosing how tabs are shown."
@@ -3294,6 +3298,14 @@
   },
   "settings.general.islandHoverOpen.hint": {
     "message": "Rest the pointer on the Island’s address to open it without clicking.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.islandAutoHide.label": {
+    "message": "Auto-hide the Island",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.",
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.darkWebsites.label": {

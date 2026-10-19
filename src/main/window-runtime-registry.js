@@ -176,6 +176,11 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     islandProximitySentAt: 0,
     islandProximityTimer: null,
     islandProximityPending: null,
+    /** Auto-hide Island: whether the strip is currently revealed, the check
+     * that hides it again, and the last macOS traffic-light visibility set. */
+    islandRevealed: false,
+    islandAutoHideTimer: null,
+    windowButtonsVisible: null,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
   };

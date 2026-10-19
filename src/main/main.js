@@ -323,6 +323,7 @@ const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
+const islandAutoHideModule = require('./island-autohide');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -2978,6 +2979,7 @@ function cancelPermissionPromptsForTab(tabId) {
 const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
 let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
+let islandAutoHide = initialPresentationSettings.islandAutoHide === true;
 let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
@@ -3007,7 +3009,7 @@ function currentChromeLayout() {
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight: rt().chromeHeight,
+    chromeHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -3089,7 +3091,7 @@ function islandHoverRecord(runtime) {
 
 function islandHoverEligible(runtime) {
   if (!islandHoverOpen) return false;
-  return runtime.islandHoverCapable === true &&
+  return runtime.islandHoverCapable === true && !islandStripHidden(runtime) &&
     runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
     !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
     !runtime.permissionViewAttached && !!runtime.islandHoverRect && !overlayDragActive(runtime);
@@ -3150,7 +3152,122 @@ function watchCursorFor(wc, offset, bind) {
     updateIslandHover(rt(), point, {
       buttonsDown: input.modifiers?.some((modifier) => /buttondown$/i.test(modifier)) === true,
     });
+    revealIslandAtPoint(rt(), point);
   }));
+}
+
+/* ---- Auto-hide Island ---------------------------------------------------
+ * With the setting on, the page fills the window and the strip waits beneath
+ * it. The cursor moves watched above reveal it at the window's top edge; once
+ * revealed, a slow check samples the cursor and hides it again after the
+ * pointer has left the strip. Only revealing needs move events — the cursor can
+ * leave the window, or rest over an overlay, without sending any. Policy is in
+ * island-autohide.js. */
+
+function islandAutoHidePinned(runtime = rt()) {
+  return islandAutoHideModule.islandPinned({
+    overlayMode: runtime.overlayMode,
+    glanceOpen: !!runtime.glanceTabId,
+    popupOpen: ublockPopups.has(runtime.id),
+  });
+}
+
+function islandStripHidden(runtime = rt()) {
+  return islandAutoHideModule.stripHidden({
+    autoHide: islandAutoHide,
+    revealed: runtime.islandRevealed,
+    pinned: islandAutoHidePinned(runtime),
+  });
+}
+
+/** Window content coordinates of the cursor right now (or the test's). */
+function sampledWindowCursor(runtime) {
+  const cursor = acceptanceTestMode && testCursorPoint
+    ? testCursorPoint
+    : screen.getCursorScreenPoint();
+  const content = runtime.window.getContentBounds();
+  return { x: cursor.x - content.x, y: cursor.y - content.y };
+}
+
+function islandHeldAt(runtime, point) {
+  const { width, height } = runtime.window.getContentBounds();
+  return islandAutoHideModule.pointHoldsIsland(point, {
+    revealed: runtime.islandRevealed,
+    chromeHeight: runtime.chromeHeight,
+    width,
+    height,
+  });
+}
+
+function clearIslandAutoHideTimer(runtime) {
+  if (runtime.islandAutoHideTimer) clearTimeout(runtime.islandAutoHideTimer);
+  runtime.islandAutoHideTimer = null;
+}
+
+/** Move the strip in or out, re-laying the page views in the same turn. */
+function setIslandRevealed(runtime, revealed) {
+  if (runtime.islandRevealed === revealed) return;
+  const wasHidden = islandStripHidden(runtime);
+  runtime.islandRevealed = revealed;
+  if (wasHidden !== islandStripHidden(runtime)) withWindowRuntime(runtime, () => resizeActiveView());
+}
+
+function scheduleIslandAutoHideCheck(runtime) {
+  if (runtime.islandAutoHideTimer) return;
+  runtime.islandAutoHideTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandAutoHideTimer = null;
+    if (!islandAutoHide || !runtime.islandRevealed) return;
+    if (!runtime.window || runtime.window.isDestroyed()) return;
+    if (islandAutoHidePinned(runtime) || islandHeldAt(runtime, sampledWindowCursor(runtime))) {
+      scheduleIslandAutoHideCheck(runtime);
+      return;
+    }
+    setIslandRevealed(runtime, false);
+  }), islandAutoHideModule.HIDE_CHECK_MS);
+}
+
+/** Reveal for a surface drawn from the Island (⌘L, find, popovers). */
+function revealIsland(runtime = rt()) {
+  if (!islandAutoHide) return;
+  setIslandRevealed(runtime, true);
+  scheduleIslandAutoHideCheck(runtime);
+}
+
+function revealIslandAtPoint(runtime, point) {
+  if (!islandAutoHide || runtime.islandRevealed) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  if (!islandHeldAt(runtime, point)) return;
+  revealIsland(runtime);
+}
+
+/** macOS draws its traffic lights over the top-left of the window; while the
+ * strip is hidden they would sit on the page. The vertical rail owns that
+ * corner in its own right, so they stay there. */
+function syncWindowButtons(runtime = rt()) {
+  if (process.platform !== 'darwin' || !runtime.window || runtime.window.isDestroyed()) return;
+  const visible = tabLayout === 'vertical' || !islandStripHidden(runtime);
+  if (runtime.windowButtonsVisible === visible) return;
+  runtime.windowButtonsVisible = visible;
+  runtime.window.setWindowButtonVisibility(visible);
+}
+
+function applyIslandAutoHide(next) {
+  if (next === islandAutoHide) return;
+  islandAutoHide = next;
+  for (const runtime of windowRuntimes.all()) {
+    clearIslandAutoHideTimer(runtime);
+    runtime.islandRevealed = false;
+    if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  }
+  scheduleMenuRebuild();
+}
+
+function setIslandAutoHide(on) {
+  return settings.setSettings({ islandAutoHide: on === true }).islandAutoHide;
+}
+
+function toggleIslandAutoHide() {
+  return setIslandAutoHide(!islandAutoHide);
 }
 
 function verticalTabsMetrics(layout = currentChromeLayout()) {
@@ -3773,6 +3890,9 @@ function refocusOverlayAfterMenu() {
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
   if (acceptanceTestMode) rt().testOverlayShowCount = (rt().testOverlayShowCount ?? 0) + 1;
+  // Every overlay is drawn from the Island, so the strip comes back first:
+  // the bounds computed below (find, the popovers) sit under it.
+  revealIsland();
   hidePillTooltip();
   suppressIslandHover();
   closeUblockPopup(rt().id);
@@ -5166,6 +5286,7 @@ function resizeActiveView() {
   // window resize into a tab/session-sync broadcast.
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
   rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
+  syncWindowButtons();
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -5243,6 +5364,26 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
     // duplicate native-menu accelerator dispatch for this same key event.
     event.preventDefault();
     toggleTabLayout();
+  }));
+}
+
+// Cmd/Ctrl+Alt+B: same before-dispatch handling as the vertical tabs shortcut.
+// The physical key is matched too, because Option changes macOS's key value.
+function installIslandAutoHideShortcut(webContents, owner = rt()) {
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    if (
+      input.type !== 'keyDown' ||
+      (String(input.key).toLowerCase() !== 'b' && input.code !== 'KeyB') ||
+      !input.alt ||
+      !primaryModifier ||
+      input.shift
+    ) return;
+    event.preventDefault();
+    if (input.isAutoRepeat) return;
+    toggleIslandAutoHide();
   }));
 }
 
@@ -5354,6 +5495,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
     observe: observeBrowserCommand,
   });
   installVerticalTabsShortcut(webContents, owner);
+  installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
   installOnePasswordShortcut(webContents, owner);
   // Escape dismisses a visible fill capsule no matter which surface holds
@@ -9461,6 +9603,14 @@ function buildMenuForRuntime(runtime) {
           ],
         },
         {
+          id: 'toggle-island-autohide',
+          label: t('menu.autoHideIsland'),
+          type: 'checkbox',
+          checked: islandAutoHide,
+          accelerator: 'CmdOrCtrl+Alt+B',
+          click: bound(toggleIslandAutoHide),
+        },
+        {
           id: 'toggle-glance',
           label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
           accelerator: 'CmdOrCtrl+Shift+G',
@@ -9827,6 +9977,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
+    clearIslandAutoHideTimer(runtime);
+    runtime.islandRevealed = false;
+    runtime.windowButtonsVisible = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -11904,6 +12057,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
+      setIslandAutoHide,
+      getIslandAutoHideState: () => ({
+        enabled: islandAutoHide,
+        revealed: rt().islandRevealed === true,
+        stripHidden: islandStripHidden(),
+        pageY: currentChromeLayout().pageBounds.y,
+        // The active view's real native bounds, not the computed layout.
+        activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,
+      }),
       getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
       resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
       setTestCursorPoint: (point) => {
@@ -12099,6 +12261,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!islandHoverOpen) {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
     }
+    applyIslandAutoHide(s.islandAutoHide === true);
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,

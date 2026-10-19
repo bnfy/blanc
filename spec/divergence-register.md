@@ -650,3 +650,26 @@ a first tap as hover would steal the tap's ordinary job.
 reachable. Only the optional pointer-hover trigger is desktop-specific.
 
 **Status:** Accepted 2026-10-17.
+
+## D29 — Desktop auto-hiding Island strip
+**Features:** F1
+
+**Why:** On desktop the Island sits in a permanent 68px strip above the page.
+Some people want every pixel for the page and reach the Island only when they
+need it, as Vivaldi's and Arc's hidden toolbars allow. The reveal depends on a
+pointer reaching the window's top edge, which touch input has no equivalent for.
+
+- **Desktop:** an off-by-default, device-local setting (Settings → General and
+  View → Auto-hide the Island, ⌘⌥B / Ctrl+Alt+B) gives the page the whole
+  window. The pointer at the top edge, or any Island surface (palette, find,
+  popovers, Glance), shows the strip and moves pages down to make room; it
+  hides again once the pointer leaves it. On macOS the window buttons hide and
+  return with it, except beside the vertical rail, which owns that corner.
+- **iOS and Android:** not offered. Mobile Island placement and any
+  scroll-driven collapse are each platform's own presentation (D11).
+
+**Parity contract:** the Island and all of its actions stay reachable through
+the same keyboard and pointer routes; only how long the strip stays on screen
+differs.
+
+**Status:** Accepted 2026-10-19.
