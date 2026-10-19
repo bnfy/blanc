@@ -14,6 +14,10 @@
 #include <utility>
 #include "base/command_line.h"
 #include "base/files/file_util.h"
+#include "base/files/important_file_writer.h"
+#include "base/json/json_reader.h"
+#include "base/json/json_writer.h"
+#include "base/task/sequenced_task_runner.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/i18n/case_conversion.h"
@@ -488,13 +492,42 @@ class Owner : public base::SupportsUserData::Data,
               public content::RenderWidgetHostObserver,
               public TabStripModelObserver {
  public:
+  static std::set<Owner*>& Live() {
+    static base::NoDestructor<std::set<Owner*>> owners;
+    return *owners;
+  }
+  ~Owner() override { Live().erase(this); }
+  bool space_busy = false;
+  std::string space_name;
+  std::vector<int> space_pending_ids;
+  std::optional<base::DictValue> space_saved;
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
+    Live().insert(this);
     browser->GetTabStripModel()->AddObserver(this);
   }
   raw_ptr<BrowserWindowInterface> browser;
   raw_ptr<views::WebView> view = nullptr;
   std::unique_ptr<IslandToolbarProvider> toolbar_provider;
   int height = 68;
+  int glance_main = -1;
+  int glance_reference = -1;
+  // Session IDs never outlive their tabs; validate the native split each read.
+  int MainIndex() {
+    auto* model = browser->GetTabStripModel();
+    int main = -1, reference = -1;
+    for (int i = 0; i < model->count(); ++i) {
+      const int id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
+      if (id == glance_main) main = i;
+      if (id == glance_reference) reference = i;
+    }
+    if (main < 0 || reference < 0 || !model->GetSplitForTab(main) ||
+        model->GetSplitForTab(main) != model->GetSplitForTab(reference)) {
+      glance_main = glance_reference = -1;
+      return model->active_index();
+    }
+    return model->active_index() == main || model->active_index() == reference
+        ? main : model->active_index();
+  }
   bool vertical = false;
   int rail_width = 248;
   gfx::Rect extension_bounds;
@@ -974,6 +1007,117 @@ base::ListValue ClosedEntries(Profile* profile) {
   return result;
 }
 
+// A small internal Spaces store. Disk work is serialized across all windows;
+// corruption and unsupported snapshots refuse rather than overwrite or drop tabs.
+scoped_refptr<base::SequencedTaskRunner> SpaceRunner() {
+  static base::NoDestructor<scoped_refptr<base::SequencedTaskRunner>> runner(
+      base::ThreadPool::CreateSequencedTaskRunner({base::MayBlock(), base::TaskShutdownBehavior::BLOCK_SHUTDOWN}));
+  return *runner;
+}
+bool ValidSpace(const base::DictValue& record) {
+  const auto* tabs = record.FindList("tabs");
+  const auto* groups = record.FindList("groups");
+  auto active = record.FindInt("active");
+  if (!tabs || tabs->empty() || tabs->size() > 200 || !groups ||
+      groups->size() > tabs->size() || !active || *active < 0 ||
+      *active >= static_cast<int>(tabs->size())) return false;
+  bool loose = false;
+  std::set<int> ended;
+  int prior = -1;
+  for (const auto& value : *tabs) {
+    if (!value.is_dict()) return false;
+    const auto& tab = value.GetDict();
+    const auto* url = tab.FindString("url");
+    const auto pin = tab.FindBool("pinned");
+    const auto group = tab.FindInt("group");
+    if (!url || url->size() > 8192 || !pin || !group || *group < -1 ||
+        *group >= static_cast<int>(groups->size())) return false;
+    const GURL parsed(*url);
+    if (!parsed.is_valid() || parsed.has_username() || parsed.has_password() ||
+        (!parsed.SchemeIsHTTPOrHTTPS() && parsed != GURL("chrome://newtab/"))) return false;
+    if (*pin && (loose || *group >= 0)) return false;
+    if (!*pin) loose = true;
+    if (*group != prior) { if (prior >= 0) ended.insert(prior); if (ended.contains(*group)) return false; }
+    prior = *group;
+  }
+  for (const auto& value : *groups) {
+    if (!value.is_dict()) return false;
+    const auto& group = value.GetDict();
+    const auto* name = group.FindString("name");
+    const auto color = group.FindInt("color");
+    if (!name || name->size() > 512 || !color || *color < 0 || *color > 8 ||
+        !group.FindBool("collapsed")) return false;
+  }
+  return true;
+}
+std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browser) {
+  if (browser->GetProfile()->IsOffTheRecord()) return std::nullopt;
+  auto* model = browser->GetTabStripModel();
+  base::ListValue tabs, groups;
+  const auto order = GroupsInOrder(model);
+  for (const auto& id : order) {
+    const auto* v = GroupVisuals(model, id);
+    if (!v) return std::nullopt;
+    groups.Append(base::DictValue().Set("name", base::UTF16ToUTF8(v->title()))
+        .Set("color", static_cast<int>(v->color())).Set("collapsed", v->is_collapsed()));
+  }
+  for (int i = 0; i < model->count(); ++i) {
+    auto* tab = model->GetWebContentsAt(i);
+    // Split layout, in-flight navigation and unload-sensitive forms need their
+    // own switching policy. Never infer that they can safely be discarded.
+    if (model->GetSplitForTab(i) || tab->IsLoading() ||
+        tab->NeedToFireBeforeUnload()) return std::nullopt;
+    GURL url = tab->GetLastCommittedURL();
+    if (tab->GetVisibleURL() == GURL("chrome://newtab/") ||
+        url == GURL("chrome://blanc-prototype/pages/newtab.html")) url = GURL("chrome://newtab/");
+    int group_index = -1;
+    if (const auto group = model->GetTabGroupForTab(i)) {
+      const auto it = std::ranges::find(order, *group);
+      if (it == order.end()) return std::nullopt;
+      group_index = it - order.begin();
+    }
+    tabs.Append(base::DictValue().Set("url", url.spec()).Set("pinned", model->IsTabPinned(i)).Set("group", group_index));
+  }
+  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(groups)).Set("active", model->active_index());
+  if (!ValidSpace(record)) return std::nullopt;
+  return record;
+}
+base::DictValue SpaceDisk(base::FilePath path, std::string method,
+                          std::string name, base::DictValue capture) {
+  base::DictValue store;
+  if (base::PathExists(path)) {
+    std::string bytes;
+    if (!base::ReadFileToStringWithMaxSize(path, &bytes, 4 * 1024 * 1024))
+      return base::DictValue().Set("error", "Space store unreadable; unchanged.");
+    auto parsed = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+    if (!parsed || parsed->FindInt("version") != 1 || !parsed->FindDict("items"))
+      return base::DictValue().Set("error", "Space store invalid; unchanged.");
+    store = std::move(*parsed);
+  } else { store.Set("version", 1); store.Set("items", base::DictValue()); }
+  auto* items = store.FindDict("items");
+  if (items->size() > 25) return base::DictValue().Set("error", "Space limit exceeded.");
+  for (const auto [key, value] : *items) {
+    if (key.empty() || key.size() > 120 || !value.is_dict() || !ValidSpace(value.GetDict()))
+      return base::DictValue().Set("error", "Space record invalid; unchanged.");
+  }
+  if (method == "previewSpaceSave") {
+    if (!ValidSpace(capture) || (!items->contains(name) && items->size() >= 25))
+      return base::DictValue().Set("error", "Cannot save this space.");
+    items->Set(name, std::move(capture));
+    auto json = base::WriteJson(store);
+    if (!json || !base::ImportantFileWriter::WriteFileAtomically(path, *json))
+      return base::DictValue().Set("error", "Space write failed.");
+  }
+  if (method == "previewSpaceOpen") {
+    const auto* item = items->FindDict(name);
+    if (!item) return base::DictValue().Set("error", "Space does not exist.");
+    return base::DictValue().Set("record", item->Clone());
+  }
+  base::ListValue names;
+  for (const auto [key, value] : *items) names.Append(key);
+  return base::DictValue().Set("names", std::move(names));
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -1025,7 +1169,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                       .Set("color", visuals ? GroupColor(visuals->color()) : "")
                       .Set("collapsed", visuals ? visuals->is_collapsed() : false));
   }
-  auto* active = model->GetActiveWebContents();
+  const int main_index = owner->MainIndex();
+  auto* active = main_index >= 0 ? model->GetWebContentsAt(main_index) : nullptr;
+  auto* focused = model->GetActiveWebContents();
   base::Value active_id =
       active ? base::Value(sessions::SessionTabHelper::IdForTab(active).id())
              : base::Value();
@@ -1042,7 +1188,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("activeTabId", std::move(active_id))
       .Set("groups", std::move(groups))
       .Set("closed", ClosedEntries(browser->GetProfile()))
-      .Set("glanceTabId", base::Value())
+      .Set("glanceTabId", owner->glance_reference >= 0 ? base::Value(owner->glance_reference) : base::Value())
+      .Set("focusedTabId", focused ? base::Value(sessions::SessionTabHelper::IdForTab(focused).id()) : base::Value())
       .Set("tabLayout", owner->vertical ? "vertical" : "island")
       .Set("verticalTabsWidth", owner->rail_width)
       .Set("verticalTabsPreferredWidth", owner->rail_width)
@@ -1197,6 +1344,79 @@ class Handler : public content::WebUIMessageHandler {
     }
     Reply(id, true, base::Value(std::move(items)));
   }
+  void SpaceReady(std::string id, std::string method, std::string name,
+                  base::DictValue before, base::DictValue result) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner) return;
+    owner->space_busy = false;
+    if (const auto* error = result.FindString("error")) {
+      Reply(id, false, base::Value(*error)); return;
+    }
+    auto* browser = owner->browser.get();
+    if (method == "previewSpaceList") { Reply(id, true, base::Value(std::move(result))); return; }
+    std::vector<int> live_ids;
+    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
+      live_ids.push_back(sessions::SessionTabHelper::IdForTab(browser->GetTabStripModel()->GetWebContentsAt(i)).id());
+    auto current = CaptureNativeSpace(browser);
+    if (!current || *current != before || live_ids != owner->space_pending_ids) {
+      Reply(id, false, base::Value("Window changed during disk operation; tabs unchanged.")); return;
+    }
+    for (auto* other : Owner::Live()) {
+      if (other != owner && other->browser->GetProfile() == browser->GetProfile() && other->space_name == name) {
+        Reply(id, false, base::Value("Space belongs to another window.")); return;
+      }
+    }
+    if (method == "previewSpaceSave") {
+      owner->space_name = name;
+      owner->space_saved = std::move(before);
+      Reply(id, true, base::Value(std::move(result))); return;
+    }
+    const auto* record = result.FindDict("record");
+    if (!record || !ValidSpace(*record)) { Reply(id, false, base::Value("Invalid saved space.")); return; }
+    auto* model = browser->GetTabStripModel();
+    std::vector<content::WebContents*> old_tabs, added;
+    for (int i = 0; i < model->count(); ++i) old_tabs.push_back(model->GetWebContentsAt(i));
+    // Stage every destination before closing the explicitly saved source.
+    // Public UI remains disabled until residency/autosave/recovery are complete.
+    for (const auto& item : *record->FindList("tabs")) {
+      chrome::AddTabAt(browser, GURL(*item.GetDict().FindString("url")), -1, true);
+      added.push_back(model->GetActiveWebContents());
+    }
+    const auto& tabs = *record->FindList("tabs");
+    for (size_t i = 0; i < added.size(); ++i)
+      if (*tabs[i].GetDict().FindBool("pinned")) model->SetTabPinned(model->GetIndexOfWebContents(added[i]), true);
+    const auto& groups = *record->FindList("groups");
+    std::map<size_t, tab_groups::TabGroupId> restored_groups;
+    for (size_t i = 0; i < groups.size(); ++i) {
+      std::vector<int> indices;
+      for (size_t j = 0; j < added.size(); ++j)
+        if (tabs[j].GetDict().FindInt("group") == static_cast<int>(i)) indices.push_back(model->GetIndexOfWebContents(added[j]));
+      if (indices.empty()) continue;
+      auto group = model->AddToNewGroup(indices);
+      restored_groups.emplace(i, group);
+      const auto& data = groups[i].GetDict();
+      model->ChangeTabGroupVisuals(group, tab_groups::TabGroupVisualData(
+          base::UTF8ToUTF16(*data.FindString("name")),
+          static_cast<tab_groups::TabGroupColorId>(*data.FindInt("color")), *data.FindBool("collapsed")));
+    }
+    for (auto* tab : old_tabs) {
+      const int index = model->GetIndexOfWebContents(tab);
+      if (index >= 0) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+    }
+    model->ActivateTabAt(model->GetIndexOfWebContents(added[*record->FindInt("active")]));
+    // Selecting/closing staging tabs can expand groups. Apply saved visuals
+    // after the final selection, just as Recently Closed restoration does.
+    for (const auto& [i, group] : restored_groups) {
+      const auto& data = groups[i].GetDict();
+      model->ChangeTabGroupVisuals(group, tab_groups::TabGroupVisualData(
+          base::UTF8ToUTF16(*data.FindString("name")),
+          static_cast<tab_groups::TabGroupColorId>(*data.FindInt("color")), *data.FindBool("collapsed")));
+    }
+    owner->space_name = name;
+    owner->space_saved = record->Clone();
+    Reply(id, true, base::Value(true));
+  }
+
   void Handle(const base::ListValue& message) {
     if (message.size() != 3 || !message[0].is_string() ||
         !message[1].is_string() || !message[2].is_list()) {
@@ -1219,6 +1439,35 @@ class Handler : public content::WebUIMessageHandler {
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+    if (method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceList") {
+      const bool list = method == "previewSpaceList";
+      if (profile->IsOffTheRecord() || owner->space_busy ||
+          (list ? !args.empty() : args.size() != 1 || !args[0].is_string() ||
+              args[0].GetString().empty() || args[0].GetString().size() > 120)) {
+        reply(false, base::Value("Space operation unavailable.")); return;
+      }
+      const std::string name = list ? "" : args[0].GetString();
+      for (auto* other : Owner::Live()) {
+        if (other != owner && other->browser->GetProfile() == profile &&
+            (other->space_busy || (!list && other->space_name == name))) {
+          reply(false, base::Value("Space operation belongs to another window.")); return;
+        }
+      }
+      auto captured = list ? std::make_optional(base::DictValue()) : CaptureNativeSpace(browser);
+      if (!captured || (method == "previewSpaceOpen" &&
+          (!owner->space_saved || *owner->space_saved != *captured))) {
+        reply(false, base::Value("Save the complete current window before switching.")); return;
+      }
+      owner->space_pending_ids.clear();
+      for (int i = 0; i < model->count(); ++i)
+        owner->space_pending_ids.push_back(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
+      owner->space_busy = true;
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"),
+              method, name, captured->Clone()),
+          base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id, method, name, std::move(*captured)));
+      return;
+    }
     // Native split foundation only: UI exposure waits for Glance role/focus
     // parity. Never merge pin/group ownership as a side effect of a probe.
     if (method == "previewGlancePair" && args.size() == 2 &&
@@ -1240,6 +1489,8 @@ class Handler : public content::WebUIMessageHandler {
           split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, 0.62),
           split_tabs::SplitTabCreatedSource::kToolbarButton);
       if (reverse) model->ReverseTabsInSplit(split);
+      owner->glance_main = args[0].GetInt();
+      owner->glance_reference = args[1].GetInt();
       reply(true, base::Value(true)); return;
     }
     if (method == "previewGlanceClose" && args.size() == 1 && args[0].is_int()) {

@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "disk store survives browser restart",
+    "restart restore URLs, pin and collapsed group",
+    "second window cannot overwrite owned space",
+    "corrupt store refuses read/write without tab mutation",
+    "invalid stored destination refused before switching"
+  ],
+  "pass": true
+}

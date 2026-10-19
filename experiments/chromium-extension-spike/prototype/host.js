@@ -102,6 +102,9 @@
       // back through nativeId() on every call.
       for (const tab of snapshot.tabs) tab.id = String(tab.id);
       if (snapshot.activeTabId != null) snapshot.activeTabId = String(snapshot.activeTabId);
+      for (const key of ['focusedTabId', 'glanceTabId']) {
+        if (snapshot[key] != null) snapshot[key] = String(snapshot[key]);
+      }
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
       const beforeIndex = items.findIndex(item => item.id === closedBefore);
       snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
@@ -174,7 +177,7 @@
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
-    findTabId = snapshot.activeTabId;
+    findTabId = snapshot.focusedTabId ?? snapshot.activeTabId;
     // Find can open before the copied panel renderer applies its theme.
     const findRoot = overlay.contentDocument?.documentElement;
     if (findRoot) {
@@ -371,6 +374,9 @@
     // Internal migration probes; no user-facing Glance acceptance yet.
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
+    previewSpaceSave: name => request('previewSpaceSave', [name]),
+    previewSpaceList: () => request('previewSpaceList'),
+    previewSpaceOpen: name => request('previewSpaceOpen', [name]),
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
     searchSuggestions: async () => [],
     openFindBar,
@@ -405,7 +411,10 @@
 
   for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
     implemented[method] = async (id) => {
-      await request(method, [nativeId(id)]);
+      const pageCommand = ['goBack', 'goForward', 'reload', 'stop'].includes(method);
+      const routed = pageCommand && String(id) === snapshot?.activeTabId
+        ? snapshot.focusedTabId ?? id : id;
+      await request(method, [nativeId(routed)]);
       await refresh();
     };
   }
