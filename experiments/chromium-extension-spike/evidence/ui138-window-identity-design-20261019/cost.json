@@ -1,0 +1,21 @@
+{
+  "status": "unapplied design sketch, not compiled",
+  "files": [
+    {
+      "path": "chrome/browser/sessions/session_service_base.cc",
+      "hunks": 2
+    },
+    {
+      "path": "chrome/browser/sessions/session_restore.cc",
+      "hunks": 2
+    },
+    {
+      "path": "chrome/browser/ui/browser_live_tab_context.cc",
+      "hunks": 3
+    }
+  ],
+  "additional_files": 3,
+  "additional_hunks": 7,
+  "base_files": 41,
+  "base_hunks": 100
+}
