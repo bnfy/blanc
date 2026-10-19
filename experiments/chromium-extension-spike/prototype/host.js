@@ -6,6 +6,7 @@
   let pillRect = null;
   let opened = false;
   let overlayMode = null;
+  let findTabId = null;
   let refreshing = false;
   let extensionsOpened = false;
   let geometry = "";
@@ -123,7 +124,7 @@
   function reportGeometry() {
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = extensionsOpened ? document.getElementById('extensionsPanel')
-      : opened ? overlay.contentDocument?.getElementById('islandPanel')
+      : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill');
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect();
@@ -131,7 +132,8 @@
     const b = opened && overlayMode === 'palette'
       ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
       : panel.getBoundingClientRect();
-    const values = [a.x, a.y, a.width, a.height, b.x, b.y, b.width, b.height].map(Math.round);
+    const offsetY = opened && overlayMode === 'find' ? 68 : 0;
+    const values = [a.x, a.y, a.width, a.height, b.x, b.y + offsetY, b.width, b.height].map(Math.round);
     const next = JSON.stringify(values);
     if (next !== geometry) {
       geometry = next;
@@ -140,6 +142,9 @@
   }
 
   async function show(prefill, mode = 'panel') {
+    if (overlayMode === 'find') emit('onOverlayHide', {});
+    findTabId = null;
+    overlay.dataset.mode = mode;
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
@@ -162,6 +167,27 @@
     });
   }
 
+  async function openFindBar() {
+    await refresh();
+    if (!snapshot?.activeTabId) return;
+    if (overlayMode !== 'find') emit('onOverlayHide', {});
+    extensionsOpened = false;
+    extensionsPanel.hide();
+    strip.style.visibility = '';
+    findTabId = snapshot.activeTabId;
+    overlayMode = 'find';
+    overlay.dataset.mode = 'find';
+    await request('height', [228]);
+    opened = true;
+    overlay.hidden = false;
+    emit('onIslandState', { mode: 'find' });
+    requestAnimationFrame(() => {
+      emit('onOverlayShow', { mode: 'find', purpose: { findTabId } });
+      overlay.contentWindow.focus();
+      reportGeometry();
+    });
+  }
+
   async function close(focus = true) {
     tooltip.hidden = true;
     extensionsOpened = false;
@@ -171,6 +197,8 @@
     emit('onIslandState', { mode: null });
     opened = false;
     overlayMode = null;
+    findTabId = null;
+    overlay.dataset.mode = '';
     overlay.hidden = true;
     await request('height', [68]);
     // Escape and outside clicks return focus to the page (Electron's
@@ -189,6 +217,8 @@
     emit('onIslandState', { mode: null });
     opened = false;
     overlayMode = null;
+    findTabId = null;
+    overlay.dataset.mode = '';
     overlay.hidden = true;
     extensionsOpened = true;
     strip.style.visibility = 'hidden';
@@ -333,6 +363,14 @@
     listRemoteTabs: async () => [],
     listWorkspaces: async () => ({ items: [], tint: 'mark' }),
     searchSuggestions: async () => [],
+    openFindBar,
+    findInPage: (id, query, options = {}) => request('find',
+      [nativeId(id), String(query), options.forward !== false, options.findNext !== false]),
+    // Teardown can race navigation/tab closure; never search a replacement tab.
+    stopFindInPage: async (id) => {
+      emit('onFindResult', { activeMatchOrdinal: 0, matches: 0 });
+      return request('stopFind', [nativeId(id)]).catch(() => false);
+    },
     openIsland: () => show(),
     openIslandTyping: (character) => show(character),
     openIslandCommands: () => show('/'),
@@ -378,13 +416,24 @@
     api,
     notice,
     open: (newTab = false, text = '') => {
-      if (!newTab && opened) { emit('onOverlayToggle'); return; }
+      if (!newTab && opened && overlayMode !== 'find') { emit('onOverlayToggle'); return; }
       return show(newTab ? text : undefined, newTab ? 'panel' : 'palette');
     },
     extensions: showExtensions,
     escape: () => opened || extensionsOpened ? close() : undefined,
     refresh,
     pageTint,
+    findResult: (id, activeMatchOrdinal, matches, finalUpdate) => {
+      if (overlayMode === 'find' && String(id) === findTabId)
+        emit('onFindResult', { activeMatchOrdinal, matches, finalUpdate });
+    },
+    findStep: (forward) => {
+      if (overlayMode !== 'find') return openFindBar();
+      const query = overlay.contentDocument.getElementById('findInput').value;
+      if (query && findTabId) return implemented.findInPage(findTabId, query,
+        { forward, findNext: false });
+    },
+    findReset: () => { if (overlayMode === 'find') close(false); },
   };
   // The strip and overlay adapters read parent.BlancPrototypeHost as they
   // load, so the frames start only once it exists. A src in the markup let a

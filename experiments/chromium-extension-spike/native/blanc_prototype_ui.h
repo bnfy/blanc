@@ -35,6 +35,7 @@ int RailWidth(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);
+bool OpenFindIsland(BrowserWindowInterface* browser, int direction = 0);
 // ⌘D in an Island window: toggle the Favorite like the Island heart instead of
 // opening Chromium's star bubble. Returns true when the window is an Island
 // window, whether or not the page could be saved.

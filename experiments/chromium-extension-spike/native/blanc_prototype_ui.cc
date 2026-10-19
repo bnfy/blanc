@@ -54,6 +54,7 @@
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents_delegate.h"
+#include "third_party/blink/public/mojom/frame/find_in_page.mojom.h"
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -395,10 +396,35 @@ class Owner : public base::SupportsUserData::Data,
     });
   }
 
+  // Search belongs only to this window's active WebContents. The request ID
+  // is installed synchronously before Find can reply (including empty pages).
+  void FindText(const std::string& query, bool forward, bool new_session) {
+    SyncActive();
+    if (!web_contents()) return;
+    auto options = blink::mojom::FindOptions::New();
+    options->forward = forward;
+    options->match_case = false;
+    options->new_session = new_session || find_request_ < 0 || find_query_ != query;
+    if (options->new_session) { find_matches_ = 0; find_ordinal_ = 0; }
+    find_query_ = query;
+    web_contents()->Find(base::UTF8ToUTF16(query), std::move(options),
+        /*skip_delay=*/false, [this](int id) { find_request_ = id; });
+  }
+  void StopFind(bool reset_ui = false) {
+    const bool had_find = find_request_ >= 0;
+    find_request_ = -1;
+    find_query_.clear();
+    find_matches_ = find_ordinal_ = 0;
+    if (had_find && web_contents())
+      web_contents()->StopFinding(content::STOP_FIND_ACTION_CLEAR_SELECTION);
+    if (reset_ui) FindEvent(u"window.BlancPrototypeHost?.findReset()");
+  }
+
   void SyncActive() {
     if (closing_) return;
     auto* active = browser->GetTabStripModel()->GetActiveWebContents();
     if (active != web_contents()) {
+      StopFind(true);
       Observe(active);
       ResetTint();
       SuppressStorePromotion();
@@ -408,6 +434,27 @@ class Owner : public base::SupportsUserData::Data,
   }
 
  private:
+  void FindEvent(const std::u16string& script) {
+    auto* host = view ? view->GetWebContents() : nullptr;
+    if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+        host->GetPrimaryMainFrame()->IsRenderFrameLive())
+      host->GetPrimaryMainFrame()->ExecuteJavaScript(script, base::NullCallback());
+  }
+  void DidReceiveFindReply(int request_id, int matches, const gfx::Rect&,
+                           int ordinal, bool final_update) override {
+    if (find_request_ < 0 || request_id != find_request_ || !web_contents() ||
+        browser->GetTabStripModel()->GetActiveWebContents() != web_contents()) return;
+    if (matches >= 0) find_matches_ = matches;
+    if (ordinal >= 0) find_ordinal_ = ordinal;
+    FindEvent(base::UTF8ToUTF16(base::StringPrintf(
+        "window.BlancPrototypeHost?.findResult(%d,%d,%d,%s)",
+        sessions::SessionTabHelper::IdForTab(web_contents()).id(),
+        find_ordinal_, find_matches_, final_update ? "true" : "false")));
+  }
+  int find_request_ = -1;
+  int find_matches_ = 0;
+  int find_ordinal_ = 0;
+  std::string find_query_;
   bool CanTint() const {
     if (closing_ || !web_contents() || browser->GetProfile()->IsOffTheRecord()) return false;
     const auto& url = web_contents()->GetPrimaryMainFrame()->GetLastCommittedURL();
@@ -564,6 +611,7 @@ class Owner : public base::SupportsUserData::Data,
     timer_.Stop();
   }
   void PrimaryPageChanged(content::Page&) override {
+    StopFind(true);
     ObserveInput();
     ResetTint();
   }
@@ -587,6 +635,8 @@ class Owner : public base::SupportsUserData::Data,
     if (visibility == content::Visibility::VISIBLE) RequestSample();
   }
   void WebContentsDestroyed() override {
+    find_request_ = -1;
+    FindEvent(u"window.BlancPrototypeHost?.findReset()");
     ++generation_;
     timer_.Stop();
     page_tint.clear();
@@ -1277,6 +1327,21 @@ class Handler : public content::WebUIMessageHandler {
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "find" || method == "stopFind") {
+      if (index != model->active_index()) {
+        reply(false, base::Value("Find requires the active tab in this window.")); return;
+      }
+      if (method == "stopFind" && args.size() == 1) {
+        owner->StopFind(); reply(true, base::Value()); return;
+      }
+      if (method == "find" && args.size() == 4 && args[1].is_string() &&
+          args[2].is_bool() && args[3].is_bool() &&
+          !args[1].GetString().empty() && args[1].GetString().size() <= 4096) {
+        owner->FindText(args[1].GetString(), args[2].GetBool(), args[3].GetBool());
+        reply(true, base::Value()); return;
+      }
+      reply(false, base::Value("Invalid find request.")); return;
+    }
     if (method == "newTabBelow" && args.size() == 1) {
       const auto group = model->GetTabGroupForTab(index);
       chrome::AddTabAt(browser, GURL("chrome://newtab/"), index + 1, true);
@@ -1582,6 +1647,20 @@ bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser) {
     contents->GetPrimaryMainFrame()->ExecuteJavaScript(
         u"window.BlancPrototypeHost?.refresh()", base::NullCallback());
   }
+  return true;
+}
+
+bool OpenFindIsland(BrowserWindowInterface* browser, int direction) {
+  auto* parent = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* view = parent ? static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId)) : nullptr;
+  if (!view) return false;
+  auto* host = view->GetWebContents();
+  if (host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
+  host->GetPrimaryMainFrame()->ExecuteJavaScript(
+      direction == 0 ? u"window.BlancPrototypeHost?.api.openFindBar()"
+      : direction > 0 ? u"window.BlancPrototypeHost?.findStep(true)"
+                      : u"window.BlancPrototypeHost?.findStep(false)", base::NullCallback());
   return true;
 }
 

@@ -23,3 +23,6 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
   border-radius:6px; background:#24211d; color:#faf7f0; font:12px/16px system-ui;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
 #prototypeTooltip[data-private="true"] { background:#e8e8e8; color:#111; }
+
+/* Find is a small capsule below the 68px header, not a page-covering scrim. */
+#overlay[data-mode="find"] { top: 68px; height: 160px; }

@@ -1,5 +1,14 @@
 # Tranche 2 request: the Decision 2 package, F12 first
 
+## October 18 find-capsule progress update
+
+Find capsule and native bridge are implemented with bounded automated Electron comparison,
+private isolation and 1280/800/500px geometry checks. Native input remains pending unlock;
+visual item 4 stays in progress, not accepted. Footprint40 files /96 hunks; two incremental
+builds, final guard zero. Evidence: `evidence/ui138-find-20261018/`. Prior F12/Task0 gates
+unchanged. Latency deferred; Electron diagnostic build unapproved/unstarted.
+
+
 **Status: the original tranche was approved on October 17, 2026 (§8), and
 its audit and recording checkpoints have started. The corpus amendment in
 §2.1 was explicitly approved on October 17, 2026 at `68892cc1` (§8.1).

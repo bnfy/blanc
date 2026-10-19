@@ -170,7 +170,7 @@ let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/find', '/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);
@@ -441,6 +441,20 @@ edit('chrome/browser/ui/browser_commands.cc', [
     present: '  if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser))\n',
   },
 ]);
+
+// Native Find routes through the same command function as menu and Cmd-F.
+edit('chrome/browser/ui/browser_commands.cc', [{
+  anchor: 'void Find(BrowserWindowInterface* browser) {\n',
+  replacement: 'void Find(BrowserWindowInterface* browser) {\n  if (blanc_prototype::OpenFindIsland(browser)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser)) return;',
+}]);
+
+// Next/previous share this helper, including menu and native Cmd-G variants.
+edit('chrome/browser/ui/browser_commands.cc', [{
+  anchor: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n',
+  replacement: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n  if (blanc_prototype::OpenFindIsland(browser, find_next ? (forward_direction ? 1 : -1) : 0)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser, find_next ?',
+}]);
 
 // ⌘D (IDC_BOOKMARK_THIS_TAB) toggles the Island's Favorite instead of opening
 // Chromium's star bubble, which has no toolbar to anchor to in Island windows.
