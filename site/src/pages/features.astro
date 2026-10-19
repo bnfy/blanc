@@ -12,6 +12,7 @@ import QuietDemo from '../components/bento/demos/QuietDemo.astro';
 import ReopenDemo from '../components/bento/demos/ReopenDemo.astro';
 import PrivateDemo from '../components/bento/demos/PrivateDemo.astro';
 import BangsDemo from '../components/bento/demos/BangsDemo.astro';
+import MemoryChart from '../components/MemoryChart.astro';
 import '../styles/features-bento.css';
 ---
 <BaseLayout
@@ -120,6 +121,10 @@ import '../styles/features-bento.css';
         <h3>Blanc Spaces save whole windows</h3>
         <p class="bento-badge">Now free</p>
       </BentoTile>
+    </div>
+
+    <div class="bento-memory" id="memory">
+      <MemoryChart headingId="features-memory-title" />
     </div>
 
     <div class="bento-more">

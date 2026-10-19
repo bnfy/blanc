@@ -2,13 +2,14 @@
   "publicRelease": "v1.38.0",
   "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
   "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
-  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim. Later the same day: the line under the Start Page headline, the homepage's wallpaper scene and Start Page card, and the /features wallpaper tile and pop-up.",
+  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim. Later the same day: the line under the Start Page headline, the homepage's wallpaper scene and Start Page card, and the /features wallpaper tile and pop-up. Later: the memory figures from a fresh run on October 19, 2026 (Blanc 1.38.0), on the homepage, in the memory chart (ad-blocking, Features and Media pages) and in the fact sheet.",
   "prohibitedClaims": [
     "Bridge / Burst",
     "Four ways to begin. Mahjong when you want a break.",
     "a different image for each space",
     "per-space image",
-    "synced image"
+    "synced image",
+    "uses less memory than Brave"
   ],
   "evidenceGroups": {
     "customImage": {
@@ -104,6 +105,15 @@
         "src/renderer/pages/mahjong.html"
       ],
       "qualification": "Every Start Page layout's footer links to standalone Mahjong, which opens as an ordinary tab."
+    },
+    "memoryRun": {
+      "evidence": [
+        "bench/memory/README.md",
+        "bench/memory/run.js",
+        "bench/memory/browsers.json",
+        "bench/memory/workloads.json"
+      ],
+      "qualification": "Measured October 19, 2026 (03:13–03:47 UTC) with the harness above on one Apple Silicon Mac (macOS 27.2, 24 GiB RAM, a different Mac from the October 15 run's 8 GiB one) with Blanc 1.38.0, Brave 1.97.59 (Chromium 155), Chrome 155.0.8059.80, Edge 155.0.4283.62, Zen 1.23.3b and Vivaldi 8.2.4133.89: the six ad-heavy pages in workloads.json, fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser's process tree. Committed run: bench/memory/results/memory-2026-10-19T03-13-32-296Z.{json,md}; test/unit/public-truth.test.js recomputes the medians. Blanc 1.5 GiB (1.4–1.5), Brave 1.7 (1.7–1.8), Zen 4.7, Chrome 4.9 (4.9–5.1), Edge 7.4, Vivaldi 7.4; Blanc with its blocker off 5.2 (5.0–5.3), overlapping Chrome. Brave stays named as the fair peer, and because the October 15 run had Brave lower (1.5 against 1.7), never claim Blanc reliably uses less memory than Brave. Arc could not be measured (it ignored the throwaway profile; the harness rejected every cell) and is not shown."
     }
   },
   "labels": [
@@ -421,6 +431,61 @@
         "imagePrivacy"
       ],
       "verdict": "verified"
+    },
+    {
+      "id": "v138-027",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Under a third of Chrome’s 4.9 GB, with six ad-heavy sites open.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory-claim"
+    },
+    {
+      "id": "v138-028",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Brave, which also blocks by default, used a little more: 1.7 GB. With its blocker off, Blanc used 5.2 GB, about the same as Chrome.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory-limit"
+    },
+    {
+      "id": "v138-029",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Measured October 19, 2026 on one Apple Silicon Mac with 24 GB of memory, with Blanc 1.38.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in the Blanc repository.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-note-memory"
+    },
+    {
+      "id": "v138-030",
+      "source": "site/src/components/MemoryChart.astro",
+      "exactWording": "Measured 19 October 2026 with Blanc 1.38.0, on fresh profiles with no extensions. Brave also blocks by default, and in this run it used a little more. With Blanc’s blocker turned off, the same pages used 5.2 GB, about the same as Chrome, so the saving comes from blocking. Method and raw data are in our repository.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "v134-008"
+    },
+    {
+      "id": "v138-031",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "1.5 GB",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory"
     }
   ]
 }
