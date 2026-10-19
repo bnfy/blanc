@@ -75,6 +75,40 @@ Captures (cropped to the window's top 320 px, half size; red divider):
 The raw captures and the per-run JSON and logs are in
 `~/blanc-vm-scripts/autohide/out/` on the Mac (`run2-*`).
 
+## Re-run at `761a08df` (after the hidden-strip fix)
+
+`24221443` changed what the hidden strip does on every platform (it drops its
+window-drag region), so the check ran again on a signed validation build of
+`761a08df` (run `39307808709`, attempt 2; attempt 1 failed an unrelated
+packaged quit/restart smoke and passed on rerun). `Blanc-Setup-1.38.0.exe`
+SHA-256 `e02aa7918dae38ccaec4ea707480ac8c6e11fddb40283056fd4866c3fa619720`
+matches its `windows-signature.json`; the staged `app.asar` was confirmed
+byte-identical to the download (SHA-256 `597789cf…`) before the runs. Two
+steps were added after step 5, with the strip hidden:
+
+- 5b. Press 34 px down beside where the pill would be and drag 80 px at once.
+- 5c. Click the page's own top bar 20 px down; the page turns a square blue
+  when the click reaches it.
+
+| Check | Result (6 runs) |
+| --- | --- |
+| Steps 1 to 5 (hidden, top edge, leaving, 300 ms rest, quick pass) | as before in every run |
+| 5b. The hidden strip's band drags the window | no: moved 0 px in every run (74.5 px before the fix) |
+| 5c. A click on the page's top band reaches the page | yes in every run |
+| Steps 6 and 7's drags, step 8's window controls | as before in every run |
+| Step 7's hover-open | opened in 3 of the 6 runs |
+
+`windows-hidden-top-band-click-reaches-page.png`: step 5c, before the click
+(the page shows the text 5b selected: the press went to the page) above after
+it (the square is blue).
+
+**Open: hover-open after 5b and 5c.** In every other run on this build
+hover-open opened (7 of 7: three with 5b and 5c skipped, two with only 5b,
+two with only 5c), and on macOS the same press and click sequence leaves
+hover-open working with its state machine armed and correct. The packaged
+build has no test hook to read that state on Windows, so the cause is not
+yet known; a click on the pill still opens the panel.
+
 ## What this does not cover
 
 The vertical tab layout, Glance and a second display were not exercised on
@@ -92,3 +126,10 @@ Island revealed after the top edge. The hover step also missed: the pointer
 landed just past the end of the address, so hover-open never armed. The
 script now measures the first row of the page's grey body and aims at the
 address. Its two drags already agreed with `run2` (74.5 px each).
+
+The first re-run (`run3`) tested the previous build by mistake: every file
+the installer unpacks carries the same timestamp, so the staging step's
+`robocopy /MIR` kept the older `app.asar` of the same version. Its hidden-strip
+results (the window moved 74.5 px; the click did not reach the page) describe
+`3cc1a3cf`. Staging now deletes the old copy first and logs the `app.asar`
+hash, and `run4` onward ran the build above.
