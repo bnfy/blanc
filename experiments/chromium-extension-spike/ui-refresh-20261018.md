@@ -867,3 +867,17 @@ A disposable-process write interposer stopped the actual Chromium Spaces primary
 This is a real bounded process-crash/partial-primary-write check, not power-loss durability, backup-write interruption, rename/fsync boundary coverage or arbitrary concurrent recovery. No product patch or native Chromium compilation was needed. Guard: zero actions,5.22s; upstream footprint unchanged from measured41files/100hunks. Native input pending; latency deferred; Electron diagnostic build unapproved. Plan item4 remains incomplete.
 
 The prior helper failure was recursive write interposition (stack overflow), not a signing restriction. The test-only helper now uses direct SYS_write (macOS deprecation warning retained); it does not alter signing/security settings. The first revised run missed Chromium's hidden temporary filename and timed out; corrected matching uses the owned profile directory and exact Spaces basename. Recovery attempts retained an early CDP connection failure and a save refusal while restored tabs were loading. The final resave waits for complete captures. These failures are archived, not counted as passes. Disposable profile/server removed and retained preview tabs unchanged. Evidence: evidence/ui138-spaces-interrupted-write-20261019/.
+
+## Spaces backup and atomic-replacement boundaries — October 19, 2026
+
+Five actual disposable-process interruption cases pass, each followed by restart without injection, native Space listing/reopening and a subsequent successful save:
+
+- Backup temporary write interrupted at94/188bytes: complete primary and previous backup unchanged.
+- Immediately before backup rename: complete primary and previous backup unchanged.
+- Immediately after successful backup rename: primary unchanged and backup equals the previous primary.
+- Immediately before primary rename: primary unchanged and backup equals it.
+- Immediately after successful primary rename: new complete primary retained, backup equals old primary; restart restores the new navigation.
+
+The test-only interposer matches the exact owned profile path and backup/primary destination, consumes a one-shot arm and emits a PID/path marker before waiting. The harness verifies the owned PID and on-disk generations before SIGKILL. These are controlled before/after rename boundaries, not a kill inside the kernel rename operation. Partial backup size is checked on disk. All five cases passed on the first attempt in this checkpoint. Helper direct-syscall deprecation warnings remain in the archive; no signing/security settings were changed.
+
+This qualifies bounded process-crash recovery, not power-loss durability, fsync failure, disk-full/I/O errors, concurrent writers or switch-mid-transaction recovery. No product changes or Chromium compilation; final guard zero actions/3.61s. Footprint unchanged from measured41files/100hunks. Five owned profiles/servers cleaned and retained preview tabs preserved. Native input pending, latency deferred, Electron diagnostic build unapproved. Plan item4 and broader acceptance remain open. Evidence: evidence/ui138-spaces-write-boundaries-20261019/.
