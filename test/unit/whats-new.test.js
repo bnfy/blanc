@@ -147,6 +147,12 @@ test('main, the bridge and the start page are wired together', () => {
   const schema = JSON.parse(read('settings-schema/schema.json'));
   assert.match(main, /const whatsNewPatch = app\.isPackaged && whatsNewOnLaunch\(settings\.getSettings\(\), \{\s*version: app\.getVersion\(\),/);
   assert.match(main, /whatsNew: whatsNewState\(current, \{ version: app\.getVersion\(\), now: Date\.now\(\) \}\),/);
+  assert.match(main, /maybeSendLaunchPing\(\);\s*maybeOpenWhatsNew\(\)\.catch\(/, 'checks once session restore is done');
+  assert.match(main, /if \(!app\.isPackaged \|\| whatsNewCheckStarted\) return;/, 'packaged builds, once per launch');
+  assert.match(main, /checkWhatsNewPage\(url, \{ fetch: net\.fetch \}\)/);
+  assert.match(main, /bananifyServiceAllowed\(url\)/, 'a renamed build never asks blanc.day');
+  assert.match(main, /canOpen: !isQuitting && hasLiveWindow\(\)/);
+  assert.match(main, /setActiveTab\(createTab\(openUrl\), \{ focusContent: true \}\)/, 'an ordinary, active tab; never private');
   assert.match(main, /dismissWhatsNew: \(\) => \{\s*settings\.setSettings\(\{ whatsNewVersion: '' \}\);\s*return true;/);
   assert.match(pages, /handle\('pages:start:whats-new-dismiss', 'newtab', \(\) => hooks\.startPage\?\.dismissWhatsNew\?\.\(\) === true\)/);
   assert.match(preload, /dismissWhatsNew: \(\) => invoke\('pages:start:whats-new-dismiss'\)/);
