@@ -3364,10 +3364,15 @@ function revealIslandAtPoint(runtime, point) {
   revealIsland(runtime);
 }
 
-/** Where `hiddenInset` first draws the traffic lights. Showing them again with
- * setWindowButtonVisibility drops that inset (Electron 44 puts them about 3pt
- * up and left, tight against the corner), so it is set back after each show. */
-const HIDDEN_INSET_BUTTON_POSITION = Object.freeze({ x: 12, y: 11 });
+/** macOS's standard traffic-light placement: Safari and Finder put the close
+ * button's frame 18pt from the window's top-left corner on macOS 26 and 27,
+ * and Electron's position is one point outside that frame. `hiddenInset`
+ * alone draws them at 11pt, and showing them again with
+ * setWindowButtonVisibility drops even that, so syncWindowButtons sets it on
+ * the window's first layout and after each show. Passing it to the window as
+ * `trafficLightPosition` instead stops the auto-hidden strip revealing from
+ * the top edge in the vertical layout (acceptance F1-18). */
+const MAC_WINDOW_BUTTON_POSITION = Object.freeze({ x: 19, y: 19 });
 
 /** macOS draws its traffic lights over the top-left of the window; while the
  * strip is hidden they would sit on the page. The vertical rail owns that
@@ -3378,7 +3383,7 @@ function syncWindowButtons(runtime = rt()) {
   if (runtime.windowButtonsVisible === visible) return;
   runtime.windowButtonsVisible = visible;
   runtime.window.setWindowButtonVisibility(visible);
-  if (visible) runtime.window.setWindowButtonPosition(HIDDEN_INSET_BUTTON_POSITION);
+  if (visible) runtime.window.setWindowButtonPosition(MAC_WINDOW_BUTTON_POSITION);
 }
 
 function endIslandAutoHideIntro(runtime) {

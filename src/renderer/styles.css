@@ -271,10 +271,10 @@ button svg {
 }
 /* macOS draws its traffic lights at the window's left edge, inside the main
    pane's strip in both Glance layouts. Keep the same clearance the Island has
-   without Glance (#islandPill: 170px), split across both sides so the pill
+   without Glance (#islandPill: 184px), split across both sides so the pill
    stays centred. With vertical tabs the lights sit in the rail instead. */
 :root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 170px) / var(--pill-zoom));
+  max-width: calc((var(--glance-primary-width) - 184px) / var(--pill-zoom));
 }
 
 .glance-header {
@@ -679,7 +679,7 @@ button svg {
    lights, while the main pane's sampled website gutter remains independent. */
 body.mac .vertical-tabs-toolbar {
   min-height: var(--strip-h);
-  padding: 8px 10px 7px 96px;
+  padding: 8px 10px 7px 103px;
 }
 
 .vertical-tabs-layout-button {
@@ -1180,9 +1180,11 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   isolation: isolate;
   /* Clear the macOS traffic lights / window controls on narrow windows.
      `100vw` resolves against the unscaled viewport, but `zoom` then multiplies
-     the used length — so divide by the zoom to keep the real 170px clearance
-     (without this the pill renders 1.15× wider and runs under the controls). */
-  max-width: calc((100vw - 170px) / var(--pill-zoom));
+     the used length — so divide by the zoom to keep the real 184px clearance
+     (without this the pill renders 1.15× wider and runs under the controls).
+     184px is 92px a side: the traffic lights at macOS's standard 18pt inset
+     end 80pt in, plus a 12pt gap. */
+  max-width: calc((100vw - 184px) / var(--pill-zoom));
   background: transparent;
   /* Keep the one-pixel border in layout while the visible material moves to
      ::after. The resting pill has no transform, which keeps the URL and
