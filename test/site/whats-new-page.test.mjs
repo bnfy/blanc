@@ -222,3 +222,11 @@ test('/whats-new leads to the newest page and is not indexed', async () => {
   await page.waitForURL(/\/whats-new\/1\.38$/);
   await context.close();
 });
+
+test('keys and menu glyphs sit in the site\'s chip', async () => {
+  const { context, page } = await open('/whats-new/1.38#group-colors');
+  const chips = await page.locator('#group-colors kbd.bang-chip').allTextContents();
+  assert.ok(chips.includes('⋮') && chips.includes('⌘L'), chips.join(', '));
+  assert.doesNotMatch(await page.locator('.wn').evaluate((el) => el.textContent), /`/, 'no backticks reach the page');
+  await context.close();
+});

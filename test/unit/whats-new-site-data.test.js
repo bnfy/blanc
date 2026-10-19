@@ -179,3 +179,24 @@ test('the 1.38 page shows six different features from three releases, each with 
   assert.equal(new Set(visuals).size, visuals.length, 'no visual twice');
   assert.equal(newest.entries[1].highlight.media.src, '/feature-captures/start-page-color-rose-solid-v1.38.0.webp');
 });
+
+// Keys, menu glyphs and bang codes sit in the site's chip, never bare in a
+// sentence: the data marks them with backticks.
+test('backticks mark chips in highlight text', async () => {
+  const { chipSpans, plainText } = await lib();
+  assert.deepEqual(chipSpans('Press `⌘L`, then `⋮`.'), [
+    { chip: false, text: 'Press ' }, { chip: true, text: '⌘L' }, { chip: false, text: ', then ' }, { chip: true, text: '⋮' }, { chip: false, text: '.' },
+  ]);
+  assert.equal(plainText('Press `⌘L` now'), 'Press ⌘L now');
+});
+
+test('a key, menu glyph or bang code left outside a chip is refused', async () => {
+  const { validateWhatsNew } = await lib();
+  const opts = await options();
+  const bad = (extra) => validateWhatsNew(fixture([page('1.38', 3, extra)]), RELEASES, opts).some((e) => /chip/.test(e));
+  assert.ok(bad({ steps: ['Right-click a header, or press its ⋮.'] }));
+  assert.ok(bad({ body: 'Open the ⌘L panel.' }));
+  assert.ok(bad({ note: 'Type !yt lofi to try it.' }));
+  assert.ok(bad({ steps: ['Press `⌘L.'] }), 'an unclosed chip');
+  assert.ok(!bad({ steps: ['Right-click a header, or press its `⋮` button.'], body: 'Open the `⌘L` panel.', note: 'Type `!yt lofi`.' }));
+});

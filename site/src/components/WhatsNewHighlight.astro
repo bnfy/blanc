@@ -5,6 +5,7 @@
 // shows one at a time (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
 import SpacesDemo from './SpacesDemo.astro';
 import TabDragFigure from './TabDragFigure.astro';
+import { chipSpans } from '../lib/whats-new.mjs';
 
 interface Props {
   highlight: {
@@ -26,15 +27,17 @@ interface Props {
 }
 const { highlight: h, release, humanDate, current, first } = Astro.props;
 const media = h.media;
+// Backticked keys and codes render as the site's chip.
+const rich = (text: string) => chipSpans(text).map((span) => (span.chip ? { chip: span.text } : { text: span.text }));
 const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
 ---
 <section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
   <div class="wn-copy">
     <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release} · {shortDate}</p>
     <h2 id={`${h.id}-title`}>{h.title}</h2>
-    <p class="wn-body">{h.body}</p>
-    {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{step}</li>)}</ol>}
-    {h.note && <p class="wn-note">{h.note}</p>}
+    <p class="wn-body">{rich(h.body).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>
+    {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{rich(step).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</li>)}</ol>}
+    {h.note && <p class="wn-note">{rich(h.note).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>}
     <div class="wn-actions">
       <button type="button" class="cta wn-next">next</button>
       {h.learnMore && <a class="text-link wn-learn-more" href={h.learnMore}>learn more <span aria-hidden="true">›</span></a>}

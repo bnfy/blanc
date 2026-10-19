@@ -19,6 +19,25 @@ const MAX_HIGHLIGHTS = 5;
 const EARLIER_PAGES = 2;
 const MAX_ENTRIES = 8;
 
+// Keys, menu glyphs and bang codes sit in the site's chip (.bang-chip), never
+// bare in a sentence. The data marks them with backticks: `⌘L`, `⋮`, `!yt lofi`.
+export function chipSpans(text) {
+  return String(text).split('`').map((part, index) => ({ chip: index % 2 === 1, text: part })).filter((span) => span.text !== '');
+}
+
+export function plainText(text) {
+  return String(text).replaceAll('`', '');
+}
+
+const BARE_KEY = /[⌘⌥⇧⋮]|(?:^|\s)![\w]/;
+
+function chipErrors(text, where) {
+  if ((String(text).match(/`/g) ?? []).length % 2) return [`${where}: a chip is not closed`];
+  return chipSpans(text).some((span) => !span.chip && BARE_KEY.test(span.text))
+    ? [`${where}: put keys, menu glyphs and bang codes in a chip (backticks)`]
+    : [];
+}
+
 export function featureRelease(version) {
   const match = RELEASE_RE.exec(typeof version === 'string' ? version : '');
   return match ? `${match[1]}.${match[2]}` : null;
@@ -99,6 +118,9 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
       // comes from the captures themselves.
       if ('color' in h) errors.push(`${where}: highlights take no color; the page uses the site palette`);
       if (h.steps !== undefined && (!Array.isArray(h.steps) || !h.steps.every(nonEmpty))) errors.push(`${where}: steps must be a list of text`);
+      for (const text of [h.body, h.note, ...(Array.isArray(h.steps) ? h.steps : [])]) {
+        if (typeof text === 'string') errors.push(...chipErrors(text, where));
+      }
       if (h.learnMore !== undefined && !isSitePath(h.learnMore)) errors.push(`${where}: learnMore must be a blanc.day page`);
       errors.push(...mediaErrors(h.media, where, publicDir));
     }

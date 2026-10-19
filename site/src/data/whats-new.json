@@ -55,9 +55,9 @@
           "id": "group-colors",
           "tile": "Tab group colors",
           "title": "Give each tab group a color",
-          "body": "A group can take one of the eight colors Spaces use. Its block in the ⌘L panel takes a light tint, its name gets a dot, and its tabs’ dots in the Island take the color.",
+          "body": "A group can take one of the eight colors Spaces use. Its block in the `⌘L` panel takes a light tint, its name gets a dot, and its tabs’ dots in the Island take the color.",
           "steps": [
-            "Right-click a group’s header in the ⌘L panel, or press its ⋮.",
+            "Right-click a group’s header in the `⌘L` panel, or press its `⋮` button.",
             "Pick a color."
           ],
           "note": "Groups have no color unless you choose one.",
@@ -98,12 +98,12 @@
           "id": "bangs",
           "tile": "Bangs",
           "title": "Search any site from the address bar",
-          "body": "Type an exclamation mark and a site’s code before your search, like !yt lofi, and Blanc opens that site’s results directly, whichever search engine you use.",
+          "body": "Type an exclamation mark and a site’s code before your search, like `!yt lofi`, and Blanc opens that site’s results directly, whichever search engine you use.",
           "steps": [
-            "Press ⌘L, or Ctrl+L on Windows and Linux.",
-            "Type !yt lofi and press Return."
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Type `!yt lofi` and press Return."
           ],
-          "note": "Type ! on its own to see popular bangs. The list ships inside Blanc, so Blanc never looks bangs up online.",
+          "note": "Type `!` on its own to see popular bangs. The list ships inside Blanc, so Blanc never looks bangs up online.",
           "learnMore": "/bangs",
           "media": {
             "kind": "image",
@@ -117,9 +117,9 @@
           "id": "recently-closed",
           "tile": "Recently closed",
           "title": "Bring back what you closed",
-          "body": "Recently closed sits as a band in the ⌘L panel. Unfold it to see every closed tab Blanc keeps, up to 25, newest first.",
+          "body": "Recently closed sits as a band in the `⌘L` panel. Unfold it to see every closed tab Blanc keeps, up to 25, newest first.",
           "steps": [
-            "Press ⌘L, or Ctrl+L on Windows and Linux.",
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
             "Unfold Recently closed and pick what to bring back."
           ],
           "learnMore": "/features/reopen-closed-tabs",
