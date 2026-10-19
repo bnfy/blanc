@@ -803,6 +803,65 @@
         "doc": "Clear all history."
       },
       {
+        "name": "archive.list",
+        "kind": "invoke",
+        "channel": "pages:archive:list",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "opts",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "List archived tabs (F52), optionally searched."
+      },
+      {
+        "name": "archive.restore",
+        "kind": "invoke",
+        "channel": "pages:archive:restore",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Restore one archived tab into the requesting window."
+      },
+      {
+        "name": "archive.forget",
+        "kind": "invoke",
+        "channel": "pages:archive:forget",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove one archived tab from the Archive."
+      },
+      {
+        "name": "archive.clear",
+        "kind": "invoke",
+        "channel": "pages:archive:clear",
+        "hosts": [
+          "history"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Empty the Archive."
+      },
+      {
         "name": "downloads.list",
         "kind": "invoke",
         "channel": "pages:downloads:list",

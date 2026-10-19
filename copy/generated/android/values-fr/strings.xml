@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Enregistrer cette page dans les favoris — indiquez un dossier pour l’y classer</string>
     <string name="slash_save_doc">Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un</string>
     <string name="slash_history_hint">Ouvrir l’historique de navigation</string>
+    <string name="slash_archive_hint">Voir les onglets que Blanc a archivés pour vous</string>
     <string name="slash_downloads_hint">Ouvrir les téléchargements</string>
     <string name="slash_settings_hint">Ouvrir les réglages</string>
     <string name="slash_sync_hint">Configurer ou gérer la synchronisation</string>
@@ -1580,6 +1581,14 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="history_remove_label">Retirer %1$s de l’historique</string>
     <string name="history_no_matches">Aucun résultat pour cette recherche.</string>
     <string name="history_empty">Aucun historique pour l’instant.</string>
+    <string name="history_view_visits">Visites</string>
+    <string name="history_view_archived">Onglets archivés</string>
+    <string name="history_archived_search">Rechercher dans les onglets archivés</string>
+    <string name="history_archived_clear">Vider les Archives</string>
+    <string name="history_archived_restore">Restaurer</string>
+    <string name="history_archived_restore_label">Restaurer %1$s dans un onglet</string>
+    <string name="history_archived_forget_label">Retirer %1$s des Archives</string>
+    <string name="history_archived_empty">Aucun onglet archivé. Activez Archiver les onglets inactifs dans Réglages → Général.</string>
     <string name="history_day_today">Aujourd’hui</string>
     <string name="history_day_yesterday">Hier</string>
     <string name="downloads_clear_finished">Effacer les terminés</string>

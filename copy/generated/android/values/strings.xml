@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Save this page to favorites — name a folder to file it</string>
     <string name="slash_save_doc">Save this page to favorites, into a folder if you name one</string>
     <string name="slash_history_hint">Open browsing history</string>
+    <string name="slash_archive_hint">See tabs Blanc archived for you</string>
     <string name="slash_downloads_hint">Open downloads</string>
     <string name="slash_settings_hint">Open settings</string>
     <string name="slash_sync_hint">Set up or manage sync</string>
@@ -1536,6 +1537,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="history_remove_label">Remove %1$s from history</string>
     <string name="history_no_matches">Nothing matches that search.</string>
     <string name="history_empty">No history yet.</string>
+    <string name="history_view_visits">Visits</string>
+    <string name="history_view_archived">Archived tabs</string>
+    <string name="history_archived_search">Search archived tabs</string>
+    <string name="history_archived_clear">Clear Archive</string>
+    <string name="history_archived_restore">Restore</string>
+    <string name="history_archived_restore_label">Restore %1$s as a tab</string>
+    <string name="history_archived_forget_label">Remove %1$s from the Archive</string>
+    <string name="history_archived_empty">No archived tabs. Turn on Archive inactive tabs in Settings → General.</string>
     <string name="history_day_today">Today</string>
     <string name="history_day_yesterday">Yesterday</string>
     <string name="downloads_clear_finished">Clear finished</string>

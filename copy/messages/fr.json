@@ -25,6 +25,10 @@
     "message": "Ouvrir l’historique de navigation",
     "source": "sha256:2fe6be7d6c896865b21a56859f0089adb0b0d79b54b2c01e5b64a28d4843b3b1"
   },
+  "slash.archive.hint": {
+    "message": "Voir les onglets que Blanc a archivés pour vous",
+    "source": "sha256:aa22619c1bdbe2d9a2783aa30fad10b136641f7ca0bc7140a0b816d52dd98895"
+  },
   "slash.downloads.hint": {
     "message": "Ouvrir les téléchargements",
     "source": "sha256:de5dda86535350198af94dd025f1bfc49ea8f6fc730a1005dae18bc8e01d0ff3"
@@ -5570,6 +5574,38 @@
   "history.empty": {
     "message": "Aucun historique pour l’instant.",
     "source": "sha256:883512e2bcfd0228ba7af9fa941ac79ac6c6cc44c7d867dc6d1795d2703de58e"
+  },
+  "history.view.visits": {
+    "message": "Visites",
+    "source": "sha256:acbe9c8cbc2a0916ac6f13d68a86d92c1b434d458786b75fbdae9aa5c9794716"
+  },
+  "history.view.archived": {
+    "message": "Onglets archivés",
+    "source": "sha256:a7798196c917471c562cbccee33965d4e47929c09c97325ab82048b429ba42ca"
+  },
+  "history.archived.search": {
+    "message": "Rechercher dans les onglets archivés",
+    "source": "sha256:f5e1d0f24bdf8afcb0a6a1ae78bc8be5933d9d8bed2007849b2a81c0b686038f"
+  },
+  "history.archived.clear": {
+    "message": "Vider les Archives",
+    "source": "sha256:7b07cc903b31dc8d6b3e5aab852f7c93caf2547df1407df700d73312ce150187"
+  },
+  "history.archived.restore": {
+    "message": "Restaurer",
+    "source": "sha256:1037f92386beebc4db4637f1dfc6a7e63cb16c8a14f0faf1fd1f12bce2b55466"
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restaurer {title} dans un onglet",
+    "source": "sha256:7b684210b40a6cc7aeb4e01c5a3cef44868e74c1208bec0be5b7cdfcaa6e6022"
+  },
+  "history.archived.forgetLabel": {
+    "message": "Retirer {title} des Archives",
+    "source": "sha256:a5def2131b7b98b566ec7ce179a759f7eb5e300de46c3f305e923e44ba10e9ad"
+  },
+  "history.archived.empty": {
+    "message": "Aucun onglet archivé. Activez Archiver les onglets inactifs dans Réglages → Général.",
+    "source": "sha256:338ab29048c77bc2e57da837b8c69651acfd1900ea71f8973efca93866f673cf"
   },
   "history.day.today": {
     "message": "Aujourd’hui",

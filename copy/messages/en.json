@@ -20,6 +20,10 @@
     "message": "Open browsing history",
     "note": "Slash command hint shown in the ⌘L palette for /history."
   },
+  "slash.archive.hint": {
+    "message": "See tabs Blanc archived for you",
+    "note": "Slash command hint shown in the ⌘L palette for /archive (F52): opens History on its Archived tabs view."
+  },
   "slash.downloads.hint": {
     "message": "Open downloads",
     "note": "Slash command hint shown in the ⌘L palette for /downloads."
@@ -5775,6 +5779,38 @@
   "history.empty": {
     "message": "No history yet.",
     "note": "History page: shown when there is no history."
+  },
+  "history.view.visits": {
+    "message": "Visits",
+    "note": "History page: segmented choice showing the list of visits (F52)."
+  },
+  "history.view.archived": {
+    "message": "Archived tabs",
+    "note": "History page: segmented choice showing tabs Blanc archived (F52)."
+  },
+  "history.archived.search": {
+    "message": "Search archived tabs",
+    "note": "History page, Archived tabs view: placeholder and accessible name of the search field."
+  },
+  "history.archived.clear": {
+    "message": "Clear Archive",
+    "note": "History page, Archived tabs view: button that empties the Archive."
+  },
+  "history.archived.restore": {
+    "message": "Restore",
+    "note": "History page, Archived tabs view: button on an entry that reopens the tab."
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restore {title} as a tab",
+    "note": "History page, Archived tabs view: accessible name of the restore button; {title} is the tab’s title."
+  },
+  "history.archived.forgetLabel": {
+    "message": "Remove {title} from the Archive",
+    "note": "History page, Archived tabs view: accessible name of the remove button; {title} is the tab’s title."
+  },
+  "history.archived.empty": {
+    "message": "No archived tabs. Turn on Archive inactive tabs in Settings → General.",
+    "note": "History page, Archived tabs view: shown when nothing is archived."
   },
   "history.day.today": {
     "message": "Today",

@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Guardar esta página en favoritos; escribe el nombre de una carpeta para archivarla</string>
     <string name="slash_save_doc">Guarda esta página en favoritos, en una carpeta si indicas su nombre</string>
     <string name="slash_history_hint">Abrir el historial de navegación</string>
+    <string name="slash_archive_hint">Ver las pestañas que Blanc archivó por ti</string>
     <string name="slash_downloads_hint">Abrir descargas</string>
     <string name="slash_settings_hint">Abrir la configuración</string>
     <string name="slash_sync_hint">Configurar o gestionar la sincronización</string>
@@ -1580,6 +1581,14 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="history_remove_label">Quitar %1$s del historial</string>
     <string name="history_no_matches">Nada coincide con esa búsqueda.</string>
     <string name="history_empty">Aún no hay historial.</string>
+    <string name="history_view_visits">Visitas</string>
+    <string name="history_view_archived">Pestañas archivadas</string>
+    <string name="history_archived_search">Buscar en las pestañas archivadas</string>
+    <string name="history_archived_clear">Vaciar Archivo</string>
+    <string name="history_archived_restore">Restaurar</string>
+    <string name="history_archived_restore_label">Restaurar %1$s como pestaña</string>
+    <string name="history_archived_forget_label">Quitar %1$s del Archivo</string>
+    <string name="history_archived_empty">No hay pestañas archivadas. Activa Archivar las pestañas inactivas en Configuración → General.</string>
     <string name="history_day_today">Hoy</string>
     <string name="history_day_yesterday">Ayer</string>
     <string name="downloads_clear_finished">Borrar terminadas</string>

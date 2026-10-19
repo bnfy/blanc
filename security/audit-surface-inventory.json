@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "8ffb9da936f0b11cecc49ea5cdbae6ce6bb92c69f0bbbf14f00dee31018e846a",
+      "sha256": "4e6221e50c0dc0f05c3e13e464f92fa71aeeb4254e9c555a07024be540cbe8e7",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -467,7 +467,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "c56be347fc3f5a604a465bcaedc4d002eb6b3814f6e5da44c84ea11cba09a2d8",
+      "sha256": "e531c58bb0bb0a8959c3a0a2b95eb4a18cbdaf8fa60e54a4971b8f6a55eaa7a7",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -475,6 +475,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",
@@ -819,7 +823,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "f8ee7753b345305ff37da3ff6fc3aab51dc2fdbd39e9410bfdadafbf00ef4d29",
+      "sha256": "387c7bde5a452a4071832483c2aea47b0ee7f8c16faa0ee7a7bcbf65ac3ae4ad",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -827,6 +831,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",

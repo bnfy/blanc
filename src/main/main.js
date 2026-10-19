@@ -8797,6 +8797,11 @@ function registerIpcHandlers() {
   chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
+    // F52: /archive opens History on its Archived view.
+    if (name === 'history' && section === 'archived') {
+      openInternalPage('blanc://history/?view=archived');
+      return;
+    }
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
     }
@@ -9378,6 +9383,7 @@ const SLASH_COMMANDS = [
   ['/bring-tabs', 'slash.bringTabs.hint'],
   ['/save [folder]', 'slash.save.doc'],
   ['/history', 'slash.history.hint'],
+  ['/archive', 'slash.archive.hint'],
   ['/downloads', 'slash.downloads.hint'],
   ['/settings', 'slash.settings.hint'],
   ['/sync', 'slash.sync.hint'],
@@ -11611,6 +11617,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // using the same manual updater flow as the native menu.
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
+    restoreArchived: (id) => restoreArchivedEntry(id),
     onHistoryCleared: () => {
       clearSessionMeta();
       archive.clearArchive();

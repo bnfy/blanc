@@ -22,6 +22,9 @@
       "command": "/history"
     },
     {
+      "command": "/archive"
+    },
+    {
       "command": "/downloads"
     },
     {

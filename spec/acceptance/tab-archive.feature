@@ -51,3 +51,18 @@ Feature: Tab Archive
     And a loose background tab not viewed for 13 hours
     When the computer wakes from sleep and the archive sweep runs
     Then that tab is still open and the Archive is empty
+
+  @F52-8 @F52 @desktop
+  Scenario: Restore an archived tab from the History sheet
+    Given an archived tab
+    When I open the Archive with the archive command
+    Then the History sheet lists the archived tab
+    When I restore it from the History sheet
+    Then it opens as the last tab and leaves the Archive
+
+  @F52-9 @F52 @desktop
+  Scenario: Clear the Archive from the History sheet
+    Given an archived tab
+    When I open the Archive with the archive command
+    And I clear the Archive from the History sheet
+    Then the Archive is empty

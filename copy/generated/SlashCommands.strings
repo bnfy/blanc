@@ -3,6 +3,7 @@
 "slash_bring_tabs" = "Bring open tabs from another browser";
 "slash_save" = "Save this page to favorites — name a folder to file it";
 "slash_history" = "Open browsing history";
+"slash_archive" = "See tabs Blanc archived for you";
 "slash_downloads" = "Open downloads";
 "slash_settings" = "Open settings";
 "slash_sync" = "Set up or manage sync";

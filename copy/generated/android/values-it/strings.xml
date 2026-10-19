@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Salva questa pagina nei preferiti — indica una cartella per archiviarla</string>
     <string name="slash_save_doc">Salva questa pagina nei preferiti, in una cartella se ne indichi una</string>
     <string name="slash_history_hint">Apri la cronologia di navigazione</string>
+    <string name="slash_archive_hint">Vedi le schede che Blanc ha archiviato per te</string>
     <string name="slash_downloads_hint">Apri i download</string>
     <string name="slash_settings_hint">Apri le impostazioni</string>
     <string name="slash_sync_hint">Configura o gestisci la sincronizzazione</string>
@@ -1580,6 +1581,14 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="history_remove_label">Rimuovi %1$s dalla cronologia</string>
     <string name="history_no_matches">Nessun risultato per questa ricerca.</string>
     <string name="history_empty">Ancora nessuna cronologia.</string>
+    <string name="history_view_visits">Visite</string>
+    <string name="history_view_archived">Schede archiviate</string>
+    <string name="history_archived_search">Cerca nelle schede archiviate</string>
+    <string name="history_archived_clear">Svuota Archivio</string>
+    <string name="history_archived_restore">Ripristina</string>
+    <string name="history_archived_restore_label">Ripristina %1$s come scheda</string>
+    <string name="history_archived_forget_label">Rimuovi %1$s dall’Archivio</string>
+    <string name="history_archived_empty">Nessuna scheda archiviata. Attiva Archivia le schede inattive in Impostazioni → Generali.</string>
     <string name="history_day_today">Oggi</string>
     <string name="history_day_yesterday">Ieri</string>
     <string name="downloads_clear_finished">Cancella completati</string>

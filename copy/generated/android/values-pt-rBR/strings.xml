@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Salvar esta página nos favoritos — digite o nome de uma pasta para arquivá-la</string>
     <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome</string>
     <string name="slash_history_hint">Abrir o histórico de navegação</string>
+    <string name="slash_archive_hint">Ver as abas que o Blanc arquivou para você</string>
     <string name="slash_downloads_hint">Abrir downloads</string>
     <string name="slash_settings_hint">Abrir as configurações</string>
     <string name="slash_sync_hint">Configurar ou gerenciar a sincronização</string>
@@ -1580,6 +1581,14 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="history_remove_label">Remover %1$s do histórico</string>
     <string name="history_no_matches">Nada corresponde a essa pesquisa.</string>
     <string name="history_empty">Nenhum histórico ainda.</string>
+    <string name="history_view_visits">Visitas</string>
+    <string name="history_view_archived">Abas arquivadas</string>
+    <string name="history_archived_search">Pesquisar abas arquivadas</string>
+    <string name="history_archived_clear">Limpar Arquivo</string>
+    <string name="history_archived_restore">Restaurar</string>
+    <string name="history_archived_restore_label">Restaurar %1$s como aba</string>
+    <string name="history_archived_forget_label">Remover %1$s do Arquivo</string>
+    <string name="history_archived_empty">Nenhuma aba arquivada. Ative Arquivar abas inativas em Configurações → Geral.</string>
     <string name="history_day_today">Hoje</string>
     <string name="history_day_yesterday">Ontem</string>
     <string name="downloads_clear_finished">Limpar concluídos</string>

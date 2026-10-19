@@ -137,3 +137,48 @@ When('the computer wakes from sleep and the archive sweep runs', async function 
   this.archiveResult = await this.call('runArchiveSweep');
   assert.equal(this.archiveResult.skippedReason, 'grace');
 });
+
+const { runSlashCommand } = require('../support/overlay');
+
+async function archivedSheetRows(world) {
+  return world.call('historySheetArchivedRows');
+}
+
+When('I open the Archive with the archive command', async function () {
+  await runSlashCommand(this, '/archive');
+  const rows = await waitForRows(this, (r) => r && r.view === 'archived');
+  this.archivedSheet = rows;
+});
+
+async function waitForRows(world, predicate, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  let last;
+  for (;;) {
+    last = await archivedSheetRows(world);
+    if (predicate(last)) return last;
+    if (Date.now() > deadline) throw new Error(`History sheet never matched; last: ${JSON.stringify(last)}`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
+Then('the History sheet lists the archived tab', async function () {
+  const sheet = await waitForRows(this, (r) => r?.rows.length === 1);
+  assert.equal(sheet.rows[0].title, 'archive-plain');
+});
+
+When('I restore it from the History sheet', async function () {
+  assert.equal(await this.call('historySheetClick', '.archived-restore'), true);
+});
+
+When('I clear the Archive from the History sheet', async function () {
+  assert.equal(await this.call('historySheetClick', '#clearArchive'), true);
+});
+
+Then('it opens as the last tab and leaves the Archive', async function () {
+  const state = await this.waitForState((s) =>
+    s.tabs.some((t) => t.loadedUrl.includes('/site/archive-plain') || t.url.includes('/site/archive-plain')));
+  const restored = state.tabs.find((t) => t.url.includes('/site/archive-plain'));
+  assert.equal(state.tabOrder.at(-1), restored.id);
+  assert.equal(restored.groupId, null);
+  assert.deepEqual(await this.call('archiveEntries'), []);
+});

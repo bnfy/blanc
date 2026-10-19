@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren</string>
     <string name="slash_save_doc">Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst</string>
     <string name="slash_history_hint">Verlauf öffnen</string>
+    <string name="slash_archive_hint">Tabs ansehen, die Blanc für dich archiviert hat</string>
     <string name="slash_downloads_hint">Downloads öffnen</string>
     <string name="slash_settings_hint">Einstellungen öffnen</string>
     <string name="slash_sync_hint">Synchronisierung einrichten oder verwalten</string>
@@ -1536,6 +1537,14 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="history_remove_label">%1$s aus dem Verlauf entfernen</string>
     <string name="history_no_matches">Nichts passt zu dieser Suche.</string>
     <string name="history_empty">Noch kein Verlauf.</string>
+    <string name="history_view_visits">Besuche</string>
+    <string name="history_view_archived">Archivierte Tabs</string>
+    <string name="history_archived_search">Archivierte Tabs durchsuchen</string>
+    <string name="history_archived_clear">Archiv leeren</string>
+    <string name="history_archived_restore">Öffnen</string>
+    <string name="history_archived_restore_label">%1$s wieder als Tab öffnen</string>
+    <string name="history_archived_forget_label">%1$s aus dem Archiv entfernen</string>
+    <string name="history_archived_empty">Keine archivierten Tabs. Schalte „Inaktive Tabs archivieren“ unter Einstellungen → Allgemein ein.</string>
     <string name="history_day_today">Heute</string>
     <string name="history_day_yesterday">Gestern</string>
     <string name="downloads_clear_finished">Fertige entfernen</string>
