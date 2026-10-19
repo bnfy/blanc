@@ -16,7 +16,11 @@
                   { "type": "strong", "value": "Tab group notes." },
                   { "type": "text", "value": " Right-click a group's header and choose " },
                   { "type": "strong", "value": "Add Note" },
-                  { "type": "text", "value": " to keep a line of text with it." }
+                  { "type": "text", "value": " to keep a line of text with it, or press ⋮ and then ⌘⇧N (Ctrl+Shift+N on Windows and Linux). Type " },
+                  { "type": "code", "value": "lofi !notes" },
+                  { "type": "text", "value": " or !notes in the ⌘L panel, or run " },
+                  { "type": "code", "value": "/note" },
+                  { "type": "text", "value": "." }
                 ],
                 "url": null
               },

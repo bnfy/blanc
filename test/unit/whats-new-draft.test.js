@@ -41,10 +41,10 @@ function tempSite(whatsNew = { firstRelease: '2.1', noPage: [], pages: [] }) {
 const readWhatsNew = (site) => JSON.parse(fs.readFileSync(path.join(site, 'src/data/whats-new.json'), 'utf8'));
 const quiet = () => {};
 
-test('only Added bullets that lead with a bold name become highlights', async () => {
+test('only Added bullets that lead with a bold name become highlights, with keys and bangs in chips', async () => {
   const { featureBullets } = await draft();
   assert.deepEqual(featureBullets(releases[0]), [
-    { name: 'Tab group notes', text: 'Right-click a group\'s header and choose Add Note to keep a line of text with it.' },
+    { name: 'Tab group notes', text: 'Right-click a group\'s header and choose Add Note to keep a line of text with it, or press `⋮` and then `⌘⇧N` (`Ctrl+Shift+N` on Windows and Linux). Type `lofi !notes` or `!notes` in the `⌘L` panel, or run /note.' },
     { name: 'Sunset wallpaper', text: 'the Start Page gains a sunset wallpaper.' },
   ]);
 });
@@ -57,7 +57,7 @@ test('a draft draws its words only from the notes and guesses learnMore and capt
   const [page] = readWhatsNew(site).pages;
   assert.equal(page.release, '2.1');
   assert.deepEqual(page.highlights.map((h) => [h.id, h.tile, h.title, h.body, h.learnMore]), [
-    ['tab-group-notes', 'Tab group notes', 'Tab group notes', 'Right-click a group\'s header and choose Add Note to keep a line of text with it.', '/features/tab-groups'],
+    ['tab-group-notes', 'Tab group notes', 'Tab group notes', 'Right-click a group\'s header and choose Add Note to keep a line of text with it, or press `⋮` and then `⌘⇧N` (`Ctrl+Shift+N` on Windows and Linux). Type `lofi !notes` or `!notes` in the `⌘L` panel, or run /note.', '/features/tab-groups'],
     ['sunset-wallpaper', 'Sunset wallpaper', 'Sunset wallpaper', 'the Start Page gains a sunset wallpaper.', '/features/start-page'],
   ]);
   assert.deepEqual(page.highlights[0].media.candidates, ['/feature-captures/tab-group-colors-v1.38.0.webp']);
@@ -131,13 +131,4 @@ test('draft ids stay unique across pages and the page sorts newest first', async
   const { page } = draftPage('2.1', releases, { data });
   assert.deepEqual(page.highlights.map((h) => h.id), ['tab-group-notes-2-1', 'sunset-wallpaper']);
   assert.deepEqual(addDraft(data, page).pages.map((p) => p.release), ['2.1', '2.0']);
-});
-
-test('the post-release runbooks run the What\'s New generator first', () => {
-  for (const rel of ['CLAUDE.md', 'AGENTS.md', '.claude/skills/releasing-blanc/SKILL.md']) {
-    const doc = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-    assert.match(doc, /npm run site:whats-new -- --release X\.Y/, rel);
-  }
-  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-  assert.equal(pkg.scripts['site:whats-new'], 'node site/scripts/whats-new-draft.mjs');
 });

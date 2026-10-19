@@ -23,7 +23,15 @@ const MIN_HIGHLIGHTS = 2;
 // Words too common to pick a capture by ("tab" is in half their names).
 const STOP_WORDS = new Set(['a', 'an', 'and', 'the', 'of', 'to', 'in', 'on', 'for', 'with', 'your', 'own', 'new', 'from', 'by', 'its', 'it', 'or', 'tab', 'blanc']);
 
-const spansText = (spans = []) => spans.map((span) => span.value).join('');
+// Keys (⌘⇧G, ⌘[, Ctrl+Shift+G, Alt+Left), the ⋮ menu glyph and bang codes
+// (!yt) go in the site's chip, marked with backticks, as validateWhatsNew
+// requires (chipSpans in site/src/lib/whats-new.mjs).
+const CHIP = /[⌘⌥⇧⌃]+[^\s,;:()]*[^\s,;:().]|[⌘⌥⇧⌃]+|⋮|\b(?:Ctrl|Alt|Shift|Option|Cmd)(?:\+[A-Za-z0-9[\]]+)+|(?<=^|\s)![A-Za-z0-9]+/g;
+const chipify = (text) => text.replaceAll('`', '').replace(CHIP, (key) => `\`${key}\``);
+// A code span holding a bang or a key is a chip whole (`!yt lofi`,
+// `lofi !yt`); other code (a /command, a URL) stays plain text.
+const codeText = (code) => (/(?:^|\s)!|[⌘⌥⇧⌃⋮]/.test(code) ? `\`${code.replaceAll('`', '')}\`` : code.replaceAll('`', ''));
+const spansText = (spans = []) => spans.map((span) => (span.type === 'code' ? codeText(span.value) : chipify(span.value))).join('');
 const stem = (word) => (word.length > 3 && word.endsWith('s') && !word.endsWith('ss') ? word.slice(0, -1) : word);
 const words = (text) => String(text).toLowerCase().replace(/['’]/g, '').split(/[^a-z0-9]+/).filter(Boolean).map(stem);
 const slug = (text) => String(text).toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
