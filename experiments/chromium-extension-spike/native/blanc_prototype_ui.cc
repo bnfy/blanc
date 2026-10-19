@@ -80,6 +80,7 @@
 #include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/render_process_host.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/render_widget_host_view.h"
@@ -610,7 +611,16 @@ class Owner : public base::SupportsUserData::Data,
     ++generation_;
     timer_.Stop();
   }
+  void RenderFrameDeleted(content::RenderFrameHost* frame) override {
+    // The PDF renderer can die while its outer page remains live. Retire the
+    // search session when its PDF frame disappears; late replies must not
+    // repopulate the capsule. Ordinary subframe removal keeps parent find live.
+    if (frame->GetProcess()->IsPdf()) ResetFindAfterRendererLoss();
+  }
   void PrimaryMainFrameRenderProcessGone(base::TerminationStatus) override {
+    ResetFindAfterRendererLoss();
+  }
+  void ResetFindAfterRendererLoss() {
     // A crashed renderer cannot complete its pending find. Retire the session
     // without sending StopFinding to the dead process, and clear stale UI.
     find_request_ = -1;
