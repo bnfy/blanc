@@ -20,6 +20,10 @@
     "message": "Open browsing history",
     "note": "Slash command hint shown in the ⌘L palette for /history."
   },
+  "slash.archive.hint": {
+    "message": "See tabs Blanc archived for you",
+    "note": "Slash command hint shown in the ⌘L palette for /archive (F52): opens History on its Archived tabs view."
+  },
   "slash.downloads.hint": {
     "message": "Open downloads",
     "note": "Slash command hint shown in the ⌘L palette for /downloads."
@@ -280,6 +284,10 @@
   "pill.moreTabs": {
     "message": "{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}",
     "note": "Tooltip of the +N overflow beside the pill's tab dots; opens the tab list."
+  },
+  "island.autoHide.intro": {
+    "message": "Point at the top edge, or press {shortcut}, to bring the Island back.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere."
   },
   "dot.switchTo": {
     "message": "Switch to {title}",
@@ -1584,6 +1592,22 @@
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
+  "result.archived": {
+    "message": "Archived",
+    "note": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'."
+  },
+  "archive.notice.title": {
+    "message": "{count, plural, one {Blanc archived # tab} other {Blanc archived # tabs}}",
+    "note": "⌘L panel: one-time notice at the top of the tab list after Blanc first archives idle tabs (F52)."
+  },
+  "archive.notice.view": {
+    "message": "View Archive",
+    "note": "⌘L panel, first-archive notice: action that opens History on its Archived tabs view."
+  },
+  "archive.notice.dismiss": {
+    "message": "Dismiss",
+    "note": "⌘L panel, first-archive notice: accessible name and tooltip of the ✕ that hides the notice for good."
+  },
   "result.tag.search": {
     "message": "Search",
     "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
@@ -2672,6 +2696,10 @@
     "message": "Toggle Vertical Tabs",
     "note": "View menu item and shortcut list entry."
   },
+  "menu.autoHideIsland": {
+    "message": "Auto-hide the Island",
+    "note": "View menu checkbox item."
+  },
   "menu.tabLayout": {
     "message": "Tab Layout",
     "note": "View menu submenu choosing how tabs are shown."
@@ -3316,6 +3344,14 @@
     "message": "Rest the pointer on the Island’s address to open it without clicking.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.islandAutoHide.label": {
+    "message": "Auto-hide the Island",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.",
+    "note": "Settings → General: explanation under a setting."
+  },
   "settings.general.darkWebsites.label": {
     "message": "Dark websites",
     "note": "Settings → General: setting name."
@@ -3426,6 +3462,34 @@
     "message": "After 6 hours",
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
+  },
+  "settings.general.tabArchive.label": {
+    "message": "Archive inactive tabs",
+    "note": "Settings → General: label of the Tab Archive delay select."
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Off",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "After 12 hours",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "After 1 day",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "After 7 days",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "After 30 days",
+    "note": "Settings → General: Tab Archive delay option."
   },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Mouse gestures",
@@ -5417,6 +5481,14 @@
     "message": "Control L",
     "note": "Onboarding dialog → step 3: how a screen reader reads the Ctrl+L key."
   },
+  "onboarding.island.archive": {
+    "message": "Archive tabs after 7 days<0>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</0>",
+    "note": "Onboarding → step 3 (the Island): Tab Archive switch name (F52), then (tag 0) its explanation in smaller type. Preset on for a fresh profile."
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Archive tabs after 7 days",
+    "note": "Onboarding → step 3: accessible name of the Tab Archive switch (F52)."
+  },
   "onboarding.blocking.title": {
     "message": "Block ads & trackers",
     "note": "Onboarding dialog → step 4: heading."
@@ -5743,6 +5815,38 @@
   "history.empty": {
     "message": "No history yet.",
     "note": "History page: shown when there is no history."
+  },
+  "history.view.visits": {
+    "message": "Visits",
+    "note": "History page: segmented choice showing the list of visits (F52)."
+  },
+  "history.view.archived": {
+    "message": "Archived tabs",
+    "note": "History page: segmented choice showing tabs Blanc archived (F52)."
+  },
+  "history.archived.search": {
+    "message": "Search archived tabs",
+    "note": "History page, Archived tabs view: placeholder and accessible name of the search field."
+  },
+  "history.archived.clear": {
+    "message": "Clear Archive",
+    "note": "History page, Archived tabs view: button that empties the Archive."
+  },
+  "history.archived.restore": {
+    "message": "Restore",
+    "note": "History page, Archived tabs view: button on an entry that reopens the tab."
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restore {title} as a tab",
+    "note": "History page, Archived tabs view: accessible name of the restore button; {title} is the tab’s title."
+  },
+  "history.archived.forgetLabel": {
+    "message": "Remove {title} from the Archive",
+    "note": "History page, Archived tabs view: accessible name of the remove button; {title} is the tab’s title."
+  },
+  "history.archived.empty": {
+    "message": "No archived tabs. Turn on Archive inactive tabs in Settings → General.",
+    "note": "History page, Archived tabs view: shown when nothing is archived."
   },
   "history.day.today": {
     "message": "Today",

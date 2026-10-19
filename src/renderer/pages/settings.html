@@ -55,6 +55,14 @@
               <label class="toggle"><input id="islandHoverOpen" type="checkbox" aria-label="Open the Island on hover" aria-describedby="islandHoverOpenHint" data-i18n-aria-label="settings.general.islandHoverOpen.label"/><span class="track"></span></label>
             </div>
 
+            <div class="setting" id="islandAutoHideSetting">
+              <div class="label">
+                <span data-i18n="settings.general.islandAutoHide.label">Auto-hide the Island</span>
+                <span class="hint" id="islandAutoHideHint" data-i18n="settings.general.islandAutoHide.hint">Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.</span>
+              </div>
+              <label class="toggle"><input id="islandAutoHide" type="checkbox" aria-label="Auto-hide the Island" aria-describedby="islandAutoHideHint" data-i18n-aria-label="settings.general.islandAutoHide.label"/><span class="track"></span></label>
+            </div>
+
             <div class="setting" id="islandSiteColorsSetting">
               <div class="label">
                 <span data-i18n="settings.general.islandSiteColors.label">Match site colors</span>
@@ -224,6 +232,20 @@
                 <option value="30m" data-i18n="settings.general.tabSleep.30m">After 30 minutes</option>
                 <option value="1h" data-i18n="settings.general.tabSleep.1h">After 1 hour</option>
                 <option value="6h" data-i18n="settings.general.tabSleep.6h">After 6 hours</option>
+              </select>
+            </div>
+
+            <div class="setting" id="tabArchiveSetting">
+              <div class="label">
+                <span data-i18n="settings.general.tabArchive.label">Archive inactive tabs</span>
+                <span class="hint" data-i18n="settings.general.tabArchive.hint">Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.</span>
+              </div>
+              <select id="tabArchive" aria-label="Archive inactive tabs" data-i18n-aria-label="settings.general.tabArchive.label">
+                <option value="off" data-i18n="settings.general.tabArchive.off">Off</option>
+                <option value="12h" data-i18n="settings.general.tabArchive.12h">After 12 hours</option>
+                <option value="1d" data-i18n="settings.general.tabArchive.1d">After 1 day</option>
+                <option value="7d" data-i18n="settings.general.tabArchive.7d">After 7 days</option>
+                <option value="30d" data-i18n="settings.general.tabArchive.30d">After 30 days</option>
               </select>
             </div>
 

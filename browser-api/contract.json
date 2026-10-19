@@ -1044,6 +1044,42 @@
         }
       }
     },
+    "ArchivedTab": {
+      "doc": "An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The tab's custom name, else its page title, or empty."
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        },
+        "archivedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds when the tab was archived."
+        },
+        "spaceName": {
+          "type": "string | null",
+          "doc": "The Space it was archived from, for display only."
+        }
+      }
+    },
+    "ArchiveNotice": {
+      "doc": "The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js.",
+      "fields": {
+        "count": {
+          "type": "number",
+          "doc": "Tabs given an Archive entry since the notice was first recorded."
+        }
+      }
+    },
     "FavoriteItem": {
       "doc": "A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.",
       "fields": {
@@ -2525,6 +2561,52 @@
       "doc": "List history entries, newest first."
     },
     {
+      "name": "archiveList",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-list",
+      "params": [],
+      "returns": "ArchivedTab[]",
+      "doc": "List the profile's archived tabs (F52), newest first. Empty while the active tab is private."
+    },
+    {
+      "name": "archiveRestore",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-restore",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Restore one archived tab as a new ungrouped tab at the end of the window. False when the entry is already gone."
+    },
+    {
+      "name": "archiveNotice",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-notice",
+      "params": [],
+      "returns": "ArchiveNotice | null",
+      "doc": "The profile's one-time first-archive notice (F52 spec D6) while it waits to be seen, else null. Null while the active tab is private."
+    },
+    {
+      "name": "archiveNoticeDone",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-notice-done",
+      "params": [
+        {
+          "name": "action",
+          "type": "'view' | 'dismiss'"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Finish the first-archive notice for good; 'view' also opens History on its Archived view. True when it was still pending."
+    },
+    {
       "name": "listFavorites",
       "group": "favorites",
       "kind": "invoke",
@@ -3000,6 +3082,14 @@
       "channel": "chrome:island-covered",
       "payload": null,
       "doc": "The expanded panel now covers the resting pill, which may hide (strip only)."
+    },
+    {
+      "name": "onStripHidden",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:strip-hidden",
+      "payload": "boolean",
+      "doc": "Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region."
     },
     {
       "name": "onFindResult",

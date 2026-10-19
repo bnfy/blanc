@@ -512,6 +512,26 @@ export interface HistoryEntry {
   favicon: string | null;
 }
 
+/** An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history. */
+export interface ArchivedTab {
+  id: string;
+  url: string;
+  /** The tab's custom name, else its page title, or empty. */
+  title: string;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+  /** Epoch milliseconds when the tab was archived. */
+  archivedAt: number;
+  /** The Space it was archived from, for display only. */
+  spaceName: string | null;
+}
+
+/** The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js. */
+export interface ArchiveNotice {
+  /** Tabs given an Archive entry since the notice was first recorded. */
+  count: number;
+}
+
 /** A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark. */
 export interface FavoriteItem {
   id: string;
@@ -1119,6 +1139,26 @@ export interface BlancBrowserAPI {
    */
   listHistory(opts?: HistoryListOptions): Promise<HistoryEntry[]>;
   /**
+   * List the profile's archived tabs (F52), newest first. Empty while the active tab is private.
+   * IPC: invoke `chrome:archive-list`.
+   */
+  archiveList(): Promise<ArchivedTab[]>;
+  /**
+   * Restore one archived tab as a new ungrouped tab at the end of the window. False when the entry is already gone.
+   * IPC: invoke `chrome:archive-restore`.
+   */
+  archiveRestore(id: string): Promise<boolean>;
+  /**
+   * The profile's one-time first-archive notice (F52 spec D6) while it waits to be seen, else null. Null while the active tab is private.
+   * IPC: invoke `chrome:archive-notice`.
+   */
+  archiveNotice(): Promise<ArchiveNotice | null>;
+  /**
+   * Finish the first-archive notice for good; 'view' also opens History on its Archived view. True when it was still pending.
+   * IPC: invoke `chrome:archive-notice-done`.
+   */
+  archiveNoticeDone(action: 'view' | 'dismiss'): Promise<boolean>;
+  /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.
    */
@@ -1339,6 +1379,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:island-covered`.
    */
   onIslandCovered(callback: () => void): () => void;
+  /**
+   * Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region.
+   * IPC: event `chrome:strip-hidden`.
+   */
+  onStripHidden(callback: (payload: boolean) => void): () => void;
   /**
    * Find-in-page match counts changed.
    * IPC: event `chrome:find-result`.

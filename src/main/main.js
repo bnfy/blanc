@@ -208,6 +208,7 @@ const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
@@ -242,7 +243,7 @@ const {
   withLocalProfile,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
-const { filterRestoredSession, restoreTargetId } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
@@ -265,6 +266,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -324,6 +326,7 @@ const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
+const islandAutoHideModule = require('./island-autohide');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -2218,16 +2221,16 @@ async function probeTabDirty(tab, wc) {
   // its privileged frame and defeat the space-saving use case for dead tabs.
   if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
     tab.deepScrolled = false;
-    return { dirty: false, hasSessionStorage: false };
+    return { dirty: false, unsaved: false, hasSessionStorage: false };
   }
 
   let frames;
   try {
     frames = wc.mainFrame?.framesInSubtree ?? [];
   } catch {
-    return { dirty: true, hasSessionStorage: false };
+    return { dirty: true, unsaved: true, hasSessionStorage: false };
   }
-  if (frames.length === 0) return { dirty: true, hasSessionStorage: false };
+  if (frames.length === 0) return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   // One budget for the complete frame tree, never 250 ms per iframe.
   const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
@@ -2240,18 +2243,20 @@ async function probeTabDirty(tab, wc) {
     })),
     budget,
   ]);
-  if (answers === 'timeout') return { dirty: true, hasSessionStorage: false };
+  if (answers === 'timeout') return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   let deepScrolled = false;
   let hasSessionStorage = false;
   for (const answer of answers) {
-    if (!answer || typeof answer !== 'object') return { dirty: true, hasSessionStorage: false };
-    if (answer.dirty) return { dirty: true, hasSessionStorage: false };
+    if (!answer || typeof answer !== 'object') return { dirty: true, unsaved: true, hasSessionStorage: false };
+    if (answer.dirty) return { dirty: true, unsaved: true, hasSessionStorage: false };
     if (answer.deepScrolled) deepScrolled = true;
     if (answer.hasSessionStorage) hasSessionStorage = true;
   }
   tab.deepScrolled = deepScrolled;
-  return { dirty: deepScrolled, hasSessionStorage };
+  // `unsaved` excludes deep scroll: a scroll position is not work the
+  // Tab Archive (F52) must protect, only something Quiet Tabs can't restore.
+  return { dirty: deepScrolled, unsaved: false, hasSessionStorage };
 }
 
 /** True while sleepTab has replaced a tab's listeners with its temporary
@@ -2908,6 +2913,143 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
   // sleepTab broadcasts every actual transition; an empty sweep stays silent.
   return { quieted, skippedReason: null };
 }
+// ---- Tab Archive (F52) ------------------------------------------------------
+// Idle loose tabs close into the profile's Archive. Pure policy lives in
+// tab-archive.js; the store in archive.js. See
+// docs/superpowers/specs/2026-10-19-tab-archive-design.md.
+
+/** Set only by the acceptance hook, whose synthetic first-run status stands
+ *  for a fresh profile while the test profile has completed first run. */
+let firstRunPendingForTest = false;
+function firstRunPending() {
+  return !settings.isFirstRunComplete() || firstRunPendingForTest;
+}
+
+/** Nothing is archived before this wall-clock time: launch, resume and a
+ *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
+let archiveGraceUntil = 0;
+let lastArchiveSweepAt = 0;
+/** Window runtimes with an archive sweep running. */
+const archiveSweepsInFlight = new Set();
+/** Acceptance-only seam (BLANC_TEST): called after each candidate's probe. */
+let archiveProbeObserverForTest = null;
+
+function resetArchiveGrace(now = Date.now()) {
+  archiveGraceUntil = now + ARCHIVE_GRACE_MS;
+}
+
+function currentArchiveThresholdMs() {
+  const key = settings.getSettings().tabArchive;
+  return Object.hasOwn(TAB_ARCHIVE_DELAY_MS, key) ? TAB_ARCHIVE_DELAY_MS[key] : null;
+}
+
+/** True when a live tab holds work a close would lose. Quiet tabs passed the
+ *  same probe when they went quiet. Any probe failure protects the tab. */
+async function tabHoldsUnsavedWork(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  try {
+    if ((await probeTabDirty(tab, wc)).unsaved) return true;
+    return await hasBeforeUnloadListener(wc);
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * One archive pass over the bound window runtime.
+ * @returns {Promise<{archived: string[], closed: string[], skippedReason: string|null}>}
+ */
+async function runArchiveSweep() {
+  const runtime = rt();
+  // A set-aside Space keeps its tabs in a hidden resident runtime. Spec §8:
+  // nothing is archived from a Space that isn't open.
+  if (runtime.resident) return { archived: [], closed: [], skippedReason: 'set-aside' };
+  // One sweep per window at a time: an overlapping tick could otherwise pick
+  // the same candidate twice.
+  if (archiveSweepsInFlight.has(runtime)) return { archived: [], closed: [], skippedReason: 'busy' };
+  archiveSweepsInFlight.add(runtime);
+  try {
+    return await archiveSweepPass(runtime);
+  } finally {
+    archiveSweepsInFlight.delete(runtime);
+  }
+}
+
+async function archiveSweepPass(runtime) {
+  const skip = (reason) => ({ archived: [], closed: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  const thresholdMs = currentArchiveThresholdMs();
+  if (thresholdMs === null) return skip('off');
+
+  const now = Date.now();
+  // A gap in sweeps means the machine slept: give the person a moment with
+  // their tabs before anything is tidied away.
+  if (lastArchiveSweepAt && now - lastArchiveSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) resetArchiveGrace(now);
+  lastArchiveSweepAt = now;
+  if (now < archiveGraceUntil) return skip('grace');
+
+  // Read fresh every time: the person keeps using the window while probes run.
+  const policy = (perSweepLimit) => ({
+    now,
+    thresholdMs,
+    activeTabId: runtime.activeTabId,
+    visibleTabIds: new Set([runtime.glanceTabId].filter(Boolean)),
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+    graceUntil: archiveGraceUntil,
+    perSweepLimit,
+  });
+  const candidates = archiveCandidates(
+    runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), policy(undefined),
+  );
+
+  const spaceName = namedWorkspaces.get(runtime.workspaceId)?.name ?? null;
+  const archived = [];
+  const closed = [];
+  for (const { id } of candidates) {
+    const probed = tabs.get(id);
+    if (!probed || await tabHoldsUnsavedWork(probed)) continue;
+    if (archiveProbeObserverForTest) await archiveProbeObserverForTest(id);
+    // Spec §2.5, "in one step": after the probe's await, re-run the whole
+    // eligibility check on this one tab, then save and close it at once.
+    // The person may have switched to it, pinned, grouped or moved it.
+    const tab = tabs.get(id);
+    if (!tab || windowRuntimes.runtimeForTab(id) !== runtime) continue;
+    const [still] = archiveCandidates([tab], policy(1));
+    if (!still) continue;
+    if (!still.closeOnly) {
+      const entry = buildArchiveEntry(tab, { now, spaceName });
+      if (!entry) continue;
+      archive.addEntries([entry], now);
+      archived.push(id);
+    }
+    closeTab(id, { record: false, selectReplacement: false });
+    closed.push(id);
+  }
+  // Spec D6: only a sweep that added Archive entries records the one-time
+  // notice; closing an idle blank New Tab alone announces nothing.
+  if (archived.length) archive.noteArchived(archived.length);
+  return { archived, closed, skippedReason: null };
+}
+
+/** Restore one archived tab into the bound window as a new ungrouped tab at
+ *  the end, selected. False when the entry is already gone, so a second
+ *  restore of the same id opens nothing. */
+function restoreArchivedEntry(entryId) {
+  // The restored tab is always a normal tab, even from a window whose active
+  // tab is private; the Quick Switcher alone hides the Archive there.
+  const entry = archive.takeEntry(String(entryId ?? ''));
+  if (!entry) return false;
+  // Archived tabs were never pinned, so there is no home to carry.
+  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  if (!id) return false;
+  setActiveTab(id, { focusContent: true, focusAddress: false });
+  return true;
+}
+
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
@@ -2985,6 +3127,7 @@ let testSearchSuggestionRequests = [];
 let testSearchNavigationCapture = false;
 let testSearchSubmission = null;
 let testCursorPoint = null;
+let testCursorSamplingUnavailable = false;
 
 function setTestSearchSuggestionFixture(suggestions) {
   if (!acceptanceTestMode) return;
@@ -3039,6 +3182,7 @@ function cancelPermissionPromptsForTab(tabId) {
 const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
 let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
+let islandAutoHide = initialPresentationSettings.islandAutoHide === true;
 let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
@@ -3063,12 +3207,12 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
  * first (two right-clicks racing the handler's await), the stale popup's
  * close callback must not disarm the guard under the live one. 0 = no menu. */
 
-function currentChromeLayout() {
-  const { width, height } = rt().window.getContentBounds();
+function currentChromeLayout(content = rt().window.getContentBounds()) {
+  const { width, height } = content;
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight: rt().chromeHeight,
+    chromeHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -3150,7 +3294,7 @@ function islandHoverRecord(runtime) {
 
 function islandHoverEligible(runtime) {
   if (!islandHoverOpen) return false;
-  return runtime.islandHoverCapable === true &&
+  return runtime.islandHoverCapable === true && !islandStripHidden(runtime) &&
     runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
     !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
     !runtime.permissionViewAttached && !!runtime.islandHoverRect && !overlayDragActive(runtime);
@@ -3177,7 +3321,9 @@ function applyIslandHoverStep(runtime, event) {
       }
       const fired = hoverStep(hover.state, { type: 'fired' });
       hover.state = fired.state;
-      if (fired.effect === 'open') showOverlay('panel');
+      // Marked so the overlay closes it again once the pointer leaves it
+      // (hover-panel-leave.js): an open panel stops the strip dragging.
+      if (fired.effect === 'open') showOverlay('panel', { purpose: { hoverOpened: true } });
     }), HOVER_OPEN_DWELL_MS);
   }
   return next;
@@ -3186,8 +3332,11 @@ function applyIslandHoverStep(runtime, event) {
 function updateIslandHover(runtime, point, { buttonsDown = false, sampled = false } = {}) {
   const hover = islandHoverRecord(runtime);
   hover.point = point;
+  // An auto-hidden pill cannot be hovered: the pointer is over the page. Were
+  // that counted as entering, the entry would disarm hover-open before the
+  // rest band reveals the Island under a resting pointer.
   return applyIslandHoverStep(runtime, {
-    type: 'move', inside: pointInRect(point, runtime.islandHoverRect),
+    type: 'move', inside: !islandStripHidden(runtime) && pointInRect(point, runtime.islandHoverRect),
     eligible: islandHoverEligible(runtime), buttonsDown, sampled,
   });
 }
@@ -3207,11 +3356,381 @@ function watchCursorFor(wc, offset, bind) {
     if (!input || input.type !== 'mouseMove') return;
     if (!hasLiveWindow()) return;
     const point = toWindowPoint(input, typeof offset === 'function' ? offset() : offset);
+    rt().lastPointer = point;
     updateIslandProximity(point);
     updateIslandHover(rt(), point, {
       buttonsDown: input.modifiers?.some((modifier) => /buttondown$/i.test(modifier)) === true,
     });
+    revealIslandAtPoint(rt(), point);
   }));
+}
+
+const INTRO_TIP_MAX_WIDTH = 300;
+const INTRO_TIP_MAX_HEIGHT = 64;
+
+/* ---- Auto-hide Island ---------------------------------------------------
+ * With the setting on, the page fills the window and the strip waits beneath
+ * it. The cursor moves watched above reveal it at the window's top edge; once
+ * revealed, a slow check samples the cursor and hides it again after the
+ * pointer has left the strip. Only revealing needs move events — the cursor can
+ * leave the window, or rest over an overlay, without sending any. Policy is in
+ * island-autohide.js. */
+
+function islandAutoHidePinned(runtime = rt()) {
+  return islandAutoHideModule.islandPinned({
+    overlayMode: runtime.overlayMode,
+    glanceOpen: !!runtime.glanceTabId,
+    popupOpen: ublockPopups.has(runtime.id),
+    introducing: !!runtime.islandAutoHideIntroTimer,
+  });
+}
+
+function islandStripHidden(runtime = rt()) {
+  return islandAutoHideModule.stripHidden({
+    autoHide: islandAutoHide,
+    revealed: runtime.islandRevealed,
+    pinned: islandAutoHidePinned(runtime),
+  });
+}
+
+/** Whether Chromium is drawing through the native Wayland platform. */
+function linuxWaylandOzone() {
+  const ozone = app.commandLine.getSwitchValue('ozone-platform');
+  return ozone === 'wayland'
+    || (!ozone && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY));
+}
+
+/** Native Wayland gives Electron no global pointer position:
+ * screen.getCursorScreenPoint() reads 0,0 wherever the pointer is (measured on
+ * GNOME with Electron 44), which held an auto-hidden Island up for good. */
+function cursorSamplingUnavailable() {
+  if (acceptanceTestMode && testCursorSamplingUnavailable) return true;
+  return process.platform === 'linux' && linuxWaylandOzone();
+}
+
+/** What a reveal or hide decision needs of the window, read once: its
+ * content bounds, the page pane's left edge (the vertical rail owns the
+ * column before it) and how far above it the pointer may be. */
+function revealGeometry(runtime) {
+  const content = runtime.window.getContentBounds();
+  const display = screen.getDisplayMatching(content);
+  return {
+    content,
+    left: withWindowRuntime(runtime, () => currentChromeLayout(content).pageBounds.x),
+    width: content.width,
+    height: content.height,
+    reachAbove: islandAutoHideModule.reachAboveWindow({
+      contentTop: content.y,
+      workAreaTop: display.workArea.y,
+      displayTop: display.bounds.y,
+    }),
+  };
+}
+
+/** Window content coordinates of the cursor right now (or the test's). Where
+ * the cursor cannot be read, the last move a Blanc view saw stands in; a
+ * pointer outside the window then counts from where it left. */
+function sampledWindowCursor(runtime, geometry = null) {
+  const testPoint = acceptanceTestMode && testCursorPoint;
+  if (!testPoint && cursorSamplingUnavailable()) return runtime.lastPointer ?? null;
+  const cursor = testPoint || screen.getCursorScreenPoint();
+  const content = geometry?.content ?? runtime.window.getContentBounds();
+  return { x: cursor.x - content.x, y: cursor.y - content.y };
+}
+
+function islandHeldAt(runtime, point, geometry = revealGeometry(runtime)) {
+  return islandAutoHideModule.pointHoldsIsland(point, {
+    revealed: runtime.islandRevealed,
+    chromeHeight: runtime.chromeHeight,
+    width: geometry.width,
+    height: geometry.height,
+    reachAbove: geometry.reachAbove,
+    left: geometry.left,
+  });
+}
+
+function stopIslandRevealWatch(runtime) {
+  if (runtime.islandRevealWatchTimer) clearTimeout(runtime.islandRevealWatchTimer);
+  runtime.islandRevealWatchTimer = null;
+  runtime.islandRevealDwell = null;
+}
+
+/** While the strip is hidden in the focused window, sample the cursor so the
+ * top edge (or just above it) reveals the Island even when no view sees the
+ * pointer move. Stops on blur, close, reveal or turning the setting off. */
+function watchIslandReveal(runtime) {
+  if (runtime.islandRevealWatchTimer || !islandAutoHide) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  runtime.islandRevealWatchTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandRevealWatchTimer = null;
+    if (!islandAutoHide || !runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+    if (!runtime.islandRevealed) {
+      // The top edge reveals at once; resting just below it, after a dwell.
+      const geometry = revealGeometry(runtime);
+      const point = sampledWindowCursor(runtime, geometry);
+      const dwell = islandAutoHideModule.revealDwellStep(runtime.islandRevealDwell, point, Date.now(), geometry);
+      runtime.islandRevealDwell = dwell.dwell;
+      if (islandHeldAt(runtime, point, geometry) || dwell.reveal) {
+        revealIsland(runtime);
+        return;
+      }
+      watchIslandReveal(runtime);
+    }
+  }), islandAutoHideModule.REVEAL_WATCH_MS);
+}
+
+function clearIslandAutoHideTimer(runtime) {
+  if (runtime.islandAutoHideTimer) clearTimeout(runtime.islandAutoHideTimer);
+  runtime.islandAutoHideTimer = null;
+}
+
+function pageTopFor(runtime) {
+  return withWindowRuntime(runtime, () => currentChromeLayout().pageBounds.y);
+}
+
+function stopIslandSlide(runtime) {
+  if (runtime.islandSlide?.timer) clearTimeout(runtime.islandSlide.timer);
+  runtime.islandSlide = null;
+}
+
+function prefersReducedMotion() {
+  try {
+    return systemPreferences.getAnimationSettings?.().prefersReducedMotion === true;
+  } catch {
+    return false;
+  }
+}
+
+/** The first reveal after the strip has sat under the page for a while
+ * showed the page jump to its final place in one step, while a reveal soon
+ * after a hide slid (measured under xvfb). Asking the strip for two animation
+ * frames before the clock starts turned that jump into a short slide; it costs
+ * one or two frames, and never more than the cap below. */
+const STRIP_WARM_MAX_MS = 120;
+
+function warmStrip(runtime) {
+  const contents = runtime.window?.webContents;
+  if (!contents || contents.isDestroyed()) return Promise.resolve();
+  const drawn = contents.executeJavaScript(
+    'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))'
+  ).catch(() => false);
+  return Promise.race([drawn, new Promise((resolve) => setTimeout(resolve, STRIP_WARM_MAX_MS))]);
+}
+
+/** Slide the page views from one strip height to another. Each frame only
+ * moves them (resizeActiveView applies slidingBounds); the frame after the
+ * last one lays them out at their final size. A reveal first wakes the strip
+ * (the page holds still meanwhile). Reduce Motion skips it all. */
+function slideIsland(runtime, fromTop, toTop) {
+  stopIslandSlide(runtime);
+  if (fromTop === toTop || prefersReducedMotion()) {
+    withWindowRuntime(runtime, () => resizeActiveView());
+    return;
+  }
+  const revealing = toTop > fromTop;
+  const slide = {
+    from: fromTop,
+    to: toTop,
+    top: fromTop,
+    start: Date.now(),
+    duration: revealing ? islandAutoHideModule.SLIDE_IN_MS : islandAutoHideModule.SLIDE_OUT_MS,
+    timer: null,
+  };
+  runtime.islandSlide = slide;
+  const frame = bindWindowRuntime(runtime, () => {
+    if (runtime.islandSlide !== slide) return;
+    slide.timer = null;
+    if (!runtime.window || runtime.window.isDestroyed()) {
+      runtime.islandSlide = null;
+      return;
+    }
+    const progress = (Date.now() - slide.start) / slide.duration;
+    if (progress >= 1) {
+      runtime.islandSlide = null;
+      resizeActiveView();
+      return;
+    }
+    slide.top = slide.from + (slide.to - slide.from) * islandAutoHideModule.easeOutCubic(progress);
+    resizeActiveView();
+    slide.timer = setTimeout(frame, 16);
+  });
+  if (!revealing) {
+    frame();
+    return;
+  }
+  // Hold the page where it is (any relayout meanwhile keeps it there) until
+  // the strip has drawn, then start the clock.
+  withWindowRuntime(runtime, () => resizeActiveView());
+  warmStrip(runtime).then(() => {
+    if (runtime.islandSlide !== slide) return;
+    slide.start = Date.now();
+    frame();
+  });
+}
+
+/** Move the strip in or out. Always re-lays: a pin set just before (the
+ * intro tip) changes the layout without anyone having applied it yet. A slide
+ * already under way continues from where the page is now. */
+function setIslandRevealed(runtime, revealed) {
+  if (runtime.islandRevealed === revealed) return;
+  if (!runtime.window || runtime.window.isDestroyed()) {
+    runtime.islandRevealed = revealed;
+    return;
+  }
+  const fromTop = runtime.islandSlide ? runtime.islandSlide.top : pageTopFor(runtime);
+  runtime.islandRevealed = revealed;
+  slideIsland(runtime, fromTop, pageTopFor(runtime));
+  if (revealed) stopIslandRevealWatch(runtime);
+  else watchIslandReveal(runtime);
+}
+
+function scheduleIslandAutoHideCheck(runtime) {
+  if (runtime.islandAutoHideTimer) return;
+  runtime.islandAutoHideTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandAutoHideTimer = null;
+    if (!islandAutoHide || !runtime.islandRevealed) return;
+    if (!runtime.window || runtime.window.isDestroyed()) return;
+    const geometry = revealGeometry(runtime);
+    if (islandAutoHidePinned(runtime) || islandHeldAt(runtime, sampledWindowCursor(runtime, geometry), geometry)) {
+      scheduleIslandAutoHideCheck(runtime);
+      return;
+    }
+    setIslandRevealed(runtime, false);
+  }), islandAutoHideModule.HIDE_CHECK_MS);
+}
+
+/** Reveal for a surface drawn from the Island (⌘L, find, popovers). */
+function revealIsland(runtime = rt()) {
+  if (!islandAutoHide) return;
+  setIslandRevealed(runtime, true);
+  scheduleIslandAutoHideCheck(runtime);
+}
+
+function revealIslandAtPoint(runtime, point) {
+  if (!islandAutoHide || runtime.islandRevealed) return;
+  // Only the top edge reveals from a move (the rest band is the watch's), so
+  // a move anywhere below it costs no native call: this runs on every move.
+  if (!point || !(point.y <= islandAutoHideModule.REVEAL_EDGE_PX)) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  if (!islandHeldAt(runtime, point)) return;
+  revealIsland(runtime);
+}
+
+/** macOS's standard traffic-light placement: Safari and Finder put the close
+ * button's frame 18pt from the window's top-left corner on macOS 26 and 27,
+ * and Electron's position is one point outside that frame. `hiddenInset`
+ * alone draws them at 11pt, and showing them again with
+ * setWindowButtonVisibility drops even that, so syncWindowButtons sets it on
+ * the window's first layout and after each show. Passing it to the window as
+ * `trafficLightPosition` instead stops the auto-hidden strip revealing from
+ * the top edge in the vertical layout (acceptance F1-18). */
+const MAC_WINDOW_BUTTON_POSITION = Object.freeze({ x: 19, y: 19 });
+
+/** macOS draws its traffic lights over the top-left of the window; while the
+ * strip is hidden they would sit on the page. The vertical rail owns that
+ * corner in its own right, so they stay there. */
+function syncWindowButtons(runtime = rt()) {
+  if (process.platform !== 'darwin' || !runtime.window || runtime.window.isDestroyed()) return;
+  const visible = tabLayout === 'vertical' || !islandStripHidden(runtime);
+  if (runtime.windowButtonsVisible === visible) return;
+  runtime.windowButtonsVisible = visible;
+  runtime.window.setWindowButtonVisibility(visible);
+  if (visible) runtime.window.setWindowButtonPosition(MAC_WINDOW_BUTTON_POSITION);
+}
+
+/** The strip is the window's own page, and its drag region hit-tests above
+ * every child view. Hidden under the page it would still drag the window from
+ * the page's top band, and on Wayland keep the page from seeing the pointer
+ * there, so the strip drops it while hidden. */
+function syncStripHidden(runtime = rt()) {
+  if (!runtime.chromeReady || !runtime.window || runtime.window.isDestroyed()) return;
+  const hidden = islandStripHidden(runtime);
+  if (runtime.stripHiddenSent === hidden) return;
+  runtime.stripHiddenSent = hidden;
+  runtime.window.webContents.send('chrome:strip-hidden', hidden);
+}
+
+function endIslandAutoHideIntro(runtime) {
+  if (!runtime.islandAutoHideIntroTimer) return;
+  clearTimeout(runtime.islandAutoHideIntroTimer);
+  runtime.islandAutoHideIntroTimer = null;
+  if (runtime.islandAutoHideIntroGeneration === runtime.tooltipGeneration) hidePillTooltip(runtime);
+}
+
+/** Turning the setting on would otherwise make the Island vanish with no
+ * word on how to get it back. In the window where it was turned on, keep the
+ * strip up for a few seconds with a tip under the pill. The tip reuses the
+ * pill's tooltip view; it wraps, so that view measures it here rather than
+ * the strip (which only measures single-line tips). */
+async function showIslandAutoHideIntro(runtime) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  endIslandAutoHideIntro(runtime);
+  withWindowRuntime(runtime, () => revealIsland(runtime));
+  runtime.islandAutoHideIntroTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    endIslandAutoHideIntro(runtime);
+  }), islandAutoHideModule.INTRO_MS);
+  if (runtime.overlayMode) return;
+  const generation = ++runtime.tooltipGeneration;
+  runtime.islandAutoHideIntroGeneration = generation;
+  const view = withWindowRuntime(runtime, () => ensureTooltipView());
+  const contents = view.webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== runtime.tooltipGeneration || contents.isDestroyed() || window.isDestroyed()) return;
+  // Laid out just below the window's visible area at its largest size, then
+  // moved under the pill at its measured size.
+  const { width, height } = window.getContentBounds();
+  view.setBounds({ x: 0, y: height, width: INTRO_TIP_MAX_WIDTH, height: INTRO_TIP_MAX_HEIGHT });
+  showOverlayView(window, view);
+  runtime.tooltipViewAttached = true;
+  const text = mainI18n.t('island.autoHide.intro', {
+    shortcut: process.platform === 'darwin' ? '⌘L' : 'Ctrl+L',
+  });
+  // JSON.stringify makes the text a plain string literal; it is never markup.
+  const size = await contents.executeJavaScript(`(() => {
+    const tip = document.getElementById('tip');
+    tip.classList.add('intro');
+    tip.textContent = ${JSON.stringify(text)};
+    delete document.documentElement.dataset.theme;
+    const box = tip.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  })()`);
+  if (generation !== runtime.tooltipGeneration || window.isDestroyed() || runtime.tooltipView !== view) return;
+  const anchor = runtime.islandRect ?? { x: width / 2, y: 0, width: 0, height: runtime.chromeHeight };
+  view.setBounds(tooltipBounds({
+    anchor,
+    width: Math.min(INTRO_TIP_MAX_WIDTH, Math.ceil(size?.width) || INTRO_TIP_MAX_WIDTH),
+    height: Math.min(INTRO_TIP_MAX_HEIGHT, Math.ceil(size?.height) || INTRO_TIP_MAX_HEIGHT),
+  }, { windowWidth: width, windowHeight: height }));
+}
+
+function applyIslandAutoHide(next) {
+  if (next === islandAutoHide) return;
+  islandAutoHide = next;
+  const target = focusedRuntime;
+  for (const runtime of windowRuntimes.all()) {
+    clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
+    stopIslandSlide(runtime);
+    // The window showing the intro keeps its strip up from the start, so its
+    // page never jumps up only to slide straight back down.
+    runtime.islandRevealed = islandAutoHide && runtime === target;
+    if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
+  }
+  if (islandAutoHide && target?.window && !target.window.isDestroyed()) {
+    showIslandAutoHideIntro(target).catch(() => endIslandAutoHideIntro(target));
+  }
+  scheduleMenuRebuild();
+}
+
+function setIslandAutoHide(on) {
+  return settings.setSettings({ islandAutoHide: on === true }).islandAutoHide;
+}
+
+function toggleIslandAutoHide() {
+  return setIslandAutoHide(!islandAutoHide);
 }
 
 function verticalTabsMetrics(layout = currentChromeLayout()) {
@@ -3622,6 +4141,7 @@ async function showPillTooltip(request) {
   if (generation !== owner.tooltipGeneration || contents.isDestroyed()) return;
   // JSON.stringify makes the text a plain string literal; it is never markup.
   await contents.executeJavaScript(`(() => {
+    document.getElementById('tip').classList.remove('intro');
     document.getElementById('tip').textContent = ${JSON.stringify(request.text)};
     if (${request.privateTheme}) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -3834,6 +4354,9 @@ function refocusOverlayAfterMenu() {
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
   if (acceptanceTestMode) rt().testOverlayShowCount = (rt().testOverlayShowCount ?? 0) + 1;
+  // Every overlay is drawn from the Island, so the strip comes back first:
+  // the bounds computed below (find, the popovers) sit under it.
+  revealIsland();
   hidePillTooltip();
   suppressIslandHover();
   closeUblockPopup(rt().id);
@@ -3953,7 +4476,10 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // the pill, and a view that has already been removed has nothing left to
     // draw. Only the pixels linger: focus and island state hand over below at
     // once, so the user is never waiting on the animation.
-    const retracts = closingMode === 'panel' || closingMode === 'palette';
+    // A panel closing because the pointer left it (hover-panel-leave.js)
+    // goes at once: a retract would keep the overlay view over the strip for
+    // OVERLAY_RETRACT_MS and swallow the press the pointer was heading for.
+    const retracts = (closingMode === 'panel' || closingMode === 'palette') && reason !== 'hover-leave';
     rt().overlayView.webContents.send('overlay:hide', { retract: retracts });
     if (rt().overlayExitTimer) {
       clearTimeout(rt().overlayExitTimer);
@@ -4001,13 +4527,11 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
       // pill flat under a resting cursor until the mouse twitched.
-      const cursor = acceptanceTestMode && testCursorPoint
-        ? testCursorPoint
-        : screen.getCursorScreenPoint();
-      const content = rt().window.getContentBounds();
-      const point = { x: cursor.x - content.x, y: cursor.y - content.y };
-      updateIslandProximity(point);
-      updateIslandHover(rt(), point, { sampled: true });
+      const point = sampledWindowCursor(rt());
+      if (point) {
+        updateIslandProximity(point);
+        updateIslandHover(rt(), point, { sampled: true });
+      }
     }
   }
 }
@@ -5210,8 +5734,13 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const glanceTab = activeGlanceTab();
   const glance = glanceTab ? glanceGeometry(layout) : null;
-  if (liveContents(tab)) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
-  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(glance.glance);
+  // Mid-slide (auto-hide), page panes move toward their final bounds.
+  const slide = rt().islandSlide;
+  const place = (bounds) => slide
+    ? islandAutoHideModule.slidingBounds(bounds, { stripTop: layout.pageBounds.y, animatedTop: slide.top })
+    : bounds;
+  if (liveContents(tab)) tab.view.setBounds(place(glance?.primary ?? layout.pageBounds));
+  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(place(glance.glance));
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
@@ -5221,12 +5750,14 @@ function resizeActiveView() {
     rt().fillStatusView.setBounds(fillStatusViewBounds());
   }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) sheet.view.setBounds(layout.utilityBounds);
+  if (sheet) sheet.view.setBounds(place(layout.utilityBounds));
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
   rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
+  syncWindowButtons();
+  syncStripHidden();
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -5304,6 +5835,30 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
     // duplicate native-menu accelerator dispatch for this same key event.
     event.preventDefault();
     toggleTabLayout();
+  }));
+}
+
+// Cmd/Ctrl+Alt+B: same before-dispatch handling as the vertical tabs shortcut.
+function installIslandAutoHideShortcut(webContents, owner = rt()) {
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    // On macOS Option changes the key value (⌥B is ∫), so the physical key
+    // counts too. On Windows and Linux Ctrl+Alt is AltGr, and AltGr+B types a
+    // character on some layouts (Hungarian: {), so only the letter counts.
+    const keyMatches = String(input.key).toLowerCase() === 'b'
+      || (process.platform === 'darwin' && input.code === 'KeyB');
+    if (
+      input.type !== 'keyDown' ||
+      !keyMatches ||
+      !input.alt ||
+      !primaryModifier ||
+      input.shift
+    ) return;
+    event.preventDefault();
+    if (input.isAutoRepeat) return;
+    toggleIslandAutoHide();
   }));
 }
 
@@ -5415,6 +5970,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
     observe: observeBrowserCommand,
   });
   installVerticalTabsShortcut(webContents, owner);
+  installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
   installOnePasswordShortcut(webContents, owner);
   // Escape dismisses a visible fill capsule no matter which surface holds
@@ -5950,10 +6506,20 @@ function stageWorkspace(runtime, workspace) {
       if (tab?.view) {
         detachTabView(tab);
       }
-      if (tab && id === runtime.activeTabId) tab.lastActiveAt = Date.now();
+      if (tab && id === runtime.activeTabId) {
+        tab.lastActiveAt = Date.now();
+        tab.lastViewedAt = tab.lastActiveAt;
+      }
     }
     move(runtime, outgoing);
     move(incoming, runtime);
+    // Tab Archive (F52, spec §2.3): tabs entering from a Space start their
+    // idle clock now. A set-aside Space's tabs kept their old stamps.
+    const viewedAt = Date.now();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab) tab.lastViewedAt = viewedAt;
+    }
     transferred = true;
   } catch (error) {
     if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
@@ -6650,7 +7216,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6762,6 +7328,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     waking: false,            // a wake generation is open
     wakeGeneration: 0,        // monotonic, never reset
     lastActiveAt: null,       // ms epoch; null until first stamp
+    // Tab Archive (F52): wall-clock time the tab was last seen. Saved in
+    // session meta and never re-stamped by a clock jump, unlike lastActiveAt.
+    lastViewedAt: Number.isFinite(lastViewedAt) ? lastViewedAt : Date.now(),
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
@@ -7017,6 +7586,7 @@ function setActiveTab(id, {
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
+    prev.lastViewedAt = prev.lastActiveAt;
   }
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
@@ -7118,6 +7688,7 @@ async function setGlanceTab(id) {
   if (previous?.view && previous.id !== id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
+    previous.lastViewedAt = previous.lastActiveAt;
   }
   if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
@@ -7159,6 +7730,7 @@ function closeGlance({ focusContent = true } = {}) {
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
+    tab.lastViewedAt = tab.lastActiveAt;
   }
   resizeActiveView();
   broadcastTabs();
@@ -8709,6 +9281,11 @@ function registerIpcHandlers() {
   chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
+    // F52: /archive opens History on its Archived view.
+    if (name === 'history' && section === 'archived') {
+      openInternalPage('blanc://history/?view=archived');
+      return;
+    }
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
     }
@@ -8924,6 +9501,22 @@ function registerIpcHandlers() {
 
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
+  // F52: a private tab never sees the Archive; restore re-resolves the id
+  // against the sender's own profile store, so a stale id opens nothing.
+  chromeHandle('chrome:archive-list', () => (
+    tabs.get(rt().activeTabId)?.private ? [] : archive.listArchive({ now: Date.now() })
+  ));
+  chromeHandle('chrome:archive-restore', (_e, id) => restoreArchivedEntry(typeof id === 'string' ? id : ''));
+  // Spec D6: the one-time first-archive notice. A private tab never sees it;
+  // View Archive and Dismiss both finish it for good.
+  chromeHandle('chrome:archive-notice', () => (
+    tabs.get(rt().activeTabId)?.private ? null : archive.pendingNotice()
+  ));
+  chromeHandle('chrome:archive-notice-done', (_e, action) => {
+    const finished = archive.finishNotice();
+    if (action === 'view') openInternalPage('blanc://history/?view=archived');
+    return finished;
+  });
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
@@ -9096,6 +9689,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:history-clear', () => {
     history.clearHistory();
+    // Archived tabs are browsing history too (F52).
+    archive.clearArchive();
     clearSessionMeta();
     // Which bangs were used goes with the history (the History page's own
     // clear does the same through onHistoryCleared).
@@ -9282,6 +9877,7 @@ const SLASH_COMMANDS = [
   ['/bring-tabs', 'slash.bringTabs.hint'],
   ['/save [folder]', 'slash.save.doc'],
   ['/history', 'slash.history.hint'],
+  ['/archive', 'slash.archive.hint'],
   ['/downloads', 'slash.downloads.hint'],
   ['/settings', 'slash.settings.hint'],
   ['/sync', 'slash.sync.hint'],
@@ -9520,6 +10116,14 @@ function buildMenuForRuntime(runtime) {
               click: bound(() => setTabLayout('vertical')),
             },
           ],
+        },
+        {
+          id: 'toggle-island-autohide',
+          label: t('menu.autoHideIsland'),
+          type: 'checkbox',
+          checked: islandAutoHide,
+          accelerator: 'CmdOrCtrl+Alt+B',
+          click: bound(toggleIslandAutoHide),
         },
         {
           id: 'toggle-glance',
@@ -9823,6 +10427,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
@@ -9831,6 +10436,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     setImmediate(() => syncFocusedPane(runtime));
   }));
   rt().window.on('blur', bindWindowRuntime(runtime, () => {
+    stopIslandRevealWatch(runtime);
     suppressIslandHover(runtime);
     hidePillTooltip(runtime);
   }));
@@ -9888,6 +10494,14 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
+    clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
+    stopIslandSlide(runtime);
+    runtime.islandRevealed = false;
+    runtime.windowButtonsVisible = null;
+    runtime.stripHiddenSent = null;
+    runtime.lastPointer = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -9978,6 +10592,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     () => {
       runtime.chromeReady = true;
       dockReopenLifecycle.onChromeReady();
+      syncStripHidden(runtime);
     }
   ));
   return runtime;
@@ -11110,11 +11725,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   };
   displayCapturePicker = createDisplayCapturePicker({
     platform: process.platform, desktopCapturer, ownerForRequest: pickerOwner,
-    portalSelection: process.platform === 'linux' && (
-      app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
-      || (!app.commandLine.getSwitchValue('ozone-platform')
-        && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY))
-    ),
+    portalSelection: process.platform === 'linux' && linuxWaylandOzone(),
     isOwnerSender: pickerSender,
     present: (owner, model) => withWindowRuntime(owner, () => {
       if (!hasLiveWindow() || !rt().overlayView) {
@@ -11516,8 +12127,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // using the same manual updater flow as the native menu.
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
+    restoreArchived: (id) => restoreArchivedEntry(id),
     onHistoryCleared: () => {
       clearSessionMeta();
+      archive.clearArchive();
       clearRecentBangsAndIcons();
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
@@ -11683,6 +12296,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return { adblockEnabled: current.adblockEnabled, theme: current.theme };
       },
       applySettings: (clean) => settings.setSettings(clean),
+      // Spec D5: the walkthrough's Tab Archive offer may write only while
+      // first run is still pending, so a replayed tour never changes it.
+      offerTabArchive: (value) => {
+        if (!firstRunPending()) return false;
+        settings.setSettings({ tabArchive: value });
+        return true;
+      },
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
@@ -11966,8 +12586,26 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
+      setIslandAutoHide,
+      getIslandAutoHideState: () => ({
+        enabled: islandAutoHide,
+        revealed: rt().islandRevealed === true,
+        introducing: !!rt().islandAutoHideIntroTimer,
+        sliding: !!rt().islandSlide,
+        introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
+          && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
+        stripHidden: islandStripHidden(),
+        pageY: currentChromeLayout().pageBounds.y,
+        // The active view's real native bounds, not the computed layout.
+        activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,
+      }),
       getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
       resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
+      setTestCursorSamplingUnavailable: (on) => {
+        if (!acceptanceTestMode) return false;
+        testCursorSamplingUnavailable = on === true;
+        return true;
+      },
       setTestCursorPoint: (point) => {
         if (!acceptanceTestMode) return false;
         if (point == null) {
@@ -12054,6 +12692,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      runArchiveSweep, restoreArchivedEntry,
+      runArchiveSweepInEveryWindow: () => {
+        const runs = [];
+        forEachWindowRuntime(() => { runs.push(runArchiveSweep()); });
+        return Promise.all(runs);
+      },
+      setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
+      setFirstRunPendingForTest: (on) => { firstRunPendingForTest = on === true; },
+      setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       // The live array, mirroring getSleepSnapshots: reset() empties it in
@@ -12126,15 +12773,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
-        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
+        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message))
+        .then(() => runArchiveSweep())
+        .catch((err) => console.warn(`[tab-archive] sweep (${runtime.id}):`, err?.message));
     }));
   }, SLEEP_SWEEP_INTERVAL_MS);
+  resetArchiveGrace();
 
   powerMonitor.on('resume', () => {
     broadcastStartPageStatus();
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
     forEachWindowRuntime(restampBackgroundTabs);
+    resetArchiveGrace();
   });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
@@ -12156,11 +12807,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
+  let appliedTabArchive = settings.getSettings().tabArchive;
   settings.onSettingsChanged((s) => {
+    if (s.tabArchive !== appliedTabArchive) {
+      appliedTabArchive = s.tabArchive;
+      resetArchiveGrace();
+    }
     islandHoverOpen = s.islandHoverOpen === true;
     if (!islandHoverOpen) {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
     }
+    applyIslandAutoHide(s.islandAutoHide === true);
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,
@@ -12575,6 +13232,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           favicon: saved.meta?.[index]?.favicon ?? null,
           customTitle: saved.meta?.[index]?.customTitle ?? null,
           pinnedHomeUrl: saved.meta?.[index]?.pinnedHomeUrl ?? null,
+          lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));

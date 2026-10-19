@@ -44,6 +44,8 @@ const TAB_LAYOUTS = ['island', 'vertical'];
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Device-local Tab Archive delay (F52); off by default, never in SYNCED_KEYS.
+const TAB_ARCHIVE_DELAYS = ['off', '12h', '1d', '7d', '30d'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
@@ -212,11 +214,15 @@ const DEFAULTS = {
   // Off keeps it on the theme background. Device-local, not Profile Synced.
   islandSiteColors: true,
   islandHoverOpen: false,
+  // Page fills the window; the Island strip returns at the top edge.
+  // Device-local, not Profile Synced.
+  islandAutoHide: false,
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
+  tabArchive: 'off',
   // 'system' follows the OS; a stored code that is no longer selectable is kept
   // and renders English (see src/main/i18n.js). Device-local, not Profile Synced.
   uiLanguage: 'system',
@@ -477,6 +483,7 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
+  if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -489,6 +496,7 @@ function getSettings() {
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!TAB_ARCHIVE_DELAYS.includes(data.tabArchive)) data.tabArchive = DEFAULTS.tabArchive;
   if (!isUiLanguageValue(data.uiLanguage)) data.uiLanguage = DEFAULTS.uiLanguage;
   if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
@@ -580,7 +588,9 @@ function sanitize(partial) {
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
+  if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
+  if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
   if (validMapping(partial.mouseGestureMapping)) clean.mouseGestureMapping = { ...partial.mouseGestureMapping };
   if (Number.isFinite(partial.verticalTabsWidth)) {
@@ -997,6 +1007,7 @@ module.exports = {
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
+  TAB_ARCHIVE_DELAYS,
   PRESENTATION_DEFAULTS_RESET_VERSION,
   APP_ICONS,
   APP_ICON_LABELS,

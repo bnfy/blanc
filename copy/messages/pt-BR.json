@@ -25,6 +25,10 @@
     "message": "Abrir o histórico de navegação",
     "source": "sha256:2fe6be7d6c896865b21a56859f0089adb0b0d79b54b2c01e5b64a28d4843b3b1"
   },
+  "slash.archive.hint": {
+    "message": "Ver as abas que o Blanc arquivou para você",
+    "source": "sha256:aa22619c1bdbe2d9a2783aa30fad10b136641f7ca0bc7140a0b816d52dd98895"
+  },
   "slash.downloads.hint": {
     "message": "Abrir downloads",
     "source": "sha256:de5dda86535350198af94dd025f1bfc49ea8f6fc730a1005dae18bc8e01d0ff3"
@@ -276,6 +280,11 @@
   "pill.moreTabs": {
     "message": "{count, plural, one {Mais # aba — abrir a lista} many {Mais # abas — abrir a lista} other {Mais # abas — abrir a lista}}",
     "source": "sha256:223dbc55be62b11cf0ef0fffc65479abea129999eceefb446253155639ffb7d5"
+  },
+  "island.autoHide.intro": {
+    "message": "Aponte para a borda superior ou pressione {shortcut} para trazer a Island de volta.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+    "source": "sha256:cf7d536bfe25f81579a78097a6cad5b7277965bed9d958987940d0e74fe3c513"
   },
   "dot.switchTo": {
     "message": "Mudar para {title}",
@@ -1525,6 +1534,22 @@
     "message": "{count, plural, one {# aba} many {# abas} other {# abas}}",
     "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
   },
+  "result.archived": {
+    "message": "Arquivada",
+    "source": "sha256:192a2958de4f03ebb2d906d631b240ba1ebd135c71a191dc55a34b2fc261da7b"
+  },
+  "archive.notice.title": {
+    "message": "{count, plural, one {O Blanc arquivou # aba} many {O Blanc arquivou # abas} other {O Blanc arquivou # abas}}",
+    "source": "sha256:eada64636357582450f5c84631a1e953c48bea9ebd508108a33fbec8eef1940d"
+  },
+  "archive.notice.view": {
+    "message": "Ver Arquivo",
+    "source": "sha256:b9b13e5db74e47a02ef6e47678bbb2d7e31af153a36aa1c0f2c7c5fe00f965b4"
+  },
+  "archive.notice.dismiss": {
+    "message": "Dispensar",
+    "source": "sha256:98d1fcff74566a6e97d4d5acd0922062309b31853038b20939f5c1bcb26709e9"
+  },
   "result.tag.search": {
     "message": "Pesquisa",
     "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"
@@ -2609,6 +2634,11 @@
     "message": "Ativar ou desativar as abas verticais",
     "source": "sha256:865466509e3065f3fcbd56c0c32ac3d8fe09d42053ff89337532291ba01d70b2"
   },
+  "menu.autoHideIsland": {
+    "message": "Ocultar a Island automaticamente",
+    "note": "View menu checkbox item.",
+    "source": "sha256:29e502a4351e1fff43315628979999ab21829e54bcde36154a6a83c02578a567"
+  },
   "menu.tabLayout": {
     "message": "Layout das abas",
     "source": "sha256:4c328813077335981a1240160d5f7fa2ac2a8c5790420bbc165ebdb61d464088"
@@ -3239,6 +3269,16 @@
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
   },
+  "settings.general.islandAutoHide.label": {
+    "message": "Ocultar a Island automaticamente",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:a28f3c41796f381ae34c70fdcc7729492aa7a4d1118c3d98ea2ea0a1d36abc8e"
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "As páginas ocupam a janela inteira. Leve o ponteiro à borda superior ou abra a busca e os comandos para trazer a Island de volta.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:e9d5fc10c99b5f7d7d86e4f1f0930d2be749730abf4cac6b2cadf8efc542a5cd"
+  },
   "settings.general.darkWebsites.label": {
     "message": "Sites escuros",
     "source": "sha256:5ba3e96a469e569d1c139dcb0fdd7044a0a933c3f99cb9e87b59724cdd0c7763"
@@ -3338,6 +3378,34 @@
   "settings.general.tabSleep.6h": {
     "message": "Depois de 6 horas",
     "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
+  },
+  "settings.general.tabArchive.label": {
+    "message": "Arquivar abas inativas",
+    "source": "sha256:68f39eb3637bf5102e4438ab9af386d4a90424a3b6cfa7b798f3f672392a685e"
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados.",
+    "source": "sha256:9497d3dfbeea792d76976580371095c892c9cb2d6fee30e8fdab8fea96ec346b"
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Desativado",
+    "source": "sha256:09eced221f16e46f22bb24a4b4f006b8a91b15ed815c2d643b5ff1c9a116c88b"
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "Depois de 12 horas",
+    "source": "sha256:bb0ecf3b5ecaeba27a273184cc147b805e18a73bf57584ab2b16279b6a923e20"
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "Depois de 1 dia",
+    "source": "sha256:1b92cb8dba7691b1c3a7da50305baab6485df84c4eae682b30733c9938600dca"
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "Depois de 7 dias",
+    "source": "sha256:6d863858a13c83ea58127e81dec2c2e1003d9b99cefc12e7cb36fb695c20e32a"
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "Depois de 30 dias",
+    "source": "sha256:3a7f28647622838782d78a1ff12c6a10372fc0cde9b4e2a40eda5624b8b12e76"
   },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Gestos do mouse",
@@ -5231,6 +5299,14 @@
     "message": "Control L",
     "source": "sha256:ffbdc2079d2653a6c938eddff05942027e2793a9b7a1c24e29201600a4e60324"
   },
+  "onboarding.island.archive": {
+    "message": "Arquivar abas após 7 dias<0>As abas soltas que você não abre há 7 dias são fechadas e guardadas no seu Arquivo por 30 dias. Abas fixadas e grupos ficam.</0>",
+    "source": "sha256:bc560c72cdebab99d1b921aee522ce88d9629ba2d36a0ded17470bbf657a294a"
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Arquivar abas após 7 dias",
+    "source": "sha256:d1abb4147431e6240fdcf51f2a4ce3f5635baad08235ebf794a194479b3bbccf"
+  },
   "onboarding.blocking.title": {
     "message": "Bloqueie anúncios e rastreadores",
     "source": "sha256:d7e6c436294d0ff743f61d8a370ef9e2da8ad9f33885cb9fd2cc7cb0868f709e"
@@ -5538,6 +5614,38 @@
   "history.empty": {
     "message": "Nenhum histórico ainda.",
     "source": "sha256:883512e2bcfd0228ba7af9fa941ac79ac6c6cc44c7d867dc6d1795d2703de58e"
+  },
+  "history.view.visits": {
+    "message": "Visitas",
+    "source": "sha256:acbe9c8cbc2a0916ac6f13d68a86d92c1b434d458786b75fbdae9aa5c9794716"
+  },
+  "history.view.archived": {
+    "message": "Abas arquivadas",
+    "source": "sha256:a7798196c917471c562cbccee33965d4e47929c09c97325ab82048b429ba42ca"
+  },
+  "history.archived.search": {
+    "message": "Pesquisar abas arquivadas",
+    "source": "sha256:f5e1d0f24bdf8afcb0a6a1ae78bc8be5933d9d8bed2007849b2a81c0b686038f"
+  },
+  "history.archived.clear": {
+    "message": "Limpar Arquivo",
+    "source": "sha256:7b07cc903b31dc8d6b3e5aab852f7c93caf2547df1407df700d73312ce150187"
+  },
+  "history.archived.restore": {
+    "message": "Restaurar",
+    "source": "sha256:1037f92386beebc4db4637f1dfc6a7e63cb16c8a14f0faf1fd1f12bce2b55466"
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restaurar {title} como aba",
+    "source": "sha256:7b684210b40a6cc7aeb4e01c5a3cef44868e74c1208bec0be5b7cdfcaa6e6022"
+  },
+  "history.archived.forgetLabel": {
+    "message": "Remover {title} do Arquivo",
+    "source": "sha256:a5def2131b7b98b566ec7ce179a759f7eb5e300de46c3f305e923e44ba10e9ad"
+  },
+  "history.archived.empty": {
+    "message": "Nenhuma aba arquivada. Ative Arquivar abas inativas em Configurações → Geral.",
+    "source": "sha256:338ab29048c77bc2e57da837b8c69651acfd1900ea71f8973efca93866f673cf"
   },
   "history.day.today": {
     "message": "Hoje",

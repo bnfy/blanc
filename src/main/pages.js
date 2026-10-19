@@ -9,6 +9,7 @@ const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
+const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const wallpaper = require('./wallpaper');
@@ -332,6 +333,16 @@ function setupPages(hooks = {}) {
     // session.json's meta column holds the same titles; clearHistory() only
     // owns history.json, so the main-process hook drops the persisted copy.
   });
+
+  // F52 Tab Archive: the History sheet's Archived view. Restore goes through
+  // main, which opens the tab in the requesting window.
+  handle('pages:archive:list', 'history', (opts) => archive.listArchive({
+    query: typeof opts?.query === 'string' ? opts.query : '',
+    now: Date.now(),
+  }));
+  handle('pages:archive:restore', 'history', (id) => hooks.restoreArchived?.(typeof id === 'string' ? id : '') === true);
+  handle('pages:archive:forget', 'history', (id) => archive.forgetEntry(typeof id === 'string' ? id : ''));
+  handle('pages:archive:clear', 'history', () => archive.clearArchive());
 
   handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
   handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
@@ -702,13 +713,18 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
-  // Onboarding may change exactly these two settings, live — never the whole
+  // Onboarding may change exactly these settings, live — never the whole
   // settings surface. Values still pass setSettings' own validation.
   handle('pages:start:onboarding-set', 'newtab', (partial) => {
     const clean = {};
     if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
     if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
     if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
+    // F52 spec D5: the island step's Tab Archive offer — After 7 days or Off,
+    // and main accepts it only while first run is pending.
+    if (partial && (partial.tabArchive === '7d' || partial.tabArchive === 'off')) {
+      hooks.startPage?.offerTabArchive?.(partial.tabArchive);
+    }
   });
 
   // Replays the first-run walkthrough. Main creates and activates the tour

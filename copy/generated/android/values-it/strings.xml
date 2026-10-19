@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Salva questa pagina nei preferiti — indica una cartella per archiviarla</string>
     <string name="slash_save_doc">Salva questa pagina nei preferiti, in una cartella se ne indichi una</string>
     <string name="slash_history_hint">Apri la cronologia di navigazione</string>
+    <string name="slash_archive_hint">Vedi le schede che Blanc ha archiviato per te</string>
     <string name="slash_downloads_hint">Apri i download</string>
     <string name="slash_settings_hint">Apri le impostazioni</string>
     <string name="slash_sync_hint">Configura o gestisci la sincronizzazione</string>
@@ -77,6 +78,7 @@
         <item quantity="many">%1$d schede in più — apri l’elenco</item>
         <item quantity="other">%1$d schede in più — apri l’elenco</item>
     </plurals>
+    <string name="island_auto_hide_intro">Porta il puntatore al bordo superiore o premi %1$s per far tornare l’Island.</string>
     <string name="dot_switch_to">Passa a %1$s</string>
     <string name="capture_both">fotocamera e microfono in uso — apri i controlli di acquisizione</string>
     <string name="capture_camera">fotocamera in uso — apri i controlli di acquisizione</string>
@@ -433,6 +435,14 @@
         <item quantity="many">%1$d schede</item>
         <item quantity="other">%1$d schede</item>
     </plurals>
+    <string name="result_archived">Archiviata</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc ha archiviato %1$d scheda</item>
+        <item quantity="many">Blanc ha archiviato %1$d schede</item>
+        <item quantity="other">Blanc ha archiviato %1$d schede</item>
+    </plurals>
+    <string name="archive_notice_view">Vedi Archivio</string>
+    <string name="archive_notice_dismiss">Ignora</string>
     <string name="result_tag_search">Ricerca</string>
     <string name="menu_new_window">Nuova finestra</string>
     <string name="menu_new_private_window">Nuova finestra privata</string>
@@ -732,6 +742,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="menu_zoom_out">Riduci</string>
     <string name="menu_actual_size">Dimensioni reali</string>
     <string name="menu_toggle_vertical_tabs">Mostra/nascondi schede verticali</string>
+    <string name="menu_auto_hide_island">Nascondi automaticamente l’Island</string>
     <string name="menu_tab_layout">Layout delle schede</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Schede verticali</string>
@@ -929,6 +940,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_island_site_colors_hint">Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema.</string>
     <string name="settings_general_island_hover_open_label">Apri l’Island al passaggio del puntatore</string>
     <string name="settings_general_island_hover_open_hint">Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.</string>
+    <string name="settings_general_island_auto_hide_label">Nascondi automaticamente l’Island</string>
+    <string name="settings_general_island_auto_hide_hint">Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island.</string>
     <string name="settings_general_dark_websites_label">Siti web scuri</string>
     <string name="settings_general_dark_websites_hint">Quando Blanc è scuro, scurisce i siti web che non hanno una modalità scura propria. Usa il motore open source Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">I siti in questo elenco mantengono i propri colori. Digita /dark-site su un sito per aggiungerlo o rimuoverlo.</string>
@@ -954,6 +967,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">Dopo 30 minuti</string>
     <string name="settings_general_tab_sleep_1h">Dopo 1 ora</string>
     <string name="settings_general_tab_sleep_6h">Dopo 6 ore</string>
+    <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>
+    <string name="settings_general_tab_archive_hint">Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati.</string>
+    <string name="settings_general_tab_archive_off">Disattivato</string>
+    <string name="settings_general_tab_archive_12h">Dopo 12 ore</string>
+    <string name="settings_general_tab_archive_1d">Dopo 1 giorno</string>
+    <string name="settings_general_tab_archive_7d">Dopo 7 giorni</string>
+    <string name="settings_general_tab_archive_30d">Dopo 30 giorni</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gesti del mouse</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Attiva i gesti del mouse</string>
@@ -1483,6 +1503,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; per aprirla.</string>
     <string name="onboarding_island_shortcut_mac">Comando L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Archivia le schede dopo 7 giorni&lt;0&gt;Le schede sparse che non apri da 7 giorni vengono chiuse e conservate nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi restano.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archivia le schede dopo 7 giorni</string>
     <string name="onboarding_blocking_title">Blocca annunci e tracker</string>
     <string name="onboarding_blocking_body">Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /off-leash.</string>
     <string name="onboarding_blocking_toggle">Blocca annunci e tracker</string>
@@ -1572,6 +1594,14 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="history_remove_label">Rimuovi %1$s dalla cronologia</string>
     <string name="history_no_matches">Nessun risultato per questa ricerca.</string>
     <string name="history_empty">Ancora nessuna cronologia.</string>
+    <string name="history_view_visits">Visite</string>
+    <string name="history_view_archived">Schede archiviate</string>
+    <string name="history_archived_search">Cerca nelle schede archiviate</string>
+    <string name="history_archived_clear">Svuota Archivio</string>
+    <string name="history_archived_restore">Ripristina</string>
+    <string name="history_archived_restore_label">Ripristina %1$s come scheda</string>
+    <string name="history_archived_forget_label">Rimuovi %1$s dall’Archivio</string>
+    <string name="history_archived_empty">Nessuna scheda archiviata. Attiva Archivia le schede inattive in Impostazioni → Generali.</string>
     <string name="history_day_today">Oggi</string>
     <string name="history_day_yesterday">Ieri</string>
     <string name="downloads_clear_finished">Cancella completati</string>

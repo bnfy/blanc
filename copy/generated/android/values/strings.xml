@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Save this page to favorites — name a folder to file it</string>
     <string name="slash_save_doc">Save this page to favorites, into a folder if you name one</string>
     <string name="slash_history_hint">Open browsing history</string>
+    <string name="slash_archive_hint">See tabs Blanc archived for you</string>
     <string name="slash_downloads_hint">Open downloads</string>
     <string name="slash_settings_hint">Open settings</string>
     <string name="slash_sync_hint">Set up or manage sync</string>
@@ -75,6 +76,7 @@
         <item quantity="one">%1$d more tab — open the list</item>
         <item quantity="other">%1$d more tabs — open the list</item>
     </plurals>
+    <string name="island_auto_hide_intro">Point at the top edge, or press %1$s, to bring the Island back.</string>
     <string name="dot_switch_to">Switch to %1$s</string>
     <string name="capture_both">camera &amp; microphone in use — open capture controls</string>
     <string name="capture_camera">camera in use — open capture controls</string>
@@ -420,6 +422,13 @@
         <item quantity="one">%1$d tab</item>
         <item quantity="other">%1$d tabs</item>
     </plurals>
+    <string name="result_archived">Archived</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc archived %1$d tab</item>
+        <item quantity="other">Blanc archived %1$d tabs</item>
+    </plurals>
+    <string name="archive_notice_view">View Archive</string>
+    <string name="archive_notice_dismiss">Dismiss</string>
     <string name="result_tag_search">Search</string>
     <string name="menu_new_window">New Window</string>
     <string name="menu_new_private_window">New Private Window</string>
@@ -715,6 +724,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="menu_zoom_out">Zoom Out</string>
     <string name="menu_actual_size">Actual Size</string>
     <string name="menu_toggle_vertical_tabs">Toggle Vertical Tabs</string>
+    <string name="menu_auto_hide_island">Auto-hide the Island</string>
     <string name="menu_tab_layout">Tab Layout</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Vertical Tabs</string>
@@ -902,6 +912,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_island_site_colors_hint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</string>
     <string name="settings_general_island_hover_open_label">Open the Island on hover</string>
     <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island’s address to open it without clicking.</string>
+    <string name="settings_general_island_auto_hide_label">Auto-hide the Island</string>
+    <string name="settings_general_island_auto_hide_hint">Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.</string>
     <string name="settings_general_dark_websites_label">Dark websites</string>
     <string name="settings_general_dark_websites_hint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</string>
     <string name="settings_general_sites_listed_here_keep">Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.</string>
@@ -927,6 +939,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">After 30 minutes</string>
     <string name="settings_general_tab_sleep_1h">After 1 hour</string>
     <string name="settings_general_tab_sleep_6h">After 6 hours</string>
+    <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
+    <string name="settings_general_tab_archive_hint">Blanc closes loose tabs you haven\'t opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.</string>
+    <string name="settings_general_tab_archive_off">Off</string>
+    <string name="settings_general_tab_archive_12h">After 12 hours</string>
+    <string name="settings_general_tab_archive_1d">After 1 day</string>
+    <string name="settings_general_tab_archive_7d">After 7 days</string>
+    <string name="settings_general_tab_archive_30d">After 30 days</string>
     <string name="settings_general_mouse_gestures_enabled_label">Mouse gestures</string>
     <string name="settings_general_mouse_gestures_enabled_hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Enable mouse gestures</string>
@@ -1442,6 +1461,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; to open it.</string>
     <string name="onboarding_island_shortcut_mac">Command L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Archive tabs after 7 days&lt;0&gt;Loose tabs you haven\'t opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archive tabs after 7 days</string>
     <string name="onboarding_blocking_title">Block ads &amp; trackers</string>
     <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</string>
     <string name="onboarding_blocking_toggle">Block ads &amp; trackers</string>
@@ -1528,6 +1549,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="history_remove_label">Remove %1$s from history</string>
     <string name="history_no_matches">Nothing matches that search.</string>
     <string name="history_empty">No history yet.</string>
+    <string name="history_view_visits">Visits</string>
+    <string name="history_view_archived">Archived tabs</string>
+    <string name="history_archived_search">Search archived tabs</string>
+    <string name="history_archived_clear">Clear Archive</string>
+    <string name="history_archived_restore">Restore</string>
+    <string name="history_archived_restore_label">Restore %1$s as a tab</string>
+    <string name="history_archived_forget_label">Remove %1$s from the Archive</string>
+    <string name="history_archived_empty">No archived tabs. Turn on Archive inactive tabs in Settings → General.</string>
     <string name="history_day_today">Today</string>
     <string name="history_day_yesterday">Yesterday</string>
     <string name="downloads_clear_finished">Clear finished</string>

@@ -316,6 +316,12 @@
           <figcaption id="obTabDiscoveryCaption" class="page-sr-only" data-i18n="onboarding.island.caption">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
         </figure>
         <p class="ob-island-hint" id="obIslandHint"></p>
+        <!-- F52 spec D5: offered to a fresh profile only, preset on; Continue
+             from this step saves it, anything else leaves Tab Archive Off. -->
+        <div id="obArchiveRow" class="ob-control-row ob-control-row-tall ob-archive-row" hidden>
+          <span data-i18n="onboarding.island.archive">Archive tabs after 7 days<small>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</small></span>
+          <button id="obArchive" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Archive tabs after 7 days" data-i18n-aria-label="onboarding.island.archiveLabel"><span class="ob-knob"></span></button>
+        </div>
       </section>
       <section data-step="3" hidden>
         <div class="ob-vignette ob-vignette-shield">

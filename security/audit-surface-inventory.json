@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "f61284477a35e13ef3d9cc6aaf26d3edf3f4a3c1e6e0ddfe550076beca0aa26e",
+      "sha256": "5a5940fdf9caacc8cf4cdd91f98c7ac3085f96e6e55697a20eaa4cf10a2eb19a",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "36c4a5e3ae5a381f1d7f806b2e8fc4564e1f24f495f856cbd716cd581d41def8",
+      "sha256": "d66057aea5f77528a4c25f43b0c1d7277b442a71298ba19fb195c5abe9469550",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -266,6 +266,10 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:archive-list",
+        "chrome:archive-notice",
+        "chrome:archive-notice-done",
+        "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
@@ -309,6 +313,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -466,7 +471,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "c56be347fc3f5a604a465bcaedc4d002eb6b3814f6e5da44c84ea11cba09a2d8",
+      "sha256": "a010e73442a008d247d064452698536d4e2b9039218077c44cfc7a5538818357",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -474,6 +479,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",
@@ -588,12 +597,16 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "db8d806bfb747ff22b44ada76d57fb20555964590ba24b8b195726ef5f5e099b",
+      "sha256": "6f87406f848fc9572feea9de821c7e3e9d9a5cc1eacbc652222203a4d35b04b0",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:archive-list",
+        "chrome:archive-notice",
+        "chrome:archive-notice-done",
+        "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
@@ -638,6 +651,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
         "chrome:tooltip-show",
@@ -816,7 +830,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "f8ee7753b345305ff37da3ff6fc3aab51dc2fdbd39e9410bfdadafbf00ef4d29",
+      "sha256": "387c7bde5a452a4071832483c2aea47b0ee7f8c16faa0ee7a7bcbf65ac3ae4ad",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -824,6 +838,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",

@@ -36,6 +36,11 @@ toolbar (Bowser Design System "Island Chrome").
   its buttons, dots and chips never hover-open. Leaving early cancels it; closing
   under a resting pointer requires leaving and re-entering before it can open
   again. Touch-only devices have no hover-open behavior (D28).
+- On desktop, an off-by-default **Auto-hide the Island** setting (also a View
+  menu toggle) lets the page fill the window. Pointing at the window's top edge
+  brings the strip back and pages make room for it; it hides again once the
+  pointer leaves the strip. Every expanded state, popover and Glance keeps it
+  shown while open (D29).
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
 - Below the list, one footer line holds **New tab** (the one solid pill, with
@@ -56,7 +61,8 @@ toolbar (Bowser Design System "Island Chrome").
   palette floats the command bar with the tab switcher listed. On desktop,
   enabling hover-open and dwelling on the Island's address opens the panel once;
   crossing it, resting on its buttons, hovering nearby, or disabling the setting
-  mid-dwell does not.
+  mid-dwell does not. With auto-hide on, the page starts at the window's top
+  edge; pointing there or summoning the palette shows the strip again.
 
 ## F2 — Tabs
 
@@ -1447,3 +1453,33 @@ What's new pill links to the same page. The changelog keeps the full detail
 - **Acceptance:** `test/unit/whats-new.test.js`,
   `test/unit/whats-new-check.test.js`, `test/unit/whats-new-settings.test.js`,
   `test/unit/whats-new-site-data.test.js` and `test/site/whats-new-page.test.mjs`.
+
+## F52 — Tab Archive (desktop)
+
+Blanc can close loose tabs nobody has looked at in a while and keep them in a
+searchable Archive, in the style of Arc's archived Today tabs
+(`docs/superpowers/specs/2026-10-19-tab-archive-design.md`).
+
+- **Setting.** `tabArchive` (`off|12h|1d|7d|30d`), default `off`,
+  device-local and never synced. An update never turns it on.
+- **What can be archived.** Only ungrouped, unpinned, non-private tabs that
+  are not active, not in Glance, not playing or capturing media, not waiting
+  on a permission prompt, not a popup's opener, not loading, and holding no
+  unsaved form work, after the chosen time without being viewed. An idle blank
+  new tab is closed without an entry.
+- **Idle clock.** `lastViewedAt` is stamped when a tab is viewed and saved in
+  session meta, so idle time counts across relaunches. Nothing is archived for
+  10 minutes after launch, resume or a change to the setting, and at most 20
+  tabs per window per 30-second sweep.
+- **The Archive.** One per local profile (`archive.json`), holding only URL,
+  title, icon, custom name, timestamps and the Space name; never page state,
+  back history or openers. Entries expire after 30 days, at most 500 per
+  profile. Clearing history clears it. Archiving never adds a Recently closed
+  entry.
+- **Restore.** From the ⌘L Quick Switcher (rows marked Archived) or the
+  History sheet's Archived view (`/archive`): a new ungrouped tab at the end of
+  the window, loaded fresh, with its custom name.
+- **Portability.** `src/main/tab-archive.js` holds every decision without an
+  Electron dependency.
+- **Acceptance:** `spec/acceptance/tab-archive.feature`,
+  `test/unit/tab-archive.test.js`.

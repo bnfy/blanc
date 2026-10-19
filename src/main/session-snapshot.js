@@ -39,6 +39,8 @@ function validPinnedHome(value) {
   return pinnedHomeFor(value, { localFile: value.startsWith('file:') });
 }
 
+const validViewedAt = (value) => Number.isFinite(value) && value > 0;
+
 /** session.json's meta entry for one tab (Quiet Tabs spec §10.1): what the
  * pill and the rail draw for a tab restored quiet, before it has any
  * webContents. Empty title for a tab sitting on our own error page —
@@ -58,6 +60,8 @@ function sessionTabMeta(tab) {
     ? validPinnedHome(tab.pinnedHomeUrl)
     : null;
   if (pinnedHomeUrl) meta.pinnedHomeUrl = pinnedHomeUrl;
+  // F52: the Tab Archive's idle clock, so idle time counts across relaunches.
+  if (validViewedAt(tab?.lastViewedAt)) meta.lastViewedAt = tab.lastViewedAt;
   return meta;
 }
 
@@ -70,12 +74,15 @@ function metaAfterHistoryClear(meta) {
   const retained = meta.map((m) => ({
     customTitle: normalizeTabName(m?.customTitle),
     pinnedHomeUrl: validPinnedHome(m?.pinnedHomeUrl),
+    // A timestamp, not page content: the Archive's idle clock (F52) stays.
+    lastViewedAt: validViewedAt(m?.lastViewedAt) ? m.lastViewedAt : null,
   }));
-  if (!retained.some(({ customTitle, pinnedHomeUrl }) => customTitle || pinnedHomeUrl)) return null;
-  return retained.map(({ customTitle, pinnedHomeUrl }) => {
+  if (!retained.some((r) => r.customTitle || r.pinnedHomeUrl || r.lastViewedAt)) return null;
+  return retained.map(({ customTitle, pinnedHomeUrl, lastViewedAt }) => {
     const entry = { title: '', favicon: null };
     if (customTitle) entry.customTitle = customTitle;
     if (pinnedHomeUrl) entry.pinnedHomeUrl = pinnedHomeUrl;
+    if (lastViewedAt) entry.lastViewedAt = lastViewedAt;
     return entry;
   });
 }

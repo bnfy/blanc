@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Salvar esta página nos favoritos — digite o nome de uma pasta para arquivá-la</string>
     <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome</string>
     <string name="slash_history_hint">Abrir o histórico de navegação</string>
+    <string name="slash_archive_hint">Ver as abas que o Blanc arquivou para você</string>
     <string name="slash_downloads_hint">Abrir downloads</string>
     <string name="slash_settings_hint">Abrir as configurações</string>
     <string name="slash_sync_hint">Configurar ou gerenciar a sincronização</string>
@@ -77,6 +78,7 @@
         <item quantity="many">Mais %1$d abas — abrir a lista</item>
         <item quantity="other">Mais %1$d abas — abrir a lista</item>
     </plurals>
+    <string name="island_auto_hide_intro">Aponte para a borda superior ou pressione %1$s para trazer a Island de volta.</string>
     <string name="dot_switch_to">Mudar para %1$s</string>
     <string name="capture_both">câmera e microfone em uso — abrir os controles de captura</string>
     <string name="capture_camera">câmera em uso — abrir os controles de captura</string>
@@ -433,6 +435,14 @@
         <item quantity="many">%1$d abas</item>
         <item quantity="other">%1$d abas</item>
     </plurals>
+    <string name="result_archived">Arquivada</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">O Blanc arquivou %1$d aba</item>
+        <item quantity="many">O Blanc arquivou %1$d abas</item>
+        <item quantity="other">O Blanc arquivou %1$d abas</item>
+    </plurals>
+    <string name="archive_notice_view">Ver Arquivo</string>
+    <string name="archive_notice_dismiss">Dispensar</string>
     <string name="result_tag_search">Pesquisa</string>
     <string name="menu_new_window">Nova janela</string>
     <string name="menu_new_private_window">Nova janela privada</string>
@@ -732,6 +742,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="menu_zoom_out">Diminuir zoom</string>
     <string name="menu_actual_size">Tamanho real</string>
     <string name="menu_toggle_vertical_tabs">Ativar ou desativar as abas verticais</string>
+    <string name="menu_auto_hide_island">Ocultar a Island automaticamente</string>
     <string name="menu_tab_layout">Layout das abas</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Abas verticais</string>
@@ -929,6 +940,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
     <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
+    <string name="settings_general_island_auto_hide_label">Ocultar a Island automaticamente</string>
+    <string name="settings_general_island_auto_hide_hint">As páginas ocupam a janela inteira. Leve o ponteiro à borda superior ou abra a busca e os comandos para trazer a Island de volta.</string>
     <string name="settings_general_dark_websites_label">Sites escuros</string>
     <string name="settings_general_dark_websites_hint">Enquanto o Blanc está escuro, escurece os sites que não têm modo escuro próprio. Usa o motor de código aberto Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Os sites listados aqui mantêm as próprias cores. Digite /dark-site em um site para adicioná-lo ou removê-lo.</string>
@@ -954,6 +967,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_tab_sleep_30m">Depois de 30 minutos</string>
     <string name="settings_general_tab_sleep_1h">Depois de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Depois de 6 horas</string>
+    <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>
+    <string name="settings_general_tab_archive_hint">O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados.</string>
+    <string name="settings_general_tab_archive_off">Desativado</string>
+    <string name="settings_general_tab_archive_12h">Depois de 12 horas</string>
+    <string name="settings_general_tab_archive_1d">Depois de 1 dia</string>
+    <string name="settings_general_tab_archive_7d">Depois de 7 dias</string>
+    <string name="settings_general_tab_archive_30d">Depois de 30 dias</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestos do mouse</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Ativar gestos do mouse</string>
@@ -1483,6 +1503,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; para abri-la.</string>
     <string name="onboarding_island_shortcut_mac">Comando L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Arquivar abas após 7 dias&lt;0&gt;As abas soltas que você não abre há 7 dias são fechadas e guardadas no seu Arquivo por 30 dias. Abas fixadas e grupos ficam.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Arquivar abas após 7 dias</string>
     <string name="onboarding_blocking_title">Bloqueie anúncios e rastreadores</string>
     <string name="onboarding_blocking_body">Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /off-leash.</string>
     <string name="onboarding_blocking_toggle">Bloquear anúncios e rastreadores</string>
@@ -1572,6 +1594,14 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="history_remove_label">Remover %1$s do histórico</string>
     <string name="history_no_matches">Nada corresponde a essa pesquisa.</string>
     <string name="history_empty">Nenhum histórico ainda.</string>
+    <string name="history_view_visits">Visitas</string>
+    <string name="history_view_archived">Abas arquivadas</string>
+    <string name="history_archived_search">Pesquisar abas arquivadas</string>
+    <string name="history_archived_clear">Limpar Arquivo</string>
+    <string name="history_archived_restore">Restaurar</string>
+    <string name="history_archived_restore_label">Restaurar %1$s como aba</string>
+    <string name="history_archived_forget_label">Remover %1$s do Arquivo</string>
+    <string name="history_archived_empty">Nenhuma aba arquivada. Ative Arquivar abas inativas em Configurações → Geral.</string>
     <string name="history_day_today">Hoje</string>
     <string name="history_day_yesterday">Ontem</string>
     <string name="downloads_clear_finished">Limpar concluídos</string>

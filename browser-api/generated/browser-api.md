@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-124 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+129 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -85,6 +85,10 @@
 | `setOverlayDragState` | overlay | send | `overlay:drag-state` | `(active: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
 | `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
+| `archiveList` | history | invoke | `chrome:archive-list` | `() => Promise<ArchivedTab[]>` | all |
+| `archiveRestore` | history | invoke | `chrome:archive-restore` | `(id: string) => Promise<boolean>` | all |
+| `archiveNotice` | history | invoke | `chrome:archive-notice` | `() => Promise<ArchiveNotice \| null>` | all |
+| `archiveNoticeDone` | history | invoke | `chrome:archive-notice-done` | `(action: 'view' \| 'dismiss') => Promise<boolean>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
@@ -129,6 +133,7 @@
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
 | `onIslandCovered` | island | event | `chrome:island-covered` | `() => void` | all |
+| `onStripHidden` | island | event | `chrome:strip-hidden` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types
@@ -780,6 +785,27 @@ A history entry, from listHistory() in history.js: the stored visit plus the sit
 | `title` | `string` | The page title, or the URL when the page had none. |
 | `visitedAt` | `number` | Epoch milliseconds of the latest visit. |
 | `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
+
+### `ArchivedTab`
+
+An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `url` | `string` |  |
+| `title` | `string` | The tab's custom name, else its page title, or empty. |
+| `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
+| `archivedAt` | `number` | Epoch milliseconds when the tab was archived. |
+| `spaceName` | `string \| null` | The Space it was archived from, for display only. |
+
+### `ArchiveNotice`
+
+The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `count` | `number` | Tabs given an Archive entry since the notice was first recorded. |
 
 ### `FavoriteItem`
 

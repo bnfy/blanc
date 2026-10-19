@@ -3210,6 +3210,144 @@
         ]
       ]
     },
+    "archiveList": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "archived-tab-1",
+            "url": "archived-tab-1",
+            "title": "archived-tab-1",
+            "favicon": "archived-tab-1",
+            "archivedAt": 1,
+            "spaceName": "archived-tab-1"
+          }
+        ]
+      ]
+    },
+    "archiveRestore": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-restore",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-restore",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "archiveNotice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "count": 1
+        },
+        null
+      ]
+    },
+    "archiveNoticeDone": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice-done",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "view"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "view"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "action = \"dismiss\"",
+          "args": [
+            "dismiss"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "dismiss"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "listFavorites": {
       "kind": "invoke",
       "platforms": [
@@ -5671,6 +5809,37 @@
           "emit": [],
           "callbacks": [
             []
+          ]
+        }
+      ]
+    },
+    "onStripHidden": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:strip-hidden",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
           ]
         }
       ]

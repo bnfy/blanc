@@ -154,6 +154,10 @@
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
   let historyEntries = [];
+  // F52: the profile's archived tabs (projected rows; never private).
+  let archivedEntries = [];
+  // Spec D6: the one-time first-archive notice ({count}), or null.
+  let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
@@ -331,6 +335,7 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    archive: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3" width="11.5" height="3" rx="0.75"/><path d="M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3"/></svg>',
     // Glance: a window split down the middle with the far half filled, "this
     // tab goes in the other half". The earlier page-and-sliver glyph read as a
     // video camera. The filled half keeps it apart from the footer's sidebar
@@ -1271,6 +1276,7 @@
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/archive', hint: blancI18n.t('slash.archive.hint'), run: () => window.browserAPI.openPage('history', 'archived') },
     { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
     { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
@@ -1506,6 +1512,47 @@
     return row;
   }
 
+  /** Spec D6: "Blanc archived N tabs · View Archive ×", once per profile, at
+   *  the top of the resting list where a missing tab would be looked for.
+   *  Shaped like the Recently closed band; both actions end it for good. */
+  function archiveNoticeBand(notice) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band archive-notice';
+    band.setAttribute('role', 'status');
+    const row = document.createElement('div');
+    row.className = 'island-row in-group';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = ICONS.archive;
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = blancI18n.t('archive.notice.title', { count: notice.count });
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'closed-clear archive-notice-view';
+    view.textContent = blancI18n.t('archive.notice.view');
+    view.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.archiveNoticeDone('view');
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close archive-notice-dismiss';
+    dismiss.setAttribute('aria-label', blancI18n.t('archive.notice.dismiss'));
+    dismiss.dataset.tooltip = blancI18n.t('archive.notice.dismiss');
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.archiveNoticeDone('dismiss');
+      archiveNotice = null;
+      renderList();
+    });
+    row.append(glyph, title, view, dismiss);
+    band.append(row);
+    return band;
+  }
+
   function commandNoticeRow(text) {
     const notice = emptyRow(text);
     notice.classList.add('command-notice');
@@ -1626,6 +1673,16 @@
         if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
+    // Archived tabs rank below remote tabs (+0.05) and above history (+0);
+    // the url-keyed dedup below keeps the archived row over a history row.
+    // A private tab's switcher never shows the Archive (F52).
+    const activePrivate = state.tabs.find((t) => t.id === state.activeTabId)?.private;
+    if (!activePrivate) {
+      for (const a of archivedEntries) {
+        const s = matchScore(query, matchableText(a.title, a.url));
+        if (s) results.push({ kind: 'archived', title: a.title || a.url, sub: `${stripUrl(a.url)} · ${blancI18n.t('result.archived')}`, url: a.url, tab: { url: a.url, favicon: a.favicon }, entryId: a.id, score: s + 0.02 });
+      }
+    }
     for (const h of historyEntries) {
       const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
@@ -1724,6 +1781,7 @@
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
+    else if (result.kind === 'archived') window.browserAPI.archiveRestore(result.entryId);
     else if (result.kind === 'search' && state.activeTabId) {
       window.browserAPI.search(state.activeTabId, result.query, result.providerId);
     }
@@ -2349,6 +2407,7 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
         ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
         : dragEmptyZone('pinned'));
@@ -3136,7 +3195,43 @@
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -3210,6 +3305,7 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
     hideIslandTip();
     // Closing the overlay any other way than Escape keeps a typed name.
@@ -3566,15 +3662,19 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
       window.browserAPI.bangs(),
+      window.browserAPI.archiveList(),
+      window.browserAPI.archiveNotice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
+    archivedEntries = Array.isArray(archivedList) ? archivedList : [];
+    archiveNotice = notice ?? null;
     remoteDevices = remoteList;
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;

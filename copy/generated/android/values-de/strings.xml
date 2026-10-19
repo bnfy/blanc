@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren</string>
     <string name="slash_save_doc">Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst</string>
     <string name="slash_history_hint">Verlauf öffnen</string>
+    <string name="slash_archive_hint">Tabs ansehen, die Blanc für dich archiviert hat</string>
     <string name="slash_downloads_hint">Downloads öffnen</string>
     <string name="slash_settings_hint">Einstellungen öffnen</string>
     <string name="slash_sync_hint">Synchronisierung einrichten oder verwalten</string>
@@ -75,6 +76,7 @@
         <item quantity="one">%1$d weiterer Tab – Liste öffnen</item>
         <item quantity="other">%1$d weitere Tabs – Liste öffnen</item>
     </plurals>
+    <string name="island_auto_hide_intro">Zeige auf den oberen Rand oder drücke %1$s, um die Island zurückzuholen.</string>
     <string name="dot_switch_to">Zu %1$s wechseln</string>
     <string name="capture_both">Kamera &amp; Mikrofon in Verwendung – Aufnahme-Steuerung öffnen</string>
     <string name="capture_camera">Kamera in Verwendung – Aufnahme-Steuerung öffnen</string>
@@ -420,6 +422,13 @@
         <item quantity="one">%1$d Tab</item>
         <item quantity="other">%1$d Tabs</item>
     </plurals>
+    <string name="result_archived">Archiviert</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc hat %1$d Tab archiviert</item>
+        <item quantity="other">Blanc hat %1$d Tabs archiviert</item>
+    </plurals>
+    <string name="archive_notice_view">Archiv ansehen</string>
+    <string name="archive_notice_dismiss">Schließen</string>
     <string name="result_tag_search">Suche</string>
     <string name="menu_new_window">Neues Fenster</string>
     <string name="menu_new_private_window">Neues privates Fenster</string>
@@ -715,6 +724,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="menu_zoom_out">Verkleinern</string>
     <string name="menu_actual_size">Originalgröße</string>
     <string name="menu_toggle_vertical_tabs">Vertikale Tabs ein-/ausschalten</string>
+    <string name="menu_auto_hide_island">Island automatisch ausblenden</string>
     <string name="menu_tab_layout">Tab-Layout</string>
     <string name="menu_layout_island">Island</string>
     <string name="menu_layout_vertical">Vertikale Tabs</string>
@@ -902,6 +912,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_island_site_colors_hint">Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs.</string>
     <string name="settings_general_island_hover_open_label">Island beim Darüberfahren öffnen</string>
     <string name="settings_general_island_hover_open_hint">Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen.</string>
+    <string name="settings_general_island_auto_hide_label">Island automatisch ausblenden</string>
+    <string name="settings_general_island_auto_hide_hint">Seiten füllen das Fenster. Bewege den Zeiger an den oberen Rand oder öffne Suche und Befehle, um die Island zurückzuholen.</string>
     <string name="settings_general_dark_websites_label">Dunkle Websites</string>
     <string name="settings_general_dark_websites_hint">Solange Blanc dunkel ist, werden Websites ohne eigenen Dunkelmodus abgedunkelt. Nutzt die Open-Source-Engine Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Hier aufgeführte Websites behalten ihre eigenen Farben. Gib auf einer Website /dark-site ein, um sie hinzuzufügen oder zu entfernen.</string>
@@ -927,6 +939,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_tab_sleep_30m">Nach 30 Minuten</string>
     <string name="settings_general_tab_sleep_1h">Nach 1 Stunde</string>
     <string name="settings_general_tab_sleep_6h">Nach 6 Stunden</string>
+    <string name="settings_general_tab_archive_label">Inaktive Tabs archivieren</string>
+    <string name="settings_general_tab_archive_hint">Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert.</string>
+    <string name="settings_general_tab_archive_off">Aus</string>
+    <string name="settings_general_tab_archive_12h">Nach 12 Stunden</string>
+    <string name="settings_general_tab_archive_1d">Nach 1 Tag</string>
+    <string name="settings_general_tab_archive_7d">Nach 7 Tagen</string>
+    <string name="settings_general_tab_archive_30d">Nach 30 Tagen</string>
     <string name="settings_general_mouse_gestures_enabled_label">Mausgesten</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Mausgesten aktivieren</string>
@@ -1442,6 +1461,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="onboarding_island_hint">Öffne sie mit &lt;0&gt;%1$s&lt;/0&gt;.</string>
     <string name="onboarding_island_shortcut_mac">Befehl L</string>
     <string name="onboarding_island_shortcut">Steuerung L</string>
+    <string name="onboarding_island_archive">Tabs nach 7 Tagen archivieren&lt;0&gt;Lose Tabs, die du 7 Tage nicht geöffnet hast, werden geschlossen und 30 Tage in deinem Archiv aufbewahrt. Angeheftete Tabs und Gruppen bleiben.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Tabs nach 7 Tagen archivieren</string>
     <string name="onboarding_blocking_title">Werbung &amp; Tracker blockieren</string>
     <string name="onboarding_blocking_body">Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus.</string>
     <string name="onboarding_blocking_toggle">Werbung &amp; Tracker blockieren</string>
@@ -1528,6 +1549,14 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="history_remove_label">%1$s aus dem Verlauf entfernen</string>
     <string name="history_no_matches">Nichts passt zu dieser Suche.</string>
     <string name="history_empty">Noch kein Verlauf.</string>
+    <string name="history_view_visits">Besuche</string>
+    <string name="history_view_archived">Archivierte Tabs</string>
+    <string name="history_archived_search">Archivierte Tabs durchsuchen</string>
+    <string name="history_archived_clear">Archiv leeren</string>
+    <string name="history_archived_restore">Öffnen</string>
+    <string name="history_archived_restore_label">%1$s wieder als Tab öffnen</string>
+    <string name="history_archived_forget_label">%1$s aus dem Archiv entfernen</string>
+    <string name="history_archived_empty">Keine archivierten Tabs. Schalte „Inaktive Tabs archivieren“ unter Einstellungen → Allgemein ein.</string>
     <string name="history_day_today">Heute</string>
     <string name="history_day_yesterday">Gestern</string>
     <string name="downloads_clear_finished">Fertige entfernen</string>

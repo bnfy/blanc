@@ -135,6 +135,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   },
 
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
+  // F52 Tab Archive: projected rows only; restore takes an entry id.
+  archiveList: () => ipcRenderer.invoke('chrome:archive-list'),
+  archiveRestore: (id) => ipcRenderer.invoke('chrome:archive-restore', id),
+  // Spec D6: the one-time first-archive notice ({count} or null) and its end.
+  archiveNotice: () => ipcRenderer.invoke('chrome:archive-notice'),
+  archiveNoticeDone: (action) => ipcRenderer.invoke('chrome:archive-notice-done', action),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
@@ -241,6 +247,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = () => callback();
     ipcRenderer.on('chrome:island-covered', listener);
     return () => ipcRenderer.removeListener('chrome:island-covered', listener);
+  },
+  onStripHidden: (callback) => {
+    const listener = (_e, hidden) => callback(hidden);
+    ipcRenderer.on('chrome:strip-hidden', listener);
+    return () => ipcRenderer.removeListener('chrome:strip-hidden', listener);
   },
   onFindResult: (callback) => {
     const listener = (_e, payload) => callback(payload);

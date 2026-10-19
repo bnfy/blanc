@@ -34,6 +34,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
+| Tab Archive | `tab-archive.feature` | F52 |
 | Independent windows | `multi-window.feature` | F32 (D11) |
 | Local profiles | `local-profiles.feature` | F33 (D25) |
 | Glance | `glance.feature` | F34 (D11) |
@@ -63,6 +64,19 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-12 | Disabling hover-open cancels its dwell | D28 | ✅ | ➖ | ➖ |
 | F1-13 | A pending permission prompt blocks hover-open | D28 | ✅ | ➖ | ➖ |
 | F1-14 | Only the address area opens the Island on hover | D28 | ✅ | ➖ | ➖ |
+| F1-15 | Turning auto-hide on explains the way back, then gives the page the whole window | D29 | ✅ | ➖ | ➖ |
+| F1-16 | The top edge reveals the Island and leaving hides it | D29 | ✅ | ➖ | ➖ |
+| F1-17 | The palette keeps an auto-hidden Island shown | D29 | ✅ | ➖ | ➖ |
+| F1-18 | Auto-hide works with vertical tabs | D29 | ✅ | ➖ | ➖ |
+| F1-19 | Resting at the top edge reveals the Island without page movement | D29 | ✅ | ➖ | ➖ |
+| F1-20 | A hover-opened panel closes once the pointer leaves it | D28 | ✅ | ➖ | ➖ |
+| F1-21 | A hover-opened panel stays open once it is used | D28 | ✅ | ➖ | ➖ |
+| F1-22 | Resting just below the top edge reveals the Island after a moment | D29 | ✅ | ➖ | ➖ |
+| F1-23 | Passing just below the top edge does not reveal the Island | D29 | ✅ | ➖ | ➖ |
+| F1-24 | Without a global pointer position (Wayland) the page's moves reveal and hide the Island | D29 | ✅ | ➖ | ➖ |
+| F1-25 | A hidden strip does not drag the window from the page's top band | D29 | ✅ | ➖ | ➖ |
+| F1-26 | Resting where the hidden address will appear still lets hover open the Island | D29 | ✅ | ➖ | ➖ |
+| F1-27 | The vertical rail is never reveal territory | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
@@ -195,6 +209,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
 | F36-4 | No browser profile is read before the explicit ask | D22 | ✅ | ➖ | ➖ |
+| F36-5 | The island step offers Tab Archive; continuing turns it on | — | ✅ | ➖ | ➖ |
+| F36-6 | Turning the offer off leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-7 | Skipping the walkthrough leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-8 | A finished profile is never offered Tab Archive | — | ✅ | ➖ | ➖ |
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |

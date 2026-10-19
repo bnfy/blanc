@@ -4,6 +4,7 @@
     <string name="slash_bring_tabs">Bring open tabs from another browser</string>
     <string name="slash_save">Save this page to favorites — name a folder to file it</string>
     <string name="slash_history">Open browsing history</string>
+    <string name="slash_archive">See tabs Blanc archived for you</string>
     <string name="slash_downloads">Open downloads</string>
     <string name="slash_settings">Open settings</string>
     <string name="slash_sync">Set up or manage sync</string>

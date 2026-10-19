@@ -11,9 +11,10 @@
 const settings = require('./settings');
 const sync = require('./sync');
 const history = require('./history');
+const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
+const { app, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -71,9 +72,12 @@ function install(refs) {
     getIslandHoverRect,
     getIslandHoverState,
     setIslandHoverOpen,
+    setIslandAutoHide,
+    getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
     setTestCursorPoint,
+    setTestCursorSamplingUnavailable,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -179,6 +183,11 @@ function install(refs) {
     wakeTab,
     runSleepSweep,
     sleepBackgroundTabsNow,
+    runArchiveSweep,
+    restoreArchivedEntry,
+    setArchiveGraceUntil,
+    setArchiveProbeObserver,
+    runArchiveSweepInEveryWindow,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -529,14 +538,39 @@ function install(refs) {
     islandHoverRect() { const r = getIslandHoverRect(); return r ? { ...r } : null; },
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
+    setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    /** Auto-hide state plus where the page view starts (0 = strip hidden). */
+    islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
     resetOverlayShowCount() { resetOverlayShowCount(); },
     setTestCursorPoint(point) { return setTestCursorPoint(point); },
+    // Act as native Wayland does: no global pointer position to sample.
+    setCursorSamplingUnavailable(on) { return setTestCursorSamplingUnavailable(on); },
     sendChromeMouseInput(input) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
+    },
+    sendOverlayInput(input) {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    // The strip's window-drag region: the computed app-region of #strip.
+    async stripAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`getComputedStyle(document.getElementById('strip')).getPropertyValue('-webkit-app-region') || getComputedStyle(document.getElementById('strip')).appRegion`);
+    },
+    async overlayPanelRect() {
+      const wc = getOverlayWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const r = document.getElementById('islandPanel')?.getBoundingClientRect();
+        return r && r.width > 0 ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null;
+      })()`);
     },
     pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
@@ -920,7 +954,7 @@ function install(refs) {
       }
       return history.listTopSites({ limit: 48 }).map((site) => site.key);
     },
-    clearHistory() { history.clearHistory(); },
+    clearHistory() { history.clearHistory(); archive.clearArchive(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
     // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
@@ -1960,6 +1994,53 @@ function install(refs) {
         return true;
       })()`);
     },
+    /** Click Continue until the walkthrough shows `step`. */
+    advanceOnboardingTo(step) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(async () => {
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden) return false;
+        for (let i = 0; i < 200 && Number(dialog.dataset.step) < ${Number(step)}; i += 1) {
+          const next = document.getElementById('obNext');
+          if (!next.disabled) next.click();
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        return dialog.dataset.step === '${Number(step)}';
+      })()`);
+    },
+    // F52 spec D5: the Tab Archive row in "Meet the island".
+    readOnboardingArchiveOffer() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const row = document.getElementById('obArchiveRow');
+        const toggle = document.getElementById('obArchive');
+        return {
+          hidden: !row || row.hidden || row.closest('section')?.hidden === true,
+          checked: toggle?.getAttribute('aria-checked') === 'true',
+          label: row?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+        };
+      })()`);
+    },
+    clickOnboarding(selector) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.disabled || document.getElementById('onboardDialog').hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
+    /** The new tab page's own onboarding bridge, called directly. */
+    sendOnboardingSet(partial) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(
+        `window.bowserPages.start.onboardingSet(${JSON.stringify(partial ?? {})}).then(() => true)`);
+    },
+    tabArchiveSetting() { return settings.getSettings().tabArchive; },
     readOnboardingDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -2441,6 +2522,28 @@ function install(refs) {
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
+    // F52: the History sheet's Archived view, read and clicked through its own DOM.
+    async historySheetArchivedRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://history/')) return null;
+      return wc.executeJavaScript(`(() => ({
+        view: document.getElementById('viewArchived')?.getAttribute('aria-pressed') === 'true' ? 'archived' : 'visits',
+        rows: [...document.querySelectorAll('#list .row')].map((row) => ({
+          title: row.querySelector('.title')?.textContent ?? '',
+          url: row.querySelector('.url')?.textContent ?? '',
+        })),
+      }))()`);
+    },
+    async historySheetClick(selector) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
     openSettings() { openInternalPage('blanc://settings/'); },
     // F47: Settings → General → Your bangs, through the page's own controls.
     async settingsBangControls() {
@@ -3233,6 +3336,10 @@ function install(refs) {
     showTestFirstRunMigration() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      // The acceptance profile completes first run at launch; the synthetic
+      // status below stands for a fresh profile, so main's own first-run gate
+      // (the Tab Archive offer, spec D5) must agree with it.
+      refs.setFirstRunPendingForTest(true);
       tab.view.webContents.send('pages:start:status', {
         startup: { phase: 'skipped', attempt: 0, error: null },
         privacy: {
@@ -3434,6 +3541,36 @@ function install(refs) {
       return true;
     },
     async runSleepSweep() { return runSleepSweep(); },
+    // ---- Tab Archive (F52) ----
+    setTabArchive(value) { return settings.setSettings({ tabArchive: value }).tabArchive; },
+    /** Backdate a tab's last-viewed clock so an archive sweep sees it as idle. */
+    setTabViewedSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastViewedAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    setArchiveGraceUntil(ms) { setArchiveGraceUntil(ms); },
+    /** The real resume listeners, as when the machine wakes from sleep. */
+    emitPowerResume() { powerMonitor.emit('resume'); },
+    async runArchiveSweep() { return runArchiveSweep(); },
+    /** One-shot: once the sweep has probed `id`, make it the active tab, as a
+     *  person switching to it mid-sweep would. */
+    activateCandidateDuringArchiveProbe(id) {
+      setArchiveProbeObserver((probedId) => {
+        if (probedId !== id) return;
+        setArchiveProbeObserver(null);
+        setActiveTab(id, { focusContent: false });
+      });
+      return true;
+    },
+    async runArchiveSweepsConcurrently() { return Promise.all([runArchiveSweep(), runArchiveSweep()]); },
+    /** The 30-second timer's fan-out: one archive sweep per window runtime,
+     *  set-aside Spaces included. */
+    async runArchiveSweepInEveryWindow() { return runArchiveSweepInEveryWindow(); },
+    archiveEntries() { return archive.listArchive({ now: Date.now() }); },
+    archiveNoticePending() { return archive.pendingNotice(); },
+    restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
     /** Falsifiability hook: only an OS process count proves a discarded view
      * released its renderer rather than merely disappearing from the tab map. */
@@ -3468,6 +3605,7 @@ function install(refs) {
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       setTestCursorPoint(null);
+      setTestCursorSamplingUnavailable(false);
       beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
@@ -3490,6 +3628,10 @@ function install(refs) {
       clearClosedEntries();
       getGroups().length = 0;
       history.clearHistory();
+      archive.clearArchive();
+      archive.resetNoticeForTest();
+      setArchiveGraceUntil(0);
+      refs.setFirstRunPendingForTest(false);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
@@ -3508,7 +3650,9 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        tabArchive: 'off',
         islandHoverOpen: false,
+        islandAutoHide: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.
