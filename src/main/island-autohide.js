@@ -57,6 +57,33 @@ function reachAboveWindow({ contentTop, workAreaTop, displayTop }) {
   return REACH_ABOVE_PX;
 }
 
+/** How long the page takes to slide down for the Island, and back up. */
+const SLIDE_IN_MS = 160;
+const SLIDE_OUT_MS = 200;
+
+/** Ease-out cubic over 0..1: quick to start, settling softly. */
+function easeOutCubic(t) {
+  const clamped = Math.min(1, Math.max(0, finite(t) ? t : 1));
+  return 1 - (1 - clamped) ** 3;
+}
+
+/**
+ * Where a page-pane view sits while the strip slides in or out. The view only
+ * moves: it keeps the taller of its two heights (its bottom runs off the
+ * window, which clips it), so the page lays out once at the end instead of on
+ * every frame.
+ * @param {{x: number, y: number, width: number, height: number}} bounds the view's final bounds
+ * @param {{stripTop: number, animatedTop: number}} slide the final and the current strip height
+ */
+function slidingBounds(bounds, { stripTop, animatedTop }) {
+  return {
+    x: bounds.x,
+    y: Math.round(bounds.y - stripTop + animatedTop),
+    width: bounds.width,
+    height: bounds.height + stripTop,
+  };
+}
+
 /**
  * Surfaces that are drawn from, or anchored to, the Island keep it revealed
  * whatever the pointer does.
@@ -82,6 +109,10 @@ module.exports = {
   INTRO_MS,
   REACH_ABOVE_PX,
   REVEAL_WATCH_MS,
+  SLIDE_IN_MS,
+  SLIDE_OUT_MS,
+  easeOutCubic,
+  slidingBounds,
   pointHoldsIsland,
   reachAboveWindow,
   islandPinned,

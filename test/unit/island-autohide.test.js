@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {
   REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
+  easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -125,4 +126,43 @@ test('a hidden strip in the focused window samples the cursor rather than waitin
   assert.match(main, /'blur', bindWindowRuntime\(runtime, \(\) => \{\s+stopIslandRevealWatch\(runtime\);/);
   assert.match(main, /focusedRuntime = runtime;\s+if \(!runtime\.islandRevealed\) watchIslandReveal\(runtime\);/);
   assert.match(main, /reachAbove: islandAutoHideModule\.reachAboveWindow\(/);
+});
+
+test('the slide eases out and stays within its range', () => {
+  assert.equal(easeOutCubic(0), 0);
+  assert.equal(easeOutCubic(1), 1);
+  assert.ok(easeOutCubic(0.5) > 0.5, 'more than halfway by the midpoint');
+  assert.equal(easeOutCubic(-1), 0);
+  assert.equal(easeOutCubic(2), 1);
+  assert.equal(easeOutCubic(Number.NaN), 1);
+  assert.ok(SLIDE_IN_MS > 0 && SLIDE_IN_MS <= 250 && SLIDE_OUT_MS > 0 && SLIDE_OUT_MS <= 250);
+});
+
+test('mid-slide the page view moves without changing height', () => {
+  // Revealing: final bounds sit below a 68px strip; the slide starts at the top.
+  const revealed = { x: 0, y: 68, width: 1280, height: 732 };
+  for (const animatedTop of [0, 20, 50, 68]) {
+    const frame = slidingBounds(revealed, { stripTop: 68, animatedTop });
+    assert.equal(frame.y, animatedTop);
+    assert.equal(frame.height, 800, 'full height for the whole reveal');
+  }
+  // Hiding: final bounds fill the window; the slide starts 68px down.
+  const hidden = { x: 0, y: 0, width: 1280, height: 800 };
+  for (const animatedTop of [68, 30, 0]) {
+    const frame = slidingBounds(hidden, { stripTop: 0, animatedTop });
+    assert.equal(frame.y, animatedTop);
+    assert.equal(frame.height, 800);
+  }
+  // A vertical-rail pane keeps its x and width.
+  const rail = slidingBounds({ x: 248, y: 68, width: 1032, height: 732 }, { stripTop: 68, animatedTop: 10 });
+  assert.deepEqual(rail, { x: 248, y: 10, width: 1032, height: 800 });
+});
+
+test('main slides rather than snaps, honors Reduce Motion, and turning on never jumps', () => {
+  const slide = main.slice(main.indexOf('function slideIsland('), main.indexOf('function setIslandRevealed('));
+  assert.match(slide, /prefersReducedMotion\(\)/);
+  assert.match(slide, /bindWindowRuntime\(runtime, \(\) => \{/);
+  assert.match(main, /fromTop = runtime\.islandSlide \? runtime\.islandSlide\.top : pageTopFor\(runtime\)/);
+  assert.match(main, /islandAutoHideModule\.slidingBounds\(bounds, \{ stripTop: layout\.pageBounds\.y, animatedTop: slide\.top \}\)/);
+  assert.match(main, /runtime\.islandRevealed = islandAutoHide && runtime === target;/);
 });

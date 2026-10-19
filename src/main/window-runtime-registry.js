@@ -180,6 +180,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * that hides it again, and the last macOS traffic-light visibility set. */
     islandRevealed: false,
     islandAutoHideTimer: null,
+    /** The page's slide while the strip comes and goes: {from, to, top,
+     * start, duration, timer}, or null. */
+    islandSlide: null,
     /** Cursor sampling that reveals a hidden Island at the top edge. */
     islandRevealWatchTimer: null,
     windowButtonsVisible: null,

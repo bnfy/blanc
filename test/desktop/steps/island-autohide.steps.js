@@ -37,7 +37,7 @@ async function turnOn(world, layout) {
 
 async function prepare(world, layout) {
   await turnOn(world, layout);
-  await waitForValue(() => autoHideState(world), (state) => state?.stripHidden === true,
+  await waitForValue(() => autoHideState(world), (state) => !state?.sliding && state?.stripHidden === true,
     'the strip to hide after its tip', INTRO_WAIT_MS);
 }
 
@@ -46,14 +46,14 @@ When('I turn on auto-hide', async function () {
 });
 
 Then('the Island stays shown with a tip on bringing it back', async function () {
-  const state = await waitForAutoHide(this, (value) => value?.introTipShown === true, 'the how-to tip');
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.introTipShown === true, 'the how-to tip');
   assert.equal(state.stripHidden, false);
   assert.ok(state.pageY > 0, 'the page still sits below the strip');
   assert.equal(state.activeBounds.y, state.pageY, 'the page view moved below the strip');
 });
 
 Then('then the page starts at the top of the window', async function () {
-  const state = await waitForValue(() => autoHideState(this), (value) => value?.pageY === 0,
+  const state = await waitForValue(() => autoHideState(this), (value) => !value?.sliding && value?.pageY === 0,
     'the page to reach the top edge after the tip', INTRO_WAIT_MS);
   assert.equal(state.introducing, false);
   assert.equal(state.activeBounds.y, 0);
@@ -72,19 +72,19 @@ When('auto-hide is turned off', async function () {
 });
 
 Then('the page starts at the top of the window', async function () {
-  const state = await waitForAutoHide(this, (value) => value?.pageY === 0, 'the page to reach the top edge');
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === 0, 'the page to reach the top edge');
   assert.equal(state.enabled, true);
   assert.equal(state.activeBounds.y, 0);
 });
 
 Then('the page starts at the top of the window beside the rail', async function () {
-  const state = await waitForAutoHide(this, (value) => value?.pageY === 0, 'the page to reach the top edge');
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === 0, 'the page to reach the top edge');
   assert.equal(state.activeBounds.y, 0);
   assert.ok(state.activeBounds.x > 0, 'the vertical rail kept its column');
 });
 
 Then('the page starts below the Island', async function () {
-  const state = await waitForAutoHide(this, (value) => value?.enabled === false && value.pageY > 0,
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.enabled === false && value.pageY > 0,
     'the page to move below the strip');
   assert.equal(state.stripHidden, false);
 });
@@ -96,7 +96,7 @@ When('I point at the top edge of the window', async function () {
 });
 
 Then('the Island is shown above the page', async function () {
-  const state = await waitForAutoHide(this, (value) => value?.stripHidden === false && value.pageY > 0,
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.stripHidden === false && value.pageY > 0,
     'the strip to be shown');
   assert.equal(state.enabled, true);
   assert.equal(state.activeBounds.y, state.pageY);
@@ -114,7 +114,7 @@ When('I move the pointer well below the Island', async function () {
 });
 
 Then('the Island hides again', async function () {
-  await waitForAutoHide(this, (value) => value?.stripHidden === true && value.pageY === 0,
+  await waitForAutoHide(this, (value) => !value?.sliding && value?.stripHidden === true && value.pageY === 0,
     'the strip to hide again');
 });
 

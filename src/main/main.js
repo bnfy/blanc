@@ -3236,13 +3236,102 @@ function clearIslandAutoHideTimer(runtime) {
   runtime.islandAutoHideTimer = null;
 }
 
-/** Move the strip in or out, re-laying the page views in the same turn.
- * Always re-lays: a pin set just before (the intro tip) changes the layout
- * without anyone having applied it yet. */
+function pageTopFor(runtime) {
+  return withWindowRuntime(runtime, () => currentChromeLayout().pageBounds.y);
+}
+
+function stopIslandSlide(runtime) {
+  if (runtime.islandSlide?.timer) clearTimeout(runtime.islandSlide.timer);
+  runtime.islandSlide = null;
+}
+
+function prefersReducedMotion() {
+  try {
+    return systemPreferences.getAnimationSettings?.().prefersReducedMotion === true;
+  } catch {
+    return false;
+  }
+}
+
+/** The first reveal after the strip has sat under the page for a while
+ * showed the page jump to its final place in one step, while a reveal soon
+ * after a hide slid (measured under xvfb). Asking the strip for two animation
+ * frames before the clock starts turned that jump into a short slide; it costs
+ * one or two frames, and never more than the cap below. */
+const STRIP_WARM_MAX_MS = 120;
+
+function warmStrip(runtime) {
+  const contents = runtime.window?.webContents;
+  if (!contents || contents.isDestroyed()) return Promise.resolve();
+  const drawn = contents.executeJavaScript(
+    'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))'
+  ).catch(() => false);
+  return Promise.race([drawn, new Promise((resolve) => setTimeout(resolve, STRIP_WARM_MAX_MS))]);
+}
+
+/** Slide the page views from one strip height to another. Each frame only
+ * moves them (resizeActiveView applies slidingBounds); the frame after the
+ * last one lays them out at their final size. A reveal first wakes the strip
+ * (the page holds still meanwhile). Reduce Motion skips it all. */
+function slideIsland(runtime, fromTop, toTop) {
+  stopIslandSlide(runtime);
+  if (fromTop === toTop || prefersReducedMotion()) {
+    withWindowRuntime(runtime, () => resizeActiveView());
+    return;
+  }
+  const revealing = toTop > fromTop;
+  const slide = {
+    from: fromTop,
+    to: toTop,
+    top: fromTop,
+    start: Date.now(),
+    duration: revealing ? islandAutoHideModule.SLIDE_IN_MS : islandAutoHideModule.SLIDE_OUT_MS,
+    timer: null,
+  };
+  runtime.islandSlide = slide;
+  const frame = bindWindowRuntime(runtime, () => {
+    if (runtime.islandSlide !== slide) return;
+    slide.timer = null;
+    if (!runtime.window || runtime.window.isDestroyed()) {
+      runtime.islandSlide = null;
+      return;
+    }
+    const progress = (Date.now() - slide.start) / slide.duration;
+    if (progress >= 1) {
+      runtime.islandSlide = null;
+      resizeActiveView();
+      return;
+    }
+    slide.top = slide.from + (slide.to - slide.from) * islandAutoHideModule.easeOutCubic(progress);
+    resizeActiveView();
+    slide.timer = setTimeout(frame, 16);
+  });
+  if (!revealing) {
+    frame();
+    return;
+  }
+  // Hold the page where it is (any relayout meanwhile keeps it there) until
+  // the strip has drawn, then start the clock.
+  withWindowRuntime(runtime, () => resizeActiveView());
+  warmStrip(runtime).then(() => {
+    if (runtime.islandSlide !== slide) return;
+    slide.start = Date.now();
+    frame();
+  });
+}
+
+/** Move the strip in or out. Always re-lays: a pin set just before (the
+ * intro tip) changes the layout without anyone having applied it yet. A slide
+ * already under way continues from where the page is now. */
 function setIslandRevealed(runtime, revealed) {
   if (runtime.islandRevealed === revealed) return;
+  if (!runtime.window || runtime.window.isDestroyed()) {
+    runtime.islandRevealed = revealed;
+    return;
+  }
+  const fromTop = runtime.islandSlide ? runtime.islandSlide.top : pageTopFor(runtime);
   runtime.islandRevealed = revealed;
-  if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  slideIsland(runtime, fromTop, pageTopFor(runtime));
   if (revealed) stopIslandRevealWatch(runtime);
   else watchIslandReveal(runtime);
 }
@@ -3343,15 +3432,18 @@ async function showIslandAutoHideIntro(runtime) {
 function applyIslandAutoHide(next) {
   if (next === islandAutoHide) return;
   islandAutoHide = next;
+  const target = focusedRuntime;
   for (const runtime of windowRuntimes.all()) {
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
     stopIslandRevealWatch(runtime);
-    runtime.islandRevealed = false;
+    stopIslandSlide(runtime);
+    // The window showing the intro keeps its strip up from the start, so its
+    // page never jumps up only to slide straight back down.
+    runtime.islandRevealed = islandAutoHide && runtime === target;
     if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
-    watchIslandReveal(runtime);
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
   }
-  const target = focusedRuntime;
   if (islandAutoHide && target?.window && !target.window.isDestroyed()) {
     showIslandAutoHideIntro(target).catch(() => endIslandAutoHideIntro(target));
   }
@@ -5366,8 +5458,13 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const glanceTab = activeGlanceTab();
   const glance = glanceTab ? glanceGeometry(layout) : null;
-  if (liveContents(tab)) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
-  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(glance.glance);
+  // Mid-slide (auto-hide), page panes move toward their final bounds.
+  const slide = rt().islandSlide;
+  const place = (bounds) => slide
+    ? islandAutoHideModule.slidingBounds(bounds, { stripTop: layout.pageBounds.y, animatedTop: slide.top })
+    : bounds;
+  if (liveContents(tab)) tab.view.setBounds(place(glance?.primary ?? layout.pageBounds));
+  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(place(glance.glance));
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
@@ -5377,7 +5474,7 @@ function resizeActiveView() {
     rt().fillStatusView.setBounds(fillStatusViewBounds());
   }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) sheet.view.setBounds(layout.utilityBounds);
+  if (sheet) sheet.view.setBounds(place(layout.utilityBounds));
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
@@ -10079,6 +10176,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
     stopIslandRevealWatch(runtime);
+    stopIslandSlide(runtime);
     runtime.islandRevealed = false;
     runtime.windowButtonsVisible = null;
     // The macOS primary runtime survives close for Dock reopen; the drag flag
@@ -12163,6 +12261,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         enabled: islandAutoHide,
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
+        sliding: !!rt().islandSlide,
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
           && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
         stripHidden: islandStripHidden(),

@@ -34,6 +34,14 @@ and the toolbar comes back on demand. Blanc has no such mode.
   Pages move down to make room, exactly as with the setting
   off. They are not overlaid, because the strip is the window's own
   webContents and always draws beneath child views.
+- **Motion:** the page slides rather than snaps: down over 160ms when the
+  Island appears, up over 200ms when it hides, eased out. Mid-slide the page
+  view only moves (it keeps the taller of its two heights and the window clips
+  its bottom), so the page lays out once at the end, not on every frame. A
+  reveal first asks the strip for two animation frames (capped at 120ms):
+  under xvfb the first reveal after a long hide otherwise jumped. Reduce Motion
+  snaps. Turning the setting on keeps that window's strip up for the intro, so
+  its page never jumps up only to slide back.
 - **Pinned:** every surface drawn from the Island keeps it shown: an
   `overlayMode` (panel, ⌘L palette, find, shield, capture, Spaces, group menu,
   Glance picker), an open Glance, or a uBO popup. `showOverlay` reveals before it
