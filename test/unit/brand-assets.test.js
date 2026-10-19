@@ -250,7 +250,10 @@ test('the site lockups keep the Sunrise square and place it by the lockup constr
   }
   // The header uses the Text-cut word (about 32px tall and under) and the
   // footer the Display cut, each beside the square 256px mark.
-  const header = source('site/src/components/Header.astro');
+  // The header draws its lockup through SiteLockup.astro, which the What's
+  // New header shares.
+  assert.match(source('site/src/components/Header.astro'), /<SiteLockup \/>/);
+  const header = source('site/src/components/SiteLockup.astro');
   const footer = source('site/src/components/Footer.astro');
   for (const markup of [header, footer]) assert.match(markup, /src="\/lockup\/sunrise-mark-256\.webp"\s+width="256"\s+height="256"/);
   assert.match(header, /site-lockup--small[\s\S]*src="\/lockup\/blanc-word-small-ink\.svg"/);
