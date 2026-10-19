@@ -44,3 +44,10 @@ Feature: Tab Archive
     Given an archived tab
     When I clear browsing history
     Then the Archive is empty
+
+  @F52-7 @F52 @desktop
+  Scenario: Nothing is archived right after the computer wakes from sleep
+    Given tab archiving is set to 12 hours
+    And a loose background tab not viewed for 13 hours
+    When the computer wakes from sleep and the archive sweep runs
+    Then that tab is still open and the Archive is empty

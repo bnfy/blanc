@@ -14,7 +14,7 @@ const history = require('./history');
 const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
+const { app, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -180,6 +180,9 @@ function install(refs) {
     wakeTab,
     runSleepSweep,
     sleepBackgroundTabsNow,
+    runArchiveSweep,
+    restoreArchivedEntry,
+    setArchiveGraceUntil,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -3435,6 +3438,21 @@ function install(refs) {
       return true;
     },
     async runSleepSweep() { return runSleepSweep(); },
+    // ---- Tab Archive (F52) ----
+    setTabArchive(value) { return settings.setSettings({ tabArchive: value }).tabArchive; },
+    /** Backdate a tab's last-viewed clock so an archive sweep sees it as idle. */
+    setTabViewedSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastViewedAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    setArchiveGraceUntil(ms) { setArchiveGraceUntil(ms); },
+    /** The real resume listeners, as when the machine wakes from sleep. */
+    emitPowerResume() { powerMonitor.emit('resume'); },
+    async runArchiveSweep() { return runArchiveSweep(); },
+    archiveEntries() { return archive.listArchive({ now: Date.now() }); },
+    restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
     /** Falsifiability hook: only an OS process count proves a discarded view
      * released its renderer rather than merely disappearing from the tab map. */
@@ -3492,6 +3510,7 @@ function install(refs) {
       getGroups().length = 0;
       history.clearHistory();
       archive.clearArchive();
+      setArchiveGraceUntil(0);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
@@ -3510,6 +3529,7 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        tabArchive: 'off',
         islandHoverOpen: false,
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not

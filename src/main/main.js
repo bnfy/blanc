@@ -266,6 +266,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -2193,16 +2194,16 @@ async function probeTabDirty(tab, wc) {
   // its privileged frame and defeat the space-saving use case for dead tabs.
   if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
     tab.deepScrolled = false;
-    return { dirty: false, hasSessionStorage: false };
+    return { dirty: false, unsaved: false, hasSessionStorage: false };
   }
 
   let frames;
   try {
     frames = wc.mainFrame?.framesInSubtree ?? [];
   } catch {
-    return { dirty: true, hasSessionStorage: false };
+    return { dirty: true, unsaved: true, hasSessionStorage: false };
   }
-  if (frames.length === 0) return { dirty: true, hasSessionStorage: false };
+  if (frames.length === 0) return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   // One budget for the complete frame tree, never 250 ms per iframe.
   const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
@@ -2215,18 +2216,20 @@ async function probeTabDirty(tab, wc) {
     })),
     budget,
   ]);
-  if (answers === 'timeout') return { dirty: true, hasSessionStorage: false };
+  if (answers === 'timeout') return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   let deepScrolled = false;
   let hasSessionStorage = false;
   for (const answer of answers) {
-    if (!answer || typeof answer !== 'object') return { dirty: true, hasSessionStorage: false };
-    if (answer.dirty) return { dirty: true, hasSessionStorage: false };
+    if (!answer || typeof answer !== 'object') return { dirty: true, unsaved: true, hasSessionStorage: false };
+    if (answer.dirty) return { dirty: true, unsaved: true, hasSessionStorage: false };
     if (answer.deepScrolled) deepScrolled = true;
     if (answer.hasSessionStorage) hasSessionStorage = true;
   }
   tab.deepScrolled = deepScrolled;
-  return { dirty: deepScrolled, hasSessionStorage };
+  // `unsaved` excludes deep scroll: a scroll position is not work the
+  // Tab Archive (F52) must protect, only something Quiet Tabs can't restore.
+  return { dirty: deepScrolled, unsaved: false, hasSessionStorage };
 }
 
 /** True while sleepTab has replaced a tab's listeners with its temporary
@@ -2883,6 +2886,107 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
   // sleepTab broadcasts every actual transition; an empty sweep stays silent.
   return { quieted, skippedReason: null };
 }
+// ---- Tab Archive (F52) ------------------------------------------------------
+// Idle loose tabs close into the profile's Archive. Pure policy lives in
+// tab-archive.js; the store in archive.js. See
+// docs/superpowers/specs/2026-10-19-tab-archive-design.md.
+
+/** Nothing is archived before this wall-clock time: launch, resume and a
+ *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
+let archiveGraceUntil = 0;
+let lastArchiveSweepAt = 0;
+
+function resetArchiveGrace(now = Date.now()) {
+  archiveGraceUntil = now + ARCHIVE_GRACE_MS;
+}
+
+function currentArchiveThresholdMs() {
+  const key = settings.getSettings().tabArchive;
+  return Object.hasOwn(TAB_ARCHIVE_DELAY_MS, key) ? TAB_ARCHIVE_DELAY_MS[key] : null;
+}
+
+/** True when a live tab holds work a close would lose. Quiet tabs passed the
+ *  same probe when they went quiet. Any probe failure protects the tab. */
+async function tabHoldsUnsavedWork(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  try {
+    if ((await probeTabDirty(tab, wc)).unsaved) return true;
+    return await hasBeforeUnloadListener(wc);
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * One archive pass over the bound window runtime.
+ * @returns {Promise<{archived: string[], closed: string[], skippedReason: string|null}>}
+ */
+async function runArchiveSweep() {
+  const skip = (reason) => ({ archived: [], closed: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  const thresholdMs = currentArchiveThresholdMs();
+  if (thresholdMs === null) return skip('off');
+
+  const now = Date.now();
+  // A gap in sweeps means the machine slept: give the person a moment with
+  // their tabs before anything is tidied away.
+  if (lastArchiveSweepAt && now - lastArchiveSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) resetArchiveGrace(now);
+  lastArchiveSweepAt = now;
+  if (now < archiveGraceUntil) return skip('grace');
+
+  const runtime = rt();
+  const candidates = archiveCandidates(runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), {
+    now,
+    thresholdMs,
+    activeTabId: runtime.activeTabId,
+    visibleTabIds: new Set([runtime.glanceTabId].filter(Boolean)),
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+    graceUntil: archiveGraceUntil,
+  });
+  if (!candidates.length) return { archived: [], closed: [], skippedReason: null };
+
+  const spaceName = namedWorkspaces.get(runtime.workspaceId)?.name ?? null;
+  const entries = [];
+  const archived = [];
+  const closed = [];
+  for (const { id, closeOnly } of candidates) {
+    const tab = tabs.get(id);
+    // Re-check after every await: the person may have switched to it.
+    if (!tab || id === runtime.activeTabId) continue;
+    if (await tabHoldsUnsavedWork(tab)) continue;
+    if (!tabs.has(id) || id === runtime.activeTabId) continue;
+    if (!closeOnly) {
+      const entry = buildArchiveEntry(tab, { now, spaceName });
+      if (!entry) continue;
+      entries.push(entry);
+      archived.push(id);
+    }
+    closed.push(id);
+  }
+  // Save first, then close: an entry must exist before its tab is gone.
+  archive.addEntries(entries, now);
+  for (const id of closed) closeTab(id, { record: false, selectReplacement: false });
+  return { archived, closed, skippedReason: null };
+}
+
+/** Restore one archived tab into the bound window as a new ungrouped tab at
+ *  the end, selected. False when the entry is already gone, so a second
+ *  restore of the same id opens nothing. */
+function restoreArchivedEntry(entryId) {
+  const tab = tabs.get(rt().activeTabId);
+  if (tab?.private) return false;
+  const entry = archive.takeEntry(String(entryId ?? ''));
+  if (!entry) return false;
+  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null });
+  if (!id) return false;
+  setActiveTab(id, { focusContent: true, focusAddress: false });
+  return true;
+}
+
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
@@ -12040,6 +12144,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      runArchiveSweep, restoreArchivedEntry,
+      setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       // The live array, mirroring getSleepSnapshots: reset() empties it in
@@ -12112,15 +12218,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
-        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
+        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message))
+        .then(() => runArchiveSweep())
+        .catch((err) => console.warn(`[tab-archive] sweep (${runtime.id}):`, err?.message));
     }));
   }, SLEEP_SWEEP_INTERVAL_MS);
+  resetArchiveGrace();
 
   powerMonitor.on('resume', () => {
     broadcastStartPageStatus();
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
     forEachWindowRuntime(restampBackgroundTabs);
+    resetArchiveGrace();
   });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
@@ -12142,7 +12252,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
+  let appliedTabArchive = settings.getSettings().tabArchive;
   settings.onSettingsChanged((s) => {
+    if (s.tabArchive !== appliedTabArchive) {
+      appliedTabArchive = s.tabArchive;
+      resetArchiveGrace();
+    }
     islandHoverOpen = s.islandHoverOpen === true;
     if (!islandHoverOpen) {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
