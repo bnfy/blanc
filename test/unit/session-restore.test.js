@@ -184,3 +184,27 @@ test('a saved custom name rides through the restore filter with its tab', () => 
   assert.deepEqual(out.urls, ['https://a.example/']);
   assert.equal(out.meta[0].customTitle, 'Budget');
 });
+
+// F52: restored tabs keep their saved idle clock; a missing or impossible
+// one starts now, so an update never archives anyone's tabs on first launch.
+const { restoredLastViewedAt } = require('../../src/main/session-restore');
+
+test('restore uses a saved lastViewedAt', () => {
+  assert.equal(restoredLastViewedAt({ lastViewedAt: 1_000 }, 5_000), 1_000);
+});
+
+test('restore stamps now when lastViewedAt is missing, invalid or in the future', () => {
+  assert.equal(restoredLastViewedAt(undefined, 5_000), 5_000);
+  assert.equal(restoredLastViewedAt({ title: 'x' }, 5_000), 5_000);
+  assert.equal(restoredLastViewedAt({ lastViewedAt: 'soon' }, 5_000), 5_000);
+  assert.equal(restoredLastViewedAt({ lastViewedAt: 0 }, 5_000), 5_000);
+  assert.equal(restoredLastViewedAt({ lastViewedAt: 9_000 }, 5_000), 5_000);
+});
+
+test('filterRestoredSession carries lastViewedAt with its own tab', () => {
+  const out = filterRestoredSession({
+    urls: ['blanc://settings/', 'https://a.example/'],
+    meta: [{ title: 'S', favicon: null, lastViewedAt: 1 }, { title: 'A', favicon: null, lastViewedAt: 2 }],
+  }, drop);
+  assert.equal(out.meta[0].lastViewedAt, 2);
+});

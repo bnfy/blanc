@@ -243,7 +243,7 @@ const {
   withLocalProfile,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
-const { filterRestoredSession, restoreTargetId } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
@@ -5925,7 +5925,10 @@ function stageWorkspace(runtime, workspace) {
       if (tab?.view) {
         detachTabView(tab);
       }
-      if (tab && id === runtime.activeTabId) tab.lastActiveAt = Date.now();
+      if (tab && id === runtime.activeTabId) {
+        tab.lastActiveAt = Date.now();
+        tab.lastViewedAt = tab.lastActiveAt;
+      }
     }
     move(runtime, outgoing);
     move(incoming, runtime);
@@ -6625,7 +6628,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6737,6 +6740,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     waking: false,            // a wake generation is open
     wakeGeneration: 0,        // monotonic, never reset
     lastActiveAt: null,       // ms epoch; null until first stamp
+    // Tab Archive (F52): wall-clock time the tab was last seen. Saved in
+    // session meta and never re-stamped by a clock jump, unlike lastActiveAt.
+    lastViewedAt: Number.isFinite(lastViewedAt) ? lastViewedAt : Date.now(),
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
@@ -6992,6 +6998,7 @@ function setActiveTab(id, {
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
+    prev.lastViewedAt = prev.lastActiveAt;
   }
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
@@ -7093,6 +7100,7 @@ async function setGlanceTab(id) {
   if (previous?.view && previous.id !== id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
+    previous.lastViewedAt = previous.lastActiveAt;
   }
   if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
@@ -7134,6 +7142,7 @@ function closeGlance({ focusContent = true } = {}) {
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
+    tab.lastViewedAt = tab.lastActiveAt;
   }
   resizeActiveView();
   broadcastTabs();
@@ -12552,6 +12561,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           favicon: saved.meta?.[index]?.favicon ?? null,
           customTitle: saved.meta?.[index]?.customTitle ?? null,
           pinnedHomeUrl: saved.meta?.[index]?.pinnedHomeUrl ?? null,
+          lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));

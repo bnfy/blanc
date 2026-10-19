@@ -75,4 +75,12 @@ function restoreTargetId(restoredIds, activeIndex) {
   return null;
 }
 
-module.exports = { filterRestoredSession, restoreTargetId };
+/** A restored tab's Tab Archive clock (F52): the saved value when it is a
+ * real past time, else now, so an update or a clock that moved backwards never
+ * makes a tab look long idle. */
+function restoredLastViewedAt(meta, now) {
+  const saved = meta?.lastViewedAt;
+  return Number.isFinite(saved) && saved > 0 && saved <= now ? saved : now;
+}
+
+module.exports = { filterRestoredSession, restoreTargetId, restoredLastViewedAt };
