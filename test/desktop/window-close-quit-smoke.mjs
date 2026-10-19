@@ -114,6 +114,8 @@ const waitForExit = async (app, exited, label) => {
     ]);
     assert.equal(code, 0, `${label}: Blanc exits cleanly after its last window closes`);
   } catch (error) {
+    console.error(`${label} uncaught log:`, fs.existsSync(uncaughtLog)
+      ? fs.readFileSync(uncaughtLog, 'utf8') : '(absent)');
     // Preserve the original failure while bounding diagnostic collection if
     // the main process itself is unresponsive.
     let diagnosticTimer;
@@ -125,8 +127,6 @@ const waitForExit = async (app, exited, label) => {
         }),
       ]);
       console.error(`${label} remaining windows:`, JSON.stringify(windows));
-      console.error(`${label} uncaught log:`, fs.existsSync(uncaughtLog)
-        ? fs.readFileSync(uncaughtLog, 'utf8') : '(absent)');
     } catch (diagnosticError) {
       console.error('Shutdown diagnostics unavailable:', diagnosticError.message);
     } finally {
