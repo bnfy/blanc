@@ -1446,3 +1446,33 @@ What's new pill links to the same page. The changelog keeps the full detail
 - **Acceptance:** `test/unit/whats-new.test.js`,
   `test/unit/whats-new-check.test.js`, `test/unit/whats-new-settings.test.js`,
   `test/unit/whats-new-site-data.test.js` and `test/site/whats-new-page.test.mjs`.
+
+## F52 — Tab Archive (desktop)
+
+Blanc can close loose tabs nobody has looked at in a while and keep them in a
+searchable Archive, in the style of Arc's archived Today tabs
+(`docs/superpowers/specs/2026-10-19-tab-archive-design.md`).
+
+- **Setting.** `tabArchive` (`off|12h|1d|7d|30d`), default `off`,
+  device-local and never synced. An update never turns it on.
+- **What can be archived.** Only ungrouped, unpinned, non-private tabs that
+  are not active, not in Glance, not playing or capturing media, not waiting
+  on a permission prompt, not a popup's opener, not loading, and holding no
+  unsaved form work, after the chosen time without being viewed. An idle blank
+  new tab is closed without an entry.
+- **Idle clock.** `lastViewedAt` is stamped when a tab is viewed and saved in
+  session meta, so idle time counts across relaunches. Nothing is archived for
+  10 minutes after launch, resume or a change to the setting, and at most 20
+  tabs per window per 30-second sweep.
+- **The Archive.** One per local profile (`archive.json`), holding only URL,
+  title, icon, custom name, timestamps and the Space name; never page state,
+  back history or openers. Entries expire after 30 days, at most 500 per
+  profile. Clearing history clears it. Archiving never adds a Recently closed
+  entry.
+- **Restore.** From the ⌘L Quick Switcher (rows marked Archived) or the
+  History sheet's Archived view (`/archive`): a new ungrouped tab at the end of
+  the window, loaded fresh, with its custom name.
+- **Portability.** `src/main/tab-archive.js` holds every decision without an
+  Electron dependency.
+- **Acceptance:** `spec/acceptance/tab-archive.feature`,
+  `test/unit/tab-archive.test.js`.

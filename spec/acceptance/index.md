@@ -34,6 +34,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
+| Tab Archive | `tab-archive.feature` | F52 |
 | Independent windows | `multi-window.feature` | F32 (D11) |
 | Local profiles | `local-profiles.feature` | F33 (D25) |
 | Glance | `glance.feature` | F34 (D11) |
