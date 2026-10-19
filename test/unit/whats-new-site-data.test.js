@@ -200,3 +200,18 @@ test('a key, menu glyph or bang code left outside a chip is refused', async () =
   assert.ok(bad({ steps: ['Press `⌘L.'] }), 'an unclosed chip');
   assert.ok(!bad({ steps: ['Right-click a header, or press its `⋮` button.'], body: 'Open the `⌘L` panel.', note: 'Type `!yt lofi`.' }));
 });
+
+// Search snippets: every page's meta description names its own highlights and
+// stays in the 70–170 characters scripts/verify-seo.mjs expects.
+test('each page\'s description names its highlights within 70 to 170 characters', async () => {
+  const { pageDescription, publishedPages } = await lib();
+  for (const page of publishedPages(data, releases)) {
+    const text = pageDescription(page);
+    assert.ok(text.length >= 70 && text.length <= 170, `${page.release}: ${text.length} characters: ${text}`);
+    for (const h of page.highlights) assert.ok(text.includes(h.tile), `${page.release} names ${h.tile}`);
+  }
+  assert.equal(
+    pageDescription({ release: '1.36', highlights: [{ tile: 'Bangs' }, { tile: 'Recently closed' }] }),
+    'What’s new in Blanc 1.36: Bangs and Recently closed. A short tour of each, with steps to try it and the full changelog for every detail.',
+  );
+});

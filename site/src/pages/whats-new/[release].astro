@@ -9,7 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import WhatsNewHighlight from '../../components/WhatsNewHighlight.astro';
 import data from '../../data/whats-new.json';
 import releases from '../../data/releases.json';
-import { plainText, publishedPages, validateWhatsNew } from '../../lib/whats-new.mjs';
+import { pageDescription, publishedPages, validateWhatsNew } from '../../lib/whats-new.mjs';
 import '../../styles/whats-new.css';
 
 export function getStaticPaths() {
@@ -19,11 +19,11 @@ export function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const { release, anchor, highlights, entries } = page;
+const { release, anchor, entries } = page;
 ---
 <BaseLayout
   title={`What’s New in Blanc ${release} | Blanc Browser`}
-  description={`The highlights of Blanc ${release}: ${highlights.map((h) => plainText(h.tile)).join(', ')}.`}
+  description={pageDescription(page)}
   path={`/whats-new/${release}`}
   page="whats-new"
   analytics={false}
