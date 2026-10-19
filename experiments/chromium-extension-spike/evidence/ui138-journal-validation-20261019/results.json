@@ -1,0 +1,27 @@
+{
+  "checks": {
+    "truncated": true,
+    "unknown-version": true,
+    "missing-identity": true,
+    "wrong-identity-type": true,
+    "invalid-active": true,
+    "unsafe-url": true,
+    "invalid-group": true,
+    "valid": true
+  },
+  "runtime": "normal Chromium157 binary, encrypted sessions with mock keychain",
+  "compilation": false,
+  "guard_actions": 0,
+  "guard_seconds": 4.81,
+  "footprint": {
+    "files": 49,
+    "hunks": 114,
+    "basis": "prior measured; no product or upstream source changes"
+  },
+  "limitations": [
+    "synthetic journal records, not actual disk corruption or power loss",
+    "only authored two-window cases, not arbitrary serialization or overlapping restore",
+    "native input pending; latency deferred; Electron diagnostic build unapproved"
+  ],
+  "initial_failures": "Two seeding attempts could not use CDP because shell Node20 has no global WebSocket; preserved results. Final run uses bundled Node24.19.0."
+}
