@@ -1021,7 +1021,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 .memchart-track { display: block; width: 100%; }
 .memchart-bar {
-  display: block; width: var(--fill); height: 30px; border-radius: 0 4px 4px 0;
+  display: block; width: var(--fill); height: 10px; border-radius: 999px;
   background: #c4c4c4; min-width: 3px;
 }
 .memchart-val {
@@ -1032,6 +1032,20 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .memchart-table .is-blanc .memchart-bar { background: var(--site-accent); }
 .memchart-table .is-blanc .memchart-val { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
 
+/* When the chart scrolls into view, its bars grow from zero one after another
+   and each value fades in after its bar. MemoryChart's script sets
+   data-animate only with motion allowed, so without it (reduced motion, no
+   scripting) the finished chart shows at once. */
+.memchart-bar { transform-origin: 0 50%; }
+.memchart[data-animate] .memchart-bar {
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 90ms);
+}
+.memchart[data-animate] .memchart-val {
+  transition: opacity 0.4s ease calc(var(--i) * 90ms + 0.5s);
+}
+.memchart[data-animate="waiting"] .memchart-bar { transform: scaleX(0); }
+.memchart[data-animate="waiting"] .memchart-val { opacity: 0; }
+
 .memchart-note {
   font-size: 0.85rem; line-height: 1.65; color: var(--site-text-dim);
   border-top: 1px solid var(--site-border); padding-top: 16px; max-width: 70ch;
@@ -1040,7 +1054,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 640px) {
   .memchart-table td { grid-template-columns: 1fr 4rem; gap: 12px; }
   .memchart-table th[scope="row"] { width: 5.5rem; padding-right: 12px; font-size: 0.95rem; }
-  .memchart-bar { height: 24px; }
+  .memchart-bar { height: 8px; }
   .memchart-table .is-blanc .memchart-val { font-size: 1.15rem; }
 }
 
