@@ -11,9 +11,10 @@
 const settings = require('./settings');
 const sync = require('./sync');
 const history = require('./history');
+const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage, webContents } = require('electron');
+const { app, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -182,6 +183,11 @@ function install(refs) {
     wakeTab,
     runSleepSweep,
     sleepBackgroundTabsNow,
+    runArchiveSweep,
+    restoreArchivedEntry,
+    setArchiveGraceUntil,
+    setArchiveProbeObserver,
+    runArchiveSweepInEveryWindow,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -948,7 +954,7 @@ function install(refs) {
       }
       return history.listTopSites({ limit: 48 }).map((site) => site.key);
     },
-    clearHistory() { history.clearHistory(); },
+    clearHistory() { history.clearHistory(); archive.clearArchive(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
     // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
@@ -2469,6 +2475,28 @@ function install(refs) {
     handoffDecision(url) { return classifyExternalNavigation(url).action; },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openHistorySheet() { openInternalPage('blanc://history/'); },
+    // F52: the History sheet's Archived view, read and clicked through its own DOM.
+    async historySheetArchivedRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || !wc.getURL().startsWith('blanc://history/')) return null;
+      return wc.executeJavaScript(`(() => ({
+        view: document.getElementById('viewArchived')?.getAttribute('aria-pressed') === 'true' ? 'archived' : 'visits',
+        rows: [...document.querySelectorAll('#list .row')].map((row) => ({
+          title: row.querySelector('.title')?.textContent ?? '',
+          url: row.querySelector('.url')?.textContent ?? '',
+        })),
+      }))()`);
+    },
+    async historySheetClick(selector) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(String(selector))});
+        if (!el || el.hidden) return false;
+        el.click();
+        return true;
+      })()`);
+    },
     openSettings() { openInternalPage('blanc://settings/'); },
     // F47: Settings → General → Your bangs, through the page's own controls.
     async settingsBangControls() {
@@ -3462,6 +3490,35 @@ function install(refs) {
       return true;
     },
     async runSleepSweep() { return runSleepSweep(); },
+    // ---- Tab Archive (F52) ----
+    setTabArchive(value) { return settings.setSettings({ tabArchive: value }).tabArchive; },
+    /** Backdate a tab's last-viewed clock so an archive sweep sees it as idle. */
+    setTabViewedSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastViewedAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    setArchiveGraceUntil(ms) { setArchiveGraceUntil(ms); },
+    /** The real resume listeners, as when the machine wakes from sleep. */
+    emitPowerResume() { powerMonitor.emit('resume'); },
+    async runArchiveSweep() { return runArchiveSweep(); },
+    /** One-shot: once the sweep has probed `id`, make it the active tab, as a
+     *  person switching to it mid-sweep would. */
+    activateCandidateDuringArchiveProbe(id) {
+      setArchiveProbeObserver((probedId) => {
+        if (probedId !== id) return;
+        setArchiveProbeObserver(null);
+        setActiveTab(id, { focusContent: false });
+      });
+      return true;
+    },
+    async runArchiveSweepsConcurrently() { return Promise.all([runArchiveSweep(), runArchiveSweep()]); },
+    /** The 30-second timer's fan-out: one archive sweep per window runtime,
+     *  set-aside Spaces included. */
+    async runArchiveSweepInEveryWindow() { return runArchiveSweepInEveryWindow(); },
+    archiveEntries() { return archive.listArchive({ now: Date.now() }); },
+    restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
     /** Falsifiability hook: only an OS process count proves a discarded view
      * released its renderer rather than merely disappearing from the tab map. */
@@ -3519,6 +3576,8 @@ function install(refs) {
       clearClosedEntries();
       getGroups().length = 0;
       history.clearHistory();
+      archive.clearArchive();
+      setArchiveGraceUntil(0);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
@@ -3537,6 +3596,7 @@ function install(refs) {
         onePasswordEnabled: false,
         onePasswordAccount: '',
         tabSleep: '1h',
+        tabArchive: 'off',
         islandHoverOpen: false,
         islandAutoHide: false,
         // The launch-time auto-complete records false; F36-2 seeds true and

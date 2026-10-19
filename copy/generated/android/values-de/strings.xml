@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren</string>
     <string name="slash_save_doc">Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst</string>
     <string name="slash_history_hint">Verlauf öffnen</string>
+    <string name="slash_archive_hint">Tabs ansehen, die Blanc für dich archiviert hat</string>
     <string name="slash_downloads_hint">Downloads öffnen</string>
     <string name="slash_settings_hint">Einstellungen öffnen</string>
     <string name="slash_sync_hint">Synchronisierung einrichten oder verwalten</string>
@@ -421,6 +422,7 @@
         <item quantity="one">%1$d Tab</item>
         <item quantity="other">%1$d Tabs</item>
     </plurals>
+    <string name="result_archived">Archiviert</string>
     <string name="result_tag_search">Suche</string>
     <string name="menu_new_window">Neues Fenster</string>
     <string name="menu_new_private_window">Neues privates Fenster</string>
@@ -931,6 +933,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_tab_sleep_30m">Nach 30 Minuten</string>
     <string name="settings_general_tab_sleep_1h">Nach 1 Stunde</string>
     <string name="settings_general_tab_sleep_6h">Nach 6 Stunden</string>
+    <string name="settings_general_tab_archive_label">Inaktive Tabs archivieren</string>
+    <string name="settings_general_tab_archive_hint">Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert.</string>
+    <string name="settings_general_tab_archive_off">Aus</string>
+    <string name="settings_general_tab_archive_12h">Nach 12 Stunden</string>
+    <string name="settings_general_tab_archive_1d">Nach 1 Tag</string>
+    <string name="settings_general_tab_archive_7d">Nach 7 Tagen</string>
+    <string name="settings_general_tab_archive_30d">Nach 30 Tagen</string>
     <string name="settings_general_mouse_gestures_enabled_label">Mausgesten</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Mausgesten aktivieren</string>
@@ -1532,6 +1541,14 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="history_remove_label">%1$s aus dem Verlauf entfernen</string>
     <string name="history_no_matches">Nichts passt zu dieser Suche.</string>
     <string name="history_empty">Noch kein Verlauf.</string>
+    <string name="history_view_visits">Besuche</string>
+    <string name="history_view_archived">Archivierte Tabs</string>
+    <string name="history_archived_search">Archivierte Tabs durchsuchen</string>
+    <string name="history_archived_clear">Archiv leeren</string>
+    <string name="history_archived_restore">Öffnen</string>
+    <string name="history_archived_restore_label">%1$s wieder als Tab öffnen</string>
+    <string name="history_archived_forget_label">%1$s aus dem Archiv entfernen</string>
+    <string name="history_archived_empty">Keine archivierten Tabs. Schalte „Inaktive Tabs archivieren“ unter Einstellungen → Allgemein ein.</string>
     <string name="history_day_today">Heute</string>
     <string name="history_day_yesterday">Gestern</string>
     <string name="downloads_clear_finished">Fertige entfernen</string>

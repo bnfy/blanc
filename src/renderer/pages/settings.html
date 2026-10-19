@@ -235,6 +235,20 @@
               </select>
             </div>
 
+            <div class="setting" id="tabArchiveSetting">
+              <div class="label">
+                <span data-i18n="settings.general.tabArchive.label">Archive inactive tabs</span>
+                <span class="hint" data-i18n="settings.general.tabArchive.hint">Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.</span>
+              </div>
+              <select id="tabArchive" aria-label="Archive inactive tabs" data-i18n-aria-label="settings.general.tabArchive.label">
+                <option value="off" data-i18n="settings.general.tabArchive.off">Off</option>
+                <option value="12h" data-i18n="settings.general.tabArchive.12h">After 12 hours</option>
+                <option value="1d" data-i18n="settings.general.tabArchive.1d">After 1 day</option>
+                <option value="7d" data-i18n="settings.general.tabArchive.7d">After 7 days</option>
+                <option value="30d" data-i18n="settings.general.tabArchive.30d">After 30 days</option>
+              </select>
+            </div>
+
             <div class="setting" id="mouseGesturesSetting">
               <div class="label">
                 <span data-i18n="settings.general.mouseGesturesEnabled.label">Mouse gestures</span>

@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Enregistrer cette page dans les favoris — indiquez un dossier pour l’y classer</string>
     <string name="slash_save_doc">Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un</string>
     <string name="slash_history_hint">Ouvrir l’historique de navigation</string>
+    <string name="slash_archive_hint">Voir les onglets que Blanc a archivés pour vous</string>
     <string name="slash_downloads_hint">Ouvrir les téléchargements</string>
     <string name="slash_settings_hint">Ouvrir les réglages</string>
     <string name="slash_sync_hint">Configurer ou gérer la synchronisation</string>
@@ -434,6 +435,7 @@
         <item quantity="many">%1$d onglets</item>
         <item quantity="other">%1$d onglets</item>
     </plurals>
+    <string name="result_archived">Archivé</string>
     <string name="result_tag_search">Recherche</string>
     <string name="menu_new_window">Nouvelle fenêtre</string>
     <string name="menu_new_private_window">Nouvelle fenêtre privée</string>
@@ -958,6 +960,13 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_tab_sleep_30m">Après 30 minutes</string>
     <string name="settings_general_tab_sleep_1h">Après 1 heure</string>
     <string name="settings_general_tab_sleep_6h">Après 6 heures</string>
+    <string name="settings_general_tab_archive_label">Archiver les onglets inactifs</string>
+    <string name="settings_general_tab_archive_hint">Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés.</string>
+    <string name="settings_general_tab_archive_off">Désactivé</string>
+    <string name="settings_general_tab_archive_12h">Après 12 heures</string>
+    <string name="settings_general_tab_archive_1d">Après 1 jour</string>
+    <string name="settings_general_tab_archive_7d">Après 7 jours</string>
+    <string name="settings_general_tab_archive_30d">Après 30 jours</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestes de la souris</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Avec une souris, maintenez le bouton droit enfoncé et faites glisser, puis relâchez. Sur un trackpad, maintenez Alt/Option (⌥), cliquez en maintenant un doigt, puis faites glisser.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Activer les gestes de la souris</string>
@@ -1576,6 +1585,14 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="history_remove_label">Retirer %1$s de l’historique</string>
     <string name="history_no_matches">Aucun résultat pour cette recherche.</string>
     <string name="history_empty">Aucun historique pour l’instant.</string>
+    <string name="history_view_visits">Visites</string>
+    <string name="history_view_archived">Onglets archivés</string>
+    <string name="history_archived_search">Rechercher dans les onglets archivés</string>
+    <string name="history_archived_clear">Vider les Archives</string>
+    <string name="history_archived_restore">Restaurer</string>
+    <string name="history_archived_restore_label">Restaurer %1$s dans un onglet</string>
+    <string name="history_archived_forget_label">Retirer %1$s des Archives</string>
+    <string name="history_archived_empty">Aucun onglet archivé. Activez Archiver les onglets inactifs dans Réglages → Général.</string>
     <string name="history_day_today">Aujourd’hui</string>
     <string name="history_day_yesterday">Hier</string>
     <string name="downloads_clear_finished">Effacer les terminés</string>

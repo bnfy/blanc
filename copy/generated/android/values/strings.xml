@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Save this page to favorites — name a folder to file it</string>
     <string name="slash_save_doc">Save this page to favorites, into a folder if you name one</string>
     <string name="slash_history_hint">Open browsing history</string>
+    <string name="slash_archive_hint">See tabs Blanc archived for you</string>
     <string name="slash_downloads_hint">Open downloads</string>
     <string name="slash_settings_hint">Open settings</string>
     <string name="slash_sync_hint">Set up or manage sync</string>
@@ -421,6 +422,7 @@
         <item quantity="one">%1$d tab</item>
         <item quantity="other">%1$d tabs</item>
     </plurals>
+    <string name="result_archived">Archived</string>
     <string name="result_tag_search">Search</string>
     <string name="menu_new_window">New Window</string>
     <string name="menu_new_private_window">New Private Window</string>
@@ -931,6 +933,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">After 30 minutes</string>
     <string name="settings_general_tab_sleep_1h">After 1 hour</string>
     <string name="settings_general_tab_sleep_6h">After 6 hours</string>
+    <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
+    <string name="settings_general_tab_archive_hint">Blanc closes loose tabs you haven\'t opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.</string>
+    <string name="settings_general_tab_archive_off">Off</string>
+    <string name="settings_general_tab_archive_12h">After 12 hours</string>
+    <string name="settings_general_tab_archive_1d">After 1 day</string>
+    <string name="settings_general_tab_archive_7d">After 7 days</string>
+    <string name="settings_general_tab_archive_30d">After 30 days</string>
     <string name="settings_general_mouse_gestures_enabled_label">Mouse gestures</string>
     <string name="settings_general_mouse_gestures_enabled_hint">With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Enable mouse gestures</string>
@@ -1532,6 +1541,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="history_remove_label">Remove %1$s from history</string>
     <string name="history_no_matches">Nothing matches that search.</string>
     <string name="history_empty">No history yet.</string>
+    <string name="history_view_visits">Visits</string>
+    <string name="history_view_archived">Archived tabs</string>
+    <string name="history_archived_search">Search archived tabs</string>
+    <string name="history_archived_clear">Clear Archive</string>
+    <string name="history_archived_restore">Restore</string>
+    <string name="history_archived_restore_label">Restore %1$s as a tab</string>
+    <string name="history_archived_forget_label">Remove %1$s from the Archive</string>
+    <string name="history_archived_empty">No archived tabs. Turn on Archive inactive tabs in Settings → General.</string>
     <string name="history_day_today">Today</string>
     <string name="history_day_yesterday">Yesterday</string>
     <string name="downloads_clear_finished">Clear finished</string>

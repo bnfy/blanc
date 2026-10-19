@@ -114,8 +114,9 @@ test('the /sleep bridge and its IPC channel are wired end to end', () => {
 test('/sleep sits at the same index in all four hand-synced copies', () => {
   const json = JSON.parse(read('copy/slash-commands.json'));
   const index = json.commands.findIndex((command) => command.command === '/sleep');
-  // 14 since /sync joined the catalogue after /settings (2026-09-17).
-  assert.equal(index, 14, '/sleep must follow /mute and precede /group');
+  // 14 since /sync joined the catalogue after /settings (2026-09-17); 15
+  // since /archive joined after /history (F52, 2026-10-19).
+  assert.equal(index, 15, '/sleep must follow /mute and precede /group');
   const entry = json.commands[index];
   // Hint text lives in the interface catalog; the registry keeps order and names.
   const catalog = JSON.parse(read('copy/messages/en.json'));

@@ -3210,6 +3210,71 @@
         ]
       ]
     },
+    "archiveList": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "archived-tab-1",
+            "url": "archived-tab-1",
+            "title": "archived-tab-1",
+            "favicon": "archived-tab-1",
+            "archivedAt": 1,
+            "spaceName": "archived-tab-1"
+          }
+        ]
+      ]
+    },
+    "archiveRestore": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-restore",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-restore",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "listFavorites": {
       "kind": "invoke",
       "platforms": [

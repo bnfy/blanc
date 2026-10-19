@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ba4172cff22a7289dfeebffe0de7e00ed5e5d22e72f90e6522cba25cd0a0cd45",
+      "sha256": "5951246eb1565e683ee1c9ab4633fc972886ee595498d8c0da9dc7a33dc0ca86",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -266,6 +266,8 @@
         "capture:stop",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:archive-list",
+        "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
@@ -466,7 +468,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "c56be347fc3f5a604a465bcaedc4d002eb6b3814f6e5da44c84ea11cba09a2d8",
+      "sha256": "e531c58bb0bb0a8959c3a0a2b95eb4a18cbdaf8fa60e54a4971b8f6a55eaa7a7",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -474,6 +476,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",
@@ -588,12 +594,14 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "df7e4ffe45b292fbf1ac72ea44a82d232d975a56b46e00dc08a929ac919bfbc3",
+      "sha256": "8ee599fb6f16dd34a11f08d0c27862aa9e660b70b9225a3b8a4c8b7107f29aba",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
+        "chrome:archive-list",
+        "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",
         "chrome:blocking-popup",
@@ -817,7 +825,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "f8ee7753b345305ff37da3ff6fc3aab51dc2fdbd39e9410bfdadafbf00ef4d29",
+      "sha256": "387c7bde5a452a4071832483c2aea47b0ee7f8c16faa0ee7a7bcbf65ac3ae4ad",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -825,6 +833,10 @@
         "pages:arc-import:cancel",
         "pages:arc-import:detect",
         "pages:arc-import:read",
+        "pages:archive:clear",
+        "pages:archive:forget",
+        "pages:archive:list",
+        "pages:archive:restore",
         "pages:blocking:open",
         "pages:blocking:retry",
         "pages:blocking:status",

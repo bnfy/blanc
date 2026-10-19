@@ -168,6 +168,12 @@ if (window.location.protocol === 'blanc:') {
         remove: (url, visitedAt) => invoke('pages:history:remove', url, visitedAt),
         clear: () => invoke('pages:history:clear'),
       },
+      archive: {
+        list: (opts) => invoke('pages:archive:list', opts),
+        restore: (id) => invoke('pages:archive:restore', id),
+        forget: (id) => invoke('pages:archive:forget', id),
+        clear: () => invoke('pages:archive:clear'),
+      },
     };
   } else if (host === 'downloads') {
     api = {

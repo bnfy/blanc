@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Salvar esta página nos favoritos — digite o nome de uma pasta para arquivá-la</string>
     <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome</string>
     <string name="slash_history_hint">Abrir o histórico de navegação</string>
+    <string name="slash_archive_hint">Ver as abas que o Blanc arquivou para você</string>
     <string name="slash_downloads_hint">Abrir downloads</string>
     <string name="slash_settings_hint">Abrir as configurações</string>
     <string name="slash_sync_hint">Configurar ou gerenciar a sincronização</string>
@@ -434,6 +435,7 @@
         <item quantity="many">%1$d abas</item>
         <item quantity="other">%1$d abas</item>
     </plurals>
+    <string name="result_archived">Arquivada</string>
     <string name="result_tag_search">Pesquisa</string>
     <string name="menu_new_window">Nova janela</string>
     <string name="menu_new_private_window">Nova janela privada</string>
@@ -958,6 +960,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_tab_sleep_30m">Depois de 30 minutos</string>
     <string name="settings_general_tab_sleep_1h">Depois de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Depois de 6 horas</string>
+    <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>
+    <string name="settings_general_tab_archive_hint">O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados.</string>
+    <string name="settings_general_tab_archive_off">Desativado</string>
+    <string name="settings_general_tab_archive_12h">Depois de 12 horas</string>
+    <string name="settings_general_tab_archive_1d">Depois de 1 dia</string>
+    <string name="settings_general_tab_archive_7d">Depois de 7 dias</string>
+    <string name="settings_general_tab_archive_30d">Depois de 30 dias</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestos do mouse</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Ativar gestos do mouse</string>
@@ -1576,6 +1585,14 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="history_remove_label">Remover %1$s do histórico</string>
     <string name="history_no_matches">Nada corresponde a essa pesquisa.</string>
     <string name="history_empty">Nenhum histórico ainda.</string>
+    <string name="history_view_visits">Visitas</string>
+    <string name="history_view_archived">Abas arquivadas</string>
+    <string name="history_archived_search">Pesquisar abas arquivadas</string>
+    <string name="history_archived_clear">Limpar Arquivo</string>
+    <string name="history_archived_restore">Restaurar</string>
+    <string name="history_archived_restore_label">Restaurar %1$s como aba</string>
+    <string name="history_archived_forget_label">Remover %1$s do Arquivo</string>
+    <string name="history_archived_empty">Nenhuma aba arquivada. Ative Arquivar abas inativas em Configurações → Geral.</string>
     <string name="history_day_today">Hoje</string>
     <string name="history_day_yesterday">Ontem</string>
     <string name="downloads_clear_finished">Limpar concluídos</string>

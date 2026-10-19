@@ -154,6 +154,16 @@ export interface HistoryPagesAPI {
     /** Clear all history. IPC: invoke `pages:history:clear`. */
     clear: () => Promise<unknown>;
   };
+  archive: {
+    /** List archived tabs (F52), optionally searched. IPC: invoke `pages:archive:list`. */
+    list: (opts: unknown) => Promise<unknown>;
+    /** Restore one archived tab into the requesting window. IPC: invoke `pages:archive:restore`. */
+    restore: (id: unknown) => Promise<unknown>;
+    /** Remove one archived tab from the Archive. IPC: invoke `pages:archive:forget`. */
+    forget: (id: unknown) => Promise<unknown>;
+    /** Empty the Archive. IPC: invoke `pages:archive:clear`. */
+    clear: () => Promise<unknown>;
+  };
 }
 
 /** window.bowserPages on blanc://downloads/ */

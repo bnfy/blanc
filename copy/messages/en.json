@@ -20,6 +20,10 @@
     "message": "Open browsing history",
     "note": "Slash command hint shown in the ⌘L palette for /history."
   },
+  "slash.archive.hint": {
+    "message": "See tabs Blanc archived for you",
+    "note": "Slash command hint shown in the ⌘L palette for /archive (F52): opens History on its Archived tabs view."
+  },
   "slash.downloads.hint": {
     "message": "Open downloads",
     "note": "Slash command hint shown in the ⌘L palette for /downloads."
@@ -1587,6 +1591,10 @@
   "result.groupCount": {
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
+  },
+  "result.archived": {
+    "message": "Archived",
+    "note": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'."
   },
   "result.tag.search": {
     "message": "Search",
@@ -3442,6 +3450,34 @@
     "message": "After 6 hours",
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
+  },
+  "settings.general.tabArchive.label": {
+    "message": "Archive inactive tabs",
+    "note": "Settings → General: label of the Tab Archive delay select."
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Off",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "After 12 hours",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "After 1 day",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "After 7 days",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "After 30 days",
+    "note": "Settings → General: Tab Archive delay option."
   },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Mouse gestures",
@@ -5759,6 +5795,38 @@
   "history.empty": {
     "message": "No history yet.",
     "note": "History page: shown when there is no history."
+  },
+  "history.view.visits": {
+    "message": "Visits",
+    "note": "History page: segmented choice showing the list of visits (F52)."
+  },
+  "history.view.archived": {
+    "message": "Archived tabs",
+    "note": "History page: segmented choice showing tabs Blanc archived (F52)."
+  },
+  "history.archived.search": {
+    "message": "Search archived tabs",
+    "note": "History page, Archived tabs view: placeholder and accessible name of the search field."
+  },
+  "history.archived.clear": {
+    "message": "Clear Archive",
+    "note": "History page, Archived tabs view: button that empties the Archive."
+  },
+  "history.archived.restore": {
+    "message": "Restore",
+    "note": "History page, Archived tabs view: button on an entry that reopens the tab."
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restore {title} as a tab",
+    "note": "History page, Archived tabs view: accessible name of the restore button; {title} is the tab’s title."
+  },
+  "history.archived.forgetLabel": {
+    "message": "Remove {title} from the Archive",
+    "note": "History page, Archived tabs view: accessible name of the remove button; {title} is the tab’s title."
+  },
+  "history.archived.empty": {
+    "message": "No archived tabs. Turn on Archive inactive tabs in Settings → General.",
+    "note": "History page, Archived tabs view: shown when nothing is archived."
   },
   "history.day.today": {
     "message": "Today",

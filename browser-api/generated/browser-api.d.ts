@@ -512,6 +512,20 @@ export interface HistoryEntry {
   favicon: string | null;
 }
 
+/** An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history. */
+export interface ArchivedTab {
+  id: string;
+  url: string;
+  /** The tab's custom name, else its page title, or empty. */
+  title: string;
+  /** A sanitized PNG data URL, or null. */
+  favicon: string | null;
+  /** Epoch milliseconds when the tab was archived. */
+  archivedAt: number;
+  /** The Space it was archived from, for display only. */
+  spaceName: string | null;
+}
+
 /** A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark. */
 export interface FavoriteItem {
   id: string;
@@ -1118,6 +1132,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:history-list`.
    */
   listHistory(opts?: HistoryListOptions): Promise<HistoryEntry[]>;
+  /**
+   * List the profile's archived tabs (F52), newest first. Empty while the active tab is private.
+   * IPC: invoke `chrome:archive-list`.
+   */
+  archiveList(): Promise<ArchivedTab[]>;
+  /**
+   * Restore one archived tab as a new ungrouped tab at the end of the window. False when the entry is already gone.
+   * IPC: invoke `chrome:archive-restore`.
+   */
+  archiveRestore(id: string): Promise<boolean>;
   /**
    * List Favorites.
    * IPC: invoke `chrome:favorites-list`.

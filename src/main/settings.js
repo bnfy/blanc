@@ -44,6 +44,8 @@ const TAB_LAYOUTS = ['island', 'vertical'];
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Device-local Tab Archive delay (F52); off by default, never in SYNCED_KEYS.
+const TAB_ARCHIVE_DELAYS = ['off', '12h', '1d', '7d', '30d'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
@@ -219,6 +221,7 @@ const DEFAULTS = {
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
+  tabArchive: 'off',
   // 'system' follows the OS; a stored code that is no longer selectable is kept
   // and renders English (see src/main/i18n.js). Device-local, not Profile Synced.
   uiLanguage: 'system',
@@ -492,6 +495,7 @@ function getSettings() {
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!TAB_ARCHIVE_DELAYS.includes(data.tabArchive)) data.tabArchive = DEFAULTS.tabArchive;
   if (!isUiLanguageValue(data.uiLanguage)) data.uiLanguage = DEFAULTS.uiLanguage;
   if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
@@ -585,6 +589,7 @@ function sanitize(partial) {
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
+  if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
   if (validMapping(partial.mouseGestureMapping)) clean.mouseGestureMapping = { ...partial.mouseGestureMapping };
   if (Number.isFinite(partial.verticalTabsWidth)) {
@@ -1001,6 +1006,7 @@ module.exports = {
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
+  TAB_ARCHIVE_DELAYS,
   PRESENTATION_DEFAULTS_RESET_VERSION,
   APP_ICONS,
   APP_ICON_LABELS,

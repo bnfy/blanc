@@ -208,6 +208,7 @@ const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
@@ -242,7 +243,7 @@ const {
   withLocalProfile,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
-const { filterRestoredSession, restoreTargetId } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
@@ -265,6 +266,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -2193,16 +2195,16 @@ async function probeTabDirty(tab, wc) {
   // its privileged frame and defeat the space-saving use case for dead tabs.
   if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
     tab.deepScrolled = false;
-    return { dirty: false, hasSessionStorage: false };
+    return { dirty: false, unsaved: false, hasSessionStorage: false };
   }
 
   let frames;
   try {
     frames = wc.mainFrame?.framesInSubtree ?? [];
   } catch {
-    return { dirty: true, hasSessionStorage: false };
+    return { dirty: true, unsaved: true, hasSessionStorage: false };
   }
-  if (frames.length === 0) return { dirty: true, hasSessionStorage: false };
+  if (frames.length === 0) return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   // One budget for the complete frame tree, never 250 ms per iframe.
   const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
@@ -2215,18 +2217,20 @@ async function probeTabDirty(tab, wc) {
     })),
     budget,
   ]);
-  if (answers === 'timeout') return { dirty: true, hasSessionStorage: false };
+  if (answers === 'timeout') return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   let deepScrolled = false;
   let hasSessionStorage = false;
   for (const answer of answers) {
-    if (!answer || typeof answer !== 'object') return { dirty: true, hasSessionStorage: false };
-    if (answer.dirty) return { dirty: true, hasSessionStorage: false };
+    if (!answer || typeof answer !== 'object') return { dirty: true, unsaved: true, hasSessionStorage: false };
+    if (answer.dirty) return { dirty: true, unsaved: true, hasSessionStorage: false };
     if (answer.deepScrolled) deepScrolled = true;
     if (answer.hasSessionStorage) hasSessionStorage = true;
   }
   tab.deepScrolled = deepScrolled;
-  return { dirty: deepScrolled, hasSessionStorage };
+  // `unsaved` excludes deep scroll: a scroll position is not work the
+  // Tab Archive (F52) must protect, only something Quiet Tabs can't restore.
+  return { dirty: deepScrolled, unsaved: false, hasSessionStorage };
 }
 
 /** True while sleepTab has replaced a tab's listeners with its temporary
@@ -2883,6 +2887,133 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
   // sleepTab broadcasts every actual transition; an empty sweep stays silent.
   return { quieted, skippedReason: null };
 }
+// ---- Tab Archive (F52) ------------------------------------------------------
+// Idle loose tabs close into the profile's Archive. Pure policy lives in
+// tab-archive.js; the store in archive.js. See
+// docs/superpowers/specs/2026-10-19-tab-archive-design.md.
+
+/** Nothing is archived before this wall-clock time: launch, resume and a
+ *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
+let archiveGraceUntil = 0;
+let lastArchiveSweepAt = 0;
+/** Window runtimes with an archive sweep running. */
+const archiveSweepsInFlight = new Set();
+/** Acceptance-only seam (BLANC_TEST): called after each candidate's probe. */
+let archiveProbeObserverForTest = null;
+
+function resetArchiveGrace(now = Date.now()) {
+  archiveGraceUntil = now + ARCHIVE_GRACE_MS;
+}
+
+function currentArchiveThresholdMs() {
+  const key = settings.getSettings().tabArchive;
+  return Object.hasOwn(TAB_ARCHIVE_DELAY_MS, key) ? TAB_ARCHIVE_DELAY_MS[key] : null;
+}
+
+/** True when a live tab holds work a close would lose. Quiet tabs passed the
+ *  same probe when they went quiet. Any probe failure protects the tab. */
+async function tabHoldsUnsavedWork(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  try {
+    if ((await probeTabDirty(tab, wc)).unsaved) return true;
+    return await hasBeforeUnloadListener(wc);
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * One archive pass over the bound window runtime.
+ * @returns {Promise<{archived: string[], closed: string[], skippedReason: string|null}>}
+ */
+async function runArchiveSweep() {
+  const runtime = rt();
+  // A set-aside Space keeps its tabs in a hidden resident runtime. Spec §8:
+  // nothing is archived from a Space that isn't open.
+  if (runtime.resident) return { archived: [], closed: [], skippedReason: 'set-aside' };
+  // One sweep per window at a time: an overlapping tick could otherwise pick
+  // the same candidate twice.
+  if (archiveSweepsInFlight.has(runtime)) return { archived: [], closed: [], skippedReason: 'busy' };
+  archiveSweepsInFlight.add(runtime);
+  try {
+    return await archiveSweepPass(runtime);
+  } finally {
+    archiveSweepsInFlight.delete(runtime);
+  }
+}
+
+async function archiveSweepPass(runtime) {
+  const skip = (reason) => ({ archived: [], closed: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  const thresholdMs = currentArchiveThresholdMs();
+  if (thresholdMs === null) return skip('off');
+
+  const now = Date.now();
+  // A gap in sweeps means the machine slept: give the person a moment with
+  // their tabs before anything is tidied away.
+  if (lastArchiveSweepAt && now - lastArchiveSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) resetArchiveGrace(now);
+  lastArchiveSweepAt = now;
+  if (now < archiveGraceUntil) return skip('grace');
+
+  // Read fresh every time: the person keeps using the window while probes run.
+  const policy = (perSweepLimit) => ({
+    now,
+    thresholdMs,
+    activeTabId: runtime.activeTabId,
+    visibleTabIds: new Set([runtime.glanceTabId].filter(Boolean)),
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+    graceUntil: archiveGraceUntil,
+    perSweepLimit,
+  });
+  const candidates = archiveCandidates(
+    runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), policy(undefined),
+  );
+
+  const spaceName = namedWorkspaces.get(runtime.workspaceId)?.name ?? null;
+  const archived = [];
+  const closed = [];
+  for (const { id } of candidates) {
+    const probed = tabs.get(id);
+    if (!probed || await tabHoldsUnsavedWork(probed)) continue;
+    if (archiveProbeObserverForTest) await archiveProbeObserverForTest(id);
+    // Spec §2.5, "in one step": after the probe's await, re-run the whole
+    // eligibility check on this one tab, then save and close it at once.
+    // The person may have switched to it, pinned, grouped or moved it.
+    const tab = tabs.get(id);
+    if (!tab || windowRuntimes.runtimeForTab(id) !== runtime) continue;
+    const [still] = archiveCandidates([tab], policy(1));
+    if (!still) continue;
+    if (!still.closeOnly) {
+      const entry = buildArchiveEntry(tab, { now, spaceName });
+      if (!entry) continue;
+      archive.addEntries([entry], now);
+      archived.push(id);
+    }
+    closeTab(id, { record: false, selectReplacement: false });
+    closed.push(id);
+  }
+  return { archived, closed, skippedReason: null };
+}
+
+/** Restore one archived tab into the bound window as a new ungrouped tab at
+ *  the end, selected. False when the entry is already gone, so a second
+ *  restore of the same id opens nothing. */
+function restoreArchivedEntry(entryId) {
+  // The restored tab is always a normal tab, even from a window whose active
+  // tab is private; the Quick Switcher alone hides the Archive there.
+  const entry = archive.takeEntry(String(entryId ?? ''));
+  if (!entry) return false;
+  // Archived tabs were never pinned, so there is no home to carry.
+  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  if (!id) return false;
+  setActiveTab(id, { focusContent: true, focusAddress: false });
+  return true;
+}
+
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
@@ -6339,10 +6470,20 @@ function stageWorkspace(runtime, workspace) {
       if (tab?.view) {
         detachTabView(tab);
       }
-      if (tab && id === runtime.activeTabId) tab.lastActiveAt = Date.now();
+      if (tab && id === runtime.activeTabId) {
+        tab.lastActiveAt = Date.now();
+        tab.lastViewedAt = tab.lastActiveAt;
+      }
     }
     move(runtime, outgoing);
     move(incoming, runtime);
+    // Tab Archive (F52, spec §2.3): tabs entering from a Space start their
+    // idle clock now. A set-aside Space's tabs kept their old stamps.
+    const viewedAt = Date.now();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab) tab.lastViewedAt = viewedAt;
+    }
     transferred = true;
   } catch (error) {
     if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
@@ -7039,7 +7180,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -7151,6 +7292,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     waking: false,            // a wake generation is open
     wakeGeneration: 0,        // monotonic, never reset
     lastActiveAt: null,       // ms epoch; null until first stamp
+    // Tab Archive (F52): wall-clock time the tab was last seen. Saved in
+    // session meta and never re-stamped by a clock jump, unlike lastActiveAt.
+    lastViewedAt: Number.isFinite(lastViewedAt) ? lastViewedAt : Date.now(),
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
@@ -7406,6 +7550,7 @@ function setActiveTab(id, {
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
+    prev.lastViewedAt = prev.lastActiveAt;
   }
   cancelAddressBarFocusReclaim();
   if (liveContents(prev) && prev.id !== rt().glanceTabId) {
@@ -7507,6 +7652,7 @@ async function setGlanceTab(id) {
   if (previous?.view && previous.id !== id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
+    previous.lastViewedAt = previous.lastActiveAt;
   }
   if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
@@ -7548,6 +7694,7 @@ function closeGlance({ focusContent = true } = {}) {
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
+    tab.lastViewedAt = tab.lastActiveAt;
   }
   resizeActiveView();
   broadcastTabs();
@@ -9098,6 +9245,11 @@ function registerIpcHandlers() {
   chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
+    // F52: /archive opens History on its Archived view.
+    if (name === 'history' && section === 'archived') {
+      openInternalPage('blanc://history/?view=archived');
+      return;
+    }
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
     }
@@ -9313,6 +9465,12 @@ function registerIpcHandlers() {
 
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
+  // F52: a private tab never sees the Archive; restore re-resolves the id
+  // against the sender's own profile store, so a stale id opens nothing.
+  chromeHandle('chrome:archive-list', () => (
+    tabs.get(rt().activeTabId)?.private ? [] : archive.listArchive({ now: Date.now() })
+  ));
+  chromeHandle('chrome:archive-restore', (_e, id) => restoreArchivedEntry(typeof id === 'string' ? id : ''));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
@@ -9485,6 +9643,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:history-clear', () => {
     history.clearHistory();
+    // Archived tabs are browsing history too (F52).
+    archive.clearArchive();
     clearSessionMeta();
     // Which bangs were used goes with the history (the History page's own
     // clear does the same through onHistoryCleared).
@@ -9671,6 +9831,7 @@ const SLASH_COMMANDS = [
   ['/bring-tabs', 'slash.bringTabs.hint'],
   ['/save [folder]', 'slash.save.doc'],
   ['/history', 'slash.history.hint'],
+  ['/archive', 'slash.archive.hint'],
   ['/downloads', 'slash.downloads.hint'],
   ['/settings', 'slash.settings.hint'],
   ['/sync', 'slash.sync.hint'],
@@ -11919,8 +12080,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // using the same manual updater flow as the native menu.
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
+    restoreArchived: (id) => restoreArchivedEntry(id),
     onHistoryCleared: () => {
       clearSessionMeta();
+      archive.clearArchive();
       clearRecentBangsAndIcons();
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
@@ -12475,6 +12638,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      runArchiveSweep, restoreArchivedEntry,
+      runArchiveSweepInEveryWindow: () => {
+        const runs = [];
+        forEachWindowRuntime(() => { runs.push(runArchiveSweep()); });
+        return Promise.all(runs);
+      },
+      setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
+      setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       // The live array, mirroring getSleepSnapshots: reset() empties it in
@@ -12547,15 +12718,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
-        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
+        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message))
+        .then(() => runArchiveSweep())
+        .catch((err) => console.warn(`[tab-archive] sweep (${runtime.id}):`, err?.message));
     }));
   }, SLEEP_SWEEP_INTERVAL_MS);
+  resetArchiveGrace();
 
   powerMonitor.on('resume', () => {
     broadcastStartPageStatus();
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
     forEachWindowRuntime(restampBackgroundTabs);
+    resetArchiveGrace();
   });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
@@ -12577,7 +12752,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
+  let appliedTabArchive = settings.getSettings().tabArchive;
   settings.onSettingsChanged((s) => {
+    if (s.tabArchive !== appliedTabArchive) {
+      appliedTabArchive = s.tabArchive;
+      resetArchiveGrace();
+    }
     islandHoverOpen = s.islandHoverOpen === true;
     if (!islandHoverOpen) {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
@@ -12997,6 +13177,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           favicon: saved.meta?.[index]?.favicon ?? null,
           customTitle: saved.meta?.[index]?.customTitle ?? null,
           pinnedHomeUrl: saved.meta?.[index]?.pinnedHomeUrl ?? null,
+          lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));

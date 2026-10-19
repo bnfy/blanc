@@ -6,6 +6,7 @@
     <string name="slash_save_hint">Guardar esta página en favoritos; escribe el nombre de una carpeta para archivarla</string>
     <string name="slash_save_doc">Guarda esta página en favoritos, en una carpeta si indicas su nombre</string>
     <string name="slash_history_hint">Abrir el historial de navegación</string>
+    <string name="slash_archive_hint">Ver las pestañas que Blanc archivó por ti</string>
     <string name="slash_downloads_hint">Abrir descargas</string>
     <string name="slash_settings_hint">Abrir la configuración</string>
     <string name="slash_sync_hint">Configurar o gestionar la sincronización</string>
@@ -434,6 +435,7 @@
         <item quantity="many">%1$d pestañas</item>
         <item quantity="other">%1$d pestañas</item>
     </plurals>
+    <string name="result_archived">Archivada</string>
     <string name="result_tag_search">Búsqueda</string>
     <string name="menu_new_window">Nueva ventana</string>
     <string name="menu_new_private_window">Nueva ventana privada</string>
@@ -958,6 +960,13 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">Después de 30 minutos</string>
     <string name="settings_general_tab_sleep_1h">Después de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Después de 6 horas</string>
+    <string name="settings_general_tab_archive_label">Archivar las pestañas inactivas</string>
+    <string name="settings_general_tab_archive_hint">Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan.</string>
+    <string name="settings_general_tab_archive_off">Desactivado</string>
+    <string name="settings_general_tab_archive_12h">Después de 12 horas</string>
+    <string name="settings_general_tab_archive_1d">Después de 1 día</string>
+    <string name="settings_general_tab_archive_7d">Después de 7 días</string>
+    <string name="settings_general_tab_archive_30d">Después de 30 días</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestos del ratón</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Activar los gestos del ratón</string>
@@ -1576,6 +1585,14 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="history_remove_label">Quitar %1$s del historial</string>
     <string name="history_no_matches">Nada coincide con esa búsqueda.</string>
     <string name="history_empty">Aún no hay historial.</string>
+    <string name="history_view_visits">Visitas</string>
+    <string name="history_view_archived">Pestañas archivadas</string>
+    <string name="history_archived_search">Buscar en las pestañas archivadas</string>
+    <string name="history_archived_clear">Vaciar Archivo</string>
+    <string name="history_archived_restore">Restaurar</string>
+    <string name="history_archived_restore_label">Restaurar %1$s como pestaña</string>
+    <string name="history_archived_forget_label">Quitar %1$s del Archivo</string>
+    <string name="history_archived_empty">No hay pestañas archivadas. Activa Archivar las pestañas inactivas en Configuración → General.</string>
     <string name="history_day_today">Hoy</string>
     <string name="history_day_yesterday">Ayer</string>
     <string name="downloads_clear_finished">Borrar terminadas</string>

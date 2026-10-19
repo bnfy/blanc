@@ -580,6 +580,15 @@
     document.getElementById('tabSleepSetting')?.remove();
   }
 
+  if (supports('tabArchive')) {
+    const tabArchive = document.getElementById('tabArchive');
+    tabArchive.value = settings.tabArchive ?? 'off';
+    tabArchive.addEventListener('change', () =>
+      window.bowserPages.settings.set({ tabArchive: tabArchive.value }));
+  } else {
+    document.getElementById('tabArchiveSetting')?.remove();
+  }
+
   // Device-local right-button gestures. Drawing uses left pointer input in
   // Settings so normal settings interactions never activate a page gesture.
   if (supports('mouseGesturesEnabled')) {

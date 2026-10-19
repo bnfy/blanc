@@ -60,6 +60,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `history.list` | invoke | `pages:history:list` | history | List history entries, optionally filtered. |
 | `history.remove` | invoke | `pages:history:remove` | history | Remove one visit. |
 | `history.clear` | invoke | `pages:history:clear` | history | Clear all history. |
+| `archive.list` | invoke | `pages:archive:list` | history | List archived tabs (F52), optionally searched. |
+| `archive.restore` | invoke | `pages:archive:restore` | history | Restore one archived tab into the requesting window. |
+| `archive.forget` | invoke | `pages:archive:forget` | history | Remove one archived tab from the Archive. |
+| `archive.clear` | invoke | `pages:archive:clear` | history | Empty the Archive. |
 | `downloads.list` | invoke | `pages:downloads:list` | downloads | List downloads. |
 | `downloads.cancel` | invoke | `pages:downloads:cancel` | downloads | Cancel a download in progress. |
 | `downloads.resume` | invoke | `pages:downloads:resume` | downloads | Continue an interrupted download where it stopped. |

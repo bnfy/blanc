@@ -253,6 +253,31 @@ h1 {
   margin: 0 0 20px;
 }
 
+/* F52 History sheet: Visits / Archived tabs, the same segmented shape as the
+   Start Page's wallpaper choice. */
+.history-views {
+  display: inline-flex;
+  padding: 2px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+body.sheet .history-views > button[type="button"] {
+  min-height: 24px;
+  padding: 2px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: 500 11.5px/1.2 var(--font-text);
+}
+body.sheet .history-views > button[type="button"]:hover { color: var(--text); }
+body.sheet .history-views > button[aria-pressed="true"] {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14), 0 0 0 0.5px rgb(0 0 0 / 0.08);
+}
+
 .toolbar-row {
   display: flex;
   gap: 8px;
