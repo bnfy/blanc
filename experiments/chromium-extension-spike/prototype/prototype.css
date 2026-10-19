@@ -47,5 +47,9 @@
  background:transparent; color:inherit; text-align:left; font:12px system-ui;}
 .prototype-tab-menu button:hover,.prototype-tab-menu button:focus-visible {background:var(--accent-dim); outline:none;}
 
-/* Native header stays above the rail; native content reserves its width. */
-.vertical-tabs-rail { top:68px; }
+/* The reviewed rail already reserves the header in its own top padding.
+   Keep its original top:0; offsetting it again doubles that reservation. */
+
+/* The embedded strip extends to the window bottom in rail mode. Its root
+   must stay transparent so only the rail and header cover native page content. */
+html, body { background: transparent; }

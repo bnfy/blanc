@@ -77,3 +77,18 @@ semantics. Glance/Spaces remain unported. The promotion may briefly paint before
 its empty wrapper remains labelled in AX, and the separate inline Chrome-install banner is
 outside the popover rule. Latency stays deferred; Electron diagnostic build remains unapproved.
 Task 0 promotion/upgrade gate and F12 acceptance gaps are unchanged.
+
+## October 18 rail/restore and visual acceptance follow-up
+
+Native drag/keyboard, tab/group/window restoration and private isolation now have bounded
+acceptance evidence. Fixed opaque rail renderer paint, redundant rail header offset, loose-tab
+end-of-strip movement and insertion before a group's first tab; interior/pinned targets stay
+rejected. Matched 1280x800 rail/panel geometry and private color pass; Billboard's 68px header
+reservation matches. Component screenshots are not complete composed visual parity: content,
+pill controls, Start Page features, narrow/DPI/palette/find and wider lifecycle cases remain gaps.
+Evidence: `evidence/ui138-acceptance-20261018/` (hashed archive, failed attempts retained).
+79 renderer tests, three promotion tests and scoped lint pass. Two incremental builds 44.17s
+and 43.66s; final guard zero. Budget unchanged at 40 files / 94 hunks; no increase needed.
+Disposable profiles removed; original two preview tabs restored. Recently Closed remains
+profile-wide; Spaces/Glance unported. Plan item 4 started, incomplete; items 3/5/6 unchanged.
+Latency deferred, Electron diagnostic build unapproved/unstarted; F12/Task0 gates unchanged.

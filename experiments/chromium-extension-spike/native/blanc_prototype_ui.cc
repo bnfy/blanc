@@ -1392,8 +1392,9 @@ class Handler : public content::WebUIMessageHandler {
         (args[2].is_int() || args[2].is_none())) {
       // Electron's resolveTabMove: the pinned state never changes, a tab
       // lands only inside the target bucket (pinned, a named group, or the
-      // loose section), and a before-tab outside that bucket, an unknown
-      // group or another window's tab is rejected rather than coerced.
+      // loose run). A loose insertion may name the first tab of a group
+      // as its boundary, never an interior group tab. Unknown groups and
+      // another window's tabs are rejected rather than coerced.
       // Chromium has no grouped pins, so a pinned tab moves only among pins.
       const bool pinned = model->IsTabPinned(index);
       std::optional<tab_groups::TabGroupId> target;
@@ -1415,8 +1416,13 @@ class Handler : public content::WebUIMessageHandler {
           }
         }
         const int b = before ? model->GetIndexOfWebContents(before) : -1;
+        const auto before_group = b >= 0 && model->SupportsTabGroups()
+                                      ? model->GetTabGroupForTab(b) : std::nullopt;
+        const bool loose_group_boundary = !pinned && !target && before_group &&
+            model->group_model()->GetTabGroup(*before_group)->ListTabs().start() ==
+                static_cast<size_t>(b);
         if (!before || before == tab || model->IsTabPinned(b) != pinned ||
-            (model->SupportsTabGroups() && model->GetTabGroupForTab(b) != target)) {
+            (before_group != target && !loose_group_boundary)) {
           reply(true, base::Value(before == tab));
           return;
         }
@@ -1440,9 +1446,10 @@ class Handler : public content::WebUIMessageHandler {
       } else if (target) {
         to = static_cast<int>(model->group_model()->GetTabGroup(*target)->ListTabs().end()) - 1;
       } else {
-        // End of the loose section: the last ungrouped unpinned slot.
+        // A null before-id means the end of the entire strip. Loose runs may
+        // follow groups; searching backward for an existing loose tab would
+        // leave a sole loose tab stranded before the trailing group.
         to = model->count() - 1;
-        while (to > index && group_of(to)) --to;
       }
       if (to != index) model->MoveWebContentsAt(index, to, false);
       // Chromium may adjust membership when a tab crosses a group edge;
