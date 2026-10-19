@@ -954,6 +954,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_tab_sleep_30m">Depois de 30 minutos</string>
     <string name="settings_general_tab_sleep_1h">Depois de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Depois de 6 horas</string>
+    <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>
+    <string name="settings_general_tab_archive_hint">O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados.</string>
+    <string name="settings_general_tab_archive_off">Desativado</string>
+    <string name="settings_general_tab_archive_12h">Depois de 12 horas</string>
+    <string name="settings_general_tab_archive_1d">Depois de 1 dia</string>
+    <string name="settings_general_tab_archive_7d">Depois de 7 dias</string>
+    <string name="settings_general_tab_archive_30d">Depois de 30 dias</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestos do mouse</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Ativar gestos do mouse</string>

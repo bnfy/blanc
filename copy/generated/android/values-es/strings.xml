@@ -954,6 +954,13 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">Después de 30 minutos</string>
     <string name="settings_general_tab_sleep_1h">Después de 1 hora</string>
     <string name="settings_general_tab_sleep_6h">Después de 6 horas</string>
+    <string name="settings_general_tab_archive_label">Archivar las pestañas inactivas</string>
+    <string name="settings_general_tab_archive_hint">Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan.</string>
+    <string name="settings_general_tab_archive_off">Desactivado</string>
+    <string name="settings_general_tab_archive_12h">Después de 12 horas</string>
+    <string name="settings_general_tab_archive_1d">Después de 1 día</string>
+    <string name="settings_general_tab_archive_7d">Después de 7 días</string>
+    <string name="settings_general_tab_archive_30d">Después de 30 días</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gestos del ratón</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Activar los gestos del ratón</string>

@@ -3339,6 +3339,34 @@
     "message": "Dopo 6 ore",
     "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
   },
+  "settings.general.tabArchive.label": {
+    "message": "Archivia le schede inattive",
+    "source": "sha256:68f39eb3637bf5102e4438ab9af386d4a90424a3b6cfa7b798f3f672392a685e"
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati.",
+    "source": "sha256:9497d3dfbeea792d76976580371095c892c9cb2d6fee30e8fdab8fea96ec346b"
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Disattivato",
+    "source": "sha256:09eced221f16e46f22bb24a4b4f006b8a91b15ed815c2d643b5ff1c9a116c88b"
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "Dopo 12 ore",
+    "source": "sha256:bb0ecf3b5ecaeba27a273184cc147b805e18a73bf57584ab2b16279b6a923e20"
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "Dopo 1 giorno",
+    "source": "sha256:1b92cb8dba7691b1c3a7da50305baab6485df84c4eae682b30733c9938600dca"
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "Dopo 7 giorni",
+    "source": "sha256:6d863858a13c83ea58127e81dec2c2e1003d9b99cefc12e7cb36fb695c20e32a"
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "Dopo 30 giorni",
+    "source": "sha256:3a7f28647622838782d78a1ff12c6a10372fc0cde9b4e2a40eda5624b8b12e76"
+  },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Gesti del mouse",
     "source": "sha256:be936b9fd7b983d51a134f41f21f59fc5a03546633a963d85e7076d9b78a99f2"

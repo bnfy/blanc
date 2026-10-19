@@ -954,6 +954,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_tab_sleep_30m">Dopo 30 minuti</string>
     <string name="settings_general_tab_sleep_1h">Dopo 1 ora</string>
     <string name="settings_general_tab_sleep_6h">Dopo 6 ore</string>
+    <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>
+    <string name="settings_general_tab_archive_hint">Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati.</string>
+    <string name="settings_general_tab_archive_off">Disattivato</string>
+    <string name="settings_general_tab_archive_12h">Dopo 12 ore</string>
+    <string name="settings_general_tab_archive_1d">Dopo 1 giorno</string>
+    <string name="settings_general_tab_archive_7d">Dopo 7 giorni</string>
+    <string name="settings_general_tab_archive_30d">Dopo 30 giorni</string>
     <string name="settings_general_mouse_gestures_enabled_label">Gesti del mouse</string>
     <string name="settings_general_mouse_gestures_enabled_hint">Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina.</string>
     <string name="settings_general_mouse_gestures_enabled_aria_label">Attiva i gesti del mouse</string>

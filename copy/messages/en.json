@@ -3427,6 +3427,34 @@
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
   },
+  "settings.general.tabArchive.label": {
+    "message": "Archive inactive tabs",
+    "note": "Settings → General: label of the Tab Archive delay select."
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Off",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "After 12 hours",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "After 1 day",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "After 7 days",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "After 30 days",
+    "note": "Settings → General: Tab Archive delay option."
+  },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Mouse gestures",
     "note": "Settings → General: setting name."
