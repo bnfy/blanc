@@ -320,6 +320,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .layout-gallery figcaption { padding-top: 14px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
 .layout-gallery { margin: 48px 0; }
 .layout-gallery figure:last-child { grid-column: 1 / -1; }
+.layout-gallery--pairs figure:last-child { grid-column: auto; }
 .layout-gallery a, .released-capture a { display: block; border-radius: 12px; }
 .layout-gallery a:focus-visible, .released-capture a:focus-visible { outline: 2px solid var(--site-text); outline-offset: 5px; }
 @media (max-width: 640px) {

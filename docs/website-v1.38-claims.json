@@ -63,6 +63,14 @@
         "docs/press/release-notes/v1.38.0.md"
       ],
       "qualification": "With Match each space's color on, a window that belongs to a space draws that space's color while the Color wallpaper shows; the page receives only the hex color. There is no separate image per space."
+    },
+    "captures": {
+      "evidence": [
+        "docs/press/release-notes/v1.38.0.md",
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/newtab-wallpaper.js"
+      ],
+      "qualification": "Captions describe the recorded states in docs/website-captures-v1.38.0.json, taken from the public v1.38.0 arm64 DMG. The painting is a CC0 Met Open Access image used as the sample."
     }
   },
   "labels": [
@@ -187,6 +195,60 @@
       "evidenceGroups": [
         "colorWallpaper",
         "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-011",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your image with the Spotlight wash.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-012",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Van Gogh, Wheat Field with Cypresses, The Met (public domain).",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-013",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Your image",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-014",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Color: Sky with the Gradient fill",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-015",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Color",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
       ],
       "verdict": "verified"
     }
