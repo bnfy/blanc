@@ -1416,3 +1416,33 @@ Your image. It paints the Start Page with one of the eight Spaces presets
   the finished values.
 - **Acceptance:** `test/desktop/custom-wallpaper-smoke.mjs`,
   `test/unit/start-page-paint.test.js` and `test/unit/wallpaper-model.test.js`.
+
+## F51 — What's New page (desktop)
+
+After an update that adds features, Blanc opens that release's highlights page
+on blanc.day once, in the style of Chrome's What's New tab. The Start Page's
+What's new pill links to the same page. The changelog keeps the full detail
+(`docs/superpowers/specs/2026-10-19-whats-new-page-design.md`).
+
+- **When it opens.** The first launch after an update that changes
+  `major.minor` (1.38.x → 1.39.0), once, as an ordinary active tab beside the
+  restored tabs. Never after a bug-fix update, a fresh install, a pre-release
+  or a downgrade, never as a private tab, and never in a renamed build.
+- **Only when the page exists.** Main first sends one `HEAD` for
+  `https://blanc.day/whats-new/<major>.<minor>` (no cookies, no redirects,
+  5 s timeout; only a 200 counts), at most once per launch while the pill's
+  7-day window is open. No page yet (the site deploy trails the release, or the
+  release has none) means no tab and a changelog link on the pill; a later
+  launch in the window tries again. With no window to take it, the tab stays
+  owed.
+- **The page.** One highlight at a time (headline, short text, steps,
+  Learn more and Next, with a capture, clip or site demo), colored tiles in the
+  Spaces palette, and a link to the changelog. It runs no analytics. Every page
+  needs the owner's sign-off before it deploys.
+- **State.** `whatsNewPageVersion` and `whatsNewTabRelease` are device-local
+  settings, never synced.
+- **Portability.** `src/main/whats-new.js` holds every decision without an
+  Electron dependency; `src/main/whats-new-check.js` is the request.
+- **Acceptance:** `test/unit/whats-new.test.js`,
+  `test/unit/whats-new-check.test.js`, `test/unit/whats-new-settings.test.js`,
+  `test/unit/whats-new-site-data.test.js` and `test/site/whats-new-page.test.mjs`.

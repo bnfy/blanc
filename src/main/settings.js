@@ -47,8 +47,11 @@ const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
-// An app version as package.json writes it (lastRunVersion, whatsNewVersion).
+// An app version as package.json writes it (lastRunVersion, whatsNewVersion,
+// whatsNewPageVersion).
 const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
+// A feature release, major.minor (whatsNewTabRelease).
+const FEATURE_RELEASE_RE = /^\d+\.\d+$/;
 const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
@@ -282,6 +285,10 @@ const DEFAULTS = {
   lastRunVersion: '',
   whatsNewVersion: '',
   whatsNewSince: 0,
+  // What's New page state (src/main/whats-new.js): the version whose page was
+  // found, and the feature release that no longer owes a tab.
+  whatsNewPageVersion: '',
+  whatsNewTabRelease: '',
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -456,8 +463,11 @@ function getSettings() {
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
     data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
   }
-  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewPageVersion']) {
     if (typeof data[key] !== 'string' || (data[key] && !APP_VERSION_RE.test(data[key]))) data[key] = DEFAULTS[key];
+  }
+  if (typeof data.whatsNewTabRelease !== 'string' || (data.whatsNewTabRelease && !FEATURE_RELEASE_RE.test(data.whatsNewTabRelease))) {
+    data.whatsNewTabRelease = DEFAULTS.whatsNewTabRelease;
   }
   if (!Number.isFinite(data.whatsNewSince) || data.whatsNewSince < 0) data.whatsNewSince = DEFAULTS.whatsNewSince;
   if (!Number.isFinite(data.firstRunCompletedAt) || data.firstRunCompletedAt < 0) {
@@ -546,8 +556,11 @@ function sanitize(partial) {
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
     clean.patronCalloutDismissedAt = partial.patronCalloutDismissedAt;
   }
-  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewPageVersion']) {
     if (typeof partial[key] === 'string' && (partial[key] === '' || APP_VERSION_RE.test(partial[key]))) clean[key] = partial[key];
+  }
+  if (typeof partial.whatsNewTabRelease === 'string' && (partial.whatsNewTabRelease === '' || FEATURE_RELEASE_RE.test(partial.whatsNewTabRelease))) {
+    clean.whatsNewTabRelease = partial.whatsNewTabRelease;
   }
   if (Number.isFinite(partial.whatsNewSince) && partial.whatsNewSince >= 0) clean.whatsNewSince = partial.whatsNewSince;
   if (typeof partial.homePage === 'string') {

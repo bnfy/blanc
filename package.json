@@ -17,6 +17,7 @@
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "site:bangs": "node site/scripts/build-bangs-data.mjs",
     "site:bangs:check": "node site/scripts/build-bangs-data.mjs --check",
+    "site:whats-new": "node site/scripts/whats-new-draft.mjs",
     "site:features-ledger": "node scripts/build-features-bento-ledger.mjs",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm run brand:check && node site/scripts/build-lockup-assets.mjs --check && npm --prefix site run build",
