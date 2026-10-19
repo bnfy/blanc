@@ -5,18 +5,20 @@
 // after checking that the page exists (src/main/whats-new.js).
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { loadSpaceIdentity } from './native-island-art.mjs';
 
-const PUBLIC_DIR = fileURLToPath(new URL('../../public/', import.meta.url));
 const RELEASE_RE = /^(\d+)\.(\d+)\.(\d+)$/;
 const FEATURE_RE = /^(\d+)\.(\d+)$/;
 
-// The eight Spaces presets, read from the app's own src/renderer/space-identity.js
-// so a tile can only ever use a color the app's Spaces use.
-const IDENTITY_SOURCE = fs.readFileSync(fileURLToPath(new URL('../../../src/renderer/space-identity.js', import.meta.url)), 'utf8');
-export const TILE_COLORS = Object.freeze(Object.fromEntries(loadSpaceIdentity(IDENTITY_SOURCE).PRESETS.map((p) => [p.id, p.hex])));
-export const DEMOS = Object.freeze(['spaces', 'glance', 'gestures', 'tab-drag']);
+// The eight Spaces presets, from the app's own src/renderer/space-identity.js
+// source (callers read it: the page through Vite, the unit test from disk), so
+// a tile can only ever use a color the app's Spaces use.
+export function tileColorsFrom(identitySource) {
+  return Object.fromEntries(loadSpaceIdentity(identitySource).PRESETS.map((p) => [p.id, p.hex]));
+}
+// Only the demos that carry their own script and styles; Glance and gestures
+// still lean on the homepage's home.js and home.css.
+export const DEMOS = Object.freeze(['spaces', 'tab-drag']);
 const MIN_HIGHLIGHTS = 3;
 const MAX_HIGHLIGHTS = 5;
 
@@ -36,7 +38,7 @@ const isSitePath = (url) => typeof url === 'string'
 
 const nonEmpty = (value) => typeof value === 'string' && value.trim() !== '';
 
-function mediaErrors(media, where) {
+function mediaErrors(media, where, publicDir) {
   const errors = [];
   if (!media || typeof media !== 'object') return [`${where}: media is missing`];
   const local = [];
@@ -55,15 +57,17 @@ function mediaErrors(media, where) {
     errors.push(`${where}: unknown media kind "${media.kind}"`);
   }
   for (const src of local) {
-    if (typeof src === 'string' && src.startsWith('/') && !fs.existsSync(path.join(PUBLIC_DIR, src))) {
+    if (publicDir && typeof src === 'string' && src.startsWith('/') && !fs.existsSync(path.join(publicDir, src))) {
       errors.push(`${where}: ${src} does not exist under site/public`);
     }
   }
   return errors;
 }
 
-// Every problem with the data, as messages; [] when it is valid.
-export function validateWhatsNew(data, releases) {
+// Every problem with the data, as messages; [] when it is valid. tileColors
+// comes from tileColorsFrom(); publicDir, when given, checks that local media
+// exist (the unit test passes it; the build leaves it to the test).
+export function validateWhatsNew(data, releases, { tileColors, publicDir } = {}) {
   const errors = [];
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
@@ -84,10 +88,10 @@ export function validateWhatsNew(data, releases) {
       if (ids.has(h.id)) errors.push(`${where}: duplicate id`);
       ids.add(h.id);
       for (const key of ['tile', 'title', 'body']) if (!nonEmpty(h[key])) errors.push(`${where}: ${key} is missing`);
-      if (!(h.color in TILE_COLORS)) errors.push(`${where}: color "${h.color}" is not a Spaces preset`);
+      if (!tileColors || !(h.color in tileColors)) errors.push(`${where}: color "${h.color}" is not a Spaces preset`);
       if (h.steps !== undefined && (!Array.isArray(h.steps) || !h.steps.every(nonEmpty))) errors.push(`${where}: steps must be a list of text`);
       if (h.learnMore !== undefined && !isSitePath(h.learnMore)) errors.push(`${where}: learnMore must be a blanc.day page`);
-      errors.push(...mediaErrors(h.media, where));
+      errors.push(...mediaErrors(h.media, where, publicDir));
     }
   }
   const skipped = new Set(data.noPage ?? []);

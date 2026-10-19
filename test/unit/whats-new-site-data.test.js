@@ -14,6 +14,8 @@ const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8
 const lib = () => import('../../site/src/lib/whats-new.mjs');
 const releases = readJson('site/src/data/releases.json');
 const data = readJson('site/src/data/whats-new.json');
+const identitySource = fs.readFileSync(path.join(ROOT, 'src/renderer/space-identity.js'), 'utf8');
+const options = async () => ({ tileColors: (await lib()).tileColorsFrom(identitySource), publicDir: path.join(ROOT, 'site/public') });
 
 const highlight = (id, extra = {}) => ({
   id,
@@ -31,6 +33,11 @@ const page = (release, count = 3, extra = {}) => ({
 const fixture = (pages, more = {}) => ({ firstRelease: '1.38', noPage: [], pages, ...more });
 const RELEASES = [{ version: '1.38.0', humanDate: 'October 18, 2026', anchor: 'v1-38-0' }];
 
+test('the tile colors are the eight Spaces presets', async () => {
+  const { tileColorsFrom } = await lib();
+  assert.deepEqual(Object.keys(tileColorsFrom(identitySource)), ['sage', 'sky', 'iris', 'rose', 'clay', 'sand', 'slate', 'graphite']);
+});
+
 test('featureRelease keeps major.minor of a release version only', async () => {
   const { featureRelease } = await lib();
   assert.equal(featureRelease('1.38.0'), '1.38');
@@ -41,26 +48,27 @@ test('featureRelease keeps major.minor of a release version only', async () => {
 
 test('the committed What\'s New data is valid against the committed releases', async () => {
   const { validateWhatsNew } = await lib();
-  assert.deepEqual(validateWhatsNew(data, releases), []);
+  assert.deepEqual(validateWhatsNew(data, releases, await options()), []);
 });
 
 test('a page must belong to a published release', async () => {
   const { validateWhatsNew } = await lib();
-  const errors = validateWhatsNew(fixture([page('1.38'), page('1.39')]), RELEASES);
+  const errors = validateWhatsNew(fixture([page('1.38'), page('1.39')]), RELEASES, await options());
   assert.equal(errors.length, 1);
   assert.match(errors[0], /1\.39/);
 });
 
 test('a page holds three to five highlights', async () => {
   const { validateWhatsNew } = await lib();
-  assert.equal(validateWhatsNew(fixture([page('1.38', 2)]), RELEASES).length, 1);
-  assert.equal(validateWhatsNew(fixture([page('1.38', 6)]), RELEASES).length, 1);
-  assert.deepEqual(validateWhatsNew(fixture([page('1.38', 5)]), RELEASES), []);
+  assert.equal(validateWhatsNew(fixture([page('1.38', 2)]), RELEASES, await options()).length, 1);
+  assert.equal(validateWhatsNew(fixture([page('1.38', 6)]), RELEASES, await options()).length, 1);
+  assert.deepEqual(validateWhatsNew(fixture([page('1.38', 5)]), RELEASES, await options()), []);
 });
 
 test('each highlight is checked', async () => {
   const { validateWhatsNew } = await lib();
-  const bad = (extra) => validateWhatsNew(fixture([page('1.38', 3, extra)]), RELEASES).length > 0;
+  const opts = await options();
+  const bad = (extra) => validateWhatsNew(fixture([page('1.38', 3, extra)]), RELEASES, opts).length > 0;
   assert.ok(bad({ color: 'teal' }), 'color outside the eight Spaces presets');
   assert.ok(bad({ media: { kind: 'gif', src: '/x.gif' } }), 'unknown media kind');
   assert.ok(bad({ media: { kind: 'demo', demo: 'mahjong' } }), 'unknown demo');
@@ -71,22 +79,22 @@ test('each highlight is checked', async () => {
   assert.ok(!bad({ learnMore: 'https://blanc.day/features/start-page' }));
   assert.ok(!bad({ media: { kind: 'demo', demo: 'spaces' } }));
   const duplicate = fixture([{ release: '1.38', highlights: [highlight('a'), highlight('a'), highlight('b')] }]);
-  assert.equal(validateWhatsNew(duplicate, RELEASES).length, 1, 'duplicate ids');
+  assert.equal(validateWhatsNew(duplicate, RELEASES, await options()).length, 1, 'duplicate ids');
 });
 
 test('every feature release from firstRelease on has a page or is skipped on purpose', async () => {
   const { validateWhatsNew } = await lib();
   const twoReleases = [{ version: '1.39.0' }, { version: '1.38.1' }, ...RELEASES, { version: '1.37.0' }];
-  const errors = validateWhatsNew(fixture([page('1.38')]), twoReleases);
+  const errors = validateWhatsNew(fixture([page('1.38')]), twoReleases, await options());
   assert.equal(errors.length, 1);
   assert.match(errors[0], /1\.39/);
-  assert.deepEqual(validateWhatsNew(fixture([page('1.38')], { noPage: ['1.39'] }), twoReleases), []);
-  assert.equal(validateWhatsNew(fixture([page('1.38')], { noPage: ['1.38', '1.39'] }), twoReleases).length, 1, 'both paged and skipped');
+  assert.deepEqual(validateWhatsNew(fixture([page('1.38')], { noPage: ['1.39'] }), twoReleases, await options()), []);
+  assert.equal(validateWhatsNew(fixture([page('1.38')], { noPage: ['1.38', '1.39'] }), twoReleases, await options()).length, 1, 'both paged and skipped');
 });
 
 test('every local media file exists', async () => {
   const { validateWhatsNew } = await lib();
-  const missing = validateWhatsNew(fixture([page('1.38', 3, { media: { kind: 'video', src: '/nope.mp4', poster: '/nope.webp', alt: 'Alt.' } })]), RELEASES);
+  const missing = validateWhatsNew(fixture([page('1.38', 3, { media: { kind: 'video', src: '/nope.mp4', poster: '/nope.webp', alt: 'Alt.' } })]), RELEASES, await options());
   assert.ok(missing.some((e) => /nope\.mp4/.test(e)));
   assert.ok(missing.some((e) => /nope\.webp/.test(e)));
 });

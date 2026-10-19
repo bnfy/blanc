@@ -1,0 +1,52 @@
+---
+// One What's New highlight: words, steps and buttons on the left, its media on
+// the right. Without scripting every highlight shows in order; whats-new.js
+// shows one at a time (docs/superpowers/specs/2026-10-19-whats-new-page-design.md).
+import SpacesDemo from './SpacesDemo.astro';
+import TabDragFigure from './TabDragFigure.astro';
+
+interface Props {
+  highlight: {
+    id: string;
+    title: string;
+    body: string;
+    steps?: string[];
+    note?: string;
+    learnMore?: string;
+    color: string;
+    media:
+      | { kind: 'image'; src: string; width: number; height: number; alt: string; caption?: string }
+      | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
+      | { kind: 'demo'; demo: 'spaces' | 'tab-drag' };
+  };
+  first: boolean;
+}
+const { highlight: h, first } = Astro.props;
+const media = h.media;
+---
+<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`} data-color={h.color}>
+  <div class="wn-copy">
+    <h2 id={`${h.id}-title`}>{h.title}</h2>
+    <p class="wn-body">{h.body}</p>
+    {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{step}</li>)}</ol>}
+    {h.note && <p class="wn-note">{h.note}</p>}
+    <div class="wn-actions">
+      {h.learnMore && <a class="wn-button wn-button--primary wn-learn-more" href={h.learnMore}>Learn more <span aria-hidden="true">↗</span></a>}
+      <button type="button" class="wn-button wn-next">Next</button>
+    </div>
+  </div>
+  <figure class="wn-media">
+    {media.kind === 'image' && (
+      <img src={media.src} width={media.width} height={media.height} alt={media.alt} loading={first ? 'eager' : 'lazy'} decoding="async" />
+    )}
+    {media.kind === 'video' && (
+      <>
+        <video src={media.src} poster={media.poster} aria-label={media.alt} muted playsinline loop preload="metadata"></video>
+        <button type="button" class="wn-replay" aria-label="Play from the start" hidden><span aria-hidden="true">↻</span></button>
+      </>
+    )}
+    {media.kind === 'demo' && media.demo === 'spaces' && <SpacesDemo />}
+    {media.kind === 'demo' && media.demo === 'tab-drag' && <TabDragFigure />}
+    {media.kind !== 'demo' && media.caption && <figcaption>{media.caption}</figcaption>}
+  </figure>
+</section>

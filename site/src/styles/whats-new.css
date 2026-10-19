@@ -1,0 +1,217 @@
+/* What's New pages (docs/superpowers/specs/2026-10-19-whats-new-page-design.md):
+   Chrome's layout on Blanc's warm Sunrise page. Each highlight and tile gets
+   --tile, one of the eight Spaces colors, from the page's generated rules. */
+
+body[data-page="whats-new"] {
+  background: var(--site-bg);
+  color: var(--site-text);
+}
+
+.wn-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px max(16px, 4vw);
+  border-bottom: 1px solid var(--site-border);
+}
+.wn-brand {
+  display: block;
+  padding: 4px 0;
+}
+.wn-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--site-border);
+}
+.wn-heading {
+  font-family: var(--site-font-display);
+  font-size: 1.15rem;
+}
+.wn-version {
+  margin-left: auto;
+  color: var(--site-text-dim);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.wn {
+  --wn-gutter: max(16px, 4vw);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 var(--wn-gutter) 40px;
+}
+
+.wn-highlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+  padding: clamp(32px, 6vw, 72px) 0;
+}
+.wn:not(.is-enhanced) .wn-highlight + .wn-highlight {
+  border-top: 1px solid var(--site-border);
+}
+.wn-highlight h2 {
+  margin: 0 0 16px;
+  font-family: var(--site-font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+.wn-body,
+.wn-note,
+.wn-steps {
+  color: var(--site-text-dim);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+.wn-body {
+  margin: 0 0 14px;
+}
+.wn-steps {
+  margin: 0 0 14px;
+  padding-left: 1.3em;
+}
+.wn-steps li + li {
+  margin-top: 4px;
+}
+.wn-note {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+}
+
+.wn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.wn-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--site-border);
+  background: var(--site-surface-raised);
+  color: var(--site-text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.wn-button--primary {
+  border-color: var(--tile);
+  background: var(--tile);
+  color: #fff;
+}
+.wn-button:focus-visible,
+.wn-tile:focus-visible {
+  outline: 2px solid var(--site-text);
+  outline-offset: 2px;
+}
+.wn:not(.is-enhanced) .wn-next {
+  display: none;
+}
+
+.wn-media {
+  position: relative;
+  margin: 0;
+  padding: clamp(14px, 2vw, 24px);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--tile) 12%, var(--site-surface));
+}
+.wn-media img,
+.wn-media video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(18, 16, 11, 0.16);
+}
+.wn-media figcaption {
+  margin-top: 10px;
+  color: var(--site-text-dim);
+  font-size: 0.8rem;
+}
+.wn-replay {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--site-surface-raised);
+  color: var(--site-text);
+  box-shadow: 0 1px 4px rgba(18, 16, 11, 0.18);
+  cursor: pointer;
+}
+
+.wn-tiles {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scroll-snap-type: x proximity;
+}
+.wn:not(.is-enhanced) .wn-tiles {
+  display: none;
+}
+.wn-tile {
+  flex: 1 0 200px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 10px 10px 10px 16px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--tile) 16%, var(--site-bg));
+  color: var(--site-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+.wn-tile[aria-current="true"] {
+  border-color: var(--tile);
+}
+.wn-tile-thumb {
+  flex: none;
+  width: 72px;
+  height: 46px;
+  margin-left: auto;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(18, 16, 11, 0.14);
+}
+
+.wn-changelog {
+  margin: 28px 0 0;
+  color: var(--site-text-dim);
+  text-align: center;
+}
+.wn-changelog a {
+  color: var(--site-gold);
+}
+
+@media (max-width: 760px) {
+  .wn-highlight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wn-tile {
+    flex-basis: 220px;
+  }
+  .wn-version {
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 420px) {
+  .wn-heading,
+  .wn-divider {
+    display: none;
+  }
+}
