@@ -811,3 +811,11 @@ Owner-approved restart preserved both original preview tabs. Native CUA checks o
 ## Windows CI shutdown candidate — 2026-10-19
 
 Final Windows/Linux helper teardown now destroys the internal capture helper after the last runtime window closes. Added a helper-close veto regression and bounded timeout diagnostics; no deadline relaxation. Historical CI cause unproven: logs only showed process alive after10s. 28 unit tests and scoped ESLint pass; local desktop attempts crash before assertion, so Windows CI remains required. Evidence: `evidence/windows-shutdown-20261019/`. Owner authorized fix on#920; shipping Electron main.js/test changed. No Chromium build/patch-budget change; latency deferred; Electron diagnostic build unapproved.
+
+## October 19 site-mute lifecycle checkpoint
+
+Ten bounded native bridge checks pass: enabling site mute; per-tab exemption; same-host navigation retaining exemption; different-host navigation clearing site policy; return to the muted host resetting exemption; renderer crash followed by navigation retaining site policy; two fresh private-context mute/disposal cycles each leaving regular policy intact. A new private context starts without the disposed context's mute policy. Tests use local authored HTTP pages and real Chromium WebContents state. `Page.crash` deliberately produces a renderer fatal in the archived log; the outer browser survives and the replacement page is checked. No audible-output, physical-input, cross-window mute or BFCache mute claim.
+
+No source change or compile. Build guard reports zero actions. Footprint remains previously measured41files/100hunks (not re-enumerated). Disposable browser/profile and server removed; retained preview's original tabs verified unchanged. Evidence: `evidence/ui138-mute-lifecycle-20261019/` with hashed archive and readable results. Latency deferred; Electron diagnostic build remains unapproved. Spaces/Glance, wider visuals/native input and broader lifecycle gates remain open; UI migration is not complete.
+
+Prior shutdown follow-up a574ec3d completed CI:27passes, two skipped (linux-native-diagnostics/installed-intel), no new CodeQL alerts. Windows shutdown and primary-close explicitly pass. This evidence checkpoint requires its own CI.
