@@ -209,6 +209,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
 | F36-4 | No browser profile is read before the explicit ask | D22 | ✅ | ➖ | ➖ |
+| F36-5 | The island step offers Tab Archive; continuing turns it on | — | ✅ | ➖ | ➖ |
+| F36-6 | Turning the offer off leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-7 | Skipping the walkthrough leaves Tab Archive off | — | ✅ | ➖ | ➖ |
+| F36-8 | A finished profile is never offered Tab Archive | — | ✅ | ➖ | ➖ |
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |

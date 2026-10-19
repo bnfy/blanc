@@ -98,3 +98,30 @@ Feature: Tab Archive
     Then that tab is still open and the Archive is empty
     When I go back to that Space and the archive sweep runs in every window
     Then that tab is still open and the Archive is empty
+
+  # Spec D6: a one-time notice per profile, at the top of the ⌘L panel.
+  @F52-14 @F52 @desktop
+  Scenario: The first archive is announced once, and View Archive opens it
+    Given an archived tab
+    When I open the island panel
+    Then the panel says Blanc archived 1 tab
+    When I choose View Archive
+    Then the History sheet shows the Archived view
+    And the archive notice is not shown again
+
+  @F52-15 @F52 @desktop
+  Scenario: A dismissed notice never comes back
+    Given an archived tab
+    When I open the island panel
+    And I dismiss the archive notice
+    Then the archive notice is not shown again
+    When another tab is archived
+    Then the archive notice is not shown again
+
+  @F52-16 @F52 @desktop
+  Scenario: Closing only a blank New Tab announces nothing
+    Given tab archiving is set to 12 hours
+    And a blank New Tab in the background not viewed for 13 hours
+    When the archive sweep runs after the grace period
+    Then that tab is closed without an Archive entry
+    And the archive notice is not shown

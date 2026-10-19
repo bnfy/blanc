@@ -436,6 +436,13 @@
         <item quantity="other">%1$d pestañas</item>
     </plurals>
     <string name="result_archived">Archivada</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc archivó %1$d pestaña</item>
+        <item quantity="many">Blanc archivó %1$d pestañas</item>
+        <item quantity="other">Blanc archivó %1$d pestañas</item>
+    </plurals>
+    <string name="archive_notice_view">Ver Archivo</string>
+    <string name="archive_notice_dismiss">Descartar</string>
     <string name="result_tag_search">Búsqueda</string>
     <string name="menu_new_window">Nueva ventana</string>
     <string name="menu_new_private_window">Nueva ventana privada</string>
@@ -1496,6 +1503,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; para abrirla.</string>
     <string name="onboarding_island_shortcut_mac">Comando L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Archivar pestañas tras 7 días&lt;0&gt;Las pestañas sueltas que no abres desde hace 7 días se cierran y se guardan en tu Archivo durante 30 días. Las pestañas fijadas y los grupos se quedan.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archivar pestañas tras 7 días</string>
     <string name="onboarding_blocking_title">Bloquea anuncios y rastreadores</string>
     <string name="onboarding_blocking_body">Bloquea anuncios y rastreadores conocidos con reglas incluidas. No puede detener todos los rastreadores. Desactívalo en un sitio con /off-leash.</string>
     <string name="onboarding_blocking_toggle">Bloquear anuncios y rastreadores</string>

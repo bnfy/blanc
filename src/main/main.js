@@ -2892,6 +2892,13 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
 // tab-archive.js; the store in archive.js. See
 // docs/superpowers/specs/2026-10-19-tab-archive-design.md.
 
+/** Set only by the acceptance hook, whose synthetic first-run status stands
+ *  for a fresh profile while the test profile has completed first run. */
+let firstRunPendingForTest = false;
+function firstRunPending() {
+  return !settings.isFirstRunComplete() || firstRunPendingForTest;
+}
+
 /** Nothing is archived before this wall-clock time: launch, resume and a
  *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
 let archiveGraceUntil = 0;
@@ -2996,6 +3003,9 @@ async function archiveSweepPass(runtime) {
     closeTab(id, { record: false, selectReplacement: false });
     closed.push(id);
   }
+  // Spec D6: only a sweep that added Archive entries records the one-time
+  // notice; closing an idle blank New Tab alone announces nothing.
+  if (archived.length) archive.noteArchived(archived.length);
   return { archived, closed, skippedReason: null };
 }
 
@@ -9471,6 +9481,16 @@ function registerIpcHandlers() {
     tabs.get(rt().activeTabId)?.private ? [] : archive.listArchive({ now: Date.now() })
   ));
   chromeHandle('chrome:archive-restore', (_e, id) => restoreArchivedEntry(typeof id === 'string' ? id : ''));
+  // Spec D6: the one-time first-archive notice. A private tab never sees it;
+  // View Archive and Dismiss both finish it for good.
+  chromeHandle('chrome:archive-notice', () => (
+    tabs.get(rt().activeTabId)?.private ? null : archive.pendingNotice()
+  ));
+  chromeHandle('chrome:archive-notice-done', (_e, action) => {
+    const finished = archive.finishNotice();
+    if (action === 'view') openInternalPage('blanc://history/?view=archived');
+    return finished;
+  });
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
@@ -12249,6 +12269,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return { adblockEnabled: current.adblockEnabled, theme: current.theme };
       },
       applySettings: (clean) => settings.setSettings(clean),
+      // Spec D5: the walkthrough's Tab Archive offer may write only while
+      // first run is still pending, so a replayed tour never changes it.
+      offerTabArchive: (value) => {
+        if (!firstRunPending()) return false;
+        settings.setSettings({ tabArchive: value });
+        return true;
+      },
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
@@ -12645,6 +12672,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return Promise.all(runs);
       },
       setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
+      setFirstRunPendingForTest: (on) => { firstRunPendingForTest = on === true; },
       setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,

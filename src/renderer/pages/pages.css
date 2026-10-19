@@ -4655,6 +4655,10 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
 .ob-quiet-island { display: block; width: 100%; height: auto; }
 .ob-content .ob-island-hint { margin: 14px 0 24px; text-align: center; font-size: 12px; }
 .ob-island-hint .ob-kbd { color: var(--text); }
+/* F52 spec D5: the Tab Archive offer under the Island hint. While it shows,
+   the row's own top margin spaces it from the hint. */
+.ob-content .ob-island-hint:has(+ .ob-archive-row:not([hidden])) { margin-bottom: 0; }
+.ob-archive-row { margin-top: 16px; }
 
 /* Tab group colors (spec 2026-10-17-tab-group-colors-design.md): a colored
    group's dots on the Start Page take its color. */

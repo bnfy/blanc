@@ -119,3 +119,49 @@ test('every history-clear path in main.js also clears the Archive', () => {
   assert.ok(pageHook, 'onHistoryCleared hook not found');
   assert.match(pageHook, /archive\.clearArchive\(\)/);
 });
+
+// Spec D6: the one-time first-archive notice lives beside the entries, so it
+// is per local profile and, like the Archive, never synced.
+test('the first-archive notice is recorded once and gone for good once finished', () => {
+  archive.clearArchive();
+  archive.resetNoticeForTest();
+  assert.equal(archive.pendingNotice(), null);
+  archive.noteArchived(0);
+  assert.equal(archive.pendingNotice(), null, 'a sweep that archived nothing records nothing');
+  archive.noteArchived(2);
+  archive.noteArchived(1);
+  assert.deepEqual(archive.pendingNotice(), { count: 3 });
+  assert.equal(archive.finishNotice(), true);
+  assert.equal(archive.pendingNotice(), null);
+  archive.noteArchived(4);
+  assert.equal(archive.pendingNotice(), null, 'never shown again');
+  assert.equal(archive.finishNotice(), false);
+});
+
+test('clearing the Archive drops an unseen notice but keeps a finished one', () => {
+  archive.resetNoticeForTest();
+  archive.noteArchived(2);
+  archive.clearArchive();
+  assert.equal(archive.pendingNotice(), null, 'nothing left to view');
+  archive.noteArchived(1);
+  assert.deepEqual(archive.pendingNotice(), { count: 1 }, 'the next archive is still a first');
+  archive.finishNotice();
+  archive.clearArchive();
+  archive.noteArchived(1);
+  assert.equal(archive.pendingNotice(), null);
+});
+
+test("a named profile's notice is its own", async () => {
+  archive.resetNoticeForTest();
+  const id = 'profile_notice';
+  await withLocalProfile(id, async () => {
+    archive.resetNoticeForTest();
+    archive.noteArchived(2);
+    assert.deepEqual(archive.pendingNotice(), { count: 2 });
+    archive.flushArchive();
+  });
+  assert.equal(archive.pendingNotice(), null, 'Personal has none');
+  const saved = await waitForJson(path.join(userData, 'profiles', id, 'archive.json'),
+    (d) => d.notice?.state === 'pending');
+  assert.deepEqual(saved.notice, { state: 'pending', count: 2 });
+});

@@ -138,6 +138,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   // F52 Tab Archive: projected rows only; restore takes an entry id.
   archiveList: () => ipcRenderer.invoke('chrome:archive-list'),
   archiveRestore: (id) => ipcRenderer.invoke('chrome:archive-restore', id),
+  // Spec D6: the one-time first-archive notice ({count} or null) and its end.
+  archiveNotice: () => ipcRenderer.invoke('chrome:archive-notice'),
+  archiveNoticeDone: (action) => ipcRenderer.invoke('chrome:archive-notice-done', action),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),

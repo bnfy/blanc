@@ -3275,6 +3275,79 @@
         false
       ]
     },
+    "archiveNotice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "count": 1
+        },
+        null
+      ]
+    },
+    "archiveNoticeDone": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice-done",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "view"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "view"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "action = \"dismiss\"",
+          "args": [
+            "dismiss"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "dismiss"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "listFavorites": {
       "kind": "invoke",
       "platforms": [

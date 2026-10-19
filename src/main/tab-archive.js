@@ -132,6 +132,30 @@ function searchArchive(entries, query) {
     .some((field) => typeof field === 'string' && field.toLowerCase().includes(q)));
 }
 
+/**
+ * The one-time first-archive notice (spec D6), stored beside a profile's
+ * entries: null (never recorded), {state: 'pending', count} (not yet seen),
+ * or {state: 'done'} (dismissed or acted on; never shown again). Anything
+ * else reads as null.
+ */
+function cleanArchiveNotice(notice) {
+  if (notice?.state === 'done') return { state: 'done' };
+  if (notice?.state === 'pending' && Number.isInteger(notice.count) && notice.count > 0) {
+    return { state: 'pending', count: notice.count };
+  }
+  return null;
+}
+
+/** The notice after a sweep that gave `archivedCount` tabs an Archive entry.
+ *  Only a sweep that archived at least one tab records it; a pending notice
+ *  counts every tab archived before it is seen. */
+function nextArchiveNotice(notice, archivedCount) {
+  const current = cleanArchiveNotice(notice);
+  const n = Number.isInteger(archivedCount) && archivedCount > 0 ? archivedCount : 0;
+  if (!n || current?.state === 'done') return current;
+  return { state: 'pending', count: (current?.count ?? 0) + n };
+}
+
 module.exports = {
   TAB_ARCHIVE_DELAY_MS,
   ARCHIVE_TTL_MS,
@@ -143,4 +167,6 @@ module.exports = {
   expireArchive,
   projectArchive,
   searchArchive,
+  cleanArchiveNotice,
+  nextArchiveNotice,
 };

@@ -436,6 +436,13 @@
         <item quantity="other">%1$d schede</item>
     </plurals>
     <string name="result_archived">Archiviata</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc ha archiviato %1$d scheda</item>
+        <item quantity="many">Blanc ha archiviato %1$d schede</item>
+        <item quantity="other">Blanc ha archiviato %1$d schede</item>
+    </plurals>
+    <string name="archive_notice_view">Vedi Archivio</string>
+    <string name="archive_notice_dismiss">Ignora</string>
     <string name="result_tag_search">Ricerca</string>
     <string name="menu_new_window">Nuova finestra</string>
     <string name="menu_new_private_window">Nuova finestra privata</string>
@@ -1496,6 +1503,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; per aprirla.</string>
     <string name="onboarding_island_shortcut_mac">Comando L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Archivia le schede dopo 7 giorni&lt;0&gt;Le schede sparse che non apri da 7 giorni vengono chiuse e conservate nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi restano.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archivia le schede dopo 7 giorni</string>
     <string name="onboarding_blocking_title">Blocca annunci e tracker</string>
     <string name="onboarding_blocking_body">Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /off-leash.</string>
     <string name="onboarding_blocking_toggle">Blocca annunci e tracker</string>

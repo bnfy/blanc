@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "5951246eb1565e683ee1c9ab4633fc972886ee595498d8c0da9dc7a33dc0ca86",
+      "sha256": "cfd7b7d053d544a5283e76ce2c4e5983132181944270a20d087f954eb2bad9f2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -267,6 +267,8 @@
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
         "chrome:archive-list",
+        "chrome:archive-notice",
+        "chrome:archive-notice-done",
         "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",
@@ -468,7 +470,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "e531c58bb0bb0a8959c3a0a2b95eb4a18cbdaf8fa60e54a4971b8f6a55eaa7a7",
+      "sha256": "a010e73442a008d247d064452698536d4e2b9039218077c44cfc7a5538818357",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -594,13 +596,15 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "8ee599fb6f16dd34a11f08d0c27862aa9e660b70b9225a3b8a4c8b7107f29aba",
+      "sha256": "6f87406f848fc9572feea9de821c7e3e9d9a5cc1eacbc652222203a4d35b04b0",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
         "chrome:adblock-exempt-active",
         "chrome:adblock-toggle",
         "chrome:archive-list",
+        "chrome:archive-notice",
+        "chrome:archive-notice-done",
         "chrome:archive-restore",
         "chrome:bang-icons",
         "chrome:bangs",

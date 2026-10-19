@@ -436,6 +436,13 @@
         <item quantity="other">%1$d abas</item>
     </plurals>
     <string name="result_archived">Arquivada</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">O Blanc arquivou %1$d aba</item>
+        <item quantity="many">O Blanc arquivou %1$d abas</item>
+        <item quantity="other">O Blanc arquivou %1$d abas</item>
+    </plurals>
+    <string name="archive_notice_view">Ver Arquivo</string>
+    <string name="archive_notice_dismiss">Dispensar</string>
     <string name="result_tag_search">Pesquisa</string>
     <string name="menu_new_window">Nova janela</string>
     <string name="menu_new_private_window">Nova janela privada</string>
@@ -1496,6 +1503,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; para abri-la.</string>
     <string name="onboarding_island_shortcut_mac">Comando L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Arquivar abas após 7 dias&lt;0&gt;As abas soltas que você não abre há 7 dias são fechadas e guardadas no seu Arquivo por 30 dias. Abas fixadas e grupos ficam.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Arquivar abas após 7 dias</string>
     <string name="onboarding_blocking_title">Bloqueie anúncios e rastreadores</string>
     <string name="onboarding_blocking_body">Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /off-leash.</string>
     <string name="onboarding_blocking_toggle">Bloquear anúncios e rastreadores</string>

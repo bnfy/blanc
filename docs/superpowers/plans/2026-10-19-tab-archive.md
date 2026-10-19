@@ -206,21 +206,21 @@ No `require('electron')`. The clock is always injected.
 - [ ] **Step 5:** Relaunch `npm start`, open the History sheet, and check the Archived view in light and dark. Take before/after screenshots for the PR.
 - [ ] **Step 6:** Commit: `Tab Archive: Archived view in History and /archive`.
 
-### Task 9: Onboarding offer (blocked on spec Q1 and Q2)
+### Task 9: Onboarding offer and first-archive notice (spec D5, D6)
 
-**Do not start until the owner answers spec §10 Q1 and Q2.** First show two or three mockups, using real CSS, of where the offer sits in the six-step walkthrough, and, if Q2 is yes, of the one-time "Blanc archived N tabs · View" capsule. Once one is chosen:
+The owner answered spec §10 Q1 and Q2 on 2026-10-19 (now D5 and D6). This work lands separately from PR #977, on a branch stacked on it. First show two or three mockups each, using real CSS, of the compact Tab Archive choice inside the "Meet the island" step (preset to After 7 days) and of the one-time "Blanc archived {count} tabs · View Archive" notice, and wait for the owner to pick. The owner chose onboarding A (the toggle row, preset on) and notice N2 (the top of the ⌘L panel) on 2026-10-19; spec §4 records both. Once one is chosen:
 
-**Files:** `src/renderer/pages/onboarding.js` and its step markup; `copy/messages/*.json`; `spec/acceptance/onboarding.feature`; if Q2 is yes, a device-local `archiveNoticeShown` setting and the capsule.
+**Files:** `src/renderer/pages/onboarding.js` and its step markup; the notice's surface (chosen with the mockups); `copy/messages/*.json`; `spec/acceptance/onboarding.feature`, `spec/acceptance/tab-archive.feature`; `src/main/test-hook.js`; a per-profile, never-synced notice state.
 
-- [ ] **Step 1:** Write the failing acceptance scenario: *A fresh profile is offered Archive preset to 7 days; accepting it sets `tabArchive` to `7d`; declining leaves it `off`; an existing profile is never shown the offer.*
-- [ ] **Step 2:** Run it. Expected: FAIL.
-- [ ] **Step 3:** Implement the chosen design.
-- [ ] **Step 4:** Run `npm run test:acceptance:desktop -- --tags @onboarding`. Expected: PASS.
-- [ ] **Step 5:** Commit: `Tab Archive: offer it during onboarding`.
+- [ ] **Step 1:** Write the failing tests. Unit: the notice state is set only when a sweep's `archived.length >= 1`, and once dismissed or acted on it never comes back. Acceptance: *a fresh profile is offered Tab Archive preset to After 7 days in "Meet the island"; accepting sets `tabArchive` to `7d`; declining leaves it `off`; an existing profile is never shown the offer*; and *the first sweep that archives a tab shows "Blanc archived N tabs" once; View Archive opens `blanc://history/?view=archived`; a sweep that only closes a blank New Tab shows nothing.*
+- [ ] **Step 2:** Run them. Expected: FAIL.
+- [ ] **Step 3:** Implement the chosen design. Every new string goes into `copy/messages` for en, de, es, fr, pt-BR and it, acknowledged with `npm run copy:ack`; run `npm run audit-inventory:write` after editing boundary files.
+- [ ] **Step 4:** Run `npm run lint`, `npm run test:unit`, `npm run substrate:check`, `npm run browser-api:check`, `npm run copy:check` and `npm run test:acceptance:desktop -- --tags "@onboarding or @tab-archive"`. Expected: PASS.
+- [ ] **Step 5:** Commit: `Tab Archive: offer it during onboarding, notice the first archive`.
 
 ### Task 10: Full verification and PR
 
 - [ ] **Step 1:** Run `npm run lint`, `npm run test:unit`, `npm run substrate:check`, `npm run browser-api:check`, `npm run copy:check` and `npm run test:acceptance:desktop`. Expected: all pass. If an acceptance failure looks environmental, compare against `main` before blaming this branch.
 - [ ] **Step 2:** In a packaged build (`npm run dist:dir`) with a copy of a real profile: with the setting Off, nothing changes; set it to 12h, backdate with a dev build's hook, and check that the batch archives and restores.
 - [ ] **Step 3:** Update `spec/parity-matrix.md` F52 desktop to `PARTIAL` until it ships in a public release.
-- [ ] **Step 4:** Open the PR. The description lists the spec, the decisions D1–D4, any open Q1/Q2 outcome, and the fact that there are no website claims until release.
+- [ ] **Step 4:** Open the PR. The description lists the spec, the decisions D1–D6, and the fact that there are no website claims until release.

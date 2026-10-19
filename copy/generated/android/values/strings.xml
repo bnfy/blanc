@@ -423,6 +423,12 @@
         <item quantity="other">%1$d tabs</item>
     </plurals>
     <string name="result_archived">Archived</string>
+    <plurals name="archive_notice_title">
+        <item quantity="one">Blanc archived %1$d tab</item>
+        <item quantity="other">Blanc archived %1$d tabs</item>
+    </plurals>
+    <string name="archive_notice_view">View Archive</string>
+    <string name="archive_notice_dismiss">Dismiss</string>
     <string name="result_tag_search">Search</string>
     <string name="menu_new_window">New Window</string>
     <string name="menu_new_private_window">New Private Window</string>
@@ -1455,6 +1461,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; to open it.</string>
     <string name="onboarding_island_shortcut_mac">Command L</string>
     <string name="onboarding_island_shortcut">Control L</string>
+    <string name="onboarding_island_archive">Archive tabs after 7 days&lt;0&gt;Loose tabs you haven\'t opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.&lt;/0&gt;</string>
+    <string name="onboarding_island_archive_label">Archive tabs after 7 days</string>
     <string name="onboarding_blocking_title">Block ads &amp; trackers</string>
     <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</string>
     <string name="onboarding_blocking_toggle">Block ads &amp; trackers</string>
