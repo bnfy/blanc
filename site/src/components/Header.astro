@@ -1,5 +1,5 @@
 ---
-import { directLinks, pagePath } from "../data/navigation.mjs";
+import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
 const { current = null } = Astro.props;
 const onHome = pagePath(Astro.url.pathname) === "/";
 const mailPath = pagePath(Astro.url.pathname);
@@ -30,6 +30,51 @@ const hrefFor = (href) =>
       ></a
     >
     <div class="site-nav-links" id="site-menu">
+      <div class="site-browser-menu" data-browser-menu>
+        <a
+          class="revamp-nav-link site-browser-trigger"
+          href={browserMenu.href}
+          aria-current={isCurrent(browserMenu) ? "page" : undefined}
+          data-browser-trigger
+          >{browserMenu.label}<svg
+            class="site-browser-caret"
+            viewBox="0 0 10 10"
+            aria-hidden="true"><path d="M2.5 3.75 5 6.25l2.5-2.5"></path></svg
+          ></a
+        >
+        <div class="site-browser-panel" id="site-browser-panel" hidden>
+          <div class="site-browser-column">
+            <p class="site-browser-label" id="site-browser-downloads">Download</p>
+            <ul aria-labelledby="site-browser-downloads">
+              {
+                browserMenu.downloads.map((link) => (
+                  <li>
+                    <a href={link.href}>
+                      {link.label}
+                      <svg class="site-browser-download" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M8 2.5v7M5 7l3 3 3-3M3 12.5h10" />
+                      </svg>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <div class="site-browser-column">
+            <p class="site-browser-label" id="site-browser-features">Features</p>
+            <ul aria-labelledby="site-browser-features">
+              {browserMenu.features.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+              {
+                browserMenu.more.map((link, index) => (
+                  <li class={index === 0 ? "site-browser-more" : undefined}>
+                    <a href={hrefFor(link.href)}>{link.label}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
       {
         directLinks.map((link) => (
           <a
@@ -87,13 +132,52 @@ const hrefFor = (href) =>
       setOpen(false);
       toggle.focus();
     });
-    header.querySelectorAll("#site-menu a").forEach((link) =>
+    header.querySelectorAll("#site-menu a:not([data-browser-trigger])").forEach((link) =>
       link.addEventListener("click", () => setOpen(false)),
     );
     // Widening past the phone layout puts the links back in the bar.
     matchMedia("(min-width: 921px)").addEventListener("change", (event) => {
       if (event.matches) setOpen(false);
     });
+    addEventListener("pageshow", () => setOpen(false));
+  })();
+  // The Browser menu opens on click, tap or Enter, never on hover. Without
+  // scripting its trigger stays a link to /features.
+  (() => {
+    const menu = document.querySelector("[data-browser-menu]");
+    const trigger = menu?.querySelector("[data-browser-trigger]");
+    const panel = menu?.querySelector(".site-browser-panel");
+    if (!menu || !trigger || !panel) return;
+    trigger.setAttribute("role", "button");
+    trigger.setAttribute("aria-controls", panel.id);
+    const setOpen = (open) => {
+      panel.hidden = !open;
+      menu.dataset.open = String(open);
+      trigger.setAttribute("aria-expanded", String(open));
+    };
+    setOpen(false);
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      setOpen(panel.hidden);
+    });
+    trigger.addEventListener("keydown", (event) => {
+      if (event.key !== " ") return;
+      event.preventDefault();
+      setOpen(panel.hidden);
+    });
+    menu.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || panel.hidden) return;
+      event.stopPropagation();
+      setOpen(false);
+      trigger.focus();
+    });
+    menu.addEventListener("focusout", (event) => {
+      if (!menu.contains(event.relatedTarget)) setOpen(false);
+    });
+    document.addEventListener("click", (event) => {
+      if (!menu.contains(event.target)) setOpen(false);
+    });
+    panel.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setOpen(false)));
     addEventListener("pageshow", () => setOpen(false));
   })();
 </script>
