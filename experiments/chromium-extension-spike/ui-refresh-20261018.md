@@ -2,8 +2,8 @@
 
 Owner requested this next on October 18, after the native recovery checkpoint.
 Source inventory: `origin/main` at `7f57544b` (package version 1.38.0), compared
-with the fork's last reconciled main `01cf07d7`. Implementation is pending;
-this inventory is not a claim that any newer control works in Chromium.
+with the fork's last reconciled main `01cf07d7`. A partial preview is implemented; see `evidence/ui138-preview-20261018/`.
+The inventory below remains the full target, not a claim of complete parity.
 
 ## Port and verify
 
@@ -34,3 +34,19 @@ Use asset preparation for renderer-only changes and the existing guarded warm
 40 files / 92 hunks; no new upstream file without consolidation or owner decision.
 Latency remains deferred, Electron diagnostic build remains unapproved, and
 neither this work nor its visual comparison promotes 157 past the upgrade gate.
+
+## October 18 preview checkpoint
+
+Reviewed renderer/assets, group colors and menus, rename/new-tab/ungroup/move-to-window,
+bounded tab context actions, custom wallpaper and fixed color presets are ported.
+79 reviewed pure-module tests, scoped lint, native bridge and browser automation
+checks pass. Physical interaction and matched visual comparison remain pending.
+Vertical rail, Recently Closed, site-wide mute, Glance and Spaces remain gaps.
+The image adapter stores a bounded re-encoded JPEG in profile-local WebUI storage;
+see evidence for limits and unsupported format/sync coverage.
+
+Owner-reported Start Page overlap exposed a separate 157 preparation bug: a broad
+`present` marker matched the separator patch and skipped the native 68px header
+reservation. The marker is now unique, with an idempotence/regression test. This
+fix touches an already-inventoried file; final build/geometry evidence is recorded
+in the preview archive. No CSS spacer was added to web content.

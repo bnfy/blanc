@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -45,8 +46,13 @@ function writeIfChanged(target, value) {
 const generated = path.join(here, 'generated');
 fs.mkdirSync(path.join(generated, 'pages'), { recursive: true });
 
+const reviewedAssets = JSON.parse(fs.readFileSync(path.join(here, 'renderer-1.38/manifest.json'), 'utf8'));
 const assets = new Map();
 const copies = [
+  ['src/main/start-page-paint.js', 'pages/start-page-paint.js'],
+  ['src/renderer/space-identity.js', 'pages/space-identity.js'],
+  ['src/renderer/pages/bangs.js', 'pages/bangs.js'],
+  ['src/renderer/pages/bangs-catalog.js', 'pages/bangs-catalog.js'],
   ['src/renderer/pages/newtab.html', 'pages/newtab.html'],
   ['src/renderer/pages/newtab.js', 'pages/newtab.js'],
   ['src/renderer/pages/close.svg', 'pages/close.svg'],
@@ -84,6 +90,7 @@ const copies = [
   ['src/renderer/renderer.js', 'renderer.js'],
   ['src/renderer/overlay.js', 'overlay.js'],
   ['src/renderer/tab-drag.js', 'tab-drag.js'],
+  ['src/renderer/tab-sections.js', 'tab-sections.js'],
   ['src/renderer/vertical-tabs.js', 'vertical-tabs.js'],
   ['src/renderer/space-identity.js', 'space-identity.js'],
   ['src/renderer/space-picker.js', 'space-picker.js'],
@@ -102,13 +109,21 @@ const copies = [
 for (const [source, destination] of copies) {
   const sourcePath = source.startsWith('prototype/')
     ? path.join(here, source)
-    : path.join(repo, source);
+    : Object.hasOwn(reviewedAssets.files, source)
+      ? path.join(here, 'renderer-1.38', source === 'src/main/start-page-paint.js' ? 'start-page-paint.js' : source.slice('src/renderer/'.length))
+      : path.join(repo, source);
   const destinationPath = path.join(generated, destination);
-  if (!fs.existsSync(sourcePath)) fail(`missing reviewed asset ${sourcePath}`);
+  const bytes = fs.readFileSync(sourcePath);
+  if (Object.hasOwn(reviewedAssets.files, source) && createHash('sha256').update(bytes).digest('hex') !== reviewedAssets.files[source]) fail(`reviewed asset hash changed: ${source}`);
   fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
-  assets.set(destinationPath, fs.readFileSync(sourcePath));
+  assets.set(destinationPath, bytes);
 }
 
+// The reviewed pure paint module only needs CommonJS binding adaptation.
+const paintFile = path.join(generated, 'pages/start-page-paint.js');
+assets.set(paintFile, '(() => {\n' + assets.get(paintFile).toString('utf8')
+  .replace("const Identity = require('../renderer/space-identity');", 'const Identity = window.SpaceIdentity;')
+  .replace('module.exports = {', 'window.BlancStartPaint = {') + '\n})();\n');
 for (const name of ['index.html', 'overlay.html']) {
   const target = path.join(generated, name);
   let html = assets.get(target).toString('utf8');
@@ -135,6 +150,7 @@ newTabHtml = newTabHtml.replace('<script src="strings.js"></script>',
 newTabHtml = newTabHtml.replace('<link rel="stylesheet" href="pages.css" />',
   '<link rel="stylesheet" href="pages.css" />\n  <link rel="stylesheet" href="newtab-prototype.css" />');
 newTabHtml = newTabHtml.replace('  <script src="onboarding.js"></script>\n', '');
+newTabHtml = newTabHtml.replace('<script src="newtab-adapter.js"></script>', '<script src="space-identity.js"></script><script src="start-page-paint.js"></script><script src="newtab-adapter.js"></script>');
 assets.set(newTabFile, newTabHtml);
 
 // Give the copied resting favorite button a stable prototype-only selector.
@@ -293,7 +309,7 @@ BrowserViewTabbedLayoutImpl::SidePanelContentAnimation`,
                      params.visual_client_area.width(), 68);
   }
 `,
-    present: '  if (blanc_prototype::HasIsland(views().browser_view)) {',
+    present: '    for (views::View* child : views().top_container->children())',
   },
 ]);
 // The Island owns fullscreen chrome too; do not move hidden Chromium controls

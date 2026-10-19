@@ -1625,3 +1625,16 @@ file. This is routine repair/testing, never Task0's cold-build column.
 Latency deferred; Electron diagnostic build unapproved/unstarted. UI migration
 to the recent Electron releases is the next owner-requested task, inventoried in
 `ui-refresh-20261018.md`; no new UI parity is claimed by this checkpoint.
+
+### Electron 1.38 UI preview — October 18, 2026 EDT
+
+Routine owner-authorized UI migration, separate from Task 0 clean-build figures.
+Three guarded incremental builds: 40.03s, 39.40s, 45.06s wrapper (six Siso steps
+each). The last repairs a previously skipped 157 native header reservation,
+identified from the owner's overlap report. Viewport delta verifies exactly68px
+reserved; 79 reviewed tests plus header regression pass. Evidence and precise
+remaining UI gaps: `evidence/ui138-preview-20261018/README.md`. Owner attention
+and agent time not measured. Latency deferred; Electron diagnostic build unapproved.
+No cold output/toolchain/GN argument change or 156/permanent-profile modification.
+Final footprint40files93hunks, within40/120; final plan0. Partial UI preview, not
+full UI parity or Task0/Tranche2 acceptance.

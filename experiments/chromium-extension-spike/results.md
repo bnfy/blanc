@@ -2254,3 +2254,14 @@ file. This is routine repair/testing, never Task0's cold-build column.
 Latency deferred; Electron diagnostic build unapproved/unstarted. UI migration
 to the recent Electron releases is the next owner-requested task, inventoried in
 `ui-refresh-20261018.md`; no new UI parity is claimed by this checkpoint.
+
+## Electron 1.38 partial UI preview — October 18, 2026 EDT
+
+See [UI preview evidence](evidence/ui138-preview-20261018/README.md) and
+[migration inventory](ui-refresh-20261018.md). Native group and bounded tab actions,
+Start Page image/color controls, reviewed Island assets and 79 pure-module tests
+pass scoped automation. This is not full migration acceptance: vertical rail,
+Recently Closed, site mute, Spaces/Glance, native input and matched visual checks
+remain open. The reported 157 content/header overlap was a skipped prepare anchor,
+now corrected; final geometry proof is retained separately in the archive.
+Latency and Electron diagnostic build remain deferred/unapproved respectively.

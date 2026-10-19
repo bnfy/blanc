@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "7f57544b85ab3eb3dbccdfd8273437e839d8fc54",
+  "version": "1.38.0",
+  "files": {
+    "src/renderer/index.html": "8bb7d5fa4d365a4ea22dfa3b32d387f7dcf6d877d9b2ff639711b11db87589f2",
+    "src/renderer/overlay.html": "f00beda4793f07c2f5fe7255e8911eff7270462767787b6c1bd13a6747abf211",
+    "src/renderer/overlay.js": "2b447d21b9a33d75e483b5155ef07f0e5e5f2e3fddab3c432e472ddeede0da7f",
+    "src/renderer/pages/newtab-wallpaper.js": "c079ac33cbde79bb96f6cbc76254dc7f44a87586bde31b4c9452269be30c9580",
+    "src/renderer/pages/newtab.html": "38db3daa9f8b6965be8fabbdbfba7012bd784c5b1eb9d22679f09b6264cc95d0",
+    "src/renderer/pages/newtab.js": "1d8ffd75abf1fde082d7dfacf7bcf827e5b97d159d9d04bbcc32f906a6553f9e",
+    "src/renderer/pages/pages.css": "c58e8f556864dbaf0d0b4b27a7fa7a94652f26c8065673fa07a4680bfbb3e796",
+    "src/renderer/pages/strings.en.js": "2891ec68299d07bd8746b6570f5e7d5eb899f453493415d0e8e17705bd86f7b8",
+    "src/renderer/renderer.js": "5d8d25551d34a196345ad16dff824147674888e0c7dcbee346b1e9002bbfa242",
+    "src/renderer/styles.css": "952489aa5d488e73d05536c2950c8175a657abb5bcbad35af591d8b62bd5c2b7",
+    "src/renderer/tab-drag.js": "2ed9df14d2f1768e5e45423769d7cbec10abe092b65a1f4708fced65ac0f1e7e",
+    "src/renderer/tab-sections.js": "b77839cc86205ac0ca7f1097ca8d6436f52981992ae402c72b883a681ea8a39f",
+    "src/renderer/vertical-tabs.js": "b9edaf299d9a8d2c0917457f212f7b4c6832ccf5dc4788354354735616e59c20",
+    "src/renderer/workspace-ui.js": "f7707ac61cc9f83238bde15d9ff25eead9839fc1e72b8ee361b0786c614a979b",
+    "src/renderer/pages/bangs.js": "72c301416757bd8d587203865c1c13e33e1dfaa6776fc00bf7123bfbb1d2ebc0",
+    "src/renderer/pages/bangs-catalog.js": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e",
+    "src/main/start-page-paint.js": "508a9a64aa35df2adc6fbfe7766bd6560a9471aecc50823376a0998975c449e3"
+  }
+}

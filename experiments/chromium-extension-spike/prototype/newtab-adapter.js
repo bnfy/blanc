@@ -8,10 +8,56 @@
       return saved && typeof saved === 'object' ? saved : {};
     } catch { return {}; }
   };
+  const paint = window.BlancStartPaint;
+  function wallpaper(saved) {
+    const value = saved.wallpaper || {};
+    const image = typeof value.image === 'string' && value.image.startsWith('data:image/jpeg;base64,') ? value.image : null;
+    const source = ['sunrise', 'time-of-day', 'color', 'custom'].includes(value.source) ? value.source
+      : saved.dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise';
+    const preset = paint.normalizePreset(value.color?.preset) || paint.DEFAULT_PRESET;
+    const fill = paint.normalizeFill(value.color?.paint?.fill) || paint.DEFAULT_FILL;
+    return { source: source === 'custom' && !image ? 'sunrise' : source, image, hasImage: !!image,
+      style: ['auto', 'light', 'dark', 'spotlight'].includes(value.style) ? value.style : 'auto',
+      wash: Number.isInteger(value.wash) && value.wash >= 0 && value.wash <= 100 ? value.wash : 100,
+      color: { presets: window.SpaceIdentity.PRESETS, preset, followSpace: false, inSpace: false,
+        paint: paint.colorWallpaper({ preset, fill, followSpace: false }) } };
+  }
+  function saveWallpaper(patch) {
+    const current = preferences().wallpaper;
+    return save({ wallpaper: { ...current, ...patch } }).wallpaper;
+  }
+  async function chooseWallpaper() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    const file = await new Promise(resolve => {
+      input.addEventListener('change', () => resolve(input.files[0] || null), { once: true });
+      input.addEventListener('cancel', () => resolve(null), { once: true });
+      input.click();
+    });
+    if (!file) return { cancelled: true };
+    if (file.size > 25 * 1024 * 1024) return { error: 'too-large' };
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return { error: 'unsupported' };
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 3840 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      // Canvas re-encoding drops EXIF/GPS and never persists the original file.
+      const image = canvas.toDataURL('image/jpeg', 0.85);
+      // This adapter uses profile-local WebUI storage, with a bounded image.
+      if (image.length > 3 * 1024 * 1024) return { error: 'too-large' };
+      return { wallpaper: saveWallpaper({ source: 'custom', image }) };
+    } catch { return { error: 'unreadable' }; }
+    finally { bitmap?.close(); }
+  }
   const preferences = () => {
     const saved = read();
     return { layout: layouts.includes(saved.layout) ? saved.layout : 'billboard',
-      dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true };
+      dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true, wallpaper: wallpaper(saved) };
   };
   const listeners = new Set();
   function publish() { for (const fn of listeners) fn(preferences()); }
@@ -19,7 +65,7 @@
     const next = { ...preferences(), ...patch };
     localStorage.setItem(key, JSON.stringify(next));
     publish();
-    return next;
+    return preferences();
   }
   window.addEventListener('storage', (event) => { if (event.key === key) publish(); });
   let nextId = 0;
@@ -57,6 +103,32 @@
         if (!layouts.includes(layout)) throw new Error('Unknown start-page layout');
         return save({ layout }).layout;
       },
+      chooseWallpaper,
+      setWallpaper: async source => {
+        if (!['sunrise', 'time-of-day', 'custom', 'color'].includes(source)) throw new Error('Unknown wallpaper');
+        if (source === 'sunrise' || source === 'time-of-day')
+          return save({ dynamicWallpaperEnabled: source === 'time-of-day', wallpaper: { ...preferences().wallpaper, source } }).wallpaper;
+        return saveWallpaper({ source });
+      },
+      removeWallpaper: async () => saveWallpaper({ image: null, source: preferences().dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise' }),
+      setWallpaperStyle: async style => {
+        if (!['auto', 'light', 'dark', 'spotlight'].includes(style)) throw new Error('Unknown wash style');
+        return saveWallpaper({ style });
+      },
+      setWallpaperWash: async wash => {
+        if (!Number.isInteger(wash) || wash < 0 || wash > 100) throw new Error('Invalid wash');
+        return saveWallpaper({ wash });
+      },
+      setWallpaperColor: async preset => {
+        if (!paint.normalizePreset(preset)) throw new Error('Unknown color');
+        return saveWallpaper({ color: { ...preferences().wallpaper.color, preset } });
+      },
+      setWallpaperFill: async fill => {
+        if (!paint.normalizeFill(fill)) throw new Error('Unknown fill');
+        const color = preferences().wallpaper.color;
+        return saveWallpaper({ color: { ...color, paint: { ...color.paint, fill } } });
+      },
+      setWallpaperFollowSpace: async () => { throw new Error('Spaces are not available in this prototype.'); },
       setDynamicWallpaper: async (enabled) => save({ dynamicWallpaperEnabled: enabled === true }).dynamicWallpaperEnabled,
       onStatus: callback => { listeners.add(callback); return () => listeners.delete(callback); },
       onVisibility: callback => {

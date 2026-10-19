@@ -12,6 +12,11 @@
   const subscribers = new Map();
   const strip = document.getElementById('strip');
   const overlay = document.getElementById('overlay');
+  const tooltip = document.createElement('div');
+  tooltip.id = 'prototypeTooltip';
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.hidden = true;
+  document.body.append(tooltip);
 
   function notice(message) {
     const status = document.getElementById('status');
@@ -113,6 +118,7 @@
   }
 
   async function show(prefill) {
+    tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
@@ -133,6 +139,7 @@
   }
 
   async function close(focus = true) {
+    tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
     strip.style.visibility = '';
@@ -189,6 +196,17 @@
 
   const implemented = {
     platform: 'darwin',
+    showTooltip: ({ text, anchor, privateTheme }) => {
+      if (opened || extensionsOpened || !anchor || !Number.isFinite(anchor.x)) return;
+      tooltip.textContent = String(text).slice(0, 180);
+      tooltip.hidden = false;
+      tooltip.dataset.private = String(privateTheme === true);
+      const width = tooltip.getBoundingClientRect().width;
+      tooltip.style.left = `${Math.max(4, Math.min(innerWidth - width - 4, anchor.x + anchor.width / 2 - width / 2))}px`;
+      tooltip.style.top = `${Math.max(0, Math.min(44, anchor.y + anchor.height + 4))}px`;
+    },
+    hideTooltip: () => { tooltip.hidden = true; },
+    bangs: async () => ({ enabled: false, custom: [], recent: [] }),
     getAllTabs: async () => snapshot ?? request('snapshot'),
     createTab: async (url, options) => {
       if (options?.private) throw new Error('Use Chromium’s native private-window command in this prototype.');
@@ -264,8 +282,14 @@
       await refresh();
       return moved === true;
     },
-    ...Object.fromEntries(['focusGroup', 'toggleGroupCollapsed', 'closeGroup'].map((method) =>
+    ...Object.fromEntries(['focusGroup', 'toggleGroupCollapsed', 'closeGroup', 'newTabInGroup', 'ungroupGroup', 'moveGroupToNewWindow'].map((method) =>
       [method, async (groupId) => { await request(method, [String(groupId)]); await refresh(); }])),
+    ...Object.fromEntries(['renameGroup', 'setGroupColor'].map(method =>
+      [method, async (groupId, value) => {
+        const result = await request(method, [String(groupId), value ?? null]);
+        await refresh();
+        return result;
+      }])),
     // Destructive and history-only, like Electron's /clear; main refuses it
     // from a private window. Test on a disposable profile only.
     clearHistory: () => request('clearHistory'),
@@ -291,7 +315,7 @@
     acknowledgeDownloads: () => {},
   };
 
-  for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop']) {
+  for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
     implemented[method] = async (id) => {
       await request(method, [nativeId(id)]);
       await refresh();

@@ -34,6 +34,17 @@ allows (one build at a time; the spikes alternate, they never overlap a build).
 3 runs alongside as a document. 4, 5 and 6 fill the gaps. The tranche ends
 when every row has its artifact, or when a kill criterion is hit and recorded.
 
+### UI migration preview — October 18, 2026 (EDT)
+
+Owner-authorized 1.38 follow-up is partially implemented. Reviewed renderer sources,
+Start Page image/color controls and native group/tab-menu bridges are covered by
+`evidence/ui138-preview-20261018/`; full inventory is `ui-refresh-20261018.md`.
+Vertical rail, Recently Closed, site mute, Glance/Spaces and physical/matched visual
+acceptance remain open. The 157 header-reservation preparation bug reported by the
+owner is fixed with a specific anchor marker and regression test. This does not
+close the tranche visual gate. Spikes A/B and prior F12 gaps remain unchanged;
+latency deferred; Electron diagnostic build §8 unapproved/unstarted.
+
 ### 1.1 Progress checkpoint — October 18, 2026 (EDT; native crash recovery)
 
 Native execution leases now retire when the exact document is gone **or its

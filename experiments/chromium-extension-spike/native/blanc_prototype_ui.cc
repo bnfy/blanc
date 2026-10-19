@@ -51,6 +51,7 @@
 #include "content/public/browser/web_contents_delegate.h"
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
+#include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -249,10 +250,25 @@ bool SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
 constexpr size_t kGroupNameMaxLength = 40;
 constexpr tab_groups::TabGroupColorId kGroupColor = tab_groups::TabGroupColorId::kGrey;
 
+// Stable mapping from Blanc's eight presets to Chromium's persisted palette.
+const char* GroupColor(tab_groups::TabGroupColorId color) {
+  switch (color) {
+    case tab_groups::TabGroupColorId::kGreen: return "#426c4c";
+    case tab_groups::TabGroupColorId::kBlue: return "#376694";
+    case tab_groups::TabGroupColorId::kPurple: return "#6757a3";
+    case tab_groups::TabGroupColorId::kPink: return "#9b4761";
+    case tab_groups::TabGroupColorId::kOrange: return "#974f2a";
+    case tab_groups::TabGroupColorId::kYellow: return "#815c02";
+    case tab_groups::TabGroupColorId::kCyan: return "#576471";
+    case tab_groups::TabGroupColorId::kRed: return "#3a3a3a";
+    default: return "";
+  }
+}
+
 std::u16string GroupName(const std::string& raw) {
   std::u16string trimmed;
   base::TrimWhitespace(base::UTF8ToUTF16(raw), base::TRIM_ALL, &trimmed);
-  return base::i18n::ToLower(trimmed).substr(0, kGroupNameMaxLength);
+  return trimmed.substr(0, kGroupNameMaxLength);
 }
 
 // Groups in cluster order (first tab index), the order Blanc's panel uses.
@@ -564,13 +580,13 @@ IslandDelegate* GetIslandDelegate() {
 
 bool IsAsset(const std::string& path) {
   static constexpr const char* kAssets[] = {
-      "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/newtab-prototype.css",
+      "pages/newtab.html", "pages/newtab.js", "pages/close.svg", "pages/newtab-wallpaper.js", "pages/start-site-name.js", "pages/pages.css", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js", "pages/i18n.js", "pages/sunrise-mark.png", "pages/icon-sunrise.png", "pages/icon-sunrise-dark.png", "pages/onboarding-island-dark.png", "pages/onboarding-island-light.png", "pages/start-page-sunrise.png", "pages/start-page-day.png", "pages/start-page-dusk.png", "pages/start-page-night.png", "pages/caveat-latin.woff2", "pages/select-caret.svg", "pages/select-caret-dark.svg", "pages/strings.js", "pages/newtab-adapter.js", "pages/start-page-paint.js", "pages/space-identity.js", "pages/newtab-prototype.css",
       "host.html", "host.js", "host.css", "extensions.js", "extensions.css",
       "icons/search.svg", "icons/settings.svg", "icons/external-link.svg", "icons/chevron-left.svg", "adapter.js", "prototype.css",
       "index.html", "overlay.html", "styles.css", "renderer.js", "overlay.js",
-      "strings.js", "i18n.js", "tab-drag.js", "vertical-tabs.js",
+      "strings.js", "i18n.js", "tab-drag.js", "tab-sections.js", "vertical-tabs.js",
       "space-identity.js", "space-picker.js", "workspace-ui.js", "panel-left.svg",
-      "sunrise-hero-mark.png", "pages/type-to-open.js",
+      "sunrise-hero-mark.png", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js",
       "pages/sunrise-favicon-mark.png", "pages/inter-latin.woff2",
       "pages/instrument-sans-latin-wdth-normal.woff2",
       "pages/jetbrains-mono-latin.woff2"};
@@ -635,6 +651,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
     groups.Append(base::DictValue()
                       .Set("id", group.ToString())
                       .Set("name", visuals ? base::UTF16ToUTF8(visuals->title()) : "")
+                      .Set("color", visuals ? GroupColor(visuals->color()) : "")
                       .Set("collapsed", visuals ? visuals->is_collapsed() : false));
   }
   auto* active = model->GetActiveWebContents();
@@ -960,7 +977,10 @@ class Handler : public content::WebUIMessageHandler {
     // TabGroupId::ToString() values from the snapshot; a stale or foreign id
     // finds nothing and is a no-op, like Electron's per-window group lookup.
     if ((method == "focusGroup" || method == "toggleGroupCollapsed" ||
-         method == "closeGroup" || method == "reorderGroup") &&
+         method == "closeGroup" || method == "reorderGroup" ||
+         method == "renameGroup" || method == "setGroupColor" ||
+         method == "newTabInGroup" || method == "ungroupGroup" ||
+         method == "moveGroupToNewWindow") &&
         !args.empty() && args[0].is_string()) {
       const auto group = FindGroup(model, args[0].GetString());
       if (!group) {
@@ -969,6 +989,53 @@ class Handler : public content::WebUIMessageHandler {
       }
       const auto* visuals = GroupVisuals(model, *group);
       const gfx::Range range = model->group_model()->GetTabGroup(*group)->ListTabs();
+      if (method == "renameGroup" && args.size() == 2 && args[1].is_string() && visuals) {
+        const auto name = GroupName(args[1].GetString());
+        bool duplicate = false;
+        for (const auto& other : GroupsInOrder(model)) {
+          const auto* data = GroupVisuals(model, other);
+          if (other != *group && data && base::i18n::ToLower(data->title()) == base::i18n::ToLower(name)) duplicate = true;
+        }
+        if (name.empty() || duplicate) {
+          reply(true, base::Value(base::DictValue().Set("ok", false).Set("error", duplicate ? "duplicate" : "empty")));
+          return;
+        }
+        model->ChangeTabGroupVisuals(*group, tab_groups::TabGroupVisualData(name, visuals->color(), visuals->is_collapsed()));
+        reply(true, base::Value(base::DictValue().Set("ok", true)));
+        return;
+      }
+      if (method == "setGroupColor" && args.size() == 2 && visuals && (args[1].is_string() || args[1].is_none())) {
+        auto color = kGroupColor;
+        const std::string requested = args[1].is_string() ? args[1].GetString() : "";
+        bool found = requested.empty();
+        for (int i = 0; i <= 8; ++i) {
+          const auto candidate = static_cast<tab_groups::TabGroupColorId>(i);
+          if (requested == GroupColor(candidate)) { color = candidate; found = true; }
+        }
+        if (!found) { reply(false, base::Value("Unknown group color.")); return; }
+        model->ChangeTabGroupVisuals(*group, tab_groups::TabGroupVisualData(visuals->title(), color, visuals->is_collapsed()));
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "newTabInGroup" && args.size() == 1) {
+        chrome::AddTabAt(browser, GURL("chrome://newtab/"), static_cast<int>(range.end()), true);
+        model->AddToExistingGroup({model->active_index()}, *group);
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "ungroupGroup" && args.size() == 1) {
+        std::vector<int> indices;
+        for (unsigned i = range.start(); i < range.end(); ++i) indices.push_back(static_cast<int>(i));
+        model->RemoveFromGroup(indices);
+        reply(true, base::Value(true));
+        return;
+      }
+      if (method == "moveGroupToNewWindow" && args.size() == 1) {
+        if (static_cast<int>(range.length()) == model->count()) { reply(true, base::Value(false)); return; }
+        chrome::MoveGroupToNewWindow(browser, *group);
+        reply(true, base::Value(true));
+        return;
+      }
       if (method == "focusGroup" && args.size() == 1) {
         // Electron's focusGroup: unfold, then activate the group's first tab.
         if (visuals && visuals->is_collapsed()) {
@@ -1040,6 +1107,22 @@ class Handler : public content::WebUIMessageHandler {
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "newTabBelow" && args.size() == 1) {
+      const auto group = model->GetTabGroupForTab(index);
+      chrome::AddTabAt(browser, GURL("chrome://newtab/"), index + 1, true);
+      if (group) model->AddToExistingGroup({model->active_index()}, *group);
+      reply(true, base::Value(true));
+      return;
+    }
+    if ((method == "closeAbove" || method == "closeBelow") && args.size() == 1) {
+      // Preserve the named tab and pinned tabs, matching Electron's menu policy.
+      for (int i = model->count() - 1; i >= 0; --i) {
+        if (!model->IsTabPinned(i) && (method == "closeAbove" ? i < index : i > index))
+          model->CloseWebContentsAt(i, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+      }
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "toggleBookmark" || method == "saveFavorite") {
       // The Island's heart and /save act on the tab it names; main re-reads
       // the committed page here rather than trusting a renderer-supplied URL.
@@ -1093,7 +1176,7 @@ class Handler : public content::WebUIMessageHandler {
         }
         for (const auto& group : GroupsInOrder(model)) {
           const auto* visuals = GroupVisuals(model, group);
-          if (visuals && visuals->title() == name) target = group;
+          if (visuals && base::i18n::ToLower(visuals->title()) == base::i18n::ToLower(name)) target = group;
         }
         if (!target) {
           // Chromium cannot group a pinned tab; AddToNewGroup unpins it.

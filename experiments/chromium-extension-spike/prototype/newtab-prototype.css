@@ -4,3 +4,6 @@
 #bbBlocked, #bbGroups, #groupsSection, #remoteSection,
 .shelf-card-groups, .shelf-card-blocked, .tally-label-groups,
 #tlGroups, .tally-right { display: none !important; }
+
+/* The fork has no Spaces model yet; fixed preset colors remain available. */
+#colorWallpaperFollow, #colorWallpaperFollowHint { display: none !important; }

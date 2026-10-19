@@ -40,3 +40,9 @@
   background: var(--accent-dim) !important;
   color: var(--accent) !important;
 }
+
+.prototype-tab-menu {position:fixed; z-index:2000; min-width:180px; padding:5px;
+ background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 32px #0003;}
+.prototype-tab-menu button {display:block; width:100%; border:0; border-radius:5px; padding:7px 10px;
+ background:transparent; color:inherit; text-align:left; font:12px system-ui;}
+.prototype-tab-menu button:hover,.prototype-tab-menu button:focus-visible {background:var(--accent-dim); outline:none;}

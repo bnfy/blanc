@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
+  <title data-i18n="overlay.surfaceTitle">Blanc Overlay</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="overlay-body">
+  <div id="backdrop" hidden></div>
+  <div id="displayShareBackdrop" hidden>
+    <section id="displaySharePicker" class="display-share-picker" role="dialog" aria-modal="true"
+      aria-labelledby="displayShareTitle" aria-describedby="displayShareOrigin displayShareStatus">
+      <header><h2 id="displayShareTitle" data-i18n="share.picker.title">Share your screen</h2>
+        <p id="displayShareOrigin"></p></header>
+      <p id="displayShareStatus" role="status"></p>
+      <div id="displayShareSources" class="display-share-sources" aria-label="Screens and windows" data-i18n-aria-label="share.picker.sources"></div>
+      <label id="displayShareAudioLabel" class="display-share-audio">
+        <input id="displayShareAudio" type="checkbox" /> <span data-i18n="share.picker.audio">Share computer audio</span>
+      </label>
+      <footer>
+        <button id="displayShareCancel" type="button" data-i18n="common.cancel">Cancel</button>
+        <button id="displayShareAllow" type="button" class="display-share-allow" disabled data-i18n="share.picker.share">Share</button>
+      </footer>
+    </section>
+  </div>
+  <div id="panelAnchor" hidden>
+    <div id="islandPanel">
+      <div class="panel-row">
+        <button id="panelSiteInfo" class="site-info-button" type="button"
+          data-tooltip="Site information" aria-label="Site information" data-i18n-tooltip="panel.siteInfo" data-i18n-aria-label="panel.siteInfo" aria-expanded="false" hidden></button>
+        <input id="addressInput" spellcheck="false" autocomplete="off" placeholder="Search, enter address, or / for commands" data-i18n-placeholder="panel.addressPlaceholder" />
+        <div class="panel-actions">
+          <button id="backBtn" class="act-btn" aria-label="Back" data-tooltip="Back" data-i18n-aria-label="pill.back" data-i18n-tooltip="pill.back" disabled>
+            <svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>
+          </button>
+          <button id="fwdBtn" class="act-btn" aria-label="Forward" data-tooltip="Forward" data-i18n-aria-label="pill.forward" data-i18n-tooltip="pill.forward" disabled>
+            <svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
+          </button>
+          <button id="reloadBtn" class="act-btn" aria-label="Reload" data-tooltip="Reload" data-i18n-aria-label="pill.reload" data-i18n-tooltip="pill.reload"></button>
+          <button id="heartBtn" class="act-btn" aria-label="Favorite this page (Ctrl/Cmd+D)" data-tooltip="Favorite this page (Ctrl/Cmd+D)" data-i18n-aria-label="panel.favoriteShortcut" data-i18n-tooltip="panel.favoriteShortcut">
+            <svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>
+          </button>
+          <button id="dismissBtn" class="act-btn" data-tooltip="Collapse island (Esc)" aria-label="Collapse island" data-i18n-tooltip="panel.collapse.title" data-i18n-aria-label="panel.collapse.label">
+            <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="islandList"></div>
+      <div id="islandDrawer" hidden></div>
+      <div id="islandFooter">
+        <div class="footer-launchers">
+        <button id="footerNewTab" class="footer-new">
+          <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
+          <span data-i18n="footer.newTab">New tab</span>
+          <span id="footerNewTabKbd" class="footer-kbd" data-i18n-ignore></span>
+        </button>
+        <button id="footerNewPrivate" class="footer-new private">
+          <svg viewBox="0 0 16 16"><path d="M1.75 8C3.1 5.4 5.4 3.75 8 3.75S12.9 5.4 14.25 8C12.9 10.6 10.6 12.25 8 12.25S3.1 10.6 1.75 8Z"/><circle cx="8" cy="8" r="1.75"/><path d="M3 3l10 10"/></svg>
+          <span data-i18n="footer.private">Private</span>
+        </button>
+        <button id="footerDevices" class="footer-new devices" type="button" aria-expanded="false" aria-controls="islandDrawer" hidden>
+          <svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="8" height="6" rx="1"/><path d="M1.25 11.75h9.25"/><rect x="12.25" y="6" width="2.75" height="6.25" rx="0.75"/></svg>
+          <span data-i18n="footer.devices">Other devices</span>
+          <span id="footerDevicesCount" class="footer-kbd" data-i18n-ignore></span>
+          <svg class="devices-caret" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 9.75 8 6.25l3.5 3.5"/></svg>
+        </button>
+        </div>
+        <div class="footer-tools">
+        <button
+          id="footerWorkspace"
+          class="footer-act ws"
+          type="button"
+          data-tooltip="Spaces"
+          aria-label="Spaces"
+          data-i18n-tooltip="footer.workspaces"
+          data-i18n-aria-label="footer.workspaces"
+          aria-expanded="false"
+          aria-haspopup="true"
+        >
+          <!-- The Spaces planet: SpaceIdentity.SPACES_GLYPH on its 24 grid, kept
+               identical by test/unit/spaces-glyph.test.js. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="7"/>
+            <path d="M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37"/>
+          </svg>
+        </button>
+        <button id="footerFavorites" class="footer-act" aria-label="Favorites" data-tooltip="Favorites" data-i18n-aria-label="footer.favorites" data-i18n-tooltip="footer.favorites">
+          <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
+        </button>
+        <button id="footerHistory" class="footer-act" aria-label="History" data-tooltip="History" data-i18n-aria-label="footer.history" data-i18n-tooltip="footer.history">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg>
+        </button>
+        <button id="footerDownloads" class="footer-act" aria-label="Downloads" data-tooltip="Downloads" data-i18n-aria-label="pill.downloads" data-i18n-tooltip="pill.downloads">
+          <svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>
+        </button>
+        <button
+          id="footerTabLayout"
+          class="footer-act"
+          type="button"
+          data-tooltip="Turn vertical tabs on"
+          aria-label="Vertical tabs"
+          data-i18n-tooltip="footer.tabLayoutOn"
+          data-i18n-aria-label="rail.label"
+          aria-pressed="false"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.75" width="11" height="10.5" rx="1.5"/><path d="M6 2.75v10.5"/></svg>
+        </button>
+        <button id="footerSettings" class="footer-act" aria-label="Settings" data-tooltip="Settings" data-i18n-aria-label="footer.settings" data-i18n-tooltip="footer.settings">
+          <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
+        </button>
+        </div>
+      </div>
+      <div id="workspaceFeedback" hidden></div>
+      <div id="islandHint"></div>
+    </div>
+  </div>
+  <!-- The Spaces menu: below the Island from the ⌘L footer button, or alone in
+       the 'spaces' overlay mode opened from the Island's space mark. Outside
+       #panelAnchor so it can show without the panel. -->
+  <div id="workspaceSwitcher" class="ws-switcher" hidden role="dialog" aria-label="Spaces" data-i18n-aria-label="footer.workspaces">
+    <div id="workspaceSwitcherList"></div>
+    <div id="workspaceSwitcherCommands" class="ws-commands" hidden></div>
+  </div>
+  <div id="groupMenu" class="group-menu" role="dialog" hidden></div>
+  <div id="glancePicker" class="glance-picker" role="dialog" aria-labelledby="glancePickerTitle" hidden>
+    <header class="glance-picker-head">
+      <h2 id="glancePickerTitle" data-i18n="glance.picker.title">Choose a tab for Glance</h2>
+      <button id="glancePickerClose" class="glance-picker-close" type="button" data-tooltip="Cancel" aria-label="Cancel choosing a Glance tab" data-i18n-tooltip="common.cancel" data-i18n-aria-label="glance.picker.cancelLabel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+      </button>
+    </header>
+    <label class="sr-only" for="glancePickerInput" data-i18n="glance.picker.filter">Filter open tabs</label>
+    <input
+      id="glancePickerInput"
+      class="glance-picker-input"
+      type="text"
+      spellcheck="false"
+      autocomplete="off"
+      placeholder="Filter open tabs"
+      data-i18n-placeholder="glance.picker.filter"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-controls="glancePickerList"
+      aria-expanded="true"
+    />
+    <div id="glancePickerList" class="glance-picker-list" role="listbox" aria-label="Open tabs" data-i18n-aria-label="rail.list"></div>
+    <div id="glancePickerState" class="glance-picker-state" hidden></div>
+    <footer class="glance-picker-hint" aria-hidden="true">
+      <span data-i18n="glance.picker.hintNavigate">↑↓ navigate</span><span data-i18n="glance.picker.hintOpen">↵ open</span><span data-i18n="glance.picker.hintCancel">esc cancel</span>
+    </footer>
+    <div id="glancePickerLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <!-- Outside the picker on purpose: that section is hidden in every other
+       overlay mode, and a live region inside display:none is never spoken. -->
+  <div id="islandDragLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <div id="findBar" hidden>
+    <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" data-i18n-placeholder="find.placeholder" />
+    <div id="findCount"></div>
+    <button id="findPrevBtn" class="act-btn" aria-label="Previous match" data-tooltip="Previous match" data-i18n-aria-label="find.prev" data-i18n-tooltip="find.prev">
+      <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
+    </button>
+    <button id="findNextBtn" class="act-btn" aria-label="Next match" data-tooltip="Next match" data-i18n-aria-label="find.next" data-i18n-tooltip="find.next">
+      <svg viewBox="0 0 16 16"><path d="M4.5 5.75 8 9.25l3.5-3.5"/></svg>
+    </button>
+    <button id="findCloseBtn" class="act-btn" aria-label="Close" data-tooltip="Close" data-i18n-aria-label="window.close" data-i18n-tooltip="window.close">
+      <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+    </button>
+  </div>
+  <div id="shieldPopPointer" aria-hidden="true" hidden></div>
+  <section id="shieldPop" role="dialog" aria-labelledby="shieldPopTitle" aria-describedby="shieldPopHost" hidden>
+    <header class="shield-pop-header">
+      <button id="shieldPopBack" class="shield-pop-nav shield-pop-back" aria-label="Back to site protection" data-i18n-aria-label="shield.back" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m9.5 3.5-4.5 4.5 4.5 4.5"/></svg></button>
+      <img class="shield-pop-mark" src="sunrise-hero-mark.png" width="28" height="28" alt="" />
+      <h2 id="shieldPopTitle" data-i18n="shield.title">Site protection</h2>
+      <p id="shieldPopHost"></p>
+      <button id="shieldPopClose" class="shield-pop-nav shield-pop-close" aria-label="Close site protection" data-i18n-aria-label="shield.close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6m0-6-6 6"/></svg></button>
+    </header>
+    <div id="shieldPopSummary">
+      <div class="shield-pop-provider-summary">
+        <div class="shield-pop-provider-row">
+          <div><p class="shield-pop-eyebrow" data-i18n="shield.currentBlocker">Current blocker</p><strong id="shieldPopCurrentProvider">Blanc Blocker</strong></div>
+          <button id="shieldPopChangeProvider" class="shield-pop-change" aria-label="Change blocker" data-i18n-aria-label="shield.changeLabel"><span data-i18n="shield.change">Change</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+        </div>
+        <p id="shieldPopProviderStatus" role="status"></p>
+      </div>
+      <div class="shield-pop-summary">
+        <div id="shieldPopSiteControl" class="shield-pop-head">
+          <div class="shield-pop-state"><span id="shieldPopLabel" data-i18n="shield.adBlocking">Ad &amp; tracker blocking</span> <strong id="shieldPopOnOff" data-i18n="shield.on">on</strong></div>
+          <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site" data-i18n-aria-label="shield.toggleLabel"><span class="knob"></span></button>
+        </div>
+        <div id="shieldPopCount"></div>
+        <div id="shieldPopNote" class="shield-pop-note" data-i18n="shield.reloadNote">Changing site protection reloads this page.</div>
+        <button id="shieldPopUblock" class="shield-pop-ubo" aria-label="Open uBlock Origin controls" data-i18n-aria-label="shield.uboLabel" hidden><span data-i18n="shield.uboOpen">Open controls</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg></button>
+      </div>
+      <div id="shieldPopDark" class="shield-pop-dark" hidden>
+        <div class="shield-pop-head">
+          <div class="shield-pop-state"><span data-i18n="shield.dark">Dark website</span> <strong id="shieldPopDarkOnOff" data-i18n="shield.off">off</strong></div>
+          <button id="shieldPopDarkToggle" role="switch" aria-checked="false" aria-label="Dark website for this site" data-i18n-aria-label="shield.darkLabel" aria-describedby="shieldPopDarkNote"><span class="knob"></span></button>
+        </div>
+        <p id="shieldPopDarkNote" class="shield-pop-note" hidden data-i18n="shield.darkNote">Applies while Blanc is dark.</p>
+      </div>
+      <div class="shield-pop-metadata">
+        <div id="shieldPopConnection" hidden><span data-i18n="shield.connection">Connection</span><span id="shieldPopConnectionValue"></span></div>
+        <button id="shieldPopSettings" class="shield-pop-footer"><span data-i18n="shield.settings">Blocking settings</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+      </div>
+      <p id="shieldPopProviderScope" class="shield-pop-note"></p>
+    </div>
+    <div id="shieldPopChooser" hidden>
+      <fieldset id="shieldPopProvider" aria-describedby="shieldPopRestartNote shieldPopPrivateNote shieldPopAvailability">
+        <legend class="sr-only" data-i18n="shield.chooseBlocker">Choose a blocker</legend>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>Blanc Blocker</strong><span class="shield-provider-active" data-provider="blanc" hidden data-i18n="shield.active">Active</span></span><small>EasyList + EasyPrivacy</small></span><input type="radio" name="shieldProvider" value="blanc" /></label>
+        <label><span class="shield-provider-name"><span class="shield-provider-heading"><strong>uBlock Origin</strong><span class="shield-provider-active" data-provider="ublock-origin" hidden data-i18n="shield.active">Active</span></span><small data-i18n="shield.uboTagline">Advanced filtering and controls</small></span><input type="radio" name="shieldProvider" value="ublock-origin" /></label>
+      </fieldset>
+      <div class="shield-pop-chooser-note">
+        <p id="shieldPopRestartNote" data-i18n="shield.restartNote">Changes take effect after restarting Blanc.</p>
+        <p id="shieldPopPrivateNote" data-i18n="shield.privateNote">Private tabs use Blanc Blocker; uBO isn’t supported in temporary private sessions.</p>
+      </div>
+      <p id="shieldPopAvailability" class="shield-pop-note" hidden></p>
+      <p id="shieldPopChooserError" role="alert" hidden></p>
+      <div class="shield-pop-actions"><button id="shieldPopApply" class="shield-pop-primary" data-i18n="shield.done">Done</button></div>
+    </div>
+  </section>
+  <section id="capturePop" class="capture-pop" hidden>
+    <header id="capturePopHead" class="capture-pop-head" data-i18n="capture.pop.inUse">in use</header>
+    <ul id="capturePopRows" class="capture-pop-rows"></ul>
+  </section>
+  <script src="tab-sections.js"></script>
+  <script src="tab-drag.js"></script>
+  <script src="space-identity.js"></script>
+  <script src="space-picker.js"></script>
+  <script src="workspace-ui.js"></script>
+  <script src="pages/bangs-catalog.js"></script>
+  <script src="pages/bangs.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>
