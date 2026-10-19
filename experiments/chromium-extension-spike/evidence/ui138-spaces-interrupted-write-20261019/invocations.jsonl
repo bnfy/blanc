@@ -1,0 +1,13 @@
+{"name": "helper-build", "argv": ["xcrun", "clang", "-dynamiclib", "-O0", "-Wall", "-Wextra", "/private/tmp/blanc-spaces-interrupt/barrier.c", "-o", "/private/tmp/blanc-spaces-interrupt/barrier.dylib"], "started": "2026-10-19T19:50:31.254334+00:00", "seconds": 0.272926791, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/start.mjs"], "started": "2026-10-19T19:50:37.299243+00:00", "seconds": 0.054270666999999995, "exit_code": 0}
+{"name": "interrupt", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/interrupted-check.mjs"], "started": "2026-10-19T19:50:39.231777+00:00", "seconds": 14.165307334, "exit_code": 1}
+{"name": "cleanup-attempt", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/cleanup.mjs"], "started": "2026-10-19T19:51:17.695103+00:00", "seconds": 0.888486166, "exit_code": 0}
+{"name": "helper-build2", "argv": ["xcrun", "clang", "-dynamiclib", "-O0", "/private/tmp/blanc-spaces-interrupt/barrier.c", "-o", "/private/tmp/blanc-spaces-interrupt/barrier.dylib"], "started": "2026-10-19T19:51:18.678342+00:00", "seconds": 0.07089129100000001, "exit_code": 0}
+{"name": "start2", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/start.mjs"], "started": "2026-10-19T19:51:20.691808+00:00", "seconds": 0.119857084, "exit_code": 0}
+{"name": "interrupt2", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/interrupted-check.mjs"], "started": "2026-10-19T19:51:20.845831+00:00", "seconds": 4.0410555829999995, "exit_code": 0}
+{"name": "restart", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/launch.mjs"], "started": "2026-10-19T19:51:39.398949+00:00", "seconds": 0.024206541999999998, "exit_code": 0}
+{"name": "recovery", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/recovery.mjs"], "started": "2026-10-19T19:51:39.455306+00:00", "seconds": 0.034876334, "exit_code": 1}
+{"name": "recovery2", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/recovery.mjs"], "started": "2026-10-19T19:51:48.368208+00:00", "seconds": 0.832633083, "exit_code": 1}
+{"name": "resave", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/resave.mjs"], "started": "2026-10-19T19:52:04.867211+00:00", "seconds": 0.044383, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-spaces-interrupt/cleanup.mjs"], "started": "2026-10-19T19:52:04.939979+00:00", "seconds": 0.654348417, "exit_code": 0}
+{"name": "guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--check"], "started": "2026-10-19T19:52:05.626304+00:00", "seconds": 5.222028125, "exit_code": 0}
