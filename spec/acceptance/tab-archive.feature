@@ -66,3 +66,26 @@ Feature: Tab Archive
     When I open the Archive with the archive command
     And I clear the Archive from the History sheet
     Then the Archive is empty
+
+  @F52-10 @F52 @desktop
+  Scenario: A tab I switch to while the sweep is checking it stays open
+    Given tab archiving is set to 12 hours
+    And a loose background tab not viewed for 13 hours
+    When I switch to that tab while the archive sweep is checking it
+    Then that tab is still open and the Archive is empty
+    And that tab is the active tab
+
+  @F52-11 @F52 @desktop
+  Scenario: Overlapping sweeps archive a tab only once
+    Given tab archiving is set to 12 hours
+    And a loose background tab not viewed for 13 hours
+    When two archive sweeps start at the same time
+    Then one sweep reports it was busy
+    And that tab is listed in the Archive once
+
+  @F52-12 @F52 @desktop
+  Scenario: Restoring works while a private tab is active
+    Given an archived tab
+    And a private tab is active
+    When I restore it from the Archive
+    Then the restored tab is a normal tab

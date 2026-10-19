@@ -2895,6 +2895,10 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
  *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
 let archiveGraceUntil = 0;
 let lastArchiveSweepAt = 0;
+/** Window runtimes with an archive sweep running. */
+const archiveSweepsInFlight = new Set();
+/** Acceptance-only seam (BLANC_TEST): called after each candidate's probe. */
+let archiveProbeObserverForTest = null;
 
 function resetArchiveGrace(now = Date.now()) {
   archiveGraceUntil = now + ARCHIVE_GRACE_MS;
@@ -2923,6 +2927,19 @@ async function tabHoldsUnsavedWork(tab) {
  * @returns {Promise<{archived: string[], closed: string[], skippedReason: string|null}>}
  */
 async function runArchiveSweep() {
+  const runtime = rt();
+  // One sweep per window at a time: an overlapping tick could otherwise pick
+  // the same candidate twice.
+  if (archiveSweepsInFlight.has(runtime)) return { archived: [], closed: [], skippedReason: 'busy' };
+  archiveSweepsInFlight.add(runtime);
+  try {
+    return await archiveSweepPass(runtime);
+  } finally {
+    archiveSweepsInFlight.delete(runtime);
+  }
+}
+
+async function archiveSweepPass(runtime) {
   const skip = (reason) => ({ archived: [], closed: [], skippedReason: reason });
   if (isQuitting) return skip('quitting');
   if (sessionPersistenceSuspended) return skip('persistence-suspended');
@@ -2937,8 +2954,8 @@ async function runArchiveSweep() {
   lastArchiveSweepAt = now;
   if (now < archiveGraceUntil) return skip('grace');
 
-  const runtime = rt();
-  const candidates = archiveCandidates(runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), {
+  // Read fresh every time: the person keeps using the window while probes run.
+  const policy = (perSweepLimit) => ({
     now,
     thresholdMs,
     activeTabId: runtime.activeTabId,
@@ -2946,30 +2963,35 @@ async function runArchiveSweep() {
     permissionPendingTabIds: permissionPendingTabIds(),
     popupChildCounts,
     graceUntil: archiveGraceUntil,
+    perSweepLimit,
   });
-  if (!candidates.length) return { archived: [], closed: [], skippedReason: null };
+  const candidates = archiveCandidates(
+    runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), policy(undefined),
+  );
 
   const spaceName = namedWorkspaces.get(runtime.workspaceId)?.name ?? null;
-  const entries = [];
   const archived = [];
   const closed = [];
-  for (const { id, closeOnly } of candidates) {
+  for (const { id } of candidates) {
+    const probed = tabs.get(id);
+    if (!probed || await tabHoldsUnsavedWork(probed)) continue;
+    if (archiveProbeObserverForTest) await archiveProbeObserverForTest(id);
+    // Spec §2.5, "in one step": after the probe's await, re-run the whole
+    // eligibility check on this one tab, then save and close it at once.
+    // The person may have switched to it, pinned, grouped or moved it.
     const tab = tabs.get(id);
-    // Re-check after every await: the person may have switched to it.
-    if (!tab || id === runtime.activeTabId) continue;
-    if (await tabHoldsUnsavedWork(tab)) continue;
-    if (!tabs.has(id) || id === runtime.activeTabId) continue;
-    if (!closeOnly) {
+    if (!tab || windowRuntimes.runtimeForTab(id) !== runtime) continue;
+    const [still] = archiveCandidates([tab], policy(1));
+    if (!still) continue;
+    if (!still.closeOnly) {
       const entry = buildArchiveEntry(tab, { now, spaceName });
       if (!entry) continue;
-      entries.push(entry);
+      archive.addEntries([entry], now);
       archived.push(id);
     }
+    closeTab(id, { record: false, selectReplacement: false });
     closed.push(id);
   }
-  // Save first, then close: an entry must exist before its tab is gone.
-  archive.addEntries(entries, now);
-  for (const id of closed) closeTab(id, { record: false, selectReplacement: false });
   return { archived, closed, skippedReason: null };
 }
 
@@ -2977,11 +2999,12 @@ async function runArchiveSweep() {
  *  the end, selected. False when the entry is already gone, so a second
  *  restore of the same id opens nothing. */
 function restoreArchivedEntry(entryId) {
-  const tab = tabs.get(rt().activeTabId);
-  if (tab?.private) return false;
+  // The restored tab is always a normal tab, even from a window whose active
+  // tab is private; the Quick Switcher alone hides the Archive there.
   const entry = archive.takeEntry(String(entryId ?? ''));
   if (!entry) return false;
-  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null });
+  // Archived tabs were never pinned, so there is no home to carry.
+  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
   if (!id) return false;
   setActiveTab(id, { focusContent: true, focusAddress: false });
   return true;
@@ -12159,6 +12182,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
       runArchiveSweep, restoreArchivedEntry,
       setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
+      setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       // The live array, mirroring getSleepSnapshots: reset() empties it in

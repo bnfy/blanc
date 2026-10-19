@@ -183,6 +183,7 @@ function install(refs) {
     runArchiveSweep,
     restoreArchivedEntry,
     setArchiveGraceUntil,
+    setArchiveProbeObserver,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -3473,6 +3474,17 @@ function install(refs) {
     /** The real resume listeners, as when the machine wakes from sleep. */
     emitPowerResume() { powerMonitor.emit('resume'); },
     async runArchiveSweep() { return runArchiveSweep(); },
+    /** One-shot: once the sweep has probed `id`, make it the active tab, as a
+     *  person switching to it mid-sweep would. */
+    activateCandidateDuringArchiveProbe(id) {
+      setArchiveProbeObserver((probedId) => {
+        if (probedId !== id) return;
+        setArchiveProbeObserver(null);
+        setActiveTab(id, { focusContent: false });
+      });
+      return true;
+    },
+    async runArchiveSweepsConcurrently() { return Promise.all([runArchiveSweep(), runArchiveSweep()]); },
     archiveEntries() { return archive.listArchive({ now: Date.now() }); },
     restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },

@@ -182,3 +182,41 @@ Then('it opens as the last tab and leaves the Archive', async function () {
   assert.equal(restored.groupId, null);
   assert.deepEqual(await this.call('archiveEntries'), []);
 });
+
+When('I switch to that tab while the archive sweep is checking it', async function () {
+  await this.call('setArchiveGraceUntil', 0);
+  await this.call('activateCandidateDuringArchiveProbe', this.archiveCandidateId);
+  this.archiveResult = await this.call('runArchiveSweep');
+});
+
+Then('that tab is the active tab', async function () {
+  const state = await this.state();
+  assert.equal(state.activeTabId, this.archiveCandidateId);
+});
+
+When('two archive sweeps start at the same time', async function () {
+  await this.call('setArchiveGraceUntil', 0);
+  this.archiveResults = await this.call('runArchiveSweepsConcurrently');
+});
+
+Then('one sweep reports it was busy', function () {
+  assert.deepEqual(this.archiveResults.map((r) => r.skippedReason).sort(), ['busy', null]);
+});
+
+Then('that tab is listed in the Archive once', async function () {
+  const entries = await this.call('archiveEntries');
+  assert.equal(entries.length, 1);
+  assert.equal((await this.state()).tabs.some((t) => t.id === this.archiveCandidateId), false);
+});
+
+Given('a private tab is active', async function () {
+  this.privateTabId = await this.call('openTab', this.fixtureUrl('archive-private'), { private: true });
+  await this.waitForState((state) => state.activeTabId === this.privateTabId);
+});
+
+Then('the restored tab is a normal tab', async function () {
+  assert.equal(this.restoredFirst, true);
+  const state = await this.waitForState((s) => s.tabs.some((t) => t.url.includes('/site/archive-plain')));
+  const restored = state.tabs.find((t) => t.url.includes('/site/archive-plain'));
+  assert.equal(restored.private, false);
+});
