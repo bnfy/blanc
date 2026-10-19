@@ -43,7 +43,7 @@ const {
     <p>{intro}</p>
   </div>
 
-  <figure class="memchart">
+  <figure class="memchart" data-memchart>
     <table class="memchart-table">
       <caption class="sr-only">
         Memory used by each browser with six ad-heavy sites open, in gibibytes
@@ -55,12 +55,12 @@ const {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <tr class={row.blanc ? 'is-blanc' : undefined}>
             <th scope="row">{row.name}</th>
             <td>
               <span class="memchart-track" aria-hidden="true">
-                <span class="memchart-bar" style={`--fill:${(row.gb / SCALE_GB) * 100}%`}></span>
+                <span class="memchart-bar" style={`--fill:${(row.gb / SCALE_GB) * 100}%;--i:${index}`}></span>
               </span>
               <span class="memchart-val">{row.gb.toFixed(1)} GB</span>
             </td>
@@ -77,3 +77,20 @@ const {
     </figcaption>
   </figure>
 </section>
+
+<script>
+  // Grow the bars once the chart is mostly in view. Reduced motion and
+  // browsers without IntersectionObserver keep the finished chart.
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    for (const chart of document.querySelectorAll<HTMLElement>('[data-memchart]')) {
+      chart.dataset.animate = 'waiting';
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        chart.dataset.animate = 'shown';
+        observer.disconnect();
+      }, { threshold: 0.35 });
+      observer.observe(chart);
+    }
+  }
+</script>
