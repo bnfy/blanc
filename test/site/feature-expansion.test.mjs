@@ -53,7 +53,8 @@ test('expanded pages load their images and fit 360, 768, and 1440 pixel viewport
             image.addEventListener('error', () => reject(new Error(`${image.currentSrc} failed to load`)), { once: true });
           }));
           await img.evaluate(image => image.decode());
-          assert.ok(await img.evaluate(image => image.complete && image.naturalWidth === 1440), `${route}: capture loaded`);
+          // 1440×900 captures, or 2× captures of the same frame (2880×1800).
+          assert.ok(await img.evaluate(image => image.complete && [1440, 2880].includes(image.naturalWidth)), `${route}: capture loaded`);
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `${width}px ${route}: no horizontal overflow`);
       }

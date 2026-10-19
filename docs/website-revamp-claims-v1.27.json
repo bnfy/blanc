@@ -4628,16 +4628,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-071",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Four ways to begin. Mahjong when you want a break.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-072",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.",
@@ -4787,16 +4777,6 @@
         "profiles"
       ],
       "verdict": "qualified"
-    },
-    {
-      "id": "website-115-259",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Standalone Mahjong — Bridge / Burst",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "verified"
     },
     {
       "id": "messaging-125-003",
@@ -13104,6 +13084,30 @@
           {
             "before": "private-tab feature activity is excluded.</p>\n",
             "after": "private-tab feature activity is excluded.</p>\n    <p>Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.</p>\n"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026: adds a four-capture gallery of the v1.38.0 wallpapers, taken from the public v1.38.0 app and recorded in docs/website-captures-v1.38.0.json, with captions recorded in docs/website-v1.38-claims.json. No existing sentence changes.",
+        "replacements": [
+          {
+            "before": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">",
+            "after": "  <section class=\"layout-gallery layout-gallery--pairs\" aria-label=\"Start Page wallpapers: your own image and a color\">\n    <figure><a href=\"/feature-captures/start-page-image-v1.38.0.png\" aria-label=\"View full capture of the Start Page with your own image\"><img src=\"/feature-captures/start-page-image-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"Blanc’s Billboard Start Page over Van Gogh’s Wheat Field with Cypresses, with the Spotlight wash behind the clock and favorites.\" /></a><figcaption>Your image with the Spotlight wash. Van Gogh, Wheat Field with Cypresses, The Met (public domain).</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-image-customize-v1.38.0.png\" aria-label=\"View full capture of Customize with Your image selected\"><img src=\"/feature-captures/start-page-image-customize-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"The Customize popover on the Start Page with Your image selected under Wallpaper, a preview of the painting, and the Wash and Fade controls.\" /></a><figcaption>Customize → Wallpaper → Your image</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-color-v1.38.0.png\" aria-label=\"View full capture of the Start Page in a color\"><img src=\"/feature-captures/start-page-color-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"Blanc’s Billboard Start Page painted in the Sky color with the Gradient fill.\" /></a><figcaption>Color: Sky with the Gradient fill</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-color-customize-v1.38.0.png\" aria-label=\"View full capture of Customize with Color selected\"><img src=\"/feature-captures/start-page-color-customize-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"The Customize popover with Color selected under Wallpaper, the eight color swatches, the Fill choice and the Match each space’s color switch.\" /></a><figcaption>Customize → Wallpaper → Color</figcaption></figure>\n  </section>\n  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026: the Start Page captures were retaken from public v1.38.0 (docs/website-captures-v1.38.0.json). Mahjong now shows the Daily deal on Turtle, so its caption follows; and at the owner's request the headline is more direct. The replacement wording is recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<h1 id=\"start-page-title\">Four ways to begin. Mahjong when you want a break.</h1>",
+            "after": "<h1 id=\"start-page-title\">Choose your Start Page layout and wallpaper.</h1>"
+          },
+          {
+            "before": "<figcaption>Standalone Mahjong — Bridge / Burst</figcaption>",
+            "after": "<figcaption>Standalone Mahjong — Daily Turtle / Burst</figcaption>"
           }
         ]
       }

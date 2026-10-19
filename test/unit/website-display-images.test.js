@@ -56,7 +56,7 @@ test('pages use the light copies while full-size links keep the pinned captures'
   assert.doesNotMatch(home + read('src/scripts/home.js'), /-v1\.31\.0\.png/);
   const guide = read('src/pages/features/start-page.astro');
   assert.doesNotMatch(guide, /<img src="\/feature-captures\/[a-z]+-v1\.31\.0\.png"/);
-  assert.match(guide, /href="\/feature-captures\/ledger-v1\.31\.0\.png"/);
+  assert.match(guide, /href="\/feature-captures\/ledger-v1\.38\.0\.png"/);
   // Below the opening screen, captures wait until they are scrolled near.
   const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // (The later wallpapers are lazy too: website-home-demos.test.js.)

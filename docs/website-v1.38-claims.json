@@ -4,6 +4,8 @@
   "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
   "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim.",
   "prohibitedClaims": [
+    "Bridge / Burst",
+    "Four ways to begin. Mahjong when you want a break.",
     "a different image for each space",
     "per-space image",
     "synced image"
@@ -63,6 +65,30 @@
         "docs/press/release-notes/v1.38.0.md"
       ],
       "qualification": "With Match each space's color on, a window that belongs to a space draws that space's color while the Color wallpaper shows; the page receives only the hex color. There is no separate image per space."
+    },
+    "captures": {
+      "evidence": [
+        "docs/press/release-notes/v1.38.0.md",
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/newtab-wallpaper.js"
+      ],
+      "qualification": "Captions describe the recorded states in docs/website-captures-v1.38.0.json, taken from the public v1.38.0 arm64 DMG. The painting is a CC0 Met Open Access image used as the sample."
+    },
+    "layouts": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "The Customize popover offers the four layouts (Ledger, Billboard, Shelf, Tally) and, since v1.38.0, the Sunrise, Color and Your image wallpapers."
+    },
+    "mahjongCapture": {
+      "evidence": [
+        "src/renderer/pages/mahjong.html",
+        "src/renderer/pages/mahjong.js",
+        "src/renderer/pages/mahjong-engine.js"
+      ],
+      "qualification": "The capture shows a fresh profile's standalone Mahjong: the Daily deal, which that day was the Turtle board, in Burst mode."
     }
   },
   "labels": [
@@ -189,6 +215,84 @@
         "imagePrivacy"
       ],
       "verdict": "verified"
+    },
+    {
+      "id": "v138-011",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your image with the Spotlight wash.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-012",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Van Gogh, Wheat Field with Cypresses, The Met (public domain).",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-013",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Your image",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-014",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Color: Sky with the Gradient fill",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-015",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Color",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-016",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose your Start Page layout and wallpaper.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-071"
+    },
+    {
+      "id": "v138-017",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong — Daily Turtle / Burst",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongCapture"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-259"
     }
   ]
 }
