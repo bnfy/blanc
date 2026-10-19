@@ -220,3 +220,29 @@ Then('the restored tab is a normal tab', async function () {
   const restored = state.tabs.find((t) => t.url.includes('/site/archive-plain'));
   assert.equal(restored.private, false);
 });
+
+Given('a loose background tab not viewed for 13 hours in a Space I then set aside', async function () {
+  this.archiveCandidateId = await openLoadedTab(this, 'archive-space');
+  const saved = await this.call('workspaceAction', 'save', 'Archive home');
+  assert.equal(saved.ok, true, JSON.stringify(saved));
+  this.archiveSpaceId = saved.workspace.id;
+  const away = await this.call('workspaceAction', 'create', 'Archive away');
+  assert.equal(away.ok, true, JSON.stringify(away));
+  // Set aside, the tab lives on in a resident runtime with its old clock.
+  assert.equal(await this.call('setTabViewedSince', this.archiveCandidateId, 13 * HOUR), true);
+});
+
+When('the archive sweep runs in every window', async function () {
+  await this.call('setArchiveGraceUntil', 0);
+  this.archiveResults = await this.call('runArchiveSweepInEveryWindow');
+});
+
+When('I go back to that Space and the archive sweep runs in every window', async function () {
+  // A Space switch is refused while a page in the window is still loading.
+  await this.waitForState((state) => state.tabs.every((t) => !t.isLoading));
+  const back = await this.call('workspaceAction', 'open', this.archiveSpaceId);
+  assert.equal(back.ok, true, JSON.stringify(back));
+  await this.waitForState((state) => state.tabs.some((t) => t.id === this.archiveCandidateId));
+  await this.call('setArchiveGraceUntil', 0);
+  this.archiveResults = await this.call('runArchiveSweepInEveryWindow');
+});

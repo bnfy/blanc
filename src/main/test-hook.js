@@ -184,6 +184,7 @@ function install(refs) {
     restoreArchivedEntry,
     setArchiveGraceUntil,
     setArchiveProbeObserver,
+    runArchiveSweepInEveryWindow,
     getPermissionPrompts,
     showFillStatusForTest,
     onePasswordTargetForTest,
@@ -3485,6 +3486,9 @@ function install(refs) {
       return true;
     },
     async runArchiveSweepsConcurrently() { return Promise.all([runArchiveSweep(), runArchiveSweep()]); },
+    /** The 30-second timer's fan-out: one archive sweep per window runtime,
+     *  set-aside Spaces included. */
+    async runArchiveSweepInEveryWindow() { return runArchiveSweepInEveryWindow(); },
     archiveEntries() { return archive.listArchive({ now: Date.now() }); },
     restoreArchived(id) { return restoreArchivedEntry(id); },
     setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },

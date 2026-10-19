@@ -89,3 +89,12 @@ Feature: Tab Archive
     And a private tab is active
     When I restore it from the Archive
     Then the restored tab is a normal tab
+
+  @F52-13 @F52 @desktop
+  Scenario: Tabs in a Space set aside are left alone, and start their idle clock again when it comes back
+    Given tab archiving is set to 12 hours
+    And a loose background tab not viewed for 13 hours in a Space I then set aside
+    When the archive sweep runs in every window
+    Then that tab is still open and the Archive is empty
+    When I go back to that Space and the archive sweep runs in every window
+    Then that tab is still open and the Archive is empty

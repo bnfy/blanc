@@ -2928,6 +2928,9 @@ async function tabHoldsUnsavedWork(tab) {
  */
 async function runArchiveSweep() {
   const runtime = rt();
+  // A set-aside Space keeps its tabs in a hidden resident runtime. Spec §8:
+  // nothing is archived from a Space that isn't open.
+  if (runtime.resident) return { archived: [], closed: [], skippedReason: 'set-aside' };
   // One sweep per window at a time: an overlapping tick could otherwise pick
   // the same candidate twice.
   if (archiveSweepsInFlight.has(runtime)) return { archived: [], closed: [], skippedReason: 'busy' };
@@ -6059,6 +6062,13 @@ function stageWorkspace(runtime, workspace) {
     }
     move(runtime, outgoing);
     move(incoming, runtime);
+    // Tab Archive (F52, spec §2.3): tabs entering from a Space start their
+    // idle clock now. A set-aside Space's tabs kept their old stamps.
+    const viewedAt = Date.now();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab) tab.lastViewedAt = viewedAt;
+    }
     transferred = true;
   } catch (error) {
     if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
@@ -12181,6 +12191,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
       runArchiveSweep, restoreArchivedEntry,
+      runArchiveSweepInEveryWindow: () => {
+        const runs = [];
+        forEachWindowRuntime(() => { runs.push(runArchiveSweep()); });
+        return Promise.all(runs);
+      },
       setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
       setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
