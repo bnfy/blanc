@@ -3,6 +3,66 @@
   "noPage": [],
   "pages": [
     {
+      "release": "1.39",
+      "highlights": [
+        {
+          "id": "auto-hide-island",
+          "tile": "Auto-hide the Island",
+          "title": "Give the page the whole window",
+          "body": "Turn on Auto-hide the Island, and the page fills the window to its top edge. The Island slides back when you point at the top edge, rest the pointer near the top, or press `⌘L`.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island, or press `⌘⌥B` (`Ctrl+Alt+B` on Windows and Linux)."
+          ],
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/auto-hide-island-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Met’s page for Van Gogh’s Wheat Field with Cypresses filling a Blanc window to its top edge, with the Island hidden."
+          }
+        },
+        {
+          "id": "tab-archive",
+          "tile": "Tab Archive",
+          "title": "Let idle tabs tidy themselves away",
+          "body": "Loose tabs you haven’t looked at in a while close themselves into an Archive. Find them again in the `⌘L` panel or in History, and bring one back with a click.",
+          "steps": [
+            "Open Settings → General.",
+            "Under Archive inactive tabs, choose 12 hours, 1 day, 7 days or 30 days."
+          ],
+          "note": "Pinned, grouped and private tabs are never archived, and nor is a tab playing media or holding something you typed. The Archive stays on this device for 30 days.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-archive-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s History sheet on the Archived tabs view, listing six archived tabs under Today and Yesterday, each with its site icon and the time it was archived."
+          }
+        },
+        {
+          "id": "sunrise-gold",
+          "tile": "Sunrise Gold",
+          "title": "A gold icon for your Dock",
+          "body": "Sunrise Gold puts the Sunrise in glass over gold: soft in Light, polished in Dark.",
+          "steps": [
+            "Open Settings → General.",
+            "Under App icon, choose Sunrise Gold."
+          ],
+          "note": "Sunrise Gold is for macOS.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/sunrise-gold-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings on the Appearance card, where the App icon row offers Sunrise, Sunrise Dark and Sunrise Gold, with Sunrise Gold selected."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.38",
       "highlights": [
         {

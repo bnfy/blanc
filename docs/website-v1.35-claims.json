@@ -35,7 +35,7 @@
       "evidence": [
         "site/src/pages/privacy.astro"
       ],
-      "qualification": "The Privacy Policy's October 17, 2026 revision only adds the newsletter signup card and its browser-local entry; every other data flow it describes is unchanged."
+      "qualification": "The Privacy Policy's October 19, 2026 revision only adds the What's New check that ships in v1.39.0 (src/main/whats-new-check.js: one cookie-less HEAD to blanc.day, at most once per launch for up to seven days); its October 17 revision added the newsletter signup card and its browser-local entry. Every other data flow it describes is unchanged."
     },
     "patronPage": {
       "evidence": [
@@ -151,7 +151,7 @@
     {
       "id": "v135-010",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 17, 2026",
+      "exactWording": "Last updated October 19, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "privacyRevision"

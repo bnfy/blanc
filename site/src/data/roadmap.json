@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-18",
+  "updated": "2026-10-19",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },

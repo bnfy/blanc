@@ -12,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
 <main id="main-content" class="legal-doc">
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated October 17, 2026</p>
+  <p class="legal-updated">Last updated October 19, 2026</p>
 
   <div class="legal-tldr">
     <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Sync for eligible data or explicitly create a one-time tab handoff. A fresh install asks before search suggestions or pseudonymous usage measurement can send anything; both choices are presented on and can be turned off before continuing. Usage measurement counts launches and a small allowlist of local feature actions, never browsing activity, and excludes private tabs from feature-use events. The blocker ships with the app instead of downloading filter code at first launch. This website counts page views with Cloudflare's cookieless Web Analytics. Optional Google analytics and ad-conversion measurement stay off until you explicitly allow them through footer Privacy choices, or an existing saved grant applies.</p>
@@ -82,6 +82,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li><strong>Blocking.</strong> Reviewed, hash-pinned EasyList and EasyPrivacy snapshots ship inside each Blanc release. The desktop blocker does not download changing filter resources at startup. Network rules, cosmetic CSS, and bundled blocker scriptlets update only with a new signed Blanc release; scriptlet declarations are isolated from one another before injection. Blocking reduces known ads and trackers but cannot guarantee that every tracker is stopped.</li>
     <li><strong>Favicons.</strong> Sites may deliver icons as part of normal page loading. When Blanc needs to retain an icon for chrome, a favorite, or optional tab sharing, its main process may fetch the site-provided icon separately without cookies or a referrer. It follows at most five redirects, checking each one by the same rules, refuses private/local network destinations, limits the response, and rasterizes the result to a fixed PNG. Only that PNG—not the source URL—is persisted or synced. The icon host, and any host it redirects to, still sees the network request and source IP.</li>
     <li><strong>Updates.</strong> An installed build checks GitHub for app updates and downloads an update only from that channel.</li>
+    <li><strong>What’s New.</strong> After an update that adds features, Blanc asks blanc.day whether that release’s What’s New page exists, at most once per launch for up to seven days, and opens it once in a new tab. The request sends no cookies, and the page runs no analytics.</li>
     <li><strong>Secure DNS.</strong> If you choose a named or custom secure-DNS provider, DNS queries go to that provider under its policy. “Automatic” and “Off” use the platform/browser resolver behavior described in Settings.</li>
     <li><strong>Downloads.</strong> A website serving a download observes that request. Blanc does not upload the resulting file or download record to Bananify.</li>
   </ul>
