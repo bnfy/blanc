@@ -1703,3 +1703,14 @@ Fault injection is confined to disposable Session paths and validates the owning
 No native compilation; guard zero actions/5.32s. Prior measured footprint49 files/117 hunks unchanged within49/120. Native input pending, latency deferred, Electron diagnostic build unapproved/unstarted. Before-ack crashes, first-ever profile persistence, recent unpersisted edits, actual provider/hardware faults, long unattended soak, mutation variants and broader lifecycle remain gaps. Disposable restart alone uses the crash-bubble bypass; no native Restore or power-loss claim.
 
 Evidence: [initial save boundaries](evidence/ui138-retry-lifetime-20261020/README.md).
+
+
+### October 20 — Retry-specific profile shutdown and tab mutations
+
+Six clear/encrypted disposable schedules exercise the unchanged normal binary. Each first forces initial-window flush failure, then holds the next retry's fallback fsync. Full-browser shutdown is requested while held; releasing the flush allows the process to exit. Restart restores source, decoy and new window UUIDs/URLs. This covers full-browser shutdown and its profile lifetime, not hot deletion of one profile while another remains alive, nor a directly instrumented Profile destructor ordering claim.
+
+Mutation schedules add two tabs and remove the captured original tab during the held retry, or add two tabs and pin the last tab (moving it to the front). After release, a current-state save acknowledgement is observed. An abrupt process crash followed by restart retains exact ordered URLs and pinned flags under the same window UUID, while source/decoy UUIDs and URLs stay unchanged. The pin schedule also requests active-tab selection, but active selection is not asserted across restart and is not qualified here. These are bounded structural changes, not arbitrary grouping, split/move-window, beforeunload, mutation during callback dispatch or every stale-callback branch.
+
+All six task profiles/servers removed; retained preview untouched and unavailable to read-only verification, so its tabs were not reverified. Tests use cleanly primed disposable profiles, explicit clear/encrypted feature flags and disposable restart crash-bubble bypass. No native input claim. No native source change or compilation; final guard zero actions/5.17s. Previous measured footprint49 files/117 hunks unchanged within49/120. Latency deferred; Electron diagnostic build unapproved/unstarted. Hot profile deletion, actual provider/hardware failures, before-ack crash loss, first-ever profile initialization, unpersisted recent edits and broader mutation/lifecycle remain open.
+
+Evidence: [initial save boundaries](evidence/ui138-retry-profile-20261020/README.md).
