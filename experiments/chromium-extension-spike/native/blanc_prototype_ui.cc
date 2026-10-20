@@ -510,6 +510,8 @@ class Owner : public base::SupportsUserData::Data,
   bool initial_window_save_started = false;
   bool initial_window_saved = false;
   bool initial_window_save_failed = false;
+  int initial_window_save_failures = 0;
+  base::TimeTicks initial_window_retry_at;
   bool recovery_checked = false;
   bool space_busy = false;
   std::string space_name;
@@ -1542,10 +1544,19 @@ class Handler : public content::WebUIMessageHandler {
     }
     owner->initial_window_saved = success;
     owner->initial_window_save_failed = !success;
+    if (!success) {
+      owner->initial_window_save_started = false;
+      owner->initial_window_save_failures =
+          std::min(owner->initial_window_save_failures + 1, 6);
+      owner->initial_window_retry_at = base::TimeTicks::Now() +
+          base::Seconds(std::min(1 << (owner->initial_window_save_failures - 1), 30));
+    }
   }
   void MaybeSaveInitialWindow(Owner* owner) {
     auto* browser = owner->browser.get();
-    if (owner->initial_window_save_started || browser->CreatedBySessionRestore() ||
+    if (owner->initial_window_save_started || owner->initial_window_saved ||
+        base::TimeTicks::Now() < owner->initial_window_retry_at ||
+        browser->CreatedBySessionRestore() ||
         browser->GetProfile()->IsOffTheRecord() ||
         SessionRestore::IsRestoring(browser->GetProfile())) return;
     auto* model = browser->GetTabStripModel();
