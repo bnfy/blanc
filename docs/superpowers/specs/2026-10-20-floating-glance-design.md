@@ -62,10 +62,12 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
   it. They show the card instead of a side-by-side pane.
 - **×** in the card's header closes it, as do ⌘⇧G and Close Glance.
 - **Escape** closes it only while the card has keyboard focus **(owner)**.
-  Today nothing closes Glance on Escape; this is new. *(My call: "the card"
-  includes the Glance page itself, as in Arc's Peek and Zen's Glance, so
-  Escape typed in the Glance page closes it. Escape in the page behind never
-  does.)*
+  Today nothing closes Glance on Escape; this is new. **(owner, after the
+  October 20 review:)** "the card" means its chrome: the header and its
+  controls, including the Move or resize control. Inside the Glance page,
+  Escape goes to the site as usual (closing its dialogs and menus, leaving
+  fullscreen), and Escape in the page behind never closes the Glance either.
+  From inside the Glance page you close it with × or ⌘⇧G.
 - **Activating the Glance tab another way** (an Island dot, ⌘1–9, the ⌘L
   list) acts like **Open as tab**: the Glance ends and that tab becomes the
   active tab. Today these swap the two pages. *(My call, so there's one rule
@@ -126,14 +128,48 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
     since there's no ratio to carry over.)*
   - **×:** closes the Glance.
   - Right-clicking the header opens the Glance tab's menu, as today.
+- **Narrow header (compaction).** The header is one row at every card width
+  down to the 360 px minimum. As the card narrows, it gives up room in this
+  order, one step at a time, measured the way `fitGlanceHeader` measures
+  today's header:
+  1. **Change**, **Open as tab** and **Keep as split** become icon-only
+     buttons together. Each keeps its full label as its tooltip and
+     accessible name, so speech input and screen readers still use the
+     words.
+  2. The **GLANCE** label hides. The card's accessible name still says
+     Glance.
+  3. The host truncates with an ellipsis. Below about 8 characters it hides,
+     leaving the favicon (and the private chip) as the site's mark.
+
+  **Back**, **Reload/Stop** and **×** never hide, and neither does the
+  private chip. At 360 px the header holds the favicon, Back, Reload, the
+  three icon buttons and × with room left to drag. Widening the card undoes
+  the steps in reverse. *(My call, after the October 20 review.)*
 - **Focus:** clicking inside the card focuses the Glance page; clicking the
   page behind focuses the main page. Today's "commands follow the focused
   pane" rule stays (`commandTargetTab`): ⌘R, ⌘F, zoom, print and the
   1Password fill act on the card when it has focus. The Island keeps
   addressing the main page, as today.
+- **Keyboard move and resize.** The header's drag area is also a focusable
+  control, **Move or resize Glance**, in the header's tab order before ×.
+  With it focused:
+  - **Arrow keys** move the card 16 px; with **Shift**, 64 px.
+  - **Option+Arrow** (Alt+Arrow on Windows and Linux) resizes the card from
+    its bottom-right corner by the same steps, never below the minimum.
+  - **Enter** resets the card to its first-open size and place, like a
+    double-click on the header.
+
+  Each change goes to the remembered frame, as a drag does, and is announced
+  through the existing Glance status live region ("Glance moved", "Glance
+  resized to {width} by {height}", "Glance reset"), throttled so holding a key
+  doesn't flood it. The new strings go through the message catalog in every
+  language. *(My call, after the October 20 review.)*
 - **Motion:** the card fades and scales in from 96% over Glance's existing
   timing (opacity 140 ms, 340 ms ease `cubic-bezier(.2,.9,.25,1)`), and out
   the same way reversed. Reduce Motion: a 140 ms fade only. *(My call.)*
+  **A closing card stops taking input at once**, the moment the close
+  begins: clicks, keys and drags go to the page behind while the card's
+  exit animation finishes.
 
 ### What goes away
 
@@ -197,7 +233,6 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
   keep the shadow from being clipped (see the shadow-clipping lessons in
   WebContentsViews).
 - Resize hit areas (edge width, corner size) and cursors.
-- Keyboard access to move and resize, if any beyond the reset.
 - Rewriting `glance.feature` (about 60 `@F34` scenarios), `glance.steps.js`,
   the Glance unit tests and the F1-33/F1-39 and F53 scenarios that assume
   the side-by-side layout.
