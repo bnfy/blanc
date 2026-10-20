@@ -4,9 +4,9 @@ Feature: Split View
   item that survives relaunch and Spaces. Glance is the first step.
 
   @F53-1 @F53 @desktop @D11
-  Scenario: A split shows both tabs side by side, each with a header band
+  Scenario: A split shows both tabs side by side, each in its own card
     Given two loaded tabs made into a split
-    Then both tabs are shown side by side with a header band each
+    Then both tabs are shown side by side, each in its own card
 
   @F53-2 @F53 @desktop @D11
   Scenario: Clicking into the other pane makes it the focused, active tab without hiding the first
@@ -71,14 +71,14 @@ Feature: Split View
     Then there is no split and the first tab is pinned
 
   @F53-11 @F53 @desktop @D11
-  Scenario: Pane headers name their tabs; the header's remove dissolves; the divider resizes and resets
+  Scenario: Corner tabs name their panes; the corner × dissolves; the divider resizes and resets
     Given two loaded tabs made into a split
-    Then each pane header names its tab
+    Then the other pane's corner tab names its site and the focused one shows only its ×
     When I move the split divider with the keyboard
     Then the saved column widths change
     When I reset the split divider
     Then the column widths are equal again
-    When I press Remove from Split in the first pane's header
+    When I press the × on the first pane's corner tab
     Then there is no split
 
   @F53-12 @F53 @desktop @D11
@@ -104,10 +104,10 @@ Feature: Split View
     Then the side list shows the split as one row
 
   @F53-14 @F53 @desktop @D11
-  Scenario: A pane header follows its page as it navigates
+  Scenario: A pane's corner tab follows its page as it navigates
     Given two loaded tabs made into a split
-    When the second pane navigates to another page
-    Then the second pane's header names the new page and offers Back
+    When the second pane navigates to a page of another kind
+    Then the second pane's corner tab names the new page
 
   @F53-15 @F53 @desktop @D11
   Scenario: Grouping one split tab moves the whole split
@@ -139,3 +139,40 @@ Feature: Split View
     Given two loaded tabs made into a split
     When I pin the first split tab
     Then the first split tab is the active tab
+
+  @F53-20 @F53 @desktop @D11
+  Scenario: After a divider drag ends, hovering over the divider doesn't move it
+    Given two loaded tabs made into a split
+    When I drag the split divider and let go
+    Then hovering over the split divider doesn't move it
+
+  @F53-21 @F53 @desktop @D11
+  Scenario: Clicking an unfocused pane's corner tab focuses that pane
+    Given two loaded tabs made into a split
+    When I click the second pane's corner tab
+    Then the second split tab is the active tab and both stay shown
+
+  @F53-22 @F53 @desktop @D11 @island-autohide
+  Scenario: The floating Island stays above a split's panes, after a relaunch too
+    Given the Island auto-hides and floats
+    And the active tab is split with another, as its menu does
+    Then the floating pill stays above the split's panes and corner tabs
+    When Blanc relaunches
+    Then the floating pill stays above the split's panes and corner tabs
+    When I point at the top edge of the window
+    Then the floating pill slides in over the split
+
+  @F53-23 @F53 @desktop @D11 @island-autohide
+  Scenario: The pushed Island comes back above a split's panes
+    Given the Island auto-hides
+    And two loaded tabs made into a split
+    When I point at the top edge of the window
+    Then the Island is shown and the split's cards start below the strip
+
+  @F53-24 @F53 @desktop @D11 @island-autohide
+  Scenario: A pane view raised above the floating Island goes back under it at the next layout
+    Given the Island auto-hides and floats
+    And the active tab is split with another, as its menu does
+    When a pane's view is raised above everything
+    And I point at the top edge of the window
+    Then the floating pill slides in over the split

@@ -60,6 +60,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/split-tab.html": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/fill-status.js": {
       "state": "guarded",
       "allow": []

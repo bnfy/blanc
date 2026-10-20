@@ -1,16 +1,30 @@
 'use strict';
 
-// Pure geometry for Split View (F53): 2–4 panes, each with a header band at
-// its top that the chrome document paints in space the page views leave
-// free. No Electron imports, so every breakpoint and fallback stays
-// unit-testable. See docs/superpowers/specs/2026-10-19-split-view-design.md §3.2.
+// Pure geometry for Split View (F53): 2–4 panes drawn as Chromium-style
+// cards (spec D9). Each card's border is painted by the chrome document in
+// the space its page view leaves free, and a corner tab view floats on its
+// bottom-right corner. No Electron imports, so every breakpoint and fallback
+// stays unit-testable. See docs/superpowers/specs/2026-10-19-split-view-design.md §3.2–3.3.
 
-const { DIVIDER_SIZE } = require('./glance-layout');
-
-const SPLIT_HEADER_HEIGHT = 30;
-const PANE_MIN_CONTENT_HEIGHT = 160;
-/** Until the strip has measured a pane header's compact width. */
+/** One gap around and between the cards: their inset from every edge of the
+ *  page region, and the divider between two panes, so the space under the
+ *  strip and the space between panes match. */
+const SPLIT_GAP = 8;
+const SPLIT_INSET = SPLIT_GAP;
+const DIVIDER_SIZE = SPLIT_GAP;
+/** The card border; the page view sits inside it. */
+const PANE_BORDER = 1;
+const PANE_MIN_HEIGHT = 190;
+/** The narrowest a pane card stays usable. */
 const DEFAULT_PANE_MIN_WIDTH = 300;
+/** The card's corner radius; styles.css --split-pane-radius matches it. */
+const PANE_RADIUS = 8;
+/** The fillet band above and left of a corner tab bends the card's border. */
+const CORNER_TAB_FILLET = PANE_RADIUS;
+/** The corner tab (28 px) plus the fillet band above it. */
+const CORNER_TAB_HEIGHT = 28 + CORNER_TAB_FILLET;
+/** The × and the padding after it, at the tab's right end. */
+const CORNER_TAB_CLOSE_WIDTH = 26;
 const MIN_COLUMN_SHARE = 0.2;
 const MIN_GRID_SHARE = 0.25;
 const MAX_GRID_SHARE = 0.75;
@@ -69,9 +83,26 @@ function withMinimum(sizes, min) {
 }
 
 const pane = (x, y, width, height) => ({
-  header: { x, y, width, height: Math.min(SPLIT_HEADER_HEIGHT, height) },
-  content: { x, y: y + Math.min(SPLIT_HEADER_HEIGHT, height), width, height: Math.max(0, height - SPLIT_HEADER_HEIGHT) },
+  frame: { x, y, width, height },
+  content: {
+    x: x + PANE_BORDER,
+    y: y + PANE_BORDER,
+    width: Math.max(0, width - 2 * PANE_BORDER),
+    height: Math.max(0, height - 2 * PANE_BORDER),
+  },
 });
+
+/** The cards' region: the page region less the inset on every edge, so
+ *  the window's own color shows between the strip and the cards too. */
+function cardRegion(pageBounds) {
+  const page = bounds(pageBounds);
+  return {
+    x: page.x + SPLIT_INSET,
+    y: page.y + SPLIT_INSET,
+    width: Math.max(0, page.width - 2 * SPLIT_INSET),
+    height: Math.max(0, page.height - 2 * SPLIT_INSET),
+  };
+}
 
 function columns(page, widths) {
   const panes = [];
@@ -109,12 +140,12 @@ function rows(page, heights) {
  * saved layout.
  */
 function computeSplitLayout(pageBounds, layout, paneCount, { paneMinWidth, focusedIndex = 0 } = {}) {
-  const page = bounds(pageBounds);
+  const page = cardRegion(pageBounds);
   const n = paneCount;
   const saved = normalizeSplitLayout(layout, n);
   if (!saved) return { mode: 'focus', panes: [], dividers: [] };
   const minW = Number.isFinite(paneMinWidth) && paneMinWidth > 0 ? paneMinWidth : DEFAULT_PANE_MIN_WIDTH;
-  const minH = SPLIT_HEADER_HEIGHT + PANE_MIN_CONTENT_HEIGHT;
+  const minH = PANE_MIN_HEIGHT;
   const fitsColumns = (k) => page.width >= k * minW + (k - 1) * DIVIDER_SIZE;
   const fitsRows = (k) => page.height >= k * minH + (k - 1) * DIVIDER_SIZE;
   const mark = (result, modeName, isSaved) => ({
@@ -148,19 +179,41 @@ function computeSplitLayout(pageBounds, layout, paneCount, { paneMinWidth, focus
     return mark(rows(page, pixels(equalWidths(n), page.height - (n - 1) * DIVIDER_SIZE)), 'rows', false);
   }
 
-  // Focus only: every other pane is its header band, stacked in pane order;
-  // the focused pane takes the rest.
+  // Focus only: the focused card takes the whole region; the others are
+  // hidden until the window grows again.
   const focused = Number.isInteger(focusedIndex) ? clamp(focusedIndex, 0, n - 1) : 0;
-  const panes = new Array(n);
-  let y = page.y;
-  for (let i = 0; i < n; i++) {
-    if (i === focused) continue;
-    const band = Math.min(SPLIT_HEADER_HEIGHT, Math.max(0, page.y + page.height - y));
-    panes[i] = pane(page.x, y, page.width, band);
-    y += band;
-  }
-  panes[focused] = pane(page.x, y, page.width, Math.max(0, page.y + page.height - y));
+  const panes = Array.from({ length: n }, (_, i) => (i === focused
+    ? pane(page.x, page.y, page.width, page.height)
+    : { frame: null, content: null }));
   return { mode: 'focus', panes, dividers: [] };
+}
+
+/** The corner tab view's bounds on a card, `width` wide (spec D9). */
+function cornerTabBounds(frame, width) {
+  if (!frame || frame.width <= 0 || frame.height <= 0) return null;
+  const w = Math.min(frame.width, Math.max(0, Math.round(width)));
+  const h = Math.min(frame.height, CORNER_TAB_HEIGHT);
+  return { x: frame.x + frame.width - w, y: frame.y + frame.height - h, width: w, height: h };
+}
+
+/** Which part of a corner tab view `point` (view-local) falls on: the
+ *  'close' ×, the rest of the 'tab', or null for the fillet band. */
+function cornerTabHit(size, point) {
+  const { width, height } = size ?? {};
+  const { x, y } = point ?? {};
+  if (![width, height, x, y].every(Number.isFinite)) return null;
+  if (x < CORNER_TAB_FILLET || y < CORNER_TAB_FILLET || x >= width || y >= height) return null;
+  return x >= width - CORNER_TAB_CLOSE_WIDTH ? 'close' : 'tab';
+}
+
+/** What a corner tab names its pane by: a web page's host (with its port),
+ *  as Chromium's split view does, or the tab's title for anything else. */
+function cornerTabSite(url, title) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.host;
+  } catch { /* fall through to the title */ }
+  return typeof title === 'string' ? title : '';
 }
 
 /**
@@ -168,13 +221,13 @@ function computeSplitLayout(pageBounds, layout, paneCount, { paneMinWidth, focus
  * divider is a fallback's, unknown, or the layout isn't drawn as saved.
  */
 function layoutForDivider(pageBounds, layout, paneCount, divider, point, { paneMinWidth } = {}) {
-  const page = bounds(pageBounds);
-  const drawn = computeSplitLayout(page, layout, paneCount, { paneMinWidth });
+  const page = cardRegion(pageBounds);
+  const drawn = computeSplitLayout(pageBounds, layout, paneCount, { paneMinWidth });
   const target = drawn.dividers.find((d) => d.index === divider?.index && d.axis === divider?.axis);
   if (!target?.saved) return null;
   const saved = normalizeSplitLayout(layout, paneCount);
   const minW = Number.isFinite(paneMinWidth) && paneMinWidth > 0 ? paneMinWidth : DEFAULT_PANE_MIN_WIDTH;
-  const minH = SPLIT_HEADER_HEIGHT + PANE_MIN_CONTENT_HEIGHT;
+  const minH = PANE_MIN_HEIGHT;
   const half = DIVIDER_SIZE / 2;
 
   if (saved.kind === 'grid') {
@@ -193,8 +246,8 @@ function layoutForDivider(pageBounds, layout, paneCount, divider, point, { paneM
   // Columns: move the boundary between pane i and i+1; the others keep their size.
   const i = target.index;
   const usable = page.width - (paneCount - 1) * DIVIDER_SIZE;
-  const px = drawn.panes.map((p) => p.header.width);
-  const start = drawn.panes[i].header.x;
+  const px = drawn.panes.map((p) => p.frame.width);
+  const start = drawn.panes[i].frame.x;
   const pair = px[i] + px[i + 1];
   const floor = Math.max(minW, Math.ceil(MIN_COLUMN_SHARE * usable));
   const left = clamp(Math.round(point.x - start - half), floor, pair - floor);
@@ -208,8 +261,8 @@ function layoutForDivider(pageBounds, layout, paneCount, divider, point, { paneM
 
 /**
  * The chrome:split-layout payload: what the strip needs to draw each pane's
- * header band and the dividers. `panes` is per tab, in pane order. Only PNG
- * data URLs cross as favicons, as in serializeTabs.
+ * card and the dividers. `panes` is per tab, in pane order. Only PNG data
+ * URLs cross as favicons, as in serializeTabs.
  */
 function splitLayoutPayload(splitId, geometry, panes, focusedIndex) {
   if (!geometry) return null;
@@ -219,14 +272,12 @@ function splitLayoutPayload(splitId, geometry, panes, focusedIndex) {
     mode: geometry.mode,
     panes: (panes ?? []).map((info, index) => ({
       tabId: info.tabId,
-      header: geometry.panes[index]?.header ?? null,
+      frame: geometry.panes[index]?.frame ?? null,
       content: geometry.panes[index]?.content ?? null,
       focused: index === focusedIndex,
       title: typeof info.title === 'string' ? info.title : '',
       favicon: png(info.favicon),
       private: !!info.private,
-      canGoBack: !!info.canGoBack,
-      loading: !!info.loading,
     })),
     dividers: geometry.dividers.map((d) => ({ index: d.index, axis: d.axis, rect: d.rect, saved: !!d.saved })),
   };
@@ -234,8 +285,17 @@ function splitLayoutPayload(splitId, geometry, panes, focusedIndex) {
 
 module.exports = {
   splitLayoutPayload,
-  SPLIT_HEADER_HEIGHT,
-  PANE_MIN_CONTENT_HEIGHT,
+  cornerTabBounds,
+  cornerTabHit,
+  cornerTabSite,
+  PANE_RADIUS,
+  CORNER_TAB_FILLET,
+  CORNER_TAB_CLOSE_WIDTH,
+  SPLIT_INSET,
+  SPLIT_GAP,
+  PANE_BORDER,
+  PANE_MIN_HEIGHT,
+  CORNER_TAB_HEIGHT,
   DEFAULT_PANE_MIN_WIDTH,
   defaultSplitLayout,
   normalizeSplitLayout,

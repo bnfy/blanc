@@ -44,7 +44,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **`grid`** is for exactly 4 panes, in reading order (top-left, top-right, bottom-left, bottom-right). It has **one shared vertical divider** (`column`, the left column's share) and **one shared horizontal divider** (`row`, the top row's share), each clamped to 0.25–0.75. Rows can't have different column splits; a 2×2 is a cross, as in Arc.
 - **Changing the pane count** resets the shape to its default: equal columns, or a centered cross.
 
-**What is drawn.** `split-layout.js` picks the first entry in this list that fits the page region, using the measured minimums. `paneMinWidth` is the pane header's compact width, measured as Glance measures its header (300 px default). `paneMinHeight` is the 30 px header plus 160 px of page.
+**What is drawn.** `split-layout.js` picks the first entry in this list that fits the page region, using the measured minimums. `paneMinWidth` is the narrowest a pane card stays usable (300 px). `paneMinHeight` is 190 px of card. The region is the page region less the cards' 8 px inset on every edge, and the divider is the same 8 px, so the gap under the strip matches the gap between panes.
 
 | Panes | 1st choice | 2nd | 3rd |
 |---|---|---|---|
@@ -53,24 +53,23 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 | 4 | saved grid | four columns (equal widths) | four rows (equal heights), then focus only |
 
 - **Fitting:** columns need `n × paneMinWidth + (n − 1) × divider` of width; rows need `n × paneMinHeight + (n − 1) × divider` of height; the grid needs both two columns and two rows to fit.
-- **Focus only** always fits. The focused pane fills the page region, and every other pane shrinks to its header band, stacked above it. Clicking a header focuses that pane and swaps it in.
+- **Focus only** always fits. The focused pane fills the page region and the other panes are hidden until the window grows again; they stay reachable from the split's row, ⌘L and the pane focus shortcuts.
 - **Fallbacks are presentation only.** Their dividers can be moved while they show, but nothing is saved. The saved layout returns as soon as it fits again.
 - **Every divider** in the saved layout is pointer-resizable and keyboard accessible (arrow keys move it, a reset action restores the default), reusing Glance's divider behavior. Moving one updates the saved fractions.
-- **Pane order:** a pane's position is its order in the split. Dragging a pane header onto another pane swaps them. *(Drag lands in PR 3, §10.)*
+- **Pane order:** a pane's position is its order in the split. Dragging a pane's corner tab onto another pane swaps them. *(Drag lands in PR 3, §10.)*
 
-### 3.3 Chrome: one Island, a header band on every pane (D5)
+### 3.3 Chrome: one Island, Chromium-style pane cards (D5, revised by D9)
 
-- **The Island:** it stays the only floating pill, centered over the window's page region as usual. It always addresses the **focused pane**: its address, Back/Forward, shield, Favorite and the tab-scoped slash commands act on that pane, extending Glance's "commands follow the focused pane" rule (`commandTargetTab`) from two panes to four.
-- **Who draws the headers.** Header bands are reserved in each pane's geometry, which is how stacked Glance already works. The page views stop short of the band, so the window's own chrome document (`index.html`, which lies under every page view and spans the whole window) is what shows through, and it paints the header and takes its clicks there. This holds in every position, including the bottom row of a grid and the focus-only bands.
-  - No new `WebContentsView`s, so there is no new stacking, focus or Linux re-attach lifecycle (`tab-view-lifecycle.js` is untouched).
-  - Hit-testing is plain DOM, because nothing covers a reserved band.
-  - Every header, top row included, sits at the top of its own pane, below the strip, the way Glance's stacked header sits between views. The strip holds the Island alone. **Keep as split** therefore moves the Glance reference's identity from the strip into its pane's band, and the main page gains a band of its own.
-  - Menus opened from a header are the native tab menu, or the overlay view (already stacked above every page view), never DOM drawn over a page view.
-- **Pane headers:** every pane gets a slim header, Glance's reference header generalized. It holds:
-  - the favicon and title
-  - the focused cue (eyebrow and hairline brighten, never an outline)
-  - **Back** and **Reload/Stop**
-  - a menu with **Add to Split…**, **Remove from Split**, **Close Split** and the tab's own menu
+- **The Island:** it stays the only floating pill, centered over the window's page region as usual. It always addresses the **focused pane**: its address, Back/Forward, Reload, shield, Favorite and the tab-scoped slash commands act on that pane, extending Glance's "commands follow the focused pane" rule (`commandTargetTab`) from two panes to four. Panes have no Back or Reload of their own (D9).
+- **Pane cards (D9).** Each pane is drawn the way Chromium's own split view draws it, and the way the Chromium fork gets it from `split_tabs`:
+  - a rounded card with a 1 px border, inset 8 px from the strip and the window's edges (the same as the gap between cards), with no header band, so the page takes the whole card;
+  - the focused pane's border is darker, and the others stay quiet;
+  - the gap between cards is the divider, which shows a small grab handle on hover and while it moves.
+  The chrome document (`index.html`, under every page view) paints the cards and the divider in the space the page views leave free. Each page view is inset by the border and given matching rounded corners (`View.setBorderRadius`).
+- **Corner tab (D9).** A small tab sits on each pane's bottom-right corner, over the page, and the card's border bends around it as in Chromium. An unfocused pane's tab shows its favicon, its site and a **×**; the focused pane's tab shows only the **×**. The **×** removes that tab from the split (it stays open as an ordinary tab), clicking the rest of the tab focuses the pane, and right-clicking it opens the tab menu (Split with, Remove from Split, Close Split and the rest).
+  - It floats over the page, so it is its own small transparent `WebContentsView` per visible pane, like the pill's tooltip view: no preload and no script. Main writes its contents and size, and reads clicks through the view's input events, so it never takes keyboard focus.
+  - Its actions stay reachable from the keyboard through the tab menu and ⌘L.
+- **Menus** opened from a pane are the native tab menu, or the overlay view (already stacked above every page view), never DOM drawn over a page view.
 - **Mockups:** the three directions the owner chose between are in [`docs/design-reviews/split-view-chrome-2026-10-19/mockups.html`](../../design-reviews/split-view-chrome-2026-10-19/mockups.html). Direction A is the source of truth for the chrome. Each later PR that adds visible chrome still mocks up its details first.
 - **Island dots:** while a split is showing, the Island hides its tab dots, as it does in Glance. Tabs stay reachable from ⌘L, the rail and ⌘1–9.
 - **Moving focus:**
@@ -195,6 +194,7 @@ Each PR starts from mockups where it adds visible chrome, and is checked in a pa
 - **D6 (was Q2):** pane focus cycles with `Cmd+Option+]` / `[` on macOS and `Ctrl+Alt+]` / `[` on Windows and Linux. Directional arrows were rejected: `Cmd+Option+←/→` is tab switching in Chrome and Safari, and some Windows graphics drivers rotate the screen on `Ctrl+Alt+Arrow`.
 - **D7 (was Q3):** pinning a split tab removes it from the split first.
 - **D8 (was Q4):** a tab leaving a split lands directly below the split's row.
+- **D9 (2026-10-20, revises D5):** panes look like Chromium's split view, as the Chromium fork's do: rounded bordered cards with a darker border on the focused pane and no header band. A corner tab floats over each pane's bottom-right corner (site and × when unfocused, × alone when focused) in its own small view, and the Island's Back and Reload serve the focused pane. The owner chose the floating corner tab over a reserved bottom strip, which would have left an empty band beside the tab.
 
 ## 12. Open questions
 

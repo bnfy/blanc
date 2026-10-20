@@ -62,13 +62,15 @@ const typeInPanel = (text, settle) => async (ctx) => {
 
 // Native menus are drawn by the OS, not a page. In the test app, popup() is
 // replaced so each menu Blanc pops is recorded as label entries (radio items
-// are tab-group names, which are data); a right-click is a real context-menu
+// are tab-group names and Split with ▸ items are tab titles, which are data);
+// a right-click is a real context-menu
 // event sent to the webContents (an id, or a URL prefix).
 const recordMenus = (app) => app.evaluate(({ Menu }) => {
   if (globalThis.__sweepMenus) return;
   globalThis.__sweepMenus = [];
   const entries = (menu) => menu.items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
-    { text: item.label, ignored: item.type === 'radio' }, ...(item.submenu ? entries(item.submenu) : []),
+    { text: item.label, ignored: item.type === 'radio' || String(item.id ?? '').startsWith('split-with-tab:') },
+    ...(item.submenu ? entries(item.submenu) : []),
   ]));
   Menu.prototype.popup = function popup(options) { globalThis.__sweepMenus.push(entries(this)); options?.callback?.(); };
 });

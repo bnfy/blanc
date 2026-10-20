@@ -102,6 +102,7 @@ const {
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,
+  CHROME_SPLIT_TAB_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
@@ -322,7 +323,10 @@ const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
 const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, captureSplits, restoreSplits } = require('./split-model');
-const { computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout } = require('./split-layout');
+const {
+  computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout,
+  cornerTabBounds, cornerTabHit, cornerTabSite, PANE_RADIUS, PANE_BORDER,
+} = require('./split-layout');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
@@ -3906,6 +3910,26 @@ function syncIslandFloat(runtime = rt()) {
     }
     setIslandFloatShown(runtime, record, shown[role] === true && !!bounds);
   }
+  keepIslandFloatOnTop(runtime);
+}
+
+/**
+ * Whatever attached it, no page view or split corner tab may sit above the
+ * floating Island: restack when one does. Cheap when the order is right.
+ */
+function keepIslandFloatOnTop(runtime = rt()) {
+  const window = runtime.window;
+  if (!runtime.islandFloat || !window || window.isDestroyed()) return;
+  const children = window.contentView.children;
+  const floats = FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view).filter(Boolean)
+    .map((view) => children.indexOf(view)).filter((index) => index >= 0);
+  if (!floats.length) return;
+  const lowestFloat = Math.min(...floats);
+  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => tab.view);
+  const corners = [...runtime.splitCornerViews.values()].map((entry) => entry.view);
+  if ([...pages, ...corners].some((view) => children.indexOf(view) > lowestFloat)) {
+    withWindowRuntime(runtime, () => restackAboveTabViews());
+  }
 }
 
 /** The document holding the visible pill: a floating one when it shows. */
@@ -4136,6 +4160,182 @@ function currentSplitLayoutPayload(geometry) {
   }), geometry.focusedIndex);
 }
 
+// --- Split View corner tabs (split-tab.html, spec D9) ----------------------
+// Each visible pane gets a small view on its card's bottom-right corner,
+// floating over the page as Chromium draws split panes. No preload and no
+// script: main writes the site, sizes the view to it and reads its clicks
+// from input events, then hands keyboard focus back to the pane.
+
+/** At most this wide, so a long host never covers much of a pane. */
+const SPLIT_CORNER_MAX_WIDTH = 240;
+
+function ensureSplitCornerView(runtime, tabId) {
+  const existing = runtime.splitCornerViews.get(tabId);
+  if (existing && !existing.view.webContents.isDestroyed()) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const entry = { view, tabId, key: null, width: 0, frame: null, generation: 0, pressed: null };
+  runtime.splitCornerViews.set(tabId, entry);
+  view.setBackgroundColor('#00000000');
+  view.webContents.on('input-event', bindWindowRuntime(runtime, (_e, input) => onSplitCornerInput(entry, input)));
+  view.webContents.on('context-menu', bindWindowRuntime(runtime, (_e, params) => {
+    const at = view.getBounds();
+    openSplitPaneMenu(tabId, { x: at.x + params.x, y: at.y + params.y });
+  }));
+  view.webContents.once('destroyed', bindWindowRuntime(runtime, () => {
+    if (runtime.splitCornerViews.get(tabId) === entry) runtime.splitCornerViews.delete(tabId);
+    // On Linux a hidden view stays window-owned (hideOverlayView); drop the
+    // dead one once its native destruction has returned.
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
+  }));
+  lockPrivilegedNavigation(view.webContents, CHROME_SPLIT_TAB_URL);
+  view.webContents.loadURL(CHROME_SPLIT_TAB_URL).catch(() => {});
+  return entry;
+}
+
+/** A press and its release on the same part act: the × removes the tab from
+ *  the split, the rest of the tab focuses its pane. */
+function onSplitCornerInput(entry, input) {
+  if ((input?.type !== 'mouseDown' && input?.type !== 'mouseUp') || input.button !== 'left') return;
+  const at = entry.view.getBounds();
+  const part = cornerTabHit({ width: at.width, height: at.height }, { x: input.x, y: input.y });
+  if (input.type === 'mouseDown') {
+    entry.pressed = part;
+    return;
+  }
+  const pressed = entry.pressed;
+  entry.pressed = null;
+  if (!part || part !== pressed) return;
+  if (part === 'close') {
+    removeTabFromSplit(entry.tabId);
+  } else if (rt().activeTabId !== entry.tabId) {
+    setActiveTab(entry.tabId);
+  }
+  liveContents(tabs.get(rt().activeTabId))?.focus();
+}
+
+function splitCornerModel(tab, focused) {
+  const site = cornerTabSite(tab.url, displayTitle(tab)) || mainI18n.t('tab.untitledShort');
+  const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/png;base64,') ? tab.favicon : null;
+  return {
+    focused: !!focused,
+    private: !!tab.private,
+    site,
+    favicon,
+    label: mainI18n.t('split.cornerLabel', { site }),
+    closeLabel: mainI18n.t('tabMenu.removeFromSplit'),
+  };
+}
+
+/** Write a corner tab's contents and measure the view width they need. */
+async function paintSplitCorner(runtime, entry, model) {
+  const generation = ++entry.generation;
+  const contents = entry.view.webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== entry.generation || contents.isDestroyed()) return;
+  // JSON.stringify makes the model plain data; every string lands as text.
+  const width = await contents.executeJavaScript(`(async (m) => {
+    document.body.classList.toggle('focused', m.focused);
+    if (m.private) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+    const icon = document.getElementById('icon');
+    const globe = document.getElementById('globe');
+    const site = document.getElementById('site');
+    const tab = document.getElementById('tab');
+    icon.hidden = !m.favicon;
+    if (m.favicon) icon.src = m.favicon; else icon.removeAttribute('src');
+    if (m.favicon) globe.setAttribute('hidden', ''); else globe.removeAttribute('hidden');
+    site.textContent = m.site;
+    tab.setAttribute('aria-label', m.label);
+    document.getElementById('close').setAttribute('aria-label', m.closeLabel);
+    // Measure in the face it draws with, not a fallback still standing in.
+    await document.fonts.ready;
+    // The view may still be too narrow for the tab, so measure the tab at
+    // its natural width, then let it fill the resized view again.
+    document.body.classList.add('measuring');
+    const natural = tab.getBoundingClientRect().width;
+    document.body.classList.remove('measuring');
+    return Math.ceil(natural + tab.offsetLeft);
+  })(${JSON.stringify(model)})`).catch(() => 0);
+  if (generation !== entry.generation || contents.isDestroyed()) return;
+  entry.width = Math.min(SPLIT_CORNER_MAX_WIDTH, Number(width) || 0);
+  withWindowRuntime(runtime, () => placeSplitCorner(runtime, entry));
+}
+
+/** Put a painted corner tab on its card, just above its pane's page view
+ *  (and so under the overlay, prompts and sheets), or hide it. */
+function placeSplitCorner(runtime, entry) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed() || entry.view.webContents.isDestroyed()) return;
+  const pane = tabs.get(entry.tabId);
+  const bounds = entry.width ? cornerTabBounds(entry.frame, entry.width) : null;
+  const children = window.contentView.children;
+  const below = liveContents(pane) ? children.indexOf(pane.view) : -1;
+  if (!bounds || below < 0) {
+    if (children.includes(entry.view)) hideOverlayView(window, entry.view);
+    return;
+  }
+  entry.view.setBounds(bounds);
+  const at = children.indexOf(entry.view);
+  if (at < below) window.contentView.addChildView(entry.view, at < 0 ? below + 1 : below);
+  if (process.platform === 'linux') entry.view.setVisible(true);
+}
+
+/**
+ * Match the corner tab views to the visible split: one per shown pane, on its
+ * card. A pane that stops showing keeps its view hidden while its tab is still
+ * in a split; a tab that left every split loses its view.
+ */
+function syncSplitCornerTabs(geometry, place = (bounds) => bounds, runtime = rt()) {
+  if (!runtime.window || runtime.window.isDestroyed()) return;
+  const wanted = new Map();
+  geometry?.split.tabIds.forEach((id, index) => {
+    const frame = geometry.panes[index]?.frame;
+    if (frame) wanted.set(id, { frame: place(frame), focused: index === geometry.focusedIndex });
+  });
+  for (const [tabId, entry] of [...runtime.splitCornerViews]) {
+    if (wanted.has(tabId)) continue;
+    entry.frame = null;
+    placeSplitCorner(runtime, entry);
+    if (!tabs.get(tabId)?.splitId) {
+      runtime.splitCornerViews.delete(tabId);
+      liveViewContents(entry.view)?.close();
+    }
+  }
+  for (const [tabId, want] of wanted) {
+    const tab = tabs.get(tabId);
+    if (!tab) continue;
+    const entry = ensureSplitCornerView(runtime, tabId);
+    entry.frame = want.frame;
+    const model = splitCornerModel(tab, want.focused);
+    const key = JSON.stringify(model);
+    if (key !== entry.key) {
+      entry.key = key;
+      paintSplitCorner(runtime, entry, model);
+    }
+    placeSplitCorner(runtime, entry);
+  }
+}
+
+/** Split panes' page views get the card's corners; a tab leaving a split
+ *  gets its square corners back. */
+function roundSplitPane(tab, rounded) {
+  if (!liveContents(tab) || !!tab.splitRounded === rounded) return;
+  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.splitRounded = rounded;
+}
+
 /**
  * Make a split led by `initiatorId` (spec §3.1): every other tab takes the
  * initiator's group (or leaves its own), the split's tabs sit together where
@@ -4175,9 +4375,8 @@ function showActiveSplit(runtime = rt()) {
     setTabViewVisible(tab, true);
     attachTabViewToWindow(tab);
   }
-  restackFillStatusView();
-  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
-  restackPermissionView();
+  // The panes just attached must not cover the floating Island or the sheet.
+  restackAboveTabViews();
   resizeActiveView();
 }
 
@@ -6350,6 +6549,9 @@ function broadcastTabs() {
   const payload = currentTabsPayload();
   stripSurfaces(rt()).send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
+  // A pane's site or favicon may have changed; the corner tabs repaint only
+  // when their contents differ (syncSplitCornerTabs compares).
+  if (runtime.splitCornerViews.size || visibleSplitOf(runtime)) syncSplitCornerTabs(splitGeometry());
 }
 
 function broadcastDownloadsActivity() {
@@ -6383,12 +6585,19 @@ function resizeActiveView() {
   if (split) {
     split.split.tabIds.forEach((id, index) => {
       const pane = tabs.get(id);
-      if (liveContents(pane) && split.panes[index]) pane.view.setBounds(place(split.panes[index].content));
+      const content = split.panes[index]?.content;
+      if (!liveContents(pane) || !content) return;
+      roundSplitPane(pane, true);
+      pane.view.setBounds(place(content));
     });
   } else {
+    roundSplitPane(tab, false);
+    roundSplitPane(glanceTab, false);
     if (liveContents(tab)) tab.view.setBounds(place(glance?.primary ?? layout.pageBounds));
     if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(place(glance.glance));
   }
+  syncSplitCornerTabs(split, place);
+  keepIslandFloatOnTop();
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
@@ -8105,6 +8314,20 @@ function setTabViewVisible(tab, visible) {
 }
 
 // Attach or re-raise a tab view in the current window (tab-view-lifecycle.js).
+/**
+ * After a tab view is attached, raise what must stay above every page, in
+ * order: the utility sheet, the floating Island views, the fill capsule, the
+ * overlay and the permission prompt.
+ */
+function restackAboveTabViews() {
+  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+  if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackIslandFloatViews(); // above the pages and the sheet
+  restackFillStatusView(); // below the overlay and permission prompt
+  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
+}
+
 function attachTabViewToWindow(tab) {
   attachTabView(rt().window, tab.view, { createView: () => new View() });
 }
@@ -8308,12 +8531,7 @@ function setActiveTab(id, {
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) rt().window.contentView.addChildView(sheet.view);
-  restackIslandFloatViews(); // above the pages and the sheet
-  restackFillStatusView(); // below the overlay and permission prompt
-  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
-  restackPermissionView();
+  restackAboveTabViews();
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -8400,12 +8618,7 @@ async function setGlanceTab(id) {
   syncFocusedPane(rt());
   fillHintScheduler?.noteActivated(tab);
   // Floating trusted surfaces must stay above both page panes.
-  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) rt().window.contentView.addChildView(sheet.view);
-  restackIslandFloatViews(); // above the pages and the sheet
-  restackFillStatusView(); // below the overlay and permission prompt
-  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
-  restackPermissionView();
+  restackAboveTabViews();
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
@@ -10291,7 +10504,6 @@ function registerIpcHandlers() {
   chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
   chromeOn('chrome:resize-split', (_e, splitId, index, axis, point) => resizeSplitAt(splitId, index, axis === 'y' ? 'y' : 'x', point));
   chromeHandle('chrome:reset-split', (_e, splitId) => resetSplitLayout(splitId));
-  chromeOn('chrome:split-pane-menu', (_e, tabId, point) => openSplitPaneMenu(tabId, point));
   chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   // The overlay has drawn the expanding panel exactly over the resting pill.
@@ -11338,6 +11550,8 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     fillStatusSurface?.invalidatePending(runtime.id);
     liveViewContents(runtime.fillStatusView)?.close();
     liveViewContents(runtime.tooltipView)?.close();
+    for (const entry of runtime.splitCornerViews.values()) liveViewContents(entry.view)?.close();
+    runtime.splitCornerViews.clear();
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     const clearPersistedWindowState = shouldClearPersistedWindowState({
@@ -13601,6 +13815,43 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       menuContextActionsForTest: () => menuContextActions(rt()),
       closedEntrySummaries: () => projectEntries(rt().closedEntries ?? []),
       splitLayoutForTest: () => currentSplitLayoutPayload(splitGeometry()),
+      // Each corner tab view as drawn: whether it sits above its pane, its
+      // bounds, and the site its document shows.
+      splitCornerTabsForTest: async () => {
+        if (!hasLiveWindow()) return [];
+        const children = rt().window.contentView.children;
+        return Promise.all([...rt().splitCornerViews.values()].map(async (entry) => {
+          const pane = tabs.get(entry.tabId);
+          const at = children.indexOf(entry.view);
+          const shown = at >= 0 && (entry.view.getVisible?.() ?? true)
+            && liveContents(pane) && at > children.indexOf(pane.view);
+          const drawn = entry.view.webContents.isDestroyed() ? null : await entry.view.webContents.executeJavaScript(
+            "({ site: document.getElementById('site').textContent, focused: document.body.classList.contains('focused') })",
+          ).catch(() => null);
+          const pill = rt().islandFloat ? liveFloatRecord(rt(), 'pill') : null;
+          const belowFloat = !pill || (at >= 0 && at < children.indexOf(pill.view));
+          return { tabId: entry.tabId, shown: !!shown, belowFloat, bounds: entry.view.getBounds(), width: entry.width, ...drawn };
+        }));
+      },
+      /** Re-add a tab's view on top of the window, as a stray attach would. */
+      raiseTabViewForTest: (tabId) => {
+        const tab = tabs.get(tabId);
+        if (!hasLiveWindow() || !liveContents(tab)) return false;
+        rt().window.contentView.addChildView(tab.view);
+        return true;
+      },
+      /** Click a corner tab's × ('close') or body ('tab') through its own
+       *  input events, as a real click arrives. */
+      clickSplitCornerForTest: (tabId, part) => {
+        const entry = rt().splitCornerViews.get(tabId);
+        if (!entry || entry.view.webContents.isDestroyed()) return false;
+        const at = entry.view.getBounds();
+        const x = part === 'close' ? at.width - 8 : 16;
+        for (const type of ['mouseDown', 'mouseUp']) {
+          entry.view.webContents.sendInputEvent({ type, x, y: at.height - 12, button: 'left', clickCount: 1 });
+        }
+        return true;
+      },
       attachedTabViewIds: () => {
         if (!hasLiveWindow()) return [];
         const children = new Set(rt().window.contentView.children);

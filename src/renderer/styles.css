@@ -507,89 +507,57 @@ html { --stage-w: 100vw; }
 .split-row-disclosure:hover { background: var(--accent-dim); color: var(--text); }
 .island-row.tab-row.in-split { padding-left: 22px; }
 
-/* Split View (F53, spec D5): one Island, and a header band on every pane,
-   drawn where no page view covers the window. Main places each header and
-   divider; the geometry rides --split-x/y/w/h. Same surface, hairline and
-   focus cue as the Glance header. */
+/* Split View (F53, spec D9): Chromium-style pane cards. Each page view sits
+   inside its card's 1 px border; this document draws the borders and the
+   dividers where no page view covers the window, and each pane's corner tab
+   is a view of its own (split-tab.html). Main places every card and divider;
+   the geometry rides --split-x/y/w/h. */
+/* Shared with the corner tab document, so a card and its tab agree. */
+.split-panes,
+.split-tab-surface {
+  --split-pane-radius: 8px;
+  --split-pane-focused-border: var(--text-dim);
+}
 .split-panes { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
 .split-panes[hidden] { display: none; }
 #strip.split-open #pillDots { display: none; }
-.split-pane-header,
+.split-pane-frame,
 .split-divider {
   position: fixed;
   left: var(--split-x, 0);
   top: var(--split-y, 0);
   width: var(--split-w, 0);
   height: var(--split-h, 0);
-  pointer-events: auto;
 }
-.split-pane-header {
+.split-pane-frame {
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 0 6px 0 12px;
-  background: var(--surface-raised);
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
-  font-family: var(--font-text);
-  font-size: 12px;
-  transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), border-color 120ms ease;
+  border: 1px solid var(--border);
+  border-radius: var(--split-pane-radius);
+  transition: border-color 120ms ease;
 }
-.split-pane-header[hidden] { display: none; }
-@starting-style {
-  .split-pane-header:not([hidden]) { opacity: 0; transform: translateY(-6px); }
-}
-.split-pane-header.focused { border-bottom-color: var(--text-dim); }
-.split-pane-header .favicon { flex: 0 0 auto; }
-.split-pane-title {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-dim);
-  font-weight: 500;
-}
-.split-pane-header.focused .split-pane-title { color: var(--text); font-weight: 600; }
-.split-pane-header .row-private[hidden] { display: none; }
-.split-pane-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; }
-.split-pane-btn {
-  width: 26px;
-  height: 22px;
+.split-pane-frame[hidden] { display: none; }
+.split-pane-frame.focused { border-color: var(--split-pane-focused-border); }
+.split-divider {
   display: grid;
   place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text-dim);
-}
-.split-pane-btn svg { width: 14px; height: 14px; stroke-width: 1.4; }
-.split-pane-menu svg { fill: currentColor; stroke: none; }
-.split-pane-btn:hover { background: var(--accent-dim); color: var(--text); }
-.split-pane-btn:disabled { color: var(--border); background: transparent; cursor: default; }
-.split-pane-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-  background: var(--surface);
-  color: var(--text);
-}
-.split-divider {
-  background: var(--bg);
+  pointer-events: auto;
   touch-action: none;
 }
-.split-divider[aria-orientation="vertical"] { cursor: col-resize; box-shadow: inset 1px 0 var(--border), inset -1px 0 var(--border); }
-.split-divider[aria-orientation="horizontal"] { cursor: row-resize; box-shadow: inset 0 1px var(--border), inset 0 -1px var(--border); }
+.split-divider[aria-orientation="vertical"] { cursor: col-resize; }
+.split-divider[aria-orientation="horizontal"] { cursor: row-resize; }
 .split-divider[data-saved="false"] { cursor: default; }
-.split-divider:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-@media (prefers-reduced-motion: reduce) {
-  .split-pane-header { transition: opacity 140ms ease; }
-  @starting-style {
-    .split-pane-header:not([hidden]) { transform: none; }
-  }
+.split-divider-grip {
+  border-radius: 999px;
+  background: var(--text-dim);
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
+.split-divider[aria-orientation="vertical"] .split-divider-grip { width: 4px; height: 32px; }
+.split-divider[aria-orientation="horizontal"] .split-divider-grip { width: 32px; height: 4px; }
+.split-divider[data-saved="true"]:hover .split-divider-grip,
+.split-divider[data-saved="true"]:active .split-divider-grip,
+.split-divider:focus-visible .split-divider-grip { opacity: 1; }
+.split-divider:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--radius); }
 
 .glance-divider {
   position: fixed;
@@ -2856,6 +2824,79 @@ body.tooltip-surface { background: transparent; }
   max-width: 280px;
   white-space: normal;
 }
+
+/* Split View corner tab (split-tab.html, spec D9): a tab on a pane card's
+   bottom-right corner, over the page, as Chromium draws split panes. The
+   view is the tab plus an 8 px fillet band above it and to its left; the
+   fillets bend the card's border into the tab. Its right and bottom edges
+   are the card's own border, so it redraws that border and corner. */
+html:has(> body.split-tab-surface),
+body.split-tab-surface {
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  --split-tab-border: var(--border);
+}
+body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-border); }
+.split-tab {
+  position: absolute;
+  left: var(--split-pane-radius);
+  top: var(--split-pane-radius);
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 3px 0 10px;
+  border: 1px solid var(--split-tab-border);
+  border-radius: var(--split-pane-radius) 0 var(--split-pane-radius) 0;
+  background: var(--bg);
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 12px;
+  cursor: default;
+}
+.split-tab-surface.focused .split-tab { padding-left: 3px; }
+/* main.js paintSplitCorner reads the tab's natural width this way. */
+.split-tab-surface.measuring .split-tab { right: auto; width: max-content; }
+.split-tab-surface.focused .split-tab-icon,
+.split-tab-surface.focused .split-tab-globe,
+.split-tab-surface.focused .split-tab-site { display: none; }
+.split-tab-icon { width: 16px; height: 16px; flex: 0 0 auto; }
+.split-tab-icon[hidden],
+.split-tab-globe[hidden] { display: none; }
+.split-tab-globe { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.2; }
+.split-tab-site {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.split-tab-close {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+}
+.split-tab-close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.split-tab-close:hover { background: var(--accent-dim); color: var(--text); }
+.split-tab-fillet {
+  position: absolute;
+  width: var(--split-pane-radius);
+  height: var(--split-pane-radius);
+  background: radial-gradient(circle at 0 0,
+    transparent calc(var(--split-pane-radius) - 1px),
+    var(--split-tab-border) calc(var(--split-pane-radius) - 1px),
+    var(--split-tab-border) var(--split-pane-radius),
+    var(--bg) var(--split-pane-radius));
+}
+/* Above the tab, against the card's right border. */
+.split-tab-fillet-top { right: 0; top: 0; box-shadow: inset -1px 0 var(--split-tab-border); }
+/* Left of the tab, against the card's bottom border. */
+.split-tab-fillet-left { left: 0; bottom: 0; box-shadow: inset 0 -1px var(--split-tab-border); }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is

@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "c0a96407200692a54e8b453f559335f9f3f0f908b6ee1835a5748c6a5c7efe32",
+      "sha256": "b524f1efe01b392e794fafc06ea591acab00eefe512b178d3ade8a1381558849",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "38bf70f5978a41c7be27d0fbd494e89522da91dabd6dcd4adb3131ffcfd21624",
+      "sha256": "8445497765b27338dd53655a91da37bfb02b21bbe62af932157d83d0fec5c81a",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -320,7 +320,6 @@
         "chrome:split-close",
         "chrome:split-keep-glance",
         "chrome:split-layout",
-        "chrome:split-pane-menu",
         "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
@@ -342,6 +341,7 @@
         "chrome:workspaces-updated",
         "close",
         "closed",
+        "context-menu",
         "detach",
         "did-become-active",
         "did-fail-load",
@@ -606,7 +606,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "e3680182d51a059288fe8f25ce7f6e628d3d0c1786634ff6a5da4309f69e36c7",
+      "sha256": "0964409cd76ffa1be4b9b298cd376e60ff995c14cadc6b1ab2686d6ec7caa91c",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -667,7 +667,6 @@
         "chrome:split-close",
         "chrome:split-keep-glance",
         "chrome:split-layout",
-        "chrome:split-pane-menu",
         "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",

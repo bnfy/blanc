@@ -521,9 +521,8 @@
     <string name="split_made">%1$s y %2$s están ahora lado a lado</string>
     <string name="split_dissolved">Vista dividida cerrada; %1$s ocupa la ventana</string>
     <string name="split_keep_as_split">Mantener como vista dividida</string>
-    <string name="split_pane_label">%1$s, panel %2$s de %3$s</string>
-    <string name="split_header_menu">Menú de la pestaña</string>
     <string name="split_divider_label">Cambiar el tamaño de los paneles</string>
+    <string name="split_corner_label">%1$s, panel de la vista dividida</string>
     <string name="split_row_label">%1$s + %2$s</string>
     <string name="split_row_label_more">%1$s + %2$s más</string>
     <string name="split_row_name">Vista dividida: %1$s</string>
