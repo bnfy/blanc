@@ -158,6 +158,20 @@ const FLOAT_BOTTOM_PX = 24;
 /** Room around the floating window controls and menu button, in px. */
 const FLOAT_CHROME_PAD_PX = 8;
 
+/** How much of the strip stays uncovered while the page covers it. Chromium
+ * on Linux treats the window document as occluded once an opaque page view
+ * covers it whole: it reports visibilityState 'hidden' and no longer syncs
+ * its size, so the island-rect and window-controls reports that place the
+ * floating Island go stale after a resize (the pill came back off-centre and
+ * the controls sat beside their buttons in the 2026-10-20 VM check). One row
+ * left showing keeps it laid out; it paints the page's sampled top colour.
+ * macOS and Windows keep a covered document visible and give the page all. */
+const COVERED_STRIP_ROW_PX = 1;
+
+function coveredStripHeight(platform) {
+  return platform === 'linux' ? COVERED_STRIP_ROW_PX : 0;
+}
+
 /** Whether the page ignores the strip because the Island floats over it.
  * Glance draws its header and divider in the strip, so it lays out as push. */
 function floatingLayout({ autoHide, style, glanceOpen }) {
@@ -201,6 +215,8 @@ module.exports = {
   FLOAT_SIDE_PX,
   FLOAT_BOTTOM_PX,
   FLOAT_CHROME_PAD_PX,
+  COVERED_STRIP_ROW_PX,
+  coveredStripHeight,
   floatingLayout,
   floatViewsWanted,
   floatViewsShown,

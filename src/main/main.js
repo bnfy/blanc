@@ -3246,7 +3246,7 @@ function currentChromeLayout(content = rt().window.getContentBounds()) {
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight: stripCovered() ? 0 : rt().chromeHeight,
+    chromeHeight: stripCovered() ? islandAutoHideModule.coveredStripHeight(process.platform) : rt().chromeHeight,
     islandHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
@@ -13698,6 +13698,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         floating: islandFloating(),
         windowButtonsVisible: rt().windowButtonsVisible,
         pageY: currentChromeLayout().pageBounds.y,
+        coveredStripPx: islandAutoHideModule.coveredStripHeight(process.platform),
         // The active view's real native bounds, not the computed layout.
         activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,
       }),

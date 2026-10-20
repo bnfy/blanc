@@ -11,6 +11,7 @@ const {
   AUTO_HIDE_STYLES, normalizeAutoHideStyle,
   DRAG_BAND_PX, FLOAT_SIDE_PX, FLOAT_BOTTOM_PX, FLOAT_CHROME_PAD_PX,
   floatingLayout, floatViewsWanted, floatViewsShown, floatViewBounds,
+  COVERED_STRIP_ROW_PX, coveredStripHeight,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -66,7 +67,7 @@ test('a hidden strip gives the page the whole window height in both layouts', ()
 test('main lays out every child view through the auto-hide strip height', () => {
   // The page leaves the strip out while it is hidden, or while the Island
   // floats over the page; overlays still anchor under a shown Island.
-  assert.match(main, /chromeHeight: stripCovered\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  assert.match(main, /chromeHeight: stripCovered\(\) \? islandAutoHideModule\.coveredStripHeight\(process\.platform\) : rt\(\)\.chromeHeight,/);
   assert.match(main, /islandHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
   assert.match(main, /function stripCovered\(runtime = rt\(\)\) \{\s+return islandStripHidden\(runtime\) \|\| islandFloating\(runtime\);/);
   assert.match(main, /function islandFloating\(runtime = rt\(\)\) \{\s+return islandAutoHideModule\.floatingLayout\(\{\s+autoHide: islandAutoHide,\s+style: islandAutoHideStyle,\s+glanceOpen: !!runtime\.glanceTabId,/);
@@ -325,6 +326,25 @@ test('floatViewBounds wraps the rect with shadow room, from the window top, clam
   assert.equal(floatViewBounds(null, { ...win, side: 20, bottom: 24 }), null);
   assert.equal(floatViewBounds({ x: 0, y: 0, width: 0, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
   assert.equal(floatViewBounds({ x: NaN, y: 0, width: 10, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
+});
+
+test('on Linux a covered strip keeps one row uncovered so Chromium keeps laying it out', () => {
+  // Chromium on Linux treats the window document as occluded once a page view
+  // covers it whole: it reports visibilityState 'hidden' and stops syncing
+  // its size, so the island-rect and window-controls reports the float views
+  // are placed from go stale after a resize (2026-10-20 VM check). One row
+  // of the strip left showing keeps it visible. macOS and Windows keep a
+  // fully covered document visible, so they give the page everything.
+  assert.equal(COVERED_STRIP_ROW_PX, 1);
+  assert.equal(coveredStripHeight('linux'), 1);
+  assert.equal(coveredStripHeight('darwin'), 0);
+  assert.equal(coveredStripHeight('win32'), 0);
+  assert.equal(coveredStripHeight(undefined), 0);
+  const layout = calculateChromeLayout({ width: 1280, height: 800, chromeHeight: coveredStripHeight('linux'), islandHeight: 0 });
+  assert.equal(layout.pageBounds.y, 1);
+  assert.equal(layout.pageBounds.height, 799);
+  // The test hook tells the acceptance steps where a covered page starts.
+  assert.match(main, /coveredStripPx: islandAutoHideModule\.coveredStripHeight\(process\.platform\),/);
 });
 
 test('the strip learns it is covered whenever the page covers it, hidden or floating', () => {

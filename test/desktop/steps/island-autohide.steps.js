@@ -9,6 +9,15 @@ function autoHideState(world) {
   return world.call('islandAutoHideState');
 }
 
+/** Where a covered page starts: 0, except the one strip row Linux keeps
+ * uncovered so Chromium keeps laying the strip out (coveredStripHeight). */
+const coveredTop = (state) => state?.coveredStripPx ?? 0;
+
+async function assertPageAtCoveredTop(world) {
+  const state = await autoHideState(world);
+  assert.equal(state.activeBounds.y, coveredTop(state));
+}
+
 async function waitForAutoHide(world, predicate, label) {
   return waitForValue(() => autoHideState(world), predicate, label);
 }
@@ -55,10 +64,10 @@ Then('the Island stays shown with a tip on bringing it back', async function () 
 });
 
 Then('then the page starts at the top of the window', async function () {
-  const state = await waitForValue(() => autoHideState(this), (value) => !value?.sliding && value?.pageY === 0,
+  const state = await waitForValue(() => autoHideState(this), (value) => !value?.sliding && value?.pageY === coveredTop(value),
     'the page to reach the top edge after the tip', INTRO_WAIT_MS);
   assert.equal(state.introducing, false);
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.activeBounds.y, coveredTop(state));
 });
 
 Given('the Island auto-hides', async function () {
@@ -78,14 +87,14 @@ When('auto-hide is turned off', async function () {
 });
 
 Then('the page starts at the top of the window', async function () {
-  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === 0, 'the page to reach the top edge');
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === coveredTop(value), 'the page to reach the top edge');
   assert.equal(state.enabled, true);
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.activeBounds.y, coveredTop(state));
 });
 
 Then('the page starts at the top of the window beside the rail', async function () {
-  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === 0, 'the page to reach the top edge');
-  assert.equal(state.activeBounds.y, 0);
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY === coveredTop(value), 'the page to reach the top edge');
+  assert.equal(state.activeBounds.y, coveredTop(state));
   assert.ok(state.activeBounds.x > 0, 'the vertical rail kept its column');
 });
 
@@ -133,7 +142,7 @@ Then('the Island stays hidden after {int} milliseconds', async function (ms) {
   await sleep(ms);
   const state = await autoHideState(this);
   assert.equal(state.stripHidden, true);
-  assert.equal(state.pageY, 0);
+  assert.equal(state.pageY, coveredTop(state));
 });
 
 // The rail keeps its column with auto-hide on, so its top is not a reveal
@@ -216,7 +225,7 @@ When('I move the pointer well below the Island', async function () {
 });
 
 Then('the Island hides again', async function () {
-  await waitForAutoHide(this, (value) => !value?.sliding && value?.stripHidden === true && value.pageY === 0,
+  await waitForAutoHide(this, (value) => !value?.sliding && value?.stripHidden === true && value.pageY === coveredTop(value),
     'the strip to hide again');
 });
 
@@ -267,8 +276,8 @@ Then('the Island is revealed while the page stays at the top of the window', asy
     'the floating Island to be revealed');
   assert.equal(state.floating, true);
   assert.equal(state.sliding, false, 'a floating Island never slides the page');
-  assert.equal(state.pageY, 0);
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.pageY, coveredTop(state));
+  assert.equal(state.activeBounds.y, coveredTop(state));
 });
 
 /* ---- Floating Island (float style) ---------------------------------------
@@ -310,8 +319,8 @@ Then('the floating pill waits above the window edge', async function () {
 Then('the floating pill slides in over a page that stays still', async function () {
   for (let i = 0; i < 10; i += 1) {
     const state = await autoHideState(this);
-    assert.equal(state.pageY, 0, 'the page pane kept the top of the window');
-    assert.equal(state.activeBounds?.y, 0, 'the page view never moved');
+    assert.equal(state.pageY, coveredTop(state), 'the page pane kept the top of the window');
+    assert.equal(state.activeBounds?.y, coveredTop(state), 'the page view never moved');
     await sleep(30);
   }
   const pill = await waitForValue(() => floatState(this), (value) => value?.shown === true && value.visible === true,
@@ -322,7 +331,7 @@ Then('the floating pill slides in over a page that stays still', async function 
   const bottom = await pillBottomInView(this);
   assert.ok(bottom > 0, 'the pill came down into the window');
   const state = await autoHideState(this);
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.activeBounds.y, coveredTop(state));
 });
 
 Then('the floating pill slides away and stays attached', async function () {
@@ -332,7 +341,7 @@ Then('the floating pill slides away and stays attached', async function () {
   assert.equal(state.attached, true, 'the view stays window-owned (never removed and re-added)');
   const bottom = await pillBottomInView(this);
   assert.ok(bottom + FLOAT_SHADOW_PX <= 0, `the hidden pill peeks below the edge: ${bottom}`);
-  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+  await assertPageAtCoveredTop(this);
 });
 
 When('I open find', async function () {
@@ -345,7 +354,7 @@ Then('the find bar sits under the floating pill over a page that stays still', a
   const bounds = await this.call('overlayViewBounds');
   assert.ok(bounds.y >= rect.y + rect.height, `find (${bounds.y}) sits under the pill (${rect.y + rect.height})`);
   const state = await autoHideState(this);
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.activeBounds.y, coveredTop(state));
   assert.equal((await floatState(this)).shown, true);
 });
 
@@ -363,7 +372,7 @@ Then('the shield menu hangs under the floating pill over a page that stays still
   const rect = await this.call('islandRect');
   const bounds = await this.call('overlayViewBounds');
   assert.ok(bounds.y >= rect.y + rect.height / 2, `the shield menu (${bounds.y}) hangs from the pill (${rect.y}+${rect.height})`);
-  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+  await assertPageAtCoveredTop(this);
   assert.equal((await floatState(this)).shown, true);
 });
 
@@ -398,9 +407,9 @@ When('I close the Glance', async function () {
 });
 
 Then('the page returns to the top of the window and the pill hides', async function () {
-  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === true && value.pageY === 0 && value.revealed === false,
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === true && value.pageY === coveredTop(value) && value.revealed === false,
     'the page to return to the top');
-  assert.equal(state.activeBounds.y, 0);
+  assert.equal(state.activeBounds.y, coveredTop(state));
   await waitForValue(() => floatState(this), (value) => value?.shown === false, 'the pill to hide');
 });
 
@@ -413,7 +422,7 @@ Then('the floating pill follows the Island\'s place', async function () {
     const [pill, rect] = await Promise.all([floatState(this), this.call('islandRect')]);
     try { assertWraps(pill?.bounds, rect, 'pill'); return true; } catch { return false; }
   }, (ok) => ok === true, 'the pill view to follow the Island');
-  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+  await assertPageAtCoveredTop(this);
 });
 
 Then('the floating pill stays above the pages', async function () {
