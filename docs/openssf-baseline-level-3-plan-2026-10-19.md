@@ -73,9 +73,11 @@ security hotfix, because nothing can bypass the rule.
 ## Rollout, in order
 
 1. **Pick and verify the reviewer** (above).
-2. **Record the decision.** Fill in the reviewer row in `docs/governance.md`
-   (this pull request), then merge it. The governance policy requires the
-   record before access is granted.
+2. **Record the decision.** In a pull request, add the reviewer to the
+   *Roles and responsibilities* table in `docs/governance.md`. List their
+   name, login, the Write role and the date they were verified, and replace
+   the note saying the role is planned. Merge it before inviting them; the
+   governance policy requires the record before access is granted.
 3. **Invite the reviewer with the Write role**, and confirm they accepted:
 
    ```
