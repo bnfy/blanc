@@ -2059,3 +2059,10 @@ Owner destruction passes5bounded checkpoints: actual encrypted Tabs flush held, 
 Unresolved failure in both left/right guarded beforeunload cases: batch close rejects acknowledgement, but retained two-tab Split history recreates the surviving pane as a duplicate on Restore Tab. Each failed fixture retains3diagnostic checkpoints and2-versus1assertion; no repair. Identity-aware partial-history reconciliation is needed, preserving survivor state and avoiding URL-based deduplication. Green CI does not close this gap. Evidence: evidence/split-batch-lifecycle-20261020/README.md.
 
 No nativecompile/product edits, guardzero, prior54/128unchanged. Owned fixtures removed after verified exit; preview untouched. Latency deferred; native input and Electron diagnostic build pending.
+
+
+## Partial-cancellation duplicate survivor repair — October 20
+
+Restoration now reuses the exact durable-identity live survivor, restores only the missing child, rejoins saved layout/focus and removes survivor history. Shared by native Restore Tab and both Island routes. Same-URL decoys are untouched; ambiguous/foreign or incompatible live matches refuse reconciliation. Nine schedules/45checkpoints pass, including left/right unsaved-input preservation, both Island routes, sameURLdecoy,35/65rightfocus, repeatedrestore, heldflushownerdestroy and immediate encrypted-only fullbatch crash regression. Prior duplicate-survivor failure is repaired for these bounded cases.
+
+Seven capture tests pass. Declaration-order compile failure retained; incremental repair38.14seconds/6steps, guardzero, fresh54/128unchanged. Evidence: evidence/split-partial-restore-fix-20261020/README.md. Partial-cancellation crash-before-reconciliation, grouped/pinned/legacy/foreign/ambiguous identity runtime matrices and physicalinput remain gaps. Test profiles removed after exit verification; preview untouched. Latency deferred; Electron diagnostic build pending approval.

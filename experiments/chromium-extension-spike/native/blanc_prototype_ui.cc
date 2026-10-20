@@ -517,6 +517,7 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
 base::DictValue SpaceDisk(base::FilePath path, std::string method,
                          std::string name, base::DictValue capture);
 
+
 void UpdatePersistentSplitFocus(BrowserWindowInterface* browser);
 
 class Owner : public base::SupportsUserData::Data,
@@ -1128,6 +1129,70 @@ void RestoreClosedSplitMetadata(BrowserWindowInterface* browser,
   for (int i = 0; i < 2; ++i)
     MarkPersistentSplit(browser, model->GetWebContentsAt(indices[i]), true, i == *focus);
   model->ActivateTabAt(indices[*focus]);
+}
+
+// A cancelled batch close can leave a live pane represented in Split history.
+// Reuse only its exact durable identity, never a URL/title match.
+std::optional<bool> RestorePartialSplit(BrowserWindowInterface* browser,
+    sessions::TabRestoreService* service, const sessions::tab_restore::Entry& entry) {
+  const auto focus = ClosedSplitFocus(entry);
+  if (!focus) return std::nullopt;
+  const auto& saved = static_cast<const sessions::tab_restore::Split&>(entry);
+  std::vector<content::WebContents*> survivors(2, nullptr);
+  bool ambiguous = false;
+  for (int pane = 0; pane < 2; ++pane) {
+    const auto identity = saved.tabs[pane]->extra_data.find(kTabIdentityKey);
+    if (identity == saved.tabs[pane]->extra_data.end() || identity->second.empty())
+      return std::nullopt;
+    GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* other) {
+      if (other->GetProfile() != browser->GetProfile()) return true;
+      auto* tabs = other->GetTabStripModel();
+      for (int i = 0; i < tabs->count(); ++i) {
+        auto* tab = tabs->GetWebContentsAt(i);
+        if (TabIdentity(tab) != identity->second) continue;
+        if (other != browser || survivors[pane]) ambiguous = true;
+        survivors[pane] = tab;
+      }
+      return true;
+    });
+  }
+  if (ambiguous) return false;
+  if (!survivors[0] && !survivors[1]) return std::nullopt;
+  if (survivors[0] && survivors[1]) return false;
+  const int retained = survivors[0] ? 0 : 1;
+  const int missing = 1 - retained;
+  auto* model = browser->GetTabStripModel();
+  auto* survivor = survivors[retained];
+  int index = model->GetIndexOfWebContents(survivor);
+  if (index < 0 || model->IsTabPinned(index) || model->GetSplitForTab(index)) return false;
+  const auto survivor_history_id = saved.tabs[retained]->id;
+  const auto missing_history_id = saved.tabs[missing]->id;
+  const auto visual = saved.visual_data;
+  const auto restored = service->RestoreEntryById(BrowserLiveTabContext::From(browser),
+      missing_history_id, WindowOpenDisposition::NEW_FOREGROUND_TAB);
+  if (!restored || restored->size() != 1 || !(*restored)[0]) return false;
+  content::WebContents* recovered = nullptr;
+  for (int i = 0; i < model->count(); ++i)
+    if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)) ==
+        (*restored)[0]->GetSessionID()) recovered = model->GetWebContentsAt(i);
+  if (!recovered) return false;
+  survivors[missing] = recovered;
+  index = model->GetIndexOfWebContents(survivor);
+  int recovered_index = model->GetIndexOfWebContents(recovered);
+  const auto group = model->GetTabGroupForTab(index);
+  if (model->GetTabGroupForTab(recovered_index) != group) {
+    if (group) model->AddToExistingGroup({recovered_index}, *group);
+    else model->RemoveFromGroup({recovered_index});
+  }
+  const int left = model->GetIndexOfWebContents(survivors[0]);
+  const int right = model->GetIndexOfWebContents(survivors[1]);
+  const auto split = model->AddToNewSplit({left, right}, visual,
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  if (left > right) model->ReverseTabsInSplit(split);
+  for (int i = 0; i < 2; ++i) MarkPersistentSplit(browser, survivors[i], true, i == *focus);
+  model->ActivateTabAt(model->GetIndexOfWebContents(survivors[*focus]));
+  service->RemoveEntryById(survivor_history_id);
+  return true;
 }
 
 void UpdatePersistentSplitFocus(BrowserWindowInterface* browser) {
@@ -2474,6 +2539,10 @@ class Handler : public content::WebUIMessageHandler {
       }
       auto* context = BrowserLiveTabContext::From(browser);
       if (method == "reopenClosedTab" && args.empty()) {
+        if (!service->entries().empty()) {
+          auto partial = RestorePartialSplit(browser, service, *service->entries().front());
+          if (partial) { reply(true, base::Value(*partial)); return; }
+        }
         const auto collapsed = service->entries().empty() ? std::nullopt
             : ClosedGroupCollapsed(*service->entries().front());
         const auto saved_group = service->entries().empty() ? std::nullopt
@@ -2505,6 +2574,8 @@ class Handler : public content::WebUIMessageHandler {
           service->RemoveEntryById(id_to_restore);
           reply(true, base::Value(true));
         } else {
+          auto partial = RestorePartialSplit(browser, service, *entry);
+          if (partial) { reply(true, base::Value(*partial)); return; }
           const auto collapsed = ClosedGroupCollapsed(*entry);
           const auto saved_group = ClosedSavedGroup(*entry);
           const auto split_focus = ClosedSplitFocus(*entry);
@@ -3198,6 +3269,7 @@ bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
   auto* service = ClosedService(browser->GetProfile());
   if (!service || !service->IsLoaded() || service->entries().empty()) return false;
+  if (RestorePartialSplit(browser, service, *service->entries().front()).has_value()) return true;
   const auto focus = ClosedSplitFocus(*service->entries().front());
   if (!focus) return false;
   auto* context = BrowserLiveTabContext::From(browser);
