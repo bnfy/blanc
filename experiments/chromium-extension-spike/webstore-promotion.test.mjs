@@ -13,7 +13,7 @@ function run({origin='https://chromewebstore.google.com',href='https://www.googl
   }
   const link={href,parentElement:box};
   const window={};
-  const context={location:{origin},window,top:frame?{}:window,URL,document:{body,documentElement:{},querySelectorAll:()=>[link]},MutationObserver:class{observe(){}}};
+  const context={location:{origin},window,top:frame?{}:window,URL,document:{body,documentElement:{},querySelectorAll:s=>s==='a[href]'?[link]:[]},MutationObserver:class{observe(){}}};
   vm.runInNewContext(script,context);
   return writes;
 }
@@ -32,4 +32,22 @@ test('leaves ordinary download links and installation forms alone',()=>{
 test('removes empty promotion shell without hiding mixed controls',()=>{
   assert.equal(run({shell:true})[0][0],'shell');
   assert.equal(run({shell:true,extraControl:true})[0][0],'display');
+});
+
+function inline({extra=false, text='Switch to Chrome to install extensions and themesInstall Chrome', origin='https://chromewebstore.google.com', frame=false}={}) {
+  const writes=[]; const button={}; const body={};
+  const box={parentElement:body,textContent:text,querySelectorAll:()=>extra?[button,{}]:[button],style:{setProperty:(...v)=>writes.push(v)}};
+  button.parentElement=box;
+  const window={};
+  vm.runInNewContext(script,{location:{origin},window,top:frame?{}:window,URL,document:{body,documentElement:{},querySelectorAll:s=>s.startsWith('button[')?[button]:[]},MutationObserver:class{observe(){}}});
+  return writes;
+}
+test('hides the complete exact inline banner',()=>assert.deepEqual(inline(),[['display','none','important']]));
+test('retains mixed installation/search/sign-in containers and changed copy',()=>{
+  assert.equal(inline({extra:true}).length,0);
+  assert.equal(inline({text:'Switch to Chrome to install extensions and themesInstall ChromeAdd to Chrome'}).length,0);
+});
+test('inline rule is limited to top-level Store origin',()=>{
+  assert.equal(inline({origin:'https://example.com'}).length,0);
+  assert.equal(inline({frame:true}).length,0);
 });

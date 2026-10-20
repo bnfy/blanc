@@ -3,6 +3,20 @@
   if (location.origin !== 'https://chromewebstore.google.com' || window !== top) return;
   if (globalThis.__blancStorePromotionObserver) return;
   function suppress() {
+    // English inline banner: match its exact accessible action and complete
+    // copy, then require that action to be its only interactive descendant.
+    // Never climb into the listing, search, sign-in or installation controls.
+    const label = 'Switch to Chrome to install extensions and themes Install Chrome';
+    const copy = label.replace(/\s/g, '');
+    for (const button of document.querySelectorAll(`button[aria-label="${label}"]`)) {
+      for (let box = button.parentElement; box && box !== document.body; box = box.parentElement) {
+        const controls = [...box.querySelectorAll('a,button,input,select,textarea,iframe,[role="button"],[role="dialog"]')];
+        if (controls.length !== 1 || controls[0] !== button) break;
+        if (box.textContent.replace(/\s/g, '') !== copy) continue;
+        box.style.setProperty('display', 'none', 'important');
+        break;
+      }
+    }
     for (const link of document.querySelectorAll('a[href]')) {
       let url;
       try { url = new URL(link.href); } catch { continue; }

@@ -1,0 +1,140 @@
+Window: "Chrome Web Store - Search Results", App: Blanc Prototype.
+0 standard window Chrome Web Store - Search Results - Chromium, URL: chromewebstore.google.com/search/Extensity, Secondary Actions: Raise
+	1 container Chrome Web Store - Search Results - Chromium, URL: chromewebstore.google.com/search/Extensity
+		2 container
+			3 container
+				4 scroll area
+					5 HTML content Chrome Web Store - Search Results, URL: chromewebstore.google.com/search/Extensity
+						6 container
+							7 link Skip to main content
+								8 text Skip to main content
+							9 link Chrome Web Store logo chrome web store, Value: chromewebstore.google.com/
+							10 container Sitewide
+								11 container
+									12 combo box (settable) Search Chrome Web Store, Value: Extensity, Placeholder: Search extensions and themes
+									13 button Clear search
+							14 pop up button More options menu
+							15 container
+								16 button Google apps
+								17 link Sign in, Value: accounts.google.com/ServiceLogin?passive=1209600&osid=1&continue=https://chromewebstore.google.com/search/Extensity&followup=https://chromewebstore.google.com/search/Extensity&ec=GAZApQM
+							18 tab group
+								19 tab (settable, integer) Discover, Value: 0
+								20 tab (settable, integer) Extensions, Value: 0
+								21 tab (settable, integer) Themes, Value: 0
+							22 container
+								23 container
+									24 heading Type, Value: 2
+										25 text Type
+									26 toolbar Filter items by extension type
+										27 toggle button Extensions, Value: 0
+											28 image
+											29 text Extensions
+										30 toggle button Themes, Value: 0
+											31 image
+											32 text Themes
+									33 heading Filter by, Value: 2
+										34 text Filter by
+									35 container
+										36 checkbox Featured extensions, Value: 0
+									37 text Featured extensions
+									38 container
+										39 checkbox Established publishers, Value: 0
+									40 text Established publishers
+									41 heading Ratings, Value: 2
+										42 text Ratings
+									43 Ratings
+										44 radio button 5 stars, Value: 0
+										45 radio button 4 stars and up, Value: 0
+										46 radio button 3 stars and up, Value: 0
+										47 radio button 2 stars and up, Value: 0
+									48 button (disabled) Clear all filters button.
+								49 container
+									50 heading Search results, Value: 1
+										51 text Search results
+									52 link Extensity, Value: chromewebstore.google.com/detail/extensity/jjmflmamggggndanpgfnpelongoepncg
+									53 heading Extensity, Value: 2
+										54 text Extensity
+									55 container
+										56 image Published by verified publisher
+										57 text sergiokas.github.io/Extensity/
+										58 image Featured badge
+										59 text Featured
+									60 image Average rating 4.8 out of 5 stars.
+									61 container
+										62 link Learn more about results and reviews "Extensity"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+									63 text Quickly enable/disable Google Chrome extensions
+									64 link Extensity-Plus, Value: chromewebstore.google.com/detail/extensity-plus/gbojjphhdboeaafjdilfibonoflhgcde
+									65 heading Extensity-Plus, Value: 2
+										66 text Extensity-Plus
+									67 image Average rating 0 out of 5 stars.
+									68 container
+										69 link Learn more about results and reviews "Extensity-Plus"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+									70 text Quickly enable/disable Google Chrome extensions
+									71 link Extensity Ultra, Value: chromewebstore.google.com/detail/extensity-ultra/mdlkphghcnmhgffokbpngpmjahflaloj
+									72 heading Extensity Ultra, Value: 2
+										73 text Extensity Ultra
+									74 container
+										75 image Featured badge
+										76 text Featured
+									77 image Average rating 3.7 out of 5 stars.
+									78 container
+										79 link Learn more about results and reviews "Extensity Ultra"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+									80 text A powerful browser extension manager for efficient extension management.
+									81 link Extensity+ HaYTooL, Value: chromewebstore.google.com/detail/extensity+-haytool/mpcogfjfimnlfamonkfelppdcdhfhcom
+									82 heading Extensity+ HaYTooL, Value: 2
+										83 text Extensity+ HaYTooL
+									84 container
+										85 image Published by verified publisher
+										86 text haytokoraz.github.io/HaYTooL-Cloud-StartPage/
+									87 image Average rating 5 out of 5 stars.
+									88 container
+										89 link Learn more about results and reviews "Extensity+ HaYTooL"., Value: support.google.com/chrome_webstore/answer/12225786?p=cws_reviews_results&hl=en-US
+									90 text Quickly enable, disable, and organize your browser extensions. Profiles, favorites, and Always On rules included.
+							91 content list
+								92 container
+									93 link About Chrome Web Store, Value: support.google.com/chrome_webstore/answer/1047776?hl=en-US
+									94 text •
+								95 container
+									96 link Developer Dashboard, Value: chrome.google.com/webstore/devconsole/
+									97 text •
+								98 container
+									99 link Privacy Policy, Value: myaccount.google.com/privacypolicy?hl=en-US
+									100 text •
+								101 container
+									102 link Terms of Service, Value: ssl.gstatic.com/chrome/webstore/intl/en-US/gallery_tos.html
+									103 text •
+								104 link Help, Value: support.google.com/chrome_webstore?hl=en-US
+							105 text Page loaded.
+			106 scroll area
+				107 HTML content Blanc Chromium prototype, URL: chrome://blanc-prototype/host.html
+					108 container Blanc Island
+						109 HTML content Blanc, URL: chrome://blanc-prototype/index.html
+							110 container
+								111 button Search, tabs & commands (Ctrl/Cmd+L)
+									112 container
+										113 button (disabled) Back
+										114 button (disabled) Forward
+									115 container
+										116 button Switch to New Tab
+										117 button Switch to Chrome Web Store - Search Results
+									118 text chromewebstore.google.com
+									119 button New tab
+									120 container
+										121 button Reload
+										122 button Favorite this page
+										123 button Close tab
+			124 pop up button Extensions menu
+	125 menu button Window sharing
+126 menu bar
+	127 Blanc Prototype
+	128 File
+	129 Edit
+	130 View
+	131 History
+	132 Bookmarks
+	133 Profiles
+	134 Tab
+	135 Window
+	136 Help
+
+The focused UI element is 12 combo box (settable) Search Chrome Web Store, Value: Extensity, Placeholder: Search extensions and themes

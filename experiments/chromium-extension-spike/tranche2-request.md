@@ -1744,3 +1744,8 @@ Added an explicit query-encoded Chrome Web Store search action alongside install
 ### October 20 — Native Store search acceptance
 
 Native picker search → official Extensity listing → permission Cancel and successful install → combined installed/search picker → extension popup → removal all pass in a disposable profile. Safety delay observed. Evidence: `evidence/store-search-native-20261020/README.md`. Inline Store Chrome promotion remains visible but nonblocking; authentication/restart/upgrade not retested. No compile or upstream patch changes; prior 49/117 unchanged. Latency deferred; Electron diagnostic build unapproved.
+
+
+### October 20 — Inline Store promotion suppressed
+
+Exact English inline Chrome banner removed with sole-control and full-copy guards. Seven tests/scoped lint pass; native picker search, permission Cancel/safety delay/install and removal pass on rebuilt app. Evidence: `evidence/store-inline-banner-20261020/README.md`. One incremental build (35.55s Siso/six steps), final guard zero, prior49/117 unchanged. Other locales/future markup remain fail-visible; no authentication/restart/upgrade claim. Latency deferred; Electron diagnostic build unapproved.
