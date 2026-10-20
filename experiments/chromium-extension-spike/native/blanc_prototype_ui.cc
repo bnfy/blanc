@@ -3089,8 +3089,20 @@ class Handler : public content::WebUIMessageHandler {
       ui::ListSelectionModel selection;
       selection.SetSelectedIndex(focused);
       for (size_t i = range.start(); i < range.end(); ++i) selection.AddIndexToSelection(i);
+      std::vector<content::WebContents*> closing;
+      for (size_t i = range.start(); i < range.end(); ++i)
+        closing.push_back(model->GetWebContentsAt(i));
       model->SetSelectionFromModel(selection);
       model->CloseSelectedTabs();
+      // Compare identities only; closed contents must never be dereferenced.
+      for (auto* closed : closing) {
+        if (model->GetIndexOfWebContents(closed) != TabStripModel::kNoTab) {
+          reply(false, base::Value("Split closure is pending or cancelled; history is not acknowledged."));
+          return;
+        }
+      }
+      SaveClosedHistory(id, browser->GetProfile());
+      return;
     } else if (method == "closeTab") {
       if (model->count() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);

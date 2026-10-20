@@ -2043,3 +2043,10 @@ Owner approved 54 files/128 hunks for closed-history save acknowledgement. Nativ
 Owner approved54files/128hunks. Island closeTab now waits for selected-backend history save/flush after synchronous native close, rejecting failed/time-limited persistence. Pending/cancelled closure is not acknowledged; private no-history behavior remains. Immediate and settled encrypted-only postcorruption crash recovery now restore the fresh tab exactly once. Injected Tabs flush EIO is reported, and fault removal plus a subsequent close permits crash recovery. Three schedules/31checkpoints, seven capture and eleven counter tests pass. Evidence: evidence/history-close-ack-20261020/README.md.
 
 Two compile failures retained locally, incremental success85.65seconds/65steps; guardzero. Fresh54/128 at approved cap. Scope is Island closeTab, not every native/batch close path or power-loss protection. Pending unload/owner destruction/private runtime matrix not newly qualified. Profiles cleaned after process-exit verification; retained preview untouched. Latency deferred, native input and Electron diagnostic build pending.
+
+
+## Batch Split View close acknowledgement — October 20
+
+Island closeSplit now waits for history save/flush after all selected panes close; pending/cancelled closure rejects rather than claiming durable batch completion. Five disposable schedules/38 checkpoints pass: immediate and settled encrypted-only postcorruption crash restore both panes once with35/65 ratio/rightfocus; injected Tabs flush EIO rejects, subsequent successful close permits recovery; private history exclusion and beforeunload cancellation safeguards pass. Cancellation does not claim atomic pane rollback, and failed acknowledgement has no automatic batch retry.
+
+Seven capture tests pass, incremental build38.66seconds/6steps, final guardzero, fresh54files/128hunks unchanged. Evidence: evidence/split-batch-close-ack-20261020/README.md. Profiles removed after process-exit verification, retained preview untouched. Native physical input, owner destruction, broader close paths/powerloss remain pending; latency deferred and Electron diagnostic build unapproved.
