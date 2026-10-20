@@ -562,6 +562,8 @@ Then('the window is maximised', async function () {
 
 Then('the window is not maximised', async function () {
   await waitForValue(() => this.call('mainWindowState'), (value) => value?.maximized === false, 'the window to unmaximise');
+  // macOS animates the zoom back; a minimise asked for mid-animation is lost.
+  await sleep(800);
 });
 
 Then('the window is minimised', async function () {
