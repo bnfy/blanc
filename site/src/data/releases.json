@@ -1,5 +1,165 @@
 [
   {
+    "tag": "v1.39.0",
+    "version": "1.39.0",
+    "name": "1.39.0",
+    "publishedAt": "2026-10-20T01:50:41.000Z",
+    "humanDate": "October 19, 2026",
+    "machineDate": "2026-10-19",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.39.0",
+    "anchor": "v1-39-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, from the View menu, or with ⌘⌥B on macOS (Ctrl+Alt+B on Windows and Linux), and the page fills the whole window. Point at the top edge of the window, rest the pointer near the top, or press ⌘L (Ctrl+L) to bring the Island back; it slides away again once you move off it. It's off by default."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tab Archive."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archive inactive tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, and loose tabs you haven't looked at for 12 hours, a day, 7 days or 30 days close themselves into an Archive. Pinned, grouped and private tabs are never archived, and neither is a tab that is playing media or holding something you typed. Find archived tabs in the ⌘L panel, or in History → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archived tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/archive"
+                  },
+                  {
+                    "type": "text",
+                    "value": "), and restore them with one click. The Archive stays on this device and keeps each tab for 30 days. It's off by default; a new profile offers it during setup."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Gold."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new macOS app icon: the Sunrise in glass over gold, soft in Light and polished in Dark. Choose it in Settings → General → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "What's New."
+                  },
+                  {
+                    "type": "text",
+                    "value": " After an update that adds features, Blanc opens a page on blanc.day showing the highlights, once."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → General is grouped into cards:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " Island, Appearance, Start Page, Search and Browsing. The theme setting is now labeled "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A panel opened by hover closes when you move away"
+                  },
+                  {
+                    "type": "text",
+                    "value": " from it, unless you used it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "On macOS, the window buttons sit where Safari and Finder put them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.38.0",
     "version": "1.38.0",
     "name": "1.38.0",

@@ -219,10 +219,11 @@ test('at phone width nothing overflows', async () => {
 // Blanc opens this page in its own window: 1280×800 by default, less the
 // Island's 68px strip, and a 13-inch laptop's maximized window. The intro and
 // every highlight, the tile row and the changelog link fit without scrolling.
-for (const viewport of [{ width: 1280, height: 732 }, { width: 1440, height: 800 }, { width: 1024, height: 680 }]) {
-  test(`at ${viewport.width}×${viewport.height} every view fits without scrolling`, async () => {
-    const { context, page } = await open('/whats-new/1.38', { viewport });
-    for (const hash of ['', ...ids.map((id) => `#${id}`)]) {
+for (const viewport of [{ width: 1280, height: 732 }, { width: 1440, height: 800 }, { width: 1024, height: 680 }]) for (const { release } of byRelease) {
+  test(`${release} at ${viewport.width}×${viewport.height}: every view fits without scrolling`, async () => {
+    const { context, page } = await open(`/whats-new/${release}`, { viewport });
+    const tileIds = await page.$$eval('.wn-tile', (tiles) => tiles.map((tile) => tile.getAttribute('aria-controls')));
+    for (const hash of ['', ...tileIds.map((id) => `#${id}`)]) {
       if (hash) await page.locator(`.wn-tile[aria-controls="${hash.slice(1)}"]`).click();
       const bottoms = await page.evaluate(() => {
         const bottom = (selector) => document.querySelector(selector).getBoundingClientRect().bottom;
@@ -242,7 +243,7 @@ test('/whats-new leads to the newest page and is not indexed', async () => {
   const html = await (await fetch(`${baseURL}/whats-new`)).text();
   assert.match(html, /<meta name="robots" content="noindex,follow">/);
   const { context, page } = await open('/whats-new');
-  await page.waitForURL(/\/whats-new\/1\.38$/);
+  await page.waitForURL(new RegExp(`/whats-new/${byRelease[0].release.replace('.', '\\.')}$`));
   await context.close();
 });
 

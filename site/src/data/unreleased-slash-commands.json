@@ -1,5 +1,3 @@
 {
-  "commands": {
-    "/archive": "Tab Archive (F52), unreleased after public v1.38.0."
-  }
+  "commands": {}
 }
