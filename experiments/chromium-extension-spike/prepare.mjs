@@ -619,3 +619,12 @@ console.log(`Assets: ${generated}`);
 
 prepareWindowIdentity(edit);
 prepareSaveAcknowledgement(edit);
+
+edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
+  { anchor: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n',
+    replacement: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: '  layouts.host_size = gfx::Size(width, height);\n  return layouts;',
+    replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
+    present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
+]);

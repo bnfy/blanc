@@ -108,8 +108,8 @@
   });
   divider.addEventListener('pointermove', event => {
     if (!dividerDrag || event.pointerId !== dividerDrag.id) return;
-    const rect = document.getElementById('splitHeaders').getBoundingClientRect();
-    resizeSplit(dividerDrag.pair, (event.clientX - rect.left) / rect.width);
+    const geometry = snapshot?.splitGeometry;
+    if (geometry?.mode === 'columns') resizeSplit(dividerDrag.pair, (event.clientX - geometry.originX) / geometry.usableWidth);
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) divider.addEventListener(type, event => {
     if (!dividerDrag || event.pointerId !== dividerDrag.id) return;
@@ -144,6 +144,7 @@
     const rect = anchor.getBoundingClientRect();
     menu.style.left = `${Math.max(0, Math.min(innerWidth - 240, rect.right - 240))}px`;
     menu.dataset.private = String(tab.private);
+    menu.style.top = `${Math.max(68, Math.min(rect.bottom, innerHeight - 220))}px`;
     for (const [label, method] of [
       ['Reload', 'reload'], [tab.muted ? 'Unmute tab' : 'Mute tab', 'toggleMuted'],
       ['Pin tab', 'togglePinned'], ['Remove from Split View', 'removeFromSplit'], ['Close tab', 'closeTab'],
@@ -168,7 +169,7 @@
           (i + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length].focus();
       }
     });
-    paneMenu = menu; document.body.append(menu); await request('height', [320]); reportGeometry();
+    paneMenu = menu; document.body.append(menu); await request('height', [Math.ceil(rect.bottom + 220)]); reportGeometry();
     menu.querySelector('button').focus();
   }
   document.addEventListener('pointerdown', event => {
@@ -179,13 +180,14 @@
     const box = document.getElementById('splitHeaders');
     const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
     const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
-    const key = JSON.stringify([split, tabs, layout, railWidth]);
-    divider.hidden = !split;
-    if (split) {
-      const left = layout === 'vertical' ? railWidth : 0;
-      divider.style.left = `${left + (innerWidth - left) * split.layout.widths[0] - 4}px`;
+    const geometry = snapshot?.splitGeometry;
+    const key = JSON.stringify([split, tabs, layout, railWidth, geometry]);
+    divider.hidden = !split || geometry?.mode !== 'columns';
+    if (split && geometry?.divider) {
+      const r = geometry.divider;
+      Object.assign(divider.style, {left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
       divider.setAttribute('aria-valuenow', String(Math.round(split.layout.widths[0] * 100)));
-      divider.setAttribute('aria-valuetext', `${Math.round(split.layout.widths[0] * 100)} percent left pane`);
+      divider.setAttribute('aria-valuetext', `${Math.round(split.layout.widths[0] * 100)} percent saved left pane`);
     }
     if (paneMenu && !split?.tabIds.includes(paneMenu.dataset.tabId)) dismissPaneMenu();
     if (key === splitHeaderKey) return;
@@ -194,11 +196,12 @@
     box.dataset.private = String(tabs.some(t => t?.private));
     box.replaceChildren();
     if (!split) return;
-    box.style.left = layout === 'vertical' ? `${railWidth}px` : '0';
-    box.style.gridTemplateColumns = split.layout.widths.map(w => `${w}fr`).join(' ');
-    for (const tab of tabs) {
+    box.style.left = '0';
+    for (const [index, tab] of tabs.entries()) {
       const pane = document.createElement('div');
       pane.className = 'split-pane-header';
+      const r = geometry?.headers?.[index];
+      if (r) Object.assign(pane.style, {position:'absolute',left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
       pane.dataset.active = String(tab.id === snapshot.activeTabId);
       if (tab.favicon?.startsWith('data:image/')) {
         const icon = document.createElement('img'); icon.src = tab.favicon; icon.alt = ''; pane.append(icon);

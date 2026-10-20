@@ -45,3 +45,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #splitPaneMenu[data-private="true"] { background:#161616; color:white; }
 #splitPaneMenu button { display:block; width:100%; border:0; background:transparent; color:inherit; text-align:left; padding:9px; border-radius:4px; font:13px system-ui; }
 #splitPaneMenu button:hover, #splitPaneMenu button:focus { background:#ad824130; outline:2px solid #ad8241; outline-offset:-2px; }
+
+#splitHeaders { inset:0; height:100%; display:block; background:transparent; pointer-events:none; }
+.split-pane-header { box-sizing:border-box; background:var(--header-fallback); pointer-events:auto; }
+#splitHeaders[data-private="true"] { background:transparent; }
+#splitHeaders[data-private="true"] .split-pane-header { background:#0a0a0a; }

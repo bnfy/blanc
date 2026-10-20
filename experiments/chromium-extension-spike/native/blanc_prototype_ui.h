@@ -10,9 +10,11 @@
 
 namespace content { class WebContents; }
 class BrowserWindowInterface;
+class MultiContentsView;
 class ToolbarButtonProvider;
 namespace views {
 class View;
+struct ProposedLayout;
 class WebView;
 }
 
@@ -60,6 +62,7 @@ bool ToggleFavoriteFromIsland(BrowserWindowInterface* browser);
 bool OpenIsland(BrowserWindowInterface* browser, bool new_tab = false,
                 const std::string& initial_text = std::string());
 std::unique_ptr<views::WebView> CreateIsland(BrowserWindowInterface* browser);
+void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* layout);
 void LayoutIsland(views::View* parent, int top);
 }  // namespace blanc_prototype
 

@@ -8,6 +8,9 @@
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
+#include "chrome/browser/ui/views/frame/multi_contents_view.h"
+#include "ui/views/layout/proposed_layout.h"
+#include <array>
 #include <cmath>
 #include <algorithm>
 #include <memory>
@@ -574,6 +577,8 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  base::DictValue split_geometry;
+  std::vector<gfx::Rect> split_hit_regions;
   std::string page_tint;
 
   // The tab's committed favicon as a data URL, encoded once per distinct
@@ -915,7 +920,15 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
   }
   bool DoesIntersectRect(const views::View*, const gfx::Rect& rect) const override {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
-    if (!owner || !owner->vertical) return GetLocalBounds().Intersects(rect);
+    if (!owner) return GetLocalBounds().Intersects(rect);
+    if (!owner->split_geometry.empty()) {
+      if (gfx::Rect(0, 0, width(), 68).Intersects(rect)) return true;
+      for (const auto& region : owner->split_hit_regions)
+        if (region.Intersects(rect)) return true;
+      return (owner->vertical && gfx::Rect(0, 68, owner->rail_width, height()).Intersects(rect)) ||
+          (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
+    }
+    if (!owner->vertical) return GetLocalBounds().Intersects(rect);
     return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
         gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect) ||
         (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
@@ -1426,6 +1439,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
+      .Set("splitGeometry", owner->split_geometry.Clone())
       .Set("spaceName", owner->space_name)
       .Set("spaceAutosaveError", owner->space_error)
       .Set("spaceBusy", owner->space_busy)
@@ -2357,7 +2371,8 @@ class Handler : public content::WebUIMessageHandler {
         if (tab_id == args[1].GetInt()) second = i;
       }
       const auto split = first >= 0 ? model->GetSplitForTab(first) : std::nullopt;
-      if (!std::isfinite(ratio) || ratio < 0.2 || ratio > 0.8 || first < 0 ||
+      if ((owner->split_geometry.FindString("mode") && *owner->split_geometry.FindString("mode") != "columns") ||
+          !std::isfinite(ratio) || ratio < 0.2 || ratio > 0.8 || first < 0 ||
           second <= first || !split || model->GetSplitForTab(second) != split ||
           model->GetSplitForTab(model->active_index()) != split ||
           !model->GetWebContentsAt(first)->GetUserData(kPersistentSplitKey)) {
@@ -3227,7 +3242,8 @@ bool HasIsland(views::View* parent) {
 int HeaderHeight(views::View* parent) {
   if (!HasIsland(parent)) return 68;
   auto* model = static_cast<BrowserView*>(parent)->browser()->GetTabStripModel();
-  return model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) ? 98 : 68;
+  return model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) &&
+      !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey) ? 98 : 68;
 }
 
 int RailWidth(views::View* parent) {
@@ -3256,13 +3272,74 @@ void RestoreExtensions(views::View* parent) {
     toolbar->AddChildView(parent->RemoveChildViewT(extensions));
 }
 
+// Transient presentation only: native split membership and saved column ratio
+// remain authoritative while narrow windows stack or focus panes.
+void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* layout) {
+  if (!IsEnabled()) return;
+  Owner* owner = nullptr;
+  BrowserView* browser_view = nullptr;
+  for (auto* candidate : Owner::Live()) {
+    auto* bv = BrowserView::GetBrowserViewForBrowser(candidate->browser);
+    if (bv && bv->multi_contents_view() == view) { owner = candidate; browser_view = bv; break; }
+  }
+  if (!owner) return;
+  auto* model = owner->browser->GetTabStripModel();
+  if (model->active_index() < 0 || !model->GetSplitForTab(model->active_index()) ||
+      !model->GetActiveWebContents()->GetUserData(kPersistentSplitKey)) {
+    owner->split_geometry.clear(); owner->split_hit_regions.clear(); return;
+  }
+  const auto& containers = view->contents_container_views();
+  if (containers.size() != 2) return;
+  const int width = layout->host_size.width(), height = layout->host_size.height();
+  const bool columns = width >= 612;
+  const bool rows = !columns && height >= 392;
+  const int first = columns ? std::clamp(static_cast<int>(std::round((width - 12) * view->GetSplitRatio())), 300, width - 312)
+      : rows ? (height - 12) / 2 : (view->GetActiveIndex() == 0 ? std::max(30, height - 30) : 30);
+  std::array<gfx::Rect, 2> panes;
+  gfx::Rect gutter;
+  if (columns) {
+    panes[0] = gfx::Rect(0, 0, first, height);
+    gutter = gfx::Rect(first, 0, 12, height);
+    panes[1] = gfx::Rect(first + 12, 0, width - first - 12, height);
+  } else {
+    panes[0] = gfx::Rect(0, 0, width, first);
+    gutter = gfx::Rect(0, first, width, rows ? 12 : 0);
+    panes[1] = gfx::Rect(0, first + gutter.height(), width, std::max(30, height - first - gutter.height()));
+  }
+  gfx::Point origin;
+  views::View::ConvertPointToTarget(view, browser_view, &origin);
+  if (auto* island = browser_view->GetViewByID(kIslandViewId)) origin.Offset(-island->x(), -island->y());
+  auto encode = [](const gfx::Rect& r) { return base::DictValue().Set("x", r.x()).Set("y", r.y()).Set("width", r.width()).Set("height", r.height()); };
+  base::ListValue headers;
+  std::vector<gfx::Rect> hit_regions;
+  for (int i = 0; i < 2; ++i) {
+    gfx::Rect header = panes[i]; header.set_height(30); header.Offset(origin.x(), origin.y());
+    hit_regions.push_back(header); headers.Append(encode(header));
+    auto page = panes[i]; page.Inset(gfx::Insets::TLBR(30, 0, 0, 0));
+    for (auto& child : layout->child_layouts) {
+      if (child.child_view == containers[i]) { child.bounds = page; child.visible = true; }
+    }
+  }
+  for (auto& child : layout->child_layouts)
+    if (std::string(child.child_view->GetClassName()) == "MultiContentsResizeArea") child.bounds = gfx::Rect();
+  gutter.Offset(origin.x(), origin.y());
+  if (columns) hit_regions.push_back(gutter);
+  // Preferred-size probes also call this method with zero/non-current bounds.
+  // Only applied-size geometry may own input regions or renderer metadata.
+  if (width <= 0 || width != view->width() || height != view->height()) return;
+  owner->split_hit_regions = std::move(hit_regions);
+  owner->split_geometry = base::DictValue().Set("mode", columns ? "columns" : rows ? "rows" : "focus")
+      .Set("headers", std::move(headers)).Set("divider", encode(gutter))
+      .Set("originX", origin.x()).Set("usableWidth", std::max(1, width - 12));
+}
+
 void LayoutIsland(views::View* parent, int top) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
   auto* owner = GetOwner(view->GetWebContents());
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
-                  std::min(owner && owner->vertical ? available : owner ? std::max(owner->height, HeaderHeight(parent)) : 68, available));
+                  std::min(owner && (owner->vertical || !owner->split_geometry.empty()) ? available : owner ? std::max(owner->height, HeaderHeight(parent)) : 68, available));
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
