@@ -1,0 +1,9 @@
+{
+  "removed": [
+    "/private/tmp/blanc-stale-provider/clear/chromium-profile",
+    "/private/tmp/blanc-stale-provider/encrypted/chromium-profile",
+    "/private/tmp/blanc-stale-provider/provider/chromium-profile",
+    "/private/tmp/blanc-stale-provider/normal-clear/chromium-profile"
+  ],
+  "previewUntouched": true
+}
