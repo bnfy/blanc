@@ -2306,6 +2306,12 @@ class Handler : public content::WebUIMessageHandler {
     // parity. Never merge pin/group ownership as a side effect of a probe.
     if ((method == "previewGlancePair" || method == "previewSplitPair") && args.size() == 2 &&
         args[0].is_int() && args[1].is_int()) {
+      // PR993: a visible split owns both panes. Even a request naming two
+      // loose tabs must not replace that presentation with temporary Glance.
+      if (method == "previewGlancePair" && model->active_index() >= 0 &&
+          model->GetSplitForTab(model->active_index())) {
+        reply(true, base::Value(false)); return;
+      }
       int first = -1, second = -1;
       for (int i = 0; i < model->count(); ++i) {
         const int tab_id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
@@ -2335,6 +2341,9 @@ class Handler : public content::WebUIMessageHandler {
         if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
         const auto split = model->GetSplitForTab(i);
         if (split) model->RemoveSplit(*split);
+        // Clear stale temporary ownership before a synchronous Spaces capture.
+        // Snapshot polling must not be required to make saving available again.
+        owner->MainIndex();
         reply(true, base::Value(split.has_value())); return;
       }
       reply(true, base::Value(false)); return;

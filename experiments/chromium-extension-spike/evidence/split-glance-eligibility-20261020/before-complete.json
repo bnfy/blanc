@@ -1,0 +1,6 @@
+{
+  "label": "before-complete",
+  "checks": [],
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ {\n+   names: [\n+     'Split source'\n+   ]\n+ }\n- true\n\n    at file:///private/tmp/blanc-split-eligibility/test.mjs:24:24"
+}

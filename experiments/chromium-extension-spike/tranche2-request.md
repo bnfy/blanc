@@ -1881,3 +1881,7 @@ Nine focused tests and scoped lint pass. Native authored-extension checks verify
 No new upstream hooks; prior measured50files/118hunks remains within50/120. Windows/Linux, managed/private menu lifecycle, developer Inspect Popup and broad destruction races remain unqualified. Latency deferred; Electron diagnostic build unapproved. Retained preview not restarted for this checkpoint.
 
 Evidence: `evidence/island-menu-lifecycle-20261020/`.
+
+## October 20 — Split View / Glance eligibility
+
+Rechecked merged PR993 at unchanged98ea48fc. Native Glance now refuses while any native split is visible, even when supplied two loose tabs. Glance closure synchronously revalidates temporary ownership. Eight bounded regular/private runtime checks pass, including unchanged refusal state, inactive-split allowance, close preserving split, immediate save and Spaces reopen. Seven capture tests pass; two guarded incremental builds and final zero-action guard. Initial fixture failures retained and not mislabeled as product regressions. No new upstream hooks; prior50/118 within50/120. Public controls, headers/dividers/rail, whole-split Recently Closed and broader lifecycle remain open; latency deferred, Electron diagnostic build unapproved, preview untouched. Evidence: `evidence/split-glance-eligibility-20261020/README.md`.
