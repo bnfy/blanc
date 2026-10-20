@@ -93,6 +93,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-40 | Resizing the window while the pill floats | D29 | ✅ | ➖ | ➖ |
 | F1-41 | Changing the theme while the pill floats | D29 | ✅ | ➖ | ➖ |
 | F1-42 | The floating pill is the strip's pill, in both tab layouts | D29 | ✅ | ➖ | ➖ |
+| F1-43 | Resting just below the top edge does not reveal a floating Island | D29 | ✅ | ➖ | ➖ |
+| F1-44 | A floating Island hides as soon as the pointer moves below the strip | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
