@@ -5,6 +5,7 @@
 // after checking that the page exists (src/main/whats-new.js).
 import fs from 'node:fs';
 import path from 'node:path';
+import { PLATFORMS } from './visitor-platform.mjs';
 
 const RELEASE_RE = /^(\d+)\.(\d+)\.(\d+)$/;
 const FEATURE_RE = /^(\d+)\.(\d+)$/;
@@ -136,7 +137,19 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
         if (typeof text === 'string') errors.push(...chipErrors(text, where));
       }
       if (h.learnMore !== undefined && !isSitePath(h.learnMore)) errors.push(`${where}: learnMore must be a blanc.day page`);
+      // Optional: the platforms a highlight is for (Sunrise Gold: mac). The
+      // page shows each visitor only those for their platform.
+      if (h.platforms !== undefined && (!Array.isArray(h.platforms) || !h.platforms.length
+        || !h.platforms.every((p) => PLATFORMS.includes(p)) || new Set(h.platforms).size !== h.platforms.length)) {
+        errors.push(`${where}: platforms must list some of ${PLATFORMS.join(', ')}, once each`);
+      }
       errors.push(...mediaErrors(h.media, where, publicDir, allowDrafts));
+    }
+    // Each platform's visitors see at least one of the page's own highlights.
+    for (const platform of PLATFORMS) {
+      if (highlights.length && !highlights.some((h) => !Array.isArray(h.platforms) || h.platforms.includes(platform))) {
+        errors.push(`page ${release}: no highlight of its own for ${platform}`);
+      }
     }
   }
   const skipped = new Set(data.noPage ?? []);
