@@ -60,3 +60,23 @@ html, body { background: transparent; }
 .vertical-split-icons { display: flex; flex: none; gap: 3px; }
 .vertical-split-icons .vertical-tab-favicon { width: 14px; height: 14px; }
 .vertical-split-row .vertical-tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Image-based Store themes paint their toolbar artwork on the resting Island. */
+:root[data-store-toolbar] #islandPill {
+  --text: var(--theme-toolbar-text);
+  --text-dim: var(--theme-toolbar-text);
+  --accent: var(--theme-toolbar-text);
+  --border: color-mix(in srgb, var(--theme-toolbar-text) 35%, transparent);
+  color: var(--theme-toolbar-text);
+}
+:root[data-store-toolbar] #islandPill::after {
+  background-image: var(--theme-toolbar-image);
+  background-position: center;
+  background-size: cover;
+}
+
+/* Preserve the approved native Island radius and shadow over the pinned renderer. */
+#islandPill {
+  --island-resting-radius: 14px;
+  --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+}

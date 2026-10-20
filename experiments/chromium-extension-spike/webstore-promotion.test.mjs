@@ -59,5 +59,5 @@ test('inline rule is limited to top-level Store origin',()=>{
  vm.runInNewContext(script,{location:{origin:'https://chromewebstore.google.com'},window,top:window,URL,NodeFilter:{SHOW_TEXT:4},document:{documentElement:{},querySelectorAll:s=>s==='button'?[button]:[],createTreeWalker:()=>{let read=false;return{nextNode:()=>read?null:(read=true,node)};}},MutationObserver:class{constructor(cb){callback=cb;}observe(){}}});
  assert.equal(node.nodeValue,'Add to Blanc');assert.equal(attrs['aria-label'],'Add to Blanc');assert.equal(button.disabled,true);
  callback();assert.equal(node.nodeValue,'Add to Blanc');
- node.nodeValue='Remove from Chrome';callback();assert.equal(node.nodeValue,'Remove from Chrome');assert.equal(attrs['aria-label'],undefined);
+ node.nodeValue='Remove from Chrome';callback();assert.equal(node.nodeValue,'Remove from Blanc');assert.equal(attrs['aria-label'],'Remove from Blanc');
  });

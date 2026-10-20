@@ -25,6 +25,15 @@
       const light = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722 > 128;
       root.style.setProperty('--theme-icon-filter', light ? 'brightness(0) invert(1)' : 'brightness(0)');
     } else root.style.removeProperty('--theme-icon-filter');
+    const toolbar = enabled && /^chrome:\/\/blanc-prototype\/theme-toolbar\.png\?[a-p]{32}$/.test(theme.toolbarImage || '');
+    if (toolbar) {
+      root.style.setProperty('--theme-toolbar-image', `url("${theme.toolbarImage}")`);
+      root.style.setProperty('--theme-toolbar-text', hex(theme.toolbarImageText) || theme.text);
+    } else {
+      root.style.removeProperty('--theme-toolbar-image');
+      root.style.removeProperty('--theme-toolbar-text');
+    }
+    root.toggleAttribute('data-store-toolbar', !!toolbar);
     root.toggleAttribute('data-store-theme', !!enabled);
   }
   window.BlancInstalledTheme = { apply };

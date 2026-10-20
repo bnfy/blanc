@@ -2110,3 +2110,15 @@ Retry saves revalidate same-profile tab IDs/order, URL/loading/pinning and selec
 ### Pending-save group/Split/owner checks — 2026-10-20
 
 Four final schedules46diagnostic checkpoints: group rename survives immediate crash; requester destruction while save held preserves decoy/liveness through restart. Split ratio35/65 observed live during held write returns50/50 after immediate post-ack crash;5.5second settled control passes. Ratio is absent from structural signature; no repair this checkpoint. Initial premature ratio snapshot and incomplete owner closure attempts retained/excluded. Evidence split-save-group-owner-20261020. No nativecompile,guard0,prior54/128unchanged. Profilesremovedpreviewuntouched. Other group/layout/owner lifecycle and nativeinput remain open; latency/Electron diagnosticbuild pending.
+
+### Shaded Purple dev restart — 2026-10-20
+
+Native toolbar artwork now uses a scoped theme resource; foreground reads the supplier with a safe toolbar fallback. The initial unsupported default-color lookup caused a startup fatal and was repaired. The incremental repair build passed; twelve focused tests pass and final build guard has zero actions. Styling belongs in prototype.css because the base renderer stylesheet is a pinned reviewed asset.
+
+Retained profile restarted. Automatic --restore-last-session stalled in SessionRestore; session/Preferences backup retained at /private/tmp/blanc-theme-session-backup. Reopened the recorded three URLs (New Tab, Shaded Purple listing, New Tab) in order and restored listing selection. This is URL-list recovery, not proof of automatic restoration or preservation of back/forward history. Verification confirms active theme ID, decoded1920x120 toolbar artwork, computed Island image and visible/aria Remove from Blanc label. Native AX confirms all three tabs and the label. No theme uninstall or reinstall performed.
+
+Evidence: evidence/shaded-purple-restart-20261020. Theme changes remain uncommitted. Latency and Electron diagnostic build remain pending; automatic restoration stall and previous Split ratio persistence gap remain open.
+
+2026-10-20 Island highlight recurrence repaired in prototype/prototype.css: pinned renderer base retained top inset white shadow despite earlier source styling change. Native override now removes top highlight across theme states. Assets-only prepare and live host reload; computed shadow confirms bottom inset/external shadow only, all three tab IDs/URLs and active selection unchanged. Evidence /private/tmp/blanc-highlight-verification.json. No native build, latency or Electron diagnostic build.
+
+Shaded Purple commit checkpoint: native prototype radius14px/top-highlight removal verified with unchanged tab IDs and selection. Token source/generated outputs synchronized for prior substrate drift;12tests/scopedlint/tokencheck/inventory pass. Prior-head site /mail320px overflow and Intel directoryRows166ms assertion remain separate CI failures; monitor new head. No additional native build; latency and Electron diagnostic build pending.

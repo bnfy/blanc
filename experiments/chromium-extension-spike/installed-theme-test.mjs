@@ -25,3 +25,13 @@ test('invalid theme colors are refused', () => {
   const f=fixture(); f.apply({...theme,surface:'url(https://example.invalid)'});
   assert.equal(f.attrs.get('data-store-theme'),false); assert.equal(f.props.size,0);
 });
+test('toolbar artwork is scoped to the native theme endpoint and cleared on removal', () => {
+ const f=fixture();const toolbarImage='chrome://blanc-prototype/theme-toolbar.png?'+'a'.repeat(32);
+ f.apply({...theme,toolbarImage,toolbarImageText:'#ffffff'});
+ assert.equal(f.attrs.get('data-store-toolbar'),true);
+ assert.equal(f.props.get('--theme-toolbar-image'),`url("${toolbarImage}")`);
+ f.apply({...theme,toolbarImage:'https://example.invalid/image.png'});
+ assert.equal(f.attrs.get('data-store-toolbar'),false);
+ assert.equal(f.props.has('--theme-toolbar-image'),false);
+ f.apply({});assert.equal(f.props.size,0);
+});

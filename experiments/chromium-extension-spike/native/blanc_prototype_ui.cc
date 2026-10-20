@@ -1472,6 +1472,14 @@ base::DictValue InstalledTheme(Profile* profile, bool images = false) {
   color("background", ThemeProperties::COLOR_NTP_BACKGROUND);
   color("backgroundText", ThemeProperties::COLOR_NTP_TEXT);
   color("link", ThemeProperties::COLOR_NTP_LINK);
+  const auto& toolbar_provider = ThemeService::GetThemeProviderForProfile(profile);
+  if (toolbar_provider.HasCustomImage(IDR_THEME_TOOLBAR)) {
+    result.Set("toolbarImage", "chrome://blanc-prototype/theme-toolbar.png?" + service->GetThemeID());
+    SkColor foreground = ThemeProperties::GetDefaultColor(ThemeProperties::COLOR_TOOLBAR_TEXT, false);
+    supplier->GetColor(ThemeProperties::COLOR_TAB_FOREGROUND_ACTIVE_FRAME_ACTIVE, &foreground);
+    result.Set("toolbarImageText", base::StringPrintf("#%02x%02x%02x",
+        SkColorGetR(foreground), SkColorGetG(foreground), SkColorGetB(foreground)));
+  }
   if (images) {
     const auto& provider = ThemeService::GetThemeProviderForProfile(profile);
     const auto image = [&](const char* name, int resource) {
@@ -3565,13 +3573,13 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
       base::BindRepeating(
           [](base::FilePath root, base::WeakPtr<Profile> profile, const std::string& path,
              content::WebUIDataSource::GotDataCallback callback) {
-            if (path.starts_with("theme-background.png?") || path.starts_with("theme-attribution.png?")) {
+            if (path.starts_with("theme-background.png?") || path.starts_with("theme-attribution.png?") || path.starts_with("theme-toolbar.png?")) {
               scoped_refptr<base::RefCountedMemory> bytes;
               auto* service = profile && !profile->IsOffTheRecord() ?
                   ThemeServiceFactory::GetForProfile(profile.get()) : nullptr;
               const auto query = path.substr(path.find('?') + 1);
               if (service && service->UsingExtensionTheme() && query == service->GetThemeID()) {
-                const int resource = path.starts_with("theme-background") ? IDR_THEME_NTP_BACKGROUND : IDR_THEME_NTP_ATTRIBUTION;
+                const int resource = path.starts_with("theme-background") ? IDR_THEME_NTP_BACKGROUND : path.starts_with("theme-toolbar") ? IDR_THEME_TOOLBAR : IDR_THEME_NTP_ATTRIBUTION;
                 const auto& provider = ThemeService::GetThemeProviderForProfile(profile.get());
                 if (provider.HasCustomImage(resource)) bytes = provider.GetRawData(resource, ui::k100Percent);
                 if (bytes && bytes->size() > 8 * 1024 * 1024) bytes.reset();

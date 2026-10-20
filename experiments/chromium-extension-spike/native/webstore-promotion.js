@@ -7,22 +7,23 @@
     // Relabel the existing action; retain the button, handlers and disabled state.
     for (const button of document.querySelectorAll('button')) {
       const text = button.textContent.trim();
-      if (relabeled.has(button) && text !== 'Add to Blanc') {
-        if (button.getAttribute('aria-label') === 'Add to Blanc') {
+      if (relabeled.has(button) && text !== 'Add to Blanc' && text !== 'Remove from Blanc') {
+        if (['Add to Blanc', 'Remove from Blanc'].includes(button.getAttribute('aria-label'))) {
           const original = relabeled.get(button);
           if (original === null) button.removeAttribute('aria-label');
           else button.setAttribute('aria-label', text === 'Add to Chrome' ? original : text);
         }
         relabeled.delete(button);
       }
-      if (text !== 'Add to Chrome') continue;
+      const label = text === 'Add to Chrome' ? 'Add to Blanc' : text === 'Remove from Chrome' ? 'Remove from Blanc' : null;
+      if (!label) continue;
       const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
       let node;
       while ((node = walker.nextNode())) {
-        if (node.nodeValue.trim() === 'Add to Chrome') {
+        if (node.nodeValue.trim() === text) {
           relabeled.set(button, button.getAttribute('aria-label'));
-          node.nodeValue = node.nodeValue.replace('Add to Chrome', 'Add to Blanc');
-          button.setAttribute('aria-label', 'Add to Blanc');
+          node.nodeValue = node.nodeValue.replace(text, label);
+          button.setAttribute('aria-label', label);
           break;
         }
       }
