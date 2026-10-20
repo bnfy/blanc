@@ -2085,3 +2085,8 @@ Native Island palette and start-page theme artwork implemented. Customize keeps 
 ### Partial Split cancellation acknowledgement repair — 2026-10-20
 
 Resolved the prior immediate-crash gap at the durable close-operation boundary: unload outcome is awaited, cancelled-batch surviving session rebuilt/flushed, then history flushed before cancellation is returned. Both survivor directions, delayed11second decision, private exclusion and complete-close postcorruption regression pass37checkpoints across5schedules. Seven capture tests pass. See evidence/split-partial-ack-20261020/README.md for initial failures and qualifications. Incremental37.89/41.46s, finalguard0, footprint54/128 unchanged. Before-ack interruption/powerloss and broader cancellation fault matrix remain open. Latency/nativephysical/Electron diagnostic build remain pending.
+
+
+### Partial cancellation pre-ack/write-error boundaries — 2026-10-20
+
+Four injected schedules reach actual session/history writes. Held writes remain unacknowledged; crashes lose partial Split metadata (session boundary restores both panes loose; history boundary only survivor). Both EIO cases reject durability, but explicit reconciliation and acknowledged save/close after fault removal still fail complete Split recovery after crash. No repair this checkpoint.34 bounded diagnostic checkpoints must not be represented as recovery passes. See evidence/split-partial-write-boundaries-20261020/outcomes.json and README. Guard0,no nativecompile,prior54/128 unchanged. Latency/nativeinput/Electron diagnostic build pending.
