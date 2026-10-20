@@ -224,9 +224,10 @@ Feature: Island chrome, command palette, and slash commands
     And the Island auto-hides and floats
     Then the strip has no window-drag region
     And the thin top band drags the window
-    And the window buttons stay on screen
+    And the window buttons are hidden with the Island
     When I point at the top edge of the window
     Then the Island is revealed while the page stays at the top of the window
+    And the window buttons are back with the Island
     And the thin top band drags the window
 
   @F1-29 @F1 @desktop @island-autohide
@@ -316,14 +317,15 @@ Feature: Island chrome, command palette, and slash commands
     Then the floating pill shows the private theme
 
   @F1-36 @F1 @desktop @island-autohide @test-platform-linux
-  Scenario: Window buttons stay on screen in float mode on Windows and Linux
+  Scenario: Window buttons come and go with the floating pill on Windows and Linux
     Given a tab open on "autohide-page"
     And the Island auto-hides and floats
     Then the strip reports where its window buttons are
-    And the floating window controls show three working buttons while the Island is hidden
+    And the floating window controls wait above the window edge
     And the floating menu button waits above the window edge
     When I point at the top edge of the window
     Then the floating menu button slides in with the pill
+    And the floating window controls slide in with three working buttons
     When I click maximise on the floating window controls
     Then the window is maximised
     When I click maximise on the floating window controls
@@ -351,7 +353,7 @@ Feature: Island chrome, command palette, and slash commands
     When auto-hide is turned off
     Then no floating views remain and the page sits below the strip
     And the strip drags the window again
-    And the window buttons stay on screen
+    And the window buttons are back with the Island
 
   @F1-39 @F1 @desktop @island-autohide
   Scenario: Changing the style while Glance is open

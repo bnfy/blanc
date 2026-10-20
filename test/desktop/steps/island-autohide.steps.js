@@ -276,11 +276,16 @@ Then('the thin top band drags the window', async function () {
   await waitForValue(() => this.call('dragBandAppRegion'), (region) => region === 'drag', 'the top band to drag the window');
 });
 
-// macOS: the traffic lights stay on screen while a floating Island is hidden.
-Then('the window buttons stay on screen', async function () {
-  const state = await autoHideState(this);
+// macOS: the traffic lights hide with a floating Island and come back with
+// it, so they never sit over the page's top-left corner on their own.
+Then('the window buttons are hidden with the Island', async function () {
   if (process.platform !== 'darwin') return;
-  assert.equal(state.windowButtonsVisible, true);
+  await waitForValue(() => autoHideState(this), (value) => value?.windowButtonsVisible === false, 'the traffic lights to hide');
+});
+
+Then('the window buttons are back with the Island', async function () {
+  if (process.platform !== 'darwin') return;
+  await waitForValue(() => autoHideState(this), (value) => value?.windowButtonsVisible === true, 'the traffic lights to return');
 });
 
 Then('the Island is revealed while the page stays at the top of the window', async function () {
@@ -539,7 +544,13 @@ Then('the strip reports where its window buttons are', async function () {
   assert.ok(rects.windowControlsRect.width > 0 && rects.menuButtonRect.width > 0);
 });
 
-Then('the floating window controls show three working buttons while the Island is hidden', async function () {
+Then('the floating window controls wait above the window edge', async function () {
+  await waitForValue(() => floatState(this, 'controls'), (value) => value?.attached === true && value.shown === false && value.visible === false,
+    'the hidden window controls view');
+  assert.equal((await autoHideState(this)).revealed, false);
+});
+
+Then('the floating window controls slide in with three working buttons', async function () {
   const view = await waitForValue(() => floatState(this, 'controls'), (value) => value?.shown === true && value.visible === true,
     'the floating window controls to show');
   const rects = await this.call('chromeButtonRects');
@@ -551,7 +562,7 @@ Then('the floating window controls show three working buttons while the Island i
   for (const button of state.controls) {
     assert.ok(button.x >= 0 && button.x + button.width <= bounds.width && button.y >= 0, `button inside the window: ${JSON.stringify(button)}`);
   }
-  assert.equal((await autoHideState(this)).revealed, false);
+  assert.equal((await floatState(this, 'pill')).shown, true);
 });
 
 Then('the floating menu button waits above the window edge', async function () {

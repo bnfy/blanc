@@ -196,12 +196,13 @@ function floatViewsWanted({ autoHide, style, platform }) {
   return { pill, controls: ownChrome, menu: ownChrome };
 }
 
-/** Which float views are on screen: the window controls whenever the Island
- * floats, the pill and the menu button only while the Island is visible. */
+/** Which float views are on screen: all of them only while the Island is
+ * visible. On screen while it is hidden, the window controls sat over the
+ * corner where sites put their own buttons (owner, 2026-10-20). */
 function floatViewsShown({ floating, islandVisible, platform }) {
   const pill = floating === true && islandVisible === true;
-  const ownChrome = floating === true && platform !== 'darwin';
-  return { pill, controls: ownChrome, menu: ownChrome && pill };
+  const ownChrome = pill && platform !== 'darwin';
+  return { pill, controls: ownChrome, menu: ownChrome };
 }
 
 /**

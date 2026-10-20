@@ -48,6 +48,13 @@ page.
   - macOS: the traffic lights, top-left.
   - Windows and Linux: the minimise / maximise / close cluster, floating
     top-right.
+- **Amended 2026-10-20 (owner): the window buttons now come and go with the
+  pill.** Left on screen while the Island was hidden, they sat over the
+  page's corners: the macOS traffic lights covered YouTube's menu button, and
+  the Windows/Linux cluster sits where sites put sign-in and account buttons.
+  The same reason already kept the main-menu button off screen. Pointing at
+  the top edge brings them back with the pill; keyboard shortcuts and the
+  drag band are unchanged.
 - **Moving the window.** An invisible drag band runs along the very top edge
   of the page pane. It drags the window, and a double-click maximises, as
   the bare strip does today. It overlaps the 10px reveal edge, so reaching
@@ -360,7 +367,7 @@ process.
 ## Docs to update with the implementation
 
 - **D29** in `spec/divergence-register.md`: float by default, the push choice,
-  always-visible window buttons in float, the drag band. The parity contract is
+  window buttons that come and go with the pill (amended), the drag band. The parity contract is
   unchanged.
 - **`2026-10-19-auto-hide-island-design.md`:** point Known limits at this
   spec.

@@ -3682,11 +3682,12 @@ function revealIslandAtPoint(runtime, point) {
 const MAC_WINDOW_BUTTON_POSITION = Object.freeze({ x: 19, y: 19 });
 
 /** macOS draws its traffic lights over the top-left of the window; while the
- * strip is hidden they would sit on the page. The vertical rail owns that
- * corner in its own right, so they stay there. */
+ * strip is hidden they would sit on the page (over YouTube's menu button),
+ * so they come and go with the Island in both styles. The vertical rail owns
+ * that corner in its own right, so they stay there. */
 function syncWindowButtons(runtime = rt()) {
   if (process.platform !== 'darwin' || !runtime.window || runtime.window.isDestroyed()) return;
-  const visible = tabLayout === 'vertical' || islandFloating(runtime) || !islandStripHidden(runtime);
+  const visible = tabLayout === 'vertical' || !islandStripHidden(runtime);
   if (runtime.windowButtonsVisible === visible) return;
   runtime.windowButtonsVisible = visible;
   runtime.window.setWindowButtonVisibility(visible);
