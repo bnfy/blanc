@@ -170,3 +170,14 @@ The owner-close first attempt used Island closeTab and timed out because that pa
 No product changes or native compile. Read-only build guard schedules zero actions; sandbox ps denial retained before successful escalated guard. Prior upstream footprint 52 files/124 hunks unchanged. Retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
 
 Evidence: `evidence/split-history-owner-repeat-20261020/README.md`.
+
+
+## Replacement-owner Restore Tab and combined-session recovery — October 20
+
+Combined-session check passes (11 checkpoints): actual Tabs read held with both clear/encrypted open-session records retained. Native Restore Tab restores two newer recovered Window entries before the older Split. The final state contains each fixture URL exactly once, one split, 35/65 ratio and right-pane focus. This uses a disposable restart with crash-bubble bypass, not physical Restore UI acceptance.
+
+**Open runtime failure:** replacement-window requests accepted while history is held restore nothing after the original requesting window closes. This repeats after waiting for the old host target to disappear plus 300ms. A fresh post-load request successfully restores the split with ratio/focus and the survivor tab retained. The final 11-checkpoint diagnostic passes its reproduction/control assertions; it does not mean pending replacement requests pass. The precise cancellation/ownership cause is not proven; no product repair was applied. Source inspection shows a profile-wide pending-restorer slot and owner-close cleanup, but does not establish the timing of that cleanup. Earlier assumptions that a newer closed owner entry explained the result were disproven by recorded snapshots.
+
+Three failed assertions and final reproduction/control are retained. Requests use native ExecuteCommand through the diagnostic bridge; physical input, complete window destructor instrumentation, multi-profile and broader lifecycle remain unqualified. No native compile; zero-action guard. Prior footprint52/124 unchanged. Browser/guard logs stay local, outside the published manifest. Disposable profiles removed after process-exit verification; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
+
+Evidence: `evidence/split-replacement-combined-20261020/README.md`.
