@@ -15,6 +15,7 @@ interface Props {
     steps?: string[];
     note?: string;
     learnMore?: string;
+    platforms?: string[]; // only these platforms' visitors see it
     media:
       | { kind: 'image'; src: string; width: number; height: number; alt: string; caption?: string }
       | { kind: 'video'; src: string; poster: string; alt: string; caption?: string }
@@ -33,7 +34,7 @@ const media = h.media;
 const rich = (text: string) => chipSpans(text).map((span) => (span.chip ? { chip: span.text } : { text: span.text }));
 const shortDate = humanDate?.replace(/,\s*\d{4}$/, '');
 ---
-<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
+<section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`} data-platforms={h.platforms?.join(' ')}>
   <div class="wn-copy">
     <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release}{shortDate && ` · ${shortDate}`}</p>
     <h2 id={`${h.id}-title`}>{h.title}</h2>

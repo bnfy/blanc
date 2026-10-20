@@ -42,7 +42,7 @@ const { release, anchor, entries, upcoming } = page;
     <div class="wn-rail">
     <nav class="wn-tiles" aria-label="Highlights">
       {entries.map(({ highlight: h, release: from, current }, index) => (
-        <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'}>
+        <button type="button" class="wn-tile" aria-controls={h.id} aria-current={index === 0 ? 'true' : 'false'} data-platforms={h.platforms?.join(' ')}>
           <span class="wn-tile-label">{!current && <span class="wn-tile-version">{from}</span>}{h.tile}</span>
           {h.media.kind === 'image' && <img class="wn-tile-thumb" src={h.media.src} width={h.media.width} height={h.media.height} alt="" loading="lazy" decoding="async" />}
           {h.media.kind === 'video' && <img class="wn-tile-thumb" src={h.media.poster} alt="" loading="lazy" decoding="async" />}

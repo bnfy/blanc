@@ -52,6 +52,9 @@
             "Under App icon, choose Sunrise Gold."
           ],
           "note": "Sunrise Gold is for macOS.",
+          "platforms": [
+            "mac"
+          ],
           "media": {
             "kind": "image",
             "src": "/feature-captures/sunrise-gold-v1.39.0.webp",

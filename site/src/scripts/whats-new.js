@@ -7,8 +7,23 @@
 // and wrap. The URL hash follows the highlight shown, and a hash on arrival
 // selects it. Clips play only when the visitor
 // allows motion; under reduced motion they wait on their poster.
+import { visitorPlatform } from '../lib/visitor-platform.mjs';
+
 const root = document.querySelector('.wn');
 if (root) {
+  // A highlight for other platforms only (data-platforms) isn't shown to this
+  // visitor, nor its tile. Unknown platforms see everything.
+  const platform = visitorPlatform({
+    search: location.search,
+    userAgentData: navigator.userAgentData,
+    platform: navigator.platform,
+    userAgent: navigator.userAgent,
+  });
+  if (platform) {
+    for (const el of root.querySelectorAll('.wn-highlight[data-platforms], .wn-tile[data-platforms]')) {
+      if (!el.dataset.platforms.split(' ').includes(platform)) el.remove();
+    }
+  }
   const sections = [...root.querySelectorAll('.wn-highlight')];
   const tiles = [...root.querySelectorAll('.wn-tile')];
   const tileRow = root.querySelector('.wn-tiles');

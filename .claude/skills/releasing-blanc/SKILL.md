@@ -53,7 +53,9 @@ publication, so it has to be live first.
   bullets into highlights with TODO media, lists candidate captures, and
   never overwrites a page (`--force` replaces only a draft).
 - Take its captures from the merged build, show the owner the rendered page,
-  and get the owner's explicit sign-off on its final text and media. With
+  and get the owner's explicit sign-off on its final text and media. Give a
+  highlight for some platforms only a `platforms` list (Sunrise Gold:
+  `["mac"]`), so other platforms' visitors never see it. With
   the owner's approval, a release can instead go in `noPage` in
   `site/src/data/whats-new.json`.
 - Merge it in a website-only PR, then run `npm run site:deploy` from a clean

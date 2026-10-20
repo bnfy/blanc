@@ -254,3 +254,28 @@ test('keys and menu glyphs sit in the site\'s chip', async () => {
   assert.doesNotMatch(await page.locator('.wn').evaluate((el) => el.textContent), /`/, 'no backticks reach the page');
   await context.close();
 });
+
+// Sunrise Gold is a macOS icon: Windows and Linux visitors never see its
+// highlight or tile; Mac visitors and unknown platforms do.
+for (const [label, platform, sees] of [['Windows', 'Win32', false], ['Linux', 'Linux x86_64', false], ['macOS', 'MacIntel', true]]) {
+  test(`a ${label} visitor ${sees ? 'sees' : 'never sees'} the Mac-only Sunrise Gold highlight`, async () => {
+    const { context, page } = await open('/whats-new/1.39');
+    await context.addInitScript((value) => {
+      Object.defineProperty(Navigator.prototype, 'platform', { get: () => value });
+      Object.defineProperty(Navigator.prototype, 'userAgentData', { get: () => undefined });
+    }, platform);
+    await page.reload();
+    assert.equal(await page.locator('#sunrise-gold').count(), sees ? 1 : 0);
+    assert.equal(await page.locator('.wn-tile[aria-controls="sunrise-gold"]').count(), sees ? 1 : 0);
+    assert.equal(await page.locator('#auto-hide-island').count(), 1, 'highlights for every platform stay');
+    await page.locator('.wn-tile').first().click();
+    assert.match(await page.locator('.wn-stage > [data-current] h2').innerText(), /\S/, 'the first remaining tile still opens its highlight');
+    await context.close();
+  });
+}
+
+test('?platform= overrides the detected platform for checking', async () => {
+  const { context, page } = await open('/whats-new/1.39?platform=windows');
+  assert.equal(await page.locator('#sunrise-gold').count(), 0);
+  await context.close();
+});
