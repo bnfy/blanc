@@ -68,7 +68,7 @@ function focusedPane(runtime) {
     : 'main';
 }
 
-/** The chrome:glance-layout payload: Glance geometry plus focusedPane. */
+/** The chrome:glance-layout payload: the card's geometry plus focusedPane. */
 /** The floating Glance card's layout message: the card's views' bounds,
  * which pane has focus, and the card's generation (a stale move or resize
  * carrying an older one is refused). */

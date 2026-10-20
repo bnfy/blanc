@@ -706,10 +706,6 @@ export interface IslandRectReport {
   shieldAnchor?: ShieldAnchor;
   /** Present while the Spaces menu is open from the mark, so it follows the pill. */
   spacesAnchor?: SpacesAnchor;
-  /** With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. */
-  minPrimaryWidth?: number;
-  /** With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. */
-  minReferenceWidth?: number;
   /** Windows and Linux: where the strip draws its window controls, for the floating Island’s copy. */
   windowControlsRect?: Rect;
   /** Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy. */

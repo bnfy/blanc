@@ -411,14 +411,6 @@ When('I open a Glance beside the page', async function () {
   assert.equal(await this.call('setGlance', this.floatGlanceId), true);
 });
 
-Then('the page sits below the strip and no pill floats', async function () {
-  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === false && value.pageY > 0,
-    'the page to sit below the strip');
-  assert.equal(state.activeBounds.y, state.pageY);
-  const pill = await floatState(this);
-  assert.ok(!pill || pill.shown === false, 'no pill floats over the push layout');
-});
-
 // The floating Glance card floats over the page in either Auto-hide style
 // and pins nothing: the page keeps the top of the window in float style.
 Then('the Glance card floats over a page at the top of the window', async function () {

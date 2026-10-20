@@ -283,32 +283,6 @@ html { --stage-w: 100vw; }
 :root[data-platform="darwin"] { --window-controls-w: 0px; }
 :root:not([data-platform="darwin"]) { --window-controls-w: 114px; }
 
-/* Glance keeps the existing Island centered over the dominant page pane.
-   Main ships exact native-view geometry; padding narrows the strip's flex
-   centerline without teaching CSS about vertical-rail arithmetic. */
-#strip.glance-open {
-  padding-right: calc(100vw - var(--glance-primary-right));
-}
-#strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
-}
-/* With Glance open the Island gives up its tab dots (and +N) entirely, to
-   keep room for the address and its controls in a narrower main pane; tabs
-   stay reachable from ⌘L, the rail and ⌘1–9. */
-#strip.glance-open #pillDots { display: none; }
-/* Stacked: centred over the full page, kept clear of the window controls on
-   both sides so the centre line does not move. */
-#strip.glance-open[data-glance-direction="vertical"] #islandPill {
-  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
-}
-/* macOS draws its traffic lights at the window's left edge, inside the main
-   pane's strip in both Glance layouts. Keep the same clearance the Island has
-   without Glance (#islandPill: 184px), split across both sides so the pill
-   stays centred. With vertical tabs the lights sit in the rail instead. */
-:root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 184px) / var(--pill-zoom));
-}
-
 .glance-header {
   position: fixed;
   z-index: 4;
@@ -325,22 +299,9 @@ html { --stage-w: 100vw; }
   container-type: inline-size;
 }
 
-/* Motion: the Spaces menu's vocabulary (opacity 140 ms, transform 340 ms on
-   the Spaces curve), through transition + @starting-style + display
-   allow-discrete. The header and divider slide 6 px in from the right side
-   by side and from below when stacked; the two page views take their
-   bounds at once. Reduce Motion keeps the fade only (the block near the
-   end of this file). */
-.glance-header,
-.glance-divider {
-  transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), display 340ms allow-discrete;
-}
-.glance-header[hidden] { display: none; opacity: 0; transform: translateX(6px); }
-.glance-header[data-direction="vertical"][hidden] { transform: translateY(6px); }
-@starting-style {
-  .glance-header:not([hidden]) { opacity: 0; transform: translateX(6px); }
-  .glance-header[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
-}
+/* The header moves with its card: the floating Glance card fades in as a
+   whole (the glance surface block near the end of this file). */
+.glance-header[hidden] { display: none; }
 /* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
    than an outline: the eyebrow and the bottom hairline brighten. (The title
    is already --text.) */
@@ -551,52 +512,6 @@ html { --stage-w: 100vw; }
 .split-divider:focus-visible .split-divider-grip { opacity: 1; }
 .split-divider:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--radius); }
 
-.glance-divider {
-  position: fixed;
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  background: var(--bg);
-  box-shadow: inset 1px 0 var(--border), inset -1px 0 var(--border);
-  touch-action: none;
-}
-.glance-divider[hidden] { display: none; opacity: 0; transform: translateX(6px); }
-.glance-divider[data-direction="vertical"][hidden] { transform: translateY(6px); }
-@starting-style {
-  .glance-divider:not([hidden]) { opacity: 0; transform: translateX(6px); }
-  .glance-divider[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
-}
-.glance-divider[data-direction="horizontal"] { cursor: col-resize; }
-.glance-divider[data-direction="vertical"] {
-  cursor: row-resize;
-  box-shadow: inset 0 1px var(--border), inset 0 -1px var(--border);
-}
-.glance-divider > span {
-  width: 4px;
-  height: 38px;
-  border-radius: 999px;
-  background: var(--border);
-  transition: background-color 120ms ease;
-}
-.glance-divider[data-direction="vertical"] > span {
-  width: 38px;
-  height: 4px;
-}
-.glance-divider:hover > span,
-.glance-divider:focus-visible > span { background: var(--text-dim); }
-.glance-divider:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-:root[data-glance-resizing="horizontal"],
-:root[data-glance-resizing="horizontal"] * {
-  cursor: col-resize !important;
-}
-:root[data-glance-resizing="vertical"],
-:root[data-glance-resizing="vertical"] * {
-  cursor: row-resize !important;
-}
-
 /* A user-selected theme preview is an immediate handoff while Chromium's
    prefers-color-scheme catches up. Keep the normal transition for page-derived
    faux-header colors, but never add latency to this explicit interaction. */
@@ -614,22 +529,6 @@ html { --stage-w: 100vw; }
 #strip.tint-dark #mainMenuButton[aria-expanded="true"] {
   background: rgba(255, 255, 255, 0.14);
   color: #f5f5f5;
-}
-
-/* Side-by-side Glance: the controls sit on the header's neutral surface, not
-   the sampled page tint — take the theme's ink and a fill the header lacks.
-   Stacked, the header is below the page and the tint rules above apply. */
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button { color: var(--text-dim); }
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button:hover,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button:hover {
-  background: var(--accent-dim);
-  color: var(--text);
-}
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover {
-  background: var(--danger);
-  color: var(--on-danger);
 }
 
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------
@@ -650,27 +549,6 @@ html { --stage-w: 100vw; }
    clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
   max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
-}
-
-:root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
-}
-/* Stacked with the rail: the Island is centred over the whole page, which
-   reaches the window's right edge, where Windows and Linux draw their window
-   controls. Reserve them on both sides as the stacked rule above does; on
-   macOS --window-controls-w is 0 and the traffic lights are in the rail. */
-:root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
-  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
-}
-/* When even the slim Island does not fit between those two reservations, it
-   gives up its centre line before its address (renderer.js fitIslandDots adds
-   .uncentred): the controls are reserved once, on their own side, and the
-   margin shifts the centred pill left by half their width. Windows and Linux
-   only; macOS has no controls on this edge. Written to outrank both stacked
-   rules above. */
-:root:not([data-platform="darwin"]) #strip.glance-open[data-glance-direction="vertical"] #islandPill.uncentred {
-  max-width: calc((var(--glance-primary-width) - var(--window-controls-w) - 24px) / var(--pill-zoom));
-  margin-right: calc(var(--window-controls-w) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
@@ -1388,12 +1266,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn[hidden] { display: none; }
 /* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
 #islandPill.slim .pill-slim-hide { display: none; }
-/* Measuring the Island (renderer.js measureGlanceFloors): a filler shows the
-   room the max-width rules allow; the measuring state shows what the slim
-   Island needs with about ten characters of address. */
-.island-measure-filler { flex: 0 0 4000px; height: 1px; }
-#islandPill.measuring { max-width: none !important; flex-shrink: 0; }
-#islandPill.measuring #pillDomain { flex: 0 0 10ch; }
+
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 /* Disabled glyphs fade to a lighter shade of the same ink rather than the
@@ -1403,7 +1276,6 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn.on { color: var(--accent); }
 .pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
 .pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
-
 
 /* Downloads cistern: while a download is in flight the button fills like a
    vessel (--dl-progress is 0..1, set from renderer.js), its surface a pair of
@@ -4165,19 +4037,14 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 #workspaceFeedback .ws-error { margin: 6px 0; color: var(--danger); font: 12.5px/1.45 var(--font-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Glance: the fade only, in both layouts (the stacked rules above carry
-     their own [hidden] offset, so they are named here too). The open picker
-     keeps the translate that centres it. */
-  .glance-header, .glance-header[hidden], .glance-header[data-direction="vertical"][hidden],
-  .glance-divider, .glance-divider[hidden], .glance-divider[data-direction="vertical"][hidden],
+  /* The Glance picker: the fade only. The open picker keeps the translate
+     that centres it. */
   body[data-glance-purpose="change"] .glance-picker, body[data-glance-purpose="change"] .glance-picker[hidden] {
     transform: none;
     transition: opacity 140ms ease, display 140ms allow-discrete;
   }
   .glance-picker, .glance-picker[hidden] { transform: translateX(-50%); transition: opacity 140ms ease, display 140ms allow-discrete; }
   @starting-style {
-    .glance-header:not([hidden]), .glance-header[data-direction="vertical"]:not([hidden]),
-    .glance-divider:not([hidden]), .glance-divider[data-direction="vertical"]:not([hidden]),
     body[data-glance-purpose="change"] .glance-picker:not([hidden]) { transform: none; }
     .glance-picker:not([hidden]) { transform: translateX(-50%); }
   }
@@ -4381,7 +4248,6 @@ html[data-surface="float"] #strip {
   -webkit-app-region: no-drag;
 }
 html[data-surface="float"] #verticalTabsRail,
-html[data-surface="float"] #glanceDivider,
 html[data-surface="float"] #glanceHeader,
 html[data-surface="float"] #splitPanes,
 html[data-surface="float"] #dragBand { display: none !important; }
@@ -4462,6 +4328,7 @@ html[data-surface="glance"] .glance-card-edge[data-edge="ne"] { top: -9px; right
 html[data-surface="glance"] .glance-card-edge[data-edge="sw"] { bottom: -9px; left: -9px; width: 16px; height: 16px; cursor: nesw-resize; }
 html[data-surface="glance"] .glance-card-edge[data-edge="nw"] { top: -9px; left: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
 html[data-surface="glance"] .glance-card-edge[data-edge="se"] { bottom: -9px; right: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
+html[data-surface="glance"] .glance-header.focused { border-bottom-color: var(--text-dim); }
 html[data-surface="glance"] .glance-header {
   position: relative;
   height: 39px;

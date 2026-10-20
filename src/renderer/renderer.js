@@ -119,7 +119,7 @@
   document.addEventListener('contextmenu', (e) => {
     // The Glance header's title and empty area address the reference tab;
     // its buttons are controls and open nothing.
-    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button');
+    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button, [role="button"]');
     window.__blancCtxRowTabId =
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
@@ -666,12 +666,11 @@
     return pillDomain.scrollWidth > pillDomain.clientWidth + 1;
   }
 
-  /** When the pill is narrower than its contents (a narrow Glance main
-   * pane), the address keeps priority and the rest gives way in order: fewer
+  /** When the pill is narrower than its contents (a narrow window or rail
+   * layout), the address keeps priority and the rest gives way in order: fewer
    * dots, with the rest folded into +N (the active tab always keeps its
    * dot); then, with one dot left, Forward and Favorite hide. Only then may
-   * the address truncate; the Glance divider stops before it gets unreadable
-   * (measureGlanceFloors). Any change to the room or to what the Island shows
+   * the address truncate. Any change to the room or to what the Island shows
    * starts again from the full Island, so it grows back when room returns;
    * when nothing changed, the last fit stands and nothing is measured. */
   function fitIslandDots() {
@@ -680,29 +679,20 @@
     if (refit) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
-      islandPill.classList.remove('slim', 'uncentred');
+      islandPill.classList.remove('slim');
     } else if (dotsSignature() === lastDotsSig) {
       return;
     }
-    // With vertical tabs or Glance the dot row is not drawn, so fewer dots
+    // With vertical tabs or a split the dot row is not drawn, so fewer dots
     // free nothing.
-    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open')
-      && !stripEl.classList.contains('split-open');
-    // Stacked on Windows and Linux (the platforms with window controls on
-    // the strip's right edge) the Island is centred between two reservations
-    // for them (styles.css); when even the slim Island does not fit, it gives
-    // up its centre line before its address.
-    const canUncentre = stripEl.dataset.glanceDirection === 'vertical'
-      && document.documentElement.dataset.platform !== 'darwin';
+    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('split-open');
     for (;;) {
       renderDotRow();
       if (!pillOverflows() && !addressTruncated()) break;
       if (dotsShown && dotBudget > 1) dotBudget -= 1;
       else if (!islandPill.classList.contains('slim')) islandPill.classList.add('slim');
-      else if (canUncentre && !islandPill.classList.contains('uncentred')) islandPill.classList.add('uncentred');
       else break;
     }
-    if (refit) measureGlanceFloors();
   }
 
   /** Everything the fit depends on except the dots themselves: the room the
@@ -719,7 +709,6 @@
       // A float view copies a strip of the window's width, not its own.
       floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
       root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
-      stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
   }
@@ -751,34 +740,6 @@
   function pillWidth() {
     const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
     return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
-  }
-
-  /** With Glance side by side, measure the two minimums main stops the
-   * divider at. The main pane's: the slim Island (no Forward or Favorite, and
-   * no dot row: Glance hides it) with about ten characters of address, plus
-   * the clearance the stylesheet gives the Island in this layout. The
-   * reference's: the Glance header at its most compact, with the padding the
-   * stylesheet gives it (which reserves the window controls on Windows and
-   * Linux). Measured on the live elements, so every chip, label and language
-   * counts and the spacing stays defined in one place (styles.css). */
-  function measureGlanceFloors() {
-    if (glanceLayout?.direction !== 'horizontal' || !islandPill.getBoundingClientRect().width) return;
-    // The room the stylesheet allows: a filler grows the pill to its max-width.
-    const filler = document.createElement('span');
-    filler.className = 'island-measure-filler';
-    islandPill.append(filler);
-    const room = pillWidth();
-    filler.remove();
-    const wasSlim = islandPill.classList.contains('slim');
-    islandPill.classList.add('slim', 'measuring');
-    const needed = pillWidth();
-    islandPill.classList.remove('measuring');
-    islandPill.classList.toggle('slim', wasSlim);
-    islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
-    glanceHeader.classList.add('measuring');
-    const header = glanceHeader.getBoundingClientRect().width;
-    glanceHeader.classList.remove('measuring');
-    referenceFloor = Math.ceil(header - glanceLayout.divider.width);
   }
 
   /** With Glance open the fill chip follows the focused pane, like the fill. */
@@ -928,11 +889,6 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
-  /** The last measured main-pane minimum (measureGlanceFloors), reported to
-   * main with the Island's rectangle. */
-  let islandFloor = null;
-  /** The last measured reference minimum (the compact Glance header). */
-  let referenceFloor = null;
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -1742,8 +1698,6 @@
       ...(hoverRect ? { hoverRect } : {}),
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
-      ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
-      ...(referenceFloor != null ? { minReferenceWidth: referenceFloor } : {}),
       ...(controlsBox ? { windowControlsRect: controlsBox } : {}),
       ...(menuBox ? { menuButtonRect: menuBox } : {}),
     };

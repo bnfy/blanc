@@ -4164,26 +4164,6 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
-/** The last Island minimum any window's strip measured. A window that has
- * not measured its own yet starts from it, so its first Glance layout does
- * not lay out side by side and then flip once its strip reports. */
-let lastIslandMinPrimaryWidth = 0;
-/** The same for the reference's minimum (the compact Glance header). */
-let lastGlanceMinReferenceWidth = 0;
-
-/** The narrowest main pane the divider allows, in px: what the strip last
- * measured the slim Island to need, chips and clearance included. */
-function glanceMinPrimaryWidth() {
-  return rt().islandMinPrimaryWidth || lastIslandMinPrimaryWidth;
-}
-
-/** The narrowest reference the divider allows, in px: what the strip last
- * measured the compact Glance header to need (0 = not yet; the layout then
- * uses its default). */
-function glanceMinReferenceWidth() {
-  return rt().glanceMinReferenceWidth || lastGlanceMinReferenceWidth;
-}
-
 /** The floating Glance card's page area: the window's content area below
  * the Island's resting band, whatever the Auto-hide state (glance-card.js). */
 function glancePageArea(layout = currentChromeLayout()) {
@@ -5478,7 +5458,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
-              : closingMode === 'glance' && (closingPurpose === 'change' || closingPurpose === 'change-stacked') && activeGlanceTab() ? 'glance-change'
+              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
                 : null
         )
       : null;
@@ -10476,27 +10456,6 @@ function registerIpcHandlers() {
   chromeOn('chrome:island-rect', (event, rect) => {
     // The strip beneath is the one geometry authority; float views copy it.
     if (floatRoleOf(rt(), event.sender)) return;
-    // The strip measures the narrowest main pane its Island needs and the
-    // narrowest reference its Glance header needs (renderer.js
-    // measureGlanceFloors); the Glance divider stops at both.
-    if (event.sender === rt().window?.webContents) {
-      const measured = (value) => {
-        const width = Number(value);
-        return Number.isFinite(width) && width >= 0 && width <= 4000 ? Math.round(width) : null;
-      };
-      const primary = measured(rect?.minPrimaryWidth);
-      const reference = measured(rect?.minReferenceWidth);
-      let changed = false;
-      if (primary != null && primary !== rt().islandMinPrimaryWidth) {
-        rt().islandMinPrimaryWidth = lastIslandMinPrimaryWidth = primary;
-        changed = true;
-      }
-      if (reference != null && reference !== rt().glanceMinReferenceWidth) {
-        rt().glanceMinReferenceWidth = lastGlanceMinReferenceWidth = reference;
-        changed = true;
-      }
-      if (changed && activeGlanceTab()) resizeActiveView();
-    }
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
     rt().islandHoverCapable = rect?.hoverCapable === true;
@@ -13664,8 +13623,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
         };
       },
-      // The divider's stops as main will use them: measured, else the last measured.
-      getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
       openLinkInGlance: (tabId, url) => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;

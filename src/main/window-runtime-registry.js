@@ -58,17 +58,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     // resize is refused.
     glanceCardView: null,
     glanceCardGeneration: 0,
-    /** The visible pane (main or reference tab id) that last took keyboard
+    /** The visible pane (main page or Glance tab id) that last took keyboard
      * focus; browser commands without a sending pane act on it
      * (glance-focus.js). Main-process only: never crosses IPC or disk. */
     focusedPaneTabId: null,
-    /** The narrowest side-by-side main pane that holds the slim Island with
-     * a readable address, as the strip last measured it (0 until then). */
-    islandMinPrimaryWidth: 0,
-    /** The narrowest reference that holds the Glance header at its most
-     * compact, window-control space included, as the strip last measured it
-     * (0 until then; glance-layout.js then uses its 300px default). */
-    glanceMinReferenceWidth: 0,
     /** Split View (F53): this window's splits, { id, tabIds, layout,
      * focusedIndex } (split-model.js). Saved with the session and Spaces. */
     splits: [],

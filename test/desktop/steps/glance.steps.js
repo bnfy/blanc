@@ -154,48 +154,6 @@ When('I summon Glance from its native keyboard shortcut', async function () {
   assert.equal(await this.call('pressGlanceShortcut'), true);
 });
 
-Then('Glance shows a dedicated accessible local-tab picker', async function () {
-  await waitForValue(
-    () => this.call('overlayMode'),
-    (mode) => mode === 'glance',
-    'dedicated Glance picker mode'
-  );
-  const page = await overlayPage();
-  await page.locator('#glancePicker:not([hidden])').waitFor();
-  assert.equal(await page.locator('#panelAnchor').isVisible(), false, 'normal Island panel leaked into picker');
-  assert.equal(await page.locator('#glancePickerInput').getAttribute('role'), 'combobox');
-  assert.equal(await page.locator('#glancePickerInput').getAttribute('aria-controls'), 'glancePickerList');
-  assert.equal(await page.locator('#glancePickerList').getAttribute('role'), 'listbox');
-  assert.equal(await page.locator('#glancePickerInput').inputValue(), '');
-  const pickerBox = await page.locator('#glancePicker').evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      left: rect.left,
-      right: rect.right,
-      top: rect.top,
-      width: rect.width,
-      viewportWidth: window.innerWidth,
-    };
-  });
-  assert.ok(pickerBox.width <= 421, `picker was too wide: ${pickerBox.width}px`);
-  assert.ok(pickerBox.left >= 12 && pickerBox.viewportWidth - pickerBox.right >= 12);
-  assert.ok(pickerBox.top >= 50, `picker was not anchored below chrome: ${pickerBox.top}px`);
-  assert.equal(
-    await page.locator('#glancePickerInput').evaluate((element) => document.activeElement === element),
-    true,
-    'picker did not focus its filter field'
-  );
-  const labels = await page.locator('.glance-picker-option').evaluateAll((rows) =>
-    rows.map((row) => row.getAttribute('aria-label')));
-  assert.ok(
-    labels.some((label) => label.includes('glance-reference')),
-    `reference tab missing from picker labels: ${JSON.stringify(labels)}`
-  );
-  assert.ok(labels.every((label) => !label.includes('glance-main')), 'active main tab was selectable');
-  assert.ok(!labels.some((label) => /remote|history|favorite|search/i.test(label)));
-  assert.equal((await this.state()).glanceTabId, null);
-});
-
 When('I filter the Glance picker and choose the reference tab', async function () {
   const page = await overlayPage();
   await page.fill('#glancePickerInput', 'reference');
@@ -217,141 +175,6 @@ When('I filter the Glance picker and choose the reference tab', async function (
   this.pickerLiveSeen = seen.includes('Opening…') ? 'Opening…' : seen.at(-1) ?? '';
 });
 
-Then('the active page and Glance occupy separate dominant and reference panes', async function () {
-  const state = await waitForValue(
-    () => this.state(),
-    (value) => value.glanceTabId === this.glanceReferenceId && value.glanceGeometry,
-    'Glance geometry'
-  );
-  assert.equal(state.activeTabId, this.glanceMainId);
-  assert.equal(state.glanceGeometry.direction, 'horizontal');
-  assert.ok(state.glanceGeometry.primary.width > state.glanceGeometry.glanceContent.width);
-  assert.equal(
-    state.glanceGeometry.primary.x + state.glanceGeometry.primary.width +
-      state.glanceGeometry.divider.width,
-    state.glanceGeometry.glanceContent.x
-  );
-  assert.equal(state.glanceGeometry.glanceHeader.y, 0);
-  assert.equal(state.glanceGeometry.glanceHeader.height, state.glanceGeometry.page.y);
-  this.glanceInitialPrimaryWidth = state.glanceGeometry.primary.width;
-
-  const chrome = await mainChromePage();
-  const header = chrome.locator('#glanceHeader:not([hidden])');
-  await header.waitFor();
-  assert.equal(await header.getAttribute('role'), 'group');
-  const promote = chrome.locator('#glancePromote');
-  const promoteName = await promote.getAttribute('aria-label');
-  assert.equal(promoteName, 'Make main — swap with the main page');
-  assert.ok(promoteName.startsWith((await promote.locator('span').textContent()).trim()),
-    'the accessible name begins with the visible words (label in name)');
-  assert.equal(await promote.locator('svg path').getAttribute('d'),
-    'M3.5 5.5h9M10 3l2.5 2.5L10 8M12.5 10.5h-9M6 8l-2.5 2.5L6 13',
-    'the icon-only state draws the swap glyph, not the Forward chevron');
-  assert.equal(await chrome.locator('#glanceChange').textContent(), 'Change');
-  assert.equal(await chrome.locator('#glanceClose').getAttribute('aria-label'), 'Close Glance');
-  const headerFlow = await header.evaluate((element) => {
-    const copy = element.querySelector('.glance-copy').getBoundingClientRect();
-    const eyebrow = element.querySelector('.glance-eyebrow').getBoundingClientRect();
-    const identity = element.querySelector('.glance-tab-identity').getBoundingClientRect();
-    const actions = element.querySelector('.glance-actions').getBoundingClientRect();
-    const bounds = element.getBoundingClientRect();
-    return {
-      direction: getComputedStyle(element.querySelector('.glance-copy')).flexDirection,
-      eyebrowShown: getComputedStyle(element.querySelector('.glance-eyebrow')).display !== 'none',
-      eyebrowCenter: eyebrow.top + eyebrow.height / 2,
-      identityCenter: identity.top + identity.height / 2,
-      copyRight: copy.right,
-      actionsLeft: actions.left,
-      actionsRight: actions.right,
-      headerRight: bounds.right,
-    };
-  });
-  assert.equal(headerFlow.direction, 'row');
-  // The GLANCE label sits on the title's line where it is shown; Windows and
-  // Linux hide it at this width because the header reserves the window
-  // controls' width (styles.css).
-  if (headerFlow.eyebrowShown) assert.ok(Math.abs(headerFlow.eyebrowCenter - headerFlow.identityCenter) <= 1);
-  assert.ok(headerFlow.copyRight <= headerFlow.actionsLeft);
-  assert.ok(headerFlow.actionsRight <= headerFlow.headerRight);
-
-  // The horizontal header spans to the window's right edge, where Windows and
-  // Linux draw the custom minimize/maximize/close cluster. Those controls
-  // populate only off-macOS, so assert the stacking invariant itself: the
-  // controls layer must beat the header layer or the header's opaque surface
-  // swallows their clicks.
-  const stacking = await chrome.evaluate(() => ({
-    header: Number(getComputedStyle(document.getElementById('glanceHeader')).zIndex) || 0,
-    controls: Number(getComputedStyle(document.getElementById('windowControls')).zIndex) || 0,
-  }));
-  assert.ok(
-    stacking.controls > stacking.header,
-    `window controls must stack above the Glance header (controls z ${stacking.controls}, header z ${stacking.header})`
-  );
-});
-
-When('I focus the interactive Glance page', async function () {
-  this.glanceRolesBeforeFocus = {
-    activeTabId: (await this.state()).activeTabId,
-    glanceTabId: (await this.state()).glanceTabId,
-  };
-  assert.equal(await this.call('focusTabContents', this.glanceReferenceId), true);
-});
-
-Then('the main and reference roles do not change', async function () {
-  const state = await this.state();
-  assert.equal(state.activeTabId, this.glanceRolesBeforeFocus.activeTabId);
-  assert.equal(state.glanceTabId, this.glanceRolesBeforeFocus.glanceTabId);
-});
-
-When('I promote the Glance pane', async function () {
-  const chrome = await mainChromePage();
-  await chrome.locator('#glancePromote').click();
-  await this.waitForState((state) => state.activeTabId === this.glanceReferenceId);
-});
-
-Then('the two visible tabs swap main and reference roles', async function () {
-  const state = await this.state();
-  assert.equal(state.activeTabId, this.glanceReferenceId);
-  assert.equal(state.glanceTabId, this.glanceMainId);
-});
-
-When('I resize the Glance divider', async function () {
-  // The ratio lives on the window runtime and survives scenario retries —
-  // pin the starting point so the stepped expectations below are stable.
-  await this.call('resetGlanceRatio');
-  await this.waitForState((candidate) =>
-    Math.round(candidate.glanceGeometry.ratio * 100) === 62);
-  const state = await this.state();
-  this.glanceWidthBeforeKeyboardResize = state.glanceGeometry.primary.width;
-  const chrome = await mainChromePage();
-  await chrome.locator('#glanceDivider').focus();
-  await chrome.locator('#glanceDivider').press('Shift+ArrowLeft');
-  await this.waitForState((candidate) =>
-    candidate.glanceGeometry.primary.width < this.glanceWidthBeforeKeyboardResize
-    && Math.round(candidate.glanceGeometry.ratio * 100) === 57);
-  // Key repeat delivers keydowns faster than the main-process layout echo
-  // returns. Two same-task keydowns must still step twice (57 → 53), not
-  // recompute both steps from the same stale ratio.
-  await chrome.evaluate(() => {
-    const divider = document.getElementById('glanceDivider');
-    for (let i = 0; i < 2; i += 1) {
-      divider.dispatchEvent(new KeyboardEvent('keydown', {
-        key: 'ArrowLeft',
-        bubbles: true,
-        cancelable: true,
-      }));
-    }
-  });
-  await this.waitForState((candidate) =>
-    Math.round(candidate.glanceGeometry.ratio * 100) === 53);
-});
-
-Then('the main pane remains larger than the reference pane', async function () {
-  const state = await this.state();
-  assert.ok(state.glanceGeometry.primary.width > state.glanceGeometry.glanceContent.width);
-  assert.ok(state.glanceGeometry.primary.width < this.glanceInitialPrimaryWidth);
-});
-
 When('I close Glance', async function () {
   // The header, and its ×, are on the floating card.
   const card = await glanceCardPage();
@@ -360,7 +183,7 @@ When('I close Glance', async function () {
 });
 
 When('I choose Change and select the replacement tab', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceChange').click();
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
   const page = await overlayPage();
@@ -393,7 +216,7 @@ Then('only the Glance reference changes', async function () {
 });
 
 When('I cancel the Change picker with Escape', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceChange').click();
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
   const page = await overlayPage();
@@ -402,7 +225,7 @@ When('I cancel the Change picker with Escape', async function () {
 });
 
 Then('focus returns to the Change control', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   assert.equal(
     await chrome.locator('#glanceChange').evaluate((element) => document.activeElement === element),
     true
@@ -411,7 +234,8 @@ Then('focus returns to the Change control', async function () {
 
 When('I close the underlying Glance tab', async function () {
   const state = await this.state();
-  this.glanceSplitWidth = state.glanceGeometry.primary.width;
+  // The Glance page's width inside its card; afterwards the page is full width.
+  this.glanceSplitWidth = (await glanceCard(this)).page.width;
   await this.call('closeTab', state.glanceTabId);
 });
 
@@ -423,60 +247,6 @@ Then('the active page fills the browser page region', async function () {
   );
   const active = state.tabs.find((tab) => tab.id === state.activeTabId);
   assert.ok(active.bounds.width > this.glanceSplitWidth);
-});
-
-When('I narrow the workspace below the side-by-side threshold', async function () {
-  await this.call('setWindowContentSize', 700, 800);
-});
-
-Then('Glance has a labelled stacked header above its reference content', async function () {
-  const state = await waitForValue(
-    () => this.state(),
-    (value) => value.glanceGeometry?.direction === 'vertical',
-    'stacked Glance geometry'
-  );
-  const { divider, glanceHeader, glanceContent } = state.glanceGeometry;
-  assert.equal(glanceHeader.height, 44);
-  assert.equal(glanceHeader.y, divider.y + divider.height);
-  assert.equal(glanceContent.y, glanceHeader.y + glanceHeader.height);
-
-  const chrome = await mainChromePage();
-  const header = chrome.locator('#glanceHeader:not([hidden])');
-  await header.waitFor();
-  assert.equal(await header.getAttribute('data-direction'), 'vertical');
-  // Stacked, the main page is the full page width, so the Island is centred
-  // over the whole page — not over 68% of it.
-  const centring = await chrome.evaluate(() => {
-    const strip = document.getElementById('strip');
-    const pill = document.getElementById('islandPill').getBoundingClientRect();
-    return {
-      direction: strip.dataset.glanceDirection,
-      primaryRight: parseFloat(getComputedStyle(strip).getPropertyValue('--glance-primary-right')),
-      pillCenter: pill.left + pill.width / 2,
-      headerPaddingRight: getComputedStyle(document.getElementById('glanceHeader')).paddingRight,
-    };
-  });
-  const { page: pageBounds } = state.glanceGeometry;
-  assert.equal(centring.direction, 'vertical');
-  assert.equal(centring.primaryRight, pageBounds.x + pageBounds.width);
-  const pageCenter = pageBounds.x + pageBounds.width / 2;
-  assert.ok(Math.abs(centring.pillCenter - pageCenter) <= 2, `pill centre ${centring.pillCenter}, page centre ${pageCenter}`);
-  assert.equal(centring.headerPaddingRight, '12px', 'stacked header keeps the plain 12px inset');
-  assert.equal(await chrome.locator('#glanceChange').isVisible(), true);
-  assert.equal(await chrome.locator('#glanceClose').isVisible(), true);
-  const stackedHeader = await header.evaluate((element) => {
-    const bounds = element.getBoundingClientRect();
-    const actions = element.querySelector('.glance-actions').getBoundingClientRect();
-    return {
-      actionsLeft: actions.left,
-      actionsRight: actions.right,
-      headerLeft: bounds.left,
-      headerRight: bounds.right,
-    };
-  });
-  assert.ok(stackedHeader.actionsLeft >= stackedHeader.headerLeft);
-  assert.ok(stackedHeader.actionsRight <= stackedHeader.headerRight);
-  await this.call('setWindowContentSize', 1200, 800);
 });
 
 When('quiet-tab housekeeping targets the visible reference', async function () {
@@ -500,7 +270,7 @@ Then('the Glance reference stays awake beside the main page', async function () 
 });
 
 When('I open the Change picker and close the reference tab behind it', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceChange').click();
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
   await this.call('closeTab', this.glanceReferenceId);
@@ -579,8 +349,7 @@ Then('the reference pane is not muted as a background tab', async function () {
 // --- Lifecycle: Move Tab to New Window (Glance fixes, PR 1) ---
 
 When('I move the main page to a new window', async function () {
-  const state = await this.state();
-  this.glanceSplitWidth = state.glanceGeometry.primary.width;
+  this.glanceSplitWidth = (await glanceCard(this)).page.width;
   const runtimes = await this.call('windowRuntimes');
   this.glanceSourceRuntimeId = runtimes.find((runtime) => runtime.tabOrder.includes(this.glanceMainId)).id;
   this.glanceNewRuntimeId = await this.call('moveTabToNewWindow', this.glanceMainId);
@@ -599,7 +368,7 @@ Then('the reference is the only page of the original window', async function () 
   assert.ok(source.tabOrder.includes(this.glanceReferenceId));
   assert.ok(!source.tabOrder.includes(this.glanceMainId), 'the moved tab is still listed in the source window');
   const bounds = await this.call('tabBounds', this.glanceReferenceId);
-  assert.ok(bounds && bounds.width > this.glanceSplitWidth, `reference still at split width: ${JSON.stringify(bounds)}`);
+  assert.ok(bounds && bounds.width > this.glanceSplitWidth, `the reference is still card-sized: ${JSON.stringify(bounds)}`);
 });
 
 // --- Lifecycle: Close Group (Glance fixes, PR 1) ---
@@ -617,7 +386,7 @@ Given('four ordinary tabs with the third open in Glance', async function () {
     ['glance-main', 'glance-bystander', 'glance-reference', 'glance-replacement'].every((title) =>
       state.tabs.some((tab) => tab.title === title && !tab.isLoading)));
   assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
-  this.glanceSplitWidth = (await this.state()).glanceGeometry.primary.width;
+  this.glanceSplitWidth = (await glanceCard(this)).page.width;
 });
 
 Given('the main page and the fourth tab share a group', async function () {
@@ -760,7 +529,7 @@ Then('Glance stays closed after the tab finishes loading', async function () {
 });
 
 When('I open the Change picker and close Glance from the keyboard shortcut', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.evaluate(() => {
     window.__glanceRestoreTriggerProbe = 'unset';
     window.browserAPI.onIslandState(({ restoreTrigger }) => {
@@ -779,114 +548,9 @@ Then('the picker is dismissed with Glance', async function () {
 
 // --- Divider pointer drag (Glance fixes, PR 1) ---
 
-When('I drag the Glance divider {int} pixels to the left from inside its grip', async function (distance) {
-  await this.call('resetGlanceRatio');
-  await this.waitForState((candidate) => Math.round(candidate.glanceGeometry.ratio * 100) === 62);
-  await frontChromeWindow(this);
-  const chrome = await mainChromePage();
-  // The divider slides in over 340 ms; grab it once it has settled, or the
-  // box read mid-slide puts the pointer off its grip.
-  await waitForValue(() => chrome.locator('#glanceDivider').evaluate((element) => getComputedStyle(element).transform),
-    (transform) => transform === 'none' || transform.startsWith('matrix(1, 0, 0, 1, 0, 0)'), 'the divider settled', 2000);
-  const box = await chrome.locator('#glanceDivider').boundingBox();
-  this.glanceDividerStartX = (await this.state()).glanceGeometry.divider.x;
-  // 10px into the 12px grip: without grab-offset compensation the first move
-  // snaps the divider's left edge to the pointer, i.e. 10px short.
-  const x = box.x + box.width - 2;
-  const y = box.y + box.height / 2;
-  await chrome.mouse.move(x, y);
-  await chrome.mouse.down();
-  try {
-    await chrome.mouse.move(x - distance / 2, y);
-    await chrome.mouse.move(x - distance, y);
-  } finally {
-    await chrome.mouse.up();
-  }
-});
-
-Then('the divider moved {int} pixels', async function (distance) {
-  await waitForValue(
-    () => this.state(),
-    (state) => Math.abs((this.glanceDividerStartX - state.glanceGeometry.divider.x) - distance) <= 1,
-    `divider ${distance}px left of where it started`
-  );
-});
-
 // --- Windows/Linux window controls over the header (Glance fixes, PR 1) ---
 
-// The controls are only populated off-macOS, so probe the stylesheet with a
-// throwaway button inside #windowControls and read what the cascade gives it.
-async function windowControlColours(chrome) {
-  return chrome.evaluate(() => {
-    const strip = document.getElementById('strip');
-    const button = document.createElement('button');
-    document.getElementById('windowControls').append(button);
-    const probe = document.createElement('span');
-    probe.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim();
-    document.body.append(probe);
-    const hadTint = strip.classList.contains('tint-dark');
-    strip.classList.add('tint-dark');
-    const tinted = getComputedStyle(button).color;
-    strip.classList.remove('tint-dark');
-    const plain = getComputedStyle(button).color;
-    if (hadTint) strip.classList.add('tint-dark');
-    const result = { tinted, plain, dim: getComputedStyle(probe).color, direction: strip.dataset.glanceDirection };
-    button.remove();
-    probe.remove();
-    return result;
-  });
-}
-
-Then('window controls over the side-by-side header ignore the page tint', async function () {
-  const chrome = await mainChromePage();
-  const colours = await windowControlColours(chrome);
-  assert.equal(colours.direction, 'horizontal');
-  assert.equal(colours.tinted, colours.dim, 'a dark page tint turned the controls white over the neutral header');
-  assert.equal(colours.plain, colours.dim);
-});
-
-Then('window controls follow the page tint while Glance is stacked', async function () {
-  await this.waitForState((candidate) => candidate.glanceGeometry?.direction === 'vertical');
-  const chrome = await mainChromePage();
-  await chrome.locator('#glanceHeader[data-direction="vertical"]').waitFor();
-  const colours = await windowControlColours(chrome);
-  assert.equal(colours.direction, 'vertical');
-  assert.equal(colours.tinted, 'rgba(245, 245, 245, 0.75)', 'stacked, the controls are over the page again and keep the tint rule');
-  await this.call('setWindowContentSize', 1200, 800);
-});
-
 // --- Stacked Change picker (Glance fixes, PR 1) ---
-
-When('I shrink the workspace to a small stacked window', async function () {
-  await this.call('setWindowContentSize', 700, 520);
-  await this.waitForState((candidate) => candidate.glanceGeometry?.direction === 'vertical');
-});
-
-When('I open the Change picker', async function () {
-  const chrome = await mainChromePage();
-  await chrome.locator('#glanceChange').click();
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
-});
-
-Then('the Change picker is centred over the page with a visible list', async function () {
-  const page = await overlayPage();
-  await page.locator('#glancePicker:not([hidden])').waitFor();
-  assert.equal(await page.locator('body').getAttribute('data-glance-purpose'), 'change-stacked');
-  await page.locator('.glance-picker-option').first().waitFor();
-  // The picker grows in over 340 ms; measure it once it has settled.
-  const layout = await waitForValue(() => page.locator('#glancePicker').evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    const list = element.querySelector('#glancePickerList').getBoundingClientRect();
-    const row = element.querySelector('.glance-picker-option').getBoundingClientRect();
-    return { center: rect.left + rect.width / 2, viewport: window.innerWidth, listHeight: list.height, rowHeight: row.height, top: rect.top, settled: getComputedStyle(element).transform === 'none' || getComputedStyle(element).transform.startsWith('matrix(1, 0, 0, 1') };
-  }), (value) => value.settled, 'the picker settled', 2000);
-  assert.ok(Math.abs(layout.center - layout.viewport / 2) <= 2, `picker centre ${layout.center} vs ${layout.viewport / 2}`);
-  assert.ok(layout.listHeight >= 52 && layout.rowHeight >= 52, `list ${layout.listHeight}px, row ${layout.rowHeight}px`);
-  assert.ok(layout.top >= 50, `picker not below the strip: ${layout.top}px`);
-  await page.locator('#glancePickerInput').press('Escape');
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'picker dismissed');
-  await this.call('setWindowContentSize', 1200, 800);
-});
 
 // --- Single-tab empty state (Glance fixes, PR 1) ---
 
@@ -975,7 +639,7 @@ When('the main page is the focused pane', async function () {
 });
 
 Then('the Glance header shows the reference has focus', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceHeader.focused').waitFor();
   const eyebrow = await chrome.locator('#glanceEyebrow').evaluate((element) => getComputedStyle(element).color);
   const border = await chrome.locator('#glanceHeader').evaluate((element) => getComputedStyle(element).borderBottomColor);
@@ -984,7 +648,7 @@ Then('the Glance header shows the reference has focus', async function () {
 });
 
 Then('the Glance header shows the main page has focus', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await waitForValue(
     () => chrome.locator('#glanceHeader').evaluate((element) => element.classList.contains('focused')),
     (focused) => focused === false,
@@ -1046,22 +710,6 @@ Then('the reference tab is closed and the main page has focus', async function (
 
 Then('the main page tab is closed', async function () {
   await this.waitForState((state) => !state.tabs.some((tab) => tab.id === this.glanceMainId));
-});
-
-Then('the find capsule sits over the reference pane and searches it', async function () {
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
-  assert.equal(await this.call('findTabId'), this.glanceReferenceId);
-  const { glanceGeometry } = await this.state();
-  const bounds = await this.call('overlayViewBounds');
-  assert.ok(bounds.x >= glanceGeometry.glanceContent.x, `capsule at x=${bounds.x}, reference starts at ${glanceGeometry.glanceContent.x}`);
-  const page = await overlayPage();
-  await page.locator('#findInput').fill('widget');
-  await waitForValue(() => page.locator('#findCount').textContent(), (text) => text === '1/3',
-    'match count from the reference');
-});
-
-Then('the find capsule is closed', async function () {
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'find capsule closed with the swap');
 });
 
 Given('a main page and a reference on another site, both with history', async function () {
@@ -1212,24 +860,24 @@ Then('a background tab opened and Glance shows the same reference', async functi
 });
 
 Then("the Glance header's Back button is enabled", async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceBack:not([disabled])').waitFor();
   assert.equal(await chrome.locator('#glanceBack').getAttribute('aria-label'), 'Back');
 });
 
 Then("the Glance header's Back button is disabled", async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceBack[disabled]').waitFor();
 });
 
 When('I click Back in the Glance header', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceBack').click();
 });
 
 When('I click Reload in the Glance header', async function () {
   await recordLoadCounts(this);
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceReload').click();
 });
 
@@ -1241,7 +889,7 @@ When('the reference starts a slow load', async function () {
 });
 
 Then("the Glance header's Reload button reads Stop", async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceReload[data-mode="stop"]').waitFor();
   assert.equal(await chrome.locator('#glanceReload').getAttribute('aria-label'), 'Stop');
 });
@@ -1261,7 +909,7 @@ async function stripContextTarget(chrome, selector) {
 }
 
 Then('a right-click on the Glance title addresses the reference tab', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceHeader:not([hidden])').waitFor();
   const result = await stripContextTarget(chrome, '#glanceTitle');
   assert.equal(String(result.id), String(this.glanceReferenceId));
@@ -1269,8 +917,8 @@ Then('a right-click on the Glance title addresses the reference tab', async func
 });
 
 Then('a right-click on a Glance header button addresses no tab', async function () {
-  const chrome = await mainChromePage();
-  for (const selector of ['#glanceBack', '#glanceReload', '#glancePromote', '#glanceChange', '#glanceClose']) {
+  const chrome = await glanceCardPage();
+  for (const selector of ['#glanceBack', '#glanceReload', '#glanceChange', '#glanceOpenAsTab', '#glanceKeepSplit', '#glanceMove', '#glanceClose']) {
     const result = await stripContextTarget(chrome, selector);
     assert.equal(result.id, null, `${selector} addressed a tab`);
     assert.equal(result.prevented, true, `${selector} let a default menu through`);
@@ -1291,124 +939,6 @@ Then('the find capsule is fresh and bound to the reference', async function () {
   // carry over, which also means the first page's highlights were cleared.
   await waitForValue(() => page.locator('#findInput').inputValue(), (value) => value === '', 'query cleared');
   assert.equal(await page.locator('#findCount').textContent(), '');
-});
-
-// macOS draws its traffic lights at the window's left edge, inside the main
-// pane's strip. Without Glance the Island keeps 85px clear on each side; with
-// Glance open it must keep the same clearance, in both layouts.
-// macOS draws its traffic lights at the window's top-left, inside the main
-// pane's strip; the stylesheet keys on data-platform="darwin". On Windows
-// and Linux the strip is told it is macOS for the measurement, the mirror of
-// the Windows check below, so the rule is checked on every platform.
-Then("a full-width Island stays clear of the window's traffic lights", async function () {
-  const state = await waitForValue(() => this.state(), (value) => value.glanceGeometry, 'Glance geometry');
-  const chrome = await mainChromePage();
-  await chrome.locator('#strip.glance-open').waitFor();
-  // A pill with many tabs grows to its maximum width; force that width with
-  // a filler so the result does not depend on how many tabs the scenario has.
-  const box = await chrome.evaluate(() => {
-    const root = document.documentElement;
-    const realPlatform = root.dataset.platform;
-    if (realPlatform !== 'darwin') root.dataset.platform = 'darwin';
-    const pill = document.getElementById('islandPill');
-    const filler = document.createElement('span');
-    filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
-    pill.append(filler);
-    // The pointer may be near the Island, which swells it by a few percent
-    // (renderer.js proximity); measure the layout width, not the swell.
-    const swell = pill.classList.contains('proximity-active');
-    const k = pill.style.getPropertyValue('--island-k');
-    pill.classList.remove('proximity-active');
-    pill.style.setProperty('--island-k', '0');
-    const rect = pill.getBoundingClientRect();
-    filler.remove();
-    if (swell) pill.classList.add('proximity-active');
-    pill.style.setProperty('--island-k', k);
-    root.dataset.platform = realPlatform;
-    return { left: rect.left, right: rect.right, direction: document.getElementById('strip').dataset.glanceDirection };
-  });
-  const { primary, page } = state.glanceGeometry;
-  const paneRight = box.direction === 'horizontal' ? primary.x + primary.width : page.x + page.width;
-  assert.ok(box.left >= 80, `${box.direction}: the Island starts ${box.left}px from the left edge, under the traffic lights`);
-  assert.ok(paneRight - box.right >= 80, `${box.direction}: the Island is not centred (right gap ${paneRight - box.right}px)`);
-  if (box.direction === 'vertical') await this.call('setWindowContentSize', 1200, 800);
-});
-
-// Windows and Linux draw minimize/maximize/close at the window's top-right
-// (#windowControls, --window-controls-w). Side by side they sit over the
-// Glance header; stacked they sit over the main page's strip. On macOS the
-// strip is told it is Windows for the measurement, which is what the CSS keys on.
-Then('a full-width Island stays clear of the Windows and Linux window controls', async function () {
-  const state = await waitForValue(() => this.state(), (value) => value.glanceGeometry, 'Glance geometry');
-  const chrome = await mainChromePage();
-  await chrome.locator('#strip.glance-open').waitFor();
-  const box = await chrome.evaluate(() => {
-    const root = document.documentElement;
-    const realPlatform = root.dataset.platform;
-    if (realPlatform === 'darwin') root.dataset.platform = 'win32';
-    const pill = document.getElementById('islandPill');
-    const filler = document.createElement('span');
-    filler.style.cssText = 'flex: 0 0 4000px; height: 1px';
-    pill.append(filler);
-    // As in the traffic-light step: the layout width, not the proximity swell.
-    const swell = pill.classList.contains('proximity-active');
-    const k = pill.style.getPropertyValue('--island-k');
-    pill.classList.remove('proximity-active');
-    pill.style.setProperty('--island-k', '0');
-    const rect = pill.getBoundingClientRect();
-    const controls = parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w'));
-    filler.remove();
-    if (swell) pill.classList.add('proximity-active');
-    pill.style.setProperty('--island-k', k);
-    root.dataset.platform = realPlatform;
-    return {
-      left: rect.left, right: rect.right, controls,
-      direction: document.getElementById('strip').dataset.glanceDirection,
-      layout: root.dataset.tabLayout ?? 'island',
-      uncentred: pill.classList.contains('uncentred'),
-    };
-  });
-  const { primary, page } = state.glanceGeometry;
-  const where = `${box.layout}/${box.direction}`;
-  if (box.direction === 'horizontal') {
-    // The controls are over the Glance header; the Island stays over the main pane.
-    assert.ok(box.right <= primary.x + primary.width, `${where}: the Island runs past the main pane (${box.right}px)`);
-  } else {
-    const windowRight = page.x + page.width;
-    assert.ok(windowRight - box.right >= box.controls,
-      `${where}: the Island reaches under the window controls (right gap ${windowRight - box.right}px, controls ${box.controls}px)`);
-    if (box.uncentred) {
-      // Room was short: the Island gave up its centre line to stay clear of
-      // the controls (renderer.js fitIslandDots), so it sits nearer the left.
-      assert.ok(box.left - page.x >= 11.5, `${where}: the Island runs off the left edge (${box.left - page.x}px)`);
-    } else {
-      assert.ok(Math.abs((box.left - page.x) - (windowRight - box.right)) <= 2, `${where}: the Island is not centred over the page`);
-    }
-  }
-});
-
-// 640 x 800 is Blanc's minimum window. On macOS the strip is told it is
-// Windows (what the stylesheet keys on), then the window is nudged so the
-// strip re-fits the Island under those rules.
-When('the window is as small as it goes with the Windows and Linux window controls', async function () {
-  await this.call('setWindowContentSize', 640, 800);
-  await this.waitForState((state) => state.glanceGeometry?.direction === 'vertical');
-  const chrome = await mainChromePage();
-  this.glanceRealPlatform = await chrome.evaluate(() => {
-    const real = document.documentElement.dataset.platform;
-    if (real === 'darwin') document.documentElement.dataset.platform = 'win32';
-    return real;
-  });
-  await this.call('setWindowContentSize', 641, 800);
-  await this.waitForState((state) => state.glanceGeometry?.page.width === 641);
-  await new Promise((resolve) => setTimeout(resolve, 300));
-});
-
-When('I switch the Glance window to vertical tabs', async function () {
-  await this.call('setTabLayout', 'vertical');
-  const chrome = await mainChromePage();
-  await chrome.waitForFunction(() => document.documentElement.dataset.tabLayout === 'vertical');
-  await this.waitForState((state) => state.glanceGeometry?.direction === 'vertical');
 });
 
 Then('the Glance window returns to its usual layout', async function () {
@@ -1443,6 +973,9 @@ Given('twelve ordinary tabs with one open in Glance', async function () {
 Given('twelve ordinary tabs and a private main page with one open in Glance', async function () {
   const ids = [];
   for (let i = 1; i <= 12; i += 1) ids.push(await this.call('openTab', this.fixtureUrl(`glance-many-${i}`)));
+  // A second private tab, opened now: any tab switch once Glance is open
+  // would close it.
+  this.glancePrivateOtherId = await this.call('openTab', this.fixtureUrl('glance-private-reference'), { private: true });
   this.glanceMainId = await this.call('openTab', this.fixtureUrl('glance-private-main'), { private: true });
   this.glanceReferenceId = ids[6];
   await this.call('activateTab', this.glanceMainId, false);
@@ -1453,72 +986,6 @@ Given('twelve ordinary tabs and a private main page with one open in Glance', as
   assert.equal(await this.call('setGlance', this.glanceReferenceId), true);
   const chrome = await mainChromePage();
   await chrome.locator('#pillPrivateChip:not([hidden])').waitFor();
-});
-
-When('I narrow the main pane to its smallest side-by-side width', async function () {
-  // Wide enough to stay side by side even with the main pane's minimum; the
-  // divider dragged all the way left settles at the smallest main pane.
-  await this.call('setWindowContentSize', 1000, 800);
-  await this.waitForState((state) => state.glanceGeometry?.direction === 'horizontal' && state.glanceGeometry.page.width === 1000);
-  // Drag well past the stop; the divider settles at the smallest share allowed.
-  await this.call('resizeGlance', { x: 0, y: 200 });
-  const state = await this.waitForState((candidate) =>
-    candidate.glanceGeometry.ratio === candidate.glanceGeometry.minRatio);
-  // Side by side always leaves the reference a usable width.
-  assert.ok(state.glanceGeometry.glanceContent.width >= 300, `reference ${state.glanceGeometry.glanceContent.width}px`);
-});
-
-Then('every Island control stays inside the Island', async function () {
-  const chrome = await mainChromePage();
-  await waitForValue(async () => chrome.evaluate(() => {
-    const pill = document.getElementById('islandPill').getBoundingClientRect();
-    const outside = [...document.querySelectorAll('#islandPill button, #islandPill .favicon')]
-      .map((element) => ({ element, rect: element.getBoundingClientRect() }))
-      .filter(({ rect }) => rect.width > 0 && (rect.left < pill.left - 0.5 || rect.right > pill.right + 0.5))
-      .map(({ element, rect }) => `${element.id || element.className} ${Math.round(rect.left)}–${Math.round(rect.right)}`);
-    return { outside, pill: `${Math.round(pill.left)}–${Math.round(pill.right)}` };
-  }), (result) => result.outside.length === 0, 'Island controls inside the Island', 3000)
-    .catch(async (error) => {
-      const result = await chrome.evaluate(() => document.getElementById('islandPill').getBoundingClientRect().right);
-      throw new Error(`${error.message} (pill right ${result})`);
-    });
-});
-
-// The address is the Island's main content: dots and secondary buttons give
-// way before it, and it never shrinks below about ten characters.
-Then("the Island's address stays readable", async function () {
-  const chrome = await mainChromePage();
-  const label = await chrome.evaluate(() => {
-    const domain = document.getElementById('pillDomain');
-    return {
-      text: domain.textContent,
-      shown: domain.getBoundingClientRect().width,
-      full: domain.scrollWidth * (domain.getBoundingClientRect().width / Math.max(1, domain.clientWidth)),
-      truncated: domain.scrollWidth > domain.clientWidth + 1,
-    };
-  });
-  assert.ok(label.text.includes('127.0.0.1'), `the Island is not showing the page's address: "${label.text}"`);
-  assert.ok(!label.truncated || label.shown >= 70,
-    `the address "${label.text}" shows only ${Math.round(label.shown)}px of ${Math.round(label.full)}px`);
-});
-
-// In Glance the Island gives its dot row (and +N) up entirely, so the
-// address and controls keep their room; tabs stay reachable from ⌘L.
-Then('the Island shows no tab dots while Glance is open', async function () {
-  const chrome = await mainChromePage();
-  await waitForValue(() => chrome.evaluate(() => {
-    const row = document.getElementById('pillDots');
-    return row.getClientRects().length === 0 || row.getBoundingClientRect().width === 0;
-  }), Boolean, 'the dot row hidden in Glance');
-  // Back, the shield, Reload and Close never give way.
-  for (const selector of ['#pillNav .pill-btn:first-child', '#pillShield', '#pillActions .pill-close']) {
-    assert.ok(await chrome.locator(selector).isVisible(), `${selector} was hidden`);
-  }
-});
-
-Then('the Island shows its tab dots again', async function () {
-  const chrome = await mainChromePage();
-  await chrome.locator('#pillDots .island-dot').first().waitFor();
 });
 
 async function sendDownloadsActivity(payload) {
@@ -1613,96 +1080,6 @@ Then("the Island's address is whole and its controls fit", async function () {
   }
 });
 
-// On macOS the strip is told it is Windows and given three stand-in
-// buttons where Windows and Linux draw minimize, maximize and close, and a
-// 1px nudge makes it re-fit and re-measure under those rules. On Windows and
-// Linux the real controls and rules are already there, so nothing changes
-// (and a window that already fills a small display may not grow by 1px).
-When('the strip draws the Windows and Linux window controls', async function () {
-  const chrome = await mainChromePage();
-  this.glanceRealPlatform = await chrome.evaluate(() => {
-    const real = document.documentElement.dataset.platform;
-    if (real === 'darwin') {
-      document.documentElement.dataset.platform = 'win32';
-      document.getElementById('windowControls').replaceChildren(...['–', '□', '✕'].map((text, i) => {
-        const button = document.createElement('button');
-        button.textContent = text;
-        button.dataset.glanceStandIn = '';
-        if (i === 2) button.className = 'close-btn';
-        return button;
-      }));
-    }
-    return real;
-  });
-  if (this.glanceRealPlatform !== 'darwin') return;
-  const { glanceGeometry } = await this.state();
-  await this.call('setWindowContentSize', glanceGeometry.page.width + 1, 800);
-  await this.waitForState((state) => state.glanceGeometry?.page.width === glanceGeometry.page.width + 1);
-  await new Promise((resolve) => setTimeout(resolve, 300));
-});
-
-When('I drag the Glance divider as far right as it goes', async function () {
-  await this.call('resizeGlance', { x: 100000, y: 200 });
-  await this.waitForState((state) => state.glanceGeometry?.ratio === state.glanceGeometry?.maxRatio);
-  await new Promise((resolve) => setTimeout(resolve, 200));
-});
-
-Then("the Glance header's buttons are clear of the window controls", async function () {
-  const chrome = await mainChromePage();
-  const result = await chrome.evaluate(() => {
-    const header = document.getElementById('glanceHeader').getBoundingClientRect();
-    const controls = document.getElementById('windowControls').getBoundingClientRect();
-    const crowded = [...document.querySelectorAll('#glanceHeader button')]
-      .map((button) => ({ id: button.id, rect: button.getBoundingClientRect() }))
-      .filter(({ rect }) => rect.width > 0
-        && (rect.right > controls.left - 1 || rect.left < header.left - 0.5 || rect.right > header.right + 0.5))
-      .map(({ id, rect }) => `${id} ${Math.round(rect.left)}–${Math.round(rect.right)}`);
-    return { crowded, controls: `${Math.round(controls.left)}–${Math.round(controls.right)}` };
-  });
-  assert.deepEqual(result.crowded, [], `header buttons under the window controls (${result.controls})`);
-  const { glanceGeometry } = await this.state();
-  assert.equal(glanceGeometry.direction, 'horizontal');
-});
-
-// The first window has measured its minimums: the slim Island's main pane
-// and the compact header's reference. A new window has measured nothing yet,
-// so its first layout must already stop the divider at both, not at the
-// built-in 50% and 300 px. Which one binds differs by platform (on Windows
-// and Linux the slim Island can need less than half the pane), so the
-// expectation is computed from the measured values.
-When('I open Glance in a new window just wide enough to stay side by side', async function () {
-  const { glanceMinimums } = await this.state();
-  assert.ok(glanceMinimums.primary > 0 && glanceMinimums.reference > 0,
-    `the first window measured nothing: ${JSON.stringify(glanceMinimums)}`);
-  this.glanceMeasured = glanceMinimums;
-  const runtimeId = await this.call('openNewWindow');
-  this.glanceExtraWindowId = runtimeId;
-  const main = await this.call('openTabInWindow', runtimeId, this.fixtureUrl('glance-second-main'));
-  const reference = await this.call('openTabInWindow', runtimeId, this.fixtureUrl('glance-second-reference'));
-  await this.call('activateTabInWindow', runtimeId, main, false);
-  await waitForValue(async () => (await this.call('windowRuntimes')).find((runtime) => runtime.id === runtimeId),
-    (runtime) => runtime?.tabOrder.includes(reference), 'the new window holding both tabs');
-  // Both minimums plus the divider, with 20 px to spare: side by side only
-  // if the new window already knows them.
-  this.glanceFirstLayout = await this.call('firstGlanceLayoutInWindow', runtimeId, reference,
-    Math.max(800, glanceMinimums.primary + glanceMinimums.reference + 12 + 20));
-});
-
-Then("its first layout already stops the divider at the Island's minimum", async function () {
-  const layout = this.glanceFirstLayout;
-  const { primary, reference } = this.glanceMeasured;
-  assert.equal(layout?.direction, 'horizontal', `first layout: ${JSON.stringify(layout)}`);
-  const usable = layout.page.width - layout.divider.width;
-  const expectedMin = Math.min(0.78 * usable, Math.max(0.5 * usable, primary));
-  const expectedMax = Math.max(expectedMin, Math.min(0.78 * usable, usable - reference));
-  assert.ok(Math.abs(layout.minRatio * usable - expectedMin) <= 1,
-    `the new window started with a ${Math.round(layout.minRatio * usable)}px main-pane stop, not ${Math.round(expectedMin)}px from the measured ${primary}px`);
-  assert.ok(Math.abs(layout.maxRatio * usable - expectedMax) <= 1,
-    `the new window left the reference ${Math.round(usable - layout.maxRatio * usable)}px at most, not the measured ${reference}px`);
-  await this.call('closeWindowRuntime', this.glanceExtraWindowId);
-  this.glanceExtraWindowId = null;
-});
-
 When('a download starts', async function () {
   this.glanceDownloadsShown = true;
   await sendDownloadsActivity({ active: 1, hasRecent: true, receivedBytes: 10, totalBytes: 100, lastCompletedAt: null });
@@ -1765,38 +1142,6 @@ Then('the fill question is gone', async function () {
 
 // ---- A stacked Island between the rail and the window controls ----
 
-When('the window is {int} pixels wide', async function (width) {
-  // A display narrower than the window (the Linux VM's GNOME screen is
-  // 1024 px) cannot show this layout at all: skip rather than test another.
-  const available = await ctx.app.evaluate(({ screen }) => screen.getPrimaryDisplay().workAreaSize.width);
-  if (available < width) {
-    const note = `skipped: this display is ${available} px wide, the scenario needs a ${width} px window`;
-    console.warn(`\n${note}`);
-    this.attach?.(note);
-    return 'skipped';
-  }
-  await this.call('setWindowContentSize', width, 800);
-  await this.waitForState((state) =>
-    state.glanceGeometry && state.glanceGeometry.page.x + state.glanceGeometry.page.width === width);
-  await new Promise((resolve) => setTimeout(resolve, 200));
-});
-
-// The real Island, as the fit left it: inside the page's right edge minus the
-// window controls, and right of the rail.
-Then('the Island stays clear of the window controls and the tab rail', async function () {
-  const chrome = await mainChromePage();
-  await waitForValue(() => chrome.evaluate(() => {
-    const root = document.documentElement;
-    const pill = document.getElementById('islandPill').getBoundingClientRect();
-    return {
-      left: Math.round(pill.left), right: Math.round(pill.right), width: window.innerWidth,
-      controls: parseFloat(getComputedStyle(root).getPropertyValue('--window-controls-w')),
-      rail: parseFloat(root.style.getPropertyValue('--vertical-tabs-w')) || 0,
-    };
-  }), (box) => box.right <= box.width - box.controls && box.left >= box.rail,
-  'the Island between the rail and the window controls', 3000);
-});
-
 // ---- Focus that arrives without a focus event ----
 
 // On Linux inactive tab views stay attached (hidden) to their window, so a
@@ -1819,35 +1164,6 @@ Then('the recorded focused pane is the pane that holds keyboard focus', async fu
 });
 
 // ---- The reference title keeps priority in the header ----
-
-// The title is what the header is for: Make main's label gives way to its
-// swap icon before the title is cut below about ten characters (70 px, the
-// same floor the Island keeps for its address).
-Then('the Glance title shows at least ten characters', async function () {
-  const chrome = await mainChromePage();
-  await waitForValue(() => chrome.evaluate(() => {
-    const title = document.getElementById('glanceTitle');
-    const rect = title.getBoundingClientRect();
-    return {
-      text: title.textContent,
-      shown: Math.round(rect.width),
-      cut: title.scrollWidth > title.clientWidth + 1,
-      header: Math.round(document.getElementById('glanceHeader').getBoundingClientRect().width),
-    };
-  }), (value) => value.shown > 0 && (!value.cut || value.shown >= 70),
-  'the Glance title at least ten characters wide', 3000);
-});
-
-Then('Make main still says what it does', async function () {
-  const chrome = await mainChromePage();
-  const promote = chrome.locator('#glancePromote');
-  assert.equal(await promote.getAttribute('aria-label'), 'Make main — swap with the main page');
-  const shows = await promote.evaluate((button) => {
-    const visible = (element) => element && element.getClientRects().length > 0 && element.getBoundingClientRect().width > 0;
-    return { label: visible(button.querySelector('span')), icon: visible(button.querySelector('svg')) };
-  });
-  assert.ok(shows.label || shows.icon, `Make main shows neither its label nor its icon: ${JSON.stringify(shows)}`);
-});
 
 // ---- The record after a main-page change and after activation ----
 
@@ -1879,56 +1195,12 @@ When('another Blanc window takes the foreground and this one is activated again'
 
 // ---- Motion: the chrome's own vocabulary ----
 
-const SPACES_CURVE = 'cubic-bezier(0.2, 0.9, 0.25, 1)';
-
-Then("the Glance header and divider glide in on the chrome's curve", async function () {
-  const motion = await this.call('glanceHeaderMotion');
-  for (const part of ['header', 'divider']) {
-    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
-    assert.ok(motion[part].transition.includes(`transform 0.34s ${SPACES_CURVE}`), `${part} transition: ${motion[part].transition}`);
-  }
-});
-
 When('I choose Change from the Glance header', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceChange').click();
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'the Change picker');
   const page = await overlayPage();
   await page.locator('#glancePicker:not([hidden])').waitFor();
-});
-
-Then('the Change picker grows out of the Change control', async function () {
-  const motion = await this.call('glanceHeaderMotion');
-  assert.ok(motion.picker, 'no picker measured');
-  assert.ok(motion.picker.transition.includes(`transform 0.34s ${SPACES_CURVE}`), `picker transition: ${motion.picker.transition}`);
-  // The origin is under the Change caret, right of the picker's centre.
-  const originX = parseFloat(motion.picker.transformOrigin);
-  assert.ok(originX > motion.picker.width / 2, `picker origin ${motion.picker.transformOrigin} in ${motion.picker.width}px`);
-});
-
-When('I press Escape in the Change picker', async function () {
-  assert.equal(await this.call('pressOverlayKey', 'Escape'), true);
-});
-
-// Main keeps the overlay view attached for a moment after the picker closes
-// so its exit can be seen; the overlay marks the body meanwhile.
-Then('the picker is still drawn while it leaves', async function () {
-  const page = await overlayPage();
-  const seen = await waitForValue(async () => ({
-    mode: await this.call('overlayMode'),
-    attached: await this.call('overlayViewAttached'),
-    closing: await page.evaluate(() => document.body.dataset.closing ?? ''),
-  }), (value) => value.mode === null, 'the picker closed', 2000);
-  assert.equal(seen.attached, true, 'the overlay view was detached before the picker could leave');
-  assert.equal(seen.closing, 'glance', `overlay body data-closing: "${seen.closing}"`);
-});
-
-Then('the Glance header and divider only fade', async function () {
-  const motion = await this.call('glanceHeaderMotion');
-  for (const part of ['header', 'divider']) {
-    assert.ok(motion[part].transition.includes('opacity 0.14s'), `${part} transition: ${motion[part].transition}`);
-    assert.ok(!motion[part].transition.includes('transform'), `${part} still moves: ${motion[part].transition}`);
-  }
 });
 
 // ---- Picker rows in the panel's vocabulary ----
@@ -2054,7 +1326,7 @@ Then('the other rows are dimmed while it wakes', async function () {
 // ---- The header's private chip, the identity cross-fade, the dialog ----
 
 Then('the Glance header shows the private chip', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glancePrivate:not([hidden])').waitFor();
   assert.equal((await chrome.locator('#glancePrivate').textContent()).trim(), 'private');
 });
@@ -2076,38 +1348,31 @@ Then('the picker has the dialog role and is labelled by its heading', async func
   assert.equal((await page.locator('#glancePickerTitle').textContent()).trim(), 'Choose a tab for Glance');
 });
 
-// Make main, watching the header's identity for its cross-fade state, which
-// lasts 120 ms and would otherwise be gone by the time a step looked.
-When('I choose Make main', async function () {
-  const chrome = await mainChromePage();
+// Change the Glance to a private tab, watching the header's identity for its
+// cross-fade state, which lasts 120 ms and would otherwise be gone by the
+// time a step looked.
+When('I show a private tab in Glance instead', async function () {
+  const chrome = await glanceCardPage();
   await chrome.evaluate(() => {
     const identity = document.querySelector('#glanceHeader .glance-tab-identity');
     window.__glanceIdentitySwapped = identity.classList.contains('swapping');
     new MutationObserver(() => { if (identity.classList.contains('swapping')) window.__glanceIdentitySwapped = true; })
       .observe(identity, { attributes: true, attributeFilter: ['class'] });
   });
-  const { activeTabId, glanceTabId } = await this.state();
-  await chrome.locator('#glancePromote').click();
-  await this.waitForState((state) => state.activeTabId === glanceTabId && state.glanceTabId === activeTabId);
-  this.glanceMainId = glanceTabId;
-  this.glanceReferenceId = activeTabId;
+  const privateId = this.glancePrivateOtherId;
+  assert.equal(await this.call('setGlance', privateId), true);
+  this.glanceReferenceId = privateId;
   await new Promise((resolve) => setTimeout(resolve, 150));
   this.glanceIdentitySwapped = await chrome.evaluate(() => window.__glanceIdentitySwapped === true);
 });
 
 Then('the Glance header shows no private chip', async function () {
-  const chrome = await mainChromePage();
+  const chrome = await glanceCardPage();
   await chrome.locator('#glanceHeader:not([hidden])').waitFor();
   const chip = await chrome.locator('#glancePrivate').evaluate((element) => ({
     hidden: element.hidden, drawn: element.getClientRects().length > 0,
   }));
   assert.deepEqual(chip, { hidden: true, drawn: false });
-});
-
-Then('the strip announces {string}', async function (expected) {
-  const chrome = await mainChromePage();
-  await waitForValue(() => chrome.locator('#glanceStatus').textContent(), (text) => text === expected,
-    `the strip announcing "${expected}"`);
 });
 
 // ---- /glance ----
@@ -2198,21 +1463,6 @@ Then('the reference is a private tab in the private session', async function () 
   const reference = state.tabs.find((tab) => tab.id === this.glanceLinkedId);
   assert.equal(reference.private, true);
   assert.equal(reference.sessionKind, 'private');
-});
-
-// A hidden element keeps its specified transform in its computed style, so
-// the leaving header's offset can be read while it is already hidden.
-Then('the leaving stacked header and divider do not move', async function () {
-  const chrome = await mainChromePage();
-  const transforms = await chrome.evaluate(() => ['#glanceHeader', '#glanceDivider'].map((selector) => {
-    const element = document.querySelector(selector);
-    return { selector, hidden: element.hidden, direction: element.dataset.direction, transform: getComputedStyle(element).transform };
-  }));
-  for (const item of transforms) {
-    assert.equal(item.hidden, true, `${item.selector} is not hidden`);
-    assert.equal(item.direction, 'vertical', `${item.selector} is not stacked`);
-    assert.equal(item.transform, 'none', `${item.selector} still moves while leaving: ${item.transform}`);
-  }
 });
 
 Then('the live region never said Opening', async function () {

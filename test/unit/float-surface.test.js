@@ -67,7 +67,7 @@ test('the float surface shows one element, slides the whole view height and drop
   const css = read('src/renderer/styles.css');
   assert.match(css, /html\[data-surface="float"\],\s*html\[data-surface="float"\] body \{ background: transparent; \}/);
   // Split View's pane headers and dividers are the strip's, between the panes.
-  for (const id of ['verticalTabsRail', 'glanceDivider', 'glanceHeader', 'dragBand', 'splitPanes']) {
+  for (const id of ['verticalTabsRail', 'glanceHeader', 'dragBand', 'splitPanes']) {
     assert.match(css, new RegExp(`html\\[data-surface="float"\\] #${id}[,\\s{]`), id);
   }
   assert.match(css, /html\[data-surface="float"\] #chrome \{[^}]*left: calc\(-1 \* var\(--float-x\)\);[^}]*top: calc\(-1 \* var\(--float-y\)\);[^}]*width: var\(--float-stage-width\);/);

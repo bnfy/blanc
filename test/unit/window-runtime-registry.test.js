@@ -15,7 +15,6 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.equal(r.glanceCardView, null);
   assert.equal(r.glanceCardGeneration, 0);
   assert.equal(r.focusedPaneTabId, null);
-  assert.equal(r.islandMinPrimaryWidth, 0, 'no Island floor until the strip has measured one');
   assert.deepEqual(r.closedEntries, []);
   assert.equal(r.overlayView, null);
   assert.equal(r.overlayMode, null);

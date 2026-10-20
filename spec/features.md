@@ -826,84 +826,82 @@ From the desktop `DEFAULTS`:
 
 ## F34 — Glance reference pane
 
-- Desktop can keep one additional tab from the same native workspace visible as
-  a temporary reference pane. The active page remains the dominant main pane;
-  Glance opens to its right at a 62/38 default split and stacks below it when
-  the available page region is too narrow, with an explicit header introducing
-  the lower reference.
-- A person chooses the exact reference tab from a dedicated local-tab picker
-  that excludes search, history, Favorites, commands, and remote tabs. The native
-  View menu exposes **Open Glance… / Close Glance** with
-  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux;
-  `/glance` opens the same picker (the Change picker while Glance is open) and
-  `/glance <text>` opens it filtered to the text; a link's context menu offers
-  **Open Link in Glance** after **Open Link in New Tab**, with the same
-  hand-off and forbidden-URL guards, opening the link as the reference in the
-  opener's profile and private flag, ungrouped (F3). The picker is a dialog named by
-  its heading; its rows share the ⌘L panel's vocabulary (quiet tabs dimmed
-  with the word only in the accessible name, private tabs with the chip, a
-  tooltip of title and host, names joined with commas), arrow keys move the
-  highlight without re-announcing the count, and a chosen quiet tab's row
-  says "Opening…" while it wakes.
-- The strip keeps the Island centered over the main pane and gives the
-  reference a flat header with favicon/title plus **Make main**, **Change**, and
-  close controls. Reference pages remain fully interactive without changing
-  roles; promotion is explicit and swaps the two visible tabs.
-- Browser commands follow the focused pane. With keyboard focus in the
-  reference, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and
-  Forward (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and
-  Linux), the 1Password fill and its hint, and mouse
-  gestures act on the reference; Close Tab there closes the reference tab and
-  Glance collapses. ⌘L and the Island, New Tab, ⌘1–9, the shield popover, the
-  blocked count and the tab-scoped slash commands stay on the main page. The
-  header's eyebrow and bottom hairline brighten while the reference holds
-  focus. A 1Password message belongs to the pane it is about: only that
-  pane navigating dismisses it, not the other pane.
-- A tab the reference opens in the foreground (`target=_blank`,
-  `window.open`, Cmd/Ctrl+Shift-click) becomes the reference; the previous
-  reference stays open as an ordinary tab and the main page is untouched.
-  Background opens stay in the background.
-- While Glance is open the Island hides its tab dots (and the +N count) to
-  keep room for the address and its controls; tabs stay reachable from the
-  ⌘L panel, the rail and `Cmd/Ctrl+1–9`. When the main pane is narrow the
-  Island also hides Forward and Favorite, and the divider stops before the
-  address becomes unreadable (measured from what the Island is showing).
-  The divider also never makes the reference narrower than its header needs
-  at its most compact (measured, so it includes the window controls on
-  Windows and Linux), and Glance stacks instead of going side by side when
-  the main pane's minimum would leave the reference less than that. Stacked
-  on Windows and Linux the Island is centred between two reservations for
-  the window controls; when even the slim Island does not fit there (a narrow
-  window with vertical tabs), it gives up its centre line, reserving the
-  controls once on their side, before its address truncates.
-- The reference header carries **Back** (disabled when there is nothing to go
-  back to) and **Reload** / **Stop**. **Make main**'s accessible name begins
-  with its visible words, and right-clicking the header's title opens the
-  reference tab's menu with **Close Glance**. A private reference shows the
-  private chip beside its title. Glance moves in the chrome's own vocabulary:
-  the header and divider fade and slide 6 px in and out, the picker grows out
-  of its anchor and shrinks back, Make main cross-fades the header's identity
-  and announces "{title} is now the main page; {other} is in Glance"; under
-  Reduce Motion every one of these is a 140 ms fade.
-- The divider is pointer-resizable and keyboard accessible, with a reset to the
-  62/38 default. Glance never crosses window/profile ownership, never survives
-  native-window teardown or session restore, and a visible Glance tab is never
-  made quiet (F31).
-- **Keep as split** in the reference header turns Glance into a Split View
-  (F53) that stays open.
+- Desktop can show one other tab from the same native workspace as a temporary
+  **floating card** over the active page: a quick look at another page without
+  leaving the one you're on. Side by side always means Split View (F53); Glance
+  is the card. The card is large and centered below the Island at first (up to
+  1,100 px or 80% of the page area wide), drawn like a Split View pane:
+  rounded corners, a 1 px border (darker while it has focus) and a soft shadow.
+  The page behind stays visible and usable: clicking or scrolling it never
+  closes the card. (Design: `docs/superpowers/specs/2026-10-20-floating-glance-design.md`.)
+- A person chooses the exact tab from a dedicated local-tab picker that excludes
+  search, history, Favorites, commands, and remote tabs. The native View menu
+  exposes **Open Glance… / Close Glance** with `Cmd/Ctrl+Shift+G`, so the
+  feature is reachable on macOS, Windows, and Linux; `/glance` opens the same
+  picker (the Change picker while Glance is open) and `/glance <text>` opens it
+  filtered to the text; a link's context menu offers **Open Link in Glance**
+  after **Open Link in New Tab**, with the same hand-off and forbidden-URL
+  guards, opening the link in the opener's profile and private flag, ungrouped
+  (F3). The picker is a dialog named by its heading; its rows share the ⌘L
+  panel's vocabulary (quiet tabs dimmed with the word only in the accessible
+  name, private tabs with the chip, a tooltip of title and host, names joined
+  with commas), arrow keys move the highlight without re-announcing the count,
+  and a chosen quiet tab's row says "Opening…" while it wakes.
+- The card can be moved by dragging its header and resized from any edge or
+  corner (never below 360 × 280, always inside the page area). The next Glance
+  opens at the size and place the last card was left, remembered once per
+  device as a share of the page area and never synced; double-clicking the
+  header resets it. A focusable **Move or resize Glance** control moves the card
+  with the arrow keys (16 px, 64 px with Shift), resizes it with Option/Alt and
+  an arrow, resets it with Enter, and announces each change.
+- The header carries the GLANCE label, the site (favicon and host, with the
+  private chip for a private tab), **Back** and **Reload** / **Stop**,
+  **Change**, **Open as tab**, **Keep as split** and **×**. As the card narrows
+  the three actions become icons, then the GLANCE label hides, then the host;
+  Back, Reload, × and the private chip never hide. Accessible names begin with
+  the visible words, and right-clicking the header opens the Glance tab's menu.
+- **Open as tab** (or choosing the Glance tab from the Island dots, ⌘1–9 or the
+  ⌘L list) ends the Glance and makes its page the current tab; the page it
+  floated over stays open as an ordinary tab. **Keep as split** turns the two
+  pages into a fresh 50/50 Split View, main page first. Switching to any other
+  tab closes the Glance; switching back doesn't bring it back. Closing the main
+  page makes the Glance page the current tab.
+- **Escape** closes the Glance only from the card's chrome (its header and
+  controls); inside the Glance page Escape stays the site's. **×** and
+  `Cmd/Ctrl+Shift+G` close it from anywhere. A closing card disappears at once.
+- Browser commands follow the focused pane. With keyboard focus in the Glance
+  page, Reload and Hard Reload, Close Tab, Find, zoom, Print, Back and Forward
+  (`Cmd+[` / `]` on macOS, `Alt+Left` / `Right` on Windows and Linux), the
+  1Password fill and its hint, and mouse gestures act on it; Close Tab there
+  closes the Glance tab and the Glance ends. ⌘L and the Island, New Tab, ⌘1–9,
+  the shield popover, the blocked count and the tab-scoped slash commands stay
+  on the main page. Find and a 1Password message about the Glance page sit
+  over the card; a 1Password message belongs to the pane it is about.
+- A tab the Glance page opens in the foreground (`target=_blank`,
+  `window.open`, Cmd/Ctrl+Shift-click) becomes the Glance; the previous one
+  stays open as an ordinary tab and the main page is untouched. Background
+  opens stay in the background.
+- The card's chrome fades in (a 140 ms fade; none under Reduce Motion) and
+  closes at once. The Island hides and reveals as usual under Auto-hide while a
+  Glance is open, in either style. Glance never crosses window/profile
+  ownership, never survives native-window teardown or session restore, and a
+  visible Glance tab is never made quiet (F31).
 - Glance is a desktop window-model capability (D11). Phone ports are N/A unless
   a future tablet/foldable contract defines a comparable multi-pane surface.
 - **Acceptance:**
-  [`acceptance/glance.feature`](./acceptance/glance.feature) selects a specific
-  tab through the dedicated picker, verifies dominant/reference geometry,
-  proves reference focus does not promote, changes and explicitly swaps the
-  visible roles, resizes the divider, and dismisses back to one full page.
-  It also proves that reload, close, find, zoom, Back, the 1Password fill and
-  gestures follow the focused pane, that foreground links from the reference
-  open into Glance, and that the header's Back, Reload and menu address the
-  reference; and that the motion and its reduced form hold, that picker rows
-  read like the panel's, that `/glance` and **Open Link in Glance** reach
-  the picker and the reference, and that Make main names both pages.
+  [`acceptance/glance.feature`](./acceptance/glance.feature) opens a specific
+  tab through the dedicated picker as a centered card over the whole main page
+  (F34-2), keeps it on screen as the window changes (F34-3), moves, resizes and
+  resets it and remembers where it was (F34-4, F34-5), closes it on a tab
+  switch and opens it as the tab (F34-6 to F34-8, F34-15), keeps Escape in the
+  page and closes from the header (F34-9), leaves the page behind usable
+  (F34-10), compacts the header and moves it from the keyboard (F34-11,
+  F34-12), anchors find to the card (F34-13) and fades in and closes at once
+  (F34-14). The F34-1 scenarios keep proving that reload, close, find, zoom,
+  Back, the 1Password fill and gestures follow the focused pane, that
+  foreground links from the Glance page open into Glance, that the header's
+  Back, Reload and menu address it, that picker rows read like the panel's,
+  and that `/glance` and **Open Link in Glance** reach the picker and the card.
 
 ## F35 — Start page layouts
 

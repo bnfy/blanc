@@ -1872,8 +1872,6 @@
                 "bottom": 1,
                 "closing": true
               },
-              "minPrimaryWidth": 1,
-              "minReferenceWidth": 1,
               "windowControlsRect": {
                 "x": 1,
                 "y": 1,
@@ -1916,8 +1914,6 @@
                     "bottom": 1,
                     "closing": true
                   },
-                  "minPrimaryWidth": 1,
-                  "minReferenceWidth": 1,
                   "windowControlsRect": {
                     "x": 1,
                     "y": 1,

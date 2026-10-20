@@ -114,7 +114,6 @@ function install(refs) {
     getGlanceTabId,
     getFocusedPaneTabId,
     getGlanceCard,
-    getGlanceMinimums,
     openLinkInGlance,
     groupTabByName,
     renameTab,
@@ -729,7 +728,6 @@ function install(refs) {
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
         glanceCard: getGlanceCard(),
-        glanceMinimums: getGlanceMinimums(),
       };
     },
 
@@ -2401,9 +2399,11 @@ function install(refs) {
       const wc = getGlanceCardWebContents();
       return { closed, cardViewVisible: wc && !wc.isDestroyed() ? getGlanceCardViewVisible() : false };
     },
+    // The Glance header's identity cross-fade (in the card's document) and
+    // the overlay's picker motion.
     async glanceHeaderMotion() {
-      const strip = getChromeWebContents();
-      if (!strip) return null;
+      const strip = getGlanceCardWebContents();
+      if (!strip || strip.isDestroyed()) return null;
       const read = (selector) => `(() => {
         const element = document.querySelector(${JSON.stringify(selector)});
         if (!element) return null;
@@ -2411,14 +2411,13 @@ function install(refs) {
         return { transition: style.transition, transform: style.transform, opacity: style.opacity, transformOrigin: style.transformOrigin, width: element.getBoundingClientRect().width };
       })()`;
       const header = await strip.executeJavaScript(read('#glanceHeader'));
-      const divider = await strip.executeJavaScript(read('#glanceDivider'));
       const identity = await strip.executeJavaScript(`(() => {
         const element = document.querySelector('#glanceHeader .glance-tab-identity');
         return element ? { transition: getComputedStyle(element).transition, swapping: element.classList.contains('swapping') } : null;
       })()`);
       const overlay = getOverlayWebContents();
       const picker = overlay && getOverlayMode() === 'glance' ? await overlay.executeJavaScript(read('#glancePicker')) : null;
-      return { header, divider, identity, picker };
+      return { header, identity, picker };
     },
     pillPlaceholderState() {
       const wc = getChromeWebContents();

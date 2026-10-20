@@ -213,7 +213,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F33-1 | Settings creates a profile with isolated records and sessions | D25 | ✅ | ➖ | ➖ |
 | F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
 | F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
-| F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
+| F34-1 | Explicit Glance selection, focus-following commands, the picker, and close | D11 | ✅ | ➖ | ➖ |
 | F34-2 | A Glance opens as a centered card over the page | D11 | ✅ | ➖ | ➖ |
 | F34-3 | The card keeps its header on screen when the window shrinks and grows | D11 | ✅ | ➖ | ➖ |
 | F34-4 | Moving the card keeps it there for the next Glance | D11 | ✅ | ➖ | ➖ |
