@@ -1,7 +1,7 @@
 # Split View: 2–4 panes that stay open (F53)
 
 **Date:** 2026-10-19
-**Status:** draft for the owner's review. The owner decided D1–D4 on 2026-10-19 (§11). Revised the same day for a design review's four findings (header ownership, layout schema, Close Split in PR 1, the group rule). §12 lists what is still open. No implementation plan yet.
+**Status:** draft for the owner's review. The owner decided D1–D4 on 2026-10-19 (§11). Revised the same day for a design review's four findings (header ownership, layout schema, Close Split in PR 1, the group rule). The owner chose chrome direction A on 2026-10-19 (D5, §11). §12 lists what is still open. No implementation plan yet.
 **Builds on:** [Glance](2026-08-15-glance-design.md) (F34) and its [refinement](2026-10-15-glance-refinement-design.md): focused-pane commands (`glance-focus.js`), pane geometry (`glance-layout.js`), the reference header, the picker, and Glance's motion vocabulary.
 **Reverses:** three of the Glance spec's non-goals: "more than two simultaneous page panes", "persisting … the Glance relationship" and "a general split-view workspace manager". Glance itself is unchanged. Split View is what Glance turns into when the person asks it to stay.
 **Reference:** Arc's Split View: up to four tabs side by side, which stay together as one item in the sidebar and survive relaunch. Arc has been in maintenance mode since May 2025. This is the most-used Arc habit Blanc still lacks (2026-10-19 parity audit).
@@ -58,20 +58,20 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **Every divider** in the saved layout is pointer-resizable and keyboard accessible (arrow keys move it, a reset action restores the default), reusing Glance's divider behavior. Moving one updates the saved fractions.
 - **Pane order:** a pane's position is its order in the split. Dragging a pane header onto another pane swaps them. *(Drag lands in PR 3, §10.)*
 
-### 3.3 Chrome: one Island, a header per pane (§12 Q1)
+### 3.3 Chrome: one Island, a header band on every pane (D5)
 
-- **Recommended direction:** the Island stays the only floating pill, centered over the window's page region as usual. It always addresses the **focused pane**: its address, Back/Forward, shield, Favorite and the tab-scoped slash commands act on that pane, extending Glance's "commands follow the focused pane" rule (`commandTargetTab`) from two panes to four.
+- **The Island:** it stays the only floating pill, centered over the window's page region as usual. It always addresses the **focused pane**: its address, Back/Forward, shield, Favorite and the tab-scoped slash commands act on that pane, extending Glance's "commands follow the focused pane" rule (`commandTargetTab`) from two panes to four.
 - **Who draws the headers.** Header bands are reserved in each pane's geometry, which is how stacked Glance already works. The page views stop short of the band, so the window's own chrome document (`index.html`, which lies under every page view and spans the whole window) is what shows through, and it paints the header and takes its clicks there. This holds in every position, including the bottom row of a grid and the focus-only bands.
   - No new `WebContentsView`s, so there is no new stacking, focus or Linux re-attach lifecycle (`tab-view-lifecycle.js` is untouched).
   - Hit-testing is plain DOM, because nothing covers a reserved band.
-  - A top-row header sits in the strip band, as Glance's side-by-side header does. Every other header sits in a band between page views, as Glance's stacked header does.
+  - Every header, top row included, sits at the top of its own pane, below the strip, the way Glance's stacked header sits between views. The strip holds the Island alone. **Keep as split** therefore moves the Glance reference's identity from the strip into its pane's band, and the main page gains a band of its own.
   - Menus opened from a header are the native tab menu, or the overlay view (already stacked above every page view), never DOM drawn over a page view.
 - **Pane headers:** every pane gets a slim header, Glance's reference header generalized. It holds:
   - the favicon and title
   - the focused cue (eyebrow and hairline brighten, never an outline)
   - **Back** and **Reload/Stop**
   - a menu with **Add to Split…**, **Remove from Split**, **Close Split** and the tab's own menu
-- **Mockups first:** before any of this is built, 2–3 chrome directions get mocked up in real CSS for the owner to choose from.
+- **Mockups:** the three directions the owner chose between are in [`docs/design-reviews/split-view-chrome-2026-10-19/mockups.html`](../../design-reviews/split-view-chrome-2026-10-19/mockups.html). Direction A is the source of truth for the chrome. Each later PR that adds visible chrome still mocks up its details first.
 - **Island dots:** while a split is showing, the Island hides its tab dots, as it does in Glance. Tabs stay reachable from ⌘L, the rail and ⌘1–9.
 - **Moving focus:**
   - Clicking into a pane focuses it.
@@ -191,10 +191,10 @@ Each PR starts from mockups where it adds visible chrome, and is checked in a pa
 - **D2:** Splits are saved like groups: in the session and in Spaces, restored on relaunch. Private tabs never take part in what's saved.
 - **D3:** Two or three columns; four panes become a 2×2 grid. Narrow windows stack, as Glance does. Dividers are resizable.
 - **D4:** A split is one row in the tab list, and its tabs stay real tabs underneath.
+- **D5 (was Q1):** chrome direction A. One Island stays centered in the strip and always addresses the focused pane; every pane, top row included, has the same header band at its top. The owner chose it over B (the Island follows focus) and C (the Island carries the panes, with no headers). This costs one header band of page height per pane; nothing moves when focus moves, and every pane can be identified and closed in place.
 
 ## 12. Open questions
 
-- **Q1. Chrome direction.** The recommendation is §3.3's one Island plus a slim header on every pane. The alternative is the Island moving to sit over whichever pane is focused, with only the other panes getting headers. That alternative is closer to Glance, but it moves the Island around, and it can only reach top-row panes: the Island lives in the strip band, so a focused bottom-row pane would still need a header. Mockups of both, and possibly a third, are needed before PR 1's chrome is built.
 - **Q2. The pane-focus shortcut.** `Cmd+Option+Arrow` (macOS) and `Ctrl+Alt+Arrow` (Windows/Linux) need a conflict check against existing shortcuts, browser-page conventions and Windows' own Ctrl+Alt+Arrow screen rotation on some drivers. The plan verifies this; an alternative is ⌃Tab within the split.
 - **Q3. Pinning a pane.** Pinning a pane removes it from the split (recommended), or a split refuses to pin until the tab is removed.
 - **Q4. Where a removed tab lands.** Directly below the split's row (recommended), or back at its position before it joined the split.
