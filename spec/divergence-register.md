@@ -690,7 +690,7 @@ differs.
 Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
 on Windows the drag band drags but a double-click on it does not maximise, in
 either style (the same with a transparent drag view, so it is Windows' own
-hit test); on Linux in float mode the window document goes `hidden` while
-the page covers it whole and stops tracking resizes, so after a maximise the
-floating pill and window controls sit at stale positions until a fix lands
-(pending before the next release).
+hit test). On Linux the window document went `hidden` while the page
+covered it whole and stopped tracking resizes, leaving the floating pill and
+window controls at stale positions after a maximise; on Linux a covered strip
+now keeps one row uncovered (bnfy/blanc#999).

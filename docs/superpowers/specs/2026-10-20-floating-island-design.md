@@ -316,8 +316,9 @@ fallback; other failures must be resolved before merge.
    (the drawing check passes 22 of 22 on xvfb and Wayland). On Linux in float
    mode the window document goes `hidden` once the page covers it whole and
    stops tracking resizes, so after a maximise the views are placed from a
-   stale island-rect report and the controls' clicks miss. Fix pending;
-   leaving one strip row uncovered avoids it.
+   stale island-rect report and the controls' clicks miss. Fixed in
+   bnfy/blanc#999: on Linux a covered strip keeps one row uncovered, and
+   all four controls then land on X11 and Wayland.
 3. **Native Wayland reveal.** Pointing 7–10px inside the edge or resting
    30px down reveals the pill with the band in place.
 
