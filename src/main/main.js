@@ -3782,7 +3782,24 @@ function ensureIslandFloatView(runtime, role) {
   contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     if (record.payload) contents.send('chrome:float-frame', record.payload);
     if (record.shown) contents.send('chrome:float-shown', true);
+    // Downloads only ever arrive as broadcasts; the renderer pulls the rest.
+    contents.send('chrome:downloads', downloadsActivity());
   }));
+  if (role === 'pill') {
+    // The pill's right-click menu, as on the strip, placed at the pointer.
+    attachChromeMenu(contents, {
+      t: mainI18n.t,
+      getWindow: bindWindowRuntime(runtime, () => rt().window),
+      suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
+      resolveActiveTab: bindWindowRuntime(runtime, () => tabContextData(tabs.get(rt().activeTabId), runtime)),
+      resolveTab: () => null,
+      actions: menuContextActions(runtime),
+      getOffset: () => {
+        const bounds = view.getBounds();
+        return { x: bounds.x, y: bounds.y };
+      },
+    });
+  }
   contents.loadURL(CHROME_FLOAT_URL).catch(() => {});
   runtime.window.contentView.addChildView(view);
   restackAboveIslandFloat(runtime);

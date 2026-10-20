@@ -238,6 +238,10 @@ After({ tags: '@island-autohide' }, async function () {
     await this.call('setWindowContentSize', this.floatOriginalSize.width, this.floatOriginalSize.height).catch(() => {});
     this.floatOriginalSize = null;
   }
+  if (this.floatHeld) {
+    await this.call('holdIslandInWindow', 'primary', false).catch(() => {});
+    this.floatHeld = false;
+  }
   await this.call('setIslandAutoHide', false).catch(() => {});
   await this.call('setIslandAutoHideStyle', 'float').catch(() => {});
   await this.call('setTabLayout', 'island').catch(() => {});
@@ -588,4 +592,42 @@ Then('the main menu opens from the floating menu button', async function () {
   // The popup point is the button's bottom-left, in window coordinates.
   assert.ok(Math.abs(last.point.x - rects.menuButtonRect.x) <= 2, JSON.stringify({ last, rects }));
   assert.ok(Math.abs(last.point.y - (rects.menuButtonRect.y + rects.menuButtonRect.height)) <= 2, JSON.stringify({ last, rects }));
+});
+
+// The pill as each document draws it: its place on the strip stage and which
+// of its parts show. The floating copy must be the strip's pill exactly.
+const PILL_PROBE = `(() => {
+  const stage = document.getElementById('chrome').getBoundingClientRect();
+  const pill = document.getElementById('islandPill');
+  const r = pill.getBoundingClientRect();
+  const parts = [...pill.querySelectorAll('[id]')].filter((el) => {
+    const style = getComputedStyle(el);
+    return el.getBoundingClientRect().width > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+  }).map((el) => el.id).sort();
+  return { x: r.left - stage.left, y: r.top - stage.top, width: r.width, height: r.height, parts, slim: pill.classList.contains('slim') };
+})()`;
+
+Then('the floating pill matches the strip\'s pill', async function () {
+  let last = null;
+  await waitForValue(async () => {
+    const [strip, pill] = await Promise.all([this.call('chromeEval', PILL_PROBE), this.call('floatEval', 'pill', PILL_PROBE)]);
+    last = { strip, pill };
+    return strip && pill && Math.abs(strip.x - pill.x) <= 1 && Math.abs(strip.y - pill.y) <= 1
+      && Math.abs(strip.width - pill.width) <= 1 && strip.slim === pill.slim
+      && JSON.stringify(strip.parts) === JSON.stringify(pill.parts);
+  }, Boolean, 'the floating pill to match the strip\'s pill').catch((error) => {
+    throw new Error(`${error.message}: ${JSON.stringify(last)}`);
+  });
+});
+
+When('I switch to vertical tabs', async function () {
+  await this.call('setTabLayout', 'vertical');
+});
+
+// Acceptance-only hold (the drawing check's): reveals the Island without a
+// focused window or a pointer, so the comparison needs neither.
+When('the Island is held up in this window', async function () {
+  assert.equal(await this.call('holdIslandInWindow', 'primary', true), true);
+  this.floatHeld = true;
+  await waitForValue(() => floatState(this), (value) => value?.shown === true, 'the held pill to show');
 });

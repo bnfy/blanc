@@ -266,6 +266,11 @@ button svg {
   transition: background-color 80ms linear;
 }
 
+/* The width the strip lays out in: the window's, except in a floating
+   Island view (float surface below), which copies a strip of the window's
+   width. Declared off :root {} so tokens:check stays desktop-only. */
+html { --stage-w: 100vw; }
+
 /* Width of the custom Windows/Linux window-control cluster (3 × 34px, two
    2px gaps, 8px inset), reserved by the side-by-side Glance header and the
    stacked pill. macOS draws native traffic lights at the left and reserves
@@ -565,13 +570,13 @@ button svg {
 
 :root[data-tab-layout="vertical"] #islandPill {
   /* Non-mac window buttons remain at the website pane's right edge. */
-  max-width: calc((100vw - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
 }
 
 /* macOS traffic lights live inside the rail, so only a small pane-side
    clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
-  max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
 }
 
 :root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
@@ -1206,7 +1211,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
      (without this the pill renders 1.15× wider and runs under the controls).
      184px is 92px a side: the traffic lights at macOS's standard 18pt inset
      end 80pt in, plus a 12pt gap. */
-  max-width: calc((100vw - 184px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - 184px) / var(--pill-zoom));
   background: transparent;
   /* Keep the one-pixel border in layout while the visible material moves to
      ::after. The resting pill has no transform, which keeps the URL and
@@ -4206,6 +4211,8 @@ body[data-mode="group-menu"] { background: transparent; }
    the view's height takes the element, its margin and its shadow above it. */
 html[data-surface="float"],
 html[data-surface="float"] body { background: transparent; }
+/* The pill's room follows the strip it copies, not the small view it is in. */
+html[data-surface="float"] { --stage-w: var(--float-stage-width); }
 html[data-surface="float"] #chrome {
   position: fixed;
   left: calc(-1 * var(--float-x));

@@ -372,6 +372,15 @@ Feature: Island chrome, command palette, and slash commands
     When I set the appearance to "light"
     Then the floating pill matches the strip's theme
 
+  @F1-42 @F1 @desktop @island-autohide
+  Scenario: The floating pill is the strip's pill, in both tab layouts
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the Island is held up in this window
+    Then the floating pill matches the strip's pill
+    When I switch to vertical tabs
+    Then the floating pill matches the strip's pill
+
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs
     Given a tab open on "autohide-page"

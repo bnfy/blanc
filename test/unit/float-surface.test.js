@@ -94,3 +94,29 @@ test('the window controls and menu button keep their shadow inside their 8px roo
   const css = read('src/renderer/styles.css');
   assert.match(css, /html\[data-surface="float"\] #windowControls,\s*html\[data-surface="float"\] #mainMenuButton \{[^}]*box-shadow: 0 2px 8px -2px rgba\(14, 14, 14, 0\.22\);/);
 });
+
+test('right-clicking the floating pill opens the active-tab menu where the pointer is', () => {
+  const main = read('src/main/main.js');
+  const menu = read('src/main/tab-context-menu.js');
+  const ensure = main.slice(main.indexOf('function ensureIslandFloatView('), main.indexOf('function destroyIslandFloatViews('));
+  assert.match(ensure, /if \(role === 'pill'\) \{[^}]*?attachChromeMenu\(contents, \{[\s\S]*?getOffset: \(\) => \{\s+const bounds = view\.getBounds\(\);/);
+  // The menu pops up at the pointer in window coordinates.
+  assert.match(menu, /const offset = deps\.getOffset\?\.\(\) \?\? \{ x: 0, y: 0 \};/);
+  assert.match(menu, /x: Math\.round\(params\.x \+ offset\.x\), y: Math\.round\(params\.y \+ offset\.y\)/);
+});
+
+test('a new float view starts with the downloads state', () => {
+  const main = read('src/main/main.js');
+  const ensure = main.slice(main.indexOf('function ensureIslandFloatView('), main.indexOf('function destroyIslandFloatViews('));
+  assert.match(ensure, /contents\.once\('did-finish-load'[\s\S]*?contents\.send\('chrome:downloads', downloadsActivity\(\)\);/);
+});
+
+test('double-clicking a float view\'s margin never zooms the window', () => {
+  const js = read('src/renderer/renderer.js');
+  assert.match(js, /stripEl\.addEventListener\('dblclick', \(e\) => \{\s+if \(e\.target === stripEl && !floatSurface\) window\.browserAPI\.maximizeWindow\(\);/);
+});
+
+test('with vertical tabs no menu button floats over the rail', () => {
+  const js = read('src/renderer/renderer.js');
+  assert.match(js, /const menuBox = isMac \|\| state\.tabLayout === 'vertical' \? null : boxOf\(mainMenuButton\);/);
+});

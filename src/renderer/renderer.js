@@ -588,7 +588,9 @@
     const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
       .map((element) => (element.hidden ? 0 : 1)).join('');
     return [
-      window.innerWidth, root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
+      // A float view copies a strip of the window's width, not its own.
+      floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
+      root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
       stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
@@ -1377,8 +1379,9 @@
   });
 
   // Double-click on empty strip area zooms the window (desktop convention).
+  // Not in a float view: its bare strip is the margin around its one element.
   stripEl.addEventListener('dblclick', (e) => {
-    if (e.target === stripEl) window.browserAPI.maximizeWindow();
+    if (e.target === stripEl && !floatSurface) window.browserAPI.maximizeWindow();
   });
   // The covered strip's top band zooms the window the same way.
   const dragBand = document.getElementById('dragBand');
@@ -1446,6 +1449,8 @@
       root.style.setProperty('--float-width', `${width}px`);
       root.style.setProperty('--float-height', `${height}px`);
       root.style.setProperty('--float-stage-width', `${stageWidth}px`);
+      // The pill fits the strip's room, which may just have changed.
+      fitIslandDots();
     });
     let showGeneration = 0;
     window.browserAPI.onFloatShown((shown) => {
@@ -1560,7 +1565,8 @@
     // Windows and Linux: where the window controls and the main-menu button
     // sit, so a floating Island can draw its copies of them in place.
     const controlsBox = isMac ? null : boxOf(windowControls);
-    const menuBox = isMac ? null : boxOf(mainMenuButton);
+    // With vertical tabs the rail covers the strip's menu button: never float it.
+    const menuBox = isMac || state.tabLayout === 'vertical' ? null : boxOf(mainMenuButton);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,
       y,
