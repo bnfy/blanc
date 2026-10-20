@@ -3183,6 +3183,7 @@ const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
 let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
 let islandAutoHide = initialPresentationSettings.islandAutoHide === true;
+let islandAutoHideStyle = islandAutoHideModule.normalizeAutoHideStyle(initialPresentationSettings.islandAutoHideStyle);
 let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
@@ -3723,6 +3724,20 @@ function applyIslandAutoHide(next) {
     showIslandAutoHideIntro(target).catch(() => endIslandAutoHideIntro(target));
   }
   scheduleMenuRebuild();
+}
+
+/** Float the revealed Island over the page, or push the page down. */
+function applyIslandAutoHideStyle(next) {
+  const style = islandAutoHideModule.normalizeAutoHideStyle(next);
+  if (style === islandAutoHideStyle) return;
+  islandAutoHideStyle = style;
+  for (const runtime of windowRuntimes.all()) {
+    if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  }
+}
+
+function setIslandAutoHideStyle(style) {
+  return settings.setSettings({ islandAutoHideStyle: style }).islandAutoHideStyle;
 }
 
 function setIslandAutoHide(on) {
@@ -12587,8 +12602,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
       setIslandAutoHide,
+      setIslandAutoHideStyle,
       getIslandAutoHideState: () => ({
         enabled: islandAutoHide,
+        style: islandAutoHideStyle,
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
         sliding: !!rt().islandSlide,
@@ -12818,6 +12835,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
     }
     applyIslandAutoHide(s.islandAutoHide === true);
+    applyIslandAutoHideStyle(s.islandAutoHideStyle);
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,

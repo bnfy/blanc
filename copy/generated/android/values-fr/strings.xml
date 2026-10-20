@@ -942,6 +942,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_island_hover_open_hint">Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.</string>
     <string name="settings_general_island_auto_hide_label">Masquer automatiquement l’Island</string>
     <string name="settings_general_island_auto_hide_hint">Les pages occupent toute la fenêtre. Amenez le pointeur au bord supérieur ou ouvrez la recherche et les commandes pour faire revenir l’Island.</string>
+    <string name="settings_general_island_auto_hide_style_label">Quand l’Island revient</string>
+    <string name="settings_general_island_auto_hide_style_hint">Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place.</string>
+    <string name="settings_general_island_auto_hide_style_float">Flotter au-dessus de la page</string>
+    <string name="settings_general_island_auto_hide_style_push">Décaler la page vers le bas</string>
     <string name="settings_general_dark_websites_label">Sites sombres</string>
     <string name="settings_general_dark_websites_hint">Quand Blanc est sombre, assombrit les sites web sans mode sombre. Utilise le moteur open source Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">Les sites listés ici gardent leurs propres couleurs. Saisissez /dark-site sur un site pour l’ajouter ou le retirer.</string>

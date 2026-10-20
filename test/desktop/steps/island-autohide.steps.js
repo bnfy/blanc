@@ -26,8 +26,10 @@ async function restCursor(world, point) {
 // Turning auto-hide on keeps the strip up for its how-to tip (INTRO_MS, 5 s).
 const INTRO_WAIT_MS = 9000;
 
-async function turnOn(world, layout) {
+// F1-15…F1-27 describe the push style (v1.39.0); float scenarios pass 'float'.
+async function turnOn(world, layout, style = 'push') {
   await world.call('setTabLayout', layout);
+  assert.equal(await world.call('setIslandAutoHideStyle', style), style);
   await world.call('closeOverlay');
   await frontChromeWindow(world);
   // Somewhere well below the strip, so nothing holds it on.

@@ -39,6 +39,33 @@ test('auto-hide defaults off, accepts only booleans and never syncs', (t) => {
   assert.equal(Object.hasOwn(settings.exportForSync().values, 'islandAutoHide'), false);
 });
 
+test('auto-hide style defaults to float, accepts only float|push and never syncs', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-autohide-style-'));
+  const settings = loadSettings(dir);
+  t.after(() => { settings.flushSettings(); fs.rmSync(dir, { recursive: true, force: true }); });
+  assert.equal(settings.getSettings().islandAutoHideStyle, 'float');
+  assert.equal(settings.setSettings({ islandAutoHideStyle: 'push' }).islandAutoHideStyle, 'push');
+  assert.equal(settings.setSettings({ islandAutoHideStyle: 'slide' }).islandAutoHideStyle, 'push');
+  assert.equal(settings.setSettings({ islandAutoHideStyle: 'float' }).islandAutoHideStyle, 'float');
+  assert.equal(Object.hasOwn(settings.exportForSync().values, 'islandAutoHideStyle'), false);
+});
+
+test('a stored unknown auto-hide style loads as float', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-autohide-style-'));
+  fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ islandAutoHideStyle: 7 }));
+  const settings = loadSettings(dir);
+  t.after(() => { settings.flushSettings(); fs.rmSync(dir, { recursive: true, force: true }); });
+  assert.equal(settings.getSettings().islandAutoHideStyle, 'float');
+});
+
+test('Settings places the style right after auto-hide, hidden until auto-hide is on', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
+  const page = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+  assert.match(html, /id="islandAutoHideSetting"[\s\S]*?<\/label>\s*<\/div>\s*<div class="setting" id="islandAutoHideStyleSetting" hidden>/);
+  assert.match(html, /<select id="islandAutoHideStyle"[^>]*>\s*<option value="float"[\s\S]*?<option value="push"/);
+  assert.match(page, /if \(supports\('islandAutoHideStyle'\)\)/);
+});
+
 test('Settings places auto-hide after hover-open and guards support', () => {
   const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
   const page = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');

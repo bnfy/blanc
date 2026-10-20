@@ -3279,6 +3279,26 @@
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:e9d5fc10c99b5f7d7d86e4f1f0930d2be749730abf4cac6b2cadf8efc542a5cd"
   },
+  "settings.general.islandAutoHideStyle.label": {
+    "message": "Cuando vuelve la Island",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:9a2b0886ae3dc8932235b24c6beb5f06c0cd21ae84eac4c1f362a1de76034413"
+  },
+  "settings.general.islandAutoHideStyle.hint": {
+    "message": "Haz que flote sobre la página o mueve la página hacia abajo para dejarle sitio.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:36b18408772f128bc2651d59ec2c1a6dafd34bb23171a665228f0ef65a5869b2"
+  },
+  "settings.general.islandAutoHideStyle.float": {
+    "message": "Flotar sobre la página",
+    "note": "Settings → General: choice in a dropdown.",
+    "source": "sha256:66d865128d9ad9fdc688330e15ffdacd9ae72ee9916e4922044a4d70f9556b57"
+  },
+  "settings.general.islandAutoHideStyle.push": {
+    "message": "Bajar la página",
+    "note": "Settings → General: choice in a dropdown.",
+    "source": "sha256:dab2d198c40d0170ce7887c970001d930b9d6b03675b28094365f652617405b9"
+  },
   "settings.general.darkWebsites.label": {
     "message": "Sitios web oscuros",
     "source": "sha256:5ba3e96a469e569d1c139dcb0fdd7044a0a933c3f99cb9e87b59724cdd0c7763"

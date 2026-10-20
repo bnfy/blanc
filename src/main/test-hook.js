@@ -73,6 +73,7 @@ function install(refs) {
     getIslandHoverState,
     setIslandHoverOpen,
     setIslandAutoHide,
+    setIslandAutoHideStyle,
     getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
@@ -539,6 +540,7 @@ function install(refs) {
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
     setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    setIslandAutoHideStyle(style) { return setIslandAutoHideStyle(style); },
     /** Auto-hide state plus where the page view starts (0 = strip hidden). */
     islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
@@ -3653,6 +3655,7 @@ function install(refs) {
         tabArchive: 'off',
         islandHoverOpen: false,
         islandAutoHide: false,
+        islandAutoHideStyle: 'float',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

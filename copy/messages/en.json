@@ -3352,6 +3352,22 @@
     "message": "Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.islandAutoHideStyle.label": {
+    "message": "When the Island comes back",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandAutoHideStyle.hint": {
+    "message": "Float it over the page, or move the page down to make room.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.islandAutoHideStyle.float": {
+    "message": "Float over the page",
+    "note": "Settings → General: choice in a dropdown."
+  },
+  "settings.general.islandAutoHideStyle.push": {
+    "message": "Push the page down",
+    "note": "Settings → General: choice in a dropdown."
+  },
   "settings.general.darkWebsites.label": {
     "message": "Dark websites",
     "note": "Settings → General: setting name."

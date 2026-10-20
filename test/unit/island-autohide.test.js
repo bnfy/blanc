@@ -8,6 +8,7 @@ const {
   REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
   REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
+  AUTO_HIDE_STYLES, normalizeAutoHideStyle,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -269,4 +270,10 @@ test('the auto-hide shortcut matches the physical key only on macOS, where Optio
   const shortcut = main.slice(main.indexOf('function installIslandAutoHideShortcut('), main.indexOf('// Windows/Linux only: macOS keeps its native menu key equivalent.'));
   assert.match(shortcut, /String\(input\.key\)\.toLowerCase\(\) === 'b'\s*\|\| \(process\.platform === 'darwin' && input\.code === 'KeyB'\)/);
   assert.doesNotMatch(shortcut, /input\.code !== 'KeyB'/);
+});
+
+test('normalizeAutoHideStyle keeps push and turns anything else into float', () => {
+  assert.deepEqual(AUTO_HIDE_STYLES, ['float', 'push']);
+  assert.equal(normalizeAutoHideStyle('push'), 'push');
+  for (const value of ['float', undefined, null, 'PUSH', 1]) assert.equal(normalizeAutoHideStyle(value), 'float');
 });

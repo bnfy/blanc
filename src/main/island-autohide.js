@@ -9,6 +9,14 @@
 // pointer has left the strip. Anything that is drawn from the Island (the
 // command bar, find, the shield and Spaces menus, Glance) keeps it revealed.
 
+/** How a revealed Island makes room: float over the page (the default), or
+ * push the page down as v1.39.0 did. */
+const AUTO_HIDE_STYLES = Object.freeze(['float', 'push']);
+
+function normalizeAutoHideStyle(value) {
+  return value === 'push' ? 'push' : 'float';
+}
+
 /** The band at the top of the window that reveals the Island, in px. */
 const REVEAL_EDGE_PX = 10;
 /** How far above a floating window's top edge the pointer still counts, in
@@ -136,6 +144,8 @@ function stripHidden({ autoHide, revealed, pinned }) {
 }
 
 module.exports = {
+  AUTO_HIDE_STYLES,
+  normalizeAutoHideStyle,
   REVEAL_EDGE_PX,
   HIDE_SLACK_PX,
   HIDE_CHECK_MS,
