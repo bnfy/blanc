@@ -8,6 +8,7 @@
 #include "content/public/browser/web_ui_controller.h"
 #include "content/public/browser/webui_config.h"
 
+namespace content { class WebContents; }
 class BrowserWindowInterface;
 class ToolbarButtonProvider;
 namespace views {
@@ -35,6 +36,10 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
 inline constexpr char kWindowIdentityKey[] = "blanc.window.identity.v1";
 std::string WindowIdentity(BrowserWindowInterface* browser);
 void RestoreWindowIdentity(BrowserWindowInterface* browser,
+    const std::map<std::string, std::string>& extra_data);
+inline constexpr char kTabIdentityKey[] = "blanc.tab.identity.v1";
+std::string TabIdentity(content::WebContents* tab);
+void RestoreTabIdentity(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data);
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);

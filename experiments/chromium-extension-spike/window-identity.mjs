@@ -40,4 +40,15 @@ export function prepareWindowIdentity(edit) {
     "present": "  blanc_prototype::RestoreWindowIdentity(browser, extra_data);\n\n  return BrowserLiveTabContext::From(browser);\n"
   }
 ]);
+  edit("chrome/browser/sessions/session_service_base.cc", [{
+    anchor: "  const SessionID session_id(session_tab_helper->session_id());\n",
+    replacement: "  const SessionID session_id(session_tab_helper->session_id());\n  const auto tab_identity = blanc_prototype::TabIdentity(tab);\n  if (!tab_identity.empty()) command_storage_manager()->AppendRebuildCommand(\n      sessions::CreateAddTabExtraDataCommand(session_id,\n          blanc_prototype::kTabIdentityKey, tab_identity));\n",
+    present: "  const auto tab_identity = blanc_prototype::TabIdentity(tab);\n"
+  }]);
+  edit("chrome/browser/sessions/session_restore.cc", [{
+    anchor: "    DCHECK(web_contents);\n\n    RestoredTab restored_tab",
+    replacement: "    DCHECK(web_contents);\n    blanc_prototype::RestoreTabIdentity(web_contents, tab.extra_data);\n\n    RestoredTab restored_tab",
+    present: "    blanc_prototype::RestoreTabIdentity(web_contents, tab.extra_data);\n"
+  }]);
+
 }

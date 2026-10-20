@@ -1121,13 +1121,26 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     std::string bytes;
     if (!base::ReadFileToStringWithMaxSize(journal, &bytes, 4 * 1024 * 1024)) return base::DictValue().Set("error", "Switch recovery record unreadable.");
     auto intent = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
-    if (!intent || (intent->FindInt("version") != 1 && intent->FindInt("version") != 2) || !intent->FindString("id") || !intent->FindString("source_name") || !intent->FindDict("source") || !ValidSpace(*intent->FindDict("source")) || !intent->FindDict("destination") || !ValidSpace(*intent->FindDict("destination"))) return base::DictValue().Set("error", "Switch recovery record invalid; retained.");
-    if (intent->FindInt("version") == 2 && (!intent->FindString("source_window") || !base::Uuid::ParseLowercase(*intent->FindString("source_window")).is_valid())) return base::DictValue().Set("error", "Switch window identity invalid; retained.");
+    if (!intent || (intent->FindInt("version") != 1 && intent->FindInt("version") != 2 && intent->FindInt("version") != 3) || !intent->FindString("id") || !intent->FindString("source_name") || !intent->FindDict("source") || !ValidSpace(*intent->FindDict("source")) || !intent->FindDict("destination") || !ValidSpace(*intent->FindDict("destination"))) return base::DictValue().Set("error", "Switch recovery record invalid; retained.");
+    if (intent->FindInt("version").value_or(0) >= 2 && (!intent->FindString("source_window") || !base::Uuid::ParseLowercase(*intent->FindString("source_window")).is_valid())) return base::DictValue().Set("error", "Switch window identity invalid; retained.");
+    if (intent->FindInt("version") == 3) {
+      const auto* ids = intent->FindList("source_tabs");
+      std::set<std::string> unique;
+      if (!ids || ids->size() != intent->FindDict("source")->FindList("tabs")->size())
+        return base::DictValue().Set("error", "Switch tab identities invalid; retained.");
+      for (const auto& value : *ids)
+        if (!value.is_string() || !base::Uuid::ParseLowercase(value.GetString()).is_valid() ||
+            !unique.insert(value.GetString()).second)
+          return base::DictValue().Set("error", "Switch tab identities invalid; retained.");
+    }
     if (method == "spaceCommit") {
       if (*intent->FindString("id") != name || !base::DeleteFile(journal)) return base::DictValue().Set("error", "Switch completion could not be recorded.");
       return base::DictValue();
     }
-    return base::DictValue().Set("record", intent->FindDict("source")->Clone()).Set("transaction", *intent->FindString("id")).Set("source_name", *intent->FindString("source_name")).Set("source_window", intent->FindString("source_window") ? *intent->FindString("source_window") : "");
+    auto result = base::DictValue().Set("record", intent->FindDict("source")->Clone()).Set("transaction", *intent->FindString("id")).Set("source_name", *intent->FindString("source_name")).Set("source_window", intent->FindString("source_window") ? *intent->FindString("source_window") : "");
+    if (intent->FindInt("version") == 3)
+      result.Set("source_tabs", intent->FindList("source_tabs")->Clone());
+    return result;
   }
   if ((method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceRecover") && base::PathExists(journal)) return base::DictValue().Set("error", "Interrupted switch pending; saved spaces unchanged.");
   base::DictValue store;
@@ -1177,13 +1190,23 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     const std::string source_name = source_key ? *source_key : "";
     const auto* window_key = capture.FindString("_source_window");
     const std::string window_id = window_key ? *window_key : "";
+    auto* source_ids = capture.FindList("_source_tabs");
+    if (!source_ids || source_ids->size() != capture.FindList("tabs")->size())
+      return base::DictValue().Set("error", "Source tab identities unavailable.");
+    std::set<std::string> unique_ids;
+    for (const auto& value : *source_ids)
+      if (!value.is_string() || !base::Uuid::ParseLowercase(value.GetString()).is_valid() ||
+          !unique_ids.insert(value.GetString()).second)
+        return base::DictValue().Set("error", "Source tab identities ambiguous.");
+    auto tab_ids = source_ids->Clone();
+    capture.Remove("_source_tabs");
     capture.Remove("_source_name");
     capture.Remove("_source_window");
     if (!base::Uuid::ParseLowercase(window_id).is_valid()) return base::DictValue().Set("error", "Source window identity unavailable.");
     const auto* source = items->FindDict(source_name);
     if (!source || *source != capture) return base::DictValue().Set("error", "Source space is not durably saved.");
     const std::string transaction = base::Uuid::GenerateRandomV4().AsLowercaseString();
-    auto intent = base::WriteJson(base::DictValue().Set("version", 2).Set("source_window", window_id).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
+    auto intent = base::WriteJson(base::DictValue().Set("version", 3).Set("source_tabs", std::move(tab_ids)).Set("source_window", window_id).Set("id", transaction).Set("source_name", source_name).Set("source", capture.Clone()).Set("destination", item->Clone()));
     if (!intent || !base::ImportantFileWriter::WriteFileAtomically(journal, *intent)) return base::DictValue().Set("error", "Switch intent write failed; tabs unchanged.");
     return base::DictValue().Set("record", item->Clone()).Set("transaction", transaction);
   }
@@ -1616,7 +1639,7 @@ class Handler : public content::WebUIMessageHandler {
     // scroll state. Preserve only a complete matching restored window, after
     // the UUID, restore-in-progress and live-tab guards above have succeeded.
     if (method == "spaceRollback" && browser->CreatedBySessionRestore() &&
-        *current == *record) {
+        !result.FindList("source_tabs") && *current == *record) {
       owner->space_name = name;
       owner->space_saved = record->Clone();
       owner->space_destination_ids = std::move(live_ids);
@@ -1628,12 +1651,57 @@ class Handler : public content::WebUIMessageHandler {
     auto* model = browser->GetTabStripModel();
     std::vector<content::WebContents*> old_tabs, added;
     for (int i = 0; i < model->count(); ++i) old_tabs.push_back(model->GetWebContentsAt(i));
+    std::map<std::string, content::WebContents*> survivors;
+    const auto* source_ids = method == "spaceRollback" ? result.FindList("source_tabs") : nullptr;
+    if (source_ids && browser->CreatedBySessionRestore()) {
+      for (auto* tab : old_tabs) {
+        if (!survivors.emplace(TabIdentity(tab), tab).second) {
+          owner->space_error = "Interrupted switch retained: duplicate tab identity.";
+          return;
+        }
+      }
+    }
+    // A v3 rollback retains only session-restored tabs with the exact saved
+    // identity and URL. Missing source tabs still have URL-only reconstruction.
     // Stage every destination before closing the explicitly saved source.
     // Public UI remains disabled until residency/autosave/recovery are complete.
+    size_t source_index = 0;
     for (const auto& item : *record->FindList("tabs")) {
-      chrome::AddTabAt(browser, GURL(*item.GetDict().FindString("url")), -1, true);
-      added.push_back(model->GetActiveWebContents());
+      content::WebContents* retained = nullptr;
+      if (source_ids && !survivors.empty()) {
+        auto found = survivors.find((*source_ids)[source_index].GetString());
+        if (found != survivors.end() &&
+            found->second->GetLastCommittedURL() == GURL(*item.GetDict().FindString("url")))
+          retained = found->second;
+      }
+      if (retained) added.push_back(retained);
+      else {
+        auto* created = chrome::AddAndReturnTabAt(
+            browser, GURL(*item.GetDict().FindString("url")), -1, true);
+        if (!created) {
+          owner->space_error = "Switch staging failed; recovery journal retained.";
+          if (!id.empty()) Reply(id, false, base::Value(owner->space_error));
+          return;
+        }
+        added.push_back(created);
+      }
+      ++source_index;
     }
+    std::vector<int> regroup;
+    for (auto* tab : added) regroup.push_back(model->GetIndexOfWebContents(tab));
+    model->RemoveFromGroup(regroup);
+    for (auto* tab : added) model->SetTabPinned(model->GetIndexOfWebContents(tab), false);
+    for (auto* tab : old_tabs) {
+      if (std::ranges::contains(added, tab)) continue;
+      const int index = model->GetIndexOfWebContents(tab);
+      if (index >= 0) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+    }
+    // Closing an old tab can finish asynchronously. Its pinned slot still
+    // constrains absolute indices, so establish desired relative order at the
+    // unpinned end before assigning saved pins/groups. Completion waits for the
+    // exact final capture and IDs after pending old tabs actually disappear.
+    for (auto* tab : added)
+      model->MoveWebContentsAt(model->GetIndexOfWebContents(tab), model->count() - 1, false);
     const auto& tabs = *record->FindList("tabs");
     for (size_t i = 0; i < added.size(); ++i)
       if (*tabs[i].GetDict().FindBool("pinned")) model->SetTabPinned(model->GetIndexOfWebContents(added[i]), true);
@@ -1650,10 +1718,6 @@ class Handler : public content::WebUIMessageHandler {
       model->ChangeTabGroupVisuals(group, tab_groups::TabGroupVisualData(
           base::UTF8ToUTF16(*data.FindString("name")),
           static_cast<tab_groups::TabGroupColorId>(*data.FindInt("color")), *data.FindBool("collapsed")));
-    }
-    for (auto* tab : old_tabs) {
-      const int index = model->GetIndexOfWebContents(tab);
-      if (index >= 0) model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
     }
     model->ActivateTabAt(model->GetIndexOfWebContents(added[*record->FindInt("active")]));
     // Selecting/closing staging tabs can expand groups. Apply saved visuals
@@ -1734,6 +1798,15 @@ class Handler : public content::WebUIMessageHandler {
         }
         space_save_pending_ = true;
         const uint64_t generation = ++space_save_generation_;
+        base::ListValue source_ids;
+        for (int i = 0; i < model->count(); ++i) {
+          auto* tab = model->GetWebContentsAt(i);
+          const auto tab_identity = TabIdentity(tab);
+          source_ids.Append(tab_identity);
+          service->AddTabExtraData(browser->GetSessionID(),
+              sessions::SessionTabHelper::IdForTab(tab), kTabIdentityKey, tab_identity);
+        }
+        disk_capture.Set("_source_tabs", std::move(source_ids));
         service->AddWindowExtraData(browser->GetSessionID(), kWindowIdentityKey, identity);
         service->SaveAndFlushSession(base::BindOnce(&Handler::SpaceSaveAcknowledged,
             weak_factory_.GetWeakPtr(), id, name, std::move(*captured),
@@ -2361,6 +2434,30 @@ auto& WindowIdentities() {
 }
 }  // namespace
 
+namespace {
+class TabIdentityData : public base::SupportsUserData::Data {
+ public:
+  explicit TabIdentityData(std::string value) : id(std::move(value)) {}
+  std::string id;
+};
+}
+std::string TabIdentity(content::WebContents* tab) {
+  if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return "";
+  auto* data = static_cast<TabIdentityData*>(tab->GetUserData(kTabIdentityKey));
+  if (!data) {
+    tab->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(
+        base::Uuid::GenerateRandomV4().AsLowercaseString()));
+    data = static_cast<TabIdentityData*>(tab->GetUserData(kTabIdentityKey));
+  }
+  return data->id;
+}
+void RestoreTabIdentity(content::WebContents* tab,
+    const std::map<std::string, std::string>& extra_data) {
+  if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return;
+  const auto it = extra_data.find(kTabIdentityKey);
+  if (it != extra_data.end() && base::Uuid::ParseLowercase(it->second).is_valid())
+    tab->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(it->second));
+}
 std::string WindowIdentity(BrowserWindowInterface* browser) {
   if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return "";
   auto& states = WindowIdentities();
