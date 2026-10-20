@@ -554,3 +554,20 @@ Feature: Glance reference pane
     Given a private main page and an ordinary tab
     When I open a link from the main page in Glance
     Then the reference is a private tab in the private session
+
+  @F34-2 @F34 @D11
+  Scenario: A Glance opens as a centered card over the page
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    Then the Glance is a large centered card over the whole main page
+
+  @F34-3 @F34 @D11
+  Scenario: The card keeps its header on screen when the window shrinks and grows
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And the window's page is 700 by 500
+    Then the card keeps its share of the page with its header on screen
+    When the window's page is 1300 by 820
+    Then the card keeps its share of the page with its header on screen

@@ -75,6 +75,9 @@
         <span class="pill-sep"></span>
         <div id="pillActions" class="pill-btns"></div>
       </div>
+      <!-- The floating Glance card (blanc-chrome://glance/ only): its border,
+           shadow and resize ring around the Glance page, and its header. -->
+      <div id="glanceCard" class="glance-card no-drag" hidden>
       <header id="glanceHeader" class="glance-header no-drag" role="group" aria-labelledby="glanceEyebrow" data-i18n-ignore="title" hidden>
         <div class="glance-copy">
           <span id="glanceEyebrow" class="glance-eyebrow" data-i18n="glance.eyebrow">GLANCE</span>
@@ -102,26 +105,13 @@
           </button>
         </div>
       </header>
+      </div>
       <div id="windowControls" class="no-drag"></div>
       <div id="glanceStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     </div>
     <!-- Split View (F53): one header band per pane and the dividers, drawn in
          the space the page views leave free (spec D5). -->
     <div id="splitPanes" class="split-panes no-drag" hidden></div>
-    <div
-      id="glanceDivider"
-      class="glance-divider no-drag"
-      role="separator"
-      aria-label="Resize Glance"
-      data-i18n-aria-label="glance.resize"
-      aria-valuemin="50"
-      aria-valuemax="78"
-      aria-valuenow="62"
-      tabindex="0"
-      title="Drag to resize; double-click to reset"
-      data-i18n-title="resize.hint"
-      hidden
-    ><span aria-hidden="true"></span></div>
   </div>
   <aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" data-i18n-aria-label="rail.label" hidden>
     <div class="vertical-tabs-toolbar">

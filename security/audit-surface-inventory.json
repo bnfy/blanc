@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "b524f1efe01b392e794fafc06ea591acab00eefe512b178d3ade8a1381558849",
+      "sha256": "79186646d5bc26f24d64845d2dbf0069bbfeab767d7f66c1b38afccd19031a80",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "20102703aaa1114b13d50187f1b2ed971b86ea212c41e9af16dcad69eab2450c",
+      "sha256": "bb704a3c4ff1377efdb91a59472737073f2c40a60077f7bcc16f63a52edc64bb",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -308,9 +308,7 @@
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
         "chrome:rename-device",
-        "chrome:reset-glance",
         "chrome:reset-split",
-        "chrome:resize-glance",
         "chrome:resize-split",
         "chrome:search-suggestions",
         "chrome:set-tab-layout",
@@ -606,7 +604,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "0964409cd76ffa1be4b9b298cd376e60ff995c14cadc6b1ab2686d6ec7caa91c",
+      "sha256": "c3eefe2aed1b0fadb6c2134cee52fb14758eced03f2f802ebd931e209661a139",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -655,9 +653,7 @@
         "chrome:remote-tabs-list",
         "chrome:remote-tabs-updated",
         "chrome:rename-device",
-        "chrome:reset-glance",
         "chrome:reset-split",
-        "chrome:resize-glance",
         "chrome:resize-split",
         "chrome:search-suggestions",
         "chrome:set-tab-layout",

@@ -214,6 +214,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
 | F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
 | F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
+| F34-2 | A Glance opens as a centered card over the page | D11 | ✅ | ➖ | ➖ |
+| F34-3 | The card keeps its header on screen when the window shrinks and grows | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
 | F35-3 | Footer opens a playable standalone Mahjong tab | — | ✅ | ⬜ | ⬜ |

@@ -5,7 +5,6 @@
 // lifecycle unit-testable.
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
-const { DEFAULT_GLANCE_RATIO } = require('./glance-layout');
 
 let nextId = 1;
 let runtimes = [];
@@ -54,7 +53,11 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Temporary second visible tab. Glance is deliberately workspace-local
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
-    glanceRatio: DEFAULT_GLANCE_RATIO,
+    // The floating Glance card's chrome view (main.js ensureGlanceCardView)
+    // and its generation: every open and close bumps it, so a stale move or
+    // resize is refused.
+    glanceCardView: null,
+    glanceCardGeneration: 0,
     /** The visible pane (main or reference tab id) that last took keyboard
      * focus; browser commands without a sending pane act on it
      * (glance-focus.js). Main-process only: never crosses IPC or disk. */

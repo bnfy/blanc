@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-137 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`.
+135 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -60,8 +60,6 @@
 | `previewVerticalTabsWidth` | layout | send | `chrome:preview-vertical-tabs-width` | `(width: number)` | all |
 | `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<number>` | all |
 | `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: VerticalTabsMetrics) => void` | all |
-| `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
-| `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<number \| null>` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
 | `keepGlanceAsSplit` | split | invoke | `chrome:split-keep-glance` | `() => Promise<boolean>` | all |
 | `removeFromSplit` | split | invoke | `chrome:split-remove` | `(tabId: string) => Promise<boolean>` | all |
@@ -574,21 +572,13 @@ Vertical tab rail widths, from verticalTabsMetrics() in main.js.
 
 ### `GlanceLayout`
 
-Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
+The floating Glance card's layout, from glanceLayoutPayload() in glance-focus.js over cardGeometry() in glance-card.js.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `direction` | `'horizontal' \| 'vertical'` |  |
-| `ratio` | `number` |  |
-| `minRatio` | `number` | The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. |
-| `maxRatio` | `number` | The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. |
-| `page` | `Rect` |  |
-| `primary` | `Rect` |  |
-| `divider` | `Rect` |  |
-| `glanceHeader` | `Rect` |  |
-| `glanceContent` | `Rect` |  |
-| `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
-| `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
+| `card` | `GlanceCard` |  |
+| `focusedPane` | `'main' \| 'glance'` | Which pane holds keyboard focus. |
+| `generation` | `number` | The open card's generation: every Glance open and close bumps it, and a move, resize or reset carrying an older one is refused. |
 
 ### `SplitLayout`
 
@@ -1127,3 +1117,13 @@ Where a floating Island view sits (window coordinates) and the width of the stri
 | `width` | `number` |  |
 | `height` | `number` |  |
 | `stageWidth` | `number` |  |
+
+### `GlanceCard`
+
+The card's views' bounds in window coordinates (cardGeometry() in glance-card.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
+| `header` | `Rect` | The card's header, top border included. |
+| `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |

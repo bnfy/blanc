@@ -108,11 +108,10 @@ function install(refs) {
     setGlanceTab,
     closeGlance: closeGlanceAction,
     promoteGlance: promoteGlanceAction,
-    resizeGlanceAt,
-    resetGlanceRatio: resetGlanceRatioAction,
+    resetGlanceCardFrame,
     getGlanceTabId,
     getFocusedPaneTabId,
-    getGlanceGeometry,
+    getGlanceCard,
     getGlanceMinimums,
     openLinkInGlance,
     groupTabByName,
@@ -719,7 +718,7 @@ function install(refs) {
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
-        glanceGeometry: getGlanceGeometry(),
+        glanceCard: getGlanceCard(),
         glanceMinimums: getGlanceMinimums(),
       };
     },
@@ -770,8 +769,8 @@ function install(refs) {
     },
     closeGlance() { return closeGlanceAction({ focusContent: false }); },
     promoteGlance() { return promoteGlanceAction(); },
-    resizeGlance(point) { return resizeGlanceAt(point); },
-    resetGlanceRatio() { return resetGlanceRatioAction(); },
+    resetGlanceCard() { return resetGlanceCardFrame(); },
+    getGlanceCard() { return getGlanceCard(); },
     setWindowGlance(runtimeId, tabId) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
@@ -783,7 +782,7 @@ function install(refs) {
       return refs.runInWindowRuntime(String(runtimeId), async () => {
         setWindowContentSize(Number(width), 800);
         await setGlanceTab(String(tabId));
-        return getGlanceGeometry();
+        return getGlanceCard();
       });
     },
     closeTabInWindow(runtimeId, tabId) {

@@ -420,7 +420,8 @@ test('the floating Island views stay above pages and the sheet, and die with the
   // One helper raises them after any tab view attaches: switching tabs,
   // opening Glance, and showing a split (F53-22).
   assert.equal(main.match(/if \(sheet\) rt\(\)\.window\.contentView\.addChildView\(sheet\.view\);\s+restackIslandFloatViews\(\); \/\/ above the pages and the sheet/g)?.length, 1);
-  assert.match(main, /function restackAboveTabViews\(\) \{\s+const sheet = rt\(\)\.utilitySheetUrl/);
+  // The floating Glance card and page come first: tabs < card < Glance page < sheet.
+  assert.match(main, /function restackAboveTabViews\(\) \{\s+restackGlanceCard\(\);\s+const sheet = rt\(\)\.utilitySheetUrl/);
   assert.equal(main.match(/^\s+restackAboveTabViews\(\);$/gm)?.length, 3);
   assert.match(main, /showOverlayView\(runtime\.window, sheet\.view\);\s+\/\/ The floating Island stays above the sheet, as the strip's Island does\.\s+restackIslandFloatViews\(runtime\);/);
   assert.match(main, /syncStripHidden\(\);\s+syncIslandFloat\(\);\s+\}/);

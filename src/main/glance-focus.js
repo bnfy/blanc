@@ -69,8 +69,11 @@ function focusedPane(runtime) {
 }
 
 /** The chrome:glance-layout payload: Glance geometry plus focusedPane. */
-function glanceLayoutPayload(layout, pane) {
-  return layout ? { ...layout, focusedPane: pane === 'glance' ? 'glance' : 'main' } : null;
+/** The floating Glance card's layout message: the card's views' bounds,
+ * which pane has focus, and the card's generation (a stale move or resize
+ * carrying an older one is refused). */
+function glanceLayoutPayload(card, pane, generation = 0) {
+  return card ? { card, focusedPane: pane === 'glance' ? 'glance' : 'main', generation } : null;
 }
 
 module.exports = { visiblePaneIds, isVisiblePaneId, livePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole };

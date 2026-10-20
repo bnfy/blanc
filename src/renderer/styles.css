@@ -519,7 +519,8 @@ html { --stage-w: 100vw; }
    the geometry rides --split-x/y/w/h. */
 /* Shared with the corner tab document, so a card and its tab agree. */
 .split-panes,
-.split-tab-surface {
+.split-tab-surface,
+.glance-card {
   --split-pane-radius: 8px;
   --split-pane-focused-border: var(--text-dim);
 }
@@ -4415,4 +4416,44 @@ html[data-surface="float"] #mainMenuButton {
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-surface="float"] #chrome { transition: none; }
+}
+
+/* ---- Floating Glance card (blanc-chrome://glance/) -------------------------
+   The Glance page floats over the main page in a card drawn like a Split View
+   pane (spec 2026-10-20-floating-glance-design.md). This document runs in the
+   card's chrome view, which is the card plus an 8 px ring (the resize edges and
+   the shadow); the Glance page's own view covers the card below its header.
+   Main sizes the card through --glance-card-w/-h. */
+html[data-surface="glance"],
+html[data-surface="glance"] body { background: transparent; }
+html[data-surface="glance"] #strip {
+  height: auto;
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+html[data-surface="glance"] #strip > :not(#glanceCard),
+html[data-surface="glance"] #chrome > :not(#strip),
+html[data-surface="glance"] #verticalTabsRail { display: none !important; }
+.glance-card[hidden] { display: none; }
+html[data-surface="glance"] .glance-card {
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  width: var(--glance-card-w);
+  height: var(--glance-card-h);
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--split-pane-radius);
+  background: var(--surface-raised);
+  /* Kept inside the 8 px ring: a view clips what it draws past its edge. */
+  box-shadow: 0 3px 7px -2px rgba(14, 14, 14, 0.2);
+}
+html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
+html[data-surface="glance"] .glance-header {
+  position: relative;
+  height: 39px;
+  padding: 0 8px 0 12px;
+  border-left: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: calc(var(--split-pane-radius) - 1px) calc(var(--split-pane-radius) - 1px) 0 0;
 }

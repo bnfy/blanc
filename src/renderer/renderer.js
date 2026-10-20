@@ -10,6 +10,13 @@
   // small views above the page, each showing one element of the strip.
   const floatSurface = window.location.hostname === 'float';
   if (floatSurface) document.documentElement.dataset.surface = 'float';
+  // The floating Glance card's chrome runs it again too, showing only the
+  // card (main.js ensureGlanceCardView).
+  const glanceSurface = window.location.hostname === 'glance';
+  if (glanceSurface) document.documentElement.dataset.surface = 'glance';
+  // Copies of the strip draw from its broadcasts but never report geometry:
+  // the strip itself is the one authority.
+  const copySurface = floatSurface || glanceSurface;
   // Window coordinates of an element: its place on the strip stage (#chrome).
   // The strip's stage sits at the window's origin; a float view's stage is
   // shifted by the view's origin and, mid-slide, by the slide.
@@ -161,6 +168,7 @@
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
+  const glanceCard = document.getElementById('glanceCard');
   const glanceHeader = document.getElementById('glanceHeader');
   const glanceFavicon = document.getElementById('glanceFavicon');
   const glanceTitle = document.getElementById('glanceTitle');
@@ -172,7 +180,6 @@
   const glanceClose = document.getElementById('glanceClose');
   const glanceBack = document.getElementById('glanceBack');
   const glanceReload = document.getElementById('glanceReload');
-  const glanceDivider = document.getElementById('glanceDivider');
   const glanceStatus = document.getElementById('glanceStatus');
 
   let state = {
@@ -183,13 +190,6 @@
     tabLayout: 'island',
   };
   let glanceLayout = null;
-  let glanceResizeState = null;
-  let glanceResizeFrame = 0;
-  let queuedGlancePoint = null;
-  /** Optimistic ratio for keyboard resizing: key repeat outruns the
-   * main-process layout echo, so consecutive keydowns step from here rather
-   * than recomputing every step from the same stale layout. */
-  let glanceKeyRatio = null;
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
@@ -790,44 +790,24 @@
 
   function renderGlance() {
     const tab = glanceTab();
-    const visible = !!tab && !!glanceLayout;
+    // The card's chrome draws on the glance surface only; the strip itself
+    // no longer draws anything for Glance.
+    const visible = glanceSurface && !!tab && !!glanceLayout?.card;
+    glanceCard.hidden = !visible;
     glanceHeader.hidden = !visible;
-    glanceDivider.hidden = !visible;
-    stripEl.classList.toggle('glance-open', visible);
     if (!visible) {
-      stripEl.style.removeProperty('--glance-primary-right');
-      stripEl.style.removeProperty('--glance-primary-width');
-      delete stripEl.dataset.glanceDirection;
       shownGlanceTabId = null;
       fitGlanceHeader();
       return;
     }
 
-    const { primary, glanceHeader: header, divider, page, direction, ratio } = glanceLayout;
-    // Side by side the Island sits over the main pane; stacked, the main
-    // pane is the full page width.
-    const chromePrimaryRight = direction === 'horizontal'
-      ? primary.x + primary.width
-      : page.x + page.width;
-    stripEl.dataset.glanceDirection = direction;
-    stripEl.style.setProperty('--glance-primary-right', `${chromePrimaryRight}px`);
-    stripEl.style.setProperty('--glance-primary-width', `${chromePrimaryRight - page.x}px`);
-    glanceDivider.dataset.direction = direction;
-    glanceDivider.style.left = `${divider.x}px`;
-    glanceDivider.style.top = `${divider.y}px`;
-    glanceDivider.style.width = `${divider.width}px`;
-    glanceDivider.style.height = `${divider.height}px`;
-    glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
-    glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-    glanceDivider.setAttribute('aria-valuemin', String(Math.round((glanceLayout.minRatio ?? 0.5) * 100)));
-    glanceDivider.setAttribute('aria-valuemax', String(Math.round((glanceLayout.maxRatio ?? 0.78) * 100)));
-    glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
-
-    glanceHeader.style.left = `${header.x}px`;
-    glanceHeader.style.top = `${header.y}px`;
-    glanceHeader.style.width = `${header.width}px`;
-    glanceHeader.style.height = `${header.height}px`;
-    glanceHeader.dataset.direction = direction;
+    // The view is the card plus its resize ring; the card sits inside it.
+    const { chrome, header } = glanceLayout.card;
+    const root = document.documentElement;
+    root.style.setProperty('--glance-card-w', `${header.width}px`);
+    root.style.setProperty('--glance-card-h', `${chrome.height - (header.x - chrome.x) * 2}px`);
+    glanceCard.classList.toggle('private', !!tab.private);
+    glanceCard.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     glanceHeader.classList.toggle('private', !!tab.private);
     glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     // A different reference (Make main, Change): the favicon, title and chip
@@ -868,7 +848,7 @@
   let glanceHeaderFitKey = '';
   function fitGlanceHeader() {
     const titleFloor = 70;
-    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceHeader.style.width, glanceHeader.dataset.direction].join('|');
+    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceLayout?.card?.header.width ?? ''].join('|');
     if (key === glanceHeaderFitKey) return;
     glanceHeaderFitKey = key;
     glanceHeader.classList.remove('promote-icon');
@@ -880,31 +860,13 @@
     if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
   }
 
-  function queueGlanceResize(point) {
-    queuedGlancePoint = point;
-    if (glanceResizeFrame) return;
-    glanceResizeFrame = requestAnimationFrame(() => {
-      glanceResizeFrame = 0;
-      const queued = queuedGlancePoint;
-      queuedGlancePoint = null;
-      if (queued) window.browserAPI.resizeGlance(queued);
-    });
-  }
-
-  function pointForGlanceRatio(ratio) {
-    if (!glanceLayout) return null;
-    const { page, direction, divider, glanceHeader: header } = glanceLayout;
-    return direction === 'horizontal'
-      ? { x: page.x + (page.width - divider.width) * ratio, y: page.y }
-      : { x: page.x, y: page.y + (page.height - divider.height - header.height) * ratio };
-  }
 
   /** Faux header: paint the strip with the active page's own top-edge
    * color so it reads as a continuation of the site, not a chrome bar.
    * Private tabs take only a sampled Start Page wallpaper (main samples
    * nothing else for them); a private site's theme-color never tints. */
   function applyStripTint(tab) {
-    if (floatSurface) return;
+    if (copySurface) return;
     // A theme handoff invalidates the previous website sample. Ignore any
     // stale tabs:updated payload still in flight until main clears/resamples it.
     const tint = (!themeHandoffPending && (tab?.private ? tab.pageBg : (tab?.pageBg || tab?.themeColor))) || null;
@@ -1411,78 +1373,6 @@
     window.browserAPI.closeGlance();
   });
 
-  glanceDivider.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || !glanceLayout) return;
-    event.preventDefault();
-    // Main maps the reported point to the divider's leading edge, so report
-    // the pointer minus where inside the grip it went down — otherwise the
-    // first move jumps the divider by that much.
-    const rect = glanceDivider.getBoundingClientRect();
-    glanceResizeState = {
-      pointerId: event.pointerId,
-      grabOffset: glanceLayout.direction === 'horizontal'
-        ? event.clientX - rect.left
-        : event.clientY - rect.top,
-    };
-    glanceDivider.setPointerCapture(event.pointerId);
-    document.documentElement.dataset.glanceResizing = glanceLayout.direction;
-  });
-  function glanceDragPoint(event) {
-    return glanceLayout?.direction === 'horizontal'
-      ? { x: event.clientX - glanceResizeState.grabOffset, y: event.clientY }
-      : { x: event.clientX, y: event.clientY - glanceResizeState.grabOffset };
-  }
-  glanceDivider.addEventListener('pointermove', (event) => {
-    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize(glanceDragPoint(event));
-  });
-  const finishGlanceResize = (event) => {
-    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize(glanceDragPoint(event));
-    glanceResizeState = null;
-    delete document.documentElement.dataset.glanceResizing;
-    if (glanceDivider.hasPointerCapture(event.pointerId)) {
-      glanceDivider.releasePointerCapture(event.pointerId);
-    }
-  };
-  glanceDivider.addEventListener('pointerup', finishGlanceResize);
-  glanceDivider.addEventListener('pointercancel', finishGlanceResize);
-  glanceDivider.addEventListener('lostpointercapture', () => {
-    glanceResizeState = null;
-    delete document.documentElement.dataset.glanceResizing;
-  });
-  glanceDivider.addEventListener('dblclick', (event) => {
-    event.preventDefault();
-    window.browserAPI.resetGlance();
-  });
-  glanceDivider.addEventListener('keydown', (event) => {
-    if (!glanceLayout) return;
-    let next = glanceKeyRatio ?? glanceLayout.ratio;
-    const step = event.shiftKey ? 0.05 : 0.02;
-    const minRatio = glanceLayout.minRatio ?? 0.5;
-    const maxRatio = glanceLayout.maxRatio ?? 0.78;
-    if (event.key === 'Home') next = minRatio;
-    else if (event.key === 'End') next = maxRatio;
-    else if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      glanceKeyRatio = null;
-      window.browserAPI.resetGlance();
-      return;
-    } else if (
-      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowLeft') ||
-      (glanceLayout.direction === 'vertical' && event.key === 'ArrowUp')
-    ) next -= step;
-    else if (
-      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowRight') ||
-      (glanceLayout.direction === 'vertical' && event.key === 'ArrowDown')
-    ) next += step;
-    else return;
-    event.preventDefault();
-    glanceKeyRatio = Math.max(minRatio, Math.min(maxRatio, next));
-    const point = pointForGlanceRatio(glanceKeyRatio);
-    if (point) window.browserAPI.resizeGlance(point);
-  });
-
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
     // Only when the pill itself is focused — a focused child button (tab
@@ -1537,9 +1427,6 @@
   });
   window.browserAPI.onGlanceLayout((layout) => {
     glanceLayout = layout;
-    // Main has echoed the applied ratio; later keydowns step from the layout
-    // again until the next same-task burst.
-    glanceKeyRatio = null;
     // Only the Glance header and the fill chip depend on this message. A full
     // render() here would re-apply the rail width from the last tabs payload
     // on every resize, snapping the rail back mid-drag.
@@ -1649,7 +1536,7 @@
 
   // --- Report strip height so main can size tab views below it. ---
   const reportLayout = () => {
-    if (floatSurface) return;
+    if (copySurface) return;
     window.browserAPI.reportChromeLayout(chromeEl.getBoundingClientRect().height);
   };
   new ResizeObserver(reportLayout).observe(chromeEl);
@@ -1687,7 +1574,7 @@
     return r.width > 0 ? { x: r.left, y: r.top, width: r.width, height: r.height } : null;
   };
   const reportIslandRect = () => {
-    if (floatSurface) return;
+    if (copySurface) return;
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
     const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;

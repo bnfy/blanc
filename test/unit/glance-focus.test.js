@@ -55,12 +55,11 @@ test('focusedPane is glance only while the focused id is the current reference',
   assert.equal(focusedPane(null), 'main');
 });
 
-test('glanceLayoutPayload adds focusedPane to a layout and keeps null as null', () => {
-  const layout = { direction: 'horizontal', ratio: 0.62 };
-  assert.deepEqual(glanceLayoutPayload(layout, 'glance'), { direction: 'horizontal', ratio: 0.62, focusedPane: 'glance' });
-  assert.deepEqual(glanceLayoutPayload(layout, 'anything'), { direction: 'horizontal', ratio: 0.62, focusedPane: 'main' });
-  assert.equal(glanceLayoutPayload(null, 'glance'), null);
-  assert.equal('focusedPane' in layout, false, 'the geometry object is not mutated');
+test('glanceLayoutPayload wraps the card with the focused pane and its generation, and keeps null as null', () => {
+  const card = { chrome: {}, header: {}, page: {} };
+  assert.deepEqual(glanceLayoutPayload(card, 'glance', 2), { card, focusedPane: 'glance', generation: 2 });
+  assert.deepEqual(glanceLayoutPayload(card, 'anything', 2), { card, focusedPane: 'main', generation: 2 });
+  assert.equal(glanceLayoutPayload(null, 'glance', 2), null);
 });
 
 test('a pane that really holds keyboard focus wins over a stale record', () => {

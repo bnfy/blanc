@@ -22,6 +22,7 @@ const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://overlay/',
   'blanc-chrome://permission/',
   'blanc-chrome://float/',
+  'blanc-chrome://glance/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
@@ -101,8 +102,6 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:vertical-tabs-width', listener);
     return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
   },
-  resizeGlance: (point) => ipcRenderer.send('chrome:resize-glance', point),
-  resetGlance: () => ipcRenderer.invoke('chrome:reset-glance'),
   onGlanceLayout: (callback) => {
     const listener = (_event, layout) => callback(layout);
     ipcRenderer.on('chrome:glance-layout', listener);

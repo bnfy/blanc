@@ -6,7 +6,8 @@
       "blanc-chrome://index/",
       "blanc-chrome://overlay/",
       "blanc-chrome://permission/",
-      "blanc-chrome://float/"
+      "blanc-chrome://float/",
+      "blanc-chrome://glance/"
     ],
     "untrusted": [
       "blanc-chrome://fill-status/",
@@ -2222,64 +2223,6 @@
         }
       ]
     },
-    "resizeGlance": {
-      "kind": "send",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:resize-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            {
-              "x": 1,
-              "y": 1
-            }
-          ],
-          "sends": [
-            {
-              "kind": "send",
-              "channel": "chrome:resize-glance",
-              "args": [
-                {
-                  "x": 1,
-                  "y": 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "resetGlance": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:reset-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:reset-glance",
-              "args": []
-            }
-          ]
-        }
-      ],
-      "replies": [
-        1,
-        null
-      ]
-    },
     "onGlanceLayout": {
       "kind": "event",
       "platforms": [
@@ -2292,185 +2235,55 @@
         {
           "emit": [
             {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              }
-            }
-          ],
-          "callbacks": [
-            [
-              {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
+              "card": {
+                "chrome": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "header": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
                 "page": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
                   "x": 1,
                   "y": 1,
                   "width": 1,
                   "height": 1
                 }
-              }
-            ]
-          ]
-        },
-        {
-          "emit": [
-            {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
               },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "focusedPane": "main"
+              "focusedPane": "main",
+              "generation": 1
             }
           ],
           "callbacks": [
             [
               {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
-                "page": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
+                "card": {
+                  "chrome": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "header": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "page": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
                 },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "focusedPane": "main"
+                "focusedPane": "main",
+                "generation": 1
               }
             ]
           ]

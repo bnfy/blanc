@@ -99,6 +99,7 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_FLOAT_URL,
+  CHROME_GLANCE_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,
@@ -306,11 +307,7 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const {
-  DEFAULT_GLANCE_RATIO,
-  calculateGlanceLayout,
-  ratioForGlanceDivider,
-} = require('./glance-layout');
+const { fractionsToFrame, cardGeometry } = require('./glance-card');
 const {
   visiblePaneIds,
   isVisiblePaneId,
@@ -3738,6 +3735,7 @@ function stripSurfaces(runtime) {
       if (!window || window.isDestroyed()) return;
       window.webContents.send(channel, ...args);
       for (const role of FLOAT_ROLES) liveFloatRecord(runtime, role)?.view.webContents.send(channel, ...args);
+      liveGlanceCardView(runtime)?.webContents.send(channel, ...args);
     },
   };
 }
@@ -3836,6 +3834,106 @@ function destroyIslandFloatViews(runtime) {
     if (!record.view.webContents.isDestroyed()) record.view.webContents.close();
   }
   runtime.islandFloat = null;
+}
+
+/* ---- Floating Glance card ------------------------------------------------
+ * The Glance page floats over the main page in a card (spec
+ * docs/superpowers/specs/2026-10-20-floating-glance-design.md). The card's
+ * chrome (border, shadow, the 8 px resize ring and the header) is the strip
+ * document again on CHROME_GLANCE_URL, in its own view just below the Glance
+ * page's view. Like the float views it stays window-owned for its whole life
+ * and hides with setVisible(false), the Linux redraw rule. A view takes every
+ * click inside its bounds, so it is never visible without an open Glance.
+ * Geometry is glance-card.js. */
+
+function liveGlanceCardView(runtime = rt()) {
+  const view = runtime?.glanceCardView;
+  return view && !view.webContents.isDestroyed() ? view : null;
+}
+
+function ensureGlanceCardView(runtime = rt()) {
+  const existing = liveGlanceCardView(runtime);
+  if (existing) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      ...stripWebPreferences(),
+    },
+  });
+  const contents = view.webContents;
+  const contentsId = contents.id;
+  runtime.glanceCardView = view;
+  windowRuntimes.registerChromeSurface(runtime, contentsId);
+  contents.once('destroyed', bindWindowRuntime(runtime, () => {
+    windowRuntimes.unregisterChromeSurface(contentsId);
+    if (runtime.glanceCardView === view) runtime.glanceCardView = null;
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+    });
+  }));
+  contents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
+  view.setBackgroundColor('#00000000');
+  view.setVisible(false);
+  lockPrivilegedNavigation(contents, CHROME_GLANCE_URL);
+  installChromeShortcuts(contents, runtime);
+  contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    contents.send('tabs:updated', currentTabsPayload());
+    contents.send('chrome:glance-layout', currentGlanceLayoutPayload());
+  }));
+  // The header's right-click: the Glance tab's menu, at the pointer.
+  attachChromeMenu(contents, {
+    t: mainI18n.t,
+    getWindow: bindWindowRuntime(runtime, () => rt().window),
+    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
+    resolveActiveTab: bindWindowRuntime(runtime, () => tabContextData(tabs.get(rt().activeTabId), runtime)),
+    resolveTab: bindWindowRuntime(runtime, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), runtime);
+    }),
+    actions: menuContextActions(runtime),
+    getOffset: () => {
+      const bounds = view.getBounds();
+      return { x: bounds.x, y: bounds.y };
+    },
+  });
+  contents.loadURL(CHROME_GLANCE_URL).catch(() => {});
+  runtime.window.contentView.addChildView(view);
+  return view;
+}
+
+function destroyGlanceCardView(runtime) {
+  const view = runtime.glanceCardView;
+  if (!view) return;
+  const window = runtime.window;
+  if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+  if (!view.webContents.isDestroyed()) view.webContents.close();
+  runtime.glanceCardView = null;
+}
+
+/** With a Glance open: the card just above the main page, the Glance page
+ * just above the card. Runs before the sheet and the Island surfaces are
+ * raised over both. */
+function restackGlanceCard() {
+  const glanceTab = activeGlanceTab();
+  const cardView = liveGlanceCardView();
+  if (!glanceTab?.view || !cardView || !hasLiveWindow()) return;
+  rt().window.contentView.addChildView(cardView);
+  rt().window.contentView.addChildView(glanceTab.view);
+}
+
+/** The Glance page's view gets the card's corners; it goes back to square
+ * when it leaves the card. */
+function roundGlancePage(tab, rounded) {
+  if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
+  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.glanceRounded = rounded;
 }
 
 /** Re-raise the float views above a tab view or the utility sheet that was
@@ -4077,9 +4175,27 @@ function glanceMinReferenceWidth() {
   return rt().glanceMinReferenceWidth || lastGlanceMinReferenceWidth;
 }
 
-function glanceGeometry(layout = currentChromeLayout()) {
-  if (!activeGlanceTab()) return null;
-  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
+/** The floating Glance card's page area: the window's content area below
+ * the Island's resting band, whatever the Auto-hide state (glance-card.js). */
+function glancePageArea(layout = currentChromeLayout()) {
+  const { height } = rt().window.getContentBounds();
+  const top = Math.max(0, rt().chromeHeight || 0);
+  return { x: layout.pageBounds.x, y: top, width: layout.pageBounds.width, height: Math.max(0, height - top) };
+}
+
+/** The card's frame: the remembered one (device-local), else the first-open one. */
+function glanceCardFrame(layout = currentChromeLayout()) {
+  return fractionsToFrame(settings.getSettings().glanceFrame, glancePageArea(layout));
+}
+
+/** The card's views' bounds while a Glance is open, else null. */
+function glanceCardGeometry(layout = currentChromeLayout()) {
+  if (!activeGlanceTab() || !hasLiveWindow()) return null;
+  return cardGeometry(glanceCardFrame(layout));
+}
+
+function currentGlanceLayoutPayload(card = glanceCardGeometry()) {
+  return glanceLayoutPayload(card, focusedPane(rt()), rt().glanceCardGeneration ?? 0);
 }
 
 // ---- Split View (F53) ----------------------------------------------------
@@ -4445,7 +4561,8 @@ function keepGlanceAsSplit() {
   const mainId = runtime.activeTabId;
   const referenceId = activeGlanceTab()?.id ?? null;
   if (!mainId || !referenceId) return null;
-  const ratio = Number.isFinite(runtime.glanceRatio) ? runtime.glanceRatio : 0.62;
+  // A fresh 50/50 split, main page first: a floating card has no ratio.
+  const ratio = 0.5;
   const notes = splitGroupMoveNotes(mainId, [referenceId]);
   const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] } });
   if (split) announceSplitMade(split, notes);
@@ -4601,16 +4718,14 @@ function currentTabBounds(tab) {
     const index = split.split.tabIds.indexOf(tab?.id);
     return index >= 0 ? split.panes[index].content : layout.pageBounds;
   }
-  const glance = glanceGeometry(layout);
-  if (!glance) return layout.pageBounds;
-  if (tab?.id === rt().glanceTabId) return glance.glance;
-  if (tab?.id === rt().activeTabId) return glance.primary;
+  const card = glanceCardGeometry(layout);
+  if (card && tab?.id === rt().glanceTabId) return card.page;
   return layout.pageBounds;
 }
 
 function overlayBounds() {
   const layout = currentChromeLayout();
-  const glance = glanceGeometry(layout);
+  const card = glanceCardGeometry(layout);
   if (rt().overlayMode === 'display-share') {
     const { width, height } = rt().window.getContentBounds();
     return { x: 0, y: 0, width, height };
@@ -4618,8 +4733,9 @@ function overlayBounds() {
   if (rt().overlayMode === 'find') {
     const split = splitGeometry(layout);
     const splitPane = split?.panes[split.split.tabIds.indexOf(findTargetTabId(rt()))]?.content;
-    if (!glance && !splitPane) return layout.findBounds;
-    const pane = splitPane ?? (findTargetTabId(rt()) === rt().glanceTabId ? glance.glance : glance.primary);
+    const glancePane = card && findTargetTabId(rt()) === rt().glanceTabId ? card.page : null;
+    if (!glancePane && !splitPane) return layout.findBounds;
+    const pane = splitPane ?? glancePane;
     const width = Math.min(560, pane.width);
     return {
       x: pane.x + Math.round((pane.width - width) / 2),
@@ -4629,22 +4745,17 @@ function overlayBounds() {
     };
   }
   if (rt().overlayMode === 'palette' || rt().overlayMode === 'panel') {
-    if (!glance) return rt().overlayMode === 'palette' ? layout.paletteBounds : layout.panelBounds;
-    return {
-      x: glance.primary.x,
-      y: 0,
-      width: glance.primary.width,
-      height: rt().window.getContentBounds().height,
-    };
+    return rt().overlayMode === 'palette' ? layout.paletteBounds : layout.panelBounds;
   }
   if (rt().overlayMode === 'glance') {
     const windowHeight = rt().window.getContentBounds().height;
-    if (glance && rt().overlayPurpose === 'change') {
+    // Change hangs from the card's header, over the card.
+    if (card && rt().overlayPurpose === 'change') {
       return {
-        x: glance.glanceHeader.x,
-        y: glance.glanceHeader.y,
-        width: glance.glanceHeader.width,
-        height: Math.min(Math.max(0, windowHeight - glance.glanceHeader.y), 520),
+        x: card.header.x,
+        y: card.header.y,
+        width: card.header.width,
+        height: Math.min(Math.max(0, windowHeight - card.header.y), 520),
       };
     }
     return {
@@ -5697,7 +5808,7 @@ function noteFocusedPane(owner, tabId) {
   if (owner.glanceTabId == null) return;
   withWindowRuntime(owner, () => {
     if (!hasLiveWindow()) return;
-    stripSurfaces(rt()).send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
+    stripSurfaces(rt()).send('chrome:glance-layout', currentGlanceLayoutPayload());
   });
 }
 
@@ -6579,7 +6690,8 @@ function resizeActiveView() {
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const glanceTab = activeGlanceTab();
-  const glance = glanceTab ? glanceGeometry(layout) : null;
+  const card = glanceTab ? glanceCardGeometry(layout) : null;
+  const cardView = liveGlanceCardView();
   // Mid-slide (auto-hide), page panes move toward their final bounds.
   const slide = rt().islandSlide;
   const place = (bounds) => slide
@@ -6596,9 +6708,17 @@ function resizeActiveView() {
     });
   } else {
     roundSplitPane(tab, false);
-    roundSplitPane(glanceTab, false);
-    if (liveContents(tab)) tab.view.setBounds(place(glance?.primary ?? layout.pageBounds));
-    if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(place(glance.glance));
+    // The floating Glance card: the main page keeps the whole page area; the
+    // card's chrome view and the Glance page inside it float over it.
+    if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
+    if (liveContents(glanceTab) && card) {
+      glanceTab.view.setBounds(place(card.page));
+      roundGlancePage(glanceTab, true);
+    }
+    if (cardView) {
+      if (card) cardView.setBounds(place(card.chrome));
+      cardView.setVisible(!!card);
+    }
   }
   syncSplitCornerTabs(split, place);
   keepIslandFloatOnTop();
@@ -6616,7 +6736,7 @@ function resizeActiveView() {
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
   stripSurfaces(rt()).send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
-  stripSurfaces(rt()).send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
+  stripSurfaces(rt()).send('chrome:glance-layout', currentGlanceLayoutPayload(card));
   stripSurfaces(rt()).send('chrome:split-layout', currentSplitLayoutPayload(split));
   syncWindowButtons();
   syncStripHidden();
@@ -8324,6 +8444,7 @@ function setTabViewVisible(tab, visible) {
  * overlay and the permission prompt.
  */
 function restackAboveTabViews() {
+  restackGlanceCard();
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
   restackIslandFloatViews(); // above the pages and the sheet
@@ -8621,6 +8742,9 @@ async function setGlanceTab(id) {
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
+  rt().glanceCardGeneration = (rt().glanceCardGeneration ?? 0) + 1;
+  ensureGlanceCardView(rt());
+  if (previous) roundGlancePage(previous, false);
   if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
   setTabViewVisible(tab, true);
   attachTabViewToWindow(tab);
@@ -8644,6 +8768,11 @@ function closeGlance({ focusContent = true } = {}) {
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
   rt().glanceTabId = null;
+  rt().glanceCardGeneration = (rt().glanceCardGeneration ?? 0) + 1;
+  // A view takes every click inside it: the card goes the moment the Glance
+  // ends, before anything else runs.
+  liveGlanceCardView()?.setVisible(false);
+  roundGlancePage(tab, false);
   resetFocusedPane();
   // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
   // about a pane that no longer exists, so it goes with it. glanceTabId is
@@ -8694,12 +8823,9 @@ function openGlancePicker(query = '') {
     return false;
   }
   rt().window.focus();
-  const glance = glanceGeometry();
-  // Side by side, the Change picker hangs from the header's Change control.
-  // Stacked, that header sits low in the window with no room beneath it, so
-  // the picker takes the open picker's centred, page-wide placement. With a
-  // single tab the picker still opens, to say what to do.
-  const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
+  // With a Glance open, the Change picker hangs from the card header's Change
+  // control. With a single tab the picker still opens, to say what to do.
+  const purpose = activeGlanceTab() ? 'change' : 'open';
   // /glance <text>: the picker opens already filtered to the text.
   showOverlay('glance', { purpose, prefill: query || undefined });
   return true;
@@ -8752,22 +8878,12 @@ function openSplitPaneMenu(tabId, point) {
   } catch { /* window died mid-popup */ }
 }
 
-function resizeGlanceAt(point) {
-  const layout = currentChromeLayout();
-  const glance = glanceGeometry(layout);
-  if (!glance) return null;
-  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
-  if (ratio == null) return null;
-  rt().glanceRatio = ratio;
-  resizeActiveView();
-  return rt().glanceRatio;
-}
-
-function resetGlanceRatio() {
-  if (!activeGlanceTab()) return null;
-  rt().glanceRatio = DEFAULT_GLANCE_RATIO;
-  resizeActiveView();
-  return rt().glanceRatio;
+/** Forget the card's remembered frame: the next layout uses the first-open
+ * frame. */
+function resetGlanceCardFrame() {
+  settings.setGlanceFrame(null);
+  if (activeGlanceTab()) resizeActiveView();
+  return activeGlanceTab() ? glanceCardFrame() : null;
 }
 
 function activateTabFromRail(id) {
@@ -9825,6 +9941,7 @@ function isTrustedChromeSender(event) {
     ...FLOAT_ROLES.map((role) => liveFloatRecord(rt(), role))
       .filter(Boolean)
       .map((record) => ({ webContents: record.view.webContents, url: CHROME_FLOAT_URL })),
+    liveGlanceCardView(rt()) ? { webContents: liveGlanceCardView(rt()).webContents, url: CHROME_GLANCE_URL } : null,
     rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
       ? { webContents: rt().fillStatusView.webContents, url: CHROME_FILL_STATUS_URL }
       : null,
@@ -10512,10 +10629,8 @@ function registerIpcHandlers() {
     previewVerticalTabsWidth(width));
   chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
     setVerticalTabsWidth(width));
-  chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
   chromeOn('chrome:resize-split', (_e, splitId, index, axis, point) => resizeSplitAt(splitId, index, axis === 'y' ? 'y' : 'x', point));
   chromeHandle('chrome:reset-split', (_e, splitId) => resetSplitLayout(splitId));
-  chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   // The overlay has drawn the expanding panel exactly over the resting pill.
   // Only now may the strip hide the pill: the two are separate views painting
@@ -11541,6 +11656,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     runtime.stripHiddenSent = null;
     runtime.lastPointer = null;
     destroyIslandFloatViews(runtime);
+    destroyGlanceCardView(runtime);
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -13489,7 +13605,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       pinnedHomeActions: () => menuContextActions(rt()),
       chooseSessionRecovery: (choice) => chooseSessionRecovery(choice),
       getSessionRecoveryState: () => ({ ...sessionRecoveryState }),
-      setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
+      setGlanceTab, closeGlance, promoteGlance, resetGlanceCardFrame,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getFindTargetTabId: () => findTargetTabId(rt()),
@@ -13501,7 +13617,25 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!view || !hasLiveWindow()) return false;
         return rt().window.contentView.children.includes(view) && (process.platform !== 'linux' || view.getVisible());
       },
-      getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
+      getGlanceCard: () => {
+        const card = hasLiveWindow() ? glanceCardGeometry() : null;
+        if (!card) return null;
+        const cardView = liveGlanceCardView();
+        const children = rt().window.contentView.children;
+        const glanceView = activeGlanceTab()?.view ?? null;
+        const mainView = tabs.get(rt().activeTabId)?.view ?? null;
+        return {
+          frame: glanceCardFrame(),
+          pageArea: glancePageArea(),
+          pageBounds: currentChromeLayout().pageBounds,
+          mainViewBounds: mainView?.getBounds() ?? null,
+          ...card,
+          viewBounds: glanceView?.getBounds() ?? null,
+          cardViewBounds: cardView?.getBounds() ?? null,
+          cardViewVisible: cardView?.getVisible?.() ?? false,
+          stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
+        };
+      },
       // The divider's stops as main will use them: measured, else the last measured.
       getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
       openLinkInGlance: (tabId, url) => {

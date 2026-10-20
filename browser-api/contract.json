@@ -5,7 +5,8 @@
     "blanc-chrome://index/",
     "blanc-chrome://overlay/",
     "blanc-chrome://permission/",
-    "blanc-chrome://float/"
+    "blanc-chrome://float/",
+    "blanc-chrome://glance/"
   ],
   "types": {
     "Platform": {
@@ -702,45 +703,18 @@
       }
     },
     "GlanceLayout": {
-      "doc": "Glance split geometry, from calculateGlanceLayout() in glance-layout.js.",
+      "doc": "The floating Glance card's layout, from glanceLayoutPayload() in glance-focus.js over cardGeometry() in glance-card.js.",
       "fields": {
-        "direction": {
-          "type": "'horizontal' | 'vertical'"
-        },
-        "ratio": {
-          "type": "number"
-        },
-        "minRatio": {
-          "type": "number",
-          "doc": "The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights."
-        },
-        "maxRatio": {
-          "type": "number",
-          "doc": "The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px."
-        },
-        "page": {
-          "type": "Rect"
-        },
-        "primary": {
-          "type": "Rect"
-        },
-        "divider": {
-          "type": "Rect"
-        },
-        "glanceHeader": {
-          "type": "Rect"
-        },
-        "glanceContent": {
-          "type": "Rect"
-        },
-        "glance": {
-          "type": "Rect",
-          "doc": "Alias of glanceContent kept for older consumers."
+        "card": {
+          "type": "GlanceCard"
         },
         "focusedPane": {
           "type": "'main' | 'glance'",
-          "optional": true,
-          "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
+          "doc": "Which pane holds keyboard focus."
+        },
+        "generation": {
+          "type": "number",
+          "doc": "The open card's generation: every Glance open and close bumps it, and a move, resize or reset carrying an older one is refused."
         }
       }
     },
@@ -1636,6 +1610,23 @@
           "type": "number"
         }
       }
+    },
+    "GlanceCard": {
+      "doc": "The card's views' bounds in window coordinates (cardGeometry() in glance-card.js).",
+      "fields": {
+        "chrome": {
+          "type": "Rect",
+          "doc": "The card's chrome view: the card plus its 8 px resize ring."
+        },
+        "header": {
+          "type": "Rect",
+          "doc": "The card's header, top border included."
+        },
+        "page": {
+          "type": "Rect",
+          "doc": "The Glance page's view, inside the side and bottom borders."
+        }
+      }
     }
   },
   "members": [
@@ -2405,28 +2396,6 @@
       "channel": "chrome:vertical-tabs-width",
       "payload": "VerticalTabsMetrics",
       "doc": "Vertical tab rail metrics changed."
-    },
-    {
-      "name": "resizeGlance",
-      "group": "glance",
-      "kind": "send",
-      "channel": "chrome:resize-glance",
-      "params": [
-        {
-          "name": "point",
-          "type": "Point"
-        }
-      ],
-      "doc": "Resize the Glance view to a pointer position."
-    },
-    {
-      "name": "resetGlance",
-      "group": "glance",
-      "kind": "invoke",
-      "channel": "chrome:reset-glance",
-      "params": [],
-      "returns": "number | null",
-      "doc": "Reset the Glance view size. Resolves to the reset ratio, or null when no Glance is open."
     },
     {
       "name": "onGlanceLayout",

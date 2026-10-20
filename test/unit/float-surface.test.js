@@ -40,11 +40,13 @@ test('the renderer becomes a float surface on the float host and reports nothing
   const js = read('src/renderer/renderer.js');
   assert.match(js, /const floatSurface = window\.location\.hostname === 'float';/);
   assert.match(js, /if \(floatSurface\) document\.documentElement\.dataset\.surface = 'float';/);
-  // The strip underneath stays the one geometry authority.
-  assert.match(js, /const reportLayout = \(\) => \{\s+if \(floatSurface\) return;/);
-  assert.match(js, /const reportIslandRect = \(\) => \{\s+if \(floatSurface\) return;/);
+  // The strip underneath stays the one geometry authority; its copies (the
+  // float views and the Glance card) never report.
+  assert.match(js, /const copySurface = floatSurface \|\| glanceSurface;/);
+  assert.match(js, /const reportLayout = \(\) => \{\s+if \(copySurface\) return;/);
+  assert.match(js, /const reportIslandRect = \(\) => \{\s+if \(copySurface\) return;/);
   // The page's tint belongs to the strip; a floating element keeps its theme.
-  assert.match(js, /function applyStripTint\(tab\) \{\s+if \(floatSurface\) return;/);
+  assert.match(js, /function applyStripTint\(tab\) \{\s+if \(copySurface\) return;/);
 });
 
 test('the float surface takes its frame from main and slides in after two frames', () => {

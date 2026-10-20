@@ -40,8 +40,8 @@ After({ tags: '@glance' }, async function () {
   await restore(() => this.call('setTabLayout', 'island'));
   await restore(() => this.call('setVerticalTabsWidth', 248));
   await restore(() => this.call('setWindowContentSize', 1200, 800));
-  // A dragged divider would otherwise carry into the next scenario.
-  await restore(() => this.call('resetGlanceRatio'));
+  // A moved or resized card would otherwise carry into the next scenario.
+  await restore(() => this.call('resetGlanceCard'));
   if (this.glanceOnePasswordOn) await restore(() => this.call('setOnePasswordConfig', false, ''));
   if (this.glanceDownloadsShown) {
     await restore(() => sendDownloadsActivity({ active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0, lastCompletedAt: null }));
@@ -2217,4 +2217,44 @@ Then('the leaving stacked header and divider do not move', async function () {
 
 Then('the live region never said Opening', async function () {
   assert.notEqual(this.pickerLiveSeen, 'Opening…', 'the live region said Opening… for a tab that was already awake');
+});
+
+// ---- Floating Glance card (spec 2026-10-20-floating-glance-design.md) ----
+
+const glanceCard = (world) => world.call('getGlanceCard');
+const insideRect = (inner, outer) => inner.x >= outer.x && inner.y >= outer.y
+  && inner.x + inner.width <= outer.x + outer.width && inner.y + inner.height <= outer.y + outer.height;
+
+Given("the window's page is {int} by {int}", async function (width, height) {
+  await this.call('setWindowContentSize', width, height);
+  await waitForValue(() => this.call('windowContentBounds'),
+    (bounds) => bounds?.width === width && bounds?.height === height, `the window to be ${width} by ${height}`);
+});
+
+Then('the Glance is a large centered card over the whole main page', async function () {
+  const card = await waitForValue(() => glanceCard(this), (value) => value?.cardViewVisible === true, 'the Glance card to show');
+  const { pageArea } = card;
+  const width = Math.min(1100, Math.round(pageArea.width * 0.8));
+  assert.deepEqual(card.frame, {
+    x: pageArea.x + Math.round((pageArea.width - width) / 2),
+    y: pageArea.y + 16,
+    width,
+    height: pageArea.height - 48,
+  });
+  assert.deepEqual(card.mainViewBounds, card.pageBounds, 'the main page keeps the whole page area');
+  assert.deepEqual(card.viewBounds, card.page, 'the Glance page sits inside the card, below its header');
+  assert.deepEqual(card.page, { x: card.frame.x + 1, y: card.frame.y + 40, width: card.frame.width - 2, height: card.frame.height - 41 });
+  assert.deepEqual(card.cardViewBounds, card.chrome);
+  assert.ok(card.stackIndex.main < card.stackIndex.card && card.stackIndex.card < card.stackIndex.glance,
+    `tabs < card < Glance page: ${JSON.stringify(card.stackIndex)}`);
+});
+
+Then("the card keeps its share of the page with its header on screen", async function () {
+  const card = await waitForValue(() => glanceCard(this), (value) => {
+    if (!value?.cardViewVisible) return false;
+    return value.pageArea.width === value.pageBounds.width && insideRect(value.frame, value.pageArea);
+  }, 'the card to fit the resized window');
+  assert.ok(card.frame.y >= card.pageArea.y, 'the header stays below the Island band');
+  assert.ok(card.frame.width >= 360 && card.frame.height >= 280);
+  assert.deepEqual(card.viewBounds, card.page);
 });
