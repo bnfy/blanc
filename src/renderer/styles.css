@@ -233,6 +233,20 @@ button svg {
 /* Auto-hide: the page covers the strip, so the page's top band must not
    drag the window. */
 #strip.strip-hidden { -webkit-app-region: no-drag; }
+/* While the page covers the strip, a thin band along the page pane's top edge
+   is the window's only drag handle (a click there never reaches the page). */
+#dragBand {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  -webkit-app-region: drag;
+}
+#strip.strip-hidden #dragBand { display: block; }
+#strip.drag-suspended #dragBand { -webkit-app-region: no-drag; }
+:root[data-tab-layout="vertical"] #dragBand { left: var(--vertical-tabs-w); }
 
 #strip {
   -webkit-app-region: drag;

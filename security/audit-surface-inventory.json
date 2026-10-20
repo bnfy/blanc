@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "1926e63c4109af270279dd606cc43d127fc75917a9d7e8f5c205e5cb96c139da",
+      "sha256": "c74c510216c445da54bd4d6fff70f78d00a431a36026cd67de8c0c2a2d0c694e",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

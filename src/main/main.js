@@ -3213,7 +3213,8 @@ function currentChromeLayout(content = rt().window.getContentBounds()) {
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight: islandStripHidden() ? 0 : rt().chromeHeight,
+    chromeHeight: stripCovered() ? 0 : rt().chromeHeight,
+    islandHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -3392,6 +3393,21 @@ function islandStripHidden(runtime = rt()) {
     revealed: runtime.islandRevealed,
     pinned: islandAutoHidePinned(runtime),
   });
+}
+
+/** Whether the revealed Island floats over the page instead of pushing it
+ * down. Glance draws in the strip, so it always lays out as push. */
+function islandFloating(runtime = rt()) {
+  return islandAutoHideModule.floatingLayout({
+    autoHide: islandAutoHide,
+    style: islandAutoHideStyle,
+    glanceOpen: !!runtime.glanceTabId,
+  });
+}
+
+/** Whether the page covers the strip: it is hidden, or the Island floats. */
+function stripCovered(runtime = rt()) {
+  return islandStripHidden(runtime) || islandFloating(runtime);
 }
 
 /** Whether Chromium is drawing through the native Wayland platform. */
@@ -3632,7 +3648,7 @@ const MAC_WINDOW_BUTTON_POSITION = Object.freeze({ x: 19, y: 19 });
  * corner in its own right, so they stay there. */
 function syncWindowButtons(runtime = rt()) {
   if (process.platform !== 'darwin' || !runtime.window || runtime.window.isDestroyed()) return;
-  const visible = tabLayout === 'vertical' || !islandStripHidden(runtime);
+  const visible = tabLayout === 'vertical' || islandFloating(runtime) || !islandStripHidden(runtime);
   if (runtime.windowButtonsVisible === visible) return;
   runtime.windowButtonsVisible = visible;
   runtime.window.setWindowButtonVisibility(visible);
@@ -3645,7 +3661,7 @@ function syncWindowButtons(runtime = rt()) {
  * there, so the strip drops it while hidden. */
 function syncStripHidden(runtime = rt()) {
   if (!runtime.chromeReady || !runtime.window || runtime.window.isDestroyed()) return;
-  const hidden = islandStripHidden(runtime);
+  const hidden = stripCovered(runtime);
   if (runtime.stripHiddenSent === hidden) return;
   runtime.stripHiddenSent = hidden;
   runtime.window.webContents.send('chrome:strip-hidden', hidden);
@@ -3734,6 +3750,7 @@ function applyIslandAutoHideStyle(next) {
   for (const runtime of windowRuntimes.all()) {
     if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
   }
+  scheduleMenuRebuild();
 }
 
 function setIslandAutoHideStyle(style) {
@@ -12612,6 +12629,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
           && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
         stripHidden: islandStripHidden(),
+        floating: islandFloating(),
+        windowButtonsVisible: rt().windowButtonsVisible,
         pageY: currentChromeLayout().pageBounds.y,
         // The active view's real native bounds, not the computed layout.
         activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,

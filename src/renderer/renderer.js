@@ -1365,6 +1365,9 @@
   stripEl.addEventListener('dblclick', (e) => {
     if (e.target === stripEl) window.browserAPI.maximizeWindow();
   });
+  // The covered strip's top band zooms the window the same way.
+  const dragBand = document.getElementById('dragBand');
+  dragBand.addEventListener('dblclick', () => window.browserAPI.maximizeWindow());
 
   // Permission prompts render in their own floating bottom-center view
   // (permission.html/permission.js) — the strip no longer hosts them.

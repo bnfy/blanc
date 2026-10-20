@@ -560,6 +560,19 @@ function install(refs) {
       wc.sendInputEvent(input);
       return true;
     },
+    // The strip document's top drag band: 'none' while it is not drawn,
+    // else its computed app-region.
+    async dragBandAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const band = document.getElementById('dragBand');
+        if (!band) return null;
+        const style = getComputedStyle(band);
+        if (style.display === 'none') return 'none';
+        return style.getPropertyValue('-webkit-app-region') || style.appRegion;
+      })()`);
+    },
     // The strip's window-drag region: the computed app-region of #strip.
     async stripAppRegion() {
       const wc = getChromeWebContents();

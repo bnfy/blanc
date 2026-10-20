@@ -187,10 +187,11 @@ Feature: Island chrome, command palette, and slash commands
     Then the Island hides again
 
   @F1-25 @F1 @desktop @island-autohide
-  Scenario: A hidden strip does not drag the window from the page's top band
+  Scenario: A hidden strip drags the window only through its thin top band
     Given a tab open on "autohide-page"
     And the Island auto-hides
     Then the strip has no window-drag region
+    And the thin top band drags the window
     When I point at the top edge of the window
     Then the Island is shown above the page
     And the strip drags the window again
@@ -216,6 +217,24 @@ Feature: Island chrome, command palette, and slash commands
     Then the Island stays hidden after 600 milliseconds
     When the pointer rests at the top edge over the page pane
     Then the Island is shown above the page
+
+  @F1-28 @F1 @desktop @island-autohide
+  Scenario: A floating Island keeps a thin top band to drag the window
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the strip has no window-drag region
+    And the thin top band drags the window
+    And the window buttons stay on screen
+    When I point at the top edge of the window
+    Then the Island is revealed while the page stays at the top of the window
+    And the thin top band drags the window
+
+  @F1-29 @F1 @desktop @island-autohide
+  Scenario: A floating Island leaves the page where it is
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the pointer rests at the top edge without the page seeing it move
+    Then the Island is revealed while the page stays at the top of the window
 
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs

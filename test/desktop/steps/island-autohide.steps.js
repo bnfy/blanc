@@ -37,8 +37,8 @@ async function turnOn(world, layout, style = 'push') {
   assert.equal(await world.call('setIslandAutoHide', true), true);
 }
 
-async function prepare(world, layout) {
-  await turnOn(world, layout);
+async function prepare(world, layout, style = 'push') {
+  await turnOn(world, layout, style);
   await waitForValue(() => autoHideState(world), (state) => !state?.sliding && state?.stripHidden === true,
     'the strip to hide after its tip', INTRO_WAIT_MS);
 }
@@ -67,6 +67,10 @@ Given('the Island auto-hides', async function () {
 
 Given('the Island auto-hides with vertical tabs', async function () {
   await prepare(this, 'vertical');
+});
+
+Given('the Island auto-hides and floats', async function () {
+  await prepare(this, 'island', 'float');
 });
 
 When('auto-hide is turned off', async function () {
@@ -234,4 +238,26 @@ After({ tags: '@island-autohide' }, async function () {
   await this.call('setTabLayout', 'island').catch(() => {});
   await this.call('setTestCursorPoint', null).catch(() => {});
   await this.call('setCursorSamplingUnavailable', false).catch(() => {});
+});
+
+// The 6px band the strip document keeps at the top of the page pane while
+// the page covers the strip: the window's only drag handle then.
+Then('the thin top band drags the window', async function () {
+  await waitForValue(() => this.call('dragBandAppRegion'), (region) => region === 'drag', 'the top band to drag the window');
+});
+
+// macOS: the traffic lights stay on screen while a floating Island is hidden.
+Then('the window buttons stay on screen', async function () {
+  const state = await autoHideState(this);
+  if (process.platform !== 'darwin') return;
+  assert.equal(state.windowButtonsVisible, true);
+});
+
+Then('the Island is revealed while the page stays at the top of the window', async function () {
+  const state = await waitForAutoHide(this, (value) => value?.revealed === true && value?.stripHidden === false,
+    'the floating Island to be revealed');
+  assert.equal(state.floating, true);
+  assert.equal(state.sliding, false, 'a floating Island never slides the page');
+  assert.equal(state.pageY, 0);
+  assert.equal(state.activeBounds.y, 0);
 });

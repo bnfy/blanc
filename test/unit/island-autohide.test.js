@@ -64,7 +64,12 @@ test('a hidden strip gives the page the whole window height in both layouts', ()
 });
 
 test('main lays out every child view through the auto-hide strip height', () => {
-  assert.match(main, /chromeHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  // The page leaves the strip out while it is hidden, or while the Island
+  // floats over the page; overlays still anchor under a shown Island.
+  assert.match(main, /chromeHeight: stripCovered\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  assert.match(main, /islandHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  assert.match(main, /function stripCovered\(runtime = rt\(\)\) \{\s+return islandStripHidden\(runtime\) \|\| islandFloating\(runtime\);/);
+  assert.match(main, /function islandFloating\(runtime = rt\(\)\) \{\s+return islandAutoHideModule\.floatingLayout\(\{\s+autoHide: islandAutoHide,\s+style: islandAutoHideStyle,\s+glanceOpen: !!runtime\.glanceTabId,/);
   const show = main.slice(main.indexOf('function showOverlay('), main.indexOf('function hideOverlay('));
   assert.ok(show.indexOf('revealIsland();') < show.indexOf('overlayView.setBounds'),
     'the strip is revealed before overlay bounds are computed');
@@ -85,7 +90,8 @@ test('the hide check is bound to its window, re-samples the cursor and stops on 
 
 test('hover-open never fires on a hidden pill and macOS hides its traffic lights with it', () => {
   assert.match(main, /islandHoverCapable === true && !islandStripHidden\(runtime\)/);
-  assert.match(main, /const visible = tabLayout === 'vertical' \|\| !islandStripHidden\(runtime\);/);
+  // A floating Island keeps the traffic lights on screen the whole time.
+  assert.match(main, /const visible = tabLayout === 'vertical' \|\| islandFloating\(runtime\) \|\| !islandStripHidden\(runtime\);/);
   assert.match(main, /setWindowButtonVisibility\(visible\)/);
   // macOS standard placement (18pt), set on first layout and after each show.
   assert.match(main, /if \(visible\) runtime\.window\.setWindowButtonPosition\(MAC_WINDOW_BUTTON_POSITION\);/);
@@ -319,4 +325,22 @@ test('floatViewBounds wraps the rect with shadow room, from the window top, clam
   assert.equal(floatViewBounds(null, { ...win, side: 20, bottom: 24 }), null);
   assert.equal(floatViewBounds({ x: 0, y: 0, width: 0, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
   assert.equal(floatViewBounds({ x: NaN, y: 0, width: 10, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
+});
+
+test('the strip learns it is covered whenever the page covers it, hidden or floating', () => {
+  const sync = main.slice(main.indexOf('function syncStripHidden('), main.indexOf('function endIslandAutoHideIntro('));
+  assert.match(sync, /const hidden = stripCovered\(runtime\);/);
+  assert.match(main, /function applyIslandAutoHideStyle\(next\) \{[\s\S]*?scheduleMenuRebuild\(\);/);
+});
+
+test('the strip document draws a 6px drag band while the page covers it', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
+  assert.match(html, /<div id="strip">\s*<div id="dragBand" aria-hidden="true"><\/div>/);
+  assert.match(css, /#dragBand \{[^}]*display: none;[^}]*height: 6px;[^}]*-webkit-app-region: drag;/);
+  assert.match(css, /#strip\.strip-hidden #dragBand \{ display: block; \}/);
+  assert.match(css, /#strip\.drag-suspended #dragBand \{ -webkit-app-region: no-drag; \}/);
+  assert.match(css, /:root\[data-tab-layout="vertical"\] #dragBand \{ left: var\(--vertical-tabs-w\); \}/);
+  assert.match(renderer, /dragBand\.addEventListener\('dblclick', \(\) => window\.browserAPI\.maximizeWindow\(\)\)/);
 });
