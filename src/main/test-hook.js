@@ -2432,6 +2432,18 @@ function install(refs) {
       );
     },
     /**
+     * The id of the overlay element that holds keyboard focus, or null when
+     * the overlay document itself does not have focus — a focused input in
+     * an unfocused view would take no keystrokes.
+     */
+    overlayFocusedId() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(
+        `document.hasFocus() ? (document.activeElement?.id ?? null) : null`,
+      );
+    },
+    /**
      * Dispatch a real keydown on the active tab's page, as a person typing
      * with the page focused would. Goes through the page's own listener and
      * the pages:start:open-island channel — not a shortcut into main.
