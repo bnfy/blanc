@@ -61,7 +61,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F50 | Start Page color wallpaper | PARTIAL | N/A | N/A | Desktop only. Soft, solid or gradient from the eight Spaces presets, synced; optionally follows the window's Space color; never in private tabs; inks checked at 4.5:1 in a pure paint module. | — |
 | F51 | What's New page | PARTIAL | N/A | N/A | Desktop only. Opens blanc.day's page for a feature release once after the update, only when the page exists; the Start Page pill links to it. | — |
 | F52 | Tab Archive | PARTIAL | N/A | N/A | Desktop only. Off by default, device-local. Idle ungrouped, unpinned tabs close into a per-profile Archive kept 30 days, restorable from the Quick Switcher and History; never private tabs, never synced, cleared with history. | — |
-| F53 | Split View | PLANNED | N/A | N/A | Desktop only (D11). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane. | D11 |
+| F53 | Split View | PARTIAL | N/A | N/A | Desktop only (D11). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane. | D11 |
 
 ## Notes on the "mobile-only wins"
 
