@@ -2,7 +2,8 @@
 
 Oct 20, 2026 · Follow-up to Auto-hide the Island
 (`2026-10-19-auto-hide-island-design.md`, shipped opt-in in v1.39.0, #964).
-Designed with the owner; not yet implemented.
+Designed with the owner; design approved by the owner on 2026-10-20. Not yet
+implemented.
 
 ## Why
 
@@ -138,8 +139,14 @@ the maximised state for the maximise icon.
 
 **Lifetime.** The float views are created only while Auto-hide is on with
 float selected, and destroyed when either is turned off. They are never
-created for push users or with Auto-hide off. Each holds a renderer (expect
-tens of MB per window); measure the real cost and record it in the PR.
+created for push users or with Auto-hide off.
+
+**Cost.** Float mode adds one view per window on macOS (the pill) and three
+on Windows and Linux (the pill, the controls, the menu button). A fourth is
+added on any platform that needs the fallback drag strip. Separate views do
+not necessarily mean separate OS renderer processes. Each PR that adds views
+records the measured renderer process count and memory per window, float
+versus push.
 
 ### One source of truth for "where is the Island"
 
@@ -294,8 +301,9 @@ owner continues from that Mac. Merge waits on those checks.
 3. **Native Wayland reveal.** Revealing still works with the band taking the
    top pixels.
 
-Because the owner already decided the no-drag outcome, nothing in the build
-waits on these results except the per-platform band switch.
+Implementation stops at the Windows/Linux hand-off. Merge waits for those
+results. Failure of the drag band alone may use the approved no-band
+fallback; other failures must be resolved before merge.
 
 ## Tests
 
