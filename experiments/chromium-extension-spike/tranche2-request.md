@@ -1958,3 +1958,16 @@ Seven isolated fixture checkpoints pass: Restore Tab is accepted while an actual
 Cross-window move intents reject foreign source/destination identities and preserve both windows. Actual cross-window dragging remains unsupported: the rail API lacks a destination-window field. Negative boundary tests are not transfer acceptance. [Evidence](evidence/split-unloaded-crosswindow-20261020/README.md) records all attempts and the corrected fixture.
 
 No product changes/native compile; guard zero, prior52/124 unchanged. Only the small diagnostic read-hold helper was compiled. Profiles removed; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending. Combined-session ordering, async owner destruction/repeated requests and physical cross-window transfer remain open.
+
+
+## Replacement-owner correction and recovery rerun — October 20
+
+The previously reported replacement-owner product gap was a fixture false positive. Closing the requesting window creates a newer Window history entry. The replacement request restores that entry into a separate window, not the requesting window. The old assertion observed only the requester and incorrectly concluded nothing restored. This supersedes the open-runtime-failure claims in the preceding replacement/combined checkpoint.
+
+Corrected all-window checks pass twice on the original implementation: three pending replacement requests restore exactly one newer blank owner window; the subsequent request restores the older split into the replacement window with 35/65 ratio and right focus, retaining its survivor tab. Two ten-checkpoint runs plus six coalescing, seven owner-cancellation and eleven combined-session checkpoints pass (44 total). The combined test retains both clear/encrypted open-session records and restores each fixture URL once. Seven capture tests and eleven patch-counter tests also pass.
+
+A speculative pending-owner class did not change the faulty assertion's outcome. Temporary lifecycle tracing showed completion dispatch, prompting the all-window inspection. Both the proposal and diagnostics were removed byte-for-byte before final tests; the native product file matches the prior committed source. Discarded proposal and failed assertions retained as diagnostic history, not shipping code. Browser/pointer/guard logs stay local. No current replacement-owner failure is established by these tests.
+
+Three guarded incremental builds:40.27s proposal,38.30s diagnostics,38.61s original normal build restored. Final zero-action guard; no new upstream hooks, prior52/124 unchanged. Disposable profiles removed after exit verification, retained preview untouched. Physical native input, arbitrary multi-owner concurrent requests, encrypted-only closed history and wider lifecycle remain unqualified. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-replacement-correction-20261020/README.md`.

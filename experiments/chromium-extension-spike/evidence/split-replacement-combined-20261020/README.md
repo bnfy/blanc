@@ -1,3 +1,5 @@
+> Correction: the replacement-owner failure below was a fixture false positive. The test inspected only the requesting window and missed the newer closed owner Window restored separately. Subsequent all-window checks on the unchanged original implementation pass; see ../split-replacement-correction-20261020/README.md. Historical results below are retained, not current product-failure claims.
+
 ## Replacement-owner Restore Tab and combined-session recovery — October 20
 
 Combined-session check passes (11 checkpoints): actual Tabs read held with both clear/encrypted open-session records retained. Native Restore Tab restores two newer recovered Window entries before the older Split. The final state contains each fixture URL exactly once, one split, 35/65 ratio and right-pane focus. This uses a disposable restart with crash-bubble bypass, not physical Restore UI acceptance.

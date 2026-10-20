@@ -197,3 +197,16 @@ Combined-session check passes (11 checkpoints): actual Tabs read held with both 
 Three failed assertions and final reproduction/control are retained. Requests use native ExecuteCommand through the diagnostic bridge; physical input, complete window destructor instrumentation, multi-profile and broader lifecycle remain unqualified. No native compile; zero-action guard. Prior footprint52/124 unchanged. Browser/guard logs stay local, outside the published manifest. Disposable profiles removed after process-exit verification; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
 
 Evidence: `evidence/split-replacement-combined-20261020/README.md`.
+
+
+## Replacement-owner correction and recovery rerun — October 20
+
+The previously reported replacement-owner product gap was a fixture false positive. Closing the requesting window creates a newer Window history entry. The replacement request restores that entry into a separate window, not the requesting window. The old assertion observed only the requester and incorrectly concluded nothing restored. This supersedes the open-runtime-failure claims in the preceding replacement/combined checkpoint.
+
+Corrected all-window checks pass twice on the original implementation: three pending replacement requests restore exactly one newer blank owner window; the subsequent request restores the older split into the replacement window with 35/65 ratio and right focus, retaining its survivor tab. Two ten-checkpoint runs plus six coalescing, seven owner-cancellation and eleven combined-session checkpoints pass (44 total). The combined test retains both clear/encrypted open-session records and restores each fixture URL once. Seven capture tests and eleven patch-counter tests also pass.
+
+A speculative pending-owner class did not change the faulty assertion's outcome. Temporary lifecycle tracing showed completion dispatch, prompting the all-window inspection. Both the proposal and diagnostics were removed byte-for-byte before final tests; the native product file matches the prior committed source. Discarded proposal and failed assertions retained as diagnostic history, not shipping code. Browser/pointer/guard logs stay local. No current replacement-owner failure is established by these tests.
+
+Three guarded incremental builds:40.27s proposal,38.30s diagnostics,38.61s original normal build restored. Final zero-action guard; no new upstream hooks, prior52/124 unchanged. Disposable profiles removed after exit verification, retained preview untouched. Physical native input, arbitrary multi-owner concurrent requests, encrypted-only closed history and wider lifecycle remain unqualified. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-replacement-correction-20261020/README.md`.
