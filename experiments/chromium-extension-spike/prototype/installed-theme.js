@@ -20,6 +20,11 @@
         }
       }
     });
+    if (enabled) {
+      const channels = text.slice(1).match(/../g).map(value => parseInt(value, 16));
+      const light = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722 > 128;
+      root.style.setProperty('--theme-icon-filter', light ? 'brightness(0) invert(1)' : 'brightness(0)');
+    } else root.style.removeProperty('--theme-icon-filter');
     root.toggleAttribute('data-store-theme', !!enabled);
   }
   window.BlancInstalledTheme = { apply };

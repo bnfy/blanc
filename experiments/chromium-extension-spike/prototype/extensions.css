@@ -58,3 +58,26 @@
 
 .extension-icon-fallback { display: grid; place-items: center; border-radius: 8px; background: #b18a4820; color: var(--extension-muted); font-size: 20px; }
 .extension-icon-fallback[hidden] { display: none; }
+
+/* Store themes own control surfaces as well as the surrounding panel. */
+:root[data-store-theme] #extensionsPanel { border-color: var(--border); }
+:root[data-store-theme] #extensionsEscape,
+:root[data-store-theme] .extension-enter {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, var(--surface));
+  border-color: var(--border);
+}
+:root[data-store-theme] .extension-search {
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  border-color: var(--border);
+}
+:root[data-store-theme] .extension-search:focus-within {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+:root[data-store-theme] #extensionsGet { color: var(--text); }
+:root[data-store-theme] #extensionSearch::placeholder { color: var(--text); opacity: .75; }
+:root[data-store-theme] #extensionsPanel button:focus-visible { outline-color: var(--text); }
+:root[data-store-theme] #extensionsPanel img:not(.extension-icon),
+:root[data-store-theme] #extensionSearch::-webkit-search-cancel-button { filter: var(--theme-icon-filter); }
+:root[data-store-theme] .extension-icon-fallback { background: var(--accent-dim); color: var(--text); }
