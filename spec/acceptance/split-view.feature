@@ -82,7 +82,7 @@ Feature: Split View
     Then there is no split
 
   @F53-12 @F53 @desktop @D11
-  Scenario: A split survives relaunch and a Space round trip; a split with a private tab is saved as plain tabs
+  Scenario: A split survives relaunch and a Space round trip
     Given two loaded tabs made into a split
     When Blanc relaunches
     Then the two tabs form a split again in the same order

@@ -320,7 +320,7 @@ const {
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
-const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible } = require('./split-model');
+const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, captureSplits, restoreSplits } = require('./split-model');
 const { computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout } = require('./split-layout');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
@@ -3903,6 +3903,27 @@ function showActiveSplit(runtime = rt()) {
   resizeActiveView();
 }
 
+/** session.json / Spaces columns for a window's splits (none written when
+ *  no split keeps two saved tabs). */
+function savedWindowSplits(runtime, entries) {
+  const { splits, splitIds } = captureSplits(runtime.splits ?? [], entries.map((item) => item.id));
+  return splits.length ? { splits, splitIds } : {};
+}
+
+/** Rebuild a restored window's splits from its saved columns; `restoredIds`
+ *  is parallel to `splitIds` (null where a tab wasn't created). */
+function applyRestoredSplits(runtime, saved, restoredIds) {
+  const rebuilt = restoreSplits(saved?.splits, saved?.splitIds, restoredIds);
+  for (const split of rebuilt) {
+    for (const id of split.tabIds) {
+      const tab = tabs.get(id);
+      if (tab) tab.splitId = split.id;
+    }
+  }
+  runtime.splits = [...(runtime.splits ?? []), ...rebuilt];
+  syncTabLayout(runtime);
+}
+
 /** Say something to screen readers through the strip's live region. */
 function announceSplit(message) {
   if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', message);
@@ -5716,6 +5737,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
       localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
     } : {}),
     groups: persistedGroups,
+    ...savedWindowSplits(runtime, entries),
     ...(closedSlot > 0 ? { closedSlot } : {}),
     sectionOrder: true,
     ...(closedIndex > 0 ? { closedIndex } : {}),
@@ -7199,6 +7221,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       pinned: workspace.pinned,
       meta: workspace.meta,
       localFiles: workspace.localFiles,
+      splitIds: workspace.splitIds,
       activeIndex: workspace.activeIndex,
     }, (url, _index, localFile) => isUtilityUrl(url)
       || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
@@ -7219,6 +7242,8 @@ function applyWorkspaceToWindow(runtime, workspace) {
     }));
     pruneEmptyGroups();
     applySavedLayout(runtime, workspace, restoredIds);
+    runtime.splits = [];
+    applyRestoredSplits(runtime, { splits: workspace.splits, splitIds: cleaned.splitIds }, restoredIds);
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
     // 8. A workspace with nothing left after filtering (or saved empty) must
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
@@ -13450,6 +13475,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       pinned: cleaned.pinned,
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
+      splitIds: cleaned.splitIds,
       activeIndex: cleaned.activeIndex,
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
@@ -13693,6 +13719,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }));
         pruneEmptyGroups();
         applySavedLayout(runtime, saved, restoredIds);
+        applyRestoredSplits(runtime, saved, restoredIds);
         // This window's tabs now exist, so it's safe to check whether the
         // saved binding still points at a real workspace. namedWorkspaces.get
         // resolves through the ambient activeLocalProfileId(), which

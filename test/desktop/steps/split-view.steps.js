@@ -240,10 +240,7 @@ When('I reopen that entry', async function () {
 });
 
 Then('the two tabs form a split again in the same order', async function () {
-  const state = await this.waitForState((s) => s.splits.length === 1 && s.splits[0].tabIds.length === 2);
-  const urls = state.splits[0].tabIds.map((id) => state.tabs.find((t) => t.id === id).url);
-  assert.match(urls[0], /\/site\/split-a/);
-  assert.match(urls[1], /\/site\/split-b/);
+  await waitForValue(() => splitUrlsNow(this), isTheSplit, 'the split, in order', 15000);
 });
 
 When('I pin the first split tab', async function () {
@@ -358,4 +355,38 @@ Then('the side list shows the split as one row', async function () {
     .map((row) => row.getAttribute('aria-label'))), (list) => list.length === 1, 'one split row in the side list');
   assert.equal(rows[0], 'Split: split-a + split-b');
   await this.call('setTabLayout', 'horizontal');
+});
+
+// ---- Persistence (F53-12) ----
+const ctx = require('../support/context');
+
+async function splitUrlsNow(world) {
+  const state = await world.state();
+  return state.splits.map((s) => s.tabIds.map((id) => state.tabs.find((t) => t.id === id)?.url ?? ''));
+}
+const isTheSplit = (urls) => urls.length === 1 && urls[0].length === 2
+  && /\/site\/split-a/.test(urls[0][0]) && /\/site\/split-b/.test(urls[0][1]);
+
+When('Blanc relaunches', async function () {
+  await waitForValue(() => this.call('persistedSessionData'),
+    (session) => (session.windows ?? []).some((w) => Array.isArray(w.splits) && w.splits.length === 1),
+    'the split to reach session.json');
+  await ctx.relaunch();
+  await waitForValue(() => splitUrlsNow(this), isTheSplit, 'the split to be restored', 15000);
+});
+
+When('I save this window as a Space, switch away and come back', async function () {
+  // A Space switch is refused while a page in the window is still waking or
+  // loading; after a relaunch the split's second pane wakes as it is shown.
+  await this.waitForState((state) => state.tabs.every((t) => !t.isLoading && !t.loading)
+    && state.splits.every((sp) => sp.tabIds.every((id) => !state.tabs.find((t) => t.id === id)?.asleep)));
+  const saved = await this.call('workspaceAction', 'save', 'Split space');
+  assert.equal(saved.ok, true, JSON.stringify(saved));
+  // The waking flag is main-only: retry while main still reports an active page.
+  const away = await waitForValue(() => this.call('workspaceAction', 'create', 'Elsewhere'),
+    (result) => result.ok || result.reason !== 'active-page', 'the switch away to be accepted', 8000);
+  assert.equal(away.ok, true, JSON.stringify(away));
+  await this.waitForState((state) => state.tabs.every((t) => !t.isLoading));
+  const back = await this.call('workspaceAction', 'open', saved.workspace.id);
+  assert.equal(back.ok, true, JSON.stringify(back));
 });

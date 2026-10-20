@@ -132,7 +132,29 @@ function restoreSplits(savedSplits, splitIds, restoredTabIds) {
   return out;
 }
 
+/**
+ * The `splits` and `splitIds` columns of a saved window or Space, kept only
+ * when they still line up with its `urls` (a writer that moved the URL column
+ * leaves them out, and the window restores as plain tabs). Restore normalizes
+ * each layout again (restoreSplits).
+ */
+function savedSplitColumns(source, urlCount) {
+  const splitIds = source?.splitIds;
+  const splits = source?.splits;
+  if (!Array.isArray(splitIds) || splitIds.length !== urlCount || !Array.isArray(splits)) return {};
+  const kept = splits
+    .filter((s) => s && typeof s.id === 'string' && s.id)
+    .map((s) => ({
+      id: s.id,
+      layout: s.layout && typeof s.layout === 'object' ? s.layout : null,
+      focusedIndex: Number.isInteger(s.focusedIndex) ? s.focusedIndex : 0,
+    }));
+  if (!kept.length) return {};
+  return { splits: kept, splitIds: splitIds.map((id) => (typeof id === 'string' && id ? id : null)) };
+}
+
 module.exports = {
+  savedSplitColumns,
   MAX_SPLIT_PANES,
   PR1_MAX_PANES,
   newSplitId,
