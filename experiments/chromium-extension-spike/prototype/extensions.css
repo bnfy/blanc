@@ -52,3 +52,6 @@
   #extensionsGet { color: #e1b775; }
   #extensionsPanel img:not(.extension-icon) { filter: invert(.85); }
 }
+
+.extension-section { padding: 10px 14px 3px; font-size: 12px; font-weight: 600; color: var(--extension-muted); }
+.extension-detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

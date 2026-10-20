@@ -1268,3 +1268,8 @@ Native picker search → official Extensity listing → permission Cancel and su
 ### October 20 — Inline Store promotion suppressed
 
 Exact English inline Chrome banner removed with sole-control and full-copy guards. Seven tests/scoped lint pass; native picker search, permission Cancel/safety delay/install and removal pass on rebuilt app. Evidence: `evidence/store-inline-banner-20261020/README.md`. One incremental build (35.55s Siso/six steps), final guard zero, prior49/117 unchanged. Other locales/future markup remain fail-visible; no authentication/restart/upgrade claim. Latency deferred; Electron diagnostic build unapproved.
+
+
+### October 20 — Live Store results inside the Island
+
+The picker now shows up to six live public Chrome Web Store results with names/descriptions alongside installed matches. Cookie-free bounded native fetch, text-only parsing, debounce/stale-reply guards and installed-ID deduplication are in place. Native acceptance passes for inline Extensity results, listing selection, permission text/safety delay/Cancel/install, combined installed + Store results and installed native popup. Five focused tests and scoped lint pass. Evidence: `evidence/store-inline-results-20261020/README.md` (includes isolated test-app identity qualification and initial automation binding issue). One incremental build37.04s/six steps, finalguard0; Blanc-owned changes only, prior49/117 unchanged. Retained preview not restarted. Public English markup compatibility, personalized results, broader responsive/accessibility and restart/update checks remain gaps. Latency deferred; Electron diagnostic build unapproved; prior Task0/F12 gates unchanged.

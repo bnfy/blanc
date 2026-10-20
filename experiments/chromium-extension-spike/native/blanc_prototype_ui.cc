@@ -14,6 +14,12 @@
 #include <set>
 #include <string>
 #include <utility>
+#include "base/strings/escape.h"
+#include "content/public/browser/storage_partition.h"
+#include "services/network/public/cpp/simple_url_loader.h"
+#include "services/network/public/cpp/resource_request.h"
+#include "services/network/public/cpp/shared_url_loader_factory.h"
+#include "net/traffic_annotation/network_traffic_annotation.h"
 #include "base/command_line.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
@@ -1412,6 +1418,43 @@ class NewTabHandler : public content::WebUIMessageHandler,
   base::WeakPtrFactory<NewTabHandler> weak_factory_{this};
 };
 
+// Public Store HTML is treated only as data. Never load it into the Island DOM.
+// Deliberately conservative: changed markup produces an explicit unavailable state.
+base::ListValue ParseStoreResults(const std::string& html) {
+  base::ListValue items;
+  std::set<std::string> seen;
+  const std::string marker = "data-item-id=\"";
+  size_t at = 0;
+  while ((at = html.find(marker, at)) != std::string::npos && items.size() < 6) {
+    at += marker.size();
+    const auto end = html.find('"', at);
+    if (end == std::string::npos) break;
+    const std::string id = html.substr(at, end - at);
+    const auto next = html.find(marker, end);
+    const auto card = html.substr(end, std::min(size_t(20000), next - end));
+    if (id.size() != 32 || id.find_first_not_of("abcdefghijklmnop") != std::string::npos || !seen.insert(id).second) continue;
+    auto text = [&](const std::string& start, const std::string& close) {
+      auto begin = card.find(start);
+      if (begin == std::string::npos) return std::string();
+      begin = card.find('>', begin);
+      if (begin == std::string::npos) return std::string();
+      const auto stop = card.find(close, ++begin);
+      if (stop == std::string::npos || stop - begin > 1000) return std::string();
+      const auto raw = card.substr(begin, stop - begin);
+      if (raw.find('<') != std::string::npos) return std::string();
+      return base::UTF16ToUTF8(base::UnescapeForHTML(base::UTF8ToUTF16(raw)));
+    };
+    const auto name = text("<h2", "</h2>");
+    if (name.empty() || card.find("/" + id + "\"") == std::string::npos) continue;
+    base::DictValue item;
+    item.Set("id", id);
+    item.Set("name", name);
+    item.Set("description", text("<p class=\"g3IrHd\"", "</p>"));
+    items.Append(std::move(item));
+  }
+  return items;
+}
+
 class Handler : public content::WebUIMessageHandler {
  public:
   void RegisterMessages() override {
@@ -1423,6 +1466,7 @@ class Handler : public content::WebUIMessageHandler {
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
+    store_loader_.reset();
   }
 
  private:
@@ -1870,6 +1914,40 @@ class Handler : public content::WebUIMessageHandler {
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+    if (method == "storeSearch" && args.size() == 1 && args[0].is_string()) {
+      const auto& query = args[0].GetString();
+      if (query.size() < 2 || query.size() > 256) {
+        reply(false, base::Value("Enter 2–256 characters to search the Store."));
+        return;
+      }
+      if (store_loader_) Reply(store_callback_, false, base::Value("Search replaced."));
+      store_callback_ = id;
+      auto request = std::make_unique<network::ResourceRequest>();
+      request->url = GURL("https://chromewebstore.google.com/search/" + base::EscapeQueryParamValue(query, false) + "?hl=en");
+      request->credentials_mode = network::mojom::CredentialsMode::kOmit;
+      request->redirect_mode = network::mojom::RedirectMode::kError;
+      const auto annotation = net::DefineNetworkTrafficAnnotation("blanc_store_search", R"(
+        semantics {
+          sender: "Blanc extension search"
+          description: "Retrieves public Chrome Web Store search results for the Island extension picker."
+          trigger: "User types at least two characters in extension search."
+          data: "The extension search query; no cookies or credentials."
+          destination: GOOGLE_OWNED_SERVICE
+        }
+        policy {
+          cookies_allowed: NO
+          setting: "Only runs while the user searches for extensions."
+          policy_exception_justification: "User initiated prototype extension discovery."
+        })");
+      store_loader_ = network::SimpleURLLoader::Create(std::move(request), annotation);
+      store_loader_->SetTimeoutDuration(base::Seconds(6));
+      store_loader_->DownloadToString(
+          profile->GetDefaultStoragePartition()->GetURLLoaderFactoryForBrowserProcess().get(),
+          base::BindOnce(&Handler::StoreResults, weak_factory_.GetWeakPtr(), id),
+          2 * 1024 * 1024);
+      return;
+    }
+
     if (method == "previewSpaceSave" || method == "previewSpaceOpen" || method == "previewSpaceList" || method == "previewSpaceRecover") {
       const bool list = method == "previewSpaceList" || method == "previewSpaceRecover";
       if (profile->IsOffTheRecord() || owner->space_busy ||
@@ -2525,6 +2603,19 @@ class Handler : public content::WebUIMessageHandler {
     }
     reply(true, base::Value());
   }
+  void StoreResults(const std::string& callback, std::optional<std::string> body) {
+    store_loader_.reset();
+    if (!body) {
+      Reply(callback, false, base::Value("Store search unavailable. Try again or open the Store."));
+      return;
+    }
+    auto items = ParseStoreResults(*body);
+    base::DictValue result;
+    result.Set("items", std::move(items));
+    Reply(callback, true, base::Value(std::move(result)));
+  }
+  std::unique_ptr<network::SimpleURLLoader> store_loader_;
+  std::string store_callback_;
   uint64_t space_save_generation_ = 0;
   bool space_save_pending_ = false;
   base::CancelableTaskTracker tracker_;
