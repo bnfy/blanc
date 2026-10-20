@@ -2105,3 +2105,8 @@ Two cross-owner schedules pass (new and pre-settled second window), preserving s
 ### Pending-save mutation repair — 2026-10-20
 
 Retry saves revalidate same-profile tab IDs/order, URL/loading/pinning and selection after both stores flush. A changed signature triggers another session rebuild/flush before acknowledgement, under the existing timeout. Four schedules47checkpoints pass: pending navigation and tab addition now survive immediate post-ack crash; existing-owner and repeated EIO controls pass. Seven capture tests pass. Initial namespace compile failure retained; incremental repair38.96s/6actions,guard0,Blanc-owned-only changes/prior54/128unchanged. Evidence: evidence/split-retry-mutation-fix-20261020. Signature-equivalent/page-state/group/split-only mutations, owner destruction and continuous-mutation timeout remain unqualified. Testprofilesremovedpreviewuntouched; nativeinput/latency/Electron diagnosticbuild pending.
+
+
+### Pending-save group/Split/owner checks — 2026-10-20
+
+Four final schedules46diagnostic checkpoints: group rename survives immediate crash; requester destruction while save held preserves decoy/liveness through restart. Split ratio35/65 observed live during held write returns50/50 after immediate post-ack crash;5.5second settled control passes. Ratio is absent from structural signature; no repair this checkpoint. Initial premature ratio snapshot and incomplete owner closure attempts retained/excluded. Evidence split-save-group-owner-20261020. No nativecompile,guard0,prior54/128unchanged. Profilesremovedpreviewuntouched. Other group/layout/owner lifecycle and nativeinput remain open; latency/Electron diagnosticbuild pending.
