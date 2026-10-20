@@ -686,4 +686,11 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
 the same keyboard and pointer routes; only how long the strip stays on screen
 differs.
 
-**Status:** Accepted 2026-10-19; float style added 2026-10-20.
+**Status:** Accepted 2026-10-19; float style added 2026-10-20. Windows and
+Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
+on Windows the drag band drags but a double-click on it does not maximise, in
+either style (the same with a transparent drag view, so it is Windows' own
+hit test). On Linux the window document went `hidden` while the page
+covered it whole and stopped tracking resizes, leaving the floating pill and
+window controls at stale positions after a maximise; on Linux a covered strip
+now keeps one row uncovered (bnfy/blanc#999).
