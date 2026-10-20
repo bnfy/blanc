@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (52 files, 124 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (54 files, 128 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1175,8 +1175,8 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Patch budget, amended October 20:** **52 upstream files
-and 124 hunks**, counted as follows. A *file* is an existing upstream file
+**Patch budget, amended October 20:** **54 upstream files
+and 128 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 52 files or 124 hunks and
+From plan §5: criterion 2 (the count above exceeds 54 files or 128 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -2026,3 +2026,20 @@ IMPORTANT: the immediate harness pass means its observation/no-duplicates/usabil
 No native compile/product edits; guard zero; prior52files/124hunks unchanged. Published source/results hashed, runtime logs local. Disposable profiles removed after exit verification; retained preview untouched. Native input pending, latency deferred, Electron diagnostic build pending approval. Plan/evidence retain the immediate-loss boundary regardless of green CI.
 
 Evidence: `evidence/split-encrypted-postcorruption-crash-20261020/README.md`.
+
+
+## Immediate-crash history save acknowledgement — draft awaiting budget
+
+Source inspection confirms Island closeTab replies after CloseWebContentsAt while Recently Closed uses delayed CommandStorageManager saving. An unapplied draft at /private/tmp/blanc-history-save-ack-draft.patch exposes production SaveAndFlush through TabRestoreService and its implementation, reusing the existing authoritative backend flush. It adds two upstream headers and four zero-context hunks to the current inventory, projecting54files/128hunks. Owner approval requested because §7 currently caps52/124. No upstream changes applied or builds run.
+
+Implementation must wait for actual historical closure (not beforeunload cancellation), use a bounded weak-owner callback, report persistence failure honestly, and preserve private no-history behavior. Planned recovery checks: immediate encrypted-only crash after acknowledgement following corruption, settled control, clear-store control, flush-error refusal, cancellation and owner destruction. Pre-ack crashes and power loss remain outside the durability claim. Native input remains pending, latency deferred, Electron diagnostic build pending approval; retained preview untouched.
+
+
+Owner approved 54 files/128 hunks for closed-history save acknowledgement. Native input and Electron diagnostic build remain pending; latency deferred.
+
+
+## Closed-history immediate-crash repair — October 20
+
+Owner approved54files/128hunks. Island closeTab now waits for selected-backend history save/flush after synchronous native close, rejecting failed/time-limited persistence. Pending/cancelled closure is not acknowledged; private no-history behavior remains. Immediate and settled encrypted-only postcorruption crash recovery now restore the fresh tab exactly once. Injected Tabs flush EIO is reported, and fault removal plus a subsequent close permits crash recovery. Three schedules/31checkpoints, seven capture and eleven counter tests pass. Evidence: evidence/history-close-ack-20261020/README.md.
+
+Two compile failures retained locally, incremental success85.65seconds/65steps; guardzero. Fresh54/128 at approved cap. Scope is Island closeTab, not every native/batch close path or power-loss protection. Pending unload/owner destruction/private runtime matrix not newly qualified. Profiles cleaned after process-exit verification; retained preview untouched. Latency deferred, native input and Electron diagnostic build pending.

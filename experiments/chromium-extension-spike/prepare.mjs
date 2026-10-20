@@ -8,6 +8,7 @@ import { prepareMacIcon } from './mac-icon.mjs';
 import { prepareComponent } from './ubo-component.mjs';
 import { prepareDocumentTarget } from './ubo-document-target.mjs';
 import { prepareWindowIdentity } from './window-identity.mjs';
+import { prepareHistoryAcknowledgement } from './history-acknowledgement.mjs';
 import { prepareGroupPersistence } from './group-persistence.mjs';
 import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 
@@ -691,6 +692,7 @@ edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
 ]);
 
 prepareGroupPersistence(edit);
+prepareHistoryAcknowledgement(edit);
 prepareComponent(edit);
 prepareDocumentTarget(edit);
 prepareRendererTarget(edit, chromium);

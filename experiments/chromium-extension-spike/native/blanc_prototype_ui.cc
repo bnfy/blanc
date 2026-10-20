@@ -1718,6 +1718,26 @@ class Handler : public content::WebUIMessageHandler {
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
   }
+  void ClosedHistorySaved(std::string id, bool saved) {
+    if (!history_saves_.erase(id)) return;
+    Reply(id, saved, saved ? base::Value() :
+        base::Value("Tab closed, but history persistence failed or timed out."));
+  }
+  void SaveClosedHistory(std::string id, Profile* profile) {
+    if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
+    history_saves_.insert(id);
+    auto* service = ClosedService(profile);
+    if (!service) {
+      ClosedHistorySaved(id, false);
+      return;
+    }
+    service->SaveAndFlush(base::BindOnce(
+        &Handler::ClosedHistorySaved, weak_factory_.GetWeakPtr(), id));
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+        FROM_HERE, base::BindOnce(&Handler::ClosedHistorySaved,
+          weak_factory_.GetWeakPtr(), id, false), base::Seconds(10));
+  }
+  std::set<std::string> history_saves_;
   void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;
@@ -3076,6 +3096,12 @@ class Handler : public content::WebUIMessageHandler {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
       }
       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+      if (model->GetIndexOfWebContents(tab) != TabStripModel::kNoTab) {
+        reply(false, base::Value("Tab closure is pending or cancelled; history is not acknowledged."));
+        return;
+      }
+      SaveClosedHistory(id, browser->GetProfile());
+      return;
     } else if (method == "navigate" && args.size() == 2 && args[1].is_string()) {
       const GURL url(args[1].GetString());
       if (!url.SchemeIsHTTPOrHTTPS()) {
