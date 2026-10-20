@@ -1817,3 +1817,9 @@ Initial invalid color-name fixture refusal retained; hexadecimal-color runs used
 Before-fix native session streams contained only the source UUID despite both windows reporting initial save success. Initial-window acknowledgement now rebuilds commands from current native browsers before the existing flush. Fixed stream contains both windows. Six grouped runtime checkpoints pass, including Spaces roundtrip, actual two-window crashrestore and journalboundary source rollback preserving blue collapsed group/focus/layout/UUID and decoy. Nine private regressions and eight focused tests pass. Evidence: `evidence/grouped-window-save-fix-20261020/README.md`.
 
 One35.56s/sixstep incremental build; finalguard0; prior49/117 unchanged. Short diagnostic-startup timeout retained; final established-timeout run passes. Broader concurrent/pending-close/provider/write-error rebuild cases and powerloss remain unqualified. Rebuild latency unmeasured/deferred. Native input pending; Electron diagnostic build unapproved; preview untouched.
+
+## October 20 — Concurrent-window recovery failure
+
+Overlapping new-window creation acknowledges all live owners but actual crashrestart returns only a new NewTab window. Combined close/replacement/beforeunload-pending schedule fails; fresh direct-firstrestart repeat confirms1instead4. No-dialog close/replacement control and creation-only control both restore1instead3. Thus overlapping creation is sufficient; close/dialog not necessary. Cause unresolved; no repair included. Evidence: `evidence/concurrent-window-recovery-20261020/README.md`.
+
+Live source split preservation and successful pending-dialog dismissal do not qualify recovery. No compile;guard0;prior49/117unchanged. Profilesremovedpreviewuntouched. NativeinputpendinglatencydeferredElectronbuildunapproved. GreenCI does not close this runtime failure.
