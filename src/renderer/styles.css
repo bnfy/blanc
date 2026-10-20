@@ -2843,10 +2843,12 @@ body.split-tab-surface {
   --split-tab-border: var(--border);
 }
 body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-border); }
+/* The tab's top and left borders sit on the fillets' last ring row and
+   column (1px inside the band), so each curve runs straight into them. */
 .split-tab {
   position: absolute;
-  left: var(--split-pane-radius);
-  top: var(--split-pane-radius);
+  left: calc(var(--split-pane-radius) - 1px);
+  top: calc(var(--split-pane-radius) - 1px);
   right: 0;
   bottom: 0;
   box-sizing: border-box;
@@ -2888,8 +2890,11 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 }
 .split-tab-close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 .split-tab-close:hover { background: var(--accent-dim); color: var(--text); }
+/* Above the tab: each fillet paints over the tab's own border where the
+   curve takes over, or that border closes the curve into an extra corner. */
 .split-tab-fillet {
   position: absolute;
+  z-index: 1;
   width: var(--split-pane-radius);
   height: var(--split-pane-radius);
   background: radial-gradient(circle at 0 0,
