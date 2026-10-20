@@ -91,8 +91,8 @@ test('the hide check is bound to its window, re-samples the cursor and stops on 
 
 test('hover-open never fires on a hidden pill and macOS hides its traffic lights with it', () => {
   assert.match(main, /islandHoverCapable === true && !islandStripHidden\(runtime\)/);
-  // A floating Island keeps the traffic lights on screen the whole time.
-  assert.match(main, /const visible = tabLayout === 'vertical' \|\| islandFloating\(runtime\) \|\| !islandStripHidden\(runtime\);/);
+  // Floating or pushed, the traffic lights come and go with the Island.
+  assert.match(main, /const visible = tabLayout === 'vertical' \|\| !islandStripHidden\(runtime\);/);
   assert.match(main, /setWindowButtonVisibility\(visible\)/);
   // macOS standard placement (18pt), set on first layout and after each show.
   assert.match(main, /if \(visible\) runtime\.window\.setWindowButtonPosition\(MAC_WINDOW_BUTTON_POSITION\);/);
@@ -308,8 +308,15 @@ test('floatViewsWanted: the pill everywhere, controls and menu off macOS', () =>
   assert.deepEqual(floatViewsWanted({ autoHide: false, style: 'float', platform: 'linux' }), { pill: false, controls: false, menu: false });
 });
 
-test('floatViewsShown: controls stay while hidden; menu and pill follow the Island', () => {
-  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: false, platform: 'linux' }), { pill: false, controls: true, menu: false });
+test('macOS traffic lights hide with a floating Island, as with push; the rail keeps them', () => {
+  const sync = main.slice(main.indexOf('function syncWindowButtons('), main.indexOf('function syncStripHidden('));
+  assert.match(sync, /const visible = tabLayout === 'vertical' \|\| !islandStripHidden\(runtime\);/);
+  assert.doesNotMatch(sync, /islandFloating/);
+});
+
+test('floatViewsShown: the pill, window controls and menu button all follow the Island', () => {
+  // Always-on controls sat over the corner where sites put their own buttons.
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: false, platform: 'linux' }), { pill: false, controls: false, menu: false });
   assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'linux' }), { pill: true, controls: true, menu: true });
   assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'darwin' }), { pill: true, controls: false, menu: false });
   assert.deepEqual(floatViewsShown({ floating: false, islandVisible: true, platform: 'linux' }), { pill: false, controls: false, menu: false });

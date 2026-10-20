@@ -667,13 +667,13 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   the page** (the default, added 2026-10-20) slides the pill alone down over
   the page, which never moves, with the site still visible and clickable beside
   it; **Push the page down** shows the strip and moves pages down to make room,
-  as v1.39.0 did. In float mode the window buttons stay on screen the whole
-  time (the macOS traffic lights; the Windows and Linux controls, which float
-  top-right), and the Windows/Linux main-menu button comes and goes with the
-  pill. Glance always uses the push layout. Turning it on shows the Island for
-  a few seconds with a tip on how to bring it back. In push mode the macOS
-  window buttons hide and return with the strip, except beside the vertical
-  rail, which owns that corner. While hidden, a 6px band along the page pane's
+  as v1.39.0 did. In both styles the window buttons come and go with the
+  Island (the macOS traffic lights; in float mode the Windows and Linux
+  controls, which float top-right, and the main-menu button), so they never
+  sit over a site's own corner buttons while it is hidden; the macOS buttons
+  stay beside the vertical rail, which owns that corner. Glance always uses
+  the push layout. Turning it on shows the Island for a few seconds with a
+  tip on how to bring it back. While hidden, a 6px band along the page pane's
   top edge drags the window (both styles); below it the page's top band
   belongs to the page. With vertical tabs the rail is never reveal territory;
   only the page pane's top band is. On Linux under native Wayland, which gives
