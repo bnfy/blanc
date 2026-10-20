@@ -44,7 +44,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **`grid`** is for exactly 4 panes, in reading order (top-left, top-right, bottom-left, bottom-right). It has **one shared vertical divider** (`column`, the left column's share) and **one shared horizontal divider** (`row`, the top row's share), each clamped to 0.25–0.75. Rows can't have different column splits; a 2×2 is a cross, as in Arc.
 - **Changing the pane count** resets the shape to its default: equal columns, or a centered cross.
 
-**What is drawn.** `split-layout.js` picks the first entry in this list that fits the page region, using the measured minimums. `paneMinWidth` is the pane header's compact width, measured as Glance measures its header (300 px default). `paneMinHeight` is the 44 px header plus 160 px of page.
+**What is drawn.** `split-layout.js` picks the first entry in this list that fits the page region, using the measured minimums. `paneMinWidth` is the pane header's compact width, measured as Glance measures its header (300 px default). `paneMinHeight` is the 30 px header plus 160 px of page.
 
 | Panes | 1st choice | 2nd | 3rd |
 |---|---|---|---|

@@ -25,7 +25,7 @@
   - 3 panes: columns → rows → focus only.
   - 4 panes: grid → four columns → four rows → focus only.
   - Fallbacks are never saved.
-- **Measurements:** `paneMinWidth` is the measured header floor (300 default); `paneMinHeight` = 44 + 160; the divider is 12 (`glance-layout.js` `DIVIDER_SIZE`).
+- **Measurements:** `paneMinWidth` is the measured header floor (300 default); `paneMinHeight` = 30 + 160; the divider is 12 (`glance-layout.js` `DIVIDER_SIZE`).
 - **Header bands:** `SPLIT_HEADER_HEIGHT = 30` at the top of every pane. In focus only, every non-focused pane collapses to its header band.
 - **Group rule:**
   - The initiating tab's group wins: Keep as split → the Glance main page; Split with ▸ → the right-clicked tab.
