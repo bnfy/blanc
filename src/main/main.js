@@ -13445,6 +13445,29 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         else withWindowRuntime(runtime, () => resizeActiveView());
         return true;
       },
+      // The drawing check: front a window, and say why its pill may not draw.
+      focusWindowRuntime: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        if (!runtime?.window || runtime.window.isDestroyed()) return false;
+        runtime.window.show();
+        runtime.window.focus();
+        return runtime.window.isFocused();
+      },
+      floatPillDiagnostics: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        const record = liveFloatRecord(runtime, 'pill');
+        if (!runtime?.window || runtime.window.isDestroyed()) return null;
+        return {
+          focused: runtime.window.isFocused(),
+          visible: runtime.window.isVisible(),
+          islandRect: runtime.islandRect ?? null,
+          floating: withWindowRuntime(runtime, () => islandFloating(runtime)),
+          stripHidden: withWindowRuntime(runtime, () => islandStripHidden(runtime)),
+          shown: record?.shown ?? null,
+          viewVisible: record && typeof record.view.getVisible === 'function' ? record.view.getVisible() : null,
+          bounds: record?.view.getBounds() ?? null,
+        };
+      },
       floatPillWebContentsId: (runtimeId) => {
         const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
         return liveFloatRecord(runtime, 'pill')?.view.webContents.id ?? null;
