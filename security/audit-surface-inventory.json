@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "8666e7dc3ce92eb22fec87443b0c1d6fb235a009bd1315d72df207f79c680b7a",
+      "sha256": "cd1d9845f58ecd2687aecc3d844cbabf0699fa9f30cc7ad483930677a9e442e9",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -599,7 +599,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "f6f2dfce6a5fe171c65f3c0a93a2e0179e454fef279d9d0376a35cde59fbf7d6",
+      "sha256": "d46db9c69aeaf8c7494c0b93891bfce1ea0e65ae670af83fdbe674ff6a691913",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",

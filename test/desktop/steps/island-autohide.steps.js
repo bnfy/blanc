@@ -491,3 +491,99 @@ Then('the floating pill matches the strip\'s theme', async function () {
     return strip && pill && strip.dark === pill.dark && strip.bg === pill.bg ? strip : null;
   }, Boolean, 'the floating pill to match the strip\'s theme');
 });
+
+/* ---- Windows/Linux window buttons in float mode (@test-platform-linux) ----
+ * The app runs with BLANC_TEST_PLATFORM=linux, so both main and the chrome
+ * renderers act as on Linux: the strip draws its own controls and menu
+ * button, and float mode copies them into their own views. */
+
+async function floatControls(world) {
+  return world.call('floatControlsState');
+}
+
+async function clickInFloatView(world, role, target) {
+  const point = { x: Math.round(target.viewX + target.width / 2), y: Math.round(target.viewY + target.height / 2) };
+  for (const type of ['mouseDown', 'mouseUp']) {
+    assert.equal(await world.call('sendFloatMouseInput', role, { type, ...point, button: 'left', clickCount: 1 }), true);
+  }
+}
+
+Then('the strip reports where its window buttons are', async function () {
+  const rects = await waitForValue(() => this.call('chromeButtonRects'), (value) => value?.windowControlsRect && value?.menuButtonRect,
+    'the strip to report its window controls and menu button');
+  assert.ok(rects.windowControlsRect.width > 0 && rects.menuButtonRect.width > 0);
+});
+
+Then('the floating window controls show three working buttons while the Island is hidden', async function () {
+  const view = await waitForValue(() => floatState(this, 'controls'), (value) => value?.shown === true && value.visible === true,
+    'the floating window controls to show');
+  const rects = await this.call('chromeButtonRects');
+  assert.ok(view.bounds.x <= rects.windowControlsRect.x && view.bounds.x + view.bounds.width >= rects.windowControlsRect.x + rects.windowControlsRect.width,
+    'the controls view holds the strip\'s controls');
+  const state = await waitForValue(() => floatControls(this), (value) => value?.controls?.length === 3 && value.controls.every((b) => b.viewY > 0),
+    'three visible window buttons in the controls view');
+  const bounds = await this.call('windowContentBounds');
+  for (const button of state.controls) {
+    assert.ok(button.x >= 0 && button.x + button.width <= bounds.width && button.y >= 0, `button inside the window: ${JSON.stringify(button)}`);
+  }
+  assert.equal((await autoHideState(this)).revealed, false);
+});
+
+Then('the floating menu button waits above the window edge', async function () {
+  await waitForValue(() => floatState(this, 'menu'), (value) => value?.attached === true && value.shown === false && value.visible === false,
+    'the hidden menu button view');
+  const state = await floatControls(this);
+  // Its shadow reaches 8px (FLOAT_CHROME_PAD_PX) below it.
+  assert.ok(state.menu && state.menu.viewY + state.menu.height + 8 <= 0, `the hidden menu button peeks below the edge: ${JSON.stringify(state.menu)}`);
+});
+
+Then('the floating menu button slides in with the pill', async function () {
+  await waitForValue(() => floatState(this, 'menu'), (value) => value?.shown === true && value.visible === true, 'the menu button view');
+  const state = await waitForValue(() => floatControls(this), (value) => value?.menu?.visible === true && value.menu.viewY > 0,
+    'the menu button to slide in');
+  const bounds = await this.call('windowContentBounds');
+  assert.ok(state.menu.x >= 0 && state.menu.x + state.menu.width <= bounds.width);
+  assert.equal((await floatState(this, 'pill')).shown, true);
+});
+
+When('I click maximise on the floating window controls', async function () {
+  const state = await floatControls(this);
+  await clickInFloatView(this, 'controls', state.controls[1]);
+});
+
+When('I click minimise on the floating window controls', async function () {
+  const state = await floatControls(this);
+  await clickInFloatView(this, 'controls', state.controls[0]);
+});
+
+Then('the window is maximised', async function () {
+  await waitForValue(() => this.call('mainWindowState'), (value) => value?.maximized === true, 'the window to maximise');
+});
+
+Then('the window is not maximised', async function () {
+  await waitForValue(() => this.call('mainWindowState'), (value) => value?.maximized === false, 'the window to unmaximise');
+});
+
+Then('the window is minimised', async function () {
+  await waitForValue(() => this.call('mainWindowState'), (value) => value?.minimized === true, 'the window to minimise');
+  await this.call('restoreMainWindow');
+  await frontChromeWindow(this);
+});
+
+When('I click the floating menu button', async function () {
+  await restCursor(this, { x: 400, y: 2 });
+  const view = await waitForValue(() => floatState(this, 'menu'), (value) => value?.shown === true, 'the menu button view');
+  void view;
+  const state = await waitForValue(() => floatControls(this), (value) => value?.menu?.viewY > 0, 'the menu button in place');
+  await clickInFloatView(this, 'menu', state.menu);
+});
+
+Then('the main menu opens from the floating menu button', async function () {
+  const requests = await waitForValue(() => this.call('mainMenuRequests'), (value) => value?.length > 0, 'a main menu request');
+  const last = requests.at(-1);
+  assert.equal(last.from, 'menu');
+  const rects = await this.call('chromeButtonRects');
+  // The popup point is the button's bottom-left, in window coordinates.
+  assert.ok(Math.abs(last.point.x - rects.menuButtonRect.x) <= 2, JSON.stringify({ last, rects }));
+  assert.ok(Math.abs(last.point.y - (rects.menuButtonRect.y + rects.menuButtonRect.height)) <= 2, JSON.stringify({ last, rects }));
+});

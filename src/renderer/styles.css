@@ -4233,11 +4233,13 @@ html[data-surface="float"][data-float-role="pill"] #islandPill,
 html[data-surface="float"][data-float-role="controls"] #windowControls,
 html[data-surface="float"][data-float-role="menu"] #mainMenuButton { visibility: visible; }
 html[data-surface="float"] #islandPill { box-shadow: var(--shadow-island-float); }
+/* The window controls and the menu button sit in views with only 8px of
+   room (FLOAT_CHROME_PAD_PX), so a smaller shadow that stays inside it. */
 html[data-surface="float"] #windowControls,
 html[data-surface="float"] #mainMenuButton {
   background: var(--bg);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-island-float);
+  box-shadow: 0 2px 8px -2px rgba(14, 14, 14, 0.22);
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-surface="float"] #chrome { transition: none; }

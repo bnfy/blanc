@@ -89,3 +89,8 @@ test('every anchor the strip sends is measured on the strip stage, in window coo
   assert.match(js, /const r = stageRect\(button\);/);
   assert.equal(js.match(/const r = stageRect\(pill(?:Capture|DisplayShare)\);/g)?.length, 2);
 });
+
+test('the window controls and menu button keep their shadow inside their 8px room', () => {
+  const css = read('src/renderer/styles.css');
+  assert.match(css, /html\[data-surface="float"\] #windowControls,\s*html\[data-surface="float"\] #mainMenuButton \{[^}]*box-shadow: 0 2px 8px -2px rgba\(14, 14, 14, 0\.22\);/);
+});

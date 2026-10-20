@@ -412,6 +412,23 @@ const certificateExceptions = createCertificateExceptions({
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+/** Acceptance only: act as Windows or Linux on another platform, in main and
+ * in the chrome renderers (passed to them as --blanc-test-platform), so the
+ * floating Island's window controls can be tested on any machine. */
+const testPlatform = acceptanceTestMode && ['win32', 'linux'].includes(process.env.BLANC_TEST_PLATFORM)
+  ? process.env.BLANC_TEST_PLATFORM : null;
+/** Main-menu requests recorded instead of shown while the platform is faked. */
+const testMainMenuRequests = [];
+
+/** The platform the chrome is drawn for: the real one outside acceptance. */
+function chromePlatform() {
+  return testPlatform ?? process.platform;
+}
+
+/** webPreferences for the documents that draw the strip. */
+function stripWebPreferences() {
+  return testPlatform ? { additionalArguments: [`--blanc-test-platform=${testPlatform}`] } : {};
+}
 
 // Site icons on the ⌘L panel's bang rows: icons saved from visits first,
 // then copies kept from Blanc's icon server, then that server on demand.
@@ -3731,6 +3748,7 @@ function ensureIslandFloatView(runtime, role) {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      ...stripWebPreferences(),
     },
   });
   const contents = view.webContents;
@@ -3826,7 +3844,7 @@ function setIslandFloatShown(runtime, record, shown) {
 function syncIslandFloat(runtime = rt()) {
   const window = runtime.window;
   if (!window || window.isDestroyed()) return;
-  const platform = process.platform;
+  const platform = chromePlatform();
   const wanted = islandAutoHideModule.floatViewsWanted({ autoHide: islandAutoHide, style: islandAutoHideStyle, platform });
   if (!wanted.pill) {
     destroyIslandFloatViews(runtime);
@@ -9732,7 +9750,12 @@ function registerIpcHandlers() {
     // narrow as the UI that owns it.
     // The floating Island's copy of the button sits in its own small view
     // and reports window coordinates, like the strip.
-    if (event.sender !== rt().window?.webContents && floatRoleOf(rt(), event.sender) !== 'menu') return false;
+    const role = floatRoleOf(rt(), event.sender);
+    if (event.sender !== rt().window?.webContents && role !== 'menu') return false;
+    if (testPlatform) {
+      testMainMenuRequests.push({ from: role ?? 'strip', point: point ? { x: point.x, y: point.y } : null });
+      return true;
+    }
     return popupPlatformMainMenu({ Menu, window: rt().window, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
@@ -10636,6 +10659,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      ...stripWebPreferences(),
     },
   });
   windowRuntimes.attachWindow(runtime, { window: newWindow });
@@ -12869,6 +12893,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];
       },
       isChromeSurfaceRegistered: (id) => !!windowRuntimes.runtimeForChromeWebContentsId(id),
+      getChromeButtonRects: () => ({ windowControlsRect: rt().windowControlsRect, menuButtonRect: rt().menuButtonRect }),
+      getMainWindowState: () => (hasLiveWindow()
+        ? { maximized: rt().window.isMaximized(), minimized: rt().window.isMinimized() } : null),
+      restoreMainWindow: () => {
+        if (!hasLiveWindow()) return false;
+        if (rt().window.isMinimized()) rt().window.restore();
+        if (rt().window.isMaximized()) rt().window.unmaximize();
+        return true;
+      },
+      getMainMenuRequests: () => testMainMenuRequests.map((request) => ({ ...request })),
       getIslandAutoHideState: () => ({
         enabled: islandAutoHide,
         style: islandAutoHideStyle,

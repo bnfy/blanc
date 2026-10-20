@@ -299,6 +299,24 @@ Feature: Island chrome, command palette, and slash commands
     And I point at the top edge of the window
     Then the floating pill shows the private theme
 
+  @F1-36 @F1 @desktop @island-autohide @test-platform-linux
+  Scenario: Window buttons stay on screen in float mode on Windows and Linux
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the strip reports where its window buttons are
+    And the floating window controls show three working buttons while the Island is hidden
+    And the floating menu button waits above the window edge
+    When I point at the top edge of the window
+    Then the floating menu button slides in with the pill
+    When I click maximise on the floating window controls
+    Then the window is maximised
+    When I click maximise on the floating window controls
+    Then the window is not maximised
+    When I click minimise on the floating window controls
+    Then the window is minimised
+    When I click the floating menu button
+    Then the main menu opens from the floating menu button
+
   @F1-37 @F1 @desktop @island-autohide
   Scenario: Switching to push while the pill slides in leaves nothing behind
     Given a tab open on "autohide-page"

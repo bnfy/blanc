@@ -85,6 +85,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-33 | Glance uses the push layout in float mode | D29 | ✅ | ➖ | ➖ |
 | F1-34 | The floating pill keeps up with tabs, sheets, styles and windows | D29 | ✅ | ➖ | ➖ |
 | F1-35 | The floating pill takes the private theme | D29 | ✅ | ➖ | ➖ |
+| F1-36 | Window buttons stay on screen in float mode on Windows and Linux | D29 | ✅ | ➖ | ➖ |
 | F1-37 | Switching to push while the pill slides in leaves nothing behind | D29 | ✅ | ➖ | ➖ |
 | F1-38 | Turning auto-hide off while the pill floats | D29 | ✅ | ➖ | ➖ |
 | F1-39 | Changing the style while Glance is open | D29 | ✅ | ➖ | ➖ |

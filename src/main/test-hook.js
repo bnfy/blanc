@@ -78,6 +78,10 @@ function install(refs) {
     getFloatWebContents,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
+    getChromeButtonRects,
+    getMainWindowState,
+    restoreMainWindow,
+    getMainMenuRequests,
     getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
@@ -561,6 +565,31 @@ function install(refs) {
     },
     floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
     chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
+    /** The strip's own report of its Windows/Linux window buttons. */
+    chromeButtonRects() { return getChromeButtonRects(); },
+    /** The floating copies of the window controls and the menu button: each
+     * visible element's rect in window coordinates (x, y) and in its own
+     * view (viewX, viewY). */
+    async floatControlsState() {
+      const read = (role, script) => {
+        const wc = getFloatWebContents(role);
+        return wc && !wc.isDestroyed() ? wc.executeJavaScript(script) : null;
+      };
+      const measure = `(el) => {
+        const stage = document.getElementById('chrome').getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { x: r.left - stage.left, y: r.top - stage.top, viewX: r.left, viewY: r.top, width: r.width, height: r.height,
+          visible: getComputedStyle(el).visibility !== 'hidden' && r.width > 0 };
+      }`;
+      const [controls, menu] = await Promise.all([
+        read('controls', `(() => { const m = ${measure}; return [...document.querySelectorAll('#windowControls button')].map(m).filter((b) => b.visible); })()`),
+        read('menu', `(() => { const m = ${measure}; const b = document.getElementById('mainMenuButton'); return b && !b.hidden ? m(b) : null; })()`),
+      ]);
+      return { controls, menu };
+    },
+    mainWindowState() { return getMainWindowState(); },
+    restoreMainWindow() { return restoreMainWindow(); },
+    mainMenuRequests() { return getMainMenuRequests(); },
     chromeEval(script) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return null;
