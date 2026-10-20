@@ -1,0 +1,12 @@
+{
+  "repository": "bnfy/blanc",
+  "pr": 993,
+  "commit": "98ea48fc01d79759cfef40009b18cf69715eaed8",
+  "source": "src/main/",
+  "license": "MIT; Bananify Creative; see repository LICENSE",
+  "sha256": {
+    "split-model.js": "e3229df159e63df2cfe7a267af62dee0e7bcc92d579d9e1fd964a898b39af418",
+    "split-layout.js": "e1abdf454b1fa12aa166d5aaa01ccd8ce55f8e05759292098f555430c6ae4012",
+    "glance-layout.js": "8581c9278ba2c8b059586a3c675ca859360254571b7fc7292d9b38b5dba9dc6f"
+  }
+}

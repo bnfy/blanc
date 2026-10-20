@@ -1,3 +1,4 @@
+import splitModel from './electron-split-reference/split-model.js';
 // Migration boundary: a Chromium snapshot becomes Electron's saved columns.
 // Persistence, switching and ownership remain native work, not renderer storage.
 export function captureSpace(snapshot) {
@@ -11,6 +12,9 @@ export function captureSpace(snapshot) {
     }
     accepted.push(tab);
   }
+  // Persistent Split View follows #993. Temporary Glance is not serialized.
+  const splits = Array.isArray(snapshot.splits) ? snapshot.splits : [];
+  const splitColumns = splitModel.captureSplits(splits, accepted.map(t => t.id));
   const used = new Set(accepted.map(t => t.groupId).filter(Boolean));
   const groups = (snapshot.groups || []).filter(g => used.has(g.id)).map(g => ({
     id: g.id, name: g.name, color: g.color, collapsed: g.collapsed === true,
@@ -18,6 +22,7 @@ export function captureSpace(snapshot) {
   const validGroups = new Set(groups.map(g => g.id));
   return {
     urls: accepted.map(t => t.url),
+    ...splitColumns,
     pinned: accepted.map(t => t.pinned === true),
     groupIds: accepted.map(t => validGroups.has(t.groupId) ? t.groupId : null),
     groups,

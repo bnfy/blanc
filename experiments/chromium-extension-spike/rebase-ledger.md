@@ -2892,3 +2892,7 @@ Evidence: `evidence/store-blanc-label-20261020/`.
 ## October 20 — A1 patch audit and design
 
 Fresh read-only counter reports 49 files / 117 hunks against pinned 157 source; dependency checks passed. `a1-patch-budget-design.md` drafts the approved no-build A1 deliverable, with per-path inventory, conservative reduction candidates, override accounting, hash-strict patch application and authoritative CI proposal. Two ESLint compatibility paths are investigation candidates, not proven removable. No source/output/profile changes or build; no patch savings claimed. A1 drafted, review pending; layout/apply/CI implementation deferred to Decision 2. Latency and Electron diagnostic build remain deferred/unapproved.
+
+## October 20 — Split View baseline correction
+
+Owner directed migration to check Electron PR #993. Pinned review at98ea48fc distinguishes temporary Glance from persistent Split View. `split-view-migration.md` records contract and native gaps. Exact first-party pure model modules imported with hashes; Spaces adapter serializes splits/splitIds and seven unit tests pass. Native snapshot/store/journal/UI integration remains unimplemented; no runtime parity claim. Older promotion draft removed and normal binary restored incrementally. No upstream count change;49/117. Latency deferred, Electron diagnostic build unapproved.
