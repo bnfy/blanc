@@ -60,3 +60,9 @@ Two confirmed differences against pinned #993: grouping one pane dissolves the s
 Repaired the two observed #993 differences: group operations apply to all native split members, and unpinning an ungrouped tab appends it to the end. Nine bounded private runtime checkpoints pass, including new/existing-group moves, ungrouping with membership/focus retained, affected-split-only pin dissolution, append-on-unpin, private capture/native persistence refusal, byte-identical regular Spaces store and context disposal. Eight focused tests pass. Evidence: `evidence/private-split-group-fix-20261020/README.md`.
 
 One35.93s/sixstep guarded incremental build, finalguard0; no upstream hook changes, prior49/117within49/120 unchanged. Grouped persistence/recovery, broader merges/moves/reorders, Recently Closed and physical/visual checks remain unqualified. Preview untouched; latency deferred; native input pending; Electron diagnostic build unapproved.
+
+## October 20 — Grouped Split View recovery failure
+
+Grouped Spaces round trip passes with exact source UUID, membership, right focus, blue collapsed group and loose active tab. Actual crash restart fails the two-window gate: only the source grouped split returns; the second grouped window is absent. Fresh ten-second settled control repeats this missing-window result; cause unresolved. Journal-boundary recovery stage not reached. Green CI cannot close this runtime failure. Evidence: `evidence/grouped-split-recovery-20261020/README.md`.
+
+Initial invalid color-name fixture refusal retained; hexadecimal-color runs used thereafter. No implementation repair/compile; guard0; prior49/117unchanged. Profiles removed, preview untouched. Native input pending; latency deferred; Electron diagnostic build unapproved.
