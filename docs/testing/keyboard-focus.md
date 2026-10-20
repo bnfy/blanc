@@ -42,7 +42,7 @@ F6 is not bound to anything. Note it if a tester reaches for it.
 | 6 | Close the rightmost tab when it was opened last and never revisited | The right neighbour, or else the previous tab, becomes active, and the page has focus |
 | 7 | Close the last tab in `Research` | The Island's dots switch to the new active tab's group or run, and the domain matches the page that has focus |
 | 8 | Close a group from its ⋮ menu (Close Group) | One surviving tab becomes active and the page has focus |
-| 9 | Close every tab with ⌘W | Blanc opens a blank tab. **Check:** does typing go to the address field? (The code currently focuses the page here, unlike ⌘T.) |
+| 9 | Close every tab with ⌘W, then do the same with Close Group and Close Split on a window's last group or split | Blanc opens a blank tab with the ⌘L panel input focused, as ⌘T does, so typing goes straight to the address field |
 | 10 | Close a blank tab, landing on another blank tab | The ⌘L panel input is focused |
 | 11 | ⌘⇧T after step 5 | C comes back active and its page has focus |
 
@@ -85,8 +85,7 @@ apart from the other dots.
 These come from reading the code on October 20, 2026. They are not confirmed
 user-facing bugs:
 
-- Closing the last tab focuses the replacement blank tab's page, not the address field (step 9).
 - Esc doesn't close Glance (step 18), and Keep as split doesn't set focus explicitly (step 19).
 - Nothing in the chrome names a window's profile (step 23).
 - The active Island dot has no `aria-current`.
-- No acceptance scenario checks focus after an ordinary close, after closing the last tab, after a profile window opens, or after Keep as split. `glance.feature` covers the Glance close cases.
+- No acceptance scenario checks focus after an ordinary close, after a profile window opens, or after Keep as split. `glance.feature` covers the Glance close cases, and F37-4 covers closing the last tab.
