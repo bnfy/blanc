@@ -1,0 +1,13 @@
+[25293:8353035:1020/130046.991700:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[25293:8352866:1020/130047.107803:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/374295c5-1723-4d65-baa0-5198aff7914f
+[25293:8352866:1020/130047.823914:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[25293:8352866:1020/130047.825723:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[25340:8353725:1020/130057.109098:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[25340:8353701:1020/130057.202837:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/6fb3b654-7101-41af-a5c1-7314978a03e1
+[25340:8353701:1020/130057.397505:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[25340:8353701:1020/130057.397663:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[25340:8353701:1020/130100.702291:ERROR:base/process/kill_posix.cc:33] waitpid(25347): No child processes (10)

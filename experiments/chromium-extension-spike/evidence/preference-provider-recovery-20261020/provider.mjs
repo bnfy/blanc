@@ -1,0 +1,26 @@
+import {captureSpace} from '/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/space-capture.mjs';
+import fs from 'node:fs';import http from 'node:http';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';import {connect,pause} from '/private/tmp/blanc-cdp.mjs';
+const root='/private/tmp/blanc-pref-provider/'+'provider',profile=root+'/chromium-profile',port=9277;
+fs.mkdirSync(root,{recursive:true});
+const config=JSON.parse(fs.readFileSync('/private/tmp/blanc-prerender-followup-build/config.json'));
+const clients=[];let proc;const proof={checks:[]};const record=(name,value)=>{proof.checks.push({name,value});fs.writeFileSync(root+'/runtime.json',JSON.stringify(proof,null,2))};
+const wait=async(fn,test)=>{for(let i=0;i<200;i++){let x=await fn().catch(()=>null);if(test(x))return x;await pause(100)}throw Error('wait timeout')};
+const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end('<title>Split fixture</title><h1>'+q.url+'</h1><input id="text">')});await new Promise(r=>server.listen(9278,'127.0.0.1',r));
+const list=()=>fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());const attach=async t=>{let c=await connect(t);clients.push(c);return c};
+const api=(h,m,...a)=>h.eval(`BlancPrototypeHost.api.${m}(...${JSON.stringify(a)})`);
+async function start(restart=false){const log=fs.openSync(root+'/browser.log','a');proc=spawn(config.chromium,[`--user-data-dir=${profile}`,`--remote-debugging-port=${port}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--no-default-browser-check','--use-mock-keychain',...(true?['--enable-features=EncryptSessionStorage:stage/write_encrypted_read_prefer_encrypted']:['--disable-features=EncryptSessionStorage']),...(restart?['--restore-last-session','--hide-crash-restore-bubble']:['chrome://newtab/'])],{stdio:['ignore',log,log]});await wait(list,x=>x?.some(t=>t.url.includes('host.html')));let h=await attach((await list()).find(t=>t.url.includes('host.html')));await wait(()=>h.eval('typeof BlancPrototypeHost'),x=>x==='object');return h}
+const hosts=async()=>{const out=[];for(const t of(await list()).filter(t=>t.url.includes('host.html'))){const h=await attach(t);const s=await api(h,'getAllTabs').catch(()=>null);if(s)out.push({h,s})}return out};
+const shape=s=>({groups:s.groups.map(g=>({name:g.name,color:g.color,collapsed:g.collapsed,urls:s.tabs.filter(t=>t.groupId===g.id).map(t=>t.url)})),uuid:s.spaceWindowIdentity,urls:s.tabs.map(t=>t.url),active:s.tabs.find(t=>t.id===s.activeTabId)?.url,splits:s.splits.map(x=>({focus:x.focusedIndex,ids:x.tabIds.map(id=>s.tabs.find(t=>t.id===id)?.url),widths:x.layout.widths}))});
+try{
+fs.writeFileSync(root+'/empty','1');
+let h=await start();await api(h,'createTab','http://127.0.0.1:9278/source');
+await wait(()=>api(h,'getAllTabs'),s=>s?.initialWindowSaveFailed&&!s.initialWindowSaved);
+assert.ok(fs.existsSync(root+'/unavailable'));record('unavailable encryptor refuses initial save',await api(h,'getAllTabs'));
+await api(h,'previewSpaceSave','Source');await pause(500);const storePath=profile+'/Default/BlancPrototypeSpaces.json';const saved=fs.readFileSync(storePath,'utf8');const source=shape(await api(h,'getAllTabs'));
+for(let i=0;i<2;i++){let error;try{await api(h,'previewSpaceOpen','Source')}catch(e){error=String(e)}assert.match(error||'',/metadata save failed/);assert.deepEqual(shape(await api(h,'getAllTabs')),source);assert.equal(fs.readFileSync(storePath,'utf8'),saved);record('failed provider switch preserves source '+i,{error,snapshot:await api(h,'getAllTabs')});}
+assert.equal(fs.existsSync(profile+'/Default/Sessions')?fs.readdirSync(profile+'/Default/Sessions').filter(n=>n.startsWith('Session_')).length:0,0);record('no cleartext session fallback',{pass:true});
+let browser=await attach(await fetch(`http://127.0.0.1:${port}/json/version`).then(r=>r.json()));let done=new Promise(r=>proc.once('exit',r));await browser.send('Browser.close');await done;assert.equal(proc.exitCode,0);clients.forEach(c=>c.close());fs.unlinkSync(root+'/empty');await pause(1200);
+h=await start();await api(h,'createTab','http://127.0.0.1:9278/recovered');await wait(()=>api(h,'getAllTabs'),s=>s?.initialWindowSaved);record('restart with available provider saves',await api(h,'getAllTabs'));const expected=shape(await api(h,'getAllTabs'));
+done=new Promise(r=>proc.once('exit',r));proc.kill('SIGKILL');await done;clients.forEach(c=>c.close());await pause(1200);await start(true);await pause(2500);const hs=await hosts();assert.equal(hs.length,1);assert.deepEqual(shape(hs[0].s),expected);record('recovered provider crash restore exact identity',shape(hs[0].s));
+browser=await attach(await fetch(`http://127.0.0.1:${port}/json/version`).then(r=>r.json()));done=new Promise(r=>proc.once('exit',r));await browser.send('Browser.close');await done;assert.equal(proc.exitCode,0);proof.pass=true;
+}catch(e){proof.pass=false;proof.error=String(e);proof.stack=e.stack;if(proc?.exitCode===null)proc.kill('SIGTERM')}finally{clients.forEach(c=>c.close());server.close();fs.writeFileSync(root+'/runtime.json',JSON.stringify(proof,null,2));console.log({pass:proof.pass,error:proof.error,checks:proof.checks.length})}if(!proof.pass)process.exitCode=1;
