@@ -173,6 +173,7 @@ const {
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
+const { createWindowViewShutdown } = require('./window-view-shutdown');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
@@ -9236,7 +9237,29 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       });
     },
   });
-  rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
+  const drainWindowViews = createWindowViewShutdown({
+    window: newWindow,
+    getViews: () => [
+      ...runtime.tabOrder.flatMap((id) => [tabs.get(id)?.view, sleepSnapshots.get(id)?.view]),
+      ...(runtime.closedEntries ?? []).map((entry) => entry.view),
+      runtime.overlayView, runtime.utilitySheetView, runtime.permissionView, runtime.fillStatusView,
+    ],
+    resume: bindWindowRuntime(runtime, () => {
+      if (isQuitting) app.quit();
+      else if (!newWindow.isDestroyed()) newWindow.close();
+    }),
+  });
+  let windowCloseCheckpointed = false;
+  rt().window.on('close', bindWindowRuntime(runtime, (event) => {
+    if (!windowCloseCheckpointed) {
+      dockReopenLifecycle.onWindowClose(event);
+      if (event.defaultPrevented) return;
+      windowCloseCheckpointed = true;
+    }
+    // macOS retains pages for Dock reopen. Aura platforms instead finish
+    // owned contents destruction while their focus root still exists.
+    if (process.platform !== 'darwin') drainWindowViews(event);
+  }));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.

@@ -1,0 +1,75 @@
+{
+  "members": [
+    {
+      "path": "baseline-native.log",
+      "sha256": "040df92b4cf06d3a924664e3618935062a8ea0456625c64720493af4212b4297",
+      "bytes": 44
+    },
+    {
+      "path": "baseline.log",
+      "sha256": "6fa22453ff4e23c544c5fbad25037ecfd75a37ac9687edeef8600718282802c2",
+      "bytes": 597
+    },
+    {
+      "path": "ci-failure.txt",
+      "sha256": "81719ecbdf036d97324bf21bd728e2eaf77e2e12aec2e297b1f056e2db4efc9e",
+      "bytes": 323
+    },
+    {
+      "path": "dock-mac.log",
+      "sha256": "8efd8cf160e84569a15e643c33f981315b925065e2f4ed23a3a8509ebbbbec22",
+      "bytes": 31
+    },
+    {
+      "path": "fixed-native.log",
+      "sha256": "040df92b4cf06d3a924664e3618935062a8ea0456625c64720493af4212b4297",
+      "bytes": 44
+    },
+    {
+      "path": "fixed-order.log",
+      "sha256": "040df92b4cf06d3a924664e3618935062a8ea0456625c64720493af4212b4297",
+      "bytes": 44
+    },
+    {
+      "path": "lint-full.log",
+      "sha256": "e0635af0a8b7276c1d07422cf875b4c30eaa697957ebea0dcc628cf3ed8000e1",
+      "bytes": 90
+    },
+    {
+      "path": "lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "old-order.log",
+      "sha256": "1e63ca0770dafdea31b03f3abfbb8626d1f10b864f79f878be2d046d8c7204eb",
+      "bytes": 410
+    },
+    {
+      "path": "primary-linux.log",
+      "sha256": "c00a2d48cc22bd4f46bffef0a3c4cb3bc8a2c24fa33ffa54e3b25d21e2b4dcd2",
+      "bytes": 44
+    },
+    {
+      "path": "quit-win32.log",
+      "sha256": "7adbbd658cfb5ca18886cf696ea8b55280fc784a82355688b64d7c5cf88b5535",
+      "bytes": 41
+    },
+    {
+      "path": "summary.json",
+      "sha256": "1cd80c2fa80a16832fc57f746617e154c68d2c552b197ae2daaa9bf7c70d9534",
+      "bytes": 490
+    },
+    {
+      "path": "unit-final.log",
+      "sha256": "bbfef26593e589f6eaaa5b0da3612fa3e46de92086c918e2f8a59ed76f4bbfdd",
+      "bytes": 16673
+    },
+    {
+      "path": "unit.log",
+      "sha256": "b7e28e40e6d8a264b91192486086dbcd32c343ea91745acfdddf0bb6d6ac7baa",
+      "bytes": 600651
+    }
+  ],
+  "archive_sha256": "4c1dbc12b9c34c3b25143b95b0e2d3f3a0fa4fa6a153ddf02ac64f30774790b7"
+}
