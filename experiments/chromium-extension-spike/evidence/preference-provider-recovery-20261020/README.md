@@ -9,3 +9,5 @@ The diagnostic is removed byte-for-byte and the normal binary rebuilt. Native in
 Four schedules (15 recorded checkpoints) and eight focused tests pass. Diagnostic and normal incremental builds: 28.39s and 28.34s, six steps each; final guard zero. No permanent code changes. Prior normal footprint49/117 unchanged; temporary two-hunk addition in an already-patched file gives a conservative49/119 upper bound within49/120, not a new full inventory. Four disposable profiles removed. Evidence: `evidence/preference-provider-recovery-20261020/`.
 
 All pages are authored loopback fixtures. Actual crash restarts use the disposable-only crash-bubble bypass; physical recovery prompts remain unqualified. The binary diagnostic is not retained; its exact patch is archived and source equality verified. No profiles or key material are committed.
+
+CodeQL follow-up: both archived harness servers now return fixed heading text instead of reflecting the request URL into HTML. URL identity assertions are unchanged. Historical runtime logs describe the original runs; this follow-up validates fixture response safety and syntax, not a new provider/runtime qualification.
