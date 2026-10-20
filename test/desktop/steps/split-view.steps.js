@@ -390,3 +390,76 @@ When('I save this window as a Space, switch away and come back', async function 
   const back = await this.call('workspaceAction', 'open', saved.workspace.id);
   assert.equal(back.ok, true, JSON.stringify(back));
 });
+
+// ---- Review fixes (F53-14 … F53-19) ----
+
+When('the second pane navigates to another page', async function () {
+  await this.call('navigateTab', this.splitB, this.fixtureUrl('split-b-next'));
+  await this.waitForState((s) => s.tabs.find((t) => t.id === this.splitB)?.loadedUrl.includes('split-b-next')
+    && !s.tabs.find((t) => t.id === this.splitB)?.loading);
+});
+
+Then("the second pane's header names the new page and offers Back", async function () {
+  const page = await chromePage();
+  await waitForValue(() => page.evaluate((id) => {
+    const el = document.querySelector(`.split-pane-header[data-tab-id="${id}"]`);
+    return el && { title: el.querySelector('.split-pane-title')?.textContent, back: !el.querySelector('.split-pane-back')?.disabled };
+  }, this.splitB), (h) => h?.title === 'split-b-next' && h.back, 'the header to follow the page');
+});
+
+When('I group the first split tab as {string}', async function (name) {
+  await this.call('groupTabByName', this.splitA, name);
+});
+
+Then('both split tabs are in group {string} and still one split', async function (name) {
+  const state = await this.waitForState((s) => s.groups.some((g) => g.name === name));
+  const group = state.groups.find((g) => g.name === name);
+  for (const id of [this.splitA, this.splitB]) assert.equal(state.tabs.find((t) => t.id === id).groupId, group.id, `${id} in ${name}`);
+  assert.equal(state.splits.length, 1);
+  assert.deepEqual(state.splits[0].tabIds, [this.splitA, this.splitB]);
+  const order = state.tabOrder.filter((id) => state.tabs.find((t) => t.id === id)?.groupId === group.id);
+  assert.deepEqual(order, [this.splitA, this.splitB], 'the split stays together in its group');
+});
+
+Given('the split is in group {string}', async function (name) {
+  await this.call('groupTabByName', this.splitA, name);
+  this.splitGroupName = name;
+  await this.waitForState((s) => s.tabs.filter((t) => [this.splitA, this.splitB].includes(t.id))
+    .every((t) => t.groupId && s.groups.find((g) => g.id === t.groupId)?.name === name));
+});
+
+When('I move group {string} to a new window', async function (name) {
+  const state = await this.state();
+  const group = state.groups.find((g) => g.name === name);
+  assert.ok(await this.call('moveGroupToNewWindow', group.id), 'the group moved');
+});
+
+Then("no tab is left pointing at a split that isn't there", async function () {
+  const stray = await waitForValue(() => this.call('straySplitIds'), (list) => Array.isArray(list), 'the split check');
+  assert.deepEqual(stray, []);
+});
+
+When('I close the second split tab', async function () {
+  assert.equal((await this.state()).activeTabId, this.splitA);
+  await this.call('closeTab', this.splitB);
+  await this.waitForState((s) => !s.tabs.some((t) => t.id === this.splitB));
+});
+
+Then("the second split tab's view is no longer in the window", async function () {
+  const views = await this.call('windowChildViewCount');
+  const attached = await this.call('attachedTabViewIds');
+  assert.deepEqual(attached, [this.splitA], 'only the remaining tab is attached');
+  assert.equal(views.tabViews, 1, `no leftover page view: ${JSON.stringify(views)}`);
+});
+
+Then('Blanc announces that {string} moves into {string}', async function (title, group) {
+  const page = await chromePage();
+  await waitForValue(() => page.evaluate(() => document.getElementById('glanceStatus')?.textContent ?? ''),
+    (text) => text.includes(`Moves ${title} into ${group}`), 'the group move to be announced');
+});
+
+Then('the first split tab is the active tab', async function () {
+  const state = await this.waitForState((s) => s.splits.length === 0);
+  assert.equal(state.activeTabId, this.splitA);
+  assert.equal(state.tabs.find((t) => t.id === this.splitA).pinned, true);
+});

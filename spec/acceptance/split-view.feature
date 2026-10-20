@@ -102,3 +102,40 @@ Feature: Split View
     Then the panel lists both split tabs under the split's row
     When I show the tabs in the side list
     Then the side list shows the split as one row
+
+  @F53-14 @F53 @desktop @D11
+  Scenario: A pane header follows its page as it navigates
+    Given two loaded tabs made into a split
+    When the second pane navigates to another page
+    Then the second pane's header names the new page and offers Back
+
+  @F53-15 @F53 @desktop @D11
+  Scenario: Grouping one split tab moves the whole split
+    Given two loaded tabs made into a split
+    When I group the first split tab as "Read"
+    Then both split tabs are in group "Read" and still one split
+
+  @F53-16 @F53 @desktop @D11
+  Scenario: Moving a group that holds a split to a new window leaves no broken split
+    Given two loaded tabs made into a split
+    And the split is in group "Trip"
+    When I move group "Trip" to a new window
+    Then no tab is left pointing at a split that isn't there
+
+  @F53-17 @F53 @desktop @D11
+  Scenario: Closing the other pane takes its page off the window
+    Given two loaded tabs made into a split
+    When I close the second split tab
+    Then the second split tab's view is no longer in the window
+
+  @F53-18 @F53 @desktop @D11
+  Scenario: Keeping a Glance as a split says when a tab changes group
+    Given a main page in group "Work" and a Glance reference in group "Read"
+    When I keep the Glance as a split
+    Then Blanc announces that "split-reference" moves into "Work"
+
+  @F53-19 @F53 @desktop @D11
+  Scenario: Pinning the focused pane keeps it on screen
+    Given two loaded tabs made into a split
+    When I pin the first split tab
+    Then the first split tab is the active tab

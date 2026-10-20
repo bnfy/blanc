@@ -20,6 +20,7 @@ function makeSandbox({ runtime, tabs, onSelect }) {
     // Split View (F53): no split in these fixtures.
     splitForTab: () => null,
     pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     sleepTeardownInProgress: false,
     fillHintScheduler: null,

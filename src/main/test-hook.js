@@ -185,6 +185,9 @@ function install(refs) {
     runSleepSweep,
     createSplitFromTabs,
     keepGlanceAsSplit,
+    moveGroupToNewWindowForTest,
+    straySplitIds,
+    windowChildViewCount,
     menuContextActionsForTest,
     closedEntrySummaries,
     splitLayoutForTest,
@@ -671,6 +674,9 @@ function install(refs) {
       return runTabContextMenuItem(itemId, { tab: { id: tabId, url: tabs.get(tabId)?.url }, ...extra, actions: menuContextActionsForTest() });
     },
     closedEntrySummaries() { return closedEntrySummaries(); },
+    moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
+    straySplitIds() { return straySplitIds(); },
+    windowChildViewCount() { return windowChildViewCount(); },
     attachedTabViewIds() { return attachedTabViewIds(); },
     /** Give a pane keyboard focus, as a click into it does. */
     focusPane(id) {

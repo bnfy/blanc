@@ -3813,6 +3813,12 @@ function pruneSplits(runtime) {
   const kept = [];
   for (const split of runtime.splits) {
     const tabIds = split.tabIds.filter((id) => tabs.has(id) && windowRuntimes.runtimeForTab(id) === runtime);
+    // A member that left the window (Move Group to New Window) is no longer
+    // in this split: never leave it pointing at one that isn't there.
+    for (const id of split.tabIds) {
+      const tab = tabs.get(id);
+      if (tab && !tabIds.includes(id) && tab.splitId === split.id) tab.splitId = null;
+    }
     if (tabIds.length >= 2) {
       kept.push(tabIds.length === split.tabIds.length
         ? split
@@ -3924,6 +3930,34 @@ function applyRestoredSplits(runtime, saved, restoredIds) {
   syncTabLayout(runtime);
 }
 
+/** A split's tabs share one group (spec §3.4): after one member changed
+ *  group by some path other than setTabGroup, the others follow it. */
+function alignSplitGroup(tabId) {
+  const tab = tabs.get(tabId);
+  const split = tab ? splitForTab(rt().splits, tabId) : null;
+  if (!split) return;
+  for (const id of split.tabIds) {
+    const member = tabs.get(id);
+    if (member && member !== tab) member.groupId = tab.groupId ?? null;
+  }
+  pruneEmptyGroups();
+  syncTabLayout(rt());
+}
+
+/** "Moves {title} into/out of {group}" for each tab the group rule moves
+ *  (spec §3.1), worked out before the split is made. */
+function splitGroupMoveNotes(initiatorId, otherIds) {
+  const to = tabs.get(initiatorId)?.groupId ?? null;
+  const nameOf = (id) => rt().groups.find((g) => g.id === id)?.name ?? '';
+  return otherIds.map((id) => tabs.get(id)).filter(Boolean).flatMap((other) => {
+    const from = other.groupId ?? null;
+    const title = displayTitle(other) || mainI18n.t('tab.untitledShort');
+    if (to && from !== to) return [mainI18n.t('split.groupMoveInto', { title, group: nameOf(to) })];
+    if (!to && from) return [mainI18n.t('split.groupMoveOutOf', { title, group: nameOf(from) })];
+    return [];
+  });
+}
+
 /** Say something to screen readers through the strip's live region. */
 function announceSplit(message) {
   if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', message);
@@ -3937,23 +3971,25 @@ function keepGlanceAsSplit() {
   const referenceId = activeGlanceTab()?.id ?? null;
   if (!mainId || !referenceId) return null;
   const ratio = Number.isFinite(runtime.glanceRatio) ? runtime.glanceRatio : 0.62;
+  const notes = splitGroupMoveNotes(mainId, [referenceId]);
   const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] } });
-  if (split) announceSplitMade(split);
+  if (split) announceSplitMade(split, notes);
   return split;
 }
 
 /** Split with ▸ (D1): the right-clicked tab leads; the chosen tab joins. */
 function splitTabWith(tabId, otherId) {
+  const notes = splitGroupMoveNotes(tabId, [otherId]);
   const split = createSplitFromTabs(tabId, [otherId]);
   if (!split) return null;
   setActiveTab(tabId);
-  announceSplitMade(split);
+  announceSplitMade(split, notes);
   return split;
 }
 
-function announceSplitMade(split) {
+function announceSplitMade(split, notes = []) {
   const [first, second] = split.tabIds.map((id) => displayTitle(tabs.get(id)) || mainI18n.t('tab.untitledShort'));
-  announceSplit(mainI18n.t('split.made', { first, second }));
+  announceSplit([mainI18n.t('split.made', { first, second }), ...notes].join('. '));
 }
 
 /** Remove from Split (D8): the tab lands directly below the split; a split
@@ -6554,6 +6590,7 @@ function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   }
   tab.groupId = group.id;
   pruneEmptyGroups();
+  alignSplitGroup(tabId);
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -7309,7 +7346,12 @@ function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
   // A split never holds a pinned tab: pinning takes it out first (D7).
-  if (!tab.pinned && tab.splitId) removeTabFromSplit(id);
+  if (!tab.pinned && tab.splitId) {
+    const owner = windowRuntimes.runtimeForTab(id) ?? rt();
+    const wasShown = owner.activeTabId === id;
+    removeTabFromSplit(id);
+    if (wasShown) withWindowRuntime(owner, () => setActiveTab(id));
+  }
   tab.pinned = !tab.pinned;
   tab.pinnedHomeUrl = tab.pinned
     ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
@@ -8400,6 +8442,7 @@ function closeTab(id) {
   const wasGlance = id === rt().glanceTabId;
   // Split View: closing a pane hands the window to the split's other pane.
   const splitSurvivors = (splitForTab(rt().splits, id)?.tabIds ?? []).filter((other) => other !== id);
+  const wasSplitPane = visibleSplitTabIds(rt()).includes(id);
   // A find capsule searching this tab goes with it. Its focus counts as the
   // tab's: ⌘W pressed in the find bar on the reference hands focus to the
   // main page, like ⌘W pressed in the reference itself.
@@ -8459,7 +8502,7 @@ function closeTab(id) {
 
   if (tab.view) {
     if (!parked) prepareTabViewForClose(tab);
-    else if (wasActive || wasGlance) detachTabView(tab);
+    else if (wasActive || wasGlance || wasSplitPane) detachTabView(tab);
   }
   if (wasGlance) { rt().glanceTabId = null; resetFocusedPane(); }
 
@@ -8832,6 +8875,7 @@ function moveTabTo(id, target) {
     // left dissolves; the target keeps its collapsed state.
     tab.groupId = result.groupId;
     pruneEmptyGroups();
+    alignSplitGroup(id);
   }
   const after = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
   const movedAt = after.indexOf(id);
@@ -13164,6 +13208,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Split View (F53)
       createSplitFromTabs,
       keepGlanceAsSplit,
+      moveGroupToNewWindowForTest: (groupId) => moveGroupToNewWindow(groupId),
+      /** Tab ids whose splitId names no split in their own window. */
+      straySplitIds: () => [...tabs.values()].filter((tab) => tab.splitId
+        && !(windowRuntimes.runtimeForTab(tab.id)?.splits ?? []).some((s) => s.id === tab.splitId)).map((tab) => tab.id),
+      windowChildViewCount: () => {
+        if (!hasLiveWindow()) return { tabViews: 0 };
+        const tabViews = new Set([...tabs.values()].map((tab) => tab.view).filter(Boolean));
+        const closedViews = new Set((rt().closedEntries ?? []).map((entry) => entry.view).filter(Boolean));
+        const children = rt().window.contentView.children;
+        return {
+          tabViews: children.filter((v) => tabViews.has(v)).length,
+          parkedViews: children.filter((v) => closedViews.has(v)).length,
+          total: children.length,
+        };
+      },
       menuContextActionsForTest: () => menuContextActions(rt()),
       closedEntrySummaries: () => projectEntries(rt().closedEntries ?? []),
       splitLayoutForTest: () => currentSplitLayoutPayload(splitGeometry()),

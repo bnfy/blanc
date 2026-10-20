@@ -356,7 +356,18 @@
     for (const [tabId, el] of splitHeaders) {
       if (!keep.has(tabId)) { el.remove(); splitHeaders.delete(tabId); }
     }
-    layout.panes.forEach((pane, index) => {
+    layout.panes.forEach((layoutPane, index) => {
+      // Title, Back, loading and privacy come from the live tab list, so a
+      // header follows its page between layout messages (main sends those on
+      // switches and resizes only).
+      const tab = state.tabs.find((t) => t.id === layoutPane.tabId);
+      const pane = tab ? {
+        ...layoutPane,
+        title: tab.title || layoutPane.title,
+        canGoBack: !!tab.canGoBack,
+        loading: !!tab.isLoading,
+        private: !!tab.private,
+      } : layoutPane;
       const el = splitPaneHeader(pane.tabId);
       el.hidden = !pane.header || pane.header.height <= 0;
       if (pane.header) placeAt(el, pane.header);
@@ -367,7 +378,6 @@
       }));
       el.querySelector('.split-pane-title').textContent = pane.title || blancI18n.t('tab.untitledShort');
       el.querySelector('.row-private').hidden = !pane.private;
-      const tab = state.tabs.find((t) => t.id === pane.tabId);
       setFavicon(el.querySelector('.favicon'), tab ?? { url: '', favicon: pane.favicon, isLoading: pane.loading, title: pane.title });
       el.querySelector('.split-pane-back').disabled = !pane.canGoBack;
       const reload = el.querySelector('.split-pane-reload');
@@ -1256,6 +1266,8 @@
 
   function render() {
     requestAnimationFrame(() => reportIslandRect());
+    // Split View headers follow their pages (title, Back, loading).
+    if (splitLayoutState) renderSplitPanes(splitLayoutState);
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
     // center the resting Island over the remaining website pane.
