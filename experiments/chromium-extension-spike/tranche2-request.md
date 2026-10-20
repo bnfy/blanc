@@ -1769,3 +1769,9 @@ Evidence: `evidence/store-blanc-label-20261020/`.
 ## October 20 — Split View baseline correction
 
 Owner directed migration to check Electron PR #993. Pinned review at98ea48fc distinguishes temporary Glance from persistent Split View. `split-view-migration.md` records contract and native gaps. Exact first-party pure model modules imported with hashes; Spaces adapter serializes splits/splitIds and seven unit tests pass. Native snapshot/store/journal/UI integration remains unimplemented; no runtime parity claim. Older promotion draft removed and normal binary restored incrementally. No upstream count change;49/117. Latency deferred, Electron diagnostic build unapproved.
+
+## October 20 — Native Split View persistence and recovery
+
+Implemented a bounded native path based on PR #993 at98ea48fc: one active two-pane columns split, matching string tab IDs, saved widths/focusedIndex, explicit persistent metadata, store v2 and journal v4. Existing unsplit versions remain readable. Native save/reopen, Split/Plain round trip, actual session crash restart, journal-boundary source rollback, equal-pane visibility, 40/60 layout, seven malformed-record refusals and temporary-Glance exclusion across restart pass. Session-rebuild marker loss found during testing was repaired through existing hooks. Eight focused tests and scoped lint pass. Evidence: `evidence/native-split-persistence-20261020/README.md`. Four successful incremental builds plus one retained compile failure; final guard0. Fresh footprint49files/117hunks remains within49/120; no budget increase needed.
+
+Multiple/inactive splits, global split identity, pane headers/rail/public controls, group-policy and whole-split Recently Closed runtime parity, later staging crash boundaries and broader lifecycle/provider faults remain gaps. Native runtime tests use disposable profiles and diagnostic crash-bubble bypass; retained preview untouched. Latency deferred; Electron diagnostic build unapproved.

@@ -57,4 +57,15 @@ export function prepareWindowIdentity(edit) {
     present: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n"
   }]);
 
+  edit("chrome/browser/sessions/session_service_base.cc", [{
+    anchor: "          blanc_prototype::kTabIdentityKey, tab_identity));\n",
+    replacement: "          blanc_prototype::kTabIdentityKey, tab_identity));\n  if (blanc_prototype::IsPersistentSplitTab(tab))\n    command_storage_manager()->AppendRebuildCommand(\n        sessions::CreateAddTabExtraDataCommand(session_id,\n            blanc_prototype::kPersistentSplitKey, \"1\"));\n",
+    present: "  if (blanc_prototype::IsPersistentSplitTab(tab))\n"
+  }]);
+  edit("chrome/browser/ui/browser_live_tab_context.cc", [{
+    anchor: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n",
+    replacement: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n  if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))\n    extra_data[blanc_prototype::kPersistentSplitKey] = \"1\";\n",
+    present: "    extra_data[blanc_prototype::kPersistentSplitKey] = \"1\";\n"
+  }]);
+
 }

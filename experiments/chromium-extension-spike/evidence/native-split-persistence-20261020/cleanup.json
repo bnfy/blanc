@@ -1,0 +1,9 @@
+{
+  "owned_browser_processes": [],
+  "removed_profiles": [
+    "profile",
+    "profile2",
+    "profile3"
+  ],
+  "retained_preview": "untouched"
+}

@@ -15,7 +15,7 @@ Reviewed source commit `98ea48fc01d79759cfef40009b18cf69715eaed8` from bnfy/blan
 | Pin removes pane, keeps it shown; removed pane follows row | Explicit order and group policy across native tab actions. |
 | No quiet/archive for visible panes; no Glance while split visible | Lifecycle and eligibility guards across all command entrypoints. |
 
-## This checkpoint
+## Initial reference checkpoint (superseded by native checkpoint below)
 
 Copied the three first-party pure model/layout modules byte-for-byte into `electron-split-reference/`; provenance records source commit and SHA256 digests. Existing MIT terms apply. The Spaces capture adapter now delegates split serialization to that exact model and emits parallel splitIds plus layout/focusedIndex records. Seven tests pass, including restoration with new tab IDs, temporary Glance exclusion, private refusal and incomplete capture when an unsupported member is omitted.
 
@@ -24,3 +24,9 @@ This adapter is not the native persistence implementation. Native SpaceCapture/S
 A draft older-Glance promotion implementation was compiled before the owner supplied #993. It was removed before commit/UI exposure and the normal binary restored by a second guarded incremental build. Its standalone policy tests are not Split View evidence. Retained preview was not restarted or modified. No upstream patch-count change; last authoritative inventory 49/117 within49/120. Latency deferred; Electron diagnostic build unapproved.
 
 Next: add an explicit native persistent-split snapshot/schema, preserve focused identity, and exercise Spaces capture/restore before exposing Keep as split. Treat the remaining #993 review findings as a checklist rather than migrating them blindly.
+
+## October 20 — Native Split View persistence and recovery
+
+Implemented a bounded native path based on PR #993 at98ea48fc: one active two-pane columns split, matching string tab IDs, saved widths/focusedIndex, explicit persistent metadata, store v2 and journal v4. Existing unsplit versions remain readable. Native save/reopen, Split/Plain round trip, actual session crash restart, journal-boundary source rollback, equal-pane visibility, 40/60 layout, seven malformed-record refusals and temporary-Glance exclusion across restart pass. Session-rebuild marker loss found during testing was repaired through existing hooks. Eight focused tests and scoped lint pass. Evidence: `evidence/native-split-persistence-20261020/README.md`. Four successful incremental builds plus one retained compile failure; final guard0. Fresh footprint49files/117hunks remains within49/120; no budget increase needed.
+
+Multiple/inactive splits, global split identity, pane headers/rail/public controls, group-policy and whole-split Recently Closed runtime parity, later staging crash boundaries and broader lifecycle/provider faults remain gaps. Native runtime tests use disposable profiles and diagnostic crash-bubble bypass; retained preview untouched. Latency deferred; Electron diagnostic build unapproved.

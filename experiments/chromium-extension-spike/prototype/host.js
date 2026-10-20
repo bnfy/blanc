@@ -101,6 +101,10 @@
       // context rows), so native integer ids become strings here and go
       // back through nativeId() on every call.
       for (const tab of snapshot.tabs) tab.id = String(tab.id);
+      for (const split of snapshot.splits ?? []) {
+        split.tabIds = split.tabIds.map(String);
+        if (split.focusedTabId != null) split.focusedTabId = String(split.focusedTabId);
+      }
       if (snapshot.activeTabId != null) snapshot.activeTabId = String(snapshot.activeTabId);
       for (const key of ['focusedTabId', 'glanceTabId']) {
         if (snapshot[key] != null) snapshot[key] = String(snapshot[key]);
@@ -372,6 +376,7 @@
     },
     listRemoteTabs: async () => [],
     // Internal migration probes; no user-facing Glance acceptance yet.
+    previewSplitPair: (main, reference) => request('previewSplitPair', [nativeId(main), nativeId(reference)]),
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),
     previewPageCommand: command => request('previewPageCommand', [command]),
