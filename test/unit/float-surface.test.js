@@ -120,3 +120,11 @@ test('with vertical tabs no menu button floats over the rail', () => {
   const js = read('src/renderer/renderer.js');
   assert.match(js, /const menuBox = isMac \|\| state\.tabLayout === 'vertical' \? null : boxOf\(mainMenuButton\);/);
 });
+
+test('a new float view starts with the pill\'s current proximity', () => {
+  const main = read('src/main/main.js');
+  const ensure = main.slice(main.indexOf('function ensureIslandFloatView('), main.indexOf('function destroyIslandFloatViews('));
+  // Main says nothing more once the pointer settles, so a document that was
+  // still loading would keep its pill at rest while the strip's swelled.
+  assert.match(ensure, /contents\.send\('chrome:island-proximity', \{ k: runtime\.islandProximity\?\.k \?\? 0 \}\);/);
+});

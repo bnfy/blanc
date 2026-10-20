@@ -3782,8 +3782,10 @@ function ensureIslandFloatView(runtime, role) {
   contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     if (record.payload) contents.send('chrome:float-frame', record.payload);
     if (record.shown) contents.send('chrome:float-shown', true);
-    // Downloads only ever arrive as broadcasts; the renderer pulls the rest.
+    // Downloads and the pill's proximity only ever arrive as broadcasts, and
+    // proximity goes quiet once the pointer settles; the renderer pulls the rest.
     contents.send('chrome:downloads', downloadsActivity());
+    contents.send('chrome:island-proximity', { k: runtime.islandProximity?.k ?? 0 });
   }));
   if (role === 'pill') {
     // The pill's right-click menu, as on the strip, placed at the pointer.
