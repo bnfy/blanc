@@ -225,6 +225,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-10 | Clicking and scrolling the page behind keeps the Glance open | D11 | ✅ | ➖ | ➖ |
 | F34-11 | At 360 px the header keeps Back, Reload, the three actions as icons and × | D11 | ✅ | ➖ | ➖ |
 | F34-12 | Arrow keys on Move or resize move the card 16 px and announce it | D11 | ✅ | ➖ | ➖ |
+| F34-13 | Find for the Glance page sits over the card | D11 | ✅ | ➖ | ➖ |
+| F34-14 | The card fades in at its full size and closes at once | D11 | ✅ | ➖ | ➖ |
 | F34-15 | Closing the main page while a Glance is open makes the Glance page the current tab | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |

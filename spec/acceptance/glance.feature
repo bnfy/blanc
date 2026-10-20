@@ -650,3 +650,20 @@ Feature: Glance reference pane
     And I press the right arrow on the Glance card's Move or resize control
     Then the Glance card has moved by 16, 0
     And the Glance card announces "Glance moved"
+
+  @F34-13 @F34 @D11
+  Scenario: Find for the Glance page sits over the card
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule sits over the Glance card and searches it
+
+  @F34-14 @F34 @D11
+  Scenario: The card fades in at its full size and closes at once
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then the Glance card fades in at its full size
+    When I close Glance and look at the card in the same moment
+    Then the Glance card was already gone

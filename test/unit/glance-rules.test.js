@@ -52,3 +52,19 @@ test('a closing card is hidden before anything else runs', () => {
   assert.ok(hide > 0 && hide < close.indexOf('detachTabView('), 'the card hides before the page detaches');
   assert.ok(hide < close.indexOf('resizeActiveView();'));
 });
+
+test('a fill message for the Glance page sits at the bottom of the card', () => {
+  const bounds = between(main, 'function fillStatusViewBounds() {', '\n}\n');
+  assert.match(bounds, /rt\(\)\.fillStatusTabId === rt\(\)\.glanceTabId/);
+  assert.match(bounds, /glanceCardGeometry\(\)\?\.page/);
+  assert.match(main, /attach: \(target\) => withWindowRuntime\(target\.runtime, \(\) => attachFillStatusView\(target\.tabId\)\)/);
+});
+
+test('the card fades in, never scales, and has no exit animation', () => {
+  const css = read('src/renderer/styles.css');
+  const block = css.slice(css.indexOf('/* ---- Floating Glance card (blanc-chrome://glance/)'));
+  assert.match(block, /html\[data-surface="glance"\] \.glance-card \{[^}]*transition: opacity 140ms ease, display 140ms allow-discrete;/);
+  assert.match(block, /@starting-style \{\s+html\[data-surface="glance"\] \.glance-card:not\(\[hidden\]\) \{ opacity: 0; \}\s+\}/);
+  assert.match(block, /@media \(prefers-reduced-motion: reduce\) \{\s+html\[data-surface="glance"\] \.glance-card \{ transition: none; \}/);
+  assert.doesNotMatch(block, /\.glance-card[^{]*\{[^}]*scale/);
+});

@@ -2434,3 +2434,30 @@ Then('the Glance card announces {string}', async function (message) {
   await waitForValue(() => page.evaluate(() => document.getElementById('glanceCardStatus')?.textContent ?? ''),
     (text) => text === message, `the card to announce ${message}`);
 });
+
+Then('the find capsule sits over the Glance card and searches it', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
+  assert.equal(await this.call('findTabId'), this.glanceReferenceId);
+  const card = await glanceCard(this);
+  const bounds = await this.call('overlayViewBounds');
+  assert.ok(bounds.x >= card.page.x && bounds.x + bounds.width <= card.page.x + card.page.width,
+    `capsule ${JSON.stringify(bounds)} inside the card's page ${JSON.stringify(card.page)}`);
+  assert.equal(bounds.y, card.page.y);
+  const page = await overlayPage();
+  await page.locator('#findInput').fill('widget');
+  await waitForValue(() => page.locator('#findCount').textContent(), (text) => text === '1/3', 'match count from the Glance page');
+});
+
+Then('the Glance card fades in at its full size', async function () {
+  const motion = await waitForValue(() => this.call('glanceCardMotion'), (value) => value && value.hidden === false, 'the card motion');
+  assert.match(motion.transition, /opacity 0\.14s/);
+  assert.equal(motion.transform, 'none');
+});
+
+When('I close Glance and look at the card in the same moment', async function () {
+  this.glanceCloseRead = await this.call('closeGlanceAndReadCard');
+});
+
+Then('the Glance card was already gone', async function () {
+  assert.deepEqual(this.glanceCloseRead, { closed: true, cardViewVisible: false });
+});

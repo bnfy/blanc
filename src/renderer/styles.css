@@ -4433,6 +4433,17 @@ html[data-surface="glance"] .glance-card {
   background: var(--surface-raised);
   /* Kept inside the 8 px ring: a view clips what it draws past its edge. */
   box-shadow: 0 3px 7px -2px rgba(14, 14, 14, 0.2);
+  /* The card's chrome fades in at its full size: the Glance page is a view
+     of its own that can't fade or change size on the way in, and a growing
+     border would part from it. It closes at once, with no exit (a view takes
+     every click inside it, so nothing may linger after a close). */
+  transition: opacity 140ms ease, display 140ms allow-discrete;
+}
+@starting-style {
+  html[data-surface="glance"] .glance-card:not([hidden]) { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-surface="glance"] .glance-card { transition: none; }
 }
 html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
 /* The resize ring: 8 px just outside the border, corners 16 px square

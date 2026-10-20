@@ -138,6 +138,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * boundary — reset on view creation and render-process-gone. */
     fillStatusView: null,
     fillStatusViewAttached: false,
+    // The tab the fill capsule's message is about: with a Glance open, a
+    // message about the Glance page sits at the bottom of the card.
+    fillStatusTabId: null,
     fillStatusViewLoaded: false,
     /** The resting pill's tooltip (tooltip.html), floated under the pill
      * while the strip asks for it; `tooltipGeneration` drops a show that a

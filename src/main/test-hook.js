@@ -78,6 +78,7 @@ function install(refs) {
     getFloatViewState,
     getFloatWebContents,
     getGlanceCardWebContents,
+    getGlanceCardViewVisible,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
     getChromeButtonRects,
@@ -2382,6 +2383,24 @@ function install(refs) {
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
+    // The floating Glance card's computed motion, read in its own document.
+    async glanceCardMotion() {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('glanceCard');
+        if (!card) return null;
+        const style = getComputedStyle(card);
+        return { transition: style.transition, transform: style.transform, opacity: style.opacity, hidden: card.hidden };
+      })()`);
+    },
+    // Close the Glance and, in the same turn, read whether the card's view is
+    // still visible: a visible view would take the page's clicks.
+    closeGlanceAndReadCard() {
+      const closed = closeGlanceAction({ focusContent: false });
+      const wc = getGlanceCardWebContents();
+      return { closed, cardViewVisible: wc && !wc.isDestroyed() ? getGlanceCardViewVisible() : false };
+    },
     async glanceHeaderMotion() {
       const strip = getChromeWebContents();
       if (!strip) return null;

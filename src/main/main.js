@@ -4958,6 +4958,13 @@ function detachPermissionView() {
 
 function fillStatusViewBounds() {
   const { width, height } = rt().window.getContentBounds();
+  // A message about the Glance page sits at the bottom of the card.
+  const card = rt().fillStatusTabId === rt().glanceTabId ? glanceCardGeometry()?.page : null;
+  if (card) {
+    const w = Math.min(560, Math.max(0, card.width - 24));
+    const h = Math.min(88, card.height);
+    return { x: card.x + Math.round((card.width - w) / 2), y: card.y + card.height - h, width: w, height: h };
+  }
   const w = Math.min(560, Math.max(0, width - 24));
   // Title row + up-to-two-line body + padding + the 12px bottom margin the
   // document draws. The capsule bottom-anchors inside this band, so keep it
@@ -5032,8 +5039,9 @@ function restackFillStatusView() {
   }
 }
 
-function attachFillStatusView() {
+function attachFillStatusView(tabId = null) {
   if (!hasLiveWindow()) return;
+  rt().fillStatusTabId = tabId;
   const view = ensureFillStatusView();
   view.setBounds(fillStatusViewBounds());
   // Never detached between messages on Linux: Electron 44 stops a
@@ -6039,7 +6047,7 @@ function getFillStatusSurface() {
           }
           : null;
       }),
-      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView()),
+      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView(target.tabId)),
       hide: (target) => withWindowRuntime(target.runtime, () => detachFillStatusView()),
       showFallbackDialog: showFillFallbackDialog,
       restoreFocus: (target) => {
@@ -13802,6 +13810,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
       getGlanceCardWebContents: () => liveGlanceCardView()?.webContents ?? null,
+      getGlanceCardViewVisible: () => liveGlanceCardView()?.getVisible?.() ?? false,
       getFloatWebContentsIds: (runtimeId) => {
         const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
         return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];
