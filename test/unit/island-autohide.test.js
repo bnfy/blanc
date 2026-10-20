@@ -9,6 +9,8 @@ const {
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
   REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
   AUTO_HIDE_STYLES, normalizeAutoHideStyle,
+  DRAG_BAND_PX, FLOAT_SIDE_PX, FLOAT_BOTTOM_PX, FLOAT_CHROME_PAD_PX,
+  floatingLayout, floatViewsWanted, floatViewsShown, floatViewBounds,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -276,4 +278,45 @@ test('normalizeAutoHideStyle keeps push and turns anything else into float', () 
   assert.deepEqual(AUTO_HIDE_STYLES, ['float', 'push']);
   assert.equal(normalizeAutoHideStyle('push'), 'push');
   for (const value of ['float', undefined, null, 'PUSH', 1]) assert.equal(normalizeAutoHideStyle(value), 'float');
+});
+
+test('floating Island constants', () => {
+  assert.equal(DRAG_BAND_PX, 6);
+  assert.equal(FLOAT_SIDE_PX, 20);
+  assert.equal(FLOAT_BOTTOM_PX, 24);
+  assert.equal(FLOAT_CHROME_PAD_PX, 8);
+});
+
+test('floatingLayout: only auto-hide with float, and never while Glance is open', () => {
+  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: false }), true);
+  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: true }), false);
+  assert.equal(floatingLayout({ autoHide: true, style: 'push', glanceOpen: false }), false);
+  assert.equal(floatingLayout({ autoHide: false, style: 'float', glanceOpen: false }), false);
+});
+
+test('floatViewsWanted: the pill everywhere, controls and menu off macOS', () => {
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'float', platform: 'darwin' }), { pill: true, controls: false, menu: false });
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'float', platform: 'win32' }), { pill: true, controls: true, menu: true });
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'push', platform: 'linux' }), { pill: false, controls: false, menu: false });
+  assert.deepEqual(floatViewsWanted({ autoHide: false, style: 'float', platform: 'linux' }), { pill: false, controls: false, menu: false });
+});
+
+test('floatViewsShown: controls stay while hidden; menu and pill follow the Island', () => {
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: false, platform: 'linux' }), { pill: false, controls: true, menu: false });
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'linux' }), { pill: true, controls: true, menu: true });
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'darwin' }), { pill: true, controls: false, menu: false });
+  assert.deepEqual(floatViewsShown({ floating: false, islandVisible: true, platform: 'linux' }), { pill: false, controls: false, menu: false });
+});
+
+test('floatViewBounds wraps the rect with shadow room, from the window top, clamped', () => {
+  const win = { windowWidth: 1200, windowHeight: 800 };
+  assert.deepEqual(floatViewBounds({ x: 400, y: 12, width: 360, height: 44 }, { ...win, side: 20, bottom: 24 }),
+    { x: 380, y: 0, width: 400, height: 80 });
+  assert.deepEqual(floatViewBounds({ x: 5, y: 8, width: 34, height: 30 }, { ...win, side: 8, bottom: 8 }),
+    { x: 0, y: 0, width: 47, height: 46 });
+  assert.deepEqual(floatViewBounds({ x: 1150, y: 8, width: 40, height: 30 }, { ...win, side: 20, bottom: 8 }),
+    { x: 1130, y: 0, width: 70, height: 46 });
+  assert.equal(floatViewBounds(null, { ...win, side: 20, bottom: 24 }), null);
+  assert.equal(floatViewBounds({ x: 0, y: 0, width: 0, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
+  assert.equal(floatViewBounds({ x: NaN, y: 0, width: 10, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
 });

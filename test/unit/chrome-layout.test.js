@@ -221,3 +221,17 @@ test('measured shield clamps sideways and keeps its short-window view on screen'
     anchorCenter: 718, anchorBottom: 500 });
   assert.equal(bounds.y, 68, 'vertical geometry cannot exceed the chrome strip');
 });
+
+test('the page top and the Island anchor can differ (floating Island)', () => {
+  const floating = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 0, islandHeight: 68 });
+  assert.equal(floating.pageBounds.y, 0);
+  assert.equal(floating.pageBounds.height, 800);
+  assert.equal(floating.findBounds.y, 68);
+  assert.equal(floating.islandBounds.height, 68);
+  assert.deepEqual(floating.dragBand, { x: 0, y: 0, width: 1200, height: 6 });
+  const vertical = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 0, islandHeight: 68, tabLayout: 'vertical', verticalTabsWidth: 248 });
+  assert.deepEqual(vertical.dragBand, { x: 248, y: 0, width: 952, height: 6 });
+  const shown = calculateChromeLayout({ width: 1200, height: 800, chromeHeight: 68 });
+  assert.equal(shown.findBounds.y, 68);
+  assert.equal(shown.islandBounds.height, 68);
+});
