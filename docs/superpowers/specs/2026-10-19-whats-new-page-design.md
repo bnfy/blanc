@@ -154,9 +154,12 @@ All logic stays in the pure, unit-tested `src/main/whats-new.js`; `main.js` only
   normal session after the blocker's startup navigation gate has lifted. Outcomes:
   - 200: open the tab (once) and point the pill at the page.
   - Not 200, offline, or timeout: no tab now; the pill keeps today's changelog link. The
-    check repeats on later launches while the pill's 7-day window is open, so someone who
-    updated before the deploy still gets the page on a later launch; after the window it
-    stops for good. At most one check per launch.
+    check repeats on later launches for seven days after the update while the tab is still
+    owed, so someone who updated before the deploy still gets the page on a later launch;
+    after the window it stops for good. At most one check per launch. *Revised after
+    v1.39.0:* opening or closing the pill no longer cancels the owed tab (it had, which
+    left the owner with no tab after updating before the page deployed), and a downgrade
+    never owes one.
   This is the only request Blanc makes on its own for this feature, and it is the same URL
   the tab would load.
 - **The footer pill:** unchanged rules (7 days, dismiss on open or ×, never in private
@@ -173,10 +176,16 @@ All logic stays in the pure, unit-tested `src/main/whats-new.js`; `main.js` only
 
 - **Spec:** add F51 — What's New page (desktop) to `spec/features.md` and the parity
   matrix, in the style of F46–F50.
-- **Release process:** add "write the What's New page" to the post-release site steps
-  (the paragraph in `CLAUDE.md`/`AGENTS.md` that lists `releases.json`, the roadmap and the
-  Bangs pin, and the `releasing-blanc` skill). The page goes live with the post-release site
-  deploy, never before the release is public.
+- **Release process (revised by the owner after v1.39.0, October 19, 2026):** the page
+  must be live **before** the release publishes, not after. v1.39.0's first launches came a
+  minute after publication, before its post-release deploy, so they found no page. The
+  page is drafted from the prepared release notes once the prep PR merges, signed off,
+  merged in a website-only PR and deployed before `npm run release`. Until its release is
+  in `releases.json` it builds as the one *upcoming* page (no date, `noindex`, not in the
+  sitemap or the `/whats-new` redirect; only a page newer than every release may do
+  this). `scripts/release.sh` runs `scripts/check-whats-new-page.mjs` before building and
+  again before Sigstore, refusing a feature release whose page doesn't answer 200 unless
+  it is in `noPage`.
 - **Owner sign-off on every page (owner decision, October 19, 2026).** Each release's page
   needs the owner's explicit approval of its final text and media before it deploys, the
   same gate as other launch creative. Agents draft it (it can be drafted before the release

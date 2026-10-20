@@ -50,7 +50,7 @@ function isNewerRelease(version, previous) {
 // (no pill) when it was not. A pre-release or a downgrade never shows the
 // pill and clears one left over from a later version. Every new version needs
 // its own page check. Only an update that changes major.minor leaves a tab
-// owed; a fresh install or a bug-fix update settles it at once.
+// owed; a fresh install, a bug-fix update or a downgrade settles it at once.
 function whatsNewOnLaunch(settings = {}, { version, now, firstRunComplete } = {}) {
   const previous = settings.lastRunVersion;
   if (previous === version) return null;
@@ -64,18 +64,26 @@ function whatsNewOnLaunch(settings = {}, { version, now, firstRunComplete } = {}
   }
   patch.whatsNewPageVersion = '';
   const release = featureRelease(version);
-  const freshInstall = !previous && firstRunComplete !== true;
   const bugFix = updated && !!previous && featureRelease(previous) === release;
-  if (release && (freshInstall || bugFix)) patch.whatsNewTabRelease = release;
+  if (release && (!updated || bugFix)) patch.whatsNewTabRelease = release;
   return patch;
 }
 
-// Whether to ask blanc.day for the page this launch: only while the pill is
-// live, and while the page has not been found for this version or its
-// feature release still owes a tab (found, but no window could take it).
+// Whether to ask blanc.day for the page this launch: while the pill is live
+// and the page has not been found for this version (so the pill can point at
+// it), or while the update's feature release still owes a tab, within seven
+// days of the update. Opening or closing the pill never cancels an owed tab:
+// an update that arrives before its page deploys still gets the tab on a
+// later launch.
 function whatsNewCheckDue(settings = {}, { version, now } = {}) {
-  if (!pillLive(settings, { version, now })) return false;
-  return settings.whatsNewPageVersion !== version || settings.whatsNewTabRelease !== featureRelease(version);
+  if (pillLive(settings, { version, now }) && settings.whatsNewPageVersion !== version) return true;
+  return tabOwed(settings, { version, now });
+}
+
+function tabOwed(settings, { version, now }) {
+  const release = featureRelease(version);
+  return !!release && settings.lastRunVersion === version && settings.whatsNewTabRelease !== release &&
+    withinWindow(settings.whatsNewSince, now);
 }
 
 // What the answer changes: { patch, openUrl }. A found page points the pill
@@ -93,10 +101,13 @@ function whatsNewAfterCheck(settings = {}, { version, found, canOpen } = {}) {
 
 function pillLive(settings, { version, now }) {
   if (!releaseParts(version) || settings.whatsNewVersion !== version) return false;
-  const since = settings.whatsNewSince;
+  return withinWindow(settings.whatsNewSince, now);
+}
+
+function withinWindow(since, now) {
   if (!Number.isFinite(since) || since <= 0) return false;
   // A time more than one window ahead of the clock is corrupt, not a reason
-  // to keep the pill.
+  // to keep the pill or a tab.
   return !(since - now > WHATS_NEW_WINDOW_MS || now - since >= WHATS_NEW_WINDOW_MS);
 }
 
