@@ -62,3 +62,11 @@ test('the chrome document has the pane container and the Glance header offers Ke
   assert.match(html, /<div id="splitPanes" class="split-panes no-drag" hidden><\/div>/);
   assert.match(html, /id="glanceKeepSplit"[^>]*data-i18n-aria-label="split\.keepAsSplit"/);
 });
+
+test('the corner tab border runs straight from each fillet into the tab', () => {
+  // Under the fillets the tab's own border closed each curve into an extra
+  // corner: the fillets paint above it, and the tab's top and left borders sit
+  // on the fillets' last ring row and column.
+  assert.match(css, /\.split-tab \{\s+position: absolute;\s+left: calc\(var\(--split-pane-radius\) - 1px\);\s+top: calc\(var\(--split-pane-radius\) - 1px\);/);
+  assert.match(css, /\.split-tab-fillet \{\s+position: absolute;\s+z-index: 1;/);
+});
