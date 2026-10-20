@@ -12,6 +12,7 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
+const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
@@ -217,6 +218,7 @@ const DEFAULTS = {
   // Page fills the window; the Island strip returns at the top edge.
   // Device-local, not Profile Synced.
   islandAutoHide: false,
+  islandAutoHideStyle: 'float',
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
@@ -484,6 +486,7 @@ function getSettings() {
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
+  data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -589,6 +592,7 @@ function sanitize(partial) {
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
+  if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;

@@ -7,6 +7,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Keep this list in step with SUPPORTED_PLATFORMS in onepassword-availability.js
 // (test/unit/onepassword-availability.test.js compares them).
 const ONE_PASSWORD_AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
+// Acceptance only: main passes --blanc-test-platform (never outside its test
+// mode) so the chrome draws for Windows or Linux on any machine.
+const TEST_PLATFORM_ARG = '--blanc-test-platform=';
+const testPlatformArg = (process.argv ?? []).find((arg) => typeof arg === 'string' && arg.startsWith(TEST_PLATFORM_ARG));
+const testPlatform = testPlatformArg?.slice(TEST_PLATFORM_ARG.length);
+const CHROME_PLATFORM = testPlatform === 'win32' || testPlatform === 'linux' ? testPlatform : process.platform;
 
 // This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:
@@ -15,11 +21,12 @@ const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://index/',
   'blanc-chrome://overlay/',
   'blanc-chrome://permission/',
+  'blanc-chrome://float/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   contextBridge.exposeInMainWorld('browserAPI', {
-    platform: process.platform,
+    platform: CHROME_PLATFORM,
 
   createTab: (url, opts) => ipcRenderer.invoke('tabs:create', url, opts),
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
@@ -258,6 +265,16 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = () => callback();
     ipcRenderer.on('chrome:island-covered', listener);
     return () => ipcRenderer.removeListener('chrome:island-covered', listener);
+  },
+  onFloatFrame: (callback) => {
+    const listener = (_e, frame) => callback(frame);
+    ipcRenderer.on('chrome:float-frame', listener);
+    return () => ipcRenderer.removeListener('chrome:float-frame', listener);
+  },
+  onFloatShown: (callback) => {
+    const listener = (_e, shown) => callback(shown);
+    ipcRenderer.on('chrome:float-shown', listener);
+    return () => ipcRenderer.removeListener('chrome:float-shown', listener);
   },
   onStripHidden: (callback) => {
     const listener = (_e, hidden) => callback(hidden);

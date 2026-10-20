@@ -465,15 +465,34 @@
     document.getElementById('islandHoverOpenSetting')?.remove();
   }
 
+  // How a revealed Island makes room; only meaningful while auto-hide is on.
+  const islandAutoHideStyleSetting = document.getElementById('islandAutoHideStyleSetting');
+  const showIslandAutoHideStyle = (on) => {
+    if (islandAutoHideStyleSetting) islandAutoHideStyleSetting.hidden = !on;
+  };
+  if (supports('islandAutoHideStyle')) {
+    const islandAutoHideStyle = document.getElementById('islandAutoHideStyle');
+    islandAutoHideStyle.value = settings.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    islandAutoHideStyle.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHideStyle: islandAutoHideStyle.value });
+      islandAutoHideStyle.value = saved.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    });
+  } else {
+    islandAutoHideStyleSetting?.remove();
+  }
+
   if (supports('islandAutoHide')) {
     const islandAutoHide = document.getElementById('islandAutoHide');
     islandAutoHide.checked = settings.islandAutoHide === true;
+    showIslandAutoHideStyle(islandAutoHide.checked);
     islandAutoHide.addEventListener('change', async () => {
       const saved = await window.bowserPages.settings.set({ islandAutoHide: islandAutoHide.checked });
       islandAutoHide.checked = saved.islandAutoHide === true;
+      showIslandAutoHideStyle(islandAutoHide.checked);
     });
   } else {
     document.getElementById('islandAutoHideSetting')?.remove();
+    islandAutoHideStyleSetting?.remove();
   }
 
   // --- Quiet Tabs idle delay (device-local memory policy) ---

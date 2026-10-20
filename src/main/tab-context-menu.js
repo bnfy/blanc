@@ -91,7 +91,9 @@ async function isInPill(wc, params) {
 // Two menu surfaces share the document: vertical-rail tab rows (recorded id →
 // the shared row menu) and the resting pill (hit-test → the active-tab menu).
 // deps: { resolveActiveTab(): ctx|null, resolveTab(rawId): ctx|null,
-//         getWindow(), actions, t }
+//         getWindow(), actions, t, getOffset?(): {x, y} }
+// The floating Island's pill view (auto-hide, float style) passes getOffset:
+// its coordinates start at the view's origin, not the window's.
 function attachChromeMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     let rowId;
@@ -115,8 +117,10 @@ function attachChromeMenu(wc, deps) {
     const template = buildTabContextMenu({ ...ctx, surface: 'pill', t: deps.t });
     const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
     menu.on('menu-will-show', () => deps.suppressIslandHover?.());
+    // A floating Island view's coordinates start at its own origin.
+    const offset = deps.getOffset?.() ?? { x: 0, y: 0 };
     try {
-      menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
+      menu.popup({ window: deps.getWindow(), x: Math.round(params.x + offset.x), y: Math.round(params.y + offset.y), sourceType: params.menuSourceType });
     } catch { /* window died mid-popup */ }
   });
 }

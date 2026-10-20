@@ -111,12 +111,11 @@ and the toolbar comes back on demand. Blanc has no such mode.
 
 ## Known limits
 
-- Revealing resizes the page (68px shorter). A smooth slide, or overlaying the
-  strip, would need the strip drawn in a view above the page. That is a larger
-  follow-up.
-- With the strip hidden in the Island layout, the window has no drag region
-  until it is revealed (and the page's top band is the page's, not a drag
-  handle).
+- Revealing resizes the page (68px shorter) in the push style. The float
+  style, the default since `2026-10-20-floating-island-design.md`, draws the
+  revealed Island in views above the page so the page never moves.
+- The hidden strip now keeps a 6px drag band at the page pane's top in both
+  styles (same follow-up), so the window can be dragged while it is hidden.
 - On native Wayland the pointer outside the window cannot be seen, so the
   band above a floating window's top edge does not reveal the strip, and a
   pointer that leaves the window over the strip keeps it shown until it comes

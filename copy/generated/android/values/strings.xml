@@ -931,6 +931,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island’s address to open it without clicking.</string>
     <string name="settings_general_island_auto_hide_label">Auto-hide the Island</string>
     <string name="settings_general_island_auto_hide_hint">Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.</string>
+    <string name="settings_general_island_auto_hide_style_label">When the Island comes back</string>
+    <string name="settings_general_island_auto_hide_style_hint">Float it over the page, or move the page down to make room.</string>
+    <string name="settings_general_island_auto_hide_style_float">Float over the page</string>
+    <string name="settings_general_island_auto_hide_style_push">Push the page down</string>
     <string name="settings_general_dark_websites_label">Dark websites</string>
     <string name="settings_general_dark_websites_hint">While Blanc is dark, darken websites that have no dark mode of their own. Uses the open-source Dark Reader engine.</string>
     <string name="settings_general_sites_listed_here_keep">Sites listed here keep their own colors. Type /dark-site on a site to add or remove it.</string>

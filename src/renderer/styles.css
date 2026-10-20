@@ -73,6 +73,9 @@
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  /* The floating Island (auto-hide, float style) sits over any page, so it
+     needs a real shadow; small enough to fit its tight view. */
+  --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
   --island-resting-height: 44px;
   --island-resting-radius: 17px;
   --island-panel-radius: 18px;
@@ -102,6 +105,7 @@
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
     --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+    --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -131,6 +135,7 @@
   /* The Island's top catch-light, toned down to a hairline on the deeper
      private ink, where the light themes' bright edge reads as a glare. */
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -233,6 +238,20 @@ button svg {
 /* Auto-hide: the page covers the strip, so the page's top band must not
    drag the window. */
 #strip.strip-hidden { -webkit-app-region: no-drag; }
+/* While the page covers the strip, a thin band along the page pane's top edge
+   is the window's only drag handle (a click there never reaches the page). */
+#dragBand {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  -webkit-app-region: drag;
+}
+#strip.strip-hidden #dragBand { display: block; }
+#strip.drag-suspended #dragBand { -webkit-app-region: no-drag; }
+:root[data-tab-layout="vertical"] #dragBand { left: var(--vertical-tabs-w); }
 
 #strip {
   -webkit-app-region: drag;
@@ -246,6 +265,11 @@ button svg {
   background: var(--page-bg, transparent);
   transition: background-color 80ms linear;
 }
+
+/* The width the strip lays out in: the window's, except in a floating
+   Island view (float surface below), which copies a strip of the window's
+   width. Declared off :root {} so tokens:check stays desktop-only. */
+html { --stage-w: 100vw; }
 
 /* Width of the custom Windows/Linux window-control cluster (3 × 34px, two
    2px gaps, 8px inset), reserved by the side-by-side Glance header and the
@@ -659,13 +683,13 @@ button svg {
 
 :root[data-tab-layout="vertical"] #islandPill {
   /* Non-mac window buttons remain at the website pane's right edge. */
-  max-width: calc((100vw - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
 }
 
 /* macOS traffic lights live inside the rail, so only a small pane-side
    clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
-  max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
 }
 
 :root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
@@ -1300,7 +1324,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
      (without this the pill renders 1.15× wider and runs under the controls).
      184px is 92px a side: the traffic lights at macOS's standard 18pt inset
      end 80pt in, plus a 12pt gap. */
-  max-width: calc((100vw - 184px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - 184px) / var(--pill-zoom));
   background: transparent;
   /* Keep the one-pixel border in layout while the visible material moves to
      ::after. The resting pill has no transform, which keeps the URL and
@@ -4290,3 +4314,54 @@ body[data-mode="group-menu"] { background: transparent; }
 .vertical-tabs-group-row { display: flex; align-items: center; gap: 2px; }
 .vertical-tabs-group-row .vertical-tabs-group-header { flex: 1 1 auto; min-width: 0; }
 .vertical-tabs-group-more { margin: 0 4px 0 0; flex: 0 0 auto; }
+
+/* ---- Floating Island (blanc-chrome://float/) -----------------------------
+   Auto-hide's float style runs this document again in small transparent views
+   above the page. Each view is a clipped window onto a full-size copy of the
+   strip (#chrome, offset by the view's origin) and shows one element: the
+   pill, or on Windows and Linux the window controls or the main-menu button.
+   The view starts at the window's top edge, so sliding the whole stage up by
+   the view's height takes the element, its margin and its shadow above it. */
+html[data-surface="float"],
+html[data-surface="float"] body { background: transparent; }
+/* The pill's room follows the strip it copies, not the small view it is in. */
+html[data-surface="float"] { --stage-w: var(--float-stage-width); }
+html[data-surface="float"] #chrome {
+  position: fixed;
+  left: calc(-1 * var(--float-x));
+  top: calc(-1 * var(--float-y));
+  width: var(--float-stage-width);
+  transform: translateY(calc(-1 * var(--float-height)));
+  transition: transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+html[data-surface="float"].float-shown #chrome {
+  transform: none;
+  transition-duration: 160ms;
+}
+html[data-surface="float"] #strip {
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+html[data-surface="float"] #verticalTabsRail,
+html[data-surface="float"] #glanceDivider,
+html[data-surface="float"] #glanceHeader,
+html[data-surface="float"] #splitPanes,
+html[data-surface="float"] #dragBand { display: none !important; }
+html[data-surface="float"] #islandPill,
+html[data-surface="float"] #windowControls,
+html[data-surface="float"] #mainMenuButton { visibility: hidden; }
+html[data-surface="float"][data-float-role="pill"] #islandPill,
+html[data-surface="float"][data-float-role="controls"] #windowControls,
+html[data-surface="float"][data-float-role="menu"] #mainMenuButton { visibility: visible; }
+html[data-surface="float"] #islandPill { box-shadow: var(--shadow-island-float); }
+/* The window controls and the menu button sit in views with only 8px of
+   room (FLOAT_CHROME_PAD_PX), so a smaller shadow that stays inside it. */
+html[data-surface="float"] #windowControls,
+html[data-surface="float"] #mainMenuButton {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px -2px rgba(14, 14, 14, 0.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-surface="float"] #chrome { transition: none; }
+}

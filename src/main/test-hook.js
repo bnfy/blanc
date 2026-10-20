@@ -74,6 +74,17 @@ function install(refs) {
     getIslandHoverState,
     setIslandHoverOpen,
     setIslandAutoHide,
+    setIslandAutoHideStyle,
+    getFloatViewState,
+    getFloatWebContents,
+    getFloatWebContentsIds,
+    isChromeSurfaceRegistered,
+    getChromeButtonRects,
+    getMainWindowState,
+    restoreMainWindow,
+    getMainMenuRequests,
+    holdIslandInWindow,
+    floatPillWebContentsId,
     getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
@@ -549,6 +560,55 @@ function install(refs) {
     islandHoverState() { return getIslandHoverState(); },
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
     setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
+    setIslandAutoHideStyle(style) { return setIslandAutoHideStyle(style); },
+    /** A floating Island view (auto-hide, float style): its native state, or
+     * null when the window has none for that role. */
+    floatViewState(role) { return getFloatViewState(String(role)); },
+    floatEval(role, script) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
+    sendFloatMouseInput(role, input) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
+    chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
+    /** The strip's own report of its Windows/Linux window buttons. */
+    chromeButtonRects() { return getChromeButtonRects(); },
+    /** The floating copies of the window controls and the menu button: each
+     * visible element's rect in window coordinates (x, y) and in its own
+     * view (viewX, viewY). */
+    async floatControlsState() {
+      const read = (role, script) => {
+        const wc = getFloatWebContents(role);
+        return wc && !wc.isDestroyed() ? wc.executeJavaScript(script) : null;
+      };
+      const measure = `(el) => {
+        const stage = document.getElementById('chrome').getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { x: r.left - stage.left, y: r.top - stage.top, viewX: r.left, viewY: r.top, width: r.width, height: r.height,
+          visible: getComputedStyle(el).visibility !== 'hidden' && r.width > 0 };
+      }`;
+      const [controls, menu] = await Promise.all([
+        read('controls', `(() => { const m = ${measure}; return [...document.querySelectorAll('#windowControls button')].map(m).filter((b) => b.visible); })()`),
+        read('menu', `(() => { const m = ${measure}; const b = document.getElementById('mainMenuButton'); return b && !b.hidden ? m(b) : null; })()`),
+      ]);
+      return { controls, menu };
+    },
+    mainWindowState() { return getMainWindowState(); },
+    restoreMainWindow() { return restoreMainWindow(); },
+    mainMenuRequests() { return getMainMenuRequests(); },
+    holdIslandInWindow(runtimeId, on) { return holdIslandInWindow(String(runtimeId), on === true); },
+    floatPillWebContentsId(runtimeId) { return floatPillWebContentsId(String(runtimeId)); },
+    chromeEval(script) {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
     /** Auto-hide state plus where the page view starts (0 = strip hidden). */
     islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },
@@ -567,6 +627,19 @@ function install(refs) {
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
+    },
+    // The strip document's top drag band: 'none' while it is not drawn,
+    // else its computed app-region.
+    async dragBandAppRegion() {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const band = document.getElementById('dragBand');
+        if (!band) return null;
+        const style = getComputedStyle(band);
+        if (style.display === 'none') return 'none';
+        return style.getPropertyValue('-webkit-app-region') || style.appRegion;
+      })()`);
     },
     // The strip's window-drag region: the computed app-region of #strip.
     async stripAppRegion() {
@@ -3686,6 +3759,7 @@ function install(refs) {
         tabArchive: 'off',
         islandHoverOpen: false,
         islandAutoHide: false,
+        islandAutoHideStyle: 'float',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

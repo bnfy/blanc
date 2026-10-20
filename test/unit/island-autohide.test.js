@@ -8,6 +8,9 @@ const {
   REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
   REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
+  AUTO_HIDE_STYLES, normalizeAutoHideStyle,
+  DRAG_BAND_PX, FLOAT_SIDE_PX, FLOAT_BOTTOM_PX, FLOAT_CHROME_PAD_PX,
+  floatingLayout, floatViewsWanted, floatViewsShown, floatViewBounds,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
 
@@ -61,7 +64,12 @@ test('a hidden strip gives the page the whole window height in both layouts', ()
 });
 
 test('main lays out every child view through the auto-hide strip height', () => {
-  assert.match(main, /chromeHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  // The page leaves the strip out while it is hidden, or while the Island
+  // floats over the page; overlays still anchor under a shown Island.
+  assert.match(main, /chromeHeight: stripCovered\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  assert.match(main, /islandHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
+  assert.match(main, /function stripCovered\(runtime = rt\(\)\) \{\s+return islandStripHidden\(runtime\) \|\| islandFloating\(runtime\);/);
+  assert.match(main, /function islandFloating\(runtime = rt\(\)\) \{\s+return islandAutoHideModule\.floatingLayout\(\{\s+autoHide: islandAutoHide,\s+style: islandAutoHideStyle,\s+glanceOpen: !!runtime\.glanceTabId,/);
   const show = main.slice(main.indexOf('function showOverlay('), main.indexOf('function hideOverlay('));
   assert.ok(show.indexOf('revealIsland();') < show.indexOf('overlayView.setBounds'),
     'the strip is revealed before overlay bounds are computed');
@@ -82,7 +90,8 @@ test('the hide check is bound to its window, re-samples the cursor and stops on 
 
 test('hover-open never fires on a hidden pill and macOS hides its traffic lights with it', () => {
   assert.match(main, /islandHoverCapable === true && !islandStripHidden\(runtime\)/);
-  assert.match(main, /const visible = tabLayout === 'vertical' \|\| !islandStripHidden\(runtime\);/);
+  // A floating Island keeps the traffic lights on screen the whole time.
+  assert.match(main, /const visible = tabLayout === 'vertical' \|\| islandFloating\(runtime\) \|\| !islandStripHidden\(runtime\);/);
   assert.match(main, /setWindowButtonVisibility\(visible\)/);
   // macOS standard placement (18pt), set on first layout and after each show.
   assert.match(main, /if \(visible\) runtime\.window\.setWindowButtonPosition\(MAC_WINDOW_BUTTON_POSITION\);/);
@@ -269,4 +278,98 @@ test('the auto-hide shortcut matches the physical key only on macOS, where Optio
   const shortcut = main.slice(main.indexOf('function installIslandAutoHideShortcut('), main.indexOf('// Windows/Linux only: macOS keeps its native menu key equivalent.'));
   assert.match(shortcut, /String\(input\.key\)\.toLowerCase\(\) === 'b'\s*\|\| \(process\.platform === 'darwin' && input\.code === 'KeyB'\)/);
   assert.doesNotMatch(shortcut, /input\.code !== 'KeyB'/);
+});
+
+test('normalizeAutoHideStyle keeps push and turns anything else into float', () => {
+  assert.deepEqual(AUTO_HIDE_STYLES, ['float', 'push']);
+  assert.equal(normalizeAutoHideStyle('push'), 'push');
+  for (const value of ['float', undefined, null, 'PUSH', 1]) assert.equal(normalizeAutoHideStyle(value), 'float');
+});
+
+test('floating Island constants', () => {
+  assert.equal(DRAG_BAND_PX, 6);
+  assert.equal(FLOAT_SIDE_PX, 20);
+  assert.equal(FLOAT_BOTTOM_PX, 24);
+  assert.equal(FLOAT_CHROME_PAD_PX, 8);
+});
+
+test('floatingLayout: only auto-hide with float, and never while Glance is open', () => {
+  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: false }), true);
+  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: true }), false);
+  assert.equal(floatingLayout({ autoHide: true, style: 'push', glanceOpen: false }), false);
+  assert.equal(floatingLayout({ autoHide: false, style: 'float', glanceOpen: false }), false);
+});
+
+test('floatViewsWanted: the pill everywhere, controls and menu off macOS', () => {
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'float', platform: 'darwin' }), { pill: true, controls: false, menu: false });
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'float', platform: 'win32' }), { pill: true, controls: true, menu: true });
+  assert.deepEqual(floatViewsWanted({ autoHide: true, style: 'push', platform: 'linux' }), { pill: false, controls: false, menu: false });
+  assert.deepEqual(floatViewsWanted({ autoHide: false, style: 'float', platform: 'linux' }), { pill: false, controls: false, menu: false });
+});
+
+test('floatViewsShown: controls stay while hidden; menu and pill follow the Island', () => {
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: false, platform: 'linux' }), { pill: false, controls: true, menu: false });
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'linux' }), { pill: true, controls: true, menu: true });
+  assert.deepEqual(floatViewsShown({ floating: true, islandVisible: true, platform: 'darwin' }), { pill: true, controls: false, menu: false });
+  assert.deepEqual(floatViewsShown({ floating: false, islandVisible: true, platform: 'linux' }), { pill: false, controls: false, menu: false });
+});
+
+test('floatViewBounds wraps the rect with shadow room, from the window top, clamped', () => {
+  const win = { windowWidth: 1200, windowHeight: 800 };
+  assert.deepEqual(floatViewBounds({ x: 400, y: 12, width: 360, height: 44 }, { ...win, side: 20, bottom: 24 }),
+    { x: 380, y: 0, width: 400, height: 80 });
+  assert.deepEqual(floatViewBounds({ x: 5, y: 8, width: 34, height: 30 }, { ...win, side: 8, bottom: 8 }),
+    { x: 0, y: 0, width: 47, height: 46 });
+  assert.deepEqual(floatViewBounds({ x: 1150, y: 8, width: 40, height: 30 }, { ...win, side: 20, bottom: 8 }),
+    { x: 1130, y: 0, width: 70, height: 46 });
+  assert.equal(floatViewBounds(null, { ...win, side: 20, bottom: 24 }), null);
+  assert.equal(floatViewBounds({ x: 0, y: 0, width: 0, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
+  assert.equal(floatViewBounds({ x: NaN, y: 0, width: 10, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
+});
+
+test('the strip learns it is covered whenever the page covers it, hidden or floating', () => {
+  const sync = main.slice(main.indexOf('function syncStripHidden('), main.indexOf('function endIslandAutoHideIntro('));
+  assert.match(sync, /const hidden = stripCovered\(runtime\);/);
+  assert.match(main, /function applyIslandAutoHideStyle\(next\) \{[\s\S]*?scheduleMenuRebuild\(\);/);
+});
+
+test('the strip document draws a 6px drag band while the page covers it', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
+  assert.match(html, /<div id="strip">\s*<div id="dragBand" aria-hidden="true"><\/div>/);
+  assert.match(css, /#dragBand \{[^}]*display: none;[^}]*height: 6px;[^}]*-webkit-app-region: drag;/);
+  assert.match(css, /#strip\.strip-hidden #dragBand \{ display: block; \}/);
+  assert.match(css, /#strip\.drag-suspended #dragBand \{ -webkit-app-region: no-drag; \}/);
+  assert.match(css, /:root\[data-tab-layout="vertical"\] #dragBand \{ left: var\(--vertical-tabs-w\); \}/);
+  assert.match(renderer, /dragBand\.addEventListener\('dblclick', \(\) => window\.browserAPI\.maximizeWindow\(\)\)/);
+});
+
+test('every strip broadcast also reaches the floating Island views', () => {
+  const helper = main.slice(main.indexOf('function stripSurfaces(runtime) {'), main.indexOf('function restackAboveIslandFloat('));
+  assert.match(helper, /window\.webContents\.send\(channel, \.\.\.args\);/);
+  assert.match(helper, /liveFloatRecord\(runtime, role\)\?\.view\.webContents\.send\(channel, \.\.\.args\)/);
+  const outside = main.replace(helper, '');
+  // Only the strip's own drag-region signal stays strip-only.
+  assert.deepEqual([...outside.matchAll(/window\??\.webContents\??\.send\('([^']+)'/g)].map((m) => m[1]), ['chrome:strip-hidden']);
+});
+
+test('the floating Island views stay above pages and the sheet, and die with their window', () => {
+  assert.equal(main.match(/if \(sheet\) rt\(\)\.window\.contentView\.addChildView\(sheet\.view\);\s+restackIslandFloatViews\(\); \/\/ above the pages and the sheet/g)?.length, 2);
+  assert.match(main, /showOverlayView\(runtime\.window, sheet\.view\);\s+\/\/ The floating Island stays above the sheet, as the strip's Island does\.\s+restackIslandFloatViews\(runtime\);/);
+  assert.match(main, /syncStripHidden\(\);\s+syncIslandFloat\(\);\s+\}/);
+  assert.match(main, /runtime\.lastPointer = null;\s+destroyIslandFloatViews\(runtime\);/);
+  // Never removed and re-added while alive: hidden by visibility only.
+  const shown = main.slice(main.indexOf('function setIslandFloatShown('), main.indexOf('function syncIslandFloat('));
+  assert.doesNotMatch(shown, /removeChildView|addChildView/);
+  assert.match(shown, /record\.view\.setVisible\(false\)/);
+});
+
+test('float views are trusted chrome surfaces that never report geometry', () => {
+  assert.match(main, /\.map\(\(record\) => \(\{ webContents: record\.view\.webContents, url: CHROME_FLOAT_URL \}\)\)/);
+  assert.match(main, /chromeOn\('chrome:island-rect', \(event, rect\) => \{\s+\/\/ [^\n]*\n\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
+  assert.match(main, /chromeOn\('chrome:layout', \(event, \{ height \}\) => \{\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
+  assert.match(main, /const role = floatRoleOf\(rt\(\), event\.sender\);\s+if \(event\.sender !== rt\(\)\.window\?\.webContents && role !== 'menu'\) return false;/);
+  // The faked platform (acceptance only) records the menu instead of showing it.
+  assert.match(main, /const testPlatform = acceptanceTestMode && \['win32', 'linux'\]\.includes\(process\.env\.BLANC_TEST_PLATFORM\)/);
 });

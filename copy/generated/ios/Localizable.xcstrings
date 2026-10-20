@@ -37717,6 +37717,174 @@
         }
       }
     },
+    "settings.general.islandAutoHideStyle.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the Island comes back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn die Island zurückkommt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando vuelve la Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quand l’Island revient"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando l’Island torna"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando a Island volta"
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Float it over the page, or move the page down to make room."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lass sie über der Seite schweben oder schiebe die Seite nach unten, um Platz zu machen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz que flote sobre la página o mueve la página hacia abajo para dejarle sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falla fluttuare sopra la pagina o sposta la pagina in basso per farle spazio."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faça-a flutuar sobre a página ou mova a página para baixo para abrir espaço."
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.float": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Float over the page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über der Seite schweben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flotar sobre la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flotter au-dessus de la page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fluttua sopra la pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flutuar sobre a página"
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.push": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Push the page down"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite nach unten schieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bajar la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Décaler la page vers le bas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta la pagina in basso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empurrar a página para baixo"
+          }
+        }
+      }
+    },
     "settings.general.darkWebsites.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",

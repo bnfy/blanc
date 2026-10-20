@@ -195,6 +195,14 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     lastPointer: null,
     stripHiddenSent: null,
     windowButtonsVisible: null,
+    /** Floating Island views (auto-hide, float style), by role ('pill',
+     * 'controls', 'menu'): {view, role, shown, hideTimer, payload, frameKey}.
+     * Null when the window has none. */
+    islandFloat: null,
+    /** Where the strip draws its Windows/Linux window controls and main-menu
+     * button (window coordinates), for the floating copies of them. */
+    windowControlsRect: null,
+    menuButtonRect: null,
     /** The how-to tip shown when auto-hide is turned on, and the tooltip
      * generation it drew under (a newer pill tooltip replaces it). */
     islandAutoHideIntroTimer: null,

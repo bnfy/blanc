@@ -75,9 +75,24 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-22 | Resting just below the top edge reveals the Island after a moment | D29 | ✅ | ➖ | ➖ |
 | F1-23 | Passing just below the top edge does not reveal the Island | D29 | ✅ | ➖ | ➖ |
 | F1-24 | Without a global pointer position (Wayland) the page's moves reveal and hide the Island | D29 | ✅ | ➖ | ➖ |
-| F1-25 | A hidden strip does not drag the window from the page's top band | D29 | ✅ | ➖ | ➖ |
+| F1-25 | A hidden strip drags the window only through its thin top band | D29 | ✅ | ➖ | ➖ |
 | F1-26 | Resting where the hidden address will appear still lets hover open the Island | D29 | ✅ | ➖ | ➖ |
 | F1-27 | The vertical rail is never reveal territory | D29 | ✅ | ➖ | ➖ |
+| F1-28 | A floating Island keeps a thin top band to drag the window | D29 | ✅ | ➖ | ➖ |
+| F1-29 | A floating Island leaves the page where it is | D29 | ✅ | ➖ | ➖ |
+| F1-30 | The revealed Island floats over a page that stays still | D29 | ✅ | ➖ | ➖ |
+| F1-31 | Find and the shield menu open under the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-32 | Hover-open works on the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-33 | Glance uses the push layout in float mode | D29 | ✅ | ➖ | ➖ |
+| F1-34 | The floating pill keeps up with tabs, sheets, styles and windows | D29 | ✅ | ➖ | ➖ |
+| F1-35 | The floating pill takes the private theme | D29 | ✅ | ➖ | ➖ |
+| F1-36 | Window buttons stay on screen in float mode on Windows and Linux | D29 | ✅ | ➖ | ➖ |
+| F1-37 | Switching to push while the pill slides in leaves nothing behind | D29 | ✅ | ➖ | ➖ |
+| F1-38 | Turning auto-hide off while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-39 | Changing the style while Glance is open | D29 | ✅ | ➖ | ➖ |
+| F1-40 | Resizing the window while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-41 | Changing the theme while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-42 | The floating pill is the strip's pill, in both tab layouts | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

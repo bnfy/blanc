@@ -107,6 +107,11 @@ object BlancTokens {
         BlancTheme.DARK -> "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
         BlancTheme.PRIVATE -> "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)"
     }
+    fun shadowIslandFloat(theme: BlancTheme): String = when (theme) {
+        BlancTheme.LIGHT -> "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
+        BlancTheme.DARK -> "inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
+        BlancTheme.PRIVATE -> "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
+    }
     fun selectCaret(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "url(\"select-caret.svg\")"
         BlancTheme.DARK -> "url(\"select-caret-dark.svg\")"

@@ -9,6 +9,14 @@
 // pointer has left the strip. Anything that is drawn from the Island (the
 // command bar, find, the shield and Spaces menus, Glance) keeps it revealed.
 
+/** How a revealed Island makes room: float over the page (the default), or
+ * push the page down as v1.39.0 did. */
+const AUTO_HIDE_STYLES = Object.freeze(['float', 'push']);
+
+function normalizeAutoHideStyle(value) {
+  return value === 'push' ? 'push' : 'float';
+}
+
 /** The band at the top of the window that reveals the Island, in px. */
 const REVEAL_EDGE_PX = 10;
 /** How far above a floating window's top edge the pointer still counts, in
@@ -135,7 +143,70 @@ function stripHidden({ autoHide, revealed, pinned }) {
   return autoHide === true && revealed !== true && pinned !== true;
 }
 
+/* ---- Floating Island ----------------------------------------------------
+ * In float mode the page keeps the whole window and small transparent views
+ * draw the pill (and, on Windows and Linux, the window controls and the
+ * main-menu button) over it. Each view is tight around its element: a
+ * transparent pixel still takes clicks, so anything wider would steal them
+ * from the page beside the pill. */
+
+/** The invisible band along the top of the page pane that drags the window. */
+const DRAG_BAND_PX = 6;
+/** Room around the floating pill for its shadow, in px. */
+const FLOAT_SIDE_PX = 20;
+const FLOAT_BOTTOM_PX = 24;
+/** Room around the floating window controls and menu button, in px. */
+const FLOAT_CHROME_PAD_PX = 8;
+
+/** Whether the page ignores the strip because the Island floats over it.
+ * Glance draws its header and divider in the strip, so it lays out as push. */
+function floatingLayout({ autoHide, style, glanceOpen }) {
+  return autoHide === true && style === 'float' && glanceOpen !== true;
+}
+
+/** Which float views a window needs at all. macOS has native traffic lights
+ * and a menu bar, so only the pill. */
+function floatViewsWanted({ autoHide, style, platform }) {
+  const pill = autoHide === true && style === 'float';
+  const ownChrome = pill && platform !== 'darwin';
+  return { pill, controls: ownChrome, menu: ownChrome };
+}
+
+/** Which float views are on screen: the window controls whenever the Island
+ * floats, the pill and the menu button only while the Island is visible. */
+function floatViewsShown({ floating, islandVisible, platform }) {
+  const pill = floating === true && islandVisible === true;
+  const ownChrome = floating === true && platform !== 'darwin';
+  return { pill, controls: ownChrome, menu: ownChrome && pill };
+}
+
+/**
+ * A float view's bounds: the element's rect (window coordinates) plus room on
+ * the sides and below, from the window's top edge so the element can slide in
+ * from above it, clamped to the window. Null for a rect it cannot use.
+ * @param {{x: number, y: number, width: number, height: number}|null} rect
+ * @param {{windowWidth: number, windowHeight: number, side: number, bottom: number}} room
+ */
+function floatViewBounds(rect, { windowWidth, windowHeight, side, bottom }) {
+  if (!rect || !['x', 'y', 'width', 'height'].every((key) => finite(rect[key])) || rect.width <= 0) return null;
+  const x = Math.max(0, Math.floor(rect.x - side));
+  const right = Math.min(windowWidth, Math.ceil(rect.x + rect.width + side));
+  const height = Math.min(windowHeight, Math.ceil(rect.y + rect.height + bottom));
+  if (right <= x || height <= 0) return null;
+  return { x, y: 0, width: right - x, height };
+}
+
 module.exports = {
+  DRAG_BAND_PX,
+  FLOAT_SIDE_PX,
+  FLOAT_BOTTOM_PX,
+  FLOAT_CHROME_PAD_PX,
+  floatingLayout,
+  floatViewsWanted,
+  floatViewsShown,
+  floatViewBounds,
+  AUTO_HIDE_STYLES,
+  normalizeAutoHideStyle,
   REVEAL_EDGE_PX,
   HIDE_SLACK_PX,
   HIDE_CHECK_MS,

@@ -63,6 +63,17 @@
               <label class="toggle"><input id="islandAutoHide" type="checkbox" aria-label="Auto-hide the Island" aria-describedby="islandAutoHideHint" data-i18n-aria-label="settings.general.islandAutoHide.label"/><span class="track"></span></label>
             </div>
 
+            <div class="setting" id="islandAutoHideStyleSetting" hidden>
+              <div class="label">
+                <span data-i18n="settings.general.islandAutoHideStyle.label">When the Island comes back</span>
+                <span class="hint" id="islandAutoHideStyleHint" data-i18n="settings.general.islandAutoHideStyle.hint">Float it over the page, or move the page down to make room.</span>
+              </div>
+              <select id="islandAutoHideStyle" aria-label="When the Island comes back" aria-describedby="islandAutoHideStyleHint" data-i18n-aria-label="settings.general.islandAutoHideStyle.label">
+                <option value="float" data-i18n="settings.general.islandAutoHideStyle.float">Float over the page</option>
+                <option value="push" data-i18n="settings.general.islandAutoHideStyle.push">Push the page down</option>
+              </select>
+            </div>
+
             <div class="setting" id="islandSiteColorsSetting">
               <div class="label">
                 <span data-i18n="settings.general.islandSiteColors.label">Match site colors</span>

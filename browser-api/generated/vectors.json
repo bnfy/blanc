@@ -5,7 +5,8 @@
     "trusted": [
       "blanc-chrome://index/",
       "blanc-chrome://overlay/",
-      "blanc-chrome://permission/"
+      "blanc-chrome://permission/",
+      "blanc-chrome://float/"
     ],
     "untrusted": [
       "blanc-chrome://fill-status/",
@@ -1871,7 +1872,19 @@
                 "closing": true
               },
               "minPrimaryWidth": 1,
-              "minReferenceWidth": 1
+              "minReferenceWidth": 1,
+              "windowControlsRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "menuButtonRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              }
             }
           ],
           "sends": [
@@ -1903,7 +1916,19 @@
                     "closing": true
                   },
                   "minPrimaryWidth": 1,
-                  "minReferenceWidth": 1
+                  "minReferenceWidth": 1,
+                  "windowControlsRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "menuButtonRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
                 }
               ]
             }
@@ -6222,6 +6247,72 @@
         "linux"
       ],
       "channel": "chrome:strip-hidden",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatFrame": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-frame",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "role": "pill",
+              "x": 1,
+              "y": 1,
+              "width": 1,
+              "height": 1,
+              "stageWidth": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "role": "pill",
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1,
+                "stageWidth": 1
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatShown": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-shown",
       "deliveries": [
         {
           "emit": [

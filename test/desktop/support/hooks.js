@@ -3,7 +3,7 @@ const os = require('node:os');
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 const { _electron } = require('playwright');
-const { BeforeAll, AfterAll, Before, setDefaultTimeout } = require('@cucumber/cucumber');
+const { BeforeAll, AfterAll, Before, After, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
@@ -50,7 +50,7 @@ async function closeApp(electronApp) {
   assertNoMainProcessExceptions(electronApp);
 }
 
-async function launchApp() {
+async function launchApp(extraEnv = {}) {
   // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
   // Electron host can spawn Node helpers. That makes the app binary reject
   // Playwright's --remote-debugging-port as a "bad option" and exit before
@@ -80,6 +80,7 @@ async function launchApp() {
       BLANC_TEST: '1',
       BLANC_TEST_BROWSER_HOME: browserHomeDir,
       BLANC_TEST_UNCAUGHT_LOG: uncaughtLogPath,
+      ...extraEnv,
     },
   });
   if (process.env.BLANC_TEST_APP_OUTPUT === '1') {
@@ -350,6 +351,20 @@ Before(async function () {
   ctx.groupMembers = null;
   ctx.standalonePinnedTabId = null;
   await callTestHook(ctx.app, 'reset');
+});
+
+// Scenarios tagged @test-platform-linux run in an app that acts as on Linux
+// (main and the chrome renderers alike; BLANC_TEST_PLATFORM is honoured only
+// in the acceptance test mode), then the ordinary app comes back.
+Before({ tags: '@test-platform-linux' }, async function () {
+  if (ctx.app) await closeApp(ctx.app);
+  ctx.app = await launchApp({ BLANC_TEST_PLATFORM: 'linux' });
+  await callTestHook(ctx.app, 'reset');
+});
+
+After({ tags: '@test-platform-linux' }, async function () {
+  if (ctx.app) await closeApp(ctx.app);
+  ctx.app = await launchApp();
 });
 
 // F39 local-certificate scenarios share one fixture server and one exception

@@ -959,6 +959,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_island_hover_open_hint">Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.</string>
     <string name="settings_general_island_auto_hide_label">Nascondi automaticamente l’Island</string>
     <string name="settings_general_island_auto_hide_hint">Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island.</string>
+    <string name="settings_general_island_auto_hide_style_label">Quando l’Island torna</string>
+    <string name="settings_general_island_auto_hide_style_hint">Falla fluttuare sopra la pagina o sposta la pagina in basso per farle spazio.</string>
+    <string name="settings_general_island_auto_hide_style_float">Fluttua sopra la pagina</string>
+    <string name="settings_general_island_auto_hide_style_push">Sposta la pagina in basso</string>
     <string name="settings_general_dark_websites_label">Siti web scuri</string>
     <string name="settings_general_dark_websites_hint">Quando Blanc è scuro, scurisce i siti web che non hanno una modalità scura propria. Usa il motore open source Dark Reader.</string>
     <string name="settings_general_sites_listed_here_keep">I siti in questo elenco mantengono i propri colori. Digita /dark-site su un sito per aggiungerlo o rimuoverlo.</string>

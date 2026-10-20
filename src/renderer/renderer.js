@@ -6,6 +6,20 @@
   const { platform } = window.browserAPI;
   const isMac = platform === 'darwin';
   document.documentElement.dataset.platform = platform;
+  // The floating Island (auto-hide, float style) runs this document again in
+  // small views above the page, each showing one element of the strip.
+  const floatSurface = window.location.hostname === 'float';
+  if (floatSurface) document.documentElement.dataset.surface = 'float';
+  // Window coordinates of an element: its place on the strip stage (#chrome).
+  // The strip's stage sits at the window's origin; a float view's stage is
+  // shifted by the view's origin and, mid-slide, by the slide.
+  const stageRect = (el) => {
+    const r = el.getBoundingClientRect();
+    const stage = document.getElementById('chrome').getBoundingClientRect();
+    const left = r.left - stage.left;
+    const top = r.top - stage.top;
+    return { x: left, y: top, left, top, right: left + r.width, bottom: top + r.height, width: r.width, height: r.height };
+  };
   if (isMac) document.body.classList.add('mac');
 
   // Tooltips for the strip's buttons (the pill, the Glance header, the side
@@ -30,7 +44,7 @@
     if (!text || !el.isConnected) return;
     stripTipMeasure.textContent = text;
     const tip = stripTipMeasure.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
+    const box = stageRect(el);
     window.browserAPI.showTooltip({
       text,
       anchor: { x: box.x, y: box.y, width: box.width, height: box.height },
@@ -580,7 +594,7 @@
     mainMenuButton.hidden = false;
     mainMenuButton.addEventListener('click', async () => {
       if (mainMenuOpen) return;
-      const rect = mainMenuButton.getBoundingClientRect();
+      const rect = stageRect(mainMenuButton);
       mainMenuOpen = true;
       mainMenuButton.setAttribute('aria-expanded', 'true');
       try {
@@ -762,7 +776,9 @@
     const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
       .map((element) => (element.hidden ? 0 : 1)).join('');
     return [
-      window.innerWidth, root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
+      // A float view copies a strip of the window's width, not its own.
+      floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
+      root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
       stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
@@ -948,6 +964,7 @@
    * Private tabs take only a sampled Start Page wallpaper (main samples
    * nothing else for them); a private site's theme-color never tints. */
   function applyStripTint(tab) {
+    if (floatSurface) return;
     // A theme handoff invalidates the previous website sample. Ignore any
     // stale tabs:updated payload still in flight until main clears/resamples it.
     const tint = (!themeHandoffPending && (tab?.private ? tab.pageBg : (tab?.pageBg || tab?.themeColor))) || null;
@@ -1181,7 +1198,7 @@
   // The menu lines up with the mark but hangs from the Island's bottom edge,
   // so it never covers the Island (spec D18).
   function spacesAnchor() {
-    return { left: pillSpace.getBoundingClientRect().left, bottom: islandPill.getBoundingClientRect().bottom };
+    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
   }
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];
@@ -1392,7 +1409,7 @@
   // real <button>, and islandPill's keydown guard ignores focused children.
   function shieldAnchorFor(trigger) {
     const button = trigger === 'insecure' ? pillInsecure : pillShield;
-    const r = button.getBoundingClientRect();
+    const r = stageRect(button);
     return { right: r.right, center: r.left + r.width / 2, bottom: r.bottom, trigger };
   }
   pillShield.addEventListener('click', (e) => {
@@ -1418,13 +1435,13 @@
 
   pillCapture.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillCapture.getBoundingClientRect();
+    const r = stageRect(pillCapture);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
   pillDisplayShare.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillDisplayShare.getBoundingClientRect();
+    const r = stageRect(pillDisplayShare);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
@@ -1556,9 +1573,13 @@
   });
 
   // Double-click on empty strip area zooms the window (desktop convention).
+  // Not in a float view: its bare strip is the margin around its one element.
   stripEl.addEventListener('dblclick', (e) => {
-    if (e.target === stripEl) window.browserAPI.maximizeWindow();
+    if (e.target === stripEl && !floatSurface) window.browserAPI.maximizeWindow();
   });
+  // The covered strip's top band zooms the window the same way.
+  const dragBand = document.getElementById('dragBand');
+  dragBand.addEventListener('dblclick', () => window.browserAPI.maximizeWindow());
 
   // Permission prompts render in their own floating bottom-center view
   // (permission.html/permission.js) — the strip no longer hosts them.
@@ -1613,6 +1634,38 @@
     stripEl.classList.toggle('strip-hidden', hidden === true);
   });
 
+  // A float view is a clipped window onto a full-size copy of the strip: main
+  // says which element it shows and where the view sits, and the stage is
+  // offset so that element lands exactly where the strip draws it. The strip
+  // underneath stays the only one reporting geometry.
+  if (floatSurface) {
+    const root = document.documentElement;
+    window.browserAPI.onFloatFrame(({ role, x, y, width, height, stageWidth }) => {
+      root.dataset.floatRole = role;
+      root.style.setProperty('--float-x', `${x}px`);
+      root.style.setProperty('--float-y', `${y}px`);
+      root.style.setProperty('--float-width', `${width}px`);
+      root.style.setProperty('--float-height', `${height}px`);
+      root.style.setProperty('--float-stage-width', `${stageWidth}px`);
+      // The pill fits the strip's room, which may just have changed.
+      fitIslandDots();
+    });
+    let showGeneration = 0;
+    window.browserAPI.onFloatShown((shown) => {
+      const generation = ++showGeneration;
+      if (!shown) {
+        root.classList.remove('float-shown');
+        return;
+      }
+      // Two frames: the view has just become visible, and the slide must start
+      // from above the window edge rather than land at once.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (generation === showGeneration) root.classList.add('float-shown');
+      }));
+    });
+  }
+  // end float surface
+
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger, nativePopup }) => {
     islandMode = mode;
     if (mode !== 'panel') islandPill.classList.remove('covered');
@@ -1657,6 +1710,7 @@
 
   // --- Report strip height so main can size tab views below it. ---
   const reportLayout = () => {
+    if (floatSurface) return;
     window.browserAPI.reportChromeLayout(chromeEl.getBoundingClientRect().height);
   };
   new ResizeObserver(reportLayout).observe(chromeEl);
@@ -1689,7 +1743,12 @@
     const center = pill.left + pill.width / 2;
     return { x: center + (left - center) / scale, y, width: (right - left) / scale, height };
   };
+  const boxOf = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 ? { x: r.left, y: r.top, width: r.width, height: r.height } : null;
+  };
   const reportIslandRect = () => {
+    if (floatSurface) return;
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
     const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
@@ -1701,6 +1760,11 @@
       : pillInsecure.getAttribute('aria-expanded') === 'true' ? 'insecure' : null;
     const y = r.top + ISLAND_RISE * k;
     const hoverRect = islandUrlArea(r, scale, y, height);
+    // Windows and Linux: where the window controls and the main-menu button
+    // sit, so a floating Island can draw its copies of them in place.
+    const controlsBox = isMac ? null : boxOf(windowControls);
+    // With vertical tabs the rail covers the strip's menu button: never float it.
+    const menuBox = isMac || state.tabLayout === 'vertical' ? null : boxOf(mainMenuButton);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,
       y,
@@ -1712,6 +1776,8 @@
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
       ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
       ...(referenceFloor != null ? { minReferenceWidth: referenceFloor } : {}),
+      ...(controlsBox ? { windowControlsRect: controlsBox } : {}),
+      ...(menuBox ? { menuButtonRect: menuBox } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;

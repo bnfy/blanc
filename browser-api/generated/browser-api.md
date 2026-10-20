@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-136 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+138 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -141,6 +141,8 @@
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
 | `onIslandCovered` | island | event | `chrome:island-covered` | `() => void` | all |
 | `onStripHidden` | island | event | `chrome:strip-hidden` | `(payload: boolean) => void` | all |
+| `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
+| `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types
@@ -1026,6 +1028,8 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
 | `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
 | `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
+| `windowControlsRect?` | `Rect` | Windows and Linux: where the strip draws its window controls, for the floating Island’s copy. |
+| `menuButtonRect?` | `Rect` | Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy. |
 
 ### `GroupMenuAnchor`
 
@@ -1107,3 +1111,22 @@ A strip tooltip: its text, the button it belongs to and the size the strip measu
 | `width` | `number` | The measured tooltip width; main caps it. |
 | `height` | `number` | The measured tooltip height; main caps it. |
 | `privateTheme?` | `boolean` | Whether the strip is in its private theme. |
+
+### `FloatRole`
+
+Which strip element a floating Island view shows.
+
+`'pill' \| 'controls' \| 'menu'`
+
+### `FloatFrame`
+
+Where a floating Island view sits (window coordinates) and the width of the strip it replicates.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `role` | `FloatRole` |  |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `stageWidth` | `number` |  |
