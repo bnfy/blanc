@@ -504,6 +504,9 @@
     <string name="tab_menu_close_split">Close Split</string>
     <string name="split_group_move_into">Moves %1$s into %2$s</string>
     <string name="split_group_move_out_of">Moves %1$s out of %2$s</string>
+    <string name="split_menu_moves_into">Moves into %1$s</string>
+    <string name="split_menu_moves_out_of">Moves out of %1$s</string>
+    <string name="tab_menu_split_ungrouped">Ungrouped</string>
     <string name="split_made">%1$s and %2$s are now side by side</string>
     <string name="split_dissolved">Split closed; %1$s fills the window</string>
     <string name="split_keep_as_split">Keep as split</string>

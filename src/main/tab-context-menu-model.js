@@ -35,6 +35,48 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
+// Native menus grow to their widest row, so long page titles are cut.
+const SPLIT_TITLE_MAX = 48;
+const shortTitle = (title) => {
+  const chars = [...String(title)];
+  return chars.length > SPLIT_TITLE_MAX ? `${chars.slice(0, SPLIT_TITLE_MAX - 1).join('').trimEnd()}…` : chars.join('');
+};
+
+// Split with ▸ (F53): tabs in the right-clicked tab's own group (or its
+// fellow ungrouped tabs) come first; every other group, and Ungrouped, is a
+// nested submenu whose header says once how the group rule moves the pick.
+// Group names are user data, so their ids mark them (the pseudo-locale sweep).
+function buildSplitSubmenu(tab, groups, candidates, t) {
+  const own = tab.groupId ?? null;
+  const ownGroup = groups.find((g) => g.id === own);
+  const tabItem = (c) => ({ id: 'split-with-tab', label: shortTitle(c.title), tabId: c.id });
+  const sub = [];
+  const mine = candidates.filter((c) => (c.groupId ?? null) === own);
+  if (mine.length) {
+    if (ownGroup) sub.push({ id: 'split-with-header', type: 'header', label: ownGroup.name });
+    sub.push(...mine.map(tabItem));
+  }
+  const others = [];
+  for (const g of groups) {
+    if (g.id === own) continue;
+    const members = candidates.filter((c) => c.groupId === g.id);
+    if (!members.length) continue;
+    const note = ownGroup ? t('split.menuMovesInto', { group: ownGroup.name }) : t('split.menuMovesOutOf', { group: g.name });
+    others.push({ id: 'split-with-group', label: g.name, submenu: [{ type: 'header', label: note }, ...members.map(tabItem)] });
+  }
+  const loose = own == null ? [] : candidates.filter((c) => c.groupId == null);
+  if (loose.length) {
+    others.push({
+      id: 'split-with-ungrouped',
+      label: t('tabMenu.splitUngrouped'),
+      submenu: [{ type: 'header', label: t('split.menuMovesInto', { group: ownGroup?.name ?? '' }) }, ...loose.map(tabItem)],
+    });
+  }
+  if (sub.length && others.length) sub.push({ type: 'separator' });
+  sub.push(...others);
+  return sub;
+}
+
 function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
@@ -84,8 +126,8 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   });
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Split View (F53): a split tab can leave or close its split; any other tab
-  // can make one with an eligible tab (main passes the candidates, each with
-  // a note when the group rule will move it). Pinned tabs never join.
+  // can make one with an eligible tab (main passes the candidates with their
+  // groups; buildSplitSubmenu sorts them). Pinned tabs never join.
   if (tab.splitId) {
     items.push({ id: 'remove-from-split', label: t('tabMenu.removeFromSplit') });
     items.push({ id: 'close-split', label: t('tabMenu.closeSplit') });
@@ -94,13 +136,7 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   } else if (!splitCandidates.length) {
     items.push({ id: 'split-with', label: t('tabMenu.splitWith'), enabled: false });
   } else {
-    items.push({
-      id: 'split-with',
-      label: t('tabMenu.splitWith'),
-      submenu: splitCandidates.map((c) => ({
-        id: 'split-with-tab', label: c.title, tabId: c.id, ...(c.groupNote ? { sublabel: c.groupNote } : {}),
-      })),
-    });
+    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), submenu: buildSplitSubmenu(tab, groups, splitCandidates, t) });
   }
   items.push({ type: 'separator' });
 

@@ -4575,23 +4575,18 @@ function reopenSplitEntry(entry) {
   scheduleMenuRebuild();
 }
 
-/** Split with ▸ choices for a tab's menu: this window's other eligible tabs,
- *  each with a note when the group rule will move it (spec §3.1). */
+/** Split with ▸ choices for a tab's menu: this window's other eligible tabs
+ *  with their groups; the menu model sorts them by group (spec §3.1). */
 function splitCandidatesFor(tab, owner) {
   if (!tab || tab.pinned || tab.splitId) return [];
-  const groupName = (id) => owner.groups.find((g) => g.id === id)?.name ?? '';
   return owner.tabOrder
     .map((id) => tabs.get(id))
     .filter((other) => other && other.id !== tab.id && splitEligible(other))
-    .map((other) => {
-      const title = displayTitle(other) || mainI18n.t('tab.untitledShort');
-      const to = tab.groupId ?? null;
-      const from = other.groupId ?? null;
-      let groupNote = null;
-      if (to && from !== to) groupNote = mainI18n.t('split.groupMoveInto', { title, group: groupName(to) });
-      else if (!to && from) groupNote = mainI18n.t('split.groupMoveOutOf', { title, group: groupName(from) });
-      return { id: other.id, title, ...(groupNote ? { groupNote } : {}) };
-    });
+    .map((other) => ({
+      id: other.id,
+      title: displayTitle(other) || mainI18n.t('tab.untitledShort'),
+      groupId: other.groupId ?? null,
+    }));
 }
 
 function currentTabBounds(tab) {

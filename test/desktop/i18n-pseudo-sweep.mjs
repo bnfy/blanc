@@ -69,7 +69,7 @@ const recordMenus = (app) => app.evaluate(({ Menu }) => {
   if (globalThis.__sweepMenus) return;
   globalThis.__sweepMenus = [];
   const entries = (menu) => menu.items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
-    { text: item.label, ignored: item.type === 'radio' || String(item.id ?? '').startsWith('split-with-tab:') },
+    { text: item.label, ignored: item.type === 'radio' || /^split-with-(tab|group|header)\b/.test(String(item.id ?? '')) },
     ...(item.submenu ? entries(item.submenu) : []),
   ]));
   Menu.prototype.popup = function popup(options) { globalThis.__sweepMenus.push(entries(this)); options?.callback?.(); };

@@ -518,6 +518,9 @@
     <string name="tab_menu_close_split">Cerrar vista dividida</string>
     <string name="split_group_move_into">Mueve %1$s a %2$s</string>
     <string name="split_group_move_out_of">Saca %1$s de %2$s</string>
+    <string name="split_menu_moves_into">Pasa a %1$s</string>
+    <string name="split_menu_moves_out_of">Sale de %1$s</string>
+    <string name="tab_menu_split_ungrouped">Sin grupo</string>
     <string name="split_made">%1$s y %2$s están ahora lado a lado</string>
     <string name="split_dissolved">Vista dividida cerrada; %1$s ocupa la ventana</string>
     <string name="split_keep_as_split">Mantener como vista dividida</string>
