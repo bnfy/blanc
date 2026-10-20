@@ -12,7 +12,7 @@ Main splits "where the page starts" from "where the Island is" so overlays ancho
 
 **Tech Stack:** Electron 44 (`WebContentsView`, `-webkit-app-region`), plain JS, `node --test`, Cucumber + Playwright-Electron.
 
-**Spec:** `docs/superpowers/specs/2026-10-20-floating-island-design.md` (approved 2026-10-20). Read it first; this plan argues from it.
+**Spec:** `docs/superpowers/specs/2026-10-20-floating-island-design.md` (the owner approved it in the design session on 2026-10-20 with "approved, write the plan"). Read it first; this plan argues from it.
 
 ## Global Constraints
 
@@ -32,10 +32,10 @@ Main splits "where the page starts" from "where the Island is" so overlays ancho
 
 ## Review Focus
 
-1. **The pill changes width while floating** (a new tab adds a dot, a long domain), or the window is resized. Expected: the float view's bounds follow the strip's new `islandRect`, and the pill is never clipped. Test in Task 5.
+1. **The pill changes width while floating** (a new tab adds a dot, a long domain), or the window is resized. Expected: the float view's bounds follow the strip's new `islandRect`, and the pill is never clipped. Tests F1-34 and F1-40 in Task 5.
 2. **Switching tabs, or opening a utility sheet, while the pill floats.** Expected: the pill stays above the new tab view and above the sheet. Test in Task 5.
-3. **Changing style or turning Auto-hide off while the Island is revealed, or while Glance is open.** Expected: the float views are destroyed, nothing is stuck on screen, and the page lands at the right `y`. Test in Task 5.
-4. **A private tab or a theme change while floating.** Expected: the float pill shows the private theme and the new theme like the strip does. Test in Task 5.
+3. **Changing style or turning Auto-hide off while the Island is revealed, mid-slide, or while Glance is open.** Expected: the float views are destroyed, nothing is stuck on screen, and the page lands at the right `y`. Tests F1-34, F1-37, F1-38 and F1-39 in Task 5.
+4. **A private tab or a theme change while floating.** Expected: the float pill shows the private theme and the new theme like the strip does. Tests F1-35 and F1-41 in Task 5.
 5. **A second window, then closing it.** Expected: each window has its own float views, and closing one unregisters and destroys its views with no leaked chrome surfaces. Test in Task 5.
 
 ---
@@ -243,10 +243,10 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
 
 **Interfaces:**
 - Produces:
-  - type `FloatFrame = { role: 'pill'|'controls'|'menu', x: number, y: number, stageWidth: number }`;
+  - type `FloatFrame = { role: 'pill'|'controls'|'menu', x: number, y: number, width: number, height: number, stageWidth: number }`, where x, y, width and height are the float view's bounds;
   - main → float: `chrome:float-frame` (FloatFrame) and `chrome:float-shown` (boolean);
   - in a float surface `<html>` carries `data-surface="float"`, `data-float-role` and the class `float-shown`;
-  - CSS vars `--float-x`, `--float-y`, `--float-stage-width`.
+  - CSS vars `--float-x`, `--float-y`, `--float-height`, `--float-stage-width`.
 
 - [ ] **Step 1: Write the failing tests.**
   - Protocol: `chromeResourcePath('blanc-chrome://float/')` ends in `index.html`, and `…/renderer.js` resolves.
@@ -254,6 +254,7 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
     - `renderer.js` sets `dataset.surface = 'float'` when `location.hostname === 'float'`;
     - it skips `reportChromeLayout` and the `chrome:island-rect` report on that surface;
     - it adds the `float-shown` class only after two `requestAnimationFrame`s;
+    - the role element's hidden transform uses `var(--float-height)`, not a percentage;
     - `styles.css` has `html[data-surface="float"]` rules hiding `#verticalTabsRail`, `#glanceDivider` and `#glanceHeader`.
 - [ ] **Step 2:** Run `node --test test/unit/float-surface.test.js test/unit/chrome-protocol*.test.js && npm run browser-api:check`. Expected: FAIL.
 - [ ] **Step 3: Implement.**
@@ -263,7 +264,7 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
     - `#strip` transparent and `no-drag`;
     - each role shows only its element (`pill` → `#islandPill`; `controls` → `#windowControls`; `menu` → `#mainMenuButton`), the rest `visibility: hidden`.
   - Pill, controls and menu get `box-shadow: var(--shadow-popover)`. Controls and menu also get a `var(--bg)` backing with `var(--radius)`.
-  - The slide uses `transform: translateY(calc(-100% - 8px))` on the role element, and `translateY(0)` under `.float-shown`. The transition is 160ms ease-out in and 200ms out, and `@media (prefers-reduced-motion: reduce)` sets `transition: none`. The controls role is always `float-shown`.
+  - The slide uses `transform: translateY(calc(-1 * var(--float-height)))` on the role element, and `translateY(0)` under `.float-shown`. The view starts at the window's top edge, so moving the element up by the whole view height puts the element, its top margin and its shadow fully above the window edge. (`-100%` alone would leave the pill's 12px top margin showing part of it.) The transition is 160ms ease-out in and 200ms out, and `@media (prefers-reduced-motion: reduce)` sets `transition: none`. The controls role is always `float-shown`.
   - `#windowControls`/`#mainMenuButton` `tint-dark` rules don't apply on the float surface.
   - Tooltip anchors stay in the view's own coordinates; main offsets them (Task 5).
 - [ ] **Step 4:** Rerun step 2, then `npm run substrate:check && npm run lint`. Expected: PASS.
@@ -293,6 +294,7 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
     - `floatViewState('pill')` is visible;
     - its bounds are within 30px of `islandRect` on each side;
     - `activeBounds.y === 0` throughout (sample during the 160ms slide);
+    - before the slide-in starts and after the slide-out, the pill element's `getBoundingClientRect().bottom` plus its shadow blur is ≤ 0 in the float view (nothing peeks below the window edge);
     - after the pointer leaves, the pill hides and its view stays attached.
   - **F1-31:** "Find and the shield menu open under the floating pill". Reveal, then:
     - open find: the overlay's `y` equals the strip height and the page stays at `y = 0`;
@@ -306,7 +308,12 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
     - switch the style to push: the float views are gone and `pageY > 0`;
     - open a second window then close it: `windowRuntimes` shows no surface for its float views.
   - **F1-35 (Review Focus 4):** "The floating pill takes the private theme". Make a private tab active; the float pill's `document.documentElement.dataset.theme` is `'private'`.
-- [ ] **Step 2:** Run `npm run test:acceptance:desktop -- --tags "@F1-30 or @F1-31 or @F1-32 or @F1-33 or @F1-34 or @F1-35"`. Expected: FAIL.
+  - **F1-37:** "Switching to push mid-slide leaves nothing behind". Point at the top edge and, within 80ms, set the style to push. Once `sliding` is false, the float views are gone, `pageY > 0` and the strip is shown; pointing away hides it as push does.
+  - **F1-38:** "Turning Auto-hide off while the pill floats". Reveal, turn Auto-hide off. The float views are gone, `pageY` equals the strip height, `stripAppRegion()` is `drag` and the macOS traffic lights are visible.
+  - **F1-39:** "Changing the style while Glance is open". In float with Glance open, `pageY > 0`. Set the style to push, then back to float, with Glance still open: `pageY` stays the strip height and no float view is visible. Close Glance: `pageY === 0` (float) and the pill view is hidden.
+  - **F1-40:** "Resizing the window while the pill floats". Reveal, then resize the window narrower and wider. After each resize, the pill view's bounds are within 30px of the new `islandRect` on each side and `activeBounds.y === 0`.
+  - **F1-41:** "Changing the theme while the pill floats". Reveal, set the theme to dark, then light. Each time, the float pill's appearance attribute (the one `renderer.js` sets from `chrome:theme-appearance`) matches the strip document's.
+- [ ] **Step 2:** Run `npm run test:acceptance:desktop -- --tags "@F1-30 or @F1-31 or @F1-32 or @F1-33 or @F1-34 or @F1-35 or @F1-37 or @F1-38 or @F1-39 or @F1-40 or @F1-41"`. Expected: FAIL.
 - [ ] **Step 3: View lifecycle.** `ensureIslandFloatView` mirrors `ensureTooltipView` plus:
   - `preload: preload.js` with sandbox and `partition: CHROME_PARTITION`;
   - `setBackgroundColor('#00000000')`;
@@ -351,19 +358,37 @@ Float mode now keeps the page at `y = 0`. There's no pill yet; Task 5 adds it. P
 
 ### Task 6: Windows/Linux controls and menu button
 
-Task 5's machinery already creates the `controls` and `menu` views on non-mac. This task covers their behaviour and tests. On this Mac they can only be checked in the acceptance harness by faking the platform.
+Task 5's machinery already creates the `controls` and `menu` views on non-mac. This task covers their behaviour and tests. On this Mac the acceptance harness can only reach them by faking the platform, and the fake must reach the renderers too. If only main pretends to be Linux, the strip page still draws no window controls and reports no rectangles, and a test could pass with an empty view.
 
 **Files:**
-- Modify: `src/main/main.js` (only where needed), `src/main/test-hook.js` (`setTestFloatPlatform(platform)`, acceptance-only, read by `syncIslandFloat` in place of `process.platform`)
+- Modify: `src/main/main.js`:
+  - read `BLANC_TEST_PLATFORM` (`'win32'` or `'linux'`) only when `acceptanceTestMode`, into `testPlatform`;
+  - `chromePlatform() -> 'darwin'|'win32'|'linux'` returns it or `process.platform`;
+  - pass `additionalArguments: ['--blanc-test-platform=<p>']` to the strip window and to every float view, only when it is set;
+  - `syncIslandFloat` and `floatViewsWanted`/`floatViewsShown` callers use `chromePlatform()`.
+- Modify: `src/main/preload.js`: `platform` is the `--blanc-test-platform=` value from `process.argv` when present, else `process.platform`. Main never passes the argument outside acceptance mode, and a packaged build is never in acceptance mode. Update `browser-api/contract.json` if `browser-api:check` requires it, then run `npm run browser-api:build`.
+- Modify: `test/desktop/support/` so a scenario tagged `@test-platform-linux` launches its own app instance with `BLANC_TEST_PLATFORM=linux` (follow how the support code already launches instances with custom env, if it does; otherwise add that option there).
 - Modify: `spec/acceptance/island-and-commands.feature`, `index.md`, `cucumber.mjs`, the steps file
+- Modify: `src/main/test-hook.js`: `floatControlsState()` returns, from the controls and menu float views:
+  - the visible `#windowControls button` count;
+  - each button's on-screen rect in window coordinates;
+  - whether `#mainMenuButton` is visible and its rect.
 
-- [ ] **Step 1: Write the failing scenario** F1-36, "Window buttons stay on screen in float mode on Windows and Linux". With the test platform set to `linux`, style float and the Island hidden:
-  - `floatViewState('controls')` is visible and `floatViewState('menu')` is hidden;
-  - after pointing at the top edge, the menu view is visible;
-  - clicking the menu view's button opens the main menu (assert through the existing main-menu test seam used by `platform-main-menu.test.js`).
+- [ ] **Step 1: Write the failing scenario.** F1-36, "Window buttons stay on screen in float mode on Windows and Linux", tagged `@test-platform-linux`. With style float and the Island hidden:
+  - the strip's island-rect report includes non-null `windowControlsRect` and `menuButtonRect`;
+  - `floatViewState('controls')` is visible, its bounds contain `windowControlsRect`, and `floatControlsState()` reports 3 visible buttons, each inside the window;
+  - `floatViewState('menu')` is hidden, and the menu element's `getBoundingClientRect().bottom` plus its shadow is ≤ 0 in its view;
+  - after pointing at the top edge, the menu view is visible with a visible `#mainMenuButton` inside the window.
+
+  It then checks the real actions by sending mouse clicks to the float views (`sendInputEvent` at each button's centre, in view coordinates):
+  - maximise → `isMaximized()` becomes true; click again → false;
+  - minimise → `isMinimized()` becomes true (restore afterwards);
+  - the menu button opens the main menu, asserted through the existing main-menu seam used by `platform-main-menu.test.js`.
+
+  Close stays untested: it would end the scenario's app.
 - [ ] **Step 2:** Run `npm run test:acceptance:desktop -- --tags @F1-36`. Expected: FAIL.
-- [ ] **Step 3:** Fix whatever the scenario exposes. Keep platform branching inside `floatViewsWanted`/`floatViewsShown`.
-- [ ] **Step 4:** Rerun. Expected: PASS. Then `npm run test:unit && npm run lint`.
+- [ ] **Step 3:** Implement the platform override above, and fix whatever else the scenario exposes. Keep platform branching inside `floatViewsWanted`/`floatViewsShown` and `chromePlatform()`.
+- [ ] **Step 4:** Rerun. Expected: PASS. Then run `npm run test:unit && npm run browser-api:check && npm run lint`.
 - [ ] **Step 5:** Commit: "Float mode keeps Windows and Linux window buttons on screen".
 
 ### Task 7: Linux drawing check and docs
