@@ -403,8 +403,10 @@ original reports:
   tabs are never archived, nor a tab playing or capturing media, awaiting a
   permission prompt or holding form input. An update never turns it on; a
   new profile's onboarding offers it. The Archive keeps no page state or back
-  history and is never synced. Packaged and Windows/Linux hand checks are
-  pending in the release report; don't claim them until it records them.
+  history and is never synced. The hand checks passed on October 20, 2026:
+  the installed Mac app (owner), the published Windows build, and on Linux
+  an ARM64 package of the release commit that exercised the sweep, not the
+  interface. Don't claim a hands-on check of the published x64 AppImage.
 - **Sunrise Gold:** Since v1.39.0 Settings → General → App icon offers Sunrise
   Gold on macOS only, alongside Sunrise and Sunrise Dark. It isn't a Patron
   perk, and Windows and Linux don't offer it. In the Clear and Tinted icon
