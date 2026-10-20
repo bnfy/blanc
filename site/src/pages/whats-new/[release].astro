@@ -19,13 +19,14 @@ export function getStaticPaths() {
 }
 
 const { page } = Astro.props;
-const { release, anchor, entries } = page;
+const { release, anchor, entries, upcoming } = page;
 ---
 <BaseLayout
   title={`What’s New in Blanc ${release} | Blanc Browser`}
   description={pageDescription(page)}
   path={`/whats-new/${release}`}
   page="whats-new"
+  robots={upcoming ? 'noindex,nofollow' : undefined}
   header="minimal"
   analytics={false}
   newsletterPrompt={false}
@@ -53,7 +54,7 @@ const { release, anchor, entries } = page;
       <button type="button" class="wn-arrow wn-arrow--next" aria-label="Next highlight"><span aria-hidden="true">›</span></button>
     </div>
     </div>
-    <p class="wn-changelog">Want every detail? <a href={`/changelog#${anchor}`}>Read the full changelog on blanc.day</a></p>
+    <p class="wn-changelog">Want every detail? <a href={anchor ? `/changelog#${anchor}` : '/changelog'}>Read the full changelog on blanc.day</a></p>
   </main>
   <script src="../../scripts/whats-new.js"></script>
 </BaseLayout>

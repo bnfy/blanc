@@ -37,7 +37,7 @@ const ALLOWED = [
   'pages/support.astro → Blanc Support',
   'pages/trust.astro → Privacy & security',
   // Each What's New highlight names its release: this one's, or an earlier one's.
-  'components/WhatsNewHighlight.astro → {current ? \'What’s new\' : \'Recently\'} · Blanc {release} · {shortDate}',
+  'components/WhatsNewHighlight.astro → {current ? \'What’s new\' : \'Recently\'} · Blanc {release}{shortDate && ` · ${shortDate}`}',
 ];
 
 function eyebrows(markup) {

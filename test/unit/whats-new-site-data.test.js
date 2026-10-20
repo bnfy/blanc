@@ -11,6 +11,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '../..');
 const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8'));
+const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 const lib = () => import('../../site/src/lib/whats-new.mjs');
 const releases = readJson('site/src/data/releases.json');
 const data = readJson('site/src/data/whats-new.json');
@@ -48,11 +49,33 @@ test('the committed What\'s New data is valid against the committed releases', a
   assert.deepEqual(validateWhatsNew(data, releases, await options()), []);
 });
 
-test('a page must belong to a published release', async () => {
+// The release gate (scripts/check-whats-new-page.mjs) needs the next
+// release's page live before that release publishes, so one page newer than
+// every published release may build ahead of it; any other unreleased page is
+// a mistake.
+test('one page may come ahead of its release, and only the next one', async () => {
   const { validateWhatsNew } = await lib();
-  const errors = validateWhatsNew(fixture([named('1.38', 3), named('1.39', 3)]), RELEASES, await options());
-  assert.equal(errors.length, 1);
-  assert.match(errors[0], /1\.39/);
+  assert.deepEqual(validateWhatsNew(fixture([named('1.38', 3), named('1.39', 3)]), RELEASES, await options()), []);
+  const two = validateWhatsNew(fixture([named('1.38', 3), named('1.39', 3), named('1.40', 3)]), RELEASES, await options());
+  assert.equal(two.length, 1);
+  assert.match(two[0], /1\.40/);
+  const older = validateWhatsNew(fixture([named('1.37', 3), named('1.38', 3)]), RELEASES, { ...(await options()), requireEveryRelease: false });
+  assert.equal(older.length, 1);
+  assert.match(older[0], /1\.37/);
+});
+
+test('an upcoming page builds without a date, unlisted until its release is public', async () => {
+  const { publishedPages } = await lib();
+  const pages = publishedPages(fixture([named('1.38', 3), named('1.39', 3)]), RELEASES);
+  const upcoming = pages.find((p) => p.release === '1.39');
+  assert.equal(upcoming.upcoming, true);
+  assert.equal(upcoming.humanDate, null);
+  assert.equal(upcoming.anchor, null, 'no changelog entry to link to yet');
+  assert.equal(pages.find((p) => p.release === '1.38').upcoming, false);
+  const route = read('site/src/pages/whats-new/[release].astro');
+  assert.match(route, /robots=\{upcoming \? 'noindex,nofollow'/, 'search engines never index it early');
+  assert.match(read('site/src/pages/whats-new/index.astro'), /!page\.upcoming/, '/whats-new leads only to a released page');
+  assert.match(read('site/src/pages/sitemap.xml.js'), /!page\.upcoming/, 'the sitemap lists only released pages');
 });
 
 test('a page holds two to five highlights of its own', async () => {
