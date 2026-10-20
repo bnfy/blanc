@@ -120,6 +120,17 @@ and the toolbar comes back on demand. Blanc has no such mode.
   band above a floating window's top edge does not reveal the strip, and a
   pointer that leaves the window over the strip keeps it shown until it comes
   back into the window. Point just inside the top edge instead.
+- On Windows the drag band drags the window but does not maximise on a
+  double-click, in either style (hand check of 2026-10-20). A transparent
+  6px drag view behaves the same, so it is how Windows resolves a
+  double-click on an app-region, not the band. Pressing just below the band
+  zooms but does not drag.
+- On Linux in the float style the window's own document (the strip) reports
+  `visibilityState 'hidden'` while the page covers it whole and stops
+  tracking the window's size, so after a maximise the floating pill and the
+  window controls are placed from a stale report and the controls' clicks
+  miss. Found in the 2026-10-20 hand check (X11 and Wayland); a fix is
+  pending before the next release. Keeping one strip row uncovered avoids it.
 - No slash command yet. `/hide-island` would need the `copy/slash-commands.json`
   substrate and every language's copy.
 

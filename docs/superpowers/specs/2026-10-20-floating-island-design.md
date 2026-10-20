@@ -305,6 +305,26 @@ Implementation stops at the Windows/Linux hand-off. Merge waits for those
 results. Failure of the drag band alone may use the approved no-band
 fallback; other failures must be resolved before merge.
 
+**Results (2026-10-20, after the merge; full table on bnfy/blanc#994):**
+
+1. **Drag band.** Drags on Windows, X11 and Wayland from the window
+   document's own region, so the fallback view is not needed. Double-click
+   maximises on Linux but not on Windows (the fallback view is no better
+   there; recorded as a known limit in the 2026-10-19 spec and D29).
+2. **Tight transparent views.** Composite with their shadow, take clicks only
+   inside their bounds, and keep drawing across tab switches on all three
+   (the drawing check passes 22 of 22 on xvfb and Wayland). On Linux in float
+   mode the window document goes `hidden` once the page covers it whole and
+   stops tracking resizes, so after a maximise the views are placed from a
+   stale island-rect report and the controls' clicks miss. Fix pending;
+   leaving one strip row uncovered avoids it.
+3. **Native Wayland reveal.** Pointing 7–10px inside the edge or resting
+   30px down reveals the pill with the band in place.
+
+Cost: three renderers per window on Windows and Linux (pill, controls, menu),
+about 335 MB RSS or working set between them, which counts shared pages per
+process.
+
 ## Tests
 
 - **Unit:** float pill bounds; the drag-band rect (island and vertical
