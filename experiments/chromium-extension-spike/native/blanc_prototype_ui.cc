@@ -1723,6 +1723,31 @@ class Handler : public content::WebUIMessageHandler {
         base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id,
             "previewSpaceOpen", name, std::move(captured)));
   }
+  void InitialWindowPreferencesCommitted(
+      base::WeakPtr<BrowserWindowInterface> expected, base::DictValue capture) {
+    if (!expected) return;
+    SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+        base::BindOnce([](base::FilePath path) {
+          std::string bytes;
+          return base::ReadFileToString(path, &bytes) &&
+              base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS).has_value();
+        }, expected->GetProfile()->GetPath().AppendASCII("Preferences")),
+        base::BindOnce(&Handler::InitialWindowSaved, weak_factory_.GetWeakPtr(),
+            expected, std::move(capture)));
+  }
+  void InitialWindowSessionSaved(
+      base::WeakPtr<BrowserWindowInterface> expected, base::DictValue capture,
+      bool success) {
+    if (!success || !expected) {
+      InitialWindowSaved(expected, std::move(capture), false);
+      return;
+    }
+    // A fresh profile without Preferences is classified as new on restart,
+    // even when its session stream contains every acknowledged window.
+    expected->GetProfile()->GetPrefs()->CommitPendingWrite(base::BindOnce(
+        &Handler::InitialWindowPreferencesCommitted, weak_factory_.GetWeakPtr(),
+        expected, std::move(capture)));
+  }
   void InitialWindowSaved(base::WeakPtr<BrowserWindowInterface> expected,
       base::DictValue capture, bool success) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -1783,7 +1808,7 @@ class Handler : public content::WebUIMessageHandler {
     // acknowledgement covers its window, tabs, groups and split metadata too.
     service->ResetFromCurrentBrowsers();
     owner->initial_window_save_started = true;
-    service->SaveAndFlushSession(base::BindOnce(&Handler::InitialWindowSaved,
+    service->SaveAndFlushSession(base::BindOnce(&Handler::InitialWindowSessionSaved,
         weak_factory_.GetWeakPtr(), browser->GetWeakPtr(), std::move(*capture)));
   }
   void MaybeRollback(Owner* owner) {
