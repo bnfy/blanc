@@ -134,8 +134,8 @@
     "source": "sha256:2c357c354eb837202c27e466c8eae03f656733b0c84b8b8b955d31044fbca4c6"
   },
   "slash.glance.hint": {
-    "message": "Mantener otra pestaña abierta junto a esta página",
-    "source": "sha256:1e9a55801e7a04c926a6c3389ede976e70a92b09685378e051dcd9d2c3f8e4df"
+    "message": "Ver otra pestaña abierta sin salir de esta página",
+    "source": "sha256:89d44dd6c6ee15feb9b12a39f6a814650b3d1b4cbee3d9fb377120c7aa211c8a"
   },
   "slash.glance.doc": {
     "message": "Abrir el selector de Glance, filtrado por el texto",
@@ -354,17 +354,37 @@
     "message": "GLANCE",
     "source": "sha256:fcb19c0f9926b34ef991e7bebad4a2ea5e62f162474ce3ebd734ed7aa0a1fb61"
   },
-  "glance.promote": {
-    "message": "Principal — intercambiar con la página principal",
-    "source": "sha256:eec8c9d3246f48133edee61045ede79eefc2abb3fdf5b3eb434f6638fac79dd9"
-  },
-  "glance.promoteShort": {
-    "message": "Principal",
-    "source": "sha256:a7e42de240a757d798f520cbf37c73e9f731bbd0b6ab2fb3f353eaec2dc40c6b"
-  },
   "glance.change": {
     "message": "Cambiar",
     "source": "sha256:cd6459f87faebe36f9d245ef5af8bba9b1d69ea3fbdebd42670ab48f1e7ece47"
+  },
+  "glance.openAsTab": {
+    "message": "Abrir como pestaña",
+    "source": "sha256:3e9f5990a32b542d258e3383610b2cbde942e5fd7dc18a5acd13575c3f1b05df"
+  },
+  "glance.openAsTab.title": {
+    "message": "Abrir como pestaña: convertir esta página en la pestaña actual",
+    "source": "sha256:72750983152366387531dbd015f122a48fa41b1930be28411a529e8e46fb239e"
+  },
+  "glance.move": {
+    "message": "Mover o cambiar el tamaño de Glance",
+    "source": "sha256:417e8beeb9920781b5230f286eaca82c665d66c8d630ee8e0de3e433070abb75"
+  },
+  "glance.move.hint": {
+    "message": "Las flechas lo mueven. Opción o Alt con una flecha cambia su tamaño. Intro lo restablece.",
+    "source": "sha256:2def091c2a979f3e45be59a6db61d4e68ac82f574ab3e9c5eee1781cdc417981"
+  },
+  "glance.status.moved": {
+    "message": "Glance movido",
+    "source": "sha256:57357980b7c6ebaac416613bfef1992aba5dd6759a467cfcba85a8b7f4684e4f"
+  },
+  "glance.status.resized": {
+    "message": "Glance cambiado a {width} por {height}",
+    "source": "sha256:1b2bd9fb0f730194c0fb3acc217bd4d00df2a24908a777a10001e9d3d6b2390e"
+  },
+  "glance.status.reset": {
+    "message": "Glance restablecido",
+    "source": "sha256:866d7896d94521bbd01b8bdb44fa9c11ea22636c9580b9164ea02e57616cfef0"
   },
   "glance.change.title": {
     "message": "Elegir otra pestaña para Glance",
@@ -373,14 +393,6 @@
   "glance.close": {
     "message": "Cerrar Glance",
     "source": "sha256:7d9da4291b72a86359f91c029c4ef7759bfabfe06b20affe464c96edcf7c9490"
-  },
-  "glance.resize": {
-    "message": "Cambiar el tamaño de Glance",
-    "source": "sha256:03ab2e38f02e3f30e60d7bf0a49fba22503b00d0a9d696f494ff979e6130a4f8"
-  },
-  "glance.dividerValue": {
-    "message": "Página principal {percent} por ciento",
-    "source": "sha256:6f112c08e28d8b3081d779d8cd2b7ab7f7bd2e4ba3f7cc21c969d268bbf6f580"
   },
   "resize.hint": {
     "message": "Arrastra para cambiar el tamaño; doble clic para restablecerlo",

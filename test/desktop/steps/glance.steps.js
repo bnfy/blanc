@@ -2397,3 +2397,40 @@ Then('Glance is still open over the main page', async function () {
 When('I close the main page', async function () {
   await this.call('closeTab', this.glanceMainId);
 });
+
+When('I narrow the Glance card to its minimum', async function () {
+  const frame = await cardBridge(this, 'resizeGlanceCard', { edge: 'w', dx: 5000, dy: 0 });
+  assert.equal(frame?.width, 360);
+});
+
+Then('the Glance header shows Back, Reload, the three actions as icons and × on one row', async function () {
+  const page = await glanceCardPage();
+  const header = await waitForValue(() => page.evaluate(() => {
+    const el = document.getElementById('glanceHeader');
+    const shown = (id) => document.getElementById(id)?.getClientRects().length > 0;
+    return {
+      width: Math.round(el.getBoundingClientRect().width),
+      fits: el.scrollWidth <= el.clientWidth + 1,
+      compact: el.classList.contains('compact-actions'),
+      shown: Object.fromEntries(['glanceBack', 'glanceReload', 'glanceChange', 'glanceOpenAsTab', 'glanceKeepSplit', 'glanceClose', 'glanceFavicon']
+        .map((id) => [id, shown(id)])),
+      labelsShown: [...el.querySelectorAll('.glance-action-label')].some((label) => label.getClientRects().length > 0),
+    };
+  }), (value) => value?.width === 358 && value.compact, 'the header to compact in a 360 px card (358 inside its border)');
+  assert.equal(header.fits, true, 'nothing spills out of the header');
+  assert.equal(header.labelsShown, false, 'the actions are icons');
+  for (const [id, shown] of Object.entries(header.shown)) assert.equal(shown, true, `${id} is shown`);
+});
+
+When("I press the right arrow on the Glance card's Move or resize control", async function () {
+  this.glanceCardStart = (await waitForValue(() => glanceCard(this), (value) => value?.cardViewVisible === true, 'the Glance card'))?.frame;
+  const page = await glanceCardPage();
+  await page.locator('#glanceMove').focus();
+  await page.keyboard.press('ArrowRight');
+});
+
+Then('the Glance card announces {string}', async function (message) {
+  const page = await glanceCardPage();
+  await waitForValue(() => page.evaluate(() => document.getElementById('glanceCardStatus')?.textContent ?? ''),
+    (text) => text === message, `the card to announce ${message}`);
+});

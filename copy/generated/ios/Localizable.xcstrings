@@ -1352,37 +1352,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep another open tab beside this page"
+            "value": "Look at another open tab without leaving this page"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einen anderen offenen Tab neben dieser Seite behalten"
+            "value": "Einen anderen offenen Tab ansehen, ohne diese Seite zu verlassen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantener otra pestaña abierta junto a esta página"
+            "value": "Ver otra pestaña abierta sin salir de esta página"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Garder un autre onglet ouvert à côté de cette page"
+            "value": "Regarder un autre onglet ouvert sans quitter cette page"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tieni un'altra scheda aperta accanto a questa pagina"
+            "value": "Guarda un'altra scheda aperta senza lasciare questa pagina"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Manter outra aba aberta ao lado desta página"
+            "value": "Ver outra aba aberta sem sair desta página"
           }
         }
       }
@@ -3943,90 +3943,6 @@
         }
       }
     },
-    "glance.promote": {
-      "comment": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Make main — swap with the main page"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite — mit der Hauptseite tauschen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal — intercambiar con la página principal"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale — échanger avec la page principale"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale — scambia con la pagina principale"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal — trocar com a página principal"
-          }
-        }
-      }
-    },
-    "glance.promoteShort": {
-      "comment": "Short visible label of that same button.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Make main"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal"
-          }
-        }
-      }
-    },
     "glance.change": {
       "comment": "Button that picks a different tab for Glance.",
       "extractionState": "manual",
@@ -4065,6 +3981,300 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trocar"
+          }
+        }
+      }
+    },
+    "glance.openAsTab": {
+      "comment": "Floating Glance card header button: end the Glance and make its page the current tab, full window. Visible label; icon-only when the card is narrow.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open as tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Tab öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans un onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri come scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como aba"
+          }
+        }
+      }
+    },
+    "glance.openAsTab.title": {
+      "comment": "Tooltip and accessible name of Open as tab. Begins with the visible label (glance.openAsTab) so speech-input users can say what they see.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open as tab — make this page the current tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Tab öffnen – diese Seite zum aktuellen Tab machen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como pestaña: convertir esta página en la pestaña actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans un onglet — faire de cette page l'onglet actuel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri come scheda: rendi questa pagina la scheda attuale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como aba — tornar esta página a aba atual"
+          }
+        }
+      }
+    },
+    "glance.move": {
+      "comment": "Accessible name and tooltip of the floating Glance card's keyboard move/resize control.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move or resize Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance verschieben oder Größe ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover o cambiar el tamaño de Glance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer ou redimensionner Glance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta o ridimensiona Glance"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover ou redimensionar o Glance"
+          }
+        }
+      }
+    },
+    "glance.move.hint": {
+      "comment": "Screen-reader description of the Move or resize Glance control. Option is the macOS name of the Alt key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrow keys move it. Option or Alt with an arrow key resizes it. Enter resets it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfeiltasten verschieben es. Wahl- oder Alt-Taste mit einer Pfeiltaste ändert die Größe. Eingabetaste setzt es zurück."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las flechas lo mueven. Opción o Alt con una flecha cambia su tamaño. Intro lo restablece."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les flèches le déplacent. Option ou Alt avec une flèche le redimensionne. Entrée le réinitialise."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le frecce lo spostano. Opzione o Alt con una freccia lo ridimensiona. Invio lo ripristina."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As setas o movem. Option ou Alt com uma seta o redimensiona. Enter o redefine."
+          }
+        }
+      }
+    },
+    "glance.status.moved": {
+      "comment": "Screen reader announcement after the keyboard moves the floating Glance card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance moved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance movido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance déplacé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance spostato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance movido"
+          }
+        }
+      }
+    },
+    "glance.status.resized": {
+      "comment": "Screen reader announcement after the keyboard resizes the floating Glance card; {width} and {height} are its size in pixels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance resized to %1$@ by %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance-Größe geändert auf %1$@ × %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance cambiado a %1$@ por %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redimensionné à %1$@ sur %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance ridimensionato a %1$@ per %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redimensionado para %1$@ por %2$@"
+          }
+        }
+      }
+    },
+    "glance.status.reset": {
+      "comment": "Screen reader announcement after the floating Glance card returns to its first-open size and place.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance reset"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance zurückgesetzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance restablecido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance réinitialisé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance ripristinato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redefinido"
           }
         }
       }
@@ -4149,90 +4359,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fechar o Glance"
-          }
-        }
-      }
-    },
-    "glance.resize": {
-      "comment": "Accessible name of the divider between the main page and Glance.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resize Glance"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance-Größe ändern"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambiar el tamaño de Glance"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redimensionner Glance"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ridimensiona Glance"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redimensionar o Glance"
-          }
-        }
-      }
-    },
-    "glance.dividerValue": {
-      "comment": "Screen-reader value of the Glance divider; {percent} is the main page's share of the width.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Main page %1$@ percent"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite %1$@ Prozent"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Página principal %1$@ por ciento"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Page principale %1$@ pour cent"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagina principale %1$@ percento"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Página principal %1$@ por cento"
           }
         }
       }

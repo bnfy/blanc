@@ -405,15 +405,34 @@ html { --stage-w: 100vw; }
   border-radius: var(--radius);
   color: var(--text-dim);
 }
-.glance-action { padding: 0 8px; font-size: 11.5px; }
-.glance-promote svg { display: none; }
+.glance-action { gap: 5px; padding: 0 8px; font-size: 11.5px; }
+.glance-action svg,
+.glance-move svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .glance-close { width: 30px; padding: 0; }
-/* Keep as split (F53): icon-only, so the reference title keeps its room. */
-.glance-keep-split { width: 30px; padding: 0; }
-.glance-keep-split svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; }
-/* A narrow reference header keeps its room for the title; the tab menu's
-   Split with still makes a split there. */
-@container (max-width: 480px) { .glance-header .glance-keep-split { display: none; } }
+/* The keyboard's Move or resize control; the pointer drags the whole header. */
+.glance-move {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  cursor: move;
+}
+.glance-move:hover { background: var(--accent-dim); color: var(--text); }
+.glance-move:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  color: var(--text);
+}
+/* A narrow card gives up room in this order (renderer.js fitGlanceHeader):
+   the three actions' labels (each keeps its name and tooltip), then the
+   GLANCE label, then the host (the favicon stays). Back, Reload, × and the
+   private chip never hide. */
+.glance-header.compact-actions .glance-action-label { display: none; }
+.glance-header.compact-actions .glance-action { width: 30px; padding: 0; }
+.glance-header.no-eyebrow #glanceEyebrow { display: none; }
+.glance-header.no-host #glanceTitle { display: none; }
 .glance-nav {
   flex: 0 0 auto;
   display: flex;
@@ -451,39 +470,6 @@ html { --stage-w: 100vw; }
   border-right: 6px solid transparent;
   border-top: 7px solid var(--surface-raised);
   filter: drop-shadow(0 1px 0 var(--border));
-}
-.glance-header[data-direction="horizontal"] {
-  padding-right: calc(12px + var(--window-controls-w));
-}
-.glance-header[data-direction="vertical"] {
-  border-left: 0;
-  padding-left: 12px;
-}
-.glance-header[data-direction="vertical"] .glance-eyebrow { display: none; }
-
-/* Measuring the Glance header (renderer.js measureGlanceFloors): the same
-   compaction as the two container queries below, at the width its contents
-   need. Containment is lifted so max-content sees the children. */
-.glance-header.measuring { container-type: normal; width: max-content !important; }
-.glance-header.measuring .glance-eyebrow { display: none; }
-.glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
-.glance-header.measuring #glanceTitle { display: none; }
-
-@container (max-width: 360px) {
-  .glance-eyebrow { display: none; }
-  /* Back and Reload still sit beside the title. */
-  .glance-copy { gap: 8px; }
-}
-/* Make main as its swap icon alone, in one place: while measuring the
-   header's floor, and when renderer.js fitGlanceHeader decides the title
-   needs the room (cut below about ten characters, or hidden by the tier
-   below). */
-.glance-header:is(.measuring, .promote-icon) .glance-promote { width: 30px; padding: 0; }
-.glance-header:is(.measuring, .promote-icon) .glance-promote svg { display: block; }
-.glance-header:is(.measuring, .promote-icon) .glance-promote span { display: none; }
-@container (max-width: 300px) {
-  #glanceTitle { display: none; }
-  .glance-copy { flex: 0 0 auto; }
 }
 
 /* The child page views deliberately leave this narrow gap uncovered, so the

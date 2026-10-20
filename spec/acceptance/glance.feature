@@ -633,3 +633,20 @@ Feature: Glance reference pane
     Given three ordinary tabs with one open in Glance
     When I close the main page
     Then the Glance tab is the current tab and Glance is closed
+
+  @F34-11 @F34 @D11
+  Scenario: At 360 px the header keeps Back, Reload, the three actions as icons and ×
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I narrow the Glance card to its minimum
+    Then the Glance header shows Back, Reload, the three actions as icons and × on one row
+
+  @F34-12 @F34 @D11
+  Scenario: Arrow keys on Move or resize move the card 16 px and announce it
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I press the right arrow on the Glance card's Move or resize control
+    Then the Glance card has moved by 16, 0
+    And the Glance card announces "Glance moved"

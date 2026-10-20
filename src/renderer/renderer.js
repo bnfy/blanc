@@ -829,35 +829,35 @@
       glanceReload.dataset.tooltip = label;
       glanceReload.setAttribute('aria-label', label);
     }
-    // Keep an already-known title visible while the reference navigates —
-    // same rule as the picker rows: replacing useful identity with a generic
-    // loading label makes the header useless on slow or long-lived loads.
-    glanceTitle.textContent = tab.title || tabDomain(tab)
+    // The card names its site: the favicon and the host (spec). The page's
+    // title rides along as the header's tooltip. A page with no host yet
+    // (loading, a new tab) keeps a word in its place.
+    glanceTitle.textContent = tabDomain(tab) || tab.title
       || (tab.isLoading ? blancI18n.t('tab.loading') : tab.private ? blancI18n.t('tab.privateLabel') : blancI18n.t('tab.new'));
     glanceHeader.title = tab.title || glanceTitle.textContent;
     fitGlanceHeader();
   }
 
-  // The title is what the header is for. Before it is cut below about ten
-  // characters, Make main gives up its label for its swap icon (its name and
-  // tooltip stay). Measured, not a fixed width, because the label's length
-  // depends on the language and Windows and Linux reserve the window
-  // controls' width. 70 px is the floor the Island keeps for its address
-  // too. Measured only when an input changed (the title, the header's width
-  // or direction, the font swap), not on every broadcast.
+  // A narrow card gives up header room one step at a time, in this order:
+  // the actions' labels (they keep their names and tooltips), the GLANCE
+  // label, then the host once it would be cut below about 8 characters (the
+  // favicon stays). Measured on the live header, so every label and language
+  // counts, and only when an input changed (the host, the card's width).
+  const GLANCE_HEADER_STEPS = ['compact-actions', 'no-eyebrow', 'no-host'];
+  const GLANCE_HOST_FLOOR = 64;
   let glanceHeaderFitKey = '';
   function fitGlanceHeader() {
-    const titleFloor = 70;
     const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceLayout?.card?.header.width ?? ''].join('|');
     if (key === glanceHeaderFitKey) return;
     glanceHeaderFitKey = key;
-    glanceHeader.classList.remove('promote-icon');
+    glanceHeader.classList.remove(...GLANCE_HEADER_STEPS);
     if (glanceHeader.hidden) return;
-    // At the narrowest tier the stylesheet hides the title altogether; Make
-    // main is icon-only there too.
-    if (glanceTitle.getClientRects().length === 0) { glanceHeader.classList.add('promote-icon'); return; }
-    const cut = glanceTitle.scrollWidth > glanceTitle.clientWidth + 1;
-    if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
+    const crowded = () => glanceHeader.scrollWidth > glanceHeader.clientWidth + 1
+      || (glanceTitle.scrollWidth > glanceTitle.clientWidth + 1 && glanceTitle.getBoundingClientRect().width < GLANCE_HOST_FLOOR);
+    for (const step of GLANCE_HEADER_STEPS) {
+      if (!crowded()) break;
+      glanceHeader.classList.add(step);
+    }
   }
 
 
@@ -1457,6 +1457,52 @@
     if (!onHeaderBackground(event) || !glanceLayout) return;
     cardDrag = null;
     window.browserAPI.resetGlanceCard({ generation: glanceLayout.generation });
+  });
+  // The Move or resize control: it drags like the header, and from the
+  // keyboard the arrow keys move the card 16 px (Shift: 64 px), Option or
+  // Alt with an arrow resizes it from its bottom-right corner, and Enter
+  // resets it. Each change is announced in the card's own live region (the
+  // strip's sits in another document), at most every half second so holding
+  // a key doesn't flood it.
+  const CARD_KEY_STEP = 16;
+  const CARD_KEY_STEP_LARGE = 64;
+  const glanceMove = document.getElementById('glanceMove');
+  const glanceCardStatus = document.getElementById('glanceCardStatus');
+  let cardAnnounceAt = 0;
+  let cardAnnounceTimer = 0;
+  function announceCard(message) {
+    const wait = Math.max(0, cardAnnounceAt + 500 - Date.now());
+    clearTimeout(cardAnnounceTimer);
+    cardAnnounceTimer = setTimeout(() => {
+      cardAnnounceAt = Date.now();
+      glanceCardStatus.textContent = message;
+    }, wait);
+  }
+  glanceMove.addEventListener('pointerdown', (event) => startCardDrag(event, null));
+  glanceMove.addEventListener('pointermove', moveCardDrag);
+  glanceMove.addEventListener('pointerup', endCardDrag);
+  glanceMove.addEventListener('pointercancel', endCardDrag);
+  glanceMove.addEventListener('keydown', async (event) => {
+    if (!glanceLayout) return;
+    const generation = glanceLayout.generation;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (await window.browserAPI.resetGlanceCard({ generation })) announceCard(blancI18n.t('glance.status.reset'));
+      return;
+    }
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const direction = arrows[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    const step = event.shiftKey ? CARD_KEY_STEP_LARGE : CARD_KEY_STEP;
+    const dx = direction[0] * step;
+    const dy = direction[1] * step;
+    if (event.altKey) {
+      const frame = await window.browserAPI.resizeGlanceCard({ generation, edge: 'se', dx, dy });
+      if (frame) announceCard(blancI18n.t('glance.status.resized', { width: frame.width, height: frame.height }));
+      return;
+    }
+    if (await window.browserAPI.moveGlanceCard({ generation, dx, dy })) announceCard(blancI18n.t('glance.status.moved'));
   });
   for (const edge of document.querySelectorAll('.glance-card-edge[data-edge]')) {
     edge.addEventListener('pointerdown', (event) => startCardDrag(event, edge.dataset.edge));
