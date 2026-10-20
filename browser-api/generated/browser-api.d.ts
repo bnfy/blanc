@@ -1086,6 +1086,21 @@ export interface BlancBrowserAPI {
    */
   onGlanceLayout(callback: (payload: GlanceLayout | null) => void): () => void;
   /**
+   * Turn the open Glance into a two-pane Split View (F53). False when there is no Glance to keep.
+   * IPC: invoke `chrome:split-keep-glance`.
+   */
+  keepGlanceAsSplit(): Promise<boolean>;
+  /**
+   * Take a tab out of its split; it lands directly below the split, and a split left with one tab dissolves.
+   * IPC: invoke `chrome:split-remove`.
+   */
+  removeFromSplit(tabId: string): Promise<boolean>;
+  /**
+   * Close every tab of the split holding this tab, as one Recently closed entry.
+   * IPC: invoke `chrome:split-close`.
+   */
+  closeSplit(tabId: string): Promise<boolean>;
+  /**
    * The visible Split View's layout changed, or no split shows (null).
    * IPC: event `chrome:split-layout`.
    */

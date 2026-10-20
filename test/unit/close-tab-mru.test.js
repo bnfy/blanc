@@ -17,6 +17,9 @@ const closeTabSource = start >= 0 && end >= 0 ? mainSource.slice(start, end) : n
 
 function makeSandbox({ runtime, tabs, onSelect }) {
   return {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
     sleepSnapshots: new Map(),
     sleepTeardownInProgress: false,
     fillHintScheduler: null,

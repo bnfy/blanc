@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-130 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+133 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -63,6 +63,9 @@
 | `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
 | `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<number \| null>` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
+| `keepGlanceAsSplit` | split | invoke | `chrome:split-keep-glance` | `() => Promise<boolean>` | all |
+| `removeFromSplit` | split | invoke | `chrome:split-remove` | `(tabId: string) => Promise<boolean>` | all |
+| `closeSplit` | split | invoke | `chrome:split-close` | `(tabId: string) => Promise<boolean>` | all |
 | `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |

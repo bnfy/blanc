@@ -2405,6 +2405,43 @@
       "payloadCheck": "fixtures"
     },
     {
+      "name": "keepGlanceAsSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-keep-glance",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Turn the open Glance into a two-pane Split View (F53). False when there is no Glance to keep."
+    },
+    {
+      "name": "removeFromSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-remove",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Take a tab out of its split; it lands directly below the split, and a split left with one tab dissolves."
+    },
+    {
+      "name": "closeSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-close",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Close every tab of the split holding this tab, as one Recently closed entry."
+    },
+    {
       "name": "onSplitLayout",
       "group": "split",
       "kind": "event",

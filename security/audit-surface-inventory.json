@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "39cc28483a1fd0368b7124e4fee8ecec8ef7f2672e568ecaa4f5c1370c71aaae",
+      "sha256": "dc9f67b3ef88729e402c125933dfed212328414a86bd6bf2b436fe1af4d1b8c7",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "c511f9b819e20ce581e375928118c0061d39e0466cf062dfaa5373f5593a5158",
+      "sha256": "7a9313ebf5a549ef83cd12022faafb8c8959597d023bd423739724d7252a4e4d",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -313,7 +313,10 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:split-close",
+        "chrome:split-keep-glance",
         "chrome:split-layout",
+        "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
@@ -598,7 +601,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "1d57009b6cf432181b54135885085a138c511bb77c15885c49eb2ef31dc9b5ed",
+      "sha256": "d572063cdedfe7e35bc61e67d630f6ff3c850e5cd2e155086ffd9f5b6cd497e2",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -652,7 +655,10 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:split-close",
+        "chrome:split-keep-glance",
         "chrome:split-layout",
+        "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",

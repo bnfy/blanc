@@ -320,7 +320,7 @@ const {
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
-const { createSplit, splitForTab, normalizeSplitOrder } = require('./split-model');
+const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible } = require('./split-model');
 const { computeSplitLayout, splitLayoutPayload } = require('./split-layout');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
@@ -372,7 +372,7 @@ const { buildHintProbeScript, configTransition, createFillHintScheduler } = requ
 const { FILL_KINDS, MODES: FILL_MODES } = require('./fill-status-kinds');
 const { fillCopy } = require('../renderer/fill-status-copy');
 const {
-  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildSplitEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -3903,6 +3903,165 @@ function showActiveSplit(runtime = rt()) {
   resizeActiveView();
 }
 
+/** Say something to screen readers through the strip's live region. */
+function announceSplit(message) {
+  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', message);
+}
+
+/** Keep as split (D1): the open Glance becomes a two-pane split led by the
+ *  main page, at the current proportions. */
+function keepGlanceAsSplit() {
+  const runtime = rt();
+  const mainId = runtime.activeTabId;
+  const referenceId = activeGlanceTab()?.id ?? null;
+  if (!mainId || !referenceId) return null;
+  const ratio = Number.isFinite(runtime.glanceRatio) ? runtime.glanceRatio : 0.62;
+  const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] } });
+  if (split) announceSplitMade(split);
+  return split;
+}
+
+/** Split with ▸ (D1): the right-clicked tab leads; the chosen tab joins. */
+function splitTabWith(tabId, otherId) {
+  const split = createSplitFromTabs(tabId, [otherId]);
+  if (!split) return null;
+  setActiveTab(tabId);
+  announceSplitMade(split);
+  return split;
+}
+
+function announceSplitMade(split) {
+  const [first, second] = split.tabIds.map((id) => displayTitle(tabs.get(id)) || mainI18n.t('tab.untitledShort'));
+  announceSplit(mainI18n.t('split.made', { first, second }));
+}
+
+/** Remove from Split (D8): the tab lands directly below the split; a split
+ *  left with one tab dissolves in place. */
+function removeTabFromSplit(tabId) {
+  const runtime = windowRuntimes.runtimeForTab(tabId) ?? rt();
+  const tab = tabs.get(tabId);
+  const split = splitForTab(runtime.splits, tabId);
+  if (!tab || !split) return false;
+  const { split: rest, dissolved } = splitWithout(split, tabId);
+  runtime.tabOrder = placeAfterSplit(runtime.tabOrder, split.tabIds, tabId);
+  tab.splitId = null;
+  for (const id of dissolved) {
+    const survivor = tabs.get(id);
+    if (survivor) survivor.splitId = null;
+  }
+  runtime.splits = runtime.splits.flatMap((s) => (s.id !== split.id ? [s] : rest ? [rest] : []));
+  withWindowRuntime(runtime, () => {
+    // The removed tab, if it was showing, steps out of view: the rest of the
+    // split (or the survivor, full-window) takes the window.
+    if (runtime.activeTabId === tabId) {
+      const next = rest ? rest.tabIds[rest.focusedIndex] : dissolved[0];
+      if (next) setActiveTab(next);
+    } else if (visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId)) {
+      if (liveContents(tab)) detachTabView(tab, { retainManagedRoot: true });
+      resizeActiveView();
+    }
+    if (!rest && dissolved.length) {
+      announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(dissolved[0])) || mainI18n.t('tab.untitledShort') }));
+    }
+    broadcastTabs();
+    scheduleMenuRebuild();
+    persistSession();
+  });
+  return true;
+}
+
+/** Close Split: every tab closes, recorded as ONE Recently closed entry that
+ *  reopens the split whole (spec §3.5). */
+function closeSplit(splitId) {
+  const runtime = rt();
+  const split = (runtime.splits ?? []).find((s) => s.id === splitId);
+  if (!split) return;
+  const ids = split.tabIds.filter((id) => tabs.has(id));
+  const entry = buildSplitEntry({
+    layout: split.layout,
+    focusedIndex: split.focusedIndex,
+    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId),
+    groupId: tabs.get(ids[0])?.groupId ?? null,
+  }, ids.map(closedMemberRecord), Date.now());
+  const wasShowing = ids.includes(runtime.activeTabId);
+  const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
+  runtime.splits = runtime.splits.filter((s) => s.id !== splitId);
+  for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 1) pushClosedEntry(entry);
+  else if (entry.tabs.length === 1) pushClosedEntry(buildBatchEntry(entry.tabs, Date.now()));
+  if (wasShowing || !runtime.activeTabId) {
+    const mruId = previousSurvivor(runtime.activationHistory,
+      (tid) => tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === runtime);
+    if (mruId) setActiveTab(mruId);
+    else if (runtime.tabOrder.length > 0) setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
+    else if (hasLiveWindow()) setActiveTab(createTab());
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** Reopen a Close Split entry: the tabs come back quiet, in order, as one
+ *  split with its layout, at its place, in its group if that still exists. */
+function reopenSplitEntry(entry) {
+  const runtime = rt();
+  const groupId = entry.split.groupId && runtime.groups.some((g) => g.id === entry.split.groupId)
+    ? entry.split.groupId
+    : null;
+  const ids = entry.tabs.map((member) => {
+    const id = createTab(member.url, {
+      groupId, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
+      allowLocalFile: member.localFile === true,
+      openerSandboxFlags: member.openerSandboxFlags,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  if (ids.length >= 2) {
+    const [lead, ...others] = ids;
+    createSplitFromTabs(lead, others, { layout: entry.split.layout });
+    const split = splitForTab(runtime.splits, lead);
+    if (split) split.focusedIndex = Math.min(entry.split.focusedIndex, ids.length - 1);
+  }
+  if (!groupId) {
+    const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id).filter((id) => !ids.includes(id));
+    items.splice(Math.min(Math.max(entry.split.index, 0), items.length), 0, ...ids);
+    runtime.tabOrder = layoutItems(items, tabLayoutList(runtime));
+  }
+  syncTabLayout(runtime);
+  setActiveTab(ids[Math.min(entry.split.focusedIndex, ids.length - 1)]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** Split with ▸ choices for a tab's menu: this window's other eligible tabs,
+ *  each with a note when the group rule will move it (spec §3.1). */
+function splitCandidatesFor(tab, owner) {
+  if (!tab || tab.pinned || tab.splitId) return [];
+  const groupName = (id) => owner.groups.find((g) => g.id === id)?.name ?? '';
+  return owner.tabOrder
+    .map((id) => tabs.get(id))
+    .filter((other) => other && other.id !== tab.id && splitEligible(other))
+    .map((other) => {
+      const title = displayTitle(other) || mainI18n.t('tab.untitledShort');
+      const to = tab.groupId ?? null;
+      const from = other.groupId ?? null;
+      let groupNote = null;
+      if (to && from !== to) groupNote = mainI18n.t('split.groupMoveInto', { title, group: groupName(to) });
+      else if (!to && from) groupNote = mainI18n.t('split.groupMoveOutOf', { title, group: groupName(from) });
+      return { id: other.id, title, ...(groupNote ? { groupNote } : {}) };
+    });
+}
+
 function currentTabBounds(tab) {
   const layout = currentChromeLayout();
   const split = splitGeometry(layout);
@@ -6326,6 +6485,12 @@ function pruneEmptyGroups() {
 function setTabGroup(tabId, groupId) {
   const tab = tabs.get(tabId);
   if (!tab) return;
+  // A split's tabs share one group: moving one moves the split (spec §3.4).
+  const split = splitForTab(rt().splits, tabId);
+  if (split && !arguments[2]?.splitMember) {
+    for (const id of split.tabIds) setTabGroup(id, groupId, { splitMember: true });
+    return;
+  }
   // A requested group that no longer exists (a picker click racing the
   // group's dissolution) is a no-op — it must not ungroup the tab instead.
   if (groupId && !rt().groups.some((g) => g.id === groupId)) return;
@@ -7118,6 +7283,8 @@ function undoRemoveNamedWorkspace(id) {
 function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
+  // A split never holds a pinned tab: pinning takes it out first (D7).
+  if (!tab.pinned && tab.splitId) removeTabFromSplit(id);
   tab.pinned = !tab.pinned;
   tab.pinnedHomeUrl = tab.pinned
     ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
@@ -8163,6 +8330,8 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // Split View: closing a pane hands the window to the split's other pane.
+  const splitSurvivors = (splitForTab(rt().splits, id)?.tabIds ?? []).filter((other) => other !== id);
   // A find capsule searching this tab goes with it. Its focus counts as the
   // tab's: ⌘W pressed in the find bar on the reference hands focus to the
   // main page, like ⌘W pressed in the reference itself.
@@ -8268,6 +8437,16 @@ function closeTab(id) {
       }
       return;
     }
+    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
+    if (splitSurvivor) {
+      rt().activeTabId = null;
+      pruneSplits(rt());
+      setActiveTab(splitSurvivor);
+      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
+        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
+      }
+      return;
+    }
     // Return to the previously active tab (activation history, most recent
     // surviving first); the right-neighbor rule is the fallback once history
     // is exhausted — e.g. right after session restore, where only the
@@ -8291,6 +8470,10 @@ function closeTab(id) {
   // Closing the underlying reference is also a layout transition. The normal
   // broadcast updates the header state, but only an explicit resize gives the
   // surviving main WebContentsView its full page bounds in the same turn.
+  if (splitSurvivors.length && hasLiveWindow()) {
+    pruneSplits(rt());
+    resizeActiveView();
+  }
   if (wasGlance && hasLiveWindow()) {
     resizeActiveView();
     // The reference held keyboard focus: hand it to the main page rather than
@@ -8462,6 +8645,7 @@ function reopenEntry(entry) {
   clearTimeout(entry.holdTimer);
   if (entry.kind === 'group') return reopenGroupEntry(entry);
   if (entry.kind === 'batch') return reopenBatchEntry(entry);
+  if (entry.kind === 'split') return reopenSplitEntry(entry);
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
@@ -9487,6 +9671,16 @@ function registerIpcHandlers() {
       openInternalPage(`blanc://${name}/`);
     }
   });
+  // Split View (F53): the Glance header's Keep as split, and the pane headers'
+  // Remove from Split and Close Split. Ids are proposals; main re-resolves them.
+  chromeHandle('chrome:split-keep-glance', () => !!keepGlanceAsSplit());
+  chromeHandle('chrome:split-remove', (_e, tabId) => (typeof tabId === 'string' ? removeTabFromSplit(tabId) : false));
+  chromeHandle('chrome:split-close', (_e, tabId) => {
+    const split = typeof tabId === 'string' ? splitForTab(rt().splits, tabId) : null;
+    if (!split) return false;
+    closeSplit(split.id);
+    return true;
+  });
   chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
     tabs: serializeTabs(),
     activeTabId: rt().activeTabId,
@@ -10459,6 +10653,7 @@ function tabContextData(tab, owner) {
       pinned: !!tab.pinned, muted: shownMuted(tab), private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+      splitId: tab.splitId ?? null,
       pinnedHome: {
         // A file grant belongs only to the live tab while it is on that file.
         // Returning from a website must not invent a fresh local-file grant.
@@ -10477,6 +10672,7 @@ function tabContextData(tab, owner) {
     canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
     // null: not a web page, so no site to mute.
     siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
+    splitCandidates: splitCandidatesFor(tab, owner),
   };
 }
 
@@ -10521,6 +10717,9 @@ function menuContextActions(owner) {
     // wakes first inside setGlanceTab, so success can take a beat).
     glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
     closeGlance: b(() => closeGlance()),
+    splitWith: b((id, otherId) => { if (splitTabWith(id, otherId)) hideOverlay(); }),
+    removeFromSplit: b((id) => removeTabFromSplit(id)),
+    closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
@@ -11050,6 +11249,7 @@ function detachTabForMove(source, id) {
 function moveTabToNewWindow(id) {
   const tab = tabs.get(id);
   if (!tab) return;
+  if (tab.splitId) removeTabFromSplit(id);
   // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
   // sleepTab's revalidation now also refuses a tab that changed runtimes.
   if (tab.sleeping || tab.waking) return;
@@ -12892,6 +13092,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
       // Split View (F53)
       createSplitFromTabs,
+      keepGlanceAsSplit,
+      menuContextActionsForTest: () => menuContextActions(rt()),
+      closedEntrySummaries: () => projectEntries(rt().closedEntries ?? []),
       splitLayoutForTest: () => currentSplitLayoutPayload(splitGeometry()),
       attachedTabViewIds: () => {
         if (!hasLiveWindow()) return [];

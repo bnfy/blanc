@@ -498,6 +498,15 @@
     <string name="tab_menu_save_favorite">Save to Favorites</string>
     <string name="tab_menu_remove_favorite">Remove from Favorites</string>
     <string name="tab_menu_move_to_group">Move to Group</string>
+    <string name="tab_menu_split_with">Split with</string>
+    <string name="tab_menu_split_pinned_refused">Pinned tabs can\'t join a split</string>
+    <string name="tab_menu_remove_from_split">Remove from Split</string>
+    <string name="tab_menu_close_split">Close Split</string>
+    <string name="split_group_move_into">Moves %1$s into %2$s</string>
+    <string name="split_group_move_out_of">Moves %1$s out of %2$s</string>
+    <string name="split_made">%1$s and %2$s are now side by side</string>
+    <string name="split_dissolved">Split closed; %1$s fills the window</string>
+    <string name="split_keep_as_split">Keep as split</string>
     <string name="tab_menu_remove_from_group">Remove from Group</string>
     <string name="tab_menu_new_group">New Group…</string>
     <string name="tab_menu_glance">Open in Glance</string>

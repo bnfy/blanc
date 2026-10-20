@@ -512,6 +512,15 @@
     <string name="tab_menu_save_favorite">Salvar nos favoritos</string>
     <string name="tab_menu_remove_favorite">Remover dos favoritos</string>
     <string name="tab_menu_move_to_group">Mover para o grupo</string>
+    <string name="tab_menu_split_with">Dividir com</string>
+    <string name="tab_menu_split_pinned_refused">Abas fixadas não podem entrar em uma visualização dividida</string>
+    <string name="tab_menu_remove_from_split">Remover da visualização dividida</string>
+    <string name="tab_menu_close_split">Fechar visualização dividida</string>
+    <string name="split_group_move_into">Move %1$s para %2$s</string>
+    <string name="split_group_move_out_of">Tira %1$s de %2$s</string>
+    <string name="split_made">%1$s e %2$s agora estão lado a lado</string>
+    <string name="split_dissolved">Visualização dividida fechada; %1$s ocupa a janela</string>
+    <string name="split_keep_as_split">Manter como visualização dividida</string>
     <string name="tab_menu_remove_from_group">Remover do grupo</string>
     <string name="tab_menu_new_group">Novo grupo…</string>
     <string name="tab_menu_glance">Abrir no Glance</string>

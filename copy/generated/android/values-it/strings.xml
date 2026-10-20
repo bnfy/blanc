@@ -512,6 +512,15 @@
     <string name="tab_menu_save_favorite">Salva nei Preferiti</string>
     <string name="tab_menu_remove_favorite">Rimuovi dai Preferiti</string>
     <string name="tab_menu_move_to_group">Sposta nel gruppo</string>
+    <string name="tab_menu_split_with">Dividi con</string>
+    <string name="tab_menu_split_pinned_refused">Le schede fissate non possono far parte di una vista divisa</string>
+    <string name="tab_menu_remove_from_split">Rimuovi dalla vista divisa</string>
+    <string name="tab_menu_close_split">Chiudi vista divisa</string>
+    <string name="split_group_move_into">Sposta %1$s in %2$s</string>
+    <string name="split_group_move_out_of">Toglie %1$s da %2$s</string>
+    <string name="split_made">%1$s e %2$s sono ora affiancate</string>
+    <string name="split_dissolved">Vista divisa chiusa; %1$s riempie la finestra</string>
+    <string name="split_keep_as_split">Mantieni come vista divisa</string>
     <string name="tab_menu_remove_from_group">Rimuovi dal gruppo</string>
     <string name="tab_menu_new_group">Nuovo gruppo…</string>
     <string name="tab_menu_glance">Apri in Glance</string>

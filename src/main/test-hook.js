@@ -184,6 +184,9 @@ function install(refs) {
     wakeTab,
     runSleepSweep,
     createSplitFromTabs,
+    keepGlanceAsSplit,
+    menuContextActionsForTest,
+    closedEntrySummaries,
     splitLayoutForTest,
     attachedTabViewIds,
     sleepBackgroundTabsNow,
@@ -661,6 +664,13 @@ function install(refs) {
     // ---- Split View (F53) ----
     makeSplit(initiatorId, otherIds) { return createSplitFromTabs(initiatorId, otherIds)?.id ?? null; },
     splitLayout() { return splitLayoutForTest(); },
+    keepGlanceAsSplit() { return keepGlanceAsSplit()?.id ?? null; },
+    /** A tab-menu item as a click runs it: the real dispatcher and actions. */
+    runTabMenuItem(tabId, itemId, extra = {}) {
+      const { runTabContextMenuItem } = require('./tab-context-menu');
+      return runTabContextMenuItem(itemId, { tab: { id: tabId, url: tabs.get(tabId)?.url }, ...extra, actions: menuContextActionsForTest() });
+    },
+    closedEntrySummaries() { return closedEntrySummaries(); },
     attachedTabViewIds() { return attachedTabViewIds(); },
     /** Give a pane keyboard focus, as a click into it does. */
     focusPane(id) {

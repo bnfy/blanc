@@ -512,6 +512,15 @@
     <string name="tab_menu_save_favorite">Enregistrer dans les favoris</string>
     <string name="tab_menu_remove_favorite">Retirer des favoris</string>
     <string name="tab_menu_move_to_group">Déplacer dans le groupe</string>
+    <string name="tab_menu_split_with">Partager avec</string>
+    <string name="tab_menu_split_pinned_refused">Les onglets épinglés ne peuvent pas rejoindre une vue partagée</string>
+    <string name="tab_menu_remove_from_split">Retirer de la vue partagée</string>
+    <string name="tab_menu_close_split">Fermer la vue partagée</string>
+    <string name="split_group_move_into">Déplace %1$s dans %2$s</string>
+    <string name="split_group_move_out_of">Retire %1$s de %2$s</string>
+    <string name="split_made">%1$s et %2$s sont maintenant côte à côte</string>
+    <string name="split_dissolved">Vue partagée fermée ; %1$s occupe la fenêtre</string>
+    <string name="split_keep_as_split">Garder en vue partagée</string>
     <string name="tab_menu_remove_from_group">Retirer du groupe</string>
     <string name="tab_menu_new_group">Nouveau groupe…</string>
     <string name="tab_menu_glance">Ouvrir dans Glance</string>

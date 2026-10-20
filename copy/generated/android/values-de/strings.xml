@@ -498,6 +498,15 @@
     <string name="tab_menu_save_favorite">Zu Favoriten hinzufügen</string>
     <string name="tab_menu_remove_favorite">Aus Favoriten entfernen</string>
     <string name="tab_menu_move_to_group">In Gruppe verschieben</string>
+    <string name="tab_menu_split_with">Teilen mit</string>
+    <string name="tab_menu_split_pinned_refused">Angeheftete Tabs können nicht geteilt werden</string>
+    <string name="tab_menu_remove_from_split">Aus geteilter Ansicht entfernen</string>
+    <string name="tab_menu_close_split">Geteilte Ansicht schließen</string>
+    <string name="split_group_move_into">Verschiebt %1$s in %2$s</string>
+    <string name="split_group_move_out_of">Nimmt %1$s aus %2$s</string>
+    <string name="split_made">%1$s und %2$s sind jetzt nebeneinander</string>
+    <string name="split_dissolved">Geteilte Ansicht beendet; %1$s füllt das Fenster</string>
+    <string name="split_keep_as_split">Als geteilte Ansicht behalten</string>
     <string name="tab_menu_remove_from_group">Aus Gruppe entfernen</string>
     <string name="tab_menu_new_group">Neue Gruppe…</string>
     <string name="tab_menu_glance">In Glance öffnen</string>

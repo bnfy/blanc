@@ -1826,6 +1826,42 @@
     "message": "Sposta nel gruppo",
     "source": "sha256:a9cb65ecce0b3e63ce684799e3574b7f13ed662d025c1b214fcf8d4baab9ef54"
   },
+  "tabMenu.splitWith": {
+    "message": "Dividi con",
+    "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"
+  },
+  "tabMenu.splitPinnedRefused": {
+    "message": "Le schede fissate non possono far parte di una vista divisa",
+    "source": "sha256:c2a6099a8019b08c63bc85326cef22fe78126914feb00fd186b99d9963a3509d"
+  },
+  "tabMenu.removeFromSplit": {
+    "message": "Rimuovi dalla vista divisa",
+    "source": "sha256:04b371535864ecd5973d41edbdba8270ba30126b9a2f18d6ec958d8ac9c5db1d"
+  },
+  "tabMenu.closeSplit": {
+    "message": "Chiudi vista divisa",
+    "source": "sha256:c50cb226d259e2a8d695cf8c800ac0f5d3af30f01382c263a30f40dd2dba4ded"
+  },
+  "split.groupMoveInto": {
+    "message": "Sposta {title} in {group}",
+    "source": "sha256:054e149ff130ae0417882c786c38a85d0806f75ea00e60f93273fe4692e94523"
+  },
+  "split.groupMoveOutOf": {
+    "message": "Toglie {title} da {group}",
+    "source": "sha256:67b4e525c29b9cb73bd54e45db7b96a385e41c5898177ce777fa7600cd1ed01e"
+  },
+  "split.made": {
+    "message": "{first} e {second} sono ora affiancate",
+    "source": "sha256:feab0cf7295a42fb8bd3ac6caa0cf04b730369876716def6cfd132435f3ee978"
+  },
+  "split.dissolved": {
+    "message": "Vista divisa chiusa; {title} riempie la finestra",
+    "source": "sha256:e9210188a7a13dc3d3a6584c1af89c5c42753409b99a2ef7b6993cd9e554e4d4"
+  },
+  "split.keepAsSplit": {
+    "message": "Mantieni come vista divisa",
+    "source": "sha256:e896dde49f5322216828b5d25388c5d36b168ab86015e64b82498b2aa0bf413a"
+  },
   "tabMenu.removeFromGroup": {
     "message": "Rimuovi dal gruppo",
     "source": "sha256:de7feaf933480a11b6e087380c9621315d04fc790efc12c588c3779497248e57"

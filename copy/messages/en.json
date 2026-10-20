@@ -1885,6 +1885,42 @@
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
   },
+  "tabMenu.splitWith": {
+    "message": "Split with",
+    "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
+  },
+  "tabMenu.splitPinnedRefused": {
+    "message": "Pinned tabs can't join a split",
+    "note": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View."
+  },
+  "tabMenu.removeFromSplit": {
+    "message": "Remove from Split",
+    "note": "Tab context menu and pane header: take this tab out of its Split View."
+  },
+  "tabMenu.closeSplit": {
+    "message": "Close Split",
+    "note": "Tab context menu and pane header: close every tab of this Split View."
+  },
+  "split.groupMoveInto": {
+    "message": "Moves {title} into {group}",
+    "note": "Note beside a Split with choice: making the split moves that tab into the right-clicked tab's group."
+  },
+  "split.groupMoveOutOf": {
+    "message": "Moves {title} out of {group}",
+    "note": "Note beside a Split with choice: making the split takes that tab out of its group."
+  },
+  "split.made": {
+    "message": "{first} and {second} are now side by side",
+    "note": "Screen reader announcement after a Split View is made."
+  },
+  "split.dissolved": {
+    "message": "Split closed; {title} fills the window",
+    "note": "Screen reader announcement when a Split View ends and its remaining tab fills the window."
+  },
+  "split.keepAsSplit": {
+    "message": "Keep as split",
+    "note": "Glance header button that turns the current Glance into a Split View that stays open."
+  },
   "tabMenu.removeFromGroup": {
     "message": "Remove from Group",
     "note": "Tab context menu command in the Move to Group submenu."
