@@ -1,0 +1,36 @@
+{
+  "schedules": [
+    {
+      "schedule": "cross-owner",
+      "pass": true,
+      "diagnosticCheckpoints": 11,
+      "error": null
+    },
+    {
+      "schedule": "existing-owner",
+      "pass": true,
+      "diagnosticCheckpoints": 12,
+      "error": null
+    },
+    {
+      "schedule": "pending-mutation",
+      "pass": false,
+      "diagnosticCheckpoints": 10,
+      "error": "AssertionError [ERR_ASSERTION]: both panes exactly once\n\n0 !== 1\n\n    at file:///private/tmp/blanc-retry-pending-mutation/test.mjs:31:190"
+    },
+    {
+      "schedule": "pending-add",
+      "pass": false,
+      "diagnosticCheckpoints": 10,
+      "error": "AssertionError [ERR_ASSERTION]: both panes exactly once\n\n0 !== 1\n\n    at file:///private/tmp/blanc-retry-pending-add/test.mjs:31:206"
+    },
+    {
+      "schedule": "mutation-settled",
+      "pass": true,
+      "diagnosticCheckpoints": 13,
+      "error": null
+    }
+  ],
+  "diagnosticCheckpoints": 56,
+  "pendingMutationRecoveryPassed": false
+}
