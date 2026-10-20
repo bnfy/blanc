@@ -9,6 +9,9 @@
     } catch { return {}; }
   };
   const paint = window.BlancStartPaint;
+  let installedTheme = {};
+  const usesStoreTheme = saved => !!installedTheme.id &&
+    !(saved.storeThemeWallpaper?.id === installedTheme.id && saved.storeThemeWallpaper.enabled === false);
   function wallpaper(saved) {
     const value = saved.wallpaper || {};
     const image = typeof value.image === 'string' && value.image.startsWith('data:image/jpeg;base64,') ? value.image : null;
@@ -23,7 +26,7 @@
         paint: paint.colorWallpaper({ preset, fill, followSpace: false }) } };
   }
   function saveWallpaper(patch) {
-    const current = preferences().wallpaper;
+    const current = wallpaper(read());
     return save({ wallpaper: { ...current, ...patch } }).wallpaper;
   }
   async function chooseWallpaper() {
@@ -50,6 +53,7 @@
       const image = canvas.toDataURL('image/jpeg', 0.85);
       // This adapter uses profile-local WebUI storage, with a bounded image.
       if (image.length > 3 * 1024 * 1024) return { error: 'too-large' };
+      if (installedTheme.id) save({ storeThemeWallpaper: { id: installedTheme.id, enabled: false } });
       return { wallpaper: saveWallpaper({ source: 'custom', image }) };
     } catch { return { error: 'unreadable' }; }
     finally { bitmap?.close(); }
@@ -57,17 +61,21 @@
   const preferences = () => {
     const saved = read();
     return { layout: layouts.includes(saved.layout) ? saved.layout : 'billboard',
-      dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true, wallpaper: wallpaper(saved) };
+      dynamicWallpaperEnabled: saved.dynamicWallpaperEnabled === true,
+      wallpaper: usesStoreTheme(saved) ? { ...wallpaper(saved), source: 'web-store',
+        image: installedTheme.image || null, hasImage: !!installedTheme.image, themeAvailable: true }
+        : { ...wallpaper(saved), themeAvailable: !!installedTheme.id } };
   };
   const listeners = new Set();
   function publish() { for (const fn of listeners) fn(preferences()); }
   function save(patch) {
-    const next = { ...preferences(), ...patch };
+    const next = { ...read(), ...patch };
     localStorage.setItem(key, JSON.stringify(next));
     publish();
+    paintStoreTheme();
     return preferences();
   }
-  window.addEventListener('storage', (event) => { if (event.key === key) publish(); });
+  window.addEventListener('storage', (event) => { if (event.key === key) { publish(); paintStoreTheme(); } });
   let nextId = 0;
   const pending = new Map();
   window.blancNewTabReply = (id, success, value) => {
@@ -85,6 +93,42 @@
       chrome.send('blancNewTab', [id, method, args]);
     });
   }
+  function paintStoreTheme() {
+    const enabled = usesStoreTheme(read());
+    // Images go through Blanc's existing wash/style pipeline. Only color-only
+    // themes need a native palette overlay on the start page.
+    window.BlancInstalledTheme.apply(document, enabled && !installedTheme.image ? installedTheme : {}, true);
+    if (document.body) {
+      document.body.toggleAttribute('data-store-wallpaper', enabled && !!installedTheme.image);
+      const position = /^(left|center|right) (top|center|bottom)$/.test(installedTheme.position) ? installedTheme.position : 'center bottom';
+      const repeat = ['repeat', 'repeat-x', 'repeat-y'].includes(installedTheme.repeat) ? installedTheme.repeat : 'no-repeat';
+      document.body.style.setProperty('--store-wallpaper-position', position);
+      document.body.style.setProperty('--store-wallpaper-repeat', repeat);
+      document.getElementById('storeThemeAttribution')?.remove();
+      if (enabled && /^chrome:\/\/blanc-prototype\/theme-attribution\.png\?[a-p]{32}$/.test(installedTheme.attribution)) {
+        const image = document.createElement('img'); image.id = 'storeThemeAttribution';
+        image.alt = 'Theme attribution'; image.src = installedTheme.attribution; document.body.append(image);
+      }
+    }
+  }
+  let themeId = '__initial__', themePending = false;
+  async function refreshTheme() {
+    if (themePending) return;
+    themePending = true;
+    try {
+      const theme = await request('installedTheme', [themeId]);
+      if (theme !== null) {
+        themeId = theme.id || '';
+        installedTheme = theme;
+        publish();
+        paintStoreTheme();
+      }
+    } catch (error) { console.warn('Theme refresh failed', error); }
+    finally { themePending = false; }
+  }
+  window.addEventListener('DOMContentLoaded', refreshTheme, { once: true });
+  window.addEventListener('pageshow', refreshTheme);
+  setInterval(() => { if (!document.hidden) refreshTheme(); }, 1000);
   window.bowserPages = {
     appVersion: async () => 'Chromium prototype',
     bookmarks: { list: async () => {
@@ -105,9 +149,14 @@
       },
       chooseWallpaper,
       setWallpaper: async source => {
+        if (source === 'web-store') {
+          if (!installedTheme.id) throw new Error('No Web Store theme installed');
+          return save({ storeThemeWallpaper: { id: installedTheme.id, enabled: true } }).wallpaper;
+        }
         if (!['sunrise', 'time-of-day', 'custom', 'color'].includes(source)) throw new Error('Unknown wallpaper');
+        if (installedTheme.id) save({ storeThemeWallpaper: { id: installedTheme.id, enabled: false } });
         if (source === 'sunrise' || source === 'time-of-day')
-          return save({ dynamicWallpaperEnabled: source === 'time-of-day', wallpaper: { ...preferences().wallpaper, source } }).wallpaper;
+          return save({ dynamicWallpaperEnabled: source === 'time-of-day', wallpaper: { ...wallpaper(read()), source } }).wallpaper;
         return saveWallpaper({ source });
       },
       removeWallpaper: async () => saveWallpaper({ image: null, source: preferences().dynamicWallpaperEnabled ? 'time-of-day' : 'sunrise' }),

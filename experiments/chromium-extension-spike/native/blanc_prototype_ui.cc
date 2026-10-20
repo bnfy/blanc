@@ -1,4 +1,10 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
+#include "chrome/browser/themes/theme_service.h"
+#include "chrome/browser/themes/theme_service_factory.h"
+#include "chrome/browser/themes/theme_properties.h"
+#include "chrome/browser/themes/custom_theme_supplier.h"
+#include "chrome/grit/theme_resources.h"
+#include "ui/base/theme_provider.h"
 #include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/session_service_factory.h"
 #include "chrome/browser/ui/blanc_prototype_ui.h"
@@ -971,6 +977,7 @@ bool IsAsset(const std::string& path) {
       "strings.js", "i18n.js", "tab-drag.js", "tab-sections.js", "vertical-tabs.js",
       "space-identity.js", "space-picker.js", "workspace-ui.js", "panel-left.svg",
       "sunrise-hero-mark.png", "pages/type-to-open.js", "pages/bangs.js", "pages/bangs-catalog.js",
+      "installed-theme.js", "pages/installed-theme.js",
       "pages/sunrise-favicon-mark.png", "pages/inter-latin.woff2",
       "pages/instrument-sans-latin-wdth-normal.woff2",
       "pages/jetbrains-mono-latin.woff2"};
@@ -1442,6 +1449,52 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
   return base::DictValue().Set("names", std::move(names));
 }
 
+// Read Chromium's installed theme; private windows retain their private appearance.
+// Image bytes come from the validated native theme pack, never a renderer path.
+base::DictValue InstalledTheme(Profile* profile, bool images = false) {
+  base::DictValue result;
+  if (profile->IsOffTheRecord()) return result;
+  auto* service = ThemeServiceFactory::GetForProfile(profile);
+  if (!service || !service->UsingExtensionTheme()) return result;
+  auto* supplier = service->GetThemeSupplier();
+  if (!supplier) return result;
+  result.Set("id", service->GetThemeID());
+  const auto color = [&](const char* name, int property) {
+    SkColor value = ThemeProperties::GetDefaultColor(property, false);
+    supplier->GetColor(property, &value);
+    result.Set(name, base::StringPrintf("#%02x%02x%02x",
+        SkColorGetR(value), SkColorGetG(value), SkColorGetB(value)));
+  };
+  color("frame", ThemeProperties::COLOR_FRAME_ACTIVE);
+  color("surface", ThemeProperties::COLOR_TOOLBAR);
+  color("text", ThemeProperties::COLOR_TOOLBAR_TEXT);
+  color("background", ThemeProperties::COLOR_NTP_BACKGROUND);
+  color("backgroundText", ThemeProperties::COLOR_NTP_TEXT);
+  color("link", ThemeProperties::COLOR_NTP_LINK);
+  if (images) {
+    const auto& provider = ThemeService::GetThemeProviderForProfile(profile);
+    const auto image = [&](const char* name, int resource) {
+      if (!provider.HasCustomImage(resource)) return;
+      auto bytes = provider.GetRawData(resource, ui::k100Percent);
+      if (bytes && bytes->size() && bytes->size() <= 8 * 1024 * 1024)
+        result.Set(name, std::string("chrome://blanc-prototype/") +
+            (resource == IDR_THEME_NTP_BACKGROUND ? "theme-background.png?" : "theme-attribution.png?") + service->GetThemeID());
+    };
+    image("image", IDR_THEME_NTP_BACKGROUND);
+    image("attribution", IDR_THEME_NTP_ATTRIBUTION);
+    const int alignment = provider.GetDisplayProperty(ThemeProperties::NTP_BACKGROUND_ALIGNMENT);
+    result.Set("position", std::string(alignment & ThemeProperties::ALIGN_LEFT ? "left" :
+        alignment & ThemeProperties::ALIGN_RIGHT ? "right" : "center") + " " +
+        (alignment & ThemeProperties::ALIGN_TOP ? "top" :
+         alignment & ThemeProperties::ALIGN_BOTTOM ? "bottom" : "center"));
+    const int tiling = provider.GetDisplayProperty(ThemeProperties::NTP_BACKGROUND_TILING);
+    result.Set("repeat", tiling == ThemeProperties::REPEAT ? "repeat" :
+        tiling == ThemeProperties::REPEAT_X ? "repeat-x" :
+        tiling == ThemeProperties::REPEAT_Y ? "repeat-y" : "no-repeat");
+  }
+  return result;
+}
+
 base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   owner->SyncActive();
   auto* model = browser->GetTabStripModel();
@@ -1538,6 +1591,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       ? browser_view->toolbar()->extensions_container_for_testing() : nullptr;
   const int extension_width = extensions ? 26 : 0;
   return base::DictValue()
+      .Set("installedTheme", InstalledTheme(browser->GetProfile()))
       .Set("splitGeometry", owner->split_geometry.Clone())
       .Set("spaceName", owner->space_name)
       .Set("spaceAutosaveError", owner->space_error)
@@ -1618,6 +1672,13 @@ class NewTabHandler : public content::WebUIMessageHandler,
     const auto& args = message[2].GetList();
     auto* contents = web_ui()->GetWebContents();
     auto* profile = Profile::FromWebUI(web_ui());
+    if (method == "installedTheme" && args.size() == 1 && args[0].is_string()) {
+      auto theme = InstalledTheme(profile);
+      const auto* theme_id = theme.FindString("id");
+      if (args[0].GetString() == (theme_id ? *theme_id : "")) Reply(id, true, base::Value());
+      else Reply(id, true, base::Value(InstalledTheme(profile, true)));
+      return;
+    }
     if (profile->IsOffTheRecord()) return;
     if (method == "bookmarks" && args.empty()) {
       auto* model = BookmarkModelFactory::GetForBrowserContext(profile);
@@ -3383,13 +3444,27 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
   source->SetRequestFilter(
       base::BindRepeating([](const std::string&) { return true; }),
       base::BindRepeating(
-          [](base::FilePath root, const std::string& path,
+          [](base::FilePath root, base::WeakPtr<Profile> profile, const std::string& path,
              content::WebUIDataSource::GotDataCallback callback) {
+            if (path.starts_with("theme-background.png?") || path.starts_with("theme-attribution.png?")) {
+              scoped_refptr<base::RefCountedMemory> bytes;
+              auto* service = profile && !profile->IsOffTheRecord() ?
+                  ThemeServiceFactory::GetForProfile(profile.get()) : nullptr;
+              const auto query = path.substr(path.find('?') + 1);
+              if (service && service->UsingExtensionTheme() && query == service->GetThemeID()) {
+                const int resource = path.starts_with("theme-background") ? IDR_THEME_NTP_BACKGROUND : IDR_THEME_NTP_ATTRIBUTION;
+                const auto& provider = ThemeService::GetThemeProviderForProfile(profile.get());
+                if (provider.HasCustomImage(resource)) bytes = provider.GetRawData(resource, ui::k100Percent);
+                if (bytes && bytes->size() > 8 * 1024 * 1024) bytes.reset();
+              }
+              std::move(callback).Run(bytes);
+              return;
+            }
             base::ThreadPool::PostTaskAndReplyWithResult(
                 FROM_HERE, {base::MayBlock()},
                 base::BindOnce(&ReadAsset, root, path), std::move(callback));
           },
-          root));
+          root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
 }

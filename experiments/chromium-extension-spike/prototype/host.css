@@ -50,3 +50,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 .split-pane-header { box-sizing:border-box; background:var(--header-fallback); pointer-events:auto; }
 #splitHeaders[data-private="true"] { background:transparent; }
 #splitHeaders[data-private="true"] .split-pane-header { background:#0a0a0a; }
+
+:root[data-store-theme] #extensionsPanel { background:var(--surface); color:var(--text); --extension-muted:var(--text-dim); --extension-border:var(--border); }
+:root[data-store-theme] .extension-row[aria-selected="true"] { background:var(--accent-dim); }
+:root[data-store-theme] .extensions-footer button { color:var(--text); }
+:root[data-store-theme] .split-pane-header, :root[data-store-theme] #splitPaneMenu { background:var(--surface); color:var(--text); }

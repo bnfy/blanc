@@ -1,0 +1,14 @@
+{
+  "README.md": "9ef306b08c31447b1196bf66613e3fc17ac35de9a2f7de62d83784291fde71b5",
+  "cdp.mjs": "2632485e3f56f8e3792185cdc094da1e483eff30e1edfddd2440c2a24c23ea64",
+  "check-final.mjs": "0ca25bc4f2857cd88855470d8ca5265b5a612799339eba2d3ceb711c96b54ce1",
+  "customized-restart.json": "d271061c356a628a14f7d055fd27b36f70e28d3bf1bad4b89af621d47679a6ae",
+  "dark-overlay.json": "55913bde89f357c2bd0d39a813fad0a2be9b38c14a562559f229ae6644409902",
+  "patch-budget.json": "f030028f75a11c3872c1bebeddd998738a9937a8e76016f03041f6156bf4c622",
+  "removed-restart.json": "c56529fbf661eb8db5139a564cc1838545801913ced19abedd8c153df8765dae",
+  "removed.json": "ce8c972183f75f61c6b210d578fff91186af389d9896fbb11d6567e86f91eb3d",
+  "reselected.json": "968ed2fc5d82b1b2edc6c8e5121234ce17fff4e9f0840cb7b6852f4dca42252c",
+  "restart.json": "968ed2fc5d82b1b2edc6c8e5121234ce17fff4e9f0840cb7b6852f4dca42252c",
+  "spotlight-overlay.json": "768b1ca295576c6be7e38685382d9c937b3f72b5f3afb5e6feda1e4a652a9355",
+  "undo.json": "c56529fbf661eb8db5139a564cc1838545801913ced19abedd8c153df8765dae"
+}

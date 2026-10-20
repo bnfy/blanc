@@ -7,3 +7,18 @@
 
 /* The fork has no Spaces model yet; fixed preset colors remain available. */
 #colorWallpaperFollow, #colorWallpaperFollowHint { display: none !important; }
+
+/* Color-only themes have no artwork. Image themes retain the shipping
+   wallpaper scrim, wash slider and Light/Dark/Spotlight styles. */
+html[data-store-theme] body { background:var(--bg) !important; color:var(--text) !important; }
+html[data-store-theme] .start-wallpaper-layer { display:none !important; }
+.ledger-body[data-store-wallpaper] .start-wallpaper-layer {
+  background-position:center, center, var(--store-wallpaper-position, center bottom);
+  background-repeat:no-repeat, no-repeat, var(--store-wallpaper-repeat, no-repeat);
+  background-size:cover, cover, auto;
+}
+
+#storeThemeAttribution { position:fixed; right:12px; bottom:72px; max-width:30vw; max-height:15vh; pointer-events:none; }
+
+.wallpaper-seg:has(#storeThemeWallpaperPick:not([hidden])) { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+.wallpaper-seg:has(#storeThemeWallpaperPick) > button { min-width:0; padding-inline:4px; white-space:nowrap; }

@@ -2075,3 +2075,8 @@ Final left/right settled controls pass14checkpoints: pre-cancellation source ses
 Immediate boundary unresolved: after the same acknowledged pre-cancel baseline, immediate crash returns both fixture tabs separately with no partial Split history, even after page-load/1.5second ready check. Expected lone survivor fails2versus1 in both orders. Not a duplicate-survivor regression or persistence pass. Earlier fullSplit replay/unseeded-loss/unsupportedblank-fixture attempts retained; only final settled controls qualify targeted reuse. Evidence: evidence/split-partial-restart-20261020/README.md.
 
 No nativecompile/product changes; guardzero, prior54/128unchanged. Profilesremoved after verified exit; previewuntouched. Form/scroll crash persistence, broader lifecycle/powerloss and physicalinput unqualified. Latency deferred; Electron diagnostic build pending.
+
+
+### Web Store theme acceptance — 2026-10-20
+
+Native Island palette and start-page theme artwork implemented. Customize keeps Sunrise/Color/Your image/Theme in one row, preserving existing wash/Fade overlays. Native install, Undo, removal Cancel/Remove, removal restart, selected-theme restart and personal-wallpaper opt-out restart pass with the Cherry Blossom fixture. See evidence/webstore-themes-20261020/README.md for bounded results and retained failed iterations. Three palette tests pass; incremental builds only; final zero-action guard. Full theme/platform/accessibility matrix and same-ID hot-update remain unqualified. Latency and Electron diagnostic build remain pending. Prior partial-cancellation immediate-crash gap unchanged.

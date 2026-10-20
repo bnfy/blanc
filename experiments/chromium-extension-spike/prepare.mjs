@@ -86,6 +86,8 @@ const copies = [
   ['prototype/host.html', 'host.html'],
   ['prototype/host.css', 'host.css'],
   ['prototype/host.js', 'host.js'],
+  ['prototype/installed-theme.js', 'installed-theme.js'],
+  ['prototype/installed-theme.js', 'pages/installed-theme.js'],
   ['prototype/adapter.js', 'adapter.js'],
   ['prototype/prototype.css', 'prototype.css'],
   ['src/renderer/index.html', 'index.html'],
@@ -209,12 +211,26 @@ assets.set(railFile, railSource);
 const newTabFile = path.join(generated, 'pages/newtab.html');
 let newTabHtml = assets.get(newTabFile).toString('utf8');
 newTabHtml = newTabHtml.replace('<script src="strings.js"></script>',
-  '<script src="newtab-adapter.js"></script>\n  <script src="strings.js"></script>');
+  '<script src="installed-theme.js"></script><script src="newtab-adapter.js"></script>\n  <script src="strings.js"></script>');
 newTabHtml = newTabHtml.replace('<link rel="stylesheet" href="pages.css" />',
   '<link rel="stylesheet" href="pages.css" />\n  <link rel="stylesheet" href="newtab-prototype.css" />');
 newTabHtml = newTabHtml.replace('  <script src="onboarding.js"></script>\n', '');
 newTabHtml = newTabHtml.replace('<script src="newtab-adapter.js"></script>', '<script src="space-identity.js"></script><script src="start-page-paint.js"></script><script src="newtab-adapter.js"></script>');
+newTabHtml = newTabHtml.replace('</div>\n        <div id="customWallpaperCover"', '<button id="storeThemeWallpaperPick" type="button" aria-label="Theme" aria-pressed="false" hidden>Theme</button>\n        </div>\n        <div id="customWallpaperCover"');
 assets.set(newTabFile, newTabHtml);
+const themePageFile = path.join(generated, 'pages/newtab.js');
+let themePageJs = assets.get(themePageFile).toString('utf8');
+themePageJs = themePageJs.replace("  const custom = wallpaperState.source === 'custom';", "  const storeTheme = wallpaperState.source === 'web-store';\n  const storeThemePick = document.getElementById('storeThemeWallpaperPick');\n  storeThemePick.hidden = !wallpaperState.themeAvailable || isPrivate;\n  storeThemePick.setAttribute('aria-pressed', String(storeTheme));\n  storeThemePick.disabled = wallpaperUpdatePending;\n  const custom = wallpaperState.source === 'custom';");
+themePageJs = themePageJs.replace('String(!custom && !color)', 'String(!custom && !color && !storeTheme)')
+  .replace('customWallpaperRow.hidden = !custom;', 'customWallpaperRow.hidden = !custom && !(storeTheme && wallpaperState.hasImage);')
+  .replace('if (custom) document.body.dataset.wallpaperStyle = style;', 'if (custom || storeTheme) document.body.dataset.wallpaperStyle = style;')
+  .replace('wallpaper.setSource(wallpaperState);', "wallpaper.setSource(wallpaperState.source === 'web-store' ? { ...wallpaperState, source: wallpaperState.hasImage ? 'custom' : 'sunrise' } : wallpaperState);")
+  .replace('wallpaperToggle.hidden = custom || color;', 'wallpaperToggle.hidden = custom || color || storeTheme;')
+  .replace("custom ? 'custom' : color ? 'color' : 'sunrise'", "custom || storeTheme ? 'custom' : color ? 'color' : 'sunrise'")
+  .replace("wallpaperState.source === 'custom' || wallpaperState.source === 'color'", "wallpaperState.source === 'custom' || wallpaperState.source === 'color' || wallpaperState.source === 'web-store'")
+  .replace("wallpaperState.source !== 'custom' && wallpaperState.source !== 'color'", "wallpaperState.source !== 'custom' && wallpaperState.source !== 'color' && wallpaperState.source !== 'web-store'");
+themePageJs += "\ndocument.getElementById('storeThemeWallpaperPick').addEventListener('click', () => updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('web-store'))));\n";
+assets.set(themePageFile, themePageJs);
 
 // Give the copied resting favorite button a stable prototype-only selector.
 const renderer = path.join(generated, 'renderer.js');

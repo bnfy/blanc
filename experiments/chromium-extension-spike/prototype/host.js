@@ -75,7 +75,11 @@
 
   function paintHeader() {
     const active = snapshot?.tabs.find(tab => tab.id === snapshot.activeTabId);
+    const theme = active?.private ? null : snapshot?.installedTheme;
+    for (const doc of [document, strip.contentDocument, overlay.contentDocument])
+      window.BlancInstalledTheme.apply(doc, theme);
     const color = active?.private ? '#0a0a0a'
+      : theme?.frame ? theme.frame
       : /^#[0-9a-f]{6}$/i.test(active?.pageBg) ? active.pageBg : '';
     document.documentElement.style.setProperty('--page-bg', color);
   }

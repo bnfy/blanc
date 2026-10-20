@@ -1,0 +1,16 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {connect,pause} from './cdp.mjs';
+const root='/private/tmp/blanc-store-theme-20261020', phase=process.argv[2]||'installed';
+const targets=()=>fetch('http://127.0.0.1:9297/json/list').then(r=>r.json());
+let ts=await targets();const h=await connect(ts.find(t=>t.url.includes('/host.html')));
+let nt=ts.find(t=>t.url.includes('/pages/newtab.html')||t.url==='chrome://newtab/');
+if(!nt){await h.eval("BlancPrototypeHost.api.createTab()");await pause(1000);nt=(await targets()).find(t=>t.url.includes('/pages/newtab.html')||t.url==='chrome://newtab/');}
+const c=await connect(nt);await c.send('Page.bringToFront');
+for(let i=0;i<50;i++){const ready=await c.eval("bowserPages.start.data().then(p=>p.wallpaper.themeAvailable)").catch(()=>false);if(ready||['undo','removed','baseline','removed-restart'].includes(phase))break;await pause(200);}await pause(600);
+const state=await h.eval(`BlancPrototypeHost.api.getAllTabs().then(s=>({theme:s.installedTheme,host:typeof BlancInstalledTheme,frame:getComputedStyle(document.getElementById('headerBackdrop')).backgroundColor,pill:getComputedStyle(document.getElementById('strip').contentDocument.getElementById('islandPill'),'::after').backgroundColor}))`);
+const page=await c.eval(`(async()=>{const prefs=await bowserPages.start.data();const layer=document.querySelector('.start-wallpaper-layer.is-visible');let image=null;if(layer){const i=new Image();i.src=layer.dataset.wallpaperImage;try{await i.decode();image={width:i.naturalWidth,height:i.naturalHeight}}catch(e){image={error:e.message}}}return {source:prefs.wallpaper.source,themeAvailable:prefs.wallpaper.themeAvailable,color:getComputedStyle(document.body).backgroundColor,text:getComputedStyle(document.body).color,theme:document.documentElement.hasAttribute('data-store-theme'),image,overlay:layer?getComputedStyle(layer).backgroundImage.slice(0,180):null,style:document.body.dataset.wallpaperStyle,wash:document.body.style.getPropertyValue('--start-wallpaper-wash'),buttonHidden:document.getElementById('storeThemeWallpaperPick').hidden,pressed:document.getElementById('storeThemeWallpaperPick').getAttribute('aria-pressed'),stored:localStorage.getItem('blanc.prototype.start.preferences.v1')}})()`);
+fs.writeFileSync(root+'/'+phase+'.json',JSON.stringify({state,page},null,2));console.log({state,page});
+const screen=await c.send('Page.captureScreenshot');fs.writeFileSync(root+'/'+phase+'.png',Buffer.from(screen.data,'base64'));
+if(['installed','restart','reselected'].includes(phase)){assert.equal(state.theme.id,'lelfanicbadaahlibeimcpfpedfjccnk');assert.equal(state.pill,'rgb(220, 157, 153)');assert.equal(page.source,'web-store');assert(page.image?.width>0);assert.equal(page.pressed,'true');assert.notEqual(page.overlay,'none');assert(page.overlay.includes('gradient'));}
+if(['undo','removed','removed-restart'].includes(phase)){assert.deepEqual(state.theme,{});assert.equal(page.theme,false);assert.equal(page.source,'sunrise');assert.equal(page.buttonHidden,true);}
+if(['customized','customized-restart'].includes(phase)){assert(state.theme.id);assert.equal(page.theme,false);assert.equal(page.source,'sunrise');assert.equal(page.pressed,'false');}
+h.close();c.close();
