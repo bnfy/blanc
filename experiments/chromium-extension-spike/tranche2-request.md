@@ -1739,3 +1739,8 @@ Evidence: `evidence/ui138-hot-profile-20261020/`, 300 hash-verified members; arc
 ### October 20 — Extensions picker Store discovery
 
 Added an explicit query-encoded Chrome Web Store search action alongside installed-extension filtering. Syntax, scoped lint and automated logic checks pass; assets-only preparation, no native source change. Fresh native search/install walkthrough remains pending. See `evidence/store-search-20261020/README.md`. Latency and Electron diagnostic build remain deferred/unapproved.
+
+
+### October 20 — Native Store search acceptance
+
+Native picker search → official Extensity listing → permission Cancel and successful install → combined installed/search picker → extension popup → removal all pass in a disposable profile. Safety delay observed. Evidence: `evidence/store-search-native-20261020/README.md`. Inline Store Chrome promotion remains visible but nonblocking; authentication/restart/upgrade not retested. No compile or upstream patch changes; prior 49/117 unchanged. Latency deferred; Electron diagnostic build unapproved.
