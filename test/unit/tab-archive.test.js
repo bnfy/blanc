@@ -206,3 +206,8 @@ test('searchArchive matches title, customTitle and url, ignoring case', () => {
   assert.deepEqual(searchArchive(entries, 'maps.test').map((e) => e.id), ['3']);
   assert.equal(searchArchive(entries, '').length, 3);
 });
+
+test('archiveCandidates skips a tab in a split (F53: a split is organized, like a group)', () => {
+  const tabs = [idleTab('split', { splitId: 'split-1' }), idleTab('loose')];
+  assert.deepEqual(archiveCandidates(tabs, { now: NOW, thresholdMs: DELAY }).map((c) => c.id), ['loose']);
+});

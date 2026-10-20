@@ -47,6 +47,7 @@ async function run({
       return true;
     },
     broadcastTabs: () => { broadcasts += 1; },
+    visibleSplitTabIds: () => [],
   };
   vm.runInNewContext(`${fnSource}\nthis.__fn = sleepBackgroundTabsNow;`, sandbox);
   const returned = await sandbox.__fn();

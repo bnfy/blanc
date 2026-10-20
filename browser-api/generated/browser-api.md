@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-129 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+130 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -63,6 +63,7 @@
 | `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
 | `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<number \| null>` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
+| `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
@@ -350,6 +351,7 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `shield` | `ShieldChip` |  |
 | `connection` | `ConnectionState \| null` |  |
 | `siteInfo` | `SiteInfo` |  |
+| `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
 
 ### `TabGroup`
 
@@ -361,6 +363,28 @@ A tab group: a name, and optionally one of the Spaces preset colors.
 | `name` | `string` |  |
 | `collapsed` | `boolean` |  |
 | `color` | `string \| null` | A Spaces preset hex (#rrggbb), or null for no color. |
+
+### `SplitInfo`
+
+A Split View (F53): 2–4 tabs shown together, from split-model.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `tabIds` | `string[]` | Member tab ids in pane order. |
+| `layout` | `SplitSavedLayout` |  |
+| `focusedIndex` | `number` | The pane that was focused last. |
+
+### `SplitSavedLayout`
+
+A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `'columns' \| 'grid'` |  |
+| `widths?` | `number[]` | Columns: one share per pane, each ≥ 0.2, summing to 1. |
+| `column?` | `number` | Grid: the left column's share, 0.25–0.75. |
+| `row?` | `number` | Grid: the top row's share, 0.25–0.75. |
 
 ### `GroupColorResult`
 
@@ -493,6 +517,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `verticalTabsMinWidth` | `number` |  |
 | `verticalTabsMaxWidth` | `number` |  |
 | `verticalTabsDefaultWidth` | `number` |  |
+| `splits` | `SplitInfo[]` | This window's splits (F53). |
 
 ### `TabsUpdatedPayload`
 
@@ -517,6 +542,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `verticalTabsMinWidth` | `number` |  |
 | `verticalTabsMaxWidth` | `number` |  |
 | `verticalTabsDefaultWidth` | `number` |  |
+| `splits` | `SplitInfo[]` | This window's splits (F53). |
 
 ### `ShieldAnchorUpdate`
 
@@ -556,6 +582,44 @@ Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
 | `glanceContent` | `Rect` |  |
 | `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
 | `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
+
+### `SplitLayout`
+
+What the strip draws for the visible split, from splitLayoutPayload() in split-layout.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `splitId` | `string` |  |
+| `mode` | `'columns' \| 'rows' \| 'grid' \| 'focus'` | The saved layout, or the fallback that fits (spec §3.2). |
+| `panes` | `SplitPane[]` |  |
+| `dividers` | `SplitDivider[]` |  |
+
+### `SplitPane`
+
+One pane of the visible split: its header band and page area, and what its header shows.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tabId` | `string` |  |
+| `header` | `Rect \| null` |  |
+| `content` | `Rect \| null` |  |
+| `focused` | `boolean` |  |
+| `title` | `string` |  |
+| `favicon` | `string \| null` | A PNG data URL, or null. |
+| `private` | `boolean` |  |
+| `canGoBack` | `boolean` |  |
+| `loading` | `boolean` |  |
+
+### `SplitDivider`
+
+A split divider; `saved` dividers change the saved layout.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `index` | `number` |  |
+| `axis` | `'x' \| 'y'` |  |
+| `rect` | `Rect` |  |
+| `saved` | `boolean` |  |
 
 ### `WorkspaceSaveStatus`
 

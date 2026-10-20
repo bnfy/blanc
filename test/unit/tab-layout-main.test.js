@@ -15,7 +15,7 @@ const groupNameCase = require('../../src/main/group-name-case');
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}`))?.[0];
 const names = [
-  'tabLayoutList', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
+  'tabLayoutList', 'pruneSplits', 'syncTabLayout', 'clusterList', 'clusterKeyForTab', 'setTabGroup', 'groupTabByName',
   'ungroupGroup', 'reopenGroupEntry', 'reorderGroupBefore', 'moveClosedSection', 'applySavedLayout',
   'moveTabTo', 'finishReopen', 'toggleTabPinned', 'setGroupColor', 'newTabInGroup', 'newTabBelow',
 ];
@@ -55,6 +55,7 @@ function harness(spec, { groups = null, closedSlot: slot = 0 } = {}) {
     newTabUrl: () => 'NEWTAB',
     ...require('../../src/main/group-color'),
     ...tabSections,
+    ...require('../../src/main/split-model'),
     ...groupNameCase,
     pruneEmptyGroups: () => {
       runtime.groups = runtime.groups.filter((g) => [...tabs.values()].some((tab) => tab.groupId === g.id));

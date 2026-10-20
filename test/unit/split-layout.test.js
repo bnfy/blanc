@@ -138,3 +138,22 @@ test('layoutForDivider moves the shared column of two panes within the 0.2 floor
   assert.deepEqual(tooFar, { kind: 'columns', widths: [0.7, 0.3] }, 'stops where the second pane hits its 300 px minimum');
   assert.equal(layoutForDivider(bounds, defaultSplitLayout(2), 2, { index: 3, axis: 'x' }, { x: 500, y: 0 }, {}), null);
 });
+
+test('splitLayoutPayload pairs each pane with its tab and marks the focused one', () => {
+  const { splitLayoutPayload } = require('../../src/main/split-layout');
+  const geometry = computeSplitLayout(page(1000, 600), defaultSplitLayout(2), 2, {});
+  const panes = [
+    { tabId: 'a', title: 'Docs', favicon: null, private: false, canGoBack: true, loading: false },
+    { tabId: 'b', title: 'Preview', favicon: 'data:image/png;base64,AAAA', private: true, canGoBack: false, loading: true },
+  ];
+  const payload = splitLayoutPayload('split-1', geometry, panes, 1);
+  assert.equal(payload.splitId, 'split-1');
+  assert.equal(payload.mode, 'columns');
+  assert.deepEqual(payload.panes.map((p) => [p.tabId, p.focused]), [['a', false], ['b', true]]);
+  assert.deepEqual(payload.panes[0].header, geometry.panes[0].header);
+  assert.equal(payload.panes[1].favicon, 'data:image/png;base64,AAAA');
+  assert.equal(payload.dividers.length, 1);
+  assert.equal(splitLayoutPayload('x', null, panes, 0), null);
+  const unsafe = splitLayoutPayload('s', geometry, [{ ...panes[0], favicon: 'https://evil/icon.png' }, panes[1]], 0);
+  assert.equal(unsafe.panes[0].favicon, null, 'only PNG data reaches the chrome');
+});

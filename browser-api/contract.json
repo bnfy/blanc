@@ -312,6 +312,10 @@
         },
         "siteInfo": {
           "type": "SiteInfo"
+        },
+        "splitId": {
+          "type": "string | null",
+          "doc": "The Split View (F53) this tab belongs to, or null."
         }
       }
     },
@@ -330,6 +334,48 @@
         "color": {
           "type": "string | null",
           "doc": "A Spaces preset hex (#rrggbb), or null for no color."
+        }
+      }
+    },
+    "SplitInfo": {
+      "doc": "A Split View (F53): 2–4 tabs shown together, from split-model.js.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "tabIds": {
+          "type": "string[]",
+          "doc": "Member tab ids in pane order."
+        },
+        "layout": {
+          "type": "SplitSavedLayout"
+        },
+        "focusedIndex": {
+          "type": "number",
+          "doc": "The pane that was focused last."
+        }
+      }
+    },
+    "SplitSavedLayout": {
+      "doc": "A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4.",
+      "fields": {
+        "kind": {
+          "type": "'columns' | 'grid'"
+        },
+        "widths": {
+          "type": "number[]",
+          "optional": true,
+          "doc": "Columns: one share per pane, each ≥ 0.2, summing to 1."
+        },
+        "column": {
+          "type": "number",
+          "optional": true,
+          "doc": "Grid: the left column's share, 0.25–0.75."
+        },
+        "row": {
+          "type": "number",
+          "optional": true,
+          "doc": "Grid: the top row's share, 0.25–0.75."
         }
       }
     },
@@ -553,6 +599,10 @@
         },
         "verticalTabsDefaultWidth": {
           "type": "number"
+        },
+        "splits": {
+          "type": "SplitInfo[]",
+          "doc": "This window's splits (F53)."
         }
       }
     },
@@ -610,6 +660,10 @@
         },
         "verticalTabsDefaultWidth": {
           "type": "number"
+        },
+        "splits": {
+          "type": "SplitInfo[]",
+          "doc": "This window's splits (F53)."
         }
       }
     },
@@ -686,6 +740,74 @@
           "type": "'main' | 'glance'",
           "optional": true,
           "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
+        }
+      }
+    },
+    "SplitLayout": {
+      "doc": "What the strip draws for the visible split, from splitLayoutPayload() in split-layout.js.",
+      "fields": {
+        "splitId": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "'columns' | 'rows' | 'grid' | 'focus'",
+          "doc": "The saved layout, or the fallback that fits (spec §3.2)."
+        },
+        "panes": {
+          "type": "SplitPane[]"
+        },
+        "dividers": {
+          "type": "SplitDivider[]"
+        }
+      }
+    },
+    "SplitPane": {
+      "doc": "One pane of the visible split: its header band and page area, and what its header shows.",
+      "fields": {
+        "tabId": {
+          "type": "string"
+        },
+        "header": {
+          "type": "Rect | null"
+        },
+        "content": {
+          "type": "Rect | null"
+        },
+        "focused": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A PNG data URL, or null."
+        },
+        "private": {
+          "type": "boolean"
+        },
+        "canGoBack": {
+          "type": "boolean"
+        },
+        "loading": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SplitDivider": {
+      "doc": "A split divider; `saved` dividers change the saved layout.",
+      "fields": {
+        "index": {
+          "type": "number"
+        },
+        "axis": {
+          "type": "'x' | 'y'"
+        },
+        "rect": {
+          "type": "Rect"
+        },
+        "saved": {
+          "type": "boolean"
         }
       }
     },
@@ -2280,6 +2402,15 @@
       "channel": "chrome:glance-layout",
       "payload": "GlanceLayout | null",
       "doc": "Glance layout changed.",
+      "payloadCheck": "fixtures"
+    },
+    {
+      "name": "onSplitLayout",
+      "group": "split",
+      "kind": "event",
+      "channel": "chrome:split-layout",
+      "payload": "SplitLayout | null",
+      "doc": "The visible Split View's layout changed, or no split shows (null).",
       "payloadCheck": "fixtures"
     },
     {

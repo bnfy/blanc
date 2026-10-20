@@ -7,11 +7,12 @@ const vm = require('node:vm');
 const closedSlot = require('../../src/main/closed-slot');
 const tabOrder = require('../../src/main/tab-order');
 const tabSections = require('../../src/renderer/tab-sections');
+const splitModel = require('../../src/main/split-model');
 
 // main.js cannot be required under node --test; lift the shipped functions.
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const lift = (name) => mainSource.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}`))?.[0];
-const sources = ['tabLayoutList', 'syncTabLayout', 'reorderGroupBefore', 'moveClosedSection'].map(lift);
+const sources = ['tabLayoutList', 'pruneSplits', 'syncTabLayout', 'reorderGroupBefore', 'moveClosedSection'].map(lift);
 
 test('the Recently closed functions could be lifted from main.js', () => {
   assert.ok(sources.every(Boolean), 'a function was not found in main.js — update this test with it');
@@ -35,6 +36,7 @@ function harness(groupIds, slot) {
     ...closedSlot,
     reorderItems: tabOrder.reorderItems,
     ...tabSections,
+    ...splitModel,
   };
   vm.runInNewContext(`${sources.join('\n')}\nthis.fns = { syncTabLayout, reorderGroupBefore, moveClosedSection };`, sandbox);
   return { ...sandbox.fns, calls, runtime, tabs };

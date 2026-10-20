@@ -67,6 +67,7 @@ function install(refs) {
     liveContents,
     getTabOrder,
     getGroups,
+    getSplits,
     getActiveTabId,
     getIslandRect,
     getIslandHoverRect,
@@ -182,6 +183,9 @@ function install(refs) {
     sleepTab,
     wakeTab,
     runSleepSweep,
+    createSplitFromTabs,
+    splitLayoutForTest,
+    attachedTabViewIds,
     sleepBackgroundTabsNow,
     runArchiveSweep,
     restoreArchivedEntry,
@@ -589,6 +593,7 @@ function install(refs) {
           customTitle: t.customTitle ?? null,
           favicon: t.favicon || null,
           groupId: t.groupId ?? null,
+          splitId: t.splitId ?? null,
           pinned: !!t.pinned,
           // What the tab shows as muted, a site mute included (tab-audio.js
           // shownMuted), and what its page's audio really is.
@@ -624,6 +629,7 @@ function install(refs) {
           tabIds: [...slot.tabIds],
         })),
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed, color: g.color ?? null })),
+        splits: getSplits().map((sp) => ({ id: sp.id, tabIds: [...sp.tabIds], layout: sp.layout, focusedIndex: sp.focusedIndex })),
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
@@ -652,6 +658,17 @@ function install(refs) {
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },
     setGlance(id) { return setGlanceTab(id); },
+    // ---- Split View (F53) ----
+    makeSplit(initiatorId, otherIds) { return createSplitFromTabs(initiatorId, otherIds)?.id ?? null; },
+    splitLayout() { return splitLayoutForTest(); },
+    attachedTabViewIds() { return attachedTabViewIds(); },
+    /** Give a pane keyboard focus, as a click into it does. */
+    focusPane(id) {
+      const wc = liveContents(tabs.get(id));
+      if (!wc) return false;
+      wc.focus();
+      return true;
+    },
     closeGlance() { return closeGlanceAction({ focusContent: false }); },
     promoteGlance() { return promoteGlanceAction(); },
     resizeGlance(point) { return resizeGlanceAt(point); },

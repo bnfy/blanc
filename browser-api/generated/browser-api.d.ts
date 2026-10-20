@@ -161,6 +161,8 @@ export interface TabEntry {
   shield: ShieldChip;
   connection: ConnectionState | null;
   siteInfo: SiteInfo;
+  /** The Split View (F53) this tab belongs to, or null. */
+  splitId: string | null;
 }
 
 /** A tab group: a name, and optionally one of the Spaces preset colors. */
@@ -170,6 +172,27 @@ export interface TabGroup {
   collapsed: boolean;
   /** A Spaces preset hex (#rrggbb), or null for no color. */
   color: string | null;
+}
+
+/** A Split View (F53): 2–4 tabs shown together, from split-model.js. */
+export interface SplitInfo {
+  id: string;
+  /** Member tab ids in pane order. */
+  tabIds: string[];
+  layout: SplitSavedLayout;
+  /** The pane that was focused last. */
+  focusedIndex: number;
+}
+
+/** A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4. */
+export interface SplitSavedLayout {
+  kind: 'columns' | 'grid';
+  /** Columns: one share per pane, each ≥ 0.2, summing to 1. */
+  widths?: number[];
+  /** Grid: the left column's share, 0.25–0.75. */
+  column?: number;
+  /** Grid: the top row's share, 0.25–0.75. */
+  row?: number;
 }
 
 /** Result of setGroupColor, built by setGroupColor() in main.js. */
@@ -271,6 +294,8 @@ export interface TabsSnapshot {
   verticalTabsMinWidth: number;
   verticalTabsMaxWidth: number;
   verticalTabsDefaultWidth: number;
+  /** This window's splits (F53). */
+  splits: SplitInfo[];
 }
 
 /** The tabs:updated broadcast, built by currentTabsPayload() in main.js. */
@@ -293,6 +318,8 @@ export interface TabsUpdatedPayload {
   verticalTabsMinWidth: number;
   verticalTabsMaxWidth: number;
   verticalTabsDefaultWidth: number;
+  /** This window's splits (F53). */
+  splits: SplitInfo[];
 }
 
 /** Where the shield popover's arrow sits, sent by syncShieldAnchor() in main.js. */
@@ -329,6 +356,37 @@ export interface GlanceLayout {
   glance: Rect;
   /** Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. */
   focusedPane?: 'main' | 'glance';
+}
+
+/** What the strip draws for the visible split, from splitLayoutPayload() in split-layout.js. */
+export interface SplitLayout {
+  splitId: string;
+  /** The saved layout, or the fallback that fits (spec §3.2). */
+  mode: 'columns' | 'rows' | 'grid' | 'focus';
+  panes: SplitPane[];
+  dividers: SplitDivider[];
+}
+
+/** One pane of the visible split: its header band and page area, and what its header shows. */
+export interface SplitPane {
+  tabId: string;
+  header: Rect | null;
+  content: Rect | null;
+  focused: boolean;
+  title: string;
+  /** A PNG data URL, or null. */
+  favicon: string | null;
+  private: boolean;
+  canGoBack: boolean;
+  loading: boolean;
+}
+
+/** A split divider; `saved` dividers change the saved layout. */
+export interface SplitDivider {
+  index: number;
+  axis: 'x' | 'y';
+  rect: Rect;
+  saved: boolean;
 }
 
 /** Named Workspaces storage status, from workspaces.js. */
@@ -1027,6 +1085,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:glance-layout`.
    */
   onGlanceLayout(callback: (payload: GlanceLayout | null) => void): () => void;
+  /**
+   * The visible Split View's layout changed, or no split shows (null).
+   * IPC: event `chrome:split-layout`.
+   */
+  onSplitLayout(callback: (payload: SplitLayout | null) => void): () => void;
   /**
    * A Glance status message for the chrome to show.
    * IPC: event `chrome:glance-status`.

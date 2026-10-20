@@ -1463,7 +1463,8 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": []
         },
         {
           "tabs": [
@@ -1516,7 +1517,8 @@
                   "example"
                 ],
                 "error": "site-info-1"
-              }
+              },
+              "splitId": "tab-entry-1"
             }
           ],
           "activeTabId": "tab-id-1",
@@ -1543,7 +1545,24 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": [
+            {
+              "id": "split-info-1",
+              "tabIds": [
+                "split-info-1"
+              ],
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  1
+                ],
+                "column": 1,
+                "row": 1
+              },
+              "focusedIndex": 1
+            }
+          ]
         }
       ]
     },
@@ -2427,6 +2446,135 @@
                   "height": 1
                 },
                 "focusedPane": "main"
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "onSplitLayout": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-layout",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [],
+              "dividers": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [],
+                "dividers": []
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [
+                {
+                  "tabId": "split-pane-1",
+                  "header": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "content": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "focused": true,
+                  "title": "split-pane-1",
+                  "favicon": "split-pane-1",
+                  "private": true,
+                  "canGoBack": true,
+                  "loading": true
+                }
+              ],
+              "dividers": [
+                {
+                  "index": 1,
+                  "axis": "x",
+                  "rect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "saved": true
+                }
+              ]
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [
+                  {
+                    "tabId": "split-pane-1",
+                    "header": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "content": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "focused": true,
+                    "title": "split-pane-1",
+                    "favicon": "split-pane-1",
+                    "private": true,
+                    "canGoBack": true,
+                    "loading": true
+                  }
+                ],
+                "dividers": [
+                  {
+                    "index": 1,
+                    "axis": "x",
+                    "rect": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "saved": true
+                  }
+                ]
               }
             ]
           ]
@@ -5238,7 +5386,8 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": []
             }
           ],
           "callbacks": [
@@ -5289,7 +5438,8 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": []
               }
             ]
           ]
@@ -5347,7 +5497,8 @@
                       "example"
                     ],
                     "error": "site-info-1"
-                  }
+                  },
+                  "splitId": "tab-entry-1"
                 }
               ],
               "activeTabId": "tab-id-1",
@@ -5426,7 +5577,24 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": [
+                {
+                  "id": "split-info-1",
+                  "tabIds": [
+                    "split-info-1"
+                  ],
+                  "layout": {
+                    "kind": "columns",
+                    "widths": [
+                      1
+                    ],
+                    "column": 1,
+                    "row": 1
+                  },
+                  "focusedIndex": 1
+                }
+              ]
             }
           ],
           "callbacks": [
@@ -5482,7 +5650,8 @@
                         "example"
                       ],
                       "error": "site-info-1"
-                    }
+                    },
+                    "splitId": "tab-entry-1"
                   }
                 ],
                 "activeTabId": "tab-id-1",
@@ -5561,7 +5730,24 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": [
+                  {
+                    "id": "split-info-1",
+                    "tabIds": [
+                      "split-info-1"
+                    ],
+                    "layout": {
+                      "kind": "columns",
+                      "widths": [
+                        1
+                      ],
+                      "column": 1,
+                      "row": 1
+                    },
+                    "focusedIndex": 1
+                  }
+                ]
               }
             ]
           ]

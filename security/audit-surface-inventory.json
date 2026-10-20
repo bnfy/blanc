@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "809a73024b301fe963e838922053853e25a1c35fa9aef9bd7fe40fce33f4a762",
+      "sha256": "c511f9b819e20ce581e375928118c0061d39e0466cf062dfaa5373f5593a5158",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -313,6 +313,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:split-layout",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",
@@ -597,7 +598,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "6f87406f848fc9572feea9de821c7e3e9d9a5cc1eacbc652222203a4d35b04b0",
+      "sha256": "1d57009b6cf432181b54135885085a138c511bb77c15885c49eb2ef31dc9b5ed",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -651,6 +652,7 @@
         "chrome:set-vertical-tabs-width",
         "chrome:site-info-forget-certificate-exception",
         "chrome:sleep-background-tabs",
+        "chrome:split-layout",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
         "chrome:tooltip-hide",

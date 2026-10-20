@@ -2775,6 +2775,10 @@
     "message": "Glance fermé",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
   },
+  "split.glanceUnavailable": {
+    "message": "Glance n’est pas disponible pendant l’affichage d’une vue partagée",
+    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
+  },
   "glance.status.promoted": {
     "message": "{title} est maintenant la page principale ; {other} est dans Glance",
     "source": "sha256:f1844b81d7e515a8fbe384d87c4dac18634f8b689b6a7da50c71b2dd8a32fd85"

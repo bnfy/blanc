@@ -30793,6 +30793,48 @@
         }
       }
     },
+    "split.glanceUnavailable": {
+      "comment": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance isn't available while a split is showing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance no está disponible mientras se muestra una vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance n’est pas disponible pendant l’affichage d’une vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance non è disponibile mentre è visibile una vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Glance não está disponível enquanto uma visualização dividida é exibida"
+          }
+        }
+      }
+    },
     "glance.status.promoted": {
       "comment": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance.",
       "extractionState": "manual",

@@ -777,6 +777,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="shortcuts_background_link">Ouvrir le lien dans un onglet en arrière-plan</string>
     <string name="glance_status_opened">%1$s ouvert dans Glance</string>
     <string name="glance_status_closed">Glance fermé</string>
+    <string name="split_glance_unavailable">Glance n’est pas disponible pendant l’affichage d’une vue partagée</string>
     <string name="glance_status_promoted">%1$s est maintenant la page principale ; %2$s est dans Glance</string>
     <string name="glance_status_tab_closed">Glance s’est fermé car son onglet a été fermé</string>
     <string name="glance_status_main_closed">%1$s est maintenant la page principale. Glance fermé.</string>

@@ -59,7 +59,8 @@ function archiveCandidates(tabList, options) {
   const survivors = [];
   tabList.forEach((tab, index) => {
     if (!tab?.id || tab.id === activeTabId) return;
-    if (tab.pinned || tab.groupId || tab.private) return;
+    // F53: a split is organized by the person, like a group.
+    if (tab.pinned || tab.groupId || tab.splitId || tab.private) return;
     if (visibleTabIds.has(tab.id) || permissionPendingTabIds.has(tab.id)) return;
     if ((popupChildCounts.get(tab.id) ?? 0) !== 0) return;
     if (tab.isLoading || tab.sleeping || tab.waking) return;

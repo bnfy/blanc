@@ -206,7 +206,34 @@ function layoutForDivider(pageBounds, layout, paneCount, divider, point, { paneM
   return normalizeSplitLayout({ kind: 'columns', widths }, paneCount);
 }
 
+/**
+ * The chrome:split-layout payload: what the strip needs to draw each pane's
+ * header band and the dividers. `panes` is per tab, in pane order. Only PNG
+ * data URLs cross as favicons, as in serializeTabs.
+ */
+function splitLayoutPayload(splitId, geometry, panes, focusedIndex) {
+  if (!geometry) return null;
+  const png = (value) => (typeof value === 'string' && value.startsWith('data:image/png;base64,') ? value : null);
+  return {
+    splitId: String(splitId),
+    mode: geometry.mode,
+    panes: (panes ?? []).map((info, index) => ({
+      tabId: info.tabId,
+      header: geometry.panes[index]?.header ?? null,
+      content: geometry.panes[index]?.content ?? null,
+      focused: index === focusedIndex,
+      title: typeof info.title === 'string' ? info.title : '',
+      favicon: png(info.favicon),
+      private: !!info.private,
+      canGoBack: !!info.canGoBack,
+      loading: !!info.loading,
+    })),
+    dividers: geometry.dividers.map((d) => ({ index: d.index, axis: d.axis, rect: d.rect, saved: !!d.saved })),
+  };
+}
+
 module.exports = {
+  splitLayoutPayload,
   SPLIT_HEADER_HEIGHT,
   PANE_MIN_CONTENT_HEIGHT,
   DEFAULT_PANE_MIN_WIDTH,

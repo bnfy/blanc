@@ -777,6 +777,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="shortcuts_background_link">Abrir el enlace en una pestaña en segundo plano</string>
     <string name="glance_status_opened">%1$s abierta en Glance</string>
     <string name="glance_status_closed">Glance cerrado</string>
+    <string name="split_glance_unavailable">Glance no está disponible mientras se muestra una vista dividida</string>
     <string name="glance_status_promoted">%1$s es ahora la página principal; %2$s está en Glance</string>
     <string name="glance_status_tab_closed">Glance se cerró porque se cerró su pestaña</string>
     <string name="glance_status_main_closed">%1$s es ahora la página principal. Glance cerrado.</string>
