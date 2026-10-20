@@ -3539,3 +3539,9 @@ Initial signed-index compile failure retained and repaired; successful guarded i
 Evidence-only run on6ac8714e confirms two inactive private splits retain independent focus, privacy flags survive mutations, pinning dissolves the affected two-pane split without losing tabs, private Spaces operations refuse and the regular store remains byte-identical. Private context disposal leaves regular window intact. Eight recorded checkpoints completed, not eight parity passes.
 
 Two confirmed differences against pinned #993: grouping one pane dissolves the split instead of moving all members into its group; unpinning leaves the tab at the front instead of moving it to the end. No repair included. Evidence: `evidence/private-split-mutations-20261020/README.md`. No compile; guard0; prior49/117unchanged. Broader group/move/close/reorder/private-multiwindow and native visual coverage remain open. Latency deferred; native input pending; Electron diagnostic build unapproved; preview untouched.
+
+## October 20 — Split grouping and unpin-order fixes
+
+Repaired the two observed #993 differences: group operations apply to all native split members, and unpinning an ungrouped tab appends it to the end. Nine bounded private runtime checkpoints pass, including new/existing-group moves, ungrouping with membership/focus retained, affected-split-only pin dissolution, append-on-unpin, private capture/native persistence refusal, byte-identical regular Spaces store and context disposal. Eight focused tests pass. Evidence: `evidence/private-split-group-fix-20261020/README.md`.
+
+One35.93s/sixstep guarded incremental build, finalguard0; no upstream hook changes, prior49/117within49/120 unchanged. Grouped persistence/recovery, broader merges/moves/reorders, Recently Closed and physical/visual checks remain unqualified. Preview untouched; latency deferred; native input pending; Electron diagnostic build unapproved.

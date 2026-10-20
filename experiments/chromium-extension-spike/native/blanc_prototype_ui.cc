@@ -2619,6 +2619,9 @@ class Handler : public content::WebUIMessageHandler {
       // TabStripModel moves the tab to the pinned boundary itself, so re-read
       // its state at the new index.
       model->SetTabPinned(index, !model->IsTabPinned(index));
+      const int moved_index = model->GetIndexOfWebContents(tab);
+      if (!model->IsTabPinned(moved_index) && !model->GetTabGroupForTab(moved_index))
+        model->MoveWebContentsAt(moved_index, model->count() - 1, false);
       reply(true, base::Value(model->IsTabPinned(model->GetIndexOfWebContents(tab))));
       return;
     }
@@ -2652,6 +2655,13 @@ class Handler : public content::WebUIMessageHandler {
         reply(true, base::Value(false));
         return;
       }
+      // Group the complete native split, preserving its membership and focus.
+      std::vector<int> members{index};
+      if (const auto split = model->GetSplitForTab(index)) {
+        members.clear();
+        const auto range = model->GetSplitData(*split)->GetIndexRange();
+        for (int i = range.start(); i < static_cast<int>(range.end()); ++i) members.push_back(i);
+      }
       std::optional<tab_groups::TabGroupId> target;
       if (method == "groupTabByName") {
         // Electron's groupTabByName: find-or-create by lowercase name.
@@ -2666,7 +2676,7 @@ class Handler : public content::WebUIMessageHandler {
         }
         if (!target) {
           // Chromium cannot group a pinned tab; AddToNewGroup unpins it.
-          target = model->AddToNewGroup({index});
+          target = model->AddToNewGroup(members);
           model->ChangeTabGroupVisuals(*target,
               tab_groups::TabGroupVisualData(name, kGroupColor, /*is_collapsed=*/false));
           reply(true, base::Value(true));
@@ -2682,8 +2692,8 @@ class Handler : public content::WebUIMessageHandler {
         }
       }
       if (model->GetTabGroupForTab(index) != target) {
-        if (target) model->AddToExistingGroup({index}, *target);
-        else model->RemoveFromGroup({index});
+        if (target) model->AddToExistingGroup(members, *target);
+        else model->RemoveFromGroup(members);
       }
       reply(true, base::Value(true));
       return;
