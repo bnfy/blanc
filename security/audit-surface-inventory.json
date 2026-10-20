@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "bb704a3c4ff1377efdb91a59472737073f2c40a60077f7bcc16f63a52edc64bb",
+      "sha256": "ff43c6b7d937b54a099c989064b98692c5b83afa4a97e1bcfbc0747ab6acbdae",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -283,6 +283,9 @@
         "chrome:favorites-list",
         "chrome:float-frame",
         "chrome:float-shown",
+        "chrome:glance-card-move",
+        "chrome:glance-card-reset",
+        "chrome:glance-card-resize",
         "chrome:glance-layout",
         "chrome:glance-status",
         "chrome:history-clear",
@@ -604,7 +607,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "c3eefe2aed1b0fadb6c2134cee52fb14758eced03f2f802ebd931e209661a139",
+      "sha256": "a66b205c44d5cbb89e4326ba9b003242fd22a0b2f971e1765f842188ed51e151",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -628,6 +631,9 @@
         "chrome:find-result",
         "chrome:float-frame",
         "chrome:float-shown",
+        "chrome:glance-card-move",
+        "chrome:glance-card-reset",
+        "chrome:glance-card-resize",
         "chrome:glance-layout",
         "chrome:glance-status",
         "chrome:history-clear",

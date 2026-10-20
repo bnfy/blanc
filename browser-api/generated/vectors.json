@@ -2300,6 +2300,133 @@
         }
       ]
     },
+    "moveGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-move",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-move",
+              "args": [
+                {
+                  "generation": 1,
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resizeGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-resize",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "edge": "n",
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-resize",
+              "args": [
+                {
+                  "generation": 1,
+                  "edge": "n",
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resetGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-reset",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-reset",
+              "args": [
+                {
+                  "generation": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
     "keepGlanceAsSplit": {
       "kind": "invoke",
       "platforms": [

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-135 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+138 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -61,6 +61,9 @@
 | `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<number>` | all |
 | `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: VerticalTabsMetrics) => void` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
+| `moveGlanceCard` | glance | invoke | `chrome:glance-card-move` | `(input: GlanceCardMove) => Promise<Rect \| null>` | all |
+| `resizeGlanceCard` | glance | invoke | `chrome:glance-card-resize` | `(input: GlanceCardResize) => Promise<Rect \| null>` | all |
+| `resetGlanceCard` | glance | invoke | `chrome:glance-card-reset` | `(input: GlanceCardReset) => Promise<Rect \| null>` | all |
 | `keepGlanceAsSplit` | split | invoke | `chrome:split-keep-glance` | `() => Promise<boolean>` | all |
 | `removeFromSplit` | split | invoke | `chrome:split-remove` | `(tabId: string) => Promise<boolean>` | all |
 | `closeSplit` | split | invoke | `chrome:split-close` | `(tabId: string) => Promise<boolean>` | all |
@@ -1127,3 +1130,32 @@ The card's views' bounds in window coordinates (cardGeometry() in glance-card.js
 | `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
 | `header` | `Rect` | The card's header, top border included. |
 | `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |
+
+### `GlanceCardMove`
+
+A move of the floating Glance card (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+| `dx` | `number` |  |
+| `dy` | `number` |  |
+
+### `GlanceCardResize`
+
+A resize of the floating Glance card from one edge or corner (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+| `edge` | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |  |
+| `dx` | `number` |  |
+| `dy` | `number` |  |
+
+### `GlanceCardReset`
+
+A reset of the floating Glance card (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |

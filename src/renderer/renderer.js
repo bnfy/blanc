@@ -1373,6 +1373,98 @@
     window.browserAPI.closeGlance();
   });
 
+  // ---- The floating Glance card: drag the header to move it, an edge or
+  // corner to resize it, double-click the header to reset it. The view moves
+  // with the card, so the drag follows screen coordinates. Each update asks
+  // for the frame the pointer wants (start frame plus the whole drag) as a
+  // step from the last frame main returned, so a card stopped at the page's
+  // edge doesn't jump when the pointer comes back. A layout with a newer
+  // generation (the card closed or changed) ends the drag.
+  let cardDrag = null;
+  const cardFrameOfLayout = () => {
+    const card = glanceLayout?.card;
+    if (!card) return null;
+    const ring = card.header.x - card.chrome.x;
+    return { x: card.header.x, y: card.header.y, width: card.header.width, height: card.chrome.height - 2 * ring };
+  };
+  function cardDragStep(drag) {
+    const dx = drag.pointerX - drag.startX;
+    const dy = drag.pointerY - drag.startY;
+    const start = drag.startFrame;
+    const last = drag.lastFrame;
+    if (!drag.edge) {
+      return { kind: 'move', dx: start.x + dx - last.x, dy: start.y + dy - last.y };
+    }
+    let stepX = 0;
+    let stepY = 0;
+    if (drag.edge.includes('w')) stepX = start.x + dx - last.x;
+    if (drag.edge.includes('e')) stepX = start.x + start.width + dx - (last.x + last.width);
+    if (drag.edge.includes('n')) stepY = start.y + dy - last.y;
+    if (drag.edge.includes('s')) stepY = start.y + start.height + dy - (last.y + last.height);
+    return { kind: 'resize', dx: stepX, dy: stepY };
+  }
+  async function sendCardDrag() {
+    const drag = cardDrag;
+    if (!drag || drag.inFlight) return;
+    drag.queued = false;
+    const step = cardDragStep(drag);
+    if (!step.dx && !step.dy) return;
+    drag.inFlight = true;
+    const input = { generation: drag.generation, dx: step.dx, dy: step.dy };
+    const frame = step.kind === 'move'
+      ? await window.browserAPI.moveGlanceCard(input)
+      : await window.browserAPI.resizeGlanceCard({ ...input, edge: drag.edge });
+    drag.inFlight = false;
+    if (cardDrag !== drag) return;
+    if (!frame) { cardDrag = null; return; }
+    drag.lastFrame = frame;
+    if (drag.queued) requestAnimationFrame(() => sendCardDrag());
+  }
+  function startCardDrag(event, edge) {
+    const frame = cardFrameOfLayout();
+    if (event.button !== 0 || !frame) return;
+    event.preventDefault();
+    cardDrag = {
+      pointerId: event.pointerId, edge, generation: glanceLayout.generation,
+      startX: event.screenX, startY: event.screenY, pointerX: event.screenX, pointerY: event.screenY,
+      startFrame: frame, lastFrame: frame, inFlight: false, queued: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function moveCardDrag(event) {
+    const drag = cardDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.pointerX = event.screenX;
+    drag.pointerY = event.screenY;
+    if (drag.queued) return;
+    drag.queued = true;
+    requestAnimationFrame(() => sendCardDrag());
+  }
+  function endCardDrag(event) {
+    const drag = cardDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    moveCardDrag(event);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    // The last step still lands; then the drag is over.
+    requestAnimationFrame(() => { if (cardDrag === drag && !drag.inFlight && !drag.queued) cardDrag = null; });
+  }
+  const onHeaderBackground = (event) => !event.target.closest('button, [role="button"], a, input');
+  glanceHeader.addEventListener('pointerdown', (event) => { if (onHeaderBackground(event)) startCardDrag(event, null); });
+  glanceHeader.addEventListener('pointermove', moveCardDrag);
+  glanceHeader.addEventListener('pointerup', endCardDrag);
+  glanceHeader.addEventListener('pointercancel', endCardDrag);
+  glanceHeader.addEventListener('dblclick', (event) => {
+    if (!onHeaderBackground(event) || !glanceLayout) return;
+    cardDrag = null;
+    window.browserAPI.resetGlanceCard({ generation: glanceLayout.generation });
+  });
+  for (const edge of document.querySelectorAll('.glance-card-edge[data-edge]')) {
+    edge.addEventListener('pointerdown', (event) => startCardDrag(event, edge.dataset.edge));
+    edge.addEventListener('pointermove', moveCardDrag);
+    edge.addEventListener('pointerup', endCardDrag);
+    edge.addEventListener('pointercancel', endCardDrag);
+  }
+
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
     // Only when the pill itself is focused — a focused child button (tab
@@ -1426,7 +1518,11 @@
     applyStripTint(tab);
   });
   window.browserAPI.onGlanceLayout((layout) => {
+    // A newer card (closed, reopened or changed) ends a drag begun on the old one.
+    if (cardDrag && layout?.generation !== cardDrag.generation) cardDrag = null;
     glanceLayout = layout;
+    // Read by the acceptance steps, which drive the card's bridge as its drag does.
+    if (glanceSurface) document.documentElement.dataset.glanceGeneration = layout ? String(layout.generation) : '';
     // Only the Glance header and the fill chip depend on this message. A full
     // render() here would re-apply the rail width from the last tabs payload
     // on every resize, snapping the rail back mid-drag.

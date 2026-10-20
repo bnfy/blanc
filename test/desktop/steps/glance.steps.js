@@ -353,10 +353,10 @@ Then('the main pane remains larger than the reference pane', async function () {
 });
 
 When('I close Glance', async function () {
-  const state = await this.state();
-  this.glanceSplitWidth = state.glanceGeometry.primary.width;
-  const chrome = await mainChromePage();
-  await chrome.locator('#glanceClose').click();
+  // The header, and its ×, are on the floating card.
+  const card = await glanceCardPage();
+  await card.locator('#glanceClose').click();
+  await waitForValue(() => this.state(), (state) => state.glanceTabId == null, 'Glance to close');
 });
 
 When('I choose Change and select the replacement tab', async function () {
@@ -2257,4 +2257,60 @@ Then("the card keeps its share of the page with its header on screen", async fun
   assert.ok(card.frame.y >= card.pageArea.y, 'the header stays below the Island band');
   assert.ok(card.frame.width >= 360 && card.frame.height >= 280);
   assert.deepEqual(card.viewBounds, card.page);
+});
+
+async function glanceCardPage() {
+  return waitForValue(async () => ctx.app.windows().find((page) =>
+    !page.isClosed() && page.url() === 'blanc-chrome://glance/') ?? null, (page) => !!page, 'the Glance card document');
+}
+
+// Through the card document's own bridge, as its drag code calls it.
+async function cardBridge(world, method, input) {
+  const page = await glanceCardPage();
+  const card = await waitForValue(() => glanceCard(world), (value) => value?.cardViewVisible === true, 'the Glance card to show');
+  world.glanceCardBefore = card.frame;
+  return page.evaluate(async ({ method, input }) => {
+    const generation = await new Promise((resolve) => {
+      const read = () => {
+        const html = document.documentElement;
+        return html.dataset.glanceGeneration ? Number(html.dataset.glanceGeneration) : null;
+      };
+      const value = read();
+      if (value != null) resolve(value);
+      else setTimeout(() => resolve(read()), 200);
+    });
+    return window.browserAPI[method]({ ...input, generation });
+  }, { method, input });
+}
+
+// The first-open card fills the page's height, so it moves up and sideways.
+When('I move the Glance card by {int}, {int}', async function (dx, dy) {
+  this.glanceCardStart = (await glanceCard(this))?.frame ?? null;
+  const frame = await cardBridge(this, 'moveGlanceCard', { dx, dy });
+  assert.ok(frame, 'the move was accepted');
+});
+
+Then('the Glance card has moved by {int}, {int}', async function (dx, dy) {
+  const start = this.glanceCardStart;
+  const card = await waitForValue(() => glanceCard(this), (value) => value?.cardViewVisible === true
+    && value.frame.x === start.x + dx && value.frame.y === start.y + dy, 'the card to sit where it was moved');
+  assert.equal(card.frame.width, start.width);
+  assert.deepEqual(card.viewBounds, card.page);
+});
+
+When("I drag the Glance card's left edge {int} to the right", async function (dx) {
+  this.glanceCardStart = (await glanceCard(this))?.frame ?? null;
+  const frame = await cardBridge(this, 'resizeGlanceCard', { edge: 'w', dx, dy: 0 });
+  assert.ok(frame, 'the resize was accepted');
+});
+
+Then('the Glance card is {int} narrower with its right edge where it was', async function (dx) {
+  const start = this.glanceCardStart;
+  const card = await waitForValue(() => glanceCard(this), (value) => value?.frame.width === start.width - dx, 'the card to narrow');
+  assert.equal(card.frame.x + card.frame.width, start.x + start.width);
+});
+
+When("I double-click the Glance card's header", async function () {
+  const page = await glanceCardPage();
+  await page.dblclick('#glanceEyebrow');
 });

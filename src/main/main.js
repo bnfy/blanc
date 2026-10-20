@@ -307,7 +307,8 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const { fractionsToFrame, cardGeometry } = require('./glance-card');
+const { cardGeometry } = require('./glance-card');
+const { createGlanceCardController } = require('./glance-card-controller');
 const {
   visiblePaneIds,
   isVisiblePaneId,
@@ -4183,15 +4184,27 @@ function glancePageArea(layout = currentChromeLayout()) {
   return { x: layout.pageBounds.x, y: top, width: layout.pageBounds.width, height: Math.max(0, height - top) };
 }
 
-/** The card's frame: the remembered one (device-local), else the first-open one. */
-function glanceCardFrame(layout = currentChromeLayout()) {
-  return fractionsToFrame(settings.getSettings().glanceFrame, glancePageArea(layout));
+/** Moves, resizes and resets of the card, with its debounced save
+ * (glance-card-controller.js). One remembered frame per device. */
+const glanceCards = createGlanceCardController({
+  isOpen: () => !!activeGlanceTab() && hasLiveWindow(),
+  generation: () => rt().glanceCardGeneration ?? 0,
+  pageArea: () => glancePageArea(),
+  readFrame: () => settings.getSettings().glanceFrame,
+  writeFrame: (fractions) => settings.setGlanceFrame(fractions),
+  relayout: () => resizeActiveView(),
+});
+
+/** The card's frame: the remembered one (device-local, or a change not yet
+ * saved), else the first-open one. */
+function glanceCardFrame() {
+  return glanceCards.frame();
 }
 
 /** The card's views' bounds while a Glance is open, else null. */
-function glanceCardGeometry(layout = currentChromeLayout()) {
+function glanceCardGeometry() {
   if (!activeGlanceTab() || !hasLiveWindow()) return null;
-  return cardGeometry(glanceCardFrame(layout));
+  return cardGeometry(glanceCards.frame());
 }
 
 function currentGlanceLayoutPayload(card = glanceCardGeometry()) {
@@ -8764,6 +8777,8 @@ async function setGlanceTab(id) {
 function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
+  // Keep where the card was left: a save still waiting is written now.
+  glanceCards.flush();
   if (findTargetTabId(rt()) === rt().glanceTabId) hideOverlay({ refocusContent: false });
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
@@ -8881,6 +8896,7 @@ function openSplitPaneMenu(tabId, point) {
 /** Forget the card's remembered frame: the next layout uses the first-open
  * frame. */
 function resetGlanceCardFrame() {
+  glanceCards.flush();
   settings.setGlanceFrame(null);
   if (activeGlanceTab()) resizeActiveView();
   return activeGlanceTab() ? glanceCardFrame() : null;
@@ -10631,6 +10647,11 @@ function registerIpcHandlers() {
     setVerticalTabsWidth(width));
   chromeOn('chrome:resize-split', (_e, splitId, index, axis, point) => resizeSplitAt(splitId, index, axis === 'y' ? 'y' : 'x', point));
   chromeHandle('chrome:reset-split', (_e, splitId) => resetSplitLayout(splitId));
+  // The floating Glance card (glance-card-controller.js refuses a stale
+  // generation and anything while no Glance is open).
+  chromeHandle('chrome:glance-card-move', (_e, input) => glanceCards.move(input));
+  chromeHandle('chrome:glance-card-resize', (_e, input) => glanceCards.resize(input));
+  chromeHandle('chrome:glance-card-reset', (_e, input) => glanceCards.reset(input));
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   // The overlay has drawn the expanding panel exactly over the resting pill.
   // Only now may the strip hide the pill: the two are separate views painting

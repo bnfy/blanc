@@ -571,3 +571,24 @@ Feature: Glance reference pane
     Then the card keeps its share of the page with its header on screen
     When the window's page is 1300 by 820
     Then the card keeps its share of the page with its header on screen
+
+  @F34-4 @F34 @D11
+  Scenario: Moving the card keeps it there for the next Glance
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I move the Glance card by -120, -16
+    Then the Glance card has moved by -120, -16
+    When I close Glance
+    And I open the reference tab in Glance
+    Then the Glance card has moved by -120, -16
+
+  @F34-5 @F34 @D11
+  Scenario: Resizing the card from an edge, and double-clicking its header to reset it
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I drag the Glance card's left edge 300 to the right
+    Then the Glance card is 300 narrower with its right edge where it was
+    When I double-click the Glance card's header
+    Then the Glance is a large centered card over the whole main page

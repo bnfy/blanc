@@ -4449,6 +4449,22 @@ html[data-surface="glance"] .glance-card {
   box-shadow: 0 3px 7px -2px rgba(14, 14, 14, 0.2);
 }
 html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
+/* The resize ring: 8 px just outside the border, corners 16 px square
+   (positioned from the padding edge, inside the 1 px border). */
+.glance-card-edge { display: none; }
+html[data-surface="glance"] .glance-card-edge {
+  display: block;
+  position: absolute;
+  z-index: 1;
+}
+html[data-surface="glance"] .glance-card-edge[data-edge="n"] { top: -9px; left: 7px; right: 7px; height: 8px; cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="s"] { bottom: -9px; left: 7px; right: 7px; height: 8px; cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="e"] { right: -9px; top: 7px; bottom: 7px; width: 8px; cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="w"] { left: -9px; top: 7px; bottom: 7px; width: 8px; cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="ne"] { top: -9px; right: -9px; width: 16px; height: 16px; cursor: nesw-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="sw"] { bottom: -9px; left: -9px; width: 16px; height: 16px; cursor: nesw-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="nw"] { top: -9px; left: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="se"] { bottom: -9px; right: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
 html[data-surface="glance"] .glance-header {
   position: relative;
   height: 39px;

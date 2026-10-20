@@ -813,6 +813,29 @@ export interface GlanceCard {
   page: Rect;
 }
 
+/** A move of the floating Glance card (glance-card-controller.js). */
+export interface GlanceCardMove {
+  /** The generation from the last chrome:glance-layout applied. */
+  generation: number;
+  dx: number;
+  dy: number;
+}
+
+/** A resize of the floating Glance card from one edge or corner (glance-card-controller.js). */
+export interface GlanceCardResize {
+  /** The generation from the last chrome:glance-layout applied. */
+  generation: number;
+  edge: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+  dx: number;
+  dy: number;
+}
+
+/** A reset of the floating Glance card (glance-card-controller.js). */
+export interface GlanceCardReset {
+  /** The generation from the last chrome:glance-layout applied. */
+  generation: number;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -1091,6 +1114,21 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:glance-layout`.
    */
   onGlanceLayout(callback: (payload: GlanceLayout | null) => void): () => void;
+  /**
+   * Move the floating Glance card by a delta. Resolves to the card's new frame, or null when no Glance is open or the generation is stale.
+   * IPC: invoke `chrome:glance-card-move`.
+   */
+  moveGlanceCard(input: GlanceCardMove): Promise<Rect | null>;
+  /**
+   * Resize the floating Glance card by dragging one edge or corner. Resolves to the card's new frame, or null when no Glance is open or the generation is stale.
+   * IPC: invoke `chrome:glance-card-resize`.
+   */
+  resizeGlanceCard(input: GlanceCardResize): Promise<Rect | null>;
+  /**
+   * Forget the card's remembered frame and return it to its first-open size and place. Resolves to that frame, or null when no Glance is open or the generation is stale.
+   * IPC: invoke `chrome:glance-card-reset`.
+   */
+  resetGlanceCard(input: GlanceCardReset): Promise<Rect | null>;
   /**
    * Turn the open Glance into a two-pane Split View (F53). False when there is no Glance to keep.
    * IPC: invoke `chrome:split-keep-glance`.

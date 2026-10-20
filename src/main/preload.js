@@ -107,6 +107,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:glance-layout', listener);
     return () => ipcRenderer.removeListener('chrome:glance-layout', listener);
   },
+  moveGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-move', input),
+  resizeGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-resize', input),
+  resetGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-reset', input),
   keepGlanceAsSplit: () => ipcRenderer.invoke('chrome:split-keep-glance'),
   removeFromSplit: (tabId) => ipcRenderer.invoke('chrome:split-remove', tabId),
   closeSplit: (tabId) => ipcRenderer.invoke('chrome:split-close', tabId),
