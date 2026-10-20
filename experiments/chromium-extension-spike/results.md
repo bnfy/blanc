@@ -3725,3 +3725,14 @@ This extends earlier isolated encrypted closed-history coverage to combined encr
 No product changes/native compile; small test interposer compiled only, final guard schedules zero actions. Prior52files/124hunks unchanged. Published sources/results hashed; browser/guard logs retained locally. Disposable profile removed after exit verification; retained preview untouched. Plan and evidence updated. Native input pending, latency deferred, Electron diagnostic build pending approval.
 
 Evidence: `evidence/split-combined-encrypted-20261020/README.md`.
+
+
+## Corrupted encrypted session/history records — October 20
+
+Four disposable-profile schedules pass28 bounded safety/recovery checkpoints on the normal binary. Plaintext open/closed history was removed before restart; encryption is explicitly enabled with mock keychain. All encrypted Tabs headers overwritten: open keep/decoy windows recover, closed split is lost. All encrypted Session headers overwritten: closed split tabs recover, open keep/decoy windows are lost. Both stores truncated to three bytes: usable blank window, old session lost. These are usable fallbacks and unaffected-store recovery, not restoration of corrupted data.
+
+A fourth case flips one bit at the midpoint of each encrypted Tabs file, leaving its header intact. All fixture URLs remain recoverable without duplicates in this bounded case; it does not prove ciphertext authentication rejection, arbitrary corruption tolerance or complete metadata preservation. Offsets and sizes are recorded. Each run then creates, closes and restores a fresh tab successfully and exits zero. Fresh history persistence across another restart is not tested here.
+
+No product edits/native compile; zero-action build guard, prior52files/124hunks unchanged. Sources/results published with hashes; runtime logs remain local. Test profiles removed after exit verification; retained preview untouched. Real OS provider errors/key rotation, exhaustive ciphertext corruption, automatic startup/crash-bubble physical input and power-loss remain unqualified. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-encrypted-corruption-20261020/README.md`.
