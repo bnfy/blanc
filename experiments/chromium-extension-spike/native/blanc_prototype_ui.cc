@@ -1373,17 +1373,35 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                       .Set("collapsed", visuals ? visuals->is_collapsed() : false));
   }
   base::ListValue persistent_splits;
-  if (auto capture = CaptureNativeSpace(browser); capture && capture->FindList("splits")) {
-    for (const auto& saved : *capture->FindList("splits")) {
-      auto split = saved.GetDict().Clone();
-      base::ListValue members;
-      const auto& ids = *capture->FindList("splitIds");
-      for (size_t i = 0; i < ids.size(); ++i) if (ids[i].is_string() && ids[i].GetString() == *split.FindString("id"))
-        members.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
-      split.Set("focusedTabId", members[*split.FindInt("focusedIndex")].Clone());
-      split.Set("tabIds", std::move(members));
-      persistent_splits.Append(std::move(split));
+  // Live UI metadata is independent of persistence admission (including private
+  // windows, loading documents and unload-sensitive forms).
+  UpdatePersistentSplitFocus(browser);
+  for (int i = 0; i < model->count(); ++i) {
+    const auto id = model->GetSplitForTab(i);
+    if (!id) continue;
+    const auto* data = model->GetSplitData(*id);
+    const auto range = data->GetIndexRange();
+    if (i != static_cast<int>(range.start()) || range.length() != 2 ||
+        data->visual_data()->split_layout() != split_tabs::SplitTabLayout::kSideBySide) continue;
+    base::ListValue members;
+    int focus = -1;
+    bool valid = true;
+    for (int j = range.start(); j < static_cast<int>(range.end()); ++j) {
+      auto* tab = model->GetWebContentsAt(j);
+      auto* state = static_cast<PersistentSplitData*>(tab->GetUserData(kPersistentSplitKey));
+      if (!state) { valid = false; break; }
+      if (state->focused) { if (focus >= 0) { valid = false; break; } focus = j - range.start(); }
+      members.Append(sessions::SessionTabHelper::IdForTab(tab).id());
     }
+    if (!valid || focus < 0) continue;
+    const double ratio = data->visual_data()->split_ratio();
+    auto split = base::DictValue()
+        .Set("id", "split-" + base::NumberToString(persistent_splits.size()))
+        .Set("layout", base::DictValue().Set("kind", "columns")
+            .Set("widths", base::ListValue().Append(ratio).Append(1 - ratio)))
+        .Set("focusedIndex", focus).Set("focusedTabId", members[focus].Clone());
+    split.Set("tabIds", std::move(members));
+    persistent_splits.Append(std::move(split));
   }
   const int main_index = owner->MainIndex();
   auto* active = main_index >= 0 ? model->GetWebContentsAt(main_index) : nullptr;
