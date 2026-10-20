@@ -1,0 +1,12 @@
+{
+  "overlapping_restore": "bounded pass: held real Session read, two added windows, one closed before release, source and surviving decoys preserved",
+  "live_beforeunload": "switch refused, form/scroll/store preserved",
+  "saved_structure_recovery": true,
+  "unsaved_form_recovery": false,
+  "scroll_recovery": false,
+  "overall": "partial; unsaved-state recovery remains a gap",
+  "initial_crash_attempt": "timeout before all three windows/journal-clear condition; retained, cause unresolved; settled repeat passes saved structure only",
+  "guard_seconds": 4.04,
+  "compile": false,
+  "footprint": "prior49/114 unchanged; not re-enumerated"
+}
