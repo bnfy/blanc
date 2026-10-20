@@ -51,3 +51,13 @@ test('inline rule is limited to top-level Store origin',()=>{
   assert.equal(inline({origin:'https://example.com'}).length,0);
   assert.equal(inline({frame:true}).length,0);
 });
+
+ test('relabels installation text and accessibility without replacing button',()=>{
+ const node={nodeValue:'Add to Chrome'}; const attrs={};
+ const button={get textContent(){return node.nodeValue;},setAttribute:(k,v)=>attrs[k]=v,getAttribute:k=>attrs[k]??null,removeAttribute:k=>delete attrs[k],disabled:true};
+ const window={}; let callback;
+ vm.runInNewContext(script,{location:{origin:'https://chromewebstore.google.com'},window,top:window,URL,NodeFilter:{SHOW_TEXT:4},document:{documentElement:{},querySelectorAll:s=>s==='button'?[button]:[],createTreeWalker:()=>{let read=false;return{nextNode:()=>read?null:(read=true,node)};}},MutationObserver:class{constructor(cb){callback=cb;}observe(){}}});
+ assert.equal(node.nodeValue,'Add to Blanc');assert.equal(attrs['aria-label'],'Add to Blanc');assert.equal(button.disabled,true);
+ callback();assert.equal(node.nodeValue,'Add to Blanc');
+ node.nodeValue='Remove from Chrome';callback();assert.equal(node.nodeValue,'Remove from Chrome');assert.equal(attrs['aria-label'],undefined);
+ });

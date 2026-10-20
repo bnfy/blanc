@@ -2882,3 +2882,9 @@ The picker now shows up to six live public Chrome Web Store results with names/d
 ### October 20 — Store result icons
 
 Official extension icons now accompany inline Store results, fetched anonymously through the browser process with exact-host validation,256KiB/six-second limits and raster-only data URLs. Missing/failed images have a letter fallback. Six focused tests/lint and native Dashlane two-icon rendering, listing selection and permission Cancel pass. Initial remote-img renderer failure retained and replaced by the native fetch path. Evidence: `evidence/store-icons-20261020/README.md`. Incremental builds35.74s/38.21s, finalguard0; prior49/117 unchanged. Retained preview not restarted. Forced CDN-failure runtime, other locales and broader visual gates remain unqualified. Latency deferred; Electron diagnostic build unapproved.
+
+## October 20 — Store install label
+
+Exact top-level Store English Add to Chrome text now becomes Add to Blanc, including aria-label. Existing button/handlers/disabled state retained; installed-state text removes the temporary accessibility override. Eight focused tests pass. Disposable native Extensity 1.14.0 flow passes label/accessible name, original permission text, safety delay, Cancel, successful install and Remove from Chrome state. No account or real profile extension installed. Two incremental builds, final zero-action guard; no upstream footprint change from 49/117. Other locales/future markup remain unchanged. Native UI routing briefly opened a media overlay; dismissed before verification. Retained preview restarted with both New Tab and Dashlane listing restored and Add to Blanc visible. Also includes owner-requested single focus border and Browse app store label. Latency deferred; Electron diagnostic build unapproved.
+
+Evidence: `evidence/store-blanc-label-20261020/`.

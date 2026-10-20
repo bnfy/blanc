@@ -20,7 +20,7 @@
 #extensionsBack img { width: 18px; height: 18px; display: block; }
 #extensionsEscape { color: #555; background: #fafafa; border: 1px solid #e2e2e2; border-radius: 6px; padding: 3px 7px; font-size: 12px; }
 .extension-search { display: flex; gap: 10px; align-items: center; border: 1px solid #d8d5d0; border-radius: 11px; min-height: 44px; margin: 10px 0; padding: 0 13px; flex-shrink: 0; }
-.extension-search:focus-within { outline: 2px solid #d2b27b88; outline-offset: 2px; border-color: #c49a59; }
+.extension-search:focus-within { outline: none; border-color: #aa803f; box-shadow: inset 0 0 0 1px #aa803f; }
 .extension-search img { width: 18px; height: 18px; opacity: .6; }
 #extensionSearch { width: 100%; min-width: 0; border: 0; outline: none; background: transparent; color: inherit; font-size: 15px; }
 #extensionList { min-height: 0; overflow-y: auto; flex: 1 1 auto; overscroll-behavior: contain; padding: 2px 0; }
