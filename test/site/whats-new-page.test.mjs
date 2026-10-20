@@ -44,6 +44,7 @@ const visibleSections = (page) => page.$$eval('.wn-highlight', (els) => els
 test('the 1.38 page opens on an intro: the Sunrise, the headline and the tiles, no highlight yet', async () => {
   const { context, page } = await open('/whats-new/1.38');
   assert.equal(await page.locator('.site-header .site-lockup').count(), 1, 'the shared masthead with the lockup');
+  assert.equal(await page.locator('.site-header :is(.site-nav-links, .site-nav-cta, .site-menu-toggle)').count(), 0, 'the masthead carries no site nav');
   assert.equal(await page.locator('.website-footer').count(), 1, 'the shared footer and its horizon rule');
   const intro = page.locator('.wn-intro');
   assert.ok(await intro.isVisible());
@@ -214,6 +215,28 @@ test('at phone width nothing overflows', async () => {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 375));
   await context.close();
 });
+
+// Blanc opens this page in its own window: 1280×800 by default, less the
+// Island's 68px strip, and a 13-inch laptop's maximized window. The intro and
+// every highlight, the tile row and the changelog link fit without scrolling.
+for (const viewport of [{ width: 1280, height: 732 }, { width: 1440, height: 800 }, { width: 1024, height: 680 }]) {
+  test(`at ${viewport.width}×${viewport.height} every view fits without scrolling`, async () => {
+    const { context, page } = await open('/whats-new/1.38', { viewport });
+    for (const hash of ['', ...ids.map((id) => `#${id}`)]) {
+      if (hash) await page.locator(`.wn-tile[aria-controls="${hash.slice(1)}"]`).click();
+      const bottoms = await page.evaluate(() => {
+        const bottom = (selector) => document.querySelector(selector).getBoundingClientRect().bottom;
+        const shown = document.querySelector('.wn-stage > [data-current]') ?? document.querySelector('.wn-intro');
+        return { shown: shown.getBoundingClientRect().bottom, tiles: bottom('.wn-tiles'), changelog: bottom('.wn-changelog'), scrollY };
+      });
+      assert.equal(bottoms.scrollY, 0, `${hash || 'intro'}: the page did not scroll`);
+      for (const [part, value] of Object.entries(bottoms)) {
+        if (part !== 'scrollY') assert.ok(value <= viewport.height, `${hash || 'intro'}: ${part} ends at ${Math.round(value)}, below ${viewport.height}`);
+      }
+    }
+    await context.close();
+  });
+}
 
 test('/whats-new leads to the newest page and is not indexed', async () => {
   const html = await (await fetch(`${baseURL}/whats-new`)).text();

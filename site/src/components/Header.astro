@@ -1,6 +1,9 @@
 ---
 import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
-const { current = null } = Astro.props;
+// variant "minimal" (the What's New pages) keeps only the lockup: the page
+// Blanc opens after an update has its own way forward and needs no site nav.
+const { current = null, variant = "solid" } = Astro.props;
+const minimal = variant === "minimal";
 const onHome = pagePath(Astro.url.pathname) === "/";
 const mailPath = pagePath(Astro.url.pathname);
 const onMail = mailPath === "/mail" || mailPath.startsWith("/mail/");
@@ -29,6 +32,7 @@ const hrefFor = (href) =>
         /></span
       ></a
     >
+    {!minimal && (<>
     <div class="site-nav-links" id="site-menu">
       <div class="site-browser-menu" data-browser-menu>
         <a
@@ -109,6 +113,7 @@ const hrefFor = (href) =>
       aria-controls="site-menu"
       hidden>Menu</button
     >
+    </>)}
   </nav>
   {onHome && <div class="site-progress" aria-hidden="true" />}
 </header>
