@@ -507,6 +507,9 @@ class Owner : public base::SupportsUserData::Data,
   }
   ~Owner() override { Live().erase(this); }
   bool identity_registered = false;
+  bool initial_window_save_started = false;
+  bool initial_window_saved = false;
+  bool initial_window_save_failed = false;
   bool recovery_checked = false;
   bool space_busy = false;
   std::string space_name;
@@ -1284,6 +1287,8 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("spaceAutosaveError", owner->space_error)
       .Set("spaceBusy", owner->space_busy)
       .Set("spaceWindowIdentity", WindowIdentity(browser))
+      .Set("initialWindowSaved", owner->initial_window_saved)
+      .Set("initialWindowSaveFailed", owner->initial_window_save_failed)
       .Set("extensionsWidth", extension_width)
       .Set("tabs", std::move(tabs))
       .Set("activeTabId", std::move(active_id))
@@ -1526,6 +1531,56 @@ class Handler : public content::WebUIMessageHandler {
         base::BindOnce(&Handler::SpaceReady, weak_factory_.GetWeakPtr(), id,
             "previewSpaceOpen", name, std::move(captured)));
   }
+  void InitialWindowSaved(base::WeakPtr<BrowserWindowInterface> expected,
+      base::DictValue capture, bool success) {
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!expected || !owner || owner->browser != expected.get()) return;
+    const auto current = CaptureNativeSpace(expected.get());
+    if (!current || *current != capture) {
+      owner->initial_window_save_started = false;
+      return;
+    }
+    owner->initial_window_saved = success;
+    owner->initial_window_save_failed = !success;
+  }
+  void MaybeSaveInitialWindow(Owner* owner) {
+    auto* browser = owner->browser.get();
+    if (owner->initial_window_save_started || browser->CreatedBySessionRestore() ||
+        browser->GetProfile()->IsOffTheRecord() ||
+        SessionRestore::IsRestoring(browser->GetProfile())) return;
+    auto* model = browser->GetTabStripModel();
+    if (!model->count()) return;
+    for (int i = 0; i < model->count(); ++i)
+      if (model->GetWebContentsAt(i)->IsLoading()) return;
+    auto capture = CaptureNativeSpace(browser);
+    auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile());
+    if (!capture || !service) return;
+    // New windows created during restore must not depend on the ordinary
+    // 2.5-second save timer. Order their identity after initial navigation and
+    // flush the native session stream; never write a parallel session format.
+    // Restored owners may not have reached their first host refresh yet.
+    // Persist their restored identities in the same flush, otherwise a new
+    // window can become durable while its restored neighbours lose ownership.
+    for (auto* live : Owner::Live()) {
+      if (live->browser->GetProfile() != browser->GetProfile()) continue;
+      if (WindowIdentity(live->browser).empty()) return;
+    }
+    for (auto* live : Owner::Live()) {
+      if (live->browser->GetProfile() != browser->GetProfile()) continue;
+      service->AddWindowExtraData(live->browser->GetSessionID(), kWindowIdentityKey,
+                                  WindowIdentity(live->browser));
+      auto* tabs = live->browser->GetTabStripModel();
+      for (int i = 0; i < tabs->count(); ++i) {
+        auto* tab = tabs->GetWebContentsAt(i);
+        service->AddTabExtraData(live->browser->GetSessionID(),
+            sessions::SessionTabHelper::IdForTab(tab), kTabIdentityKey,
+            TabIdentity(tab));
+      }
+    }
+    owner->initial_window_save_started = true;
+    service->SaveAndFlushSession(base::BindOnce(&Handler::InitialWindowSaved,
+        weak_factory_.GetWeakPtr(), browser->GetWeakPtr(), std::move(*capture)));
+  }
   void MaybeRollback(Owner* owner) {
     auto* profile = owner->browser->GetProfile();
     if (!owner->identity_registered && !profile->IsOffTheRecord()) {
@@ -1537,6 +1592,7 @@ class Handler : public content::WebUIMessageHandler {
         }
       }
     }
+    MaybeSaveInitialWindow(owner);
     if (profile->IsOffTheRecord() || owner->space_busy || SessionRestore::IsRestoring(profile) || owner->recovery_checked) return;
     auto before = CaptureNativeSpace(owner->browser);
     if (!before) return;

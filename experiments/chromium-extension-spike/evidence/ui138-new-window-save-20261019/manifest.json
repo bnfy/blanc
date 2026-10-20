@@ -1,0 +1,1072 @@
+[
+  {
+    "path": "blanc-new-window-save/archive.py",
+    "bytes": 1531,
+    "sha256": "2973c75dc45e28c2e50bb6b8330cb48990c78348efa4ecc63c25c499b7ab1bf8"
+  },
+  {
+    "path": "blanc-new-window-save/budget.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-save/final-guard.log",
+    "bytes": 196,
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+  },
+  {
+    "path": "blanc-new-window-save/final-normal-guard.log",
+    "bytes": 196,
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+  },
+  {
+    "path": "blanc-new-window-save/focused-final.log",
+    "bytes": 526,
+    "sha256": "fb9c995d19414a61e7747f03996b4a8e211c354116d379065165cbd140cd837c"
+  },
+  {
+    "path": "blanc-new-window-save/focused.log",
+    "bytes": 528,
+    "sha256": "ced5e0af1ccb21fec429d14a2d93f4f1e20e0dc6acd1b43b0691203434d5dbc2"
+  },
+  {
+    "path": "blanc-new-window-save/incremental-identities.log",
+    "bytes": 2610,
+    "sha256": "6702892185e78fcdb05f13bdc1a07b464fb48c6a730d826f833760223f75a856"
+  },
+  {
+    "path": "blanc-new-window-save/incremental.log",
+    "bytes": 2609,
+    "sha256": "240797d739b2a06554c99b3ceabde0bb868b987a8d51096505542aa366674c65"
+  },
+  {
+    "path": "blanc-new-window-save/invocations.jsonl",
+    "bytes": 3045,
+    "sha256": "6621a044d2924bcf70b219ab0da5d275862f075b2762703be30d5c846560fec9"
+  },
+  {
+    "path": "blanc-new-window-save/invoke.py",
+    "bytes": 607,
+    "sha256": "d9060d837f07b3b2d0b5608f4edc4cc914a5b9ece0d7bea30cd379712625d8fa"
+  },
+  {
+    "path": "blanc-new-window-save/normal-source-proof.json",
+    "bytes": 342,
+    "sha256": "9f4c11d892ce8ce350042d6218a63780e43d9d507cfc58bfc388bebdde3a1d1c"
+  },
+  {
+    "path": "blanc-new-window-save/patch-budget.json",
+    "bytes": 45371,
+    "sha256": "edd470bf1051c8238346311480ad0be9ed254b7181b14456056fad7d7b536f54"
+  },
+  {
+    "path": "blanc-new-window-save/prepare-identities.log",
+    "bytes": 196,
+    "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+  },
+  {
+    "path": "blanc-new-window-save/prepare.log",
+    "bytes": 196,
+    "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+  },
+  {
+    "path": "blanc-new-window-save/summary.json",
+    "bytes": 837,
+    "sha256": "8cbcdf6e539d86f63dfc23e808dd6ec8372d759d99b3a58da3c8cdcb3305b1e3"
+  },
+  {
+    "path": "blanc-new-window-immediate/barrier.c",
+    "bytes": 1348,
+    "sha256": "254f5734df767a429447a51dc121fe186968c67acc6f3f8436c0d369a9627ec0"
+  },
+  {
+    "path": "blanc-new-window-immediate/check.mjs",
+    "bytes": 4015,
+    "sha256": "2231eb304859d98dc827294133a4303e6f8da99da4bd6d4c96eed433aeace0a0"
+  },
+  {
+    "path": "blanc-new-window-immediate/chromium.log",
+    "bytes": 2409,
+    "sha256": "06c2c035985c353597e3e95bac23e67ee8c6c3e641d3c13e6b23afe3c18387af"
+  },
+  {
+    "path": "blanc-new-window-immediate/cleanup.json",
+    "bytes": 229,
+    "sha256": "4c4c9eacdf21af792227e5a9c7026475bfc7c156c6289fcc29f16706e5ded27d"
+  },
+  {
+    "path": "blanc-new-window-immediate/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate/cleanup.mjs",
+    "bytes": 1294,
+    "sha256": "0766b91ba9dfbf342b6bc5e4617c4f19900940b898c32307f377e985779ab16f"
+  },
+  {
+    "path": "blanc-new-window-immediate/close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate/close.mjs",
+    "bytes": 535,
+    "sha256": "bdf0a5de1b6a44f52ce5d23aa3c914228a8fabaf913ae32862af9805acde9a38"
+  },
+  {
+    "path": "blanc-new-window-immediate/exit.json",
+    "bytes": 42,
+    "sha256": "25e640270b4e6d797f61e1cd6836b33b8470b9f361b7042206f6f01f09eeb2c4"
+  },
+  {
+    "path": "blanc-new-window-immediate/held-restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate/helper-build.log",
+    "bytes": 3520,
+    "sha256": "6a9a1ac6e301a567a1cdfab6085d961836bae18de756aea1250e5d8ad939cad9"
+  },
+  {
+    "path": "blanc-new-window-immediate/invocations.jsonl",
+    "bytes": 1546,
+    "sha256": "e7c78b2bcdf7b9d3b8bee908cdd277e4d325ad5515d936fa5dfd9157ce3a1717"
+  },
+  {
+    "path": "blanc-new-window-immediate/invoke.py",
+    "bytes": 612,
+    "sha256": "3f7590a0e411413468c6b94f46cffefe83db8c878020a5ec60ec72338c028da6"
+  },
+  {
+    "path": "blanc-new-window-immediate/launch-injected.mjs",
+    "bytes": 891,
+    "sha256": "2aae1e281449424489ddd00fe9835dcce7d718219c3d26999de00ef27d23155f"
+  },
+  {
+    "path": "blanc-new-window-immediate/launch.mjs",
+    "bytes": 974,
+    "sha256": "4db64d7acf9af16199c479a1e46993c55fecae74d62f51775ed5f87daaa6f054"
+  },
+  {
+    "path": "blanc-new-window-immediate/marker.json",
+    "bytes": 146,
+    "sha256": "8dbf2babcad97cc2f6186d42337e8444984dee1cea634f5c14d7d2855cc32a5b"
+  },
+  {
+    "path": "blanc-new-window-immediate/overlap-proof.log",
+    "bytes": 47,
+    "sha256": "7251892073b7bbedabd3381e39b39829b7129357ebd630f7842c9d6de32622f4"
+  },
+  {
+    "path": "blanc-new-window-immediate/probe.mjs",
+    "bytes": 3118,
+    "sha256": "38ee97e558e9a107c1b3e30826683f04079241532aae8ba853d96f7269bdceba"
+  },
+  {
+    "path": "blanc-new-window-immediate/read.json",
+    "bytes": 9434,
+    "sha256": "ebb9973ecb1d762244515239a9c187901560cd8881f6f5f816caa0095a1fc4f0"
+  },
+  {
+    "path": "blanc-new-window-immediate/run-console.log",
+    "bytes": 11512,
+    "sha256": "8f122e3db0b9021bd2d04284e1d0827f4c40c7f49882bc00fdbb6105a793c64c"
+  },
+  {
+    "path": "blanc-new-window-immediate/run.py",
+    "bytes": 1182,
+    "sha256": "32e7c70b4b695b9ed7a246b07c264db450a539848a1f0bd6e4cbff62ee1852fa"
+  },
+  {
+    "path": "blanc-new-window-immediate/seed.json",
+    "bytes": 4565,
+    "sha256": "79b611fbbbc47bd5245062191d67690fbe4421a137eef9d5a4f12a837cd22f87"
+  },
+  {
+    "path": "blanc-new-window-immediate/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-immediate/server.cjs",
+    "bytes": 239,
+    "sha256": "b4c44d495b962a13e2a82902758cb8bcbb8f138d9584fa4c95f0cc83aedb4412"
+  },
+  {
+    "path": "blanc-new-window-immediate/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate/start.mjs",
+    "bytes": 527,
+    "sha256": "8f3c25df88980fb5c7e5d2925a16305ab02450be3321102ba4bea6b2cb23bf2a"
+  },
+  {
+    "path": "blanc-new-window-immediate/state-proof.log",
+    "bytes": 11464,
+    "sha256": "640479b26f04e60bf378cc46eb2c8c66ea84a76f499874455530e43d8eba84bf"
+  },
+  {
+    "path": "blanc-new-window-immediate/state.json",
+    "bytes": 345815,
+    "sha256": "f64fea9f0beb38fcf0190f830f81559d374cc100f9f9d4e811ed34da5c4d8677"
+  },
+  {
+    "path": "blanc-new-window-immediate/state.mjs",
+    "bytes": 3769,
+    "sha256": "ef9eff0e7e44fc22c4a2a76eb70a557838ac580087aac1f09876a71422232343"
+  },
+  {
+    "path": "blanc-new-window-immediate/watch.mjs",
+    "bytes": 350,
+    "sha256": "9a79b0c024f8de1bcc6d682eb81a88c34a366285014e3cc82493a135bbbf10d0"
+  },
+  {
+    "path": "blanc-new-window-encrypted/barrier.c",
+    "bytes": 1348,
+    "sha256": "254f5734df767a429447a51dc121fe186968c67acc6f3f8436c0d369a9627ec0"
+  },
+  {
+    "path": "blanc-new-window-encrypted/check.mjs",
+    "bytes": 4015,
+    "sha256": "9e77c0383acd01bb87783c2bd12e264dc44c2905e769a77fd022e26a69d952e8"
+  },
+  {
+    "path": "blanc-new-window-encrypted/chromium.log",
+    "bytes": 2409,
+    "sha256": "59ff6cce5157a228c6a2b44944333291c21614c453e1216bc0a2536fbed983a5"
+  },
+  {
+    "path": "blanc-new-window-encrypted/cleanup.json",
+    "bytes": 229,
+    "sha256": "0e2d7da5a41d74fa033c0e653c64c45771ce2a7b1abd5771707e7be82080eb57"
+  },
+  {
+    "path": "blanc-new-window-encrypted/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted/cleanup.mjs",
+    "bytes": 1294,
+    "sha256": "c8cdcb1a7b9226510899decf2425953f7f34e005d5dce995f48338aa0bf5ab58"
+  },
+  {
+    "path": "blanc-new-window-encrypted/close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted/close.mjs",
+    "bytes": 535,
+    "sha256": "cc0dcac09915feb370b5b47ab8c19ea223dd96e9cb80d898d2d27f2ea8c334ef"
+  },
+  {
+    "path": "blanc-new-window-encrypted/exit.json",
+    "bytes": 42,
+    "sha256": "cc12c2e9a58146906a0cde56bd4a7851cc77906027db4b894ab4fbe6b6924aa1"
+  },
+  {
+    "path": "blanc-new-window-encrypted/held-restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted/helper-build.log",
+    "bytes": 3520,
+    "sha256": "022465e4f8613f127ec9f1ebd12db0fcb8efdb836b5c645bba7c3866d6a01da9"
+  },
+  {
+    "path": "blanc-new-window-encrypted/invocations.jsonl",
+    "bytes": 1569,
+    "sha256": "eb82d67acf82490222903bc88d349d9342686fe1290d2919641e5bb92cc08551"
+  },
+  {
+    "path": "blanc-new-window-encrypted/invoke.py",
+    "bytes": 612,
+    "sha256": "5be05bd4ab58379693d0bc7af8e6441e308722ea894aa76389626149cae3d5d6"
+  },
+  {
+    "path": "blanc-new-window-encrypted/launch-injected.mjs",
+    "bytes": 891,
+    "sha256": "00f1c3b6423b4fc483807a31a79eddb0909a27c3b7ffc26eb9656eb528cd2272"
+  },
+  {
+    "path": "blanc-new-window-encrypted/launch.mjs",
+    "bytes": 974,
+    "sha256": "bd38c2b830fb0828de9853f959dffd0c7096c7f137db15423262ae89f1174b38"
+  },
+  {
+    "path": "blanc-new-window-encrypted/marker.json",
+    "bytes": 156,
+    "sha256": "ab990a20baebfea7d6aa0b4a8e3bb2a7efa5a86e74d68b6fa167532011736ba0"
+  },
+  {
+    "path": "blanc-new-window-encrypted/overlap-proof.log",
+    "bytes": 47,
+    "sha256": "7251892073b7bbedabd3381e39b39829b7129357ebd630f7842c9d6de32622f4"
+  },
+  {
+    "path": "blanc-new-window-encrypted/probe.mjs",
+    "bytes": 3118,
+    "sha256": "7b21632086f81de772576fdf67eb9c6358731dea7347624704635417199827fe"
+  },
+  {
+    "path": "blanc-new-window-encrypted/read.json",
+    "bytes": 9415,
+    "sha256": "81cfe6bc44d837c5eaa37aa541ff6196434513066e7d7940caf457869c7d3182"
+  },
+  {
+    "path": "blanc-new-window-encrypted/run-console.log",
+    "bytes": 11514,
+    "sha256": "1e7520821ac754dbe86a00530dda3e0c062b2d7b96ac1a7c02405870dd806e18"
+  },
+  {
+    "path": "blanc-new-window-encrypted/run.py",
+    "bytes": 1182,
+    "sha256": "778b0566114a4f9b4cb62e5b916b03be854def090f0ee1b22e9f771d8b3e747c"
+  },
+  {
+    "path": "blanc-new-window-encrypted/seed.json",
+    "bytes": 4565,
+    "sha256": "bd66dba9fbaac926353810557dddf58ea128f9f30740c5320bca3ce5e12613d6"
+  },
+  {
+    "path": "blanc-new-window-encrypted/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-encrypted/server.cjs",
+    "bytes": 239,
+    "sha256": "b4c44d495b962a13e2a82902758cb8bcbb8f138d9584fa4c95f0cc83aedb4412"
+  },
+  {
+    "path": "blanc-new-window-encrypted/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted/start.mjs",
+    "bytes": 527,
+    "sha256": "b75a8bf29927ef56117d8486e94a1110082b500fa5fe24b052bb2af65f8f2a85"
+  },
+  {
+    "path": "blanc-new-window-encrypted/state-proof.log",
+    "bytes": 11460,
+    "sha256": "398089308756226dd285aa26140a4923510ab121c014b511d124d6d4add33024"
+  },
+  {
+    "path": "blanc-new-window-encrypted/state.json",
+    "bytes": 344774,
+    "sha256": "e404e8297885d3071b08e9c94993563e1820207dc9995584e3ebe9634b4f703d"
+  },
+  {
+    "path": "blanc-new-window-encrypted/state.mjs",
+    "bytes": 3769,
+    "sha256": "6bba7f5d4d3e63769ee839f66554eefbc17213a30d752e51af36a1a8c2ee28f5"
+  },
+  {
+    "path": "blanc-new-window-encrypted/watch.mjs",
+    "bytes": 350,
+    "sha256": "8f5ed6a88412951bcb1e3d0fb9e24ed2cb3b69913b3a7a1e47cb5da46bebe415"
+  },
+  {
+    "path": "blanc-new-window-regression/authentic-v3-journal.json",
+    "bytes": 556,
+    "sha256": "eb34b3f78bf5cdfd604d76f16a8ca05bb2c2cb12083484fb764f4835f735c876"
+  },
+  {
+    "path": "blanc-new-window-regression/barrier.c",
+    "bytes": 975,
+    "sha256": "80622bc129157baefe1ff45586f6bfb63845e4138c05ecb60de45bade5a62792"
+  },
+  {
+    "path": "blanc-new-window-regression/check.mjs",
+    "bytes": 4016,
+    "sha256": "605b3dcc7e7d2f41d8f3f6e30d0077e4029d55f423d9e36423837890a2690cf1"
+  },
+  {
+    "path": "blanc-new-window-regression/chromium.log",
+    "bytes": 3116,
+    "sha256": "649763b9dbd039262618746eae01c1223c2bd9e1974eb5728c289670ba9cb4bf"
+  },
+  {
+    "path": "blanc-new-window-regression/cleanup.json",
+    "bytes": 174,
+    "sha256": "cd4740d140fadf4a36a7fab2df823b754d55892789ec81f82f1c48d82badcca9"
+  },
+  {
+    "path": "blanc-new-window-regression/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/cleanup.mjs",
+    "bytes": 1295,
+    "sha256": "7aa8e76c74ba41b594e032062f66284ffdabbcc7574048c5d9fadcfbf8183f58"
+  },
+  {
+    "path": "blanc-new-window-regression/close.mjs",
+    "bytes": 536,
+    "sha256": "546b52e1187f1243e9b1fa95df6ab7ba4cef3227511473b64d3e145601f42a52"
+  },
+  {
+    "path": "blanc-new-window-regression/crash.json",
+    "bytes": 4932,
+    "sha256": "c0450e709253ed983170c80320d5de4f0abf63cda9a49299fa17e9a187680f8a"
+  },
+  {
+    "path": "blanc-new-window-regression/exit.json",
+    "bytes": 42,
+    "sha256": "42596320cc98bca01a96fdf7e5e13add8bc843ceea17499067b93a55e95d60e5"
+  },
+  {
+    "path": "blanc-new-window-regression/finish-close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/helper-build.log",
+    "bytes": 1838,
+    "sha256": "d5fec7a28fb50195bec84f3ce4a71bc6d7cf89f9809004e312dee5bb1d8f04be"
+  },
+  {
+    "path": "blanc-new-window-regression/intent-written.json",
+    "bytes": 139,
+    "sha256": "f325b8071839e2f1180db42ac34b587ee24e44f1fae1a9920aaea6b1f8e21720"
+  },
+  {
+    "path": "blanc-new-window-regression/invocations.jsonl",
+    "bytes": 2113,
+    "sha256": "be2e3131c8509823a62b64aa99180b9de787336bc6464c19e9effe3c26cd95ae"
+  },
+  {
+    "path": "blanc-new-window-regression/invoke.py",
+    "bytes": 613,
+    "sha256": "f0a2050e52659579fd3f7e34a1f5e2f5cc759ad364f4f36fafa57ca11b8fb320"
+  },
+  {
+    "path": "blanc-new-window-regression/journal-crash.log",
+    "bytes": 48,
+    "sha256": "7373278cca75416f759429411482f2752bf31c346f0be22d02892b293084ed4d"
+  },
+  {
+    "path": "blanc-new-window-regression/launch-injected.mjs",
+    "bytes": 862,
+    "sha256": "96f7a3848c5e119ad32d7833c2a3169f2b8e89485e4d9911fc37284d6946c5d3"
+  },
+  {
+    "path": "blanc-new-window-regression/launch.mjs",
+    "bytes": 975,
+    "sha256": "e9a7eede2711dd7364ebd4eda3bd3bbd883bfa765540857746bc927bdff87469"
+  },
+  {
+    "path": "blanc-new-window-regression/partial-close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/partial-fixture.log",
+    "bytes": 2243,
+    "sha256": "cbd5a7e563dd5ee29649020dad0db440d4eab7c9930f89b2e36247e25b47a582"
+  },
+  {
+    "path": "blanc-new-window-regression/partial-recovery.log",
+    "bytes": 2293,
+    "sha256": "c07a4efc7b23ea74394952cb8f65cdd85a71d03105bb6a264c3750c4aaca4bd7"
+  },
+  {
+    "path": "blanc-new-window-regression/partial-result.json",
+    "bytes": 7524,
+    "sha256": "80e1dd315bc6109d749c609ec9ab994d44d1f67a466bc3ea07976ad9e2d5a352"
+  },
+  {
+    "path": "blanc-new-window-regression/partial-start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/partial.mjs",
+    "bytes": 4209,
+    "sha256": "fff47379debdd141a676519427b09b07893fe4506a30656ac84f2d1643c7ae55"
+  },
+  {
+    "path": "blanc-new-window-regression/recover-result.json",
+    "bytes": 9129,
+    "sha256": "5f3d5dde817f369f3606c759b40445befb29250427a761598e8afbd42f83a505"
+  },
+  {
+    "path": "blanc-new-window-regression/recovery-start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/run-console.log",
+    "bytes": 7777,
+    "sha256": "1c98c5496c78a4363e667be2523c32d4e30902b05cacae19127432d5d1592ff6"
+  },
+  {
+    "path": "blanc-new-window-regression/run.py",
+    "bytes": 1326,
+    "sha256": "536d54ca2eed422d62c7ec8510414dc96c73e27b93ccc2b144bf326d30a4aee0"
+  },
+  {
+    "path": "blanc-new-window-regression/seed.json",
+    "bytes": 4572,
+    "sha256": "4bc21cb2d447e28a3a8093193d5eacf7da3565c27fc5599be366a04863aa8c22"
+  },
+  {
+    "path": "blanc-new-window-regression/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-regression/server.cjs",
+    "bytes": 245,
+    "sha256": "962f21482a73a3e4c6007488fc8719a7f4292c81d815cc96ad161d414285240c"
+  },
+  {
+    "path": "blanc-new-window-regression/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression/start.mjs",
+    "bytes": 528,
+    "sha256": "ca392c4a405b87699f3a84e81d6e102c197a0a7a1338a9496cf69889c959bace"
+  },
+  {
+    "path": "blanc-new-window-regression/switch-regression.log",
+    "bytes": 2918,
+    "sha256": "906c36b65d77bc4228f7764e2966ff6f0a8bef0f34813a070df4529935b079c4"
+  },
+  {
+    "path": "blanc-new-window-regression/switch-result.json",
+    "bytes": 12795,
+    "sha256": "17b9ff09618351df7bbf8e1ad6ace3d069c334b47400df874d768f8e2ece3e5f"
+  },
+  {
+    "path": "blanc-new-window-regression/watch.mjs",
+    "bytes": 351,
+    "sha256": "86546d5043eb59483ce7b2573f639ec738620b8e36206f6e10485723f16331bd"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/barrier.c",
+    "bytes": 1348,
+    "sha256": "254f5734df767a429447a51dc121fe186968c67acc6f3f8436c0d369a9627ec0"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/check.mjs",
+    "bytes": 4021,
+    "sha256": "7d5ba04e40fd4d613c33665788ca31bf84d956c4b39a3af52ef2974d6c559718"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/chromium.log",
+    "bytes": 2409,
+    "sha256": "5541594726402da6ea91b4883b97f89ebff0e1d0b8dc614d79b0b9881f1de670"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/cleanup.json",
+    "bytes": 229,
+    "sha256": "29ff3bb34c597a8718ce5a83eb81f67415574e84cd1857240ef68d5cfdf949b3"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/cleanup.mjs",
+    "bytes": 1300,
+    "sha256": "2256183021b226c01401b9c1d6246538f48bfc201851f9bb8103fd94e457db59"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/close.mjs",
+    "bytes": 541,
+    "sha256": "8328525cd9797f736f3662f055fd14130b821e40a2d6ed758134448283defdc5"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/exit.json",
+    "bytes": 42,
+    "sha256": "0a4b5dda2848ffabf50e1bd252cfc2c38214da04ec63039cd5c114d5dce0c14d"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/held-restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/helper-build.log",
+    "bytes": 3538,
+    "sha256": "3c7a58a32407447fcab02ca985303b303fd0ba00f895c5c718ed1dd7f8677266"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/invocations.jsonl",
+    "bytes": 1620,
+    "sha256": "e9161e1aaf1116308fb0dfe114b8231b24b03ed6da660d532b3836d7ffb4174f"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/invoke.py",
+    "bytes": 618,
+    "sha256": "f7ec2f871763281d90115ac492ee8b2ef0a165c8ef1e1c64df97b931c9879760"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/launch-injected.mjs",
+    "bytes": 897,
+    "sha256": "925e43391e31ba49389b7579685b8b6ab6bdc213a731cd7a70eb0a57d0c8c6f4"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/launch.mjs",
+    "bytes": 980,
+    "sha256": "8f09849d68981b61da47031d31bec8dce798c6d96afbc0fb2ada70a46d784abc"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/marker.json",
+    "bytes": 152,
+    "sha256": "7d2c0243026e52e0836e98b900ae689c66c2034fc6f12ba7922a6dbcbb1d01a9"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/overlap-proof.log",
+    "bytes": 47,
+    "sha256": "7251892073b7bbedabd3381e39b39829b7129357ebd630f7842c9d6de32622f4"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/probe.mjs",
+    "bytes": 3124,
+    "sha256": "8c06f22fb170fd7b61bed42b46cec29cce49433e770612d60e07c4116ef1eeb3"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/read.json",
+    "bytes": 9404,
+    "sha256": "15191bbf8e13830b23cb089e604b1164b7fc8019f05371fcf8b69466781905e5"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/run-console.log",
+    "bytes": 9744,
+    "sha256": "750ebe6fab69ab55c13bbd7e54cf0d585d31e4543a945b7313bf6eba287e1ec7"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/run.py",
+    "bytes": 1188,
+    "sha256": "b22adaf2dd8736f9a8d381e7f2493888d3a95f83ad3ee549101017d82775fd6f"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/seed.json",
+    "bytes": 4565,
+    "sha256": "21b70ab188d6f1f0db3871d679c7d536930f651ce42a53bbab3e37491736b53e"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/server.cjs",
+    "bytes": 239,
+    "sha256": "b4c44d495b962a13e2a82902758cb8bcbb8f138d9584fa4c95f0cc83aedb4412"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/start.mjs",
+    "bytes": 533,
+    "sha256": "917f35b698aaae8f828ea470729829454f138ef09e5d24f9db72e93dbab823c1"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/state-proof.log",
+    "bytes": 5972,
+    "sha256": "c5ac77acc8a0633bc2eb23b17dc282f79897bedd32f28015ae70787b05db43e3"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/state.json",
+    "bytes": 23635,
+    "sha256": "38224541b9d707dcfddd418331f59c870d38f5536cc48077b5becf30f1a16f18"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/state.mjs",
+    "bytes": 4263,
+    "sha256": "0e865f2f00edc7e2792834431b91d391929f45f7670684b1a2553aab5aa6cd89"
+  },
+  {
+    "path": "blanc-new-window-immediate-fixed/watch.mjs",
+    "bytes": 356,
+    "sha256": "8b8c4f6f9c42ea4b151e501f0cd0ea26b06548dad4bb3a09c30f3f3d150bb1d4"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/barrier.c",
+    "bytes": 1348,
+    "sha256": "254f5734df767a429447a51dc121fe186968c67acc6f3f8436c0d369a9627ec0"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/check.mjs",
+    "bytes": 4021,
+    "sha256": "65749d502566fc6096fb7f7f04d1891280b81417456078e0316900fb1bde4e5a"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/chromium.log",
+    "bytes": 2409,
+    "sha256": "608506ae42cc39ae2b54c5e968b0355c8e772ab88a4c46d02be8febd99ca3b1e"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/cleanup.json",
+    "bytes": 229,
+    "sha256": "4a26b32a9eec5c5fd054aa73c9b0ff5ac5179c325d30d1bbe067e867ff010275"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/cleanup.mjs",
+    "bytes": 1300,
+    "sha256": "406f27abc44d8542cb41bcf15d2f15ba5d56485be8ffc2e97978e9e6a328dfa6"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/close.mjs",
+    "bytes": 541,
+    "sha256": "4f6ba2adc7d02322ce2bbb99d28e56ad080d09c00af874f58aeda47bafd1797a"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/exit.json",
+    "bytes": 42,
+    "sha256": "7be7119f5854a5d677313d339086cba3dfb5a5e8c4348bf479d546ad059b755a"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/held-restart.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/helper-build.log",
+    "bytes": 3538,
+    "sha256": "1b98687fff68ebb434241b2a872adc9f25107df1eb70e3ffcb055fa7a3cc5805"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/invocations.jsonl",
+    "bytes": 1628,
+    "sha256": "a3e22f476386d36cd88c3daa7761f938a6153aa13da814a9ab3a049b5fda5a07"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/invoke.py",
+    "bytes": 618,
+    "sha256": "07a4bfeb987d298f569acf83e9c5f60b5c7b5ce51262227c652e49f250dd6e3d"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/launch-injected.mjs",
+    "bytes": 897,
+    "sha256": "9589ddbe91c2b0475678a05b5cc9f04d77fa13fd3d7082f767369fd52d055131"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/launch.mjs",
+    "bytes": 980,
+    "sha256": "546b9e808a6dfae1ab420f1c9268edaabea25fbc6ab876bfe7b42a6d880db66c"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/marker.json",
+    "bytes": 162,
+    "sha256": "e94db49bbb61bde8b933b6fe5ff9dc9dd6b8dbb9a293724994a1659cf9c45b00"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/overlap-proof.log",
+    "bytes": 47,
+    "sha256": "7251892073b7bbedabd3381e39b39829b7129357ebd630f7842c9d6de32622f4"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/probe.mjs",
+    "bytes": 3124,
+    "sha256": "d385bad554f08cb16746223d6977fbec4ecb3a54effc89ae154f08c6d800865b"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/read.json",
+    "bytes": 9446,
+    "sha256": "d33c205169fe3b5ba6bebb5426cd50413172d58224a457c872e1503d2292c930"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/run-console.log",
+    "bytes": 9992,
+    "sha256": "4fe6e1e75339930025e5da409522c5cd528fa5229300b9e38f2248992ee7e78b"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/run.py",
+    "bytes": 1188,
+    "sha256": "e2533df6e968a64cee30853cff600ebdd57a2fff018b43f7eca03590b7265638"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/seed.json",
+    "bytes": 4572,
+    "sha256": "bc445c5de1ced99606651fbbb6dd34666056ed4f20d33a2d182c7465c438cf0c"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/server.cjs",
+    "bytes": 239,
+    "sha256": "b4c44d495b962a13e2a82902758cb8bcbb8f138d9584fa4c95f0cc83aedb4412"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/start.mjs",
+    "bytes": 533,
+    "sha256": "c31a7ea9f5cc83616a88f1d22337e7b54e69b985e783b65458035c458a56a3d5"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/state-proof.log",
+    "bytes": 6219,
+    "sha256": "8eb7f79c89ea95396db2bd25d99ec63f0d84674749341ac36f86b4ded22f75ce"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/state.json",
+    "bytes": 26889,
+    "sha256": "0ba1b00e1ee6dc6b39b5b5305ef20381f90d9d80f7f05fc9db3fd4c61f8264bf"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/state.mjs",
+    "bytes": 4263,
+    "sha256": "b7ffc322ac97ba5289c59d7def8a939a940d1587d452c88948ceeef860a80c48"
+  },
+  {
+    "path": "blanc-new-window-encrypted-fixed/watch.mjs",
+    "bytes": 356,
+    "sha256": "5e891b1ea00df0690b3a64346a583c7199643d7c7b73beb5b6403fb3a2b68e82"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/authentic-v3-journal.json",
+    "bytes": 556,
+    "sha256": "7643dc09cbbecb507e6be145d04b652a21ca1cc750674cf6f9455f9ef3f92724"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/barrier.c",
+    "bytes": 975,
+    "sha256": "80622bc129157baefe1ff45586f6bfb63845e4138c05ecb60de45bade5a62792"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/check.mjs",
+    "bytes": 4022,
+    "sha256": "c69281521156cc436406206ed21345167d55d36a8b6557fddb5ce1c2d1fa3921"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/chromium.log",
+    "bytes": 3116,
+    "sha256": "a527b8e744bee8a65b96105dc72524357b518af748dae23457addfd7da5db88f"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/cleanup.json",
+    "bytes": 174,
+    "sha256": "04ee1ba15fe2e89a711dba54e98530ece91363788665e3e6eec6d0ed8319a9ea"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/cleanup.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/cleanup.mjs",
+    "bytes": 1301,
+    "sha256": "ff90db191241a608fd245d17a8d8f4471d71a9938780bfce85fff4f1412eefcc"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/close.mjs",
+    "bytes": 542,
+    "sha256": "2c755f7c1b131f9bd34564a4e36a563e47a070567ce38a6a4695e727c7cadb95"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/crash.json",
+    "bytes": 4931,
+    "sha256": "bdce1c0370fde986e21199c86aa504e1d5ab338d2af7212eb7103e759e6de6ba"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/exit.json",
+    "bytes": 42,
+    "sha256": "ebf9a78a12de8a39fb3c7415018b219629a1722c101f8ed49af656c0f20a9761"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/finish-close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/helper-build.log",
+    "bytes": 1844,
+    "sha256": "f2b8baaed59478842e2476a571eecbf8ea8c27a6d38e4a41bfcd3ea1ef9730ba"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/intent-written.json",
+    "bytes": 145,
+    "sha256": "9a6cd86c9c92c6f9834a1522216f45f1f75dcaed9618a71226c9fbec2719fde5"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/invocations.jsonl",
+    "bytes": 2183,
+    "sha256": "9b9bb1290b8efaea21ae2fa2cd138b8b794ab3567cb18ddc1c0be976f69045a4"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/invoke.py",
+    "bytes": 619,
+    "sha256": "a1e8a8ff355caf822783e31ff2a598671d168187ee532a648e2347551767692b"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/journal-crash.log",
+    "bytes": 48,
+    "sha256": "7373278cca75416f759429411482f2752bf31c346f0be22d02892b293084ed4d"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/launch-injected.mjs",
+    "bytes": 868,
+    "sha256": "fd0abcc9d45f3d395a20be7eea2eb087698c7ec2b5ff0920a78e71030f683909"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/launch.mjs",
+    "bytes": 981,
+    "sha256": "4c9e241653adde7aa773e94050df9f70c4e3979a831704620079656d13c8e596"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial-close.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial-fixture.log",
+    "bytes": 2248,
+    "sha256": "ba157a7920fae772bf22856571c18b1542106ba22c937beba8f0a14a63655c59"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial-recovery.log",
+    "bytes": 2299,
+    "sha256": "410ddafa18e41cb34c563a3ce8bc234fba829a45a10d4abf87c4f4e64338900d"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial-result.json",
+    "bytes": 7536,
+    "sha256": "6cf0ecf0196b1f070aec3a3cdf613703145d45401d33b7d487d63cc945d335bd"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial-start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/partial.mjs",
+    "bytes": 4215,
+    "sha256": "0d4183267a1eb2fb435b6a3ae760c7a4c201c3b83ce9ede1ee49262e22442393"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/recover-result.json",
+    "bytes": 9155,
+    "sha256": "130148e95f5458091e4abb292b4cc78fdcda77870a0fc00e0d38d736b9723f0c"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/recovery-start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/run-console.log",
+    "bytes": 7796,
+    "sha256": "9681acc67a7c5e5af3b9ceaed8938d78c98d27c0f29c9a50e9023ab8cd744986"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/run.py",
+    "bytes": 1332,
+    "sha256": "989bd8bf3d292746d117dcec33dcbecd0f9a9df4bf8a5651ef52ee33b5f3ce47"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/seed.json",
+    "bytes": 4565,
+    "sha256": "d4376976d59c81e159d300de4c342e84fad0f6207d96997293034f8a5bfd1e8a"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/seed.log",
+    "bytes": 47,
+    "sha256": "ee24b4384fd6aa9e1b00e3bb66bf10ed8d3339f2b8c13e4eafbf3fe0933adf65"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/server.cjs",
+    "bytes": 245,
+    "sha256": "962f21482a73a3e4c6007488fc8719a7f4292c81d815cc96ad161d414285240c"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/server.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/start.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/start.mjs",
+    "bytes": 534,
+    "sha256": "d7f22027a742db0fbfcd222deed65df75b21ade8c4f3ae826ea512cef3d77bc5"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/switch-regression.log",
+    "bytes": 2926,
+    "sha256": "d076aa9dcaf8cb77351b0a60e46028c9d8f894e4e499f9f88c344d9b02e44be8"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/switch-result.json",
+    "bytes": 12833,
+    "sha256": "fc6f8c42f01ae52ee3f054452abc149d63641170a13bb81a0f1dce9b047c4a9f"
+  },
+  {
+    "path": "blanc-new-window-regression-fixed/watch.mjs",
+    "bytes": 357,
+    "sha256": "804e3e27fd1876f39cfce91b810d11d7022d923230018ebd6ca8baa639c2d10c"
+  },
+  {
+    "path": "blanc-cdp.mjs",
+    "bytes": 1128,
+    "sha256": "ab23d6e9e2240b1dd4f3f9b8faa83bee7d7ceec9b6cbf29e70a9a096a049f112"
+  }
+]
