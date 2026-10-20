@@ -250,6 +250,11 @@ button svg {
   -webkit-app-region: drag;
 }
 #strip.strip-hidden #dragBand { display: block; }
+/* A split's panes are inset cards, so the covered strip still shows around
+   them: drop its tint and its own pill and controls (the floating views draw
+   the revealed ones). */
+#strip.strip-hidden.split-open { background: transparent; }
+#strip.strip-hidden.split-open :is(#islandPill, #windowControls, #mainMenuButton) { visibility: hidden; }
 #strip.drag-suspended #dragBand { -webkit-app-region: no-drag; }
 :root[data-tab-layout="vertical"] #dragBand { left: var(--vertical-tabs-w); }
 

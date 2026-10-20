@@ -246,6 +246,22 @@ Feature: Island chrome, command palette, and slash commands
     When I move the pointer well below the Island
     Then the floating pill slides away and stays attached
 
+  @F1-43 @F1 @desktop @island-autohide
+  Scenario: Resting just below the top edge does not reveal a floating Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the pointer rests 30 pixels below the top edge
+    Then the Island stays hidden after 600 milliseconds
+
+  @F1-44 @F1 @desktop @island-autohide
+  Scenario: A floating Island hides as soon as the pointer moves below the strip
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the Island is revealed while the page stays at the top of the window
+    When I move the pointer 10 pixels below the strip
+    Then the Island hides within 400 milliseconds
+
   @F1-31 @F1 @desktop @island-autohide
   Scenario: Find and the shield menu open under the floating pill
     Given a tab open on "autohide-page"

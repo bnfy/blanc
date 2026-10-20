@@ -3462,7 +3462,8 @@ function cursorSamplingUnavailable() {
 
 /** What a reveal or hide decision needs of the window, read once: its
  * content bounds, the page pane's left edge (the vertical rail owns the
- * column before it) and how far above it the pointer may be. */
+ * column before it), how far above it the pointer may be, and whether the
+ * Island floats (only the top edge reveals it, and it leaves at once). */
 function revealGeometry(runtime) {
   const content = runtime.window.getContentBounds();
   const display = screen.getDisplayMatching(content);
@@ -3476,6 +3477,7 @@ function revealGeometry(runtime) {
       workAreaTop: display.workArea.y,
       displayTop: display.bounds.y,
     }),
+    floating: islandFloating(runtime),
   };
 }
 
@@ -3498,6 +3500,7 @@ function islandHeldAt(runtime, point, geometry = revealGeometry(runtime)) {
     height: geometry.height,
     reachAbove: geometry.reachAbove,
     left: geometry.left,
+    floating: geometry.floating,
   });
 }
 
@@ -3648,7 +3651,7 @@ function scheduleIslandAutoHideCheck(runtime) {
       return;
     }
     setIslandRevealed(runtime, false);
-  }), islandAutoHideModule.HIDE_CHECK_MS);
+  }), islandAutoHideModule.hideCheckDelay(islandFloating(runtime)));
 }
 
 /** Reveal for a surface drawn from the Island (⌘L, find, popovers). */
@@ -13705,6 +13708,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         floating: islandFloating(),
         windowButtonsVisible: rt().windowButtonsVisible,
         pageY: currentChromeLayout().pageBounds.y,
+        chromeHeight: rt().chromeHeight,
         coveredStripPx: islandAutoHideModule.coveredStripHeight(process.platform),
         // The active view's real native bounds, not the computed layout.
         activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,

@@ -670,7 +670,11 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   as v1.39.0 did. In float mode the window buttons stay on screen the whole
   time (the macOS traffic lights; the Windows and Linux controls, which float
   top-right), and the Windows/Linux main-menu button comes and goes with the
-  pill. Glance always uses the push layout. Turning it on shows the Island for
+  pill. In push mode resting the pointer just below the top edge also brings
+  the Island back; in float mode only the top edge does, because a site's own
+  header sits in that band and the Island would land on it, and the floating
+  Island hides as soon as the pointer moves below the strip.
+  Glance always uses the push layout. Turning it on shows the Island for
   a few seconds with a tip on how to bring it back. In push mode the macOS
   window buttons hide and return with the strip, except beside the vertical
   rail, which owns that corner. While hidden, a 6px band along the page pane's
