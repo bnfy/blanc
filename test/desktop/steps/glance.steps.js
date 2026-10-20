@@ -226,6 +226,9 @@ When('I cancel the Change picker with Escape', async function () {
 
 Then('focus returns to the Change control', async function () {
   const chrome = await glanceCardPage();
+  // The card's document must hold keyboard focus, not only point its
+  // activeElement at the control.
+  await waitForValue(() => this.call('glanceCardFocused'), (focused) => focused === true, 'the card document to hold focus');
   assert.equal(
     await chrome.locator('#glanceChange').evaluate((element) => document.activeElement === element),
     true
@@ -1710,4 +1713,17 @@ When('I close Glance and look at the card in the same moment', async function ()
 
 Then('the Glance card was already gone', async function () {
   assert.deepEqual(this.glanceCloseRead, { closed: true, cardViewVisible: false });
+});
+
+// The card's document measures in its own view; main moves the anchor by the
+// view's origin, so the tip lands under the button in the window.
+Then('hovering the compact Change button shows its tooltip under it', async function () {
+  const page = await glanceCardPage();
+  await page.hover('#glanceChange');
+  const tip = await waitForValue(() => this.call('tooltipViewState'), (value) => value?.attached === true && value.bounds,
+    'the Change tooltip to show');
+  const card = await glanceCard(this);
+  assert.ok(tip.bounds.y >= card.header.y + card.header.height - 4, `tip ${JSON.stringify(tip.bounds)} under the header ${JSON.stringify(card.header)}`);
+  assert.ok(tip.bounds.x + tip.bounds.width > card.header.x && tip.bounds.x < card.header.x + card.header.width,
+    'the tip sits over the card, not at the window origin');
 });

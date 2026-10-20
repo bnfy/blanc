@@ -5462,7 +5462,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
                 : null
         )
       : null;
-    if (restoreTrigger) islandSurfaceContents().focus();
+    // The Change control lives on the Glance card, in its own document.
+    if (restoreTrigger === 'glance-change') liveGlanceCardView()?.webContents.focus();
+    else if (restoreTrigger) islandSurfaceContents().focus();
     // The side list's group menu names its group so that header can forget
     // its open state (and take focus back after Escape).
     const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
@@ -10440,8 +10442,13 @@ function registerIpcHandlers() {
   // The resting pill's tooltips (renderer.js). Only the strip may ask.
   chromeOn('chrome:tooltip-show', (event, raw) => {
     // A floating Island view reports window coordinates too (renderer.js
-    // measures against the strip stage).
-    if (event.sender !== rt().window?.webContents && !floatRoleOf(rt(), event.sender)) return;
+    // measures against the strip stage). The Glance card's document measures
+    // against its own view, so its anchor moves by the view's origin.
+    const cardView = liveGlanceCardView();
+    const offset = cardView && event.sender === cardView.webContents ? cardView.getBounds() : null;
+    if (event.sender !== rt().window?.webContents && !floatRoleOf(rt(), event.sender) && !offset) return;
+    const anchor = raw?.anchor;
+    if (offset && anchor && typeof anchor === 'object') raw = { ...raw, anchor: { ...anchor, x: Number(anchor.x) + offset.x, y: Number(anchor.y) + offset.y } };
     const request = tooltipRequest(raw);
     if (!request) {
       hidePillTooltip();
@@ -10450,7 +10457,8 @@ function registerIpcHandlers() {
     showPillTooltip(request).catch(() => hidePillTooltip());
   });
   chromeOn('chrome:tooltip-hide', (event) => {
-    if (event.sender === rt().window?.webContents || floatRoleOf(rt(), event.sender)) hidePillTooltip();
+    if (event.sender === rt().window?.webContents || floatRoleOf(rt(), event.sender)
+      || event.sender === liveGlanceCardView()?.webContents) hidePillTooltip();
   });
 
   chromeOn('chrome:island-rect', (event, rect) => {
@@ -13768,6 +13776,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
       getGlanceCardWebContents: () => liveGlanceCardView()?.webContents ?? null,
       getGlanceCardViewVisible: () => liveGlanceCardView()?.getVisible?.() ?? false,
+      getTooltipViewState: () => ({ attached: rt().tooltipViewAttached === true, bounds: rt().tooltipView?.getBounds() ?? null }),
       getFloatWebContentsIds: (runtimeId) => {
         const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
         return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];

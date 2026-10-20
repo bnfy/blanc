@@ -79,6 +79,7 @@ function install(refs) {
     getFloatWebContents,
     getGlanceCardWebContents,
     getGlanceCardViewVisible,
+    getTooltipViewState,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
     getChromeButtonRects,
@@ -579,6 +580,11 @@ function install(refs) {
       if (!wc || wc.isDestroyed()) return false;
       wc.sendInputEvent(input);
       return true;
+    },
+    tooltipViewState() { return getTooltipViewState(); },
+    glanceCardFocused() {
+      const wc = getGlanceCardWebContents();
+      return !!wc && !wc.isDestroyed() && wc.isFocused();
     },
     // Keys and pointer events to the floating Glance card's own document.
     sendGlanceCardInput(input) {

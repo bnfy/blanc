@@ -3485,7 +3485,9 @@
       e.stopPropagation();
       return;
     }
-    window.browserAPI.closeOverlay();
+    // An Escape, as main's own path reports it: a surface opened from a
+    // control (the Glance card's Change) hands focus back to it.
+    window.browserAPI.closeOverlay('escape');
   });
 
   /** Layered Esc for the footer workspace popover. Returns true if handled

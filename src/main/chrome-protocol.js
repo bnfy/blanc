@@ -59,6 +59,8 @@ const STRIP_ASSETS = new Map([
   // Pure tab-order sections (groups and runs of ungrouped tabs), shared
   // with main so the rail, the island and main draw one order. No IPC.
   ['/tab-sections.js', 'tab-sections.js'],
+  // The floating Glance card's drag lifecycle. Pure; no IPC of its own.
+  ['/glance-card-drag.js', 'glance-card-drag.js'],
   // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
   // and no application data; the strip mark and the Spaces menu share it.
   ['/space-identity.js', 'space-identity.js'],

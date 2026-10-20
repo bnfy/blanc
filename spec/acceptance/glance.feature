@@ -474,6 +474,7 @@ Feature: Glance reference pane
     When I open the reference tab in Glance
     And I narrow the Glance card to its minimum
     Then the Glance header shows Back, Reload, the three actions as icons and × on one row
+    And hovering the compact Change button shows its tooltip under it
 
   @F34-12 @F34 @D11
   Scenario: Arrow keys on Move or resize move the card 16 px and announce it

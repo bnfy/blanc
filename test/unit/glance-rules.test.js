@@ -68,3 +68,20 @@ test('the card fades in, never scales, and has no exit animation', () => {
   assert.match(block, /@media \(prefers-reduced-motion: reduce\) \{\s+html\[data-surface="glance"\] \.glance-card \{ transition: none; \}/);
   assert.doesNotMatch(block, /\.glance-card[^{]*\{[^}]*scale/);
 });
+
+test('the card header buttons get tooltips, placed in window coordinates', () => {
+  const show = between(main, "chromeOn('chrome:tooltip-show'", '\n  });\n');
+  assert.match(show, /liveGlanceCardView\(\)/);
+  assert.match(show, /const offset = cardView && event\.sender === cardView\.webContents \? cardView\.getBounds\(\) : null;/);
+  const hide = between(main, "chromeOn('chrome:tooltip-hide'", '\n  });\n');
+  assert.match(hide, /liveGlanceCardView\(\)\?\.webContents/);
+});
+
+test('closing the Change picker hands keyboard focus back to the card', () => {
+  assert.match(main, /if \(restoreTrigger === 'glance-change'\) liveGlanceCardView\(\)\?\.webContents\.focus\(\);\s+else if \(restoreTrigger\) islandSurfaceContents\(\)\.focus\(\);/);
+});
+
+test('the strip document loads the card drag module', () => {
+  assert.match(read('src/renderer/index.html'), /<script src="glance-card-drag\.js"><\/script>/);
+  assert.match(read('src/main/chrome-protocol.js'), /\['\/glance-card-drag\.js', 'glance-card-drag\.js'\]/);
+});
