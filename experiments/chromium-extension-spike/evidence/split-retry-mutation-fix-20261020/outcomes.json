@@ -1,0 +1,25 @@
+{
+  "schedules": [
+    {
+      "schedule": "pending-mutation",
+      "pass": true,
+      "checkpoints": 12
+    },
+    {
+      "schedule": "pending-add",
+      "pass": true,
+      "checkpoints": 12
+    },
+    {
+      "schedule": "existing-owner",
+      "pass": true,
+      "checkpoints": 12
+    },
+    {
+      "schedule": "repeated",
+      "pass": true,
+      "checkpoints": 11
+    }
+  ],
+  "totalCheckpoints": 47
+}

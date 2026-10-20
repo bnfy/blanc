@@ -1917,12 +1917,51 @@ class Handler : public content::WebUIMessageHandler {
     Reply(id, saved, saved ? base::Value() :
         base::Value("Tab closed, but history persistence failed or timed out."));
   }
-  void ClosedSessionRetried(std::string id, base::WeakPtr<Profile> profile, bool saved) {
+  base::ListValue ClosedSessionState(Profile* profile) {
+    base::ListValue windows;
+    GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+      if (browser->GetProfile() != profile) return true;
+      auto* model = browser->GetTabStripModel();
+      base::ListValue tabs;
+      for (int i = 0; i < model->count(); ++i) {
+        auto* contents = model->GetWebContentsAt(i);
+        tabs.Append(base::DictValue()
+            .Set("id", sessions::SessionTabHelper::IdForTab(contents).id())
+            .Set("url", contents->GetLastCommittedURL().spec())
+            .Set("loading", contents->IsLoading())
+            .Set("pinned", model->IsTabPinned(i)));
+      }
+      windows.Append(base::DictValue().Set("selected", model->active_index())
+          .Set("tabs", std::move(tabs)));
+      return true;
+    });
+    return windows;
+  }
+  void RetryClosedSession(std::string id, base::WeakPtr<Profile> profile) {
+    if (!history_saves_.contains(id)) return;
+    auto* session = profile ? SessionServiceFactory::GetForProfile(profile.get()) : nullptr;
+    if (!session) { ClosedHistorySaved(id, false); return; }
+    auto state = ClosedSessionState(profile.get());
+    session->ResetFromCurrentBrowsers();
+    session->SaveAndFlushSession(base::BindOnce(&Handler::ClosedSessionRetried,
+        weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
+  }
+  void ClosedRetrySaved(std::string id, base::WeakPtr<Profile> profile,
+                        base::ListValue state, bool saved) {
+    if (!history_saves_.contains(id)) return;
+    if (saved && profile && state != ClosedSessionState(profile.get())) {
+      RetryClosedSession(id, profile);
+      return;
+    }
+    ClosedHistorySaved(id, saved && profile);
+  }
+  void ClosedSessionRetried(std::string id, base::WeakPtr<Profile> profile,
+                            base::ListValue state, bool saved) {
     if (!history_saves_.contains(id)) return;
     auto* service = saved && profile ? ClosedService(profile.get()) : nullptr;
     if (!service) { ClosedHistorySaved(id, false); return; }
-    service->SaveAndFlush(base::BindOnce(&Handler::ClosedHistorySaved,
-        weak_factory_.GetWeakPtr(), id));
+    service->SaveAndFlush(base::BindOnce(&Handler::ClosedRetrySaved,
+        weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
   }
   void SaveClosedHistory(std::string id, Profile* profile) {
     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
@@ -1934,13 +1973,8 @@ class Handler : public content::WebUIMessageHandler {
     }
     auto* owner = GetOwner(web_ui()->GetWebContents());
     if (owner && owner->partial_close_save_failed) {
-      auto* session = SessionServiceFactory::GetForProfile(profile);
-      if (!session) { ClosedHistorySaved(id, false); return; }
-      // A later history flush cannot repair a failed surviving-session write.
-      // Rebuild after reconciliation, and acknowledge both stores in order.
-      session->ResetFromCurrentBrowsers();
-      session->SaveAndFlushSession(base::BindOnce(&Handler::ClosedSessionRetried,
-          weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
+      // Revalidate after both stores flush; mutations require a fresh snapshot.
+      RetryClosedSession(id, profile->GetWeakPtr());
     } else {
       service->SaveAndFlush(base::BindOnce(
           &Handler::ClosedHistorySaved, weak_factory_.GetWeakPtr(), id));
