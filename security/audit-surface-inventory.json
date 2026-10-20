@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7a9313ebf5a549ef83cd12022faafb8c8959597d023bd423739724d7252a4e4d",
+      "sha256": "401475589b32372f3110e864e10dba46f063ca590aa0ea421a5be55cddb72cd2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -307,7 +307,9 @@
         "chrome:remote-tabs-updated",
         "chrome:rename-device",
         "chrome:reset-glance",
+        "chrome:reset-split",
         "chrome:resize-glance",
+        "chrome:resize-split",
         "chrome:search-suggestions",
         "chrome:set-tab-layout",
         "chrome:set-vertical-tabs-width",
@@ -316,6 +318,7 @@
         "chrome:split-close",
         "chrome:split-keep-glance",
         "chrome:split-layout",
+        "chrome:split-pane-menu",
         "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",
@@ -601,7 +604,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "d572063cdedfe7e35bc61e67d630f6ff3c850e5cd2e155086ffd9f5b6cd497e2",
+      "sha256": "03b7b69e5292de9d76f8b3958c9a50674c9f6dd3cbb54becd9d9e51d9391b51b",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -649,7 +652,9 @@
         "chrome:remote-tabs-updated",
         "chrome:rename-device",
         "chrome:reset-glance",
+        "chrome:reset-split",
         "chrome:resize-glance",
+        "chrome:resize-split",
         "chrome:search-suggestions",
         "chrome:set-tab-layout",
         "chrome:set-vertical-tabs-width",
@@ -658,6 +663,7 @@
         "chrome:split-close",
         "chrome:split-keep-glance",
         "chrome:split-layout",
+        "chrome:split-pane-menu",
         "chrome:split-remove",
         "chrome:strip-hidden",
         "chrome:theme-appearance",

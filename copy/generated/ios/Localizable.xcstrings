@@ -20833,6 +20833,132 @@
         }
       }
     },
+    "split.paneLabel": {
+      "comment": "Accessible name of one Split View pane's header: the tab's title and its place, e.g. 'Docs, pane 1 of 2'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, pane %2$@ of %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Bereich %2$@ von %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, panel %2$@ de %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, volet %2$@ sur %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, riquadro %2$@ di %3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, painel %2$@ de %3$@"
+          }
+        }
+      }
+    },
+    "split.headerMenu": {
+      "comment": "Tooltip and accessible name of a Split View pane header's menu button (the tab's menu).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab menu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tab-Menü"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menú de la pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu de l’onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu della scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu da aba"
+          }
+        }
+      }
+    },
+    "split.dividerLabel": {
+      "comment": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize panes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereichsgröße ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar el tamaño de los paneles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redimensionner les volets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ridimensiona i riquadri"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redimensionar painéis"
+          }
+        }
+      }
+    },
     "tabMenu.removeFromGroup": {
       "comment": "Tab context menu command in the Move to Group submenu.",
       "extractionState": "manual",

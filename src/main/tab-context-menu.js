@@ -152,4 +152,4 @@ function attachRowMenu(wc, deps) {
   });
 }
 
-module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu };
+module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu, toElectronTemplate };

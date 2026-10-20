@@ -254,3 +254,51 @@ Then('there is no split and the first tab is pinned', async function () {
   const state = await this.waitForState((s) => s.splits.length === 0);
   assert.equal(state.tabs.find((t) => t.id === this.splitA).pinned, true);
 });
+
+// ---- Pane headers and the divider (F53-11) ----
+const { chromePage } = require('../support/tab-drag');
+
+Then('each pane header names its tab', async function () {
+  const page = await chromePage();
+  const headers = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.split-pane-header')]
+    .filter((el) => !el.hidden)
+    .map((el) => ({ tabId: el.dataset.tabId, title: el.querySelector('.split-pane-title')?.textContent, label: el.getAttribute('aria-label') }))),
+  (list) => list.length === 2 && list.every((h) => h.title), 'two named pane headers');
+  assert.deepEqual(headers.map((h) => h.tabId), [this.splitA, this.splitB]);
+  assert.deepEqual(headers.map((h) => h.title), ['split-a', 'split-b']);
+  assert.equal(headers[0].label, 'split-a, pane 1 of 2');
+});
+
+When('I move the split divider with the keyboard', async function () {
+  const page = await chromePage();
+  this.widthsBefore = (await splitOf(this)).layout.widths;
+  await page.locator('.split-divider').first().focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+});
+
+Then('the saved column widths change', async function () {
+  const split = await waitForValue(() => splitOf(this),
+    (s) => s && s.layout.widths[0] > this.widthsBefore[0], 'the first column to grow');
+  assert.ok(Math.abs(split.layout.widths.reduce((a, b) => a + b, 0) - 1) < 1e-6);
+});
+
+When('I reset the split divider', async function () {
+  const page = await chromePage();
+  await page.locator('.split-divider').first().focus();
+  await page.keyboard.press('Enter');
+});
+
+Then('the column widths are equal again', async function () {
+  await waitForValue(() => splitOf(this), (s) => s && Math.abs(s.layout.widths[0] - 0.5) < 1e-6, 'equal widths');
+});
+
+When("I press Remove from Split in the first pane's header", async function () {
+  const page = await chromePage();
+  await page.locator(`.split-pane-header[data-tab-id="${this.splitA}"] .split-pane-remove`).click();
+});
+
+Then('there is no split', async function () {
+  await this.waitForState((s) => s.splits.length === 0);
+  assert.equal(await this.call('splitLayout'), null);
+});

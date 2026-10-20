@@ -2548,6 +2548,135 @@
         false
       ]
     },
+    "resizeSplit": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:resize-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            1,
+            "x",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "x",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "axis = \"y\"",
+          "args": [
+            "example",
+            1,
+            "y",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "y",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "resetSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:reset-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:reset-split",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "openSplitPaneMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-pane-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:split-pane-menu",
+              "args": [
+                "example",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "onSplitLayout": {
       "kind": "event",
       "platforms": [

@@ -1101,6 +1101,21 @@ export interface BlancBrowserAPI {
    */
   closeSplit(tabId: string): Promise<boolean>;
   /**
+   * Move a split divider to a window point (drag or keyboard); main saves the new layout.
+   * IPC: send `chrome:resize-split`.
+   */
+  resizeSplit(splitId: string, index: number, axis: 'x' | 'y', point: Point): void;
+  /**
+   * Give the visible split's panes equal sizes again.
+   * IPC: invoke `chrome:reset-split`.
+   */
+  resetSplit(splitId: string): Promise<boolean>;
+  /**
+   * Open a pane's tab menu at the header's menu button.
+   * IPC: send `chrome:split-pane-menu`.
+   */
+  openSplitPaneMenu(tabId: string, point: Point): void;
+  /**
    * The visible Split View's layout changed, or no split shows (null).
    * IPC: event `chrome:split-layout`.
    */

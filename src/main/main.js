@@ -181,8 +181,8 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
-const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
+const { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
 const wallpaper = require('./wallpaper');
@@ -321,7 +321,7 @@ const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
 const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible } = require('./split-model');
-const { computeSplitLayout, splitLayoutPayload } = require('./split-layout');
+const { computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout } = require('./split-layout');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
@@ -8140,6 +8140,49 @@ function toggleGlance() {
   return activeGlanceTab() ? closeGlance() : openGlancePicker();
 }
 
+/** A split divider moved (drag or keyboard): save the new layout; the
+ *  session write is debounced so a drag is one save. */
+function resizeSplitAt(splitId, index, axis, point) {
+  const split = visibleSplitOf();
+  if (!split || split.id !== splitId || !point) return null;
+  const layout = currentChromeLayout();
+  const next = layoutForDivider(layout.pageBounds, split.layout, split.tabIds.length,
+    { index: Number(index), axis }, { x: Number(point.x), y: Number(point.y) }, { paneMinWidth: rt().splitPaneMinWidth });
+  if (!next) return null;
+  split.layout = next;
+  resizeActiveView();
+  scheduleSplitPersist();
+  return next;
+}
+
+function resetSplitLayout(splitId) {
+  const split = visibleSplitOf();
+  if (!split || split.id !== splitId) return false;
+  split.layout = defaultSplitLayout(split.tabIds.length);
+  resizeActiveView();
+  scheduleSplitPersist();
+  return true;
+}
+
+let splitPersistTimer = null;
+function scheduleSplitPersist() {
+  clearTimeout(splitPersistTimer);
+  splitPersistTimer = setTimeout(() => { splitPersistTimer = null; persistSession(); }, 250);
+}
+
+/** The pane header's menu button: the tab's own menu, at the button. */
+function openSplitPaneMenu(tabId, point) {
+  const tab = tabs.get(tabId);
+  if (!tab || !hasLiveWindow() || !visibleSplitTabIds().includes(tabId)) return;
+  const ctx = tabContextData(tab, rt());
+  if (!ctx) return;
+  const template = buildTabContextMenu({ ...ctx, surface: 'row', t: mainI18n.t });
+  const menu = Menu.buildFromTemplate(tabMenuTemplate(template, { tab: ctx.tab, actions: menuContextActions(rt()) }));
+  try {
+    menu.popup({ window: rt().window, x: Math.round(Number(point?.x) || 0), y: Math.round(Number(point?.y) || 0) });
+  } catch { /* window died mid-popup */ }
+}
+
 function resizeGlanceAt(point) {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
@@ -9875,6 +9918,9 @@ function registerIpcHandlers() {
   chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
     setVerticalTabsWidth(width));
   chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
+  chromeOn('chrome:resize-split', (_e, splitId, index, axis, point) => resizeSplitAt(splitId, index, axis === 'y' ? 'y' : 'x', point));
+  chromeHandle('chrome:reset-split', (_e, splitId) => resetSplitLayout(splitId));
+  chromeOn('chrome:split-pane-menu', (_e, tabId, point) => openSplitPaneMenu(tabId, point));
   chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   // The overlay has drawn the expanding panel exactly over the resting pill.

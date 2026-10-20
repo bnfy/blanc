@@ -2442,6 +2442,62 @@
       "doc": "Close every tab of the split holding this tab, as one Recently closed entry."
     },
     {
+      "name": "resizeSplit",
+      "group": "split",
+      "kind": "send",
+      "channel": "chrome:resize-split",
+      "params": [
+        {
+          "name": "splitId",
+          "type": "string"
+        },
+        {
+          "name": "index",
+          "type": "number"
+        },
+        {
+          "name": "axis",
+          "type": "'x' | 'y'"
+        },
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "doc": "Move a split divider to a window point (drag or keyboard); main saves the new layout."
+    },
+    {
+      "name": "resetSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:reset-split",
+      "params": [
+        {
+          "name": "splitId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Give the visible split's panes equal sizes again."
+    },
+    {
+      "name": "openSplitPaneMenu",
+      "group": "split",
+      "kind": "send",
+      "channel": "chrome:split-pane-menu",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "string"
+        },
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "doc": "Open a pane's tab menu at the header's menu button."
+    },
+    {
       "name": "onSplitLayout",
       "group": "split",
       "kind": "event",

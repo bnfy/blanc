@@ -1862,6 +1862,18 @@
     "message": "Als geteilte Ansicht behalten",
     "source": "sha256:e896dde49f5322216828b5d25388c5d36b168ab86015e64b82498b2aa0bf413a"
   },
+  "split.paneLabel": {
+    "message": "{title}, Bereich {n} von {m}",
+    "source": "sha256:ca17560cb0afd0353575d817063c016de2fe111bf446eb22124c7f857d8d52ab"
+  },
+  "split.headerMenu": {
+    "message": "Tab-Menü",
+    "source": "sha256:26d95d1a28f0d3b27bbc531861b830d7b10d72b39a5c7268f9e8bcae94119f05"
+  },
+  "split.dividerLabel": {
+    "message": "Bereichsgröße ändern",
+    "source": "sha256:79377077876c5ad1546888f681fc5b45645c4b4f42c536a3c8dd539d6a98528d"
+  },
   "tabMenu.removeFromGroup": {
     "message": "Aus Gruppe entfernen",
     "source": "sha256:de7feaf933480a11b6e087380c9621315d04fc790efc12c588c3779497248e57"

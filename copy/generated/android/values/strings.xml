@@ -507,6 +507,9 @@
     <string name="split_made">%1$s and %2$s are now side by side</string>
     <string name="split_dissolved">Split closed; %1$s fills the window</string>
     <string name="split_keep_as_split">Keep as split</string>
+    <string name="split_pane_label">%1$s, pane %2$s of %3$s</string>
+    <string name="split_header_menu">Tab menu</string>
+    <string name="split_divider_label">Resize panes</string>
     <string name="tab_menu_remove_from_group">Remove from Group</string>
     <string name="tab_menu_new_group">New Group…</string>
     <string name="tab_menu_glance">Open in Glance</string>

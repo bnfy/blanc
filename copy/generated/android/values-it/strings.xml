@@ -521,6 +521,9 @@
     <string name="split_made">%1$s e %2$s sono ora affiancate</string>
     <string name="split_dissolved">Vista divisa chiusa; %1$s riempie la finestra</string>
     <string name="split_keep_as_split">Mantieni come vista divisa</string>
+    <string name="split_pane_label">%1$s, riquadro %2$s di %3$s</string>
+    <string name="split_header_menu">Menu della scheda</string>
+    <string name="split_divider_label">Ridimensiona i riquadri</string>
     <string name="tab_menu_remove_from_group">Rimuovi dal gruppo</string>
     <string name="tab_menu_new_group">Nuovo gruppo…</string>
     <string name="tab_menu_glance">Apri in Glance</string>

@@ -104,6 +104,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   keepGlanceAsSplit: () => ipcRenderer.invoke('chrome:split-keep-glance'),
   removeFromSplit: (tabId) => ipcRenderer.invoke('chrome:split-remove', tabId),
   closeSplit: (tabId) => ipcRenderer.invoke('chrome:split-close', tabId),
+  resizeSplit: (splitId, index, axis, point) => ipcRenderer.send('chrome:resize-split', splitId, index, axis, point),
+  resetSplit: (splitId) => ipcRenderer.invoke('chrome:reset-split', splitId),
+  openSplitPaneMenu: (tabId, point) => ipcRenderer.send('chrome:split-pane-menu', tabId, point),
   onSplitLayout: (callback) => {
     const listener = (_event, layout) => callback(layout);
     ipcRenderer.on('chrome:split-layout', listener);
