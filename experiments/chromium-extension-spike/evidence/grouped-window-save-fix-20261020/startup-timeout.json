@@ -1,0 +1,6 @@
+{
+  "checks": [],
+  "pass": false,
+  "error": "Error: wait timeout",
+  "stack": "Error: wait timeout\n    at wait (file:///private/tmp/blanc-grouped-fix/fixed.mjs:6:127)\n    at async start (file:///private/tmp/blanc-grouped-fix/fixed.mjs:10:403)\n    at async file:///private/tmp/blanc-grouped-fix/fixed.mjs:14:9"
+}

@@ -1,0 +1,8 @@
+[21611:8297896:1020/123037.904109:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[21611:8297860:1020/123038.001922:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/8547c1c0-58ca-48fc-8823-fcc97cb423c3
+[21611:8297860:1020/123038.683114:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[21611:8297860:1020/123044.742471:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[21611:8297860:1020/123044.745272:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[21611:8297860:1020/123044.839720:ERROR:base/process/kill_posix.cc:33] waitpid(21618): No child processes (10)

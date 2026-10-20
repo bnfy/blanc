@@ -1778,6 +1778,10 @@ class Handler : public content::WebUIMessageHandler {
             TabIdentity(tab));
       }
     }
+    // A successful flush of an existing stream does not establish that a new
+    // window is tracked. Rebuild from the current native browser collection so
+    // acknowledgement covers its window, tabs, groups and split metadata too.
+    service->ResetFromCurrentBrowsers();
     owner->initial_window_save_started = true;
     service->SaveAndFlushSession(base::BindOnce(&Handler::InitialWindowSaved,
         weak_factory_.GetWeakPtr(), browser->GetWeakPtr(), std::move(*capture)));

@@ -66,3 +66,9 @@ One35.93s/sixstep guarded incremental build, finalguard0; no upstream hook chang
 Grouped Spaces round trip passes with exact source UUID, membership, right focus, blue collapsed group and loose active tab. Actual crash restart fails the two-window gate: only the source grouped split returns; the second grouped window is absent. Fresh ten-second settled control repeats this missing-window result; cause unresolved. Journal-boundary recovery stage not reached. Green CI cannot close this runtime failure. Evidence: `evidence/grouped-split-recovery-20261020/README.md`.
 
 Initial invalid color-name fixture refusal retained; hexadecimal-color runs used thereafter. No implementation repair/compile; guard0; prior49/117unchanged. Profiles removed, preview untouched. Native input pending; latency deferred; Electron diagnostic build unapproved.
+
+## October 20 — Missing grouped-window save repaired
+
+Before-fix native session streams contained only the source UUID despite both windows reporting initial save success. Initial-window acknowledgement now rebuilds commands from current native browsers before the existing flush. Fixed stream contains both windows. Six grouped runtime checkpoints pass, including Spaces roundtrip, actual two-window crashrestore and journalboundary source rollback preserving blue collapsed group/focus/layout/UUID and decoy. Nine private regressions and eight focused tests pass. Evidence: `evidence/grouped-window-save-fix-20261020/README.md`.
+
+One35.56s/sixstep incremental build; finalguard0; prior49/117 unchanged. Short diagnostic-startup timeout retained; final established-timeout run passes. Broader concurrent/pending-close/provider/write-error rebuild cases and powerloss remain unqualified. Rebuild latency unmeasured/deferred. Native input pending; Electron diagnostic build unapproved; preview untouched.
