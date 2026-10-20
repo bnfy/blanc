@@ -45,13 +45,20 @@ const results = [];
 async function measureFloatPill(H, runtimeId, path) {
   const result = { path, attempts: [] };
   try {
+    // The user is looking at this window (see measure): an unfocused window
+    // on xvfb or Windows draws slowly, and its strip may not have placed the
+    // pill yet.
+    H.focusWindowRuntime(runtimeId);
     const wc = webContents.fromId(await waitFor(() => H.floatPillWebContentsId(runtimeId), `the floating pill in ${runtimeId}`));
+    await waitFor(() => H.floatPillDiagnostics(runtimeId)?.shown, `the floating pill in ${runtimeId} to show`, 5000).catch(() => {});
+    await sleep(300);
     for (let attempt = 0; attempt < 3; attempt++) {
       const sample = await bounded(wc.executeJavaScript(FRAME_PROBE), 4000);
       result.attempts.push(sample);
       if (drew(sample)) break;
     }
     result.drawing = drew(result.attempts.at(-1));
+    if (!result.drawing) result.error = `not drawing: ${JSON.stringify(H.floatPillDiagnostics(runtimeId))}`;
   } catch (error) {
     result.error = String(error?.message ?? error);
     result.drawing = false;
