@@ -504,6 +504,8 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
 base::DictValue SpaceDisk(base::FilePath path, std::string method,
                          std::string name, base::DictValue capture);
 
+void UpdatePersistentSplitFocus(BrowserWindowInterface* browser);
+
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
               public content::RenderWidgetHost::InputEventObserver,
@@ -759,6 +761,7 @@ class Owner : public base::SupportsUserData::Data,
     for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
       SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
     if (!selection.active_tab_changed()) return;
+    UpdatePersistentSplitFocus(browser);
     SyncActive();
     auto* host = view ? view->GetWebContents() : nullptr;
     if (host && host->GetLastCommittedURL() ==
@@ -1059,13 +1062,31 @@ scoped_refptr<base::SequencedTaskRunner> SpaceRunner() {
       base::ThreadPool::CreateSequencedTaskRunner({base::MayBlock(), base::TaskShutdownBehavior::BLOCK_SHUTDOWN}));
   return *runner;
 }
-class PersistentSplitData : public base::SupportsUserData::Data {};
-void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* tab, bool enabled) {
-  if (enabled) tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>());
+class PersistentSplitData : public base::SupportsUserData::Data {
+ public:
+  explicit PersistentSplitData(bool focused = false) : focused(focused) {}
+  bool focused;
+};
+void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* tab, bool enabled, bool focused = false) {
+  if (enabled) tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(focused));
   else tab->RemoveUserData(kPersistentSplitKey);
   if (!browser->GetProfile()->IsOffTheRecord())
     if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
-      service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? "1" : "0");
+      service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? (focused ? "2" : "1") : "0");
+}
+void UpdatePersistentSplitFocus(BrowserWindowInterface* browser) {
+  if (SessionRestore::IsRestoring(browser->GetProfile())) return;
+  auto* model = browser->GetTabStripModel();
+  const int active = model->active_index();
+  if (active < 0) return;
+  const auto split = model->GetSplitForTab(active);
+  if (!split) return;
+  for (int i = 0; i < model->count(); ++i) {
+    if (model->GetSplitForTab(i) != split) continue;
+    auto* tab = model->GetWebContentsAt(i);
+    auto* data = static_cast<PersistentSplitData*>(tab->GetUserData(kPersistentSplitKey));
+    if (data && data->focused != (i == active)) MarkPersistentSplit(browser, tab, true, i == active);
+  }
 }
 bool ValidSpace(const base::DictValue& record) {
   const auto* tabs = record.FindList("tabs");
@@ -1105,22 +1126,25 @@ bool ValidSpace(const base::DictValue& record) {
   const auto* splits = record.FindList("splits");
   const auto* ids = record.FindList("splitIds");
   if (record.contains("splits") || record.contains("splitIds")) {
-    if (!splits || !ids || ids->size() != tabs->size() || splits->size() > 1) return false;
-    std::vector<int> members;
+    if (!splits || !ids || ids->size() != tabs->size() || splits->size() > tabs->size() / 2) return false;
+    std::map<std::string, std::vector<int>> membership;
     for (size_t i = 0; i < ids->size(); ++i) {
       if ((*ids)[i].is_none()) continue;
-      if (!(*ids)[i].is_string() || (*ids)[i].GetString() != "split-0") return false;
-      members.push_back(i);
+      if (!(*ids)[i].is_string()) return false;
+      membership[(*ids)[i].GetString()].push_back(i);
     }
-    if (splits->empty()) { if (!members.empty()) return false; }
-    else {
-      if (members.size() != 2 || members[1] != members[0] + 1 || !(*splits)[0].is_dict()) return false;
-      const auto& split = (*splits)[0].GetDict();
+    if (membership.size() != splits->size()) return false;
+    std::set<std::string> seen;
+    for (const auto& value : *splits) {
+      if (!value.is_dict()) return false;
+      const auto& split = value.GetDict();
       const auto* id = split.FindString("id");
       const auto* layout = split.FindDict("layout");
       const auto focus = split.FindInt("focusedIndex");
-      if (!id || *id != "split-0" || !layout || !focus || *focus < 0 || *focus > 1 ||
-          *active != members[*focus]) return false;
+      if (!id || *id != "split-" + base::NumberToString(seen.size()) || !seen.insert(*id).second || !membership.contains(*id) || !layout || !focus || *focus < 0 || *focus > 1) return false;
+      const auto& members = membership.at(*id);
+      if (members.size() != 2 || members[1] != members[0] + 1 ||
+          (std::ranges::contains(members, *active) && *active != members[*focus])) return false;
       const auto* kind = layout->FindString("kind");
       const auto* widths = layout->FindList("widths");
       if (!kind || *kind != "columns" || !widths || widths->size() != 2) return false;
@@ -1139,7 +1163,8 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
   // Temporary Glance is never serialized as persistent Split View.
   for (auto* owner : Owner::Live()) if (owner->browser == browser && owner->glance_main >= 0) return std::nullopt;
   base::ListValue tabs, groups, splits, split_ids;
-  std::optional<split_tabs::SplitTabId> captured_split;
+  std::map<split_tabs::SplitTabId, std::string> captured_splits;
+  UpdatePersistentSplitFocus(browser);
   const auto order = GroupsInOrder(model);
   for (const auto& id : order) {
     const auto* v = GroupVisuals(model, id);
@@ -1154,20 +1179,27 @@ std::optional<base::DictValue> CaptureNativeSpace(BrowserWindowInterface* browse
         tab->NeedToFireBeforeUnload()) return std::nullopt;
     if (auto id = model->GetSplitForTab(i)) {
       if (!tab->GetUserData(kPersistentSplitKey)) return std::nullopt;
-      if (captured_split && *captured_split != *id) return std::nullopt;
-      if (!captured_split) {
+      if (!captured_splits.contains(*id)) {
         auto* data = model->GetSplitData(*id);
         const auto range = data->GetIndexRange();
         const auto* visual = data->visual_data();
-        if (range.length() != 2 || (model->active_index() < static_cast<int>(range.start()) || model->active_index() >= static_cast<int>(range.end())) ||
+        if (range.length() != 2 ||
             visual->split_layout() != split_tabs::SplitTabLayout::kSideBySide) return std::nullopt;
         const double ratio = visual->split_ratio();
-        splits.Append(base::DictValue().Set("id", "split-0")
+        int focus = -1;
+        for (int j = range.start(); j < static_cast<int>(range.end()); ++j) {
+          auto* member = static_cast<PersistentSplitData*>(model->GetWebContentsAt(j)->GetUserData(kPersistentSplitKey));
+          if (!member) return std::nullopt;
+          if (member->focused) { if (focus >= 0) return std::nullopt; focus = j - range.start(); }
+        }
+        if (focus < 0) return std::nullopt;
+        const std::string key = "split-" + base::NumberToString(captured_splits.size());
+        splits.Append(base::DictValue().Set("id", key)
             .Set("layout", base::DictValue().Set("kind", "columns").Set("widths", base::ListValue().Append(ratio).Append(1 - ratio)))
-            .Set("focusedIndex", model->active_index() - static_cast<int>(range.start())));
-        captured_split = id;
+            .Set("focusedIndex", focus));
+        captured_splits.emplace(*id, key);
       }
-      split_ids.Append("split-0");
+      split_ids.Append(captured_splits.at(*id));
     } else split_ids.Append(base::Value());
     GURL url = tab->GetLastCommittedURL();
     if (tab->GetVisibleURL() == GURL("chrome://newtab/") ||
@@ -1346,7 +1378,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       auto split = saved.GetDict().Clone();
       base::ListValue members;
       const auto& ids = *capture->FindList("splitIds");
-      for (size_t i = 0; i < ids.size(); ++i) if (ids[i].is_string())
+      for (size_t i = 0; i < ids.size(); ++i) if (ids[i].is_string() && ids[i].GetString() == *split.FindString("id"))
         members.Append(sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id());
       split.Set("focusedTabId", members[*split.FindInt("focusedIndex")].Clone());
       split.Set("tabIds", std::move(members));
@@ -1971,13 +2003,16 @@ class Handler : public content::WebUIMessageHandler {
           static_cast<tab_groups::TabGroupColorId>(*data.FindInt("color")), *data.FindBool("collapsed")));
     }
     if (const auto* splits = record->FindList("splits"); splits && !splits->empty()) {
-      std::vector<int> members;
       const auto& ids = *record->FindList("splitIds");
-      for (size_t i = 0; i < ids.size(); ++i)
-        if (ids[i].is_string()) members.push_back(model->GetIndexOfWebContents(added[i]));
-      const double ratio = (*splits)[0].GetDict().FindDict("layout")->FindList("widths")->front().GetDouble();
-      for (int index : members) MarkPersistentSplit(browser, model->GetWebContentsAt(index), true);
-      model->AddToNewSplit(members, split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, ratio), split_tabs::SplitTabCreatedSource::kToolbarButton);
+      for (const auto& value : *splits) {
+        const auto& saved = value.GetDict();
+        std::vector<int> members;
+        for (size_t i = 0; i < ids.size(); ++i)
+          if (ids[i].is_string() && ids[i].GetString() == *saved.FindString("id")) members.push_back(model->GetIndexOfWebContents(added[i]));
+        const double ratio = saved.FindDict("layout")->FindList("widths")->front().GetDouble();
+        model->AddToNewSplit(members, split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, ratio), split_tabs::SplitTabCreatedSource::kToolbarButton);
+        for (size_t i = 0; i < members.size(); ++i) MarkPersistentSplit(browser, model->GetWebContentsAt(members[i]), true, static_cast<int>(i) == *saved.FindInt("focusedIndex"));
+      }
     }
     model->ActivateTabAt(model->GetIndexOfWebContents(added[*record->FindInt("active")]));
     // Selecting/closing staging tabs can expand groups. Apply saved visuals
@@ -2171,7 +2206,7 @@ class Handler : public content::WebUIMessageHandler {
           model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
         reply(true, base::Value(false)); return;
       }
-      MarkPersistentSplit(browser, model->GetWebContentsAt(first), method == "previewSplitPair");
+      MarkPersistentSplit(browser, model->GetWebContentsAt(first), method == "previewSplitPair", true);
       MarkPersistentSplit(browser, model->GetWebContentsAt(second), method == "previewSplitPair");
       const bool reverse = first > second;
       const auto split = model->AddToNewSplit({first, second},
@@ -2789,6 +2824,10 @@ class TabIdentityData : public base::SupportsUserData::Data {
   std::string id;
 };
 }
+std::string PersistentSplitState(content::WebContents* tab) {
+  auto* data = static_cast<PersistentSplitData*>(tab->GetUserData(kPersistentSplitKey));
+  return data ? (data->focused ? "2" : "1") : "0";
+}
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
 }
@@ -2805,8 +2844,8 @@ std::string TabIdentity(content::WebContents* tab) {
 void RestoreTabIdentity(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data) {
   if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return;
-  if (auto split = extra_data.find(kPersistentSplitKey); split != extra_data.end() && split->second == "1")
-    tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>());
+  if (auto split = extra_data.find(kPersistentSplitKey); split != extra_data.end() && (split->second == "1" || split->second == "2"))
+    tab->SetUserData(kPersistentSplitKey, std::make_unique<PersistentSplitData>(split->second == "2"));
   const auto it = extra_data.find(kTabIdentityKey);
   if (it != extra_data.end() && base::Uuid::ParseLowercase(it->second).is_valid())
     tab->SetUserData(kTabIdentityKey, std::make_unique<TabIdentityData>(it->second));

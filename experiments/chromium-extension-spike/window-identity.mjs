@@ -65,7 +65,18 @@ export function prepareWindowIdentity(edit) {
   edit("chrome/browser/ui/browser_live_tab_context.cc", [{
     anchor: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n",
     replacement: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n  if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))\n    extra_data[blanc_prototype::kPersistentSplitKey] = \"1\";\n",
-    present: "    extra_data[blanc_prototype::kPersistentSplitKey] = \"1\";\n"
+    present: "    extra_data[blanc_prototype::kPersistentSplitKey] = "
+  }]);
+
+  edit("chrome/browser/sessions/session_service_base.cc", [{
+    anchor: '            blanc_prototype::kPersistentSplitKey, "1"));\n',
+    replacement: '            blanc_prototype::kPersistentSplitKey, blanc_prototype::PersistentSplitState(tab)));\n',
+    present: '            blanc_prototype::kPersistentSplitKey, blanc_prototype::PersistentSplitState(tab)));\n'
+  }]);
+  edit("chrome/browser/ui/browser_live_tab_context.cc", [{
+    anchor: '    extra_data[blanc_prototype::kPersistentSplitKey] = "1";\n',
+    replacement: '    extra_data[blanc_prototype::kPersistentSplitKey] = blanc_prototype::PersistentSplitState(tab_strip_model_->GetWebContentsAt(index));\n',
+    present: '    extra_data[blanc_prototype::kPersistentSplitKey] = blanc_prototype::PersistentSplitState(tab_strip_model_->GetWebContentsAt(index));\n'
   }]);
 
 }
