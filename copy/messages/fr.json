@@ -1850,6 +1850,18 @@
     "message": "Retire {title} de {group}",
     "source": "sha256:67b4e525c29b9cb73bd54e45db7b96a385e41c5898177ce777fa7600cd1ed01e"
   },
+  "split.menuMovesInto": {
+    "message": "Passe dans {group}",
+    "source": "sha256:176e58be7908b2848dd3724a5f8b30a2ce41ce57b28989927eaac6108c8bb0a8"
+  },
+  "split.menuMovesOutOf": {
+    "message": "Sort de {group}",
+    "source": "sha256:6c04053a4f6b01bf8f0a8dc46f252cecbf3f092606802d84467457e73894fa56"
+  },
+  "tabMenu.splitUngrouped": {
+    "message": "Sans groupe",
+    "source": "sha256:81431e24c4f4c3bbc98147a7972ffe11a7ca65df17b35013559bcdb0bcec3856"
+  },
   "split.made": {
     "message": "{first} et {second} sont maintenant côte à côte",
     "source": "sha256:feab0cf7295a42fb8bd3ac6caa0cf04b730369876716def6cfd132435f3ee978"
