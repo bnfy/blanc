@@ -39,6 +39,28 @@ There is no press-page version to bump: the website derives the version from
 `npm run compliance:check`. Merge only when every check run on the PR's head
 commit has finished green.
 
+## 1b. Put the What's New page live (feature releases, X.Y.0)
+
+`release.sh` refuses a feature release until
+`https://blanc.day/whats-new/X.Y` answers 200 (`scripts/check-whats-new-page.mjs`,
+run before building and again before Sigstore). Blanc asks for the page once
+per launch after the update, and people update within a minute of
+publication, so it has to be live first.
+
+- After the prep PR merges, draft it with
+  `npm run site:whats-new -- --release X.Y`. Before the release is public it
+  reads `docs/press/release-notes/vX.Y.0.md`, turns the bold-named Added
+  bullets into highlights with TODO media, lists candidate captures, and
+  never overwrites a page (`--force` replaces only a draft).
+- Take its captures from the merged build, show the owner the rendered page,
+  and get the owner's explicit sign-off on its final text and media. With
+  the owner's approval, a release can instead go in `noPage` in
+  `site/src/data/whats-new.json`.
+- Merge it in a website-only PR, then run `npm run site:deploy` from a clean
+  `origin/main`. Until the release is in `releases.json` it builds as the
+  one *upcoming* page: no date, `noindex`, and left out of the sitemap and
+  the `/whats-new` redirect.
+
 ## 2. Preflight
 
 - Use a clean throwaway worktree detached at `origin/main`:
@@ -193,16 +215,6 @@ short:
    - the capability boundaries in `docs/marketing-claims.md`;
    - `site/src/data/releases.json` (`npm run site:changelog`), plus the
      Feature Roadmap and `release-feature-names.json` (see `site/CLAUDE.md`);
-   - the release's What's New page in `site/src/data/whats-new.json` (or a
-     `noPage` entry for a feature release without one; its unit test requires
-     one or the other). Draft it first with
-     `npm run site:whats-new -- --release X.Y`, which turns the release notes'
-     bold-named Added bullets into highlights with TODO media, lists candidate
-     captures and never overwrites a page (`--force` replaces only a draft).
-     It needs the owner's explicit sign-off on its final text and media
-     before it deploys. After the first release that opens it,
-     add the What's New sentence to the privacy policy (see the spec
-     `docs/superpowers/specs/2026-10-19-whats-new-page-design.md`);
    - the Bangs page re-pinned to the new tag,
      `npm run site:bangs -- --ref vX.Y.Z --release vX.Y.Z`. Its data test
      requires the newest tag in `releases.json`, so it fails until this runs;

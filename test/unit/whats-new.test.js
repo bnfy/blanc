@@ -50,7 +50,7 @@ test('a profile from before this feature counts as updated only once setup is fi
 test('a downgrade or pre-release records the version and clears a stale pill', () => {
   assert.deepEqual(
     whatsNewOnLaunch({ lastRunVersion: '1.36.0', whatsNewVersion: '1.36.0' }, { version: '1.35.0', now: NOW, firstRunComplete: true }),
-    { lastRunVersion: '1.35.0', whatsNewVersion: '', whatsNewPageVersion: '' },
+    { lastRunVersion: '1.35.0', whatsNewVersion: '', whatsNewPageVersion: '', whatsNewTabRelease: '1.35' },
   );
   assert.deepEqual(
     whatsNewOnLaunch({ lastRunVersion: '1.35.0' }, { version: '1.36.0-beta.1', now: NOW, firstRunComplete: true }),
@@ -96,12 +96,32 @@ test('a feature update owes a tab; a bug-fix update and a fresh install do not',
   assert.equal('whatsNewTabRelease' in legacy, false, 'a profile from before the pill counts as a feature update');
 });
 
-test('the page check runs only while the pill is live and the page is not yet found', () => {
-  const live = { whatsNewVersion: '1.39.0', whatsNewSince: NOW, whatsNewPageVersion: '' };
+test('the page check runs for seven days while the page is not yet found or a tab is owed', () => {
+  const live = { lastRunVersion: '1.39.0', whatsNewVersion: '1.39.0', whatsNewSince: NOW, whatsNewPageVersion: '' };
   assert.equal(whatsNewCheckDue(live, { version: '1.39.0', now: NOW + DAY }), true);
   assert.equal(whatsNewCheckDue(live, { version: '1.39.0', now: NOW + WHATS_NEW_WINDOW_MS }), false, 'after seven days');
-  assert.equal(whatsNewCheckDue({ ...live, whatsNewVersion: '' }, { version: '1.39.0', now: NOW }), false, 'pill closed');
   assert.equal(whatsNewCheckDue({ ...live, whatsNewPageVersion: '1.39.0', whatsNewTabRelease: '1.39' }, { version: '1.39.0', now: NOW }), false, 'found and no tab owed');
+  const closed = { ...live, whatsNewVersion: '', whatsNewTabRelease: '1.39' };
+  assert.equal(whatsNewCheckDue(closed, { version: '1.39.0', now: NOW }), false, 'pill closed and no tab owed');
+});
+
+// v1.39.0, October 19, 2026: the owner updated a minute after publication,
+// before the page deployed, then opened the pill (to the changelog). Closing
+// or opening the pill must not cancel the tab the update still owes.
+test('closing the pill does not cancel an owed tab', () => {
+  const owner = { lastRunVersion: '1.39.0', whatsNewVersion: '', whatsNewSince: NOW, whatsNewPageVersion: '', whatsNewTabRelease: '' };
+  assert.equal(whatsNewCheckDue(owner, { version: '1.39.0', now: NOW + DAY }), true, 'the next launch asks again');
+  const { patch, openUrl } = whatsNewAfterCheck(owner, { version: '1.39.0', found: true, canOpen: true });
+  assert.equal(openUrl, 'https://blanc.day/whats-new/1.39');
+  assert.equal(whatsNewCheckDue({ ...owner, ...patch }, { version: '1.39.0', now: NOW + DAY }), false, 'paid');
+  assert.equal(whatsNewCheckDue(owner, { version: '1.39.0', now: NOW + WHATS_NEW_WINDOW_MS }), false, 'not after seven days');
+});
+
+test('a downgrade or pre-release never owes a tab', () => {
+  const down = whatsNewOnLaunch({ lastRunVersion: '1.40.0', whatsNewTabRelease: '1.40', whatsNewSince: NOW }, { version: '1.39.0', now: NOW, firstRunComplete: true });
+  assert.equal(down.whatsNewTabRelease, '1.39');
+  const settings = { lastRunVersion: '1.40.0', whatsNewTabRelease: '1.40', whatsNewSince: NOW, ...down };
+  assert.equal(whatsNewCheckDue(settings, { version: '1.39.0', now: NOW + DAY }), false);
 });
 
 test('a found page opens the tab once and points the pill at it', () => {
