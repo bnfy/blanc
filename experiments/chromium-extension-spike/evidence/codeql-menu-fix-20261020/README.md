@@ -1,0 +1,3 @@
+## October 20 — Archived menu harness CodeQL repair
+
+Four archived menu harnesses now use a static Runtime.callFunctionOn declaration with the tab identity passed as a protocol argument. The four line-26 CodeQL findings on f228ccc1 were source interpolation in test code. All four syntax checks and twelve normal/adversarial identity dispatch checks pass; git diff --check passes. No native build, browser mutation or full runtime rerun was needed. Original runtime results remain historical evidence; modified harness hashes are refreshed. CodeQL clearance awaits pushed-head CI. Upstream patch footprint remains 51 files/120 hunks; latency deferred and Electron diagnostic build pending approval.

@@ -3637,3 +3637,7 @@ Owner approved51 files/120 hunks. The native layout hook now shares page/header/
 Final context-matched regular/private matrix:30 geometry cases plus wide-return ratio/full-height CDP reset/short-focus/Spaces observations (71 records including30 pre-resize snapshots). Existing37 pane/menu regression checkpoints, seven capture tests and eleven counter tests pass. Compiler failures and zero-size probe runtime failure retained; probe publication fixed. Incremental successes48.98s and36.01s; final guardzero. Fresh51 files/120 hunks is at the approved ceiling. Evidence: `evidence/split-narrow-fix-20261020/README.md`.
 
 Physical native hit-testing, broad accessibility, rail/fullscreen/drag-drop and display-scale/lifecycle matrices remain open. No full acceptance claim. Retained preview untouched; latency deferred; Electron diagnostic build unapproved.
+
+## October 20 — Archived menu harness CodeQL repair
+
+Four archived menu harnesses now use a static Runtime.callFunctionOn declaration with the tab identity passed as a protocol argument. The four line-26 CodeQL findings on f228ccc1 were source interpolation in test code. All four syntax checks and twelve normal/adversarial identity dispatch checks pass; git diff --check passes. No native build, browser mutation or full runtime rerun was needed. Original runtime results remain historical evidence; modified harness hashes are refreshed. CodeQL clearance awaits pushed-head CI. Upstream patch footprint remains 51 files/120 hunks; latency deferred and Electron diagnostic build pending approval.

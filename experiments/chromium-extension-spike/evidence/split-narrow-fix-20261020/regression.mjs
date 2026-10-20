@@ -23,7 +23,15 @@ const a=id('a'),b=id('b'),c=id('c'),d=id('d');
 await api(h,'groupTabByName',a,'Initiator');await api(h,'groupTabByName',b,'Other');
 await api(h,'openIsland');
 await wait(()=>h.eval("!!document.getElementById('overlay').contentDocument?.querySelector('[data-tab-id]')"),Boolean);
-await h.eval(`(()=>{const f=document.getElementById('overlay');const row=[...f.contentDocument.querySelectorAll('[data-tab-id]')].find(e=>e.dataset.tabId===${JSON.stringify(a)});if(!row)throw Error('missing initiating row');row.dispatchEvent(new f.contentWindow.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:150}));})()`);
+// Pass the tab identity as protocol data, never executable source.
+const menuGlobal=await h.send('Runtime.evaluate',{expression:'globalThis'});
+const menuResult=await h.send('Runtime.callFunctionOn',{
+  objectId:menuGlobal.result.objectId,
+  functionDeclaration:"function(tabId){const f=document.getElementById('overlay');const row=[...f.contentDocument.querySelectorAll('[data-tab-id]')].find(e=>e.dataset.tabId===tabId);if(!row)throw Error('missing initiating row');row.dispatchEvent(new f.contentWindow.MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:100,clientY:150}));}",
+  arguments:[{value:a}],returnByValue:true,awaitPromise:true,userGesture:true
+});
+await h.send('Runtime.releaseObject',{objectId:menuGlobal.result.objectId});
+if(menuResult.exceptionDetails)throw Error(JSON.stringify(menuResult.exceptionDetails));
 await wait(()=>h.eval("[...document.getElementById('overlay').contentDocument.querySelectorAll('.prototype-tab-menu button')].some(b=>b.textContent.startsWith('Split with '))"),Boolean);
 record('public Split with menu '+privateMode,await h.eval("document.getElementById('overlay').contentDocument.querySelector('.prototype-tab-menu').innerText"));
 await h.eval("[...document.getElementById('overlay').contentDocument.querySelectorAll('.prototype-tab-menu button')].find(b=>b.textContent.startsWith('Split with ')).click()");
