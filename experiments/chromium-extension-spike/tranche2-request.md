@@ -2050,3 +2050,12 @@ Two compile failures retained locally, incremental success85.65seconds/65steps; 
 Island closeSplit now waits for history save/flush after all selected panes close; pending/cancelled closure rejects rather than claiming durable batch completion. Five disposable schedules/38 checkpoints pass: immediate and settled encrypted-only postcorruption crash restore both panes once with35/65 ratio/rightfocus; injected Tabs flush EIO rejects, subsequent successful close permits recovery; private history exclusion and beforeunload cancellation safeguards pass. Cancellation does not claim atomic pane rollback, and failed acknowledgement has no automatic batch retry.
 
 Seven capture tests pass, incremental build38.66seconds/6steps, final guardzero, fresh54files/128hunks unchanged. Evidence: evidence/split-batch-close-ack-20261020/README.md. Profiles removed after process-exit verification, retained preview untouched. Native physical input, owner destruction, broader close paths/powerloss remain pending; latency deferred and Electron diagnostic build unapproved.
+
+
+## Batch-close lifecycle checks — October 20
+
+Owner destruction passes5bounded checkpoints: actual encrypted Tabs flush held, requester destroyed, surviving identities unchanged after release; settled post-release crash/restart recovers split once with35/65/rightfocus.
+
+Unresolved failure in both left/right guarded beforeunload cases: batch close rejects acknowledgement, but retained two-tab Split history recreates the surviving pane as a duplicate on Restore Tab. Each failed fixture retains3diagnostic checkpoints and2-versus1assertion; no repair. Identity-aware partial-history reconciliation is needed, preserving survivor state and avoiding URL-based deduplication. Green CI does not close this gap. Evidence: evidence/split-batch-lifecycle-20261020/README.md.
+
+No nativecompile/product edits, guardzero, prior54/128unchanged. Owned fixtures removed after verified exit; preview untouched. Latency deferred; native input and Electron diagnostic build pending.

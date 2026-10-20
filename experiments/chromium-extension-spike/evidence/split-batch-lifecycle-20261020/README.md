@@ -1,0 +1,9 @@
+# Batch-close owner destruction and partial cancellation
+
+Owner destruction passes five bounded checkpoints on the unchanged normal binary. Actual encrypted Tabs flush is held by a path-scoped disposable interposer. The requesting window is destroyed before release; surviving-window tab identities stay unchanged. After release and a1.5second settling interval, abrupt crash/restart and native Restore Tab recover the pair exactly once with35/65 ratio and right focus. This is not pre-flush durability, whole-profile destruction, or physical UI acceptance.
+
+**Unresolved runtime failure:** both left-guarded and right-guarded beforeunload cancellation cases duplicate the surviving pane when Restore Tab is invoked. The batch close rejects its acknowledgement, the guarded pane remains open, and Recently Closed retains a two-tab Split entry. Restoration creates two fresh panes alongside the original survivor. Each failed fixture retains three diagnostic checkpoints and its2-versus1 assertion failure; these are not recovery passes. No product repair was applied.
+
+Next repair needs identity-aware reconciliation of partially cancelled split history with the surviving live pane, preserving its page state. Do not remove tabs merely because their URLs match. Cancellation is not atomic rollback, and broader group/private/session-restart combinations remain unqualified.
+
+No native compilation/product changes; only the small test interposer compiled. Final build guard schedules zero actions; prior54files/128hunks unchanged. Source/results hashed; raw logs local under /private/tmp/blanc-batch-lifecycle-*. Profiles removed after verified exit, retained preview untouched. Latency deferred; native input and Electron diagnostic build pending. Green CI cannot close the duplicate-survivor failure.
