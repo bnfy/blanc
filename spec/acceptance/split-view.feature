@@ -88,3 +88,17 @@ Feature: Split View
     Then the two tabs form a split again in the same order
     When I save this window as a Space, switch away and come back
     Then the two tabs form a split again in the same order
+
+  @F53-13 @F53 @desktop @D11
+  Scenario: A split is one row in the panel and the rail
+    Given two loaded tabs made into a split
+    And another ordinary tab
+    And I select the ordinary tab
+    When I open the tab panel
+    Then the panel shows the split as one row named "split-a + split-b"
+    When I choose the split's row
+    Then both split tabs are shown and the first pane is focused
+    When I open the tab panel and show the split's tabs
+    Then the panel lists both split tabs under the split's row
+    When I show the tabs in the side list
+    Then the side list shows the split as one row

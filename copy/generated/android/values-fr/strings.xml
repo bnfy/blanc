@@ -524,6 +524,10 @@
     <string name="split_pane_label">%1$s, volet %2$s sur %3$s</string>
     <string name="split_header_menu">Menu de l’onglet</string>
     <string name="split_divider_label">Redimensionner les volets</string>
+    <string name="split_row_label">%1$s + %2$s</string>
+    <string name="split_row_label_more">%1$s + %2$s autres</string>
+    <string name="split_row_name">Vue partagée : %1$s</string>
+    <string name="split_show_tabs">Afficher les onglets de cette vue partagée</string>
     <string name="tab_menu_remove_from_group">Retirer du groupe</string>
     <string name="tab_menu_new_group">Nouveau groupe…</string>
     <string name="tab_menu_glance">Ouvrir dans Glance</string>

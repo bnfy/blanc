@@ -460,6 +460,29 @@ button svg {
 /* The child page views deliberately leave this narrow gap uncovered, so the
    trusted BrowserWindow renderer below them owns pointer + keyboard resizing
    without another privileged WebContentsView. */
+/* Split View (F53): a split is one row in the ⌘L panel and the rail, its
+   tabs' favicons overlapped; the panel's disclosure lists them below it. */
+.split-row-icons,
+.vertical-split-icons { display: inline-flex; flex: 0 0 auto; }
+.split-row-icons > .favicon + .favicon,
+.vertical-split-icons > .favicon + .favicon { margin-left: -5px; box-shadow: 0 0 0 1.5px var(--surface-raised); }
+.split-row-disclosure {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+}
+.split-row-disclosure svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; transition: transform 140ms ease; }
+.split-row-disclosure.open svg { transform: rotate(90deg); }
+.split-row-disclosure:hover { background: var(--accent-dim); color: var(--text); }
+.island-row.tab-row.in-split { padding-left: 22px; }
+
 /* Split View (F53, spec D5): one Island, and a header band on every pane,
    drawn where no page view covers the window. Main places each header and
    divider; the geometry rides --split-x/y/w/h. Same surface, hairline and

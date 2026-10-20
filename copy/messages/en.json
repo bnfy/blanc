@@ -1933,6 +1933,22 @@
     "message": "Resize panes",
     "note": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again."
   },
+  "split.rowLabel": {
+    "message": "{first} + {second}",
+    "note": "A Split View's row in the tab panel and side list: its two tabs' titles."
+  },
+  "split.rowLabelMore": {
+    "message": "{first} + {count} more",
+    "note": "A Split View's row with three or four tabs: the first title and how many more."
+  },
+  "split.rowName": {
+    "message": "Split: {titles}",
+    "note": "Accessible name of a Split View's row: 'Split:' and every tab title joined with ' + '."
+  },
+  "split.showTabs": {
+    "message": "Show this split's tabs",
+    "note": "Tooltip and accessible name of a Split View row's disclosure, which lists its tabs."
+  },
   "tabMenu.removeFromGroup": {
     "message": "Remove from Group",
     "note": "Tab context menu command in the Move to Group submenu."

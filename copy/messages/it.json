@@ -1874,6 +1874,22 @@
     "message": "Ridimensiona i riquadri",
     "source": "sha256:79377077876c5ad1546888f681fc5b45645c4b4f42c536a3c8dd539d6a98528d"
   },
+  "split.rowLabel": {
+    "message": "{first} + {second}",
+    "source": "sha256:d794a3cacbad713512415c8ccea52d7f0e18ea3d67bf4ef034467ec3cdd4e2f8"
+  },
+  "split.rowLabelMore": {
+    "message": "{first} + altre {count}",
+    "source": "sha256:8566d7fca1d5a5ba6347ca78a60bea3ebb4f445527c93eae472e6876469d515f"
+  },
+  "split.rowName": {
+    "message": "Vista divisa: {titles}",
+    "source": "sha256:2f29f803f393d03f4d9fbf330014ea68d5154573ce08ff0c4f95ea9fd2814661"
+  },
+  "split.showTabs": {
+    "message": "Mostra le schede di questa vista divisa",
+    "source": "sha256:3545fc9237be09e6eb43fed3e05aa7c07536efbcfbcac3ef45632309ff9c1df6"
+  },
   "tabMenu.removeFromGroup": {
     "message": "Rimuovi dal gruppo",
     "source": "sha256:de7feaf933480a11b6e087380c9621315d04fc790efc12c588c3779497248e57"

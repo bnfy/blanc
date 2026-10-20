@@ -302,3 +302,60 @@ Then('there is no split', async function () {
   await this.waitForState((s) => s.splits.length === 0);
   assert.equal(await this.call('splitLayout'), null);
 });
+
+// ---- One row in the panel and the rail (F53-13) ----
+const { openOverlaySurface } = require('../support/poll');
+const { overlayPage } = require('../support/overlay');
+
+When('I open the tab panel', async function () {
+  await openOverlaySurface(this, 'openPanel', 'panel');
+});
+
+Then('the panel shows the split as one row named {string}', async function (label) {
+  const page = await overlayPage();
+  const rows = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.split-row')]
+    .map((row) => ({ label: row.querySelector('.split-row-title')?.textContent, name: row.getAttribute('aria-label') }))),
+  (list) => list.length === 1, 'one split row');
+  assert.equal(rows[0].label, label);
+  assert.equal(rows[0].name, `Split: ${label}`);
+  const looseSplitTabs = await page.evaluate((ids) => ids.filter((id) => document.querySelector(`.tab-row[data-tab-id="${id}"]:not(.in-split)`)).length, [this.splitA, this.splitB]);
+  assert.equal(looseSplitTabs, 0, 'its tabs are not listed as separate rows');
+});
+
+When("I choose the split's row", async function () {
+  const page = await overlayPage();
+  await page.locator('.split-row .split-row-primary').click();
+  await this.waitForState((state) => [this.splitA, this.splitB].includes(state.activeTabId));
+});
+
+Then('both split tabs are shown and the first pane is focused', async function () {
+  const layout = await waitForValue(() => this.call('splitLayout'), (l) => l?.panes?.length === 2, 'a split layout');
+  assert.deepEqual(layout.panes.map((p) => p.focused), [true, false]);
+});
+
+When("I open the tab panel and show the split's tabs", async function () {
+  await openOverlaySurface(this, 'openPanel', 'panel');
+  const page = await overlayPage();
+  await page.locator('.split-row .split-row-disclosure').click();
+});
+
+Then("the panel lists both split tabs under the split's row", async function () {
+  const page = await overlayPage();
+  const ids = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.tab-row.in-split')].map((r) => r.dataset.tabId)),
+    (list) => list.length === 2, 'two split tab rows');
+  assert.deepEqual(ids, [this.splitA, this.splitB]);
+  assert.equal(await page.locator('.split-row .split-row-disclosure').getAttribute('aria-expanded'), 'true');
+});
+
+When('I show the tabs in the side list', async function () {
+  await this.call('closeOverlay');
+  await this.call('setTabLayout', 'vertical');
+});
+
+Then('the side list shows the split as one row', async function () {
+  const page = await chromePage();
+  const rows = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.vertical-split-row')]
+    .map((row) => row.getAttribute('aria-label'))), (list) => list.length === 1, 'one split row in the side list');
+  assert.equal(rows[0], 'Split: split-a + split-b');
+  await this.call('setTabLayout', 'horizontal');
+});

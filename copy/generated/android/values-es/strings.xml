@@ -524,6 +524,10 @@
     <string name="split_pane_label">%1$s, panel %2$s de %3$s</string>
     <string name="split_header_menu">Menú de la pestaña</string>
     <string name="split_divider_label">Cambiar el tamaño de los paneles</string>
+    <string name="split_row_label">%1$s + %2$s</string>
+    <string name="split_row_label_more">%1$s + %2$s más</string>
+    <string name="split_row_name">Vista dividida: %1$s</string>
+    <string name="split_show_tabs">Mostrar las pestañas de esta vista dividida</string>
     <string name="tab_menu_remove_from_group">Quitar del grupo</string>
     <string name="tab_menu_new_group">Grupo nuevo…</string>
     <string name="tab_menu_glance">Abrir en Glance</string>
