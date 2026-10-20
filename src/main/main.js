@@ -275,6 +275,7 @@ const {
 const { hasExclusiveRenderer, hasBeforeUnloadListener, terminateRenderer } = require('./renderer-discard');
 const {
   createTabView,
+  primeTabLoadingBackground,
   wireTabView,
   unwireTabView,
   initTabView,
@@ -2772,6 +2773,8 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     const retainedContents = retainedView?.webContents;
     retained = !!retainedContents && !retainedContents.isDestroyed();
     const view = retained ? retainedView : createTabView(tab);
+    // A retained view reloads into a new renderer; createTabView primes its own.
+    if (retained) primeTabLoadingBackground(view, tab);
     tab.view = view;
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
     rootManagedExtensionView(tab);
