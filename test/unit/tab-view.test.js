@@ -16,6 +16,7 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
 const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 const createTabViewSource = viewSource.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+const primeSource = viewSource.match(/function primeTabLoadingBackground\(view, tab\) \{[\s\S]*?\n\}/)?.[0];
 const wireSource = viewSource.match(/function wireTabView\(tab, view, \{ owner, adopted \}\) \{[\s\S]*?\n\}/)?.[0];
 const watchCursorForSource = mainSource.match(/function watchCursorFor\(wc, offset, bind\) \{[\s\S]*?\n\}/)?.[0];
 
@@ -23,6 +24,7 @@ test('tab-view.js still exports the functions these tests lift', () => {
   assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
   assert.ok(createTabViewSource, 'createTabView not found in tab-view.js — update this test with it');
+  assert.ok(primeSource, 'primeTabLoadingBackground not found in tab-view.js — update this test with it');
 });
 
 function loadLiveContents() {
@@ -71,17 +73,35 @@ test('main.js never dereferences cached utility-sheet webContents directly', () 
   );
 });
 
-function loadCreateTabView() {
+function loadCreateTabView({ dark = false } = {}) {
   const calls = [];
+  const primed = [];
   const sandbox = {
+    nativeTheme: { shouldUseDarkColors: dark },
+    // The sandbox's objects are another realm's; copy them out for deepEqual.
+    primeLoadingBackground: (view, theme) => primed.push({ view, theme: { ...theme } }),
     WebContentsView: class { constructor(opts) { calls.push(opts); this.opts = opts; } },
     TAB_WEB_PREFERENCES: { preload: '/tab-preload.js', sandbox: true },
     getNormalBrowsingSession: (profileId) => ({ partition: `normal:${profileId}` }),
     getPrivateBrowsingSession: (profileId) => ({ partition: `private:${profileId}` }),
   };
-  vm.runInNewContext(`${createTabViewSource}\nthis.__fn = createTabView;`, sandbox);
-  return { createTabView: sandbox.__fn, calls, prefs: sandbox.TAB_WEB_PREFERENCES };
+  vm.runInNewContext(`${createTabViewSource}\n${primeSource}\nthis.__fn = createTabView;`, sandbox);
+  return { createTabView: sandbox.__fn, calls, primed, prefs: sandbox.TAB_WEB_PREFERENCES };
 }
+
+test('createTabView primes each new view with the tab\'s theme before any load', () => {
+  const light = loadCreateTabView();
+  const view = light.createTabView({ private: false });
+  assert.deepEqual(light.primed.map((p) => p.view), [view]);
+  assert.deepEqual(light.primed[0].theme, { dark: false, private: false });
+  const dark = loadCreateTabView({ dark: true });
+  dark.createTabView({ private: true });
+  dark.createTabView(undefined);
+  assert.deepEqual(dark.primed.map((p) => p.theme), [
+    { dark: true, private: true },
+    { dark: true, private: false },
+  ]);
+});
 
 test('createTabView puts an ordinary tab on its profile session', () => {
   const { createTabView, calls, prefs } = loadCreateTabView();
