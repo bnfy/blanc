@@ -165,6 +165,9 @@ railSource = railSource.replace('  function tabRow(tab, activeTabId) {', `  let 
       const row = document.createElement('div');
       row.className = 'vertical-tab-row vertical-split-row' + (split.tabIds.includes(activeTabId) ? ' active' : '');
       row.setAttribute('role', 'listitem'); row.dataset.splitId = split.id;
+      row.dataset.tabId = members[0].id; row.dataset.dragTab = '';
+      row.dataset.bucket = bucketKey(members[0]); row.dataset.pinned = String(!!members[0].pinned);
+      row.dataset.groupId = members[0].groupId ?? ''; row.dataset.dragTitle = members.map(titleFor).join(' + ');
       const label = members.map(titleFor).join(' + ');
       row.setAttribute('aria-label', 'Split View: ' + label);
       const primary = document.createElement('button'); primary.type = 'button';
@@ -175,6 +178,11 @@ railSource = railSource.replace('  function tabRow(tab, activeTabId) {', `  let 
       for (const member of members) icons.appendChild(faviconFor(member));
       const title = document.createElement('span'); title.className = 'vertical-tab-title'; title.textContent = label;
       primary.append(icons, title); primary.addEventListener('click', () => activateTab(focused));
+      primary.addEventListener('keydown', event => {
+        if (event.altKey && event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
+          event.preventDefault(); keyboardMove('tab', members[0].id, event.key === 'ArrowUp' ? 'up' : 'down');
+        }
+      });
       const close = document.createElement('button'); close.type = 'button'; close.className = 'vertical-tab-close';
       close.textContent = '×'; close.setAttribute('aria-label', 'Close Split View: ' + label);
       close.addEventListener('click', () => invoke('close split', () => api.closeSplit(focused.id)));
@@ -188,6 +196,12 @@ for (const bucket of ['tabs', 'pinned', 'regular']) {
     'for (const row of rowsFor(' + bucket + ', activeTabId)) section.appendChild(row);');
 }
 railSource = railSource.replace('    const tabs = payload.tabs || [];', '    railSplits = payload.splits || [];\n    const tabs = payload.tabs || [];');
+railSource = railSource.replace('    const result = kind ===', `    const hiddenMembers = new Set((lastPayload.splits || []).flatMap(s => s.tabIds.slice(1)));
+    const movePayload = { ...lastPayload, tabs: lastPayload.tabs.filter(t => !hiddenMembers.has(t.id)) };
+    const memberSplit = (lastPayload.splits || []).find(s => s.tabIds.includes(id));
+    if (kind === 'tab' && memberSplit) id = memberSplit.tabIds[0];
+    const result = kind ===`);
+railSource = railSource.replace('dragApi.keyboardTabMove(lastPayload, id, direction)', 'dragApi.keyboardTabMove(movePayload, id, direction)');
 assets.set(railFile, railSource);
 
 // Reuse the shipping new-tab document with a narrowly scoped Chromium adapter.
@@ -454,6 +468,22 @@ edit('chrome/browser/ui/views/frame/browser_frame_view_mac.mm', [
 
 // Retire the first controller-switch hooks: Chromium's ActionItem path bypasses
 // that switch. The shared command functions below serve both dispatch paths.
+// Restore Tab actions and legacy commands converge on this entry point.
+edit('chrome/browser/ui/browser_command_controller.cc', [{
+  anchor: '    case IDC_RESTORE_TAB:\n      if (!blanc_prototype::RestoreClosedSplitFromCommand(browser_))\n        RestoreTab(browser_);',
+  replacement: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);',
+  present: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);'
+}]);
+edit('chrome/browser/ui/browser_tab_restorer.cc', [{
+  anchor: '#include "base/memory/ptr_util.h"',
+  replacement: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n#include "base/memory/ptr_util.h"',
+  present: '#include "chrome/browser/ui/blanc_prototype_ui.h"'
+}, {
+  anchor: 'void RestoreTab(BrowserWindowInterface* browser) {\n',
+  replacement: 'void RestoreTab(BrowserWindowInterface* browser) {\n  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;\n',
+  present: '  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;'
+}]);
+
 const controllerFile = path.join(chromium, 'chrome/browser/ui/browser_command_controller.cc');
 let controllerSource = fs.readFileSync(controllerFile, 'utf8');
 controllerSource = controllerSource

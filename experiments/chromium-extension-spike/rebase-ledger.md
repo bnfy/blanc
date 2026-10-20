@@ -3033,3 +3033,12 @@ Implemented against PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8: persisten
 Validation: 31 regular/private acceptance checks, 37 pane regressions, seven capture tests and eleven counter tests pass. Initial missing restore metadata was repaired. A later most-recent restart timeout was a fixture assumption: shutdown added a newer Window entry; known-latest split and explicit-entry restart semantics are now tested separately. Pane drag fixture failures were overlay interception and pass after dismissal. Failed attempts retained in [evidence](evidence/split-rail-shortcuts-20261020/README.md).
 
 Five guarded incremental builds (37.83/61.85/37.77/37.56/37.95 seconds), final guard zero. Fresh upstream inventory: 51 files/122 hunks, exactly the owner-approved ceiling. No latency measurements or Electron diagnostic build. Retained preview untouched. Physical shortcuts, browser-menu/accelerator Restore Tab metadata, whole-split drag/reorder, group/window-contained history, partial beforeunload cancellation and wider platform/accessibility parity remain open; this is bounded migration acceptance, not full PR993 parity.
+
+
+## 2026-10-20 — Native Restore Tab and whole-split reorder
+
+Based on PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8. Rail pointer and Alt+Shift+Arrow reordering now move persistent pairs as one native collection, including group changes and destination-split boundary normalization. The shared chrome::RestoreTab entry point restores loaded persistent-split history with metadata, ratio and focused pane. Ordinary tab restoration retains native behavior; private restoration remains inert.
+
+Final 48 regular/private runtime checkpoints pass, plus seven capture and eleven counter tests. Earlier 47-check drag control passed. Initial synthetic click-sequence failure and real action-path bypass are archived; the command-switch hook was replaced with the shared entry-point hook. [Evidence](evidence/split-native-restore-drag-20261020/README.md) includes failed attempts and final results.
+
+Owner approved 52 files/124 hunks after runtime proved the initial 51/123 hook was bypassed. Fresh inventory is exactly52/124. Three incremental builds38.93/70.23/41.68s; final guard zero. Disposable profiles removed, retained preview untouched. Latency deferred; Electron diagnostic build unapproved. Physical native input, unloaded-history async restoration, group/window-contained history, cross-window dragging, partial beforeunload cancellation and broader accessibility/platform/lifecycle acceptance remain pending.

@@ -2339,7 +2339,7 @@ class Handler : public content::WebUIMessageHandler {
     }
     if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string()) {
       const std::map<std::string, int> commands = {
-        {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2}, {"slot9", IDC_SELECT_LAST_TAB},
+        {"restore", IDC_RESTORE_TAB}, {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2}, {"slot9", IDC_SELECT_LAST_TAB},
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
@@ -2975,6 +2975,39 @@ class Handler : public content::WebUIMessageHandler {
           return;
         }
       }
+      const auto moving_split = model->GetSplitForTab(index);
+      if (moving_split && tab->GetUserData(kPersistentSplitKey)) {
+        const auto range = model->GetSplitData(*moving_split)->GetIndexRange();
+        const int first = static_cast<int>(range.start());
+        const int count = static_cast<int>(range.length());
+        for (int i = first; i < first + count; ++i)
+          if (!model->GetWebContentsAt(i)->GetUserData(kPersistentSplitKey)) {
+            reply(true, base::Value(false)); return;
+          }
+        int boundary = model->count();
+        if (before) {
+          boundary = model->GetIndexOfWebContents(before);
+          if (auto destination = model->GetSplitForTab(boundary)) {
+            if (destination == moving_split) {
+              reply(true, base::Value(model->GetTabGroupForTab(index) == target)); return;
+            }
+            boundary = static_cast<int>(model->GetSplitData(*destination)->GetIndexRange().start());
+          }
+        } else if (pinned) boundary = model->IndexOfFirstNonPinnedTab();
+        else if (target) boundary = static_cast<int>(model->group_model()->GetTabGroup(*target)->ListTabs().end());
+        const int to = boundary > first ? boundary - count : boundary;
+        model->MoveSplitTo(*moving_split, to, pinned, target);
+        const int now = model->GetIndexOfWebContents(tab);
+        reply(true, base::Value(model->GetSplitForTab(now) == moving_split &&
+            model->GetTabGroupForTab(now) == target && model->IsTabPinned(now) == pinned));
+        return;
+      }
+      // A single-tab drop beside a split must target its leading boundary.
+      if (before) {
+        const int b = model->GetIndexOfWebContents(before);
+        if (auto destination = model->GetSplitForTab(b))
+          before = model->GetWebContentsAt(model->GetSplitData(*destination)->GetIndexRange().start());
+      }
       const auto group_of = [&](int i) {
         return model->SupportsTabGroups() ? model->GetTabGroupForTab(i) : std::nullopt;
       };
@@ -3123,6 +3156,20 @@ std::string PersistentSplitState(content::WebContents* tab) {
 // PR993: numbered shortcuts select clusters when groups exist; otherwise a
 // persistent split counts once, at its first pane. Cyclic next/previous still
 // visits individual panes, matching the Electron reference.
+bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord()) return false;
+  auto* service = ClosedService(browser->GetProfile());
+  if (!service || !service->IsLoaded() || service->entries().empty()) return false;
+  const auto focus = ClosedSplitFocus(*service->entries().front());
+  if (!focus) return false;
+  auto* context = BrowserLiveTabContext::From(browser);
+  if (!context) return false;
+  const auto restored = service->RestoreEntryById(context, service->entries().front()->id,
+      WindowOpenDisposition::NEW_FOREGROUND_TAB);
+  if (restored) RestoreClosedSplitMetadata(browser, focus, *restored);
+  return true;
+}
+
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
   if (!IsIslandWindow(browser)) return false;
   auto* model = browser->GetTabStripModel();

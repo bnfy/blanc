@@ -1,0 +1,10 @@
+{
+  "remove_hook": "browser_command_controller.cc IDC_RESTORE_TAB",
+  "file": "chrome/browser/ui/browser_tab_restorer.cc",
+  "hooks": [
+    "include blanc_prototype_ui.h",
+    "early RestoreClosedSplitFromCommand(browser) in chrome::RestoreTab"
+  ],
+  "projected_files": 52,
+  "projected_hunks": 124
+}
