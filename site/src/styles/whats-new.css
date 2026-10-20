@@ -15,11 +15,17 @@
    Chrome. The intro and every highlight share one grid cell, so the stage is
    as tall as the tallest and the row never moves; the shown one
    (data-current) crossfades in. Phones keep the plain flow below. */
+/* Blanc opens this page in its own window (1280×800 by default, less the
+   Island), so on a wide screen everything — the shown view, the tile row and
+   the changelog link — fits in one screen: spacing, type and the capture
+   scale with the window's height as well as its width. */
 .wn.is-enhanced {
+  --wn-screen: calc(100svh - var(--site-header-h));
   display: flex;
   flex-direction: column;
-  min-height: calc(100svh - var(--site-header-h));
-  padding-bottom: 24px;
+  min-height: var(--wn-screen);
+  padding-top: clamp(12px, 3svh, 48px);
+  padding-bottom: clamp(12px, 2svh, 24px);
 }
 .wn.is-enhanced .wn-stage {
   flex: 1;
@@ -42,6 +48,60 @@
 }
 @media (max-width: 760px) {
   .wn.is-enhanced .wn-stage > :not([data-current]) { display: none; }
+}
+@media (min-width: 761px) {
+  .wn.is-enhanced .wn-intro {
+    padding: clamp(8px, 4svh, 72px) 0;
+  }
+  .wn.is-enhanced .wn-intro-mark {
+    width: clamp(64px, 13svh, 120px);
+    margin-bottom: clamp(12px, 3svh, 28px);
+  }
+  .wn.is-enhanced .wn-intro h1 {
+    font-size: clamp(2.4rem, min(7vw, 10svh), 5.4rem);
+  }
+  .wn.is-enhanced .wn-highlight {
+    padding: 0 0 clamp(12px, 2.5svh, 32px);
+  }
+  .wn.is-enhanced .wn-highlight h2 {
+    margin-bottom: clamp(8px, 1.8svh, 18px);
+    font-size: clamp(1.7rem, min(3.6vw, 5svh), 3rem);
+  }
+  .wn.is-enhanced :is(.wn-body, .wn-steps) {
+    margin-bottom: clamp(8px, 1.6svh, 16px);
+  }
+  .wn.is-enhanced .wn-note {
+    margin-bottom: clamp(12px, 2.6svh, 26px);
+  }
+  /* The capture keeps its shape and gives up width before the page scrolls:
+     the screen less the masthead, the tile row, the changelog line and the
+     page's own padding. */
+  .wn.is-enhanced .wn-media {
+    width: 100%;
+    max-width: calc((var(--wn-screen) - 236px) * 1.6);
+    justify-self: center;
+  }
+  .wn.is-enhanced .wn-tile {
+    min-height: clamp(60px, 9svh, 74px);
+  }
+  .wn.is-enhanced .wn-tile-label {
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+  .wn.is-enhanced .wn-changelog {
+    margin-top: clamp(8px, 2svh, 32px);
+  }
+}
+/* Narrower windows give the words an even share, so they wrap less. */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .wn.is-enhanced .wn-highlight {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+@media (min-width: 761px) and (max-height: 820px) {
+  .wn.is-enhanced :is(.wn-body, .wn-steps, .wn-note) {
+    line-height: 1.45;
+  }
 }
 
 .wn-intro {
