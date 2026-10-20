@@ -7,6 +7,11 @@
 const { Menu } = require('electron');
 const { buildTabContextMenu } = require('./tab-context-menu-model');
 
+// Section headers are native on macOS 14 and later; elsewhere, and on older
+// macOS, a header is a disabled label.
+const NATIVE_HEADERS = process.platform === 'darwin'
+  && Number(String(process.getSystemVersion?.() ?? '0').split('.')[0]) >= 14;
+
 const PILL_SELECTOR = '#islandPill';
 
 function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actions }) {
@@ -49,12 +54,15 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actio
 function toElectronTemplate(modelItems, { tab, actions }) {
   return modelItems.map((item) => {
     if (item.type === 'separator') return { type: 'separator' };
+    if (item.type === 'header') {
+      return { ...(item.id ? { id: item.id } : {}), label: item.label, ...(NATIVE_HEADERS ? { type: 'header' } : { enabled: false }) };
+    }
     const el = { label: item.label };
-    // Split with ▸ lists other tabs by title: page data, not Blanc text. The
-    // id marks it so (the pseudo-locale sweep reads it).
+    // Split with ▸ lists other tabs by title and groups by name: page and user
+    // data, not Blanc text. The id marks it so (the pseudo-locale sweep reads it).
     if (item.id === 'split-with-tab') el.id = `split-with-tab:${item.tabId}`;
+    if (item.id === 'split-with-group') el.id = `split-with-group:${item.label}`;
     if (item.accelerator) el.accelerator = item.accelerator;
-    if (item.sublabel) el.sublabel = item.sublabel;
     if (item.enabled === false) el.enabled = false;
     if (item.type === 'radio') { el.type = 'radio'; el.checked = !!item.checked; }
     if (item.submenu) {

@@ -1920,6 +1920,18 @@
     "message": "Moves {title} out of {group}",
     "note": "Note beside a Split with choice: making the split takes that tab out of its group."
   },
+  "split.menuMovesInto": {
+    "message": "Moves into {group}",
+    "note": "Header atop a Split with group submenu: picking a tab there moves it into the right-clicked tab's group."
+  },
+  "split.menuMovesOutOf": {
+    "message": "Moves out of {group}",
+    "note": "Header atop a Split with group submenu: picking a tab there takes it out of its group."
+  },
+  "tabMenu.splitUngrouped": {
+    "message": "Ungrouped",
+    "note": "Split with submenu that lists the ungrouped tabs, shown when the right-clicked tab is in a group."
+  },
   "split.made": {
     "message": "{first} and {second} are now side by side",
     "note": "Screen reader announcement after a Split View is made."

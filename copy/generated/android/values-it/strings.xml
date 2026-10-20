@@ -521,6 +521,9 @@
     <string name="tab_menu_close_split">Chiudi vista divisa</string>
     <string name="split_group_move_into">Sposta %1$s in %2$s</string>
     <string name="split_group_move_out_of">Toglie %1$s da %2$s</string>
+    <string name="split_menu_moves_into">Passa in %1$s</string>
+    <string name="split_menu_moves_out_of">Esce da %1$s</string>
+    <string name="tab_menu_split_ungrouped">Senza gruppo</string>
     <string name="split_made">%1$s e %2$s sono ora affiancate</string>
     <string name="split_dissolved">Vista divisa chiusa; %1$s riempie la finestra</string>
     <string name="split_keep_as_split">Mantieni come vista divisa</string>

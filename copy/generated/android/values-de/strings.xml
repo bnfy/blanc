@@ -507,6 +507,9 @@
     <string name="tab_menu_close_split">Geteilte Ansicht schließen</string>
     <string name="split_group_move_into">Verschiebt %1$s in %2$s</string>
     <string name="split_group_move_out_of">Nimmt %1$s aus %2$s</string>
+    <string name="split_menu_moves_into">Wird in %1$s verschoben</string>
+    <string name="split_menu_moves_out_of">Wird aus %1$s genommen</string>
+    <string name="tab_menu_split_ungrouped">Ohne Gruppe</string>
     <string name="split_made">%1$s und %2$s sind jetzt nebeneinander</string>
     <string name="split_dissolved">Geteilte Ansicht beendet; %1$s füllt das Fenster</string>
     <string name="split_keep_as_split">Als geteilte Ansicht behalten</string>

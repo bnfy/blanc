@@ -521,6 +521,9 @@
     <string name="tab_menu_close_split">Fermer la vue partagée</string>
     <string name="split_group_move_into">Déplace %1$s dans %2$s</string>
     <string name="split_group_move_out_of">Retire %1$s de %2$s</string>
+    <string name="split_menu_moves_into">Passe dans %1$s</string>
+    <string name="split_menu_moves_out_of">Sort de %1$s</string>
+    <string name="tab_menu_split_ungrouped">Sans groupe</string>
     <string name="split_made">%1$s et %2$s sont maintenant côte à côte</string>
     <string name="split_dissolved">Vue partagée fermée ; %1$s occupe la fenêtre</string>
     <string name="split_keep_as_split">Garder en vue partagée</string>
