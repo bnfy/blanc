@@ -3404,7 +3404,9 @@ function islandAutoHidePinned(runtime = rt()) {
   return islandAutoHideModule.islandPinned({
     overlayMode: runtime.overlayMode,
     glanceOpen: !!runtime.glanceTabId,
-    popupOpen: ublockPopups.has(runtime.id),
+    // Acceptance only: a drawing check holds a window's Island up without a
+    // focused window or a pointer to keep it there.
+    popupOpen: ublockPopups.has(runtime.id) || (acceptanceTestMode && runtime.testHoldIsland === true),
     introducing: !!runtime.islandAutoHideIntroTimer,
   });
 }
@@ -12903,6 +12905,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return true;
       },
       getMainMenuRequests: () => testMainMenuRequests.map((request) => ({ ...request })),
+      holdIslandInWindow: (runtimeId, on) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        if (!runtime?.window || runtime.window.isDestroyed()) return false;
+        runtime.testHoldIsland = on === true;
+        if (on === true) withWindowRuntime(runtime, () => revealIsland(runtime));
+        else withWindowRuntime(runtime, () => resizeActiveView());
+        return true;
+      },
+      floatPillWebContentsId: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        return liveFloatRecord(runtime, 'pill')?.view.webContents.id ?? null;
+      },
       getIslandAutoHideState: () => ({
         enabled: islandAutoHide,
         style: islandAutoHideStyle,

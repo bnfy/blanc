@@ -82,6 +82,8 @@ function install(refs) {
     getMainWindowState,
     restoreMainWindow,
     getMainMenuRequests,
+    holdIslandInWindow,
+    floatPillWebContentsId,
     getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
@@ -590,6 +592,8 @@ function install(refs) {
     mainWindowState() { return getMainWindowState(); },
     restoreMainWindow() { return restoreMainWindow(); },
     mainMenuRequests() { return getMainMenuRequests(); },
+    holdIslandInWindow(runtimeId, on) { return holdIslandInWindow(String(runtimeId), on === true); },
+    floatPillWebContentsId(runtimeId) { return floatPillWebContentsId(String(runtimeId)); },
     chromeEval(script) {
       const wc = getChromeWebContents();
       if (!wc || wc.isDestroyed()) return null;

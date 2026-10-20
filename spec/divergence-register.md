@@ -662,15 +662,23 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
 - **Desktop:** an off-by-default, device-local setting (Settings → General and
   View → Auto-hide the Island, ⌘⌥B / Ctrl+Alt+B) gives the page the whole
   window. The pointer at the top edge, or any Island surface (palette, find,
-  popovers, Glance), shows the strip and moves pages down to make room; it
-  hides again once the pointer leaves it. Turning it on shows the strip for a
-  few seconds with a tip on how to bring it back. On macOS the window buttons hide and
-  return with it, except beside the vertical rail, which owns that corner.
-  While hidden, the page's top band belongs to the page: it does not drag the
-  window. With vertical tabs the rail is never reveal territory; only the page
-  pane's top band is. On Linux under native Wayland, which gives apps no pointer position
-  outside their windows, the strip is revealed from just inside the top edge
-  only, not from the band above a floating window.
+  popovers, Glance), brings the Island back; it hides again once the pointer
+  leaves it. A second device-local choice says how it comes back: **Float over
+  the page** (the default, added 2026-10-20) slides the pill alone down over
+  the page, which never moves, with the site still visible and clickable beside
+  it; **Push the page down** shows the strip and moves pages down to make room,
+  as v1.39.0 did. In float mode the window buttons stay on screen the whole
+  time (the macOS traffic lights; the Windows and Linux controls, which float
+  top-right), and the Windows/Linux main-menu button comes and goes with the
+  pill. Glance always uses the push layout. Turning it on shows the Island for
+  a few seconds with a tip on how to bring it back. In push mode the macOS
+  window buttons hide and return with the strip, except beside the vertical
+  rail, which owns that corner. While hidden, a 6px band along the page pane's
+  top edge drags the window (both styles); below it the page's top band
+  belongs to the page. With vertical tabs the rail is never reveal territory;
+  only the page pane's top band is. On Linux under native Wayland, which gives
+  apps no pointer position outside their windows, the Island is revealed from
+  just inside the top edge only, not from the band above a floating window.
 - **iOS and Android:** not offered. Mobile Island placement and any
   scroll-driven collapse are each platform's own presentation (D11).
 
@@ -678,4 +686,4 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
 the same keyboard and pointer routes; only how long the strip stays on screen
 differs.
 
-**Status:** Accepted 2026-10-19.
+**Status:** Accepted 2026-10-19; float style added 2026-10-20.

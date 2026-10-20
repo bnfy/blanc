@@ -32,7 +32,7 @@ fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({
 
 const server = await fixtures.start();
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
-const EXPECTED_PATHS = 15;
+const EXPECTED_PATHS = 18;
 const child = spawn(electron, ['-r', driver, repo, `--user-data-dir=${userData}`], {
   env: { ...env, BLANC_TEST: '1', TAB_DRAWING_RESULT: resultFile, TAB_DRAWING_BASE: server.base },
   detached: process.platform !== 'win32',
