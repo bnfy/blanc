@@ -81,11 +81,113 @@
   }
 
   let splitHeaderKey = '';
+  let dividerDrag = null;
+  let paneMenu = null;
+  const divider = document.createElement('div');
+  divider.id = 'splitDivider'; divider.tabIndex = 0; divider.hidden = true;
+  divider.setAttribute('role', 'separator');
+  divider.setAttribute('aria-label', 'Resize Split View');
+  divider.setAttribute('aria-orientation', 'vertical');
+  divider.setAttribute('aria-valuemin', '20'); divider.setAttribute('aria-valuemax', '80');
+  document.body.append(divider);
+  function visibleSplit() { return snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId)); }
+  let resizeQueue = Promise.resolve();
+  function resizeSplit(pair, ratio) {
+    ratio = Math.max(.2, Math.min(.8, ratio));
+    resizeQueue = resizeQueue.then(async () => {
+      if (!await request('resizeSplit', [...pair.map(nativeId), ratio])) throw Error('Split View changed; resize cancelled.');
+      await refresh();
+    }).catch(e => notice(e.message));
+    return resizeQueue;
+  }
+  divider.addEventListener('pointerdown', event => {
+    const split = visibleSplit(); if (event.button !== 0 || !split) return;
+    event.preventDefault(); divider.focus();
+    dividerDrag = { id: event.pointerId, pair: [...split.tabIds] };
+    divider.setPointerCapture(event.pointerId);
+  });
+  divider.addEventListener('pointermove', event => {
+    if (!dividerDrag || event.pointerId !== dividerDrag.id) return;
+    const rect = document.getElementById('splitHeaders').getBoundingClientRect();
+    resizeSplit(dividerDrag.pair, (event.clientX - rect.left) / rect.width);
+  });
+  for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) divider.addEventListener(type, event => {
+    if (!dividerDrag || event.pointerId !== dividerDrag.id) return;
+    dividerDrag = null;
+    if (divider.hasPointerCapture(event.pointerId)) divider.releasePointerCapture(event.pointerId);
+  });
+  divider.addEventListener('dblclick', () => { const split = visibleSplit(); if (split) resizeSplit(split.tabIds, .5); });
+  divider.addEventListener('keydown', event => {
+    const split = visibleSplit(); if (!split) return;
+    const delta = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+    let ratio = split.layout.widths[0];
+    if (delta) ratio += delta * (event.shiftKey ? .05 : .02);
+    else if (['Enter', ' '].includes(event.key)) ratio = .5;
+    else if (event.key === 'Home') ratio = .2;
+    else if (event.key === 'End') ratio = .8;
+    else return;
+    event.preventDefault(); resizeSplit(split.tabIds, ratio);
+  });
+  async function dismissPaneMenu(returnFocus = false) {
+    if (!paneMenu) return;
+    const id = paneMenu.dataset.tabId; paneMenu.remove(); paneMenu = null;
+    await request('height', [68]); reportGeometry();
+    if (returnFocus) document.querySelector(`[data-pane-menu="${id}"]`)?.focus();
+  }
+  async function openPaneMenu(tab, anchor) {
+    const pair = [...(visibleSplit()?.tabIds ?? [])];
+    await close(false);
+    await dismissPaneMenu();
+    const menu = document.createElement('div'); menu.id = 'splitPaneMenu';
+    menu.dataset.tabId = tab.id; menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', `Actions for ${tab.title || 'pane'}`);
+    const rect = anchor.getBoundingClientRect();
+    menu.style.left = `${Math.max(0, Math.min(innerWidth - 240, rect.right - 240))}px`;
+    menu.dataset.private = String(tab.private);
+    for (const [label, method] of [
+      ['Reload', 'reload'], [tab.muted ? 'Unmute tab' : 'Mute tab', 'toggleMuted'],
+      ['Pin tab', 'togglePinned'], ['Remove from Split View', 'removeFromSplit'], ['Close tab', 'closeTab'],
+    ]) {
+      const button = document.createElement('button'); button.textContent = label; button.setAttribute('role', 'menuitem');
+      button.addEventListener('click', async () => {
+        // Recheck the original visible pair before dispatching a stale menu action.
+        await refresh();
+        const split = visibleSplit();
+        await dismissPaneMenu();
+        if (!split || JSON.stringify(split.tabIds) !== JSON.stringify(pair)) return;
+        try { await request(method, [nativeId(tab.id)]); await refresh(); } catch (e) { notice(e.message); }
+      }); menu.append(button);
+    }
+    menu.addEventListener('keydown', event => {
+      const buttons = [...menu.querySelectorAll('button')];
+      if (event.key === 'Escape') { event.preventDefault(); dismissPaneMenu(true); }
+      else if (event.key === 'Tab') dismissPaneMenu();
+      else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault(); const i = buttons.indexOf(document.activeElement);
+        buttons[event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 :
+          (i + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length].focus();
+      }
+    });
+    paneMenu = menu; document.body.append(menu); await request('height', [320]); reportGeometry();
+    menu.querySelector('button').focus();
+  }
+  document.addEventListener('pointerdown', event => {
+    if (paneMenu && !paneMenu.contains(event.target)) dismissPaneMenu();
+  });
+  window.addEventListener('blur', () => { if (paneMenu) dismissPaneMenu(); });
   function paintSplitHeaders() {
     const box = document.getElementById('splitHeaders');
     const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
     const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
     const key = JSON.stringify([split, tabs, layout, railWidth]);
+    divider.hidden = !split;
+    if (split) {
+      const left = layout === 'vertical' ? railWidth : 0;
+      divider.style.left = `${left + (innerWidth - left) * split.layout.widths[0] - 4}px`;
+      divider.setAttribute('aria-valuenow', String(Math.round(split.layout.widths[0] * 100)));
+      divider.setAttribute('aria-valuetext', `${Math.round(split.layout.widths[0] * 100)} percent left pane`);
+    }
+    if (paneMenu && !split?.tabIds.includes(paneMenu.dataset.tabId)) dismissPaneMenu();
     if (key === splitHeaderKey) return;
     splitHeaderKey = key;
     box.hidden = !split;
@@ -104,12 +206,18 @@
       for (const [label, title, action, disabled] of [
         ['←', `Back in ${tab.title}`, () => request('goBack', [nativeId(tab.id)]), !tab.canGoBack],
         [tab.title || tab.url, `Focus ${tab.title}`, () => request('switchTab', [nativeId(tab.id)]), false],
+        ['↻', `Reload ${tab.title}`, () => request('reload', [nativeId(tab.id)]), false],
+        ['⋯', `Actions for ${tab.title}`, null, false],
         ['×', `Remove ${tab.title} from Split View`, () => request('removeFromSplit', [nativeId(tab.id)]), false],
       ]) {
         const button = document.createElement('button');
         button.textContent = label; button.title = title;
         button.setAttribute('aria-label', title); button.disabled = disabled;
-        button.addEventListener('click', () => action().then(refresh).catch(e => notice(e.message)));
+        if (title.startsWith('Focus ')) button.className = 'split-pane-title';
+        if (!action) {
+          button.dataset.paneMenu = tab.id; button.setAttribute('aria-haspopup', 'menu');
+          button.addEventListener('click', () => openPaneMenu(tab, button).catch(e => notice(e.message)));
+        } else button.addEventListener('click', () => action().then(refresh).catch(e => notice(e.message)));
         pane.append(button);
       }
       box.append(pane);
@@ -167,9 +275,9 @@
 
   function reportGeometry() {
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
-    const panel = extensionsOpened ? document.getElementById('extensionsPanel')
+    const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : 'islandPanel')
-      : strip.contentDocument?.getElementById('islandPill');
+      : strip.contentDocument?.getElementById('islandPill'));
     if (!slot || !panel) return;
     const a = slot.getBoundingClientRect();
     // The palette scrim owns outside clicks across the whole viewport.
@@ -240,6 +348,7 @@
   }
 
   async function close(focus = true) {
+    await dismissPaneMenu();
     tooltip.hidden = true;
     extensionsOpened = false;
     extensionsPanel.hide();
@@ -419,6 +528,7 @@
       if (!result) throw new Error('These tabs can no longer be split.');
       await close(); await refresh(); return result;
     },
+    resizeSplit: async (pair, ratio) => request('resizeSplit', [...pair.map(nativeId), ratio]),
     removeFromSplit: async id => { await request('removeFromSplit', [nativeId(id)]); await refresh(); },
     previewSplitPair: (main, reference) => request('previewSplitPair', [nativeId(main), nativeId(reference)]),
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),

@@ -31,10 +31,17 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 .split-pane-header { display:flex; min-width:0; border-bottom:1px solid #8885; border-right:1px solid #8885; }
 .split-pane-header[data-active="true"] { border-bottom:2px solid #ad8241; }
 .split-pane-header button { font:12px system-ui; color:inherit; background:transparent; border:0; padding:0 8px; cursor:pointer; }
-.split-pane-header button:nth-last-child(2) { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
+.split-pane-header .split-pane-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
 .split-pane-header button:focus-visible { outline:2px solid #ad8241; outline-offset:-2px; }
 .split-pane-header button:disabled { opacity:.4; }
 
 .split-pane-header img { width:16px; height:16px; margin:6px 2px 6px 6px; }
 
 #splitHeaders[data-private="true"] { background:#0a0a0a; color:#fff; }
+
+#splitDivider { position:absolute; top:68px; width:8px; height:30px; z-index:4; cursor:col-resize; touch-action:none; }
+#splitDivider:hover, #splitDivider:focus-visible { background:#ad824180; outline:2px solid #ad8241; outline-offset:-2px; }
+#splitPaneMenu { position:absolute; top:98px; width:240px; z-index:20; background:#faf7f0; color:#24211d; border:1px solid #8885; border-radius:8px; padding:4px; box-shadow:0 4px 14px #0003; }
+#splitPaneMenu[data-private="true"] { background:#161616; color:white; }
+#splitPaneMenu button { display:block; width:100%; border:0; background:transparent; color:inherit; text-align:left; padding:9px; border-radius:4px; font:13px system-ui; }
+#splitPaneMenu button:hover, #splitPaneMenu button:focus { background:#ad824130; outline:2px solid #ad8241; outline-offset:-2px; }

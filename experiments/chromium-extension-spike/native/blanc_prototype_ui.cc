@@ -2347,6 +2347,25 @@ class Handler : public content::WebUIMessageHandler {
       if (method != "previewGlancePair") model->ActivateTabAt(first);
       reply(true, base::Value(true)); return;
     }
+    if (method == "resizeSplit" && args.size() == 3 && args[0].is_int() &&
+        args[1].is_int() && args[2].is_double()) {
+      const double ratio = args[2].GetDouble();
+      int first = -1, second = -1;
+      for (int i = 0; i < model->count(); ++i) {
+        const int tab_id = sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id();
+        if (tab_id == args[0].GetInt()) first = i;
+        if (tab_id == args[1].GetInt()) second = i;
+      }
+      const auto split = first >= 0 ? model->GetSplitForTab(first) : std::nullopt;
+      if (!std::isfinite(ratio) || ratio < 0.2 || ratio > 0.8 || first < 0 ||
+          second <= first || !split || model->GetSplitForTab(second) != split ||
+          model->GetSplitForTab(model->active_index()) != split ||
+          !model->GetWebContentsAt(first)->GetUserData(kPersistentSplitKey)) {
+        reply(true, base::Value(false)); return;
+      }
+      model->UpdateSplitRatio(*split, ratio);
+      reply(true, base::Value(true)); return;
+    }
     if ((method == "previewGlanceClose" || method == "removeFromSplit") && args.size() == 1 && args[0].is_int()) {
       for (int i = 0; i < model->count(); ++i) {
         if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
