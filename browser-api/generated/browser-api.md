@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-138 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`.
+137 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -68,7 +68,6 @@
 | `closeSplit` | split | invoke | `chrome:split-close` | `(tabId: string) => Promise<boolean>` | all |
 | `resizeSplit` | split | send | `chrome:resize-split` | `(splitId: string, index: number, axis: 'x' \| 'y', point: Point)` | all |
 | `resetSplit` | split | invoke | `chrome:reset-split` | `(splitId: string) => Promise<boolean>` | all |
-| `openSplitPaneMenu` | split | send | `chrome:split-pane-menu` | `(tabId: string, point: Point)` | all |
 | `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
@@ -604,19 +603,17 @@ What the strip draws for the visible split, from splitLayoutPayload() in split-l
 
 ### `SplitPane`
 
-One pane of the visible split: its header band and page area, and what its header shows.
+One pane of the visible split: its card and the page area inside it.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabId` | `string` |  |
-| `header` | `Rect \| null` |  |
+| `frame` | `Rect \| null` | The pane's card, border included; null while the pane is hidden (focus only). |
 | `content` | `Rect \| null` |  |
 | `focused` | `boolean` |  |
 | `title` | `string` |  |
 | `favicon` | `string \| null` | A PNG data URL, or null. |
 | `private` | `boolean` |  |
-| `canGoBack` | `boolean` |  |
-| `loading` | `boolean` |  |
 
 ### `SplitDivider`
 

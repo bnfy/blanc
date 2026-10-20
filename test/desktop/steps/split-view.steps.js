@@ -44,7 +44,7 @@ Given('another ordinary tab', async function () {
   await this.waitForState((state) => state.activeTabId === this.splitA);
 });
 
-Then('both tabs are shown side by side with a header band each', async function () {
+Then('both tabs are shown side by side, each in its own card', async function () {
   const layout = await waitForValue(() => this.call('splitLayout'), (l) => l?.panes?.length === 2, 'a split layout');
   assert.equal(layout.mode, 'columns');
   assert.deepEqual(layout.panes.map((p) => p.tabId), [this.splitA, this.splitB]);
@@ -52,11 +52,16 @@ Then('both tabs are shown side by side with a header band each', async function 
   assert.ok(attached.includes(this.splitA) && attached.includes(this.splitB), `both views attached: ${attached}`);
   const state = await this.state();
   for (const pane of layout.panes) {
-    assert.equal(pane.header.height, 30);
     const bounds = state.tabs.find((t) => t.id === pane.tabId).bounds;
-    assert.deepEqual(bounds, pane.content, 'the page view fills the pane below its header band');
+    assert.deepEqual(bounds, pane.content, 'the page view fills its card inside the border');
+    assert.deepEqual(pane.content, { x: pane.frame.x + 1, y: pane.frame.y + 1, width: pane.frame.width - 2, height: pane.frame.height - 2 });
   }
-  assert.ok(layout.panes[1].header.x > layout.panes[0].header.x + layout.panes[0].header.width, 'side by side');
+  assert.ok(layout.panes[1].frame.x > layout.panes[0].frame.x + layout.panes[0].frame.width, 'side by side');
+  const page = await chromePage();
+  const cards = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.split-pane-frame')]
+    .filter((el) => !el.hidden).map((el) => ({ tabId: el.dataset.tabId, focused: el.classList.contains('focused') }))),
+  (list) => list.length === 2, 'two drawn cards');
+  assert.deepEqual(cards, [{ tabId: this.splitA, focused: true }, { tabId: this.splitB, focused: false }]);
 });
 
 // As a click does, focus moves from the first pane to the second (a page
@@ -255,15 +260,23 @@ Then('there is no split and the first tab is pinned', async function () {
 // ---- Pane headers and the divider (F53-11) ----
 const { chromePage } = require('../support/tab-drag');
 
-Then('each pane header names its tab', async function () {
-  const page = await chromePage();
-  const headers = await waitForValue(() => page.evaluate(() => [...document.querySelectorAll('.split-pane-header')]
-    .filter((el) => !el.hidden)
-    .map((el) => ({ tabId: el.dataset.tabId, title: el.querySelector('.split-pane-title')?.textContent, label: el.getAttribute('aria-label') }))),
-  (list) => list.length === 2 && list.every((h) => h.title), 'two named pane headers');
-  assert.deepEqual(headers.map((h) => h.tabId), [this.splitA, this.splitB]);
-  assert.deepEqual(headers.map((h) => h.title), ['split-a', 'split-b']);
-  assert.equal(headers[0].label, 'split-a, pane 1 of 2');
+const cornerOf = (list, tabId) => list.find((c) => c.tabId === tabId);
+const cornersShown = (world) => waitForValue(() => world.call('splitCornerTabs'),
+  (list) => [world.splitA, world.splitB].every((id) => cornerOf(list, id)?.shown && cornerOf(list, id).width > 0),
+  'a corner tab on both panes');
+
+Then("the other pane's corner tab names its site and the focused one shows only its ×", async function () {
+  const list = await cornersShown(this);
+  const host = new URL(this.fixtureUrl('split-b')).host;
+  const [a, b] = [cornerOf(list, this.splitA), cornerOf(list, this.splitB)];
+  assert.equal(a.focused, true);
+  assert.equal(b.focused, false);
+  assert.equal(b.site, host);
+  assert.ok(b.width > a.width, 'the unfocused tab is wider: it carries the site');
+  const layout = await this.call('splitLayout');
+  const frame = layout.panes[1].frame;
+  assert.equal(b.bounds.x + b.bounds.width, frame.x + frame.width, 'on the card\'s right edge');
+  assert.equal(b.bounds.y + b.bounds.height, frame.y + frame.height, 'on the card\'s bottom edge');
 });
 
 When('I move the split divider with the keyboard', async function () {
@@ -290,9 +303,50 @@ Then('the column widths are equal again', async function () {
   await waitForValue(() => splitOf(this), (s) => s && Math.abs(s.layout.widths[0] - 0.5) < 1e-6, 'equal widths');
 });
 
-When("I press Remove from Split in the first pane's header", async function () {
+async function dividerCenter(page) {
+  const box = await page.locator('.split-divider').first().boundingBox();
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+
+When('I drag the split divider and let go', async function () {
   const page = await chromePage();
-  await page.locator(`.split-pane-header[data-tab-id="${this.splitA}"] .split-pane-remove`).click();
+  const before = (await splitOf(this)).layout.widths;
+  const start = await dividerCenter(page);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 80, start.y, { steps: 8 });
+  await page.mouse.up();
+  // The divider follows the whole drag, not just its first step.
+  const page80 = 80 / (await page.evaluate(() => window.innerWidth));
+  await waitForValue(() => splitOf(this), (s) => s && s.layout.widths[0] > before[0] + page80 * 0.75, 'the first column to grow by most of the drag');
+});
+
+Then("hovering over the split divider doesn't move it", async function () {
+  const page = await chromePage();
+  const before = (await splitOf(this)).layout.widths;
+  const at = await dividerCenter(page);
+  // Small steps keep the pointer on the 12 px divider the whole way.
+  for (let i = 0; i <= 8; i++) await page.mouse.move(at.x - i * 3, at.y);
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  assert.deepEqual((await splitOf(this)).layout.widths, before);
+});
+
+When("I press the × on the first pane's corner tab", async function () {
+  await cornersShown(this);
+  assert.ok(await this.call('clickSplitCorner', this.splitA, 'close'));
+});
+
+When("I click the second pane's corner tab", async function () {
+  await cornersShown(this);
+  assert.ok(await this.call('clickSplitCorner', this.splitB, 'tab'));
+});
+
+Then('the second split tab is the active tab and both stay shown', async function () {
+  await this.waitForState((s) => s.activeTabId === this.splitB);
+  const attached = await this.call('attachedTabViewIds');
+  assert.ok(attached.includes(this.splitA) && attached.includes(this.splitB), `both views attached: ${attached}`);
+  await waitForValue(() => this.call('splitCornerTabs'),
+    (list) => cornerOf(list, this.splitB)?.focused === true && cornerOf(list, this.splitA)?.focused === false, 'focus to move to the second corner tab');
 });
 
 Then('there is no split', async function () {
@@ -393,18 +447,22 @@ When('I save this window as a Space, switch away and come back', async function 
 
 // ---- Review fixes (F53-14 … F53-19) ----
 
-When('the second pane navigates to another page', async function () {
-  await this.call('navigateTab', this.splitB, this.fixtureUrl('split-b-next'));
-  await this.waitForState((s) => s.tabs.find((t) => t.id === this.splitB)?.loadedUrl.includes('split-b-next')
-    && !s.tabs.find((t) => t.id === this.splitB)?.loading);
+// A web page's corner tab shows its host; anything else shows its title, so
+// moving from a web page to Mahjong changes what the tab says.
+When('the second pane navigates to a page of another kind', async function () {
+  await cornersShown(this);
+  await this.call('navigateTab', this.splitB, 'blanc://mahjong/');
+  await this.waitForState((s) => {
+    const tab = s.tabs.find((t) => t.id === this.splitB);
+    return tab?.url.startsWith('blanc://mahjong') && !tab.loading && tab.title;
+  });
 });
 
-Then("the second pane's header names the new page and offers Back", async function () {
-  const page = await chromePage();
-  await waitForValue(() => page.evaluate((id) => {
-    const el = document.querySelector(`.split-pane-header[data-tab-id="${id}"]`);
-    return el && { title: el.querySelector('.split-pane-title')?.textContent, back: !el.querySelector('.split-pane-back')?.disabled };
-  }, this.splitB), (h) => h?.title === 'split-b-next' && h.back, 'the header to follow the page');
+Then("the second pane's corner tab names the new page", async function () {
+  const state = await this.state();
+  const title = state.tabs.find((t) => t.id === this.splitB).title;
+  await waitForValue(() => this.call('splitCornerTabs'), (list) => cornerOf(list, this.splitB)?.site === title,
+    `the corner tab to say "${title}"`);
 });
 
 When('I group the first split tab as {string}', async function (name) {
@@ -462,4 +520,50 @@ Then('the first split tab is the active tab', async function () {
   const state = await this.waitForState((s) => s.splits.length === 0);
   assert.equal(state.activeTabId, this.splitA);
   assert.equal(state.tabs.find((t) => t.id === this.splitA).pinned, true);
+});
+
+// ---- The floating Island over a split (F53-22) ----
+
+// Split with ▸ on the active tab: no tab switch follows, so nothing but the
+// split itself restacks the window's views.
+Given('the active tab is split with another, as its menu does', async function () {
+  this.splitB = await openLoaded(this, 'split-b');
+  this.splitA = await openLoaded(this, 'split-a');
+  await this.waitForState((state) => state.activeTabId === this.splitA);
+  await this.call('runTabMenuItem', this.splitA, 'split-with-tab', { otherTabId: this.splitB });
+  await this.waitForState((state) => state.splits.some((s) => s.tabIds.includes(this.splitA) && s.tabIds.includes(this.splitB)));
+});
+
+Then("the floating pill stays above the split's panes and corner tabs", async function () {
+  // Tab ids change across a relaunch, so wait for any two drawn corner tabs.
+  await waitForValue(() => this.call('splitCornerTabs'), (list) => list.length === 2 && list.every((c) => c.shown && c.width > 0),
+    'a corner tab on both panes');
+  const pill = await waitForValue(() => this.call('floatViewState', 'pill'), (value) => value?.attached === true, 'the floating pill view');
+  assert.equal(pill?.attached, true, 'the floating pill view is in the window');
+  assert.equal(pill.aboveTabsAndSheet, true, 'the floating pill sits above every pane');
+  const order = await this.call('splitCornerTabs');
+  for (const corner of order) assert.equal(corner.belowFloat, true, `${corner.tabId}'s corner tab sits under the floating pill`);
+});
+
+Then('the floating pill slides in over the split', async function () {
+  await waitForValue(() => this.call('floatViewState', 'pill'), (value) => value?.shown === true && value.visible === true
+    && value.aboveTabsAndSheet === true, 'the floating pill to show above the panes');
+});
+
+Then("the Island is shown and the split's cards start below the strip", async function () {
+  const state = await waitForValue(() => this.call('islandAutoHideState'),
+    (value) => !value?.sliding && value?.stripHidden === false && value.pageY > 0, 'the strip to be shown');
+  const layout = await waitForValue(() => this.call('splitLayout'),
+    (l) => l?.panes?.length === 2 && l.panes.every((p) => p.frame?.y > state.pageY), 'the cards below the strip');
+  const after = await this.state();
+  for (const pane of layout.panes) {
+    const bounds = after.tabs.find((t) => t.id === pane.tabId).bounds;
+    assert.ok(bounds.y > state.pageY, `pane page view at ${bounds.y} starts below the strip (${state.pageY})`);
+  }
+});
+
+When("a pane's view is raised above everything", async function () {
+  assert.equal(await this.call('raiseTabView', this.splitB), true);
+  const pill = await this.call('floatViewState', 'pill');
+  assert.equal(pill.aboveTabsAndSheet, false, 'the raised pane now covers the floating pill');
 });

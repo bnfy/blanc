@@ -204,6 +204,9 @@ function install(refs) {
     menuContextActionsForTest,
     closedEntrySummaries,
     splitLayoutForTest,
+    splitCornerTabsForTest,
+    clickSplitCornerForTest,
+    raiseTabViewForTest,
     attachedTabViewIds,
     sleepBackgroundTabsNow,
     runArchiveSweep,
@@ -744,6 +747,9 @@ function install(refs) {
     // ---- Split View (F53) ----
     makeSplit(initiatorId, otherIds) { return createSplitFromTabs(initiatorId, otherIds)?.id ?? null; },
     splitLayout() { return splitLayoutForTest(); },
+    splitCornerTabs() { return splitCornerTabsForTest(); },
+    clickSplitCorner(tabId, part) { return clickSplitCornerForTest(tabId, part); },
+    raiseTabView(tabId) { return raiseTabViewForTest(tabId); },
     keepGlanceAsSplit() { return keepGlanceAsSplit()?.id ?? null; },
     /** A tab-menu item as a click runs it: the real dispatcher and actions. */
     runTabMenuItem(tabId, itemId, extra = {}) {

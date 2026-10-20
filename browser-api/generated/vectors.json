@@ -2668,40 +2668,6 @@
         false
       ]
     },
-    "openSplitPaneMenu": {
-      "kind": "send",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:split-pane-menu",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            "example",
-            {
-              "x": 1,
-              "y": 1
-            }
-          ],
-          "sends": [
-            {
-              "kind": "send",
-              "channel": "chrome:split-pane-menu",
-              "args": [
-                "example",
-                {
-                  "x": 1,
-                  "y": 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
     "onSplitLayout": {
       "kind": "event",
       "platforms": [
@@ -2739,7 +2705,7 @@
               "panes": [
                 {
                   "tabId": "split-pane-1",
-                  "header": {
+                  "frame": {
                     "x": 1,
                     "y": 1,
                     "width": 1,
@@ -2754,9 +2720,7 @@
                   "focused": true,
                   "title": "split-pane-1",
                   "favicon": "split-pane-1",
-                  "private": true,
-                  "canGoBack": true,
-                  "loading": true
+                  "private": true
                 }
               ],
               "dividers": [
@@ -2782,7 +2746,7 @@
                 "panes": [
                   {
                     "tabId": "split-pane-1",
-                    "header": {
+                    "frame": {
                       "x": 1,
                       "y": 1,
                       "width": 1,
@@ -2797,9 +2761,7 @@
                     "focused": true,
                     "title": "split-pane-1",
                     "favicon": "split-pane-1",
-                    "private": true,
-                    "canGoBack": true,
-                    "loading": true
+                    "private": true
                   }
                 ],
                 "dividers": [

@@ -84,8 +84,8 @@ test('privileged chrome is isolated in its own in-memory session', () => {
   assert.match(mainSource, /session\.fromPartition\(CHROME_PARTITION\)/);
   assert.equal(
     (mainSource.match(/partition: CHROME_PARTITION/g) ?? []).length,
-    6,
-    'the chrome window, overlay, permission, fill-status, pill tooltip and floating Island surfaces must all use the isolated partition'
+    7,
+    'the chrome window, overlay, permission, fill-status, pill tooltip, floating Island and split corner tab surfaces must all use the isolated partition'
   );
 });
 

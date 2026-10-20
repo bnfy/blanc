@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- A Split View pane's corner tab (spec D9). No script: main writes its
+       site, favicon and label and sizes this view to it (main.js
+       paintSplitCorner), and reads its clicks from input events. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; font-src 'self'; img-src data:;" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="split-tab-surface">
+  <div class="split-tab-fillet split-tab-fillet-top" aria-hidden="true"></div>
+  <div class="split-tab-fillet split-tab-fillet-left" aria-hidden="true"></div>
+  <div id="tab" class="split-tab">
+    <img id="icon" class="split-tab-icon" alt="" hidden />
+    <svg id="globe" class="split-tab-globe" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.7 1.6 2.5 3.6 2.5 6S9.7 12.4 8 14C6.3 12.4 5.5 10.4 5.5 8S6.3 3.6 8 2z"/></svg>
+    <span id="site" class="split-tab-site"></span>
+    <span id="close" class="split-tab-close" role="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span>
+  </div>
+</body>
+</html>

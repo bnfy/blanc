@@ -18,6 +18,7 @@ const CHROME_FLOAT_URL = `${CHROME_SCHEME}://float/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
 const CHROME_TOOLTIP_URL = `${CHROME_SCHEME}://tooltip/`;
+const CHROME_SPLIT_TAB_URL = `${CHROME_SCHEME}://split-tab/`;
 const CHROME_DISPLAY_CAPTURE_HELPER_URL = `${CHROME_SCHEME}://display-capture-helper/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 // Interface strings: /strings.js is virtual — the handler answers it with the
@@ -98,6 +99,11 @@ const HOST_ASSETS = new Map([
   ['tooltip', new Map([
     ['/', 'tooltip.html'],
   ])],
+  // A Split View pane's corner tab (spec D9): no script and no preload, like
+  // the tooltip. Main writes its site and reads its clicks from input events.
+  ['split-tab', new Map([
+    ['/', 'split-tab.html'],
+  ])],
   ['display-capture-helper', new Map([
     ['/', 'display-capture-helper.html'],
     ['/display-capture-helper.js', 'display-capture-helper.js'],
@@ -170,6 +176,7 @@ module.exports = {
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,
+  CHROME_SPLIT_TAB_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   STRINGS_VIRTUAL_PATH,
   chromeResourcePath,

@@ -1862,17 +1862,13 @@
     "message": "Mantener como vista dividida",
     "source": "sha256:e896dde49f5322216828b5d25388c5d36b168ab86015e64b82498b2aa0bf413a"
   },
-  "split.paneLabel": {
-    "message": "{title}, panel {n} de {m}",
-    "source": "sha256:ca17560cb0afd0353575d817063c016de2fe111bf446eb22124c7f857d8d52ab"
-  },
-  "split.headerMenu": {
-    "message": "Menú de la pestaña",
-    "source": "sha256:26d95d1a28f0d3b27bbc531861b830d7b10d72b39a5c7268f9e8bcae94119f05"
-  },
   "split.dividerLabel": {
     "message": "Cambiar el tamaño de los paneles",
     "source": "sha256:79377077876c5ad1546888f681fc5b45645c4b4f42c536a3c8dd539d6a98528d"
+  },
+  "split.cornerLabel": {
+    "message": "{site}, panel de la vista dividida",
+    "source": "sha256:8993c42c7306703235065cd1936f1c75be6c62d0d46f34b00d7cc025a6830e63"
   },
   "split.rowLabel": {
     "message": "{first} + {second}",

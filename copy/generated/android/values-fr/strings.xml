@@ -521,9 +521,8 @@
     <string name="split_made">%1$s et %2$s sont maintenant côte à côte</string>
     <string name="split_dissolved">Vue partagée fermée ; %1$s occupe la fenêtre</string>
     <string name="split_keep_as_split">Garder en vue partagée</string>
-    <string name="split_pane_label">%1$s, volet %2$s sur %3$s</string>
-    <string name="split_header_menu">Menu de l’onglet</string>
     <string name="split_divider_label">Redimensionner les volets</string>
+    <string name="split_corner_label">%1$s, volet de la vue partagée</string>
     <string name="split_row_label">%1$s + %2$s</string>
     <string name="split_row_label_more">%1$s + %2$s autres</string>
     <string name="split_row_name">Vue partagée : %1$s</string>

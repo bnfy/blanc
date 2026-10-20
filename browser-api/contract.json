@@ -763,13 +763,14 @@
       }
     },
     "SplitPane": {
-      "doc": "One pane of the visible split: its header band and page area, and what its header shows.",
+      "doc": "One pane of the visible split: its card and the page area inside it.",
       "fields": {
         "tabId": {
           "type": "string"
         },
-        "header": {
-          "type": "Rect | null"
+        "frame": {
+          "type": "Rect | null",
+          "doc": "The pane's card, border included; null while the pane is hidden (focus only)."
         },
         "content": {
           "type": "Rect | null"
@@ -785,12 +786,6 @@
           "doc": "A PNG data URL, or null."
         },
         "private": {
-          "type": "boolean"
-        },
-        "canGoBack": {
-          "type": "boolean"
-        },
-        "loading": {
           "type": "boolean"
         }
       }
@@ -2517,23 +2512,6 @@
       ],
       "returns": "boolean",
       "doc": "Give the visible split's panes equal sizes again."
-    },
-    {
-      "name": "openSplitPaneMenu",
-      "group": "split",
-      "kind": "send",
-      "channel": "chrome:split-pane-menu",
-      "params": [
-        {
-          "name": "tabId",
-          "type": "string"
-        },
-        {
-          "name": "point",
-          "type": "Point"
-        }
-      ],
-      "doc": "Open a pane's tab menu at the header's menu button."
     },
     {
       "name": "onSplitLayout",

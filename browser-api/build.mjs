@@ -1391,7 +1391,7 @@ export function payloadFixtures() {
   const { computeSplitLayout, splitLayoutPayload, defaultSplitLayout } = requireMain('./split-layout');
   const splitPanes = (n) => Array.from({ length: n }, (_, i) => ({
     tabId: `t${i}`, title: `Tab ${i}`, favicon: i % 2 ? 'data:image/png;base64,AAAA' : 'https://example.com/x.png',
-    private: i === 1, canGoBack: i === 0, loading: i === 2,
+    private: i === 1,
   }));
   for (const n of [2, 3, 4]) {
     for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 500, height: 900 }, { x: 0, y: 68, width: 400, height: 200 }]) {

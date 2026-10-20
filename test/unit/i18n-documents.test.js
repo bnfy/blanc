@@ -11,19 +11,27 @@ const documents = [
 ];
 
 test('every chrome and internal document exists in the expected count', () => {
-  assert.equal(documents.length, 16, documents.join('\n'));
+  assert.equal(documents.length, 17, documents.join('\n'));
 });
 
 // The display-capture helper loads in a never-shown BrowserWindow and has no
 // user-visible text (its strings are internal signals and DOMException
 // messages returned to web pages). It is out of localization scope, and it is
 // pinned by src/main/capture-runtime-lock.json, so it must stay untouched.
-const DEFERRED = new Set(['display-capture-helper.html', 'tooltip.html']);
+const DEFERRED = new Set(['display-capture-helper.html', 'tooltip.html', 'split-tab.html']);
 
 // The pill's tooltip view runs no script at all: main writes the text into it,
 // already translated by the strip that asked for it.
 test('the pill tooltip document runs no script and so loads no catalog', () => {
   const html = fs.readFileSync(path.join(renderer, 'tooltip.html'), 'utf8');
+  assert.doesNotMatch(html, /<script/i);
+  assert.match(html, /<html lang="en">/);
+});
+
+// A Split View corner tab runs no script either: main writes its site and its
+// translated label (main.js paintSplitCorner).
+test('the split corner tab document runs no script and so loads no catalog', () => {
+  const html = fs.readFileSync(path.join(renderer, 'split-tab.html'), 'utf8');
   assert.doesNotMatch(html, /<script/i);
   assert.match(html, /<html lang="en">/);
 });

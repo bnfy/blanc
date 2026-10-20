@@ -72,6 +72,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** The narrowest pane that holds a split pane's header at its most
      * compact, as the strip last measured it (null until then). */
     splitPaneMinWidth: null,
+    // Split View corner tab views by tab id (main.js syncSplitCornerTabs).
+    splitCornerViews: new Map(),
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */

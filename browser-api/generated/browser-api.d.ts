@@ -367,18 +367,17 @@ export interface SplitLayout {
   dividers: SplitDivider[];
 }
 
-/** One pane of the visible split: its header band and page area, and what its header shows. */
+/** One pane of the visible split: its card and the page area inside it. */
 export interface SplitPane {
   tabId: string;
-  header: Rect | null;
+  /** The pane's card, border included; null while the pane is hidden (focus only). */
+  frame: Rect | null;
   content: Rect | null;
   focused: boolean;
   title: string;
   /** A PNG data URL, or null. */
   favicon: string | null;
   private: boolean;
-  canGoBack: boolean;
-  loading: boolean;
 }
 
 /** A split divider; `saved` dividers change the saved layout. */
@@ -1127,11 +1126,6 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:reset-split`.
    */
   resetSplit(splitId: string): Promise<boolean>;
-  /**
-   * Open a pane's tab menu at the header's menu button.
-   * IPC: send `chrome:split-pane-menu`.
-   */
-  openSplitPaneMenu(tabId: string, point: Point): void;
   /**
    * The visible Split View's layout changed, or no split shows (null).
    * IPC: event `chrome:split-layout`.

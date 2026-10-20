@@ -507,9 +507,8 @@
     <string name="split_made">%1$s und %2$s sind jetzt nebeneinander</string>
     <string name="split_dissolved">Geteilte Ansicht beendet; %1$s füllt das Fenster</string>
     <string name="split_keep_as_split">Als geteilte Ansicht behalten</string>
-    <string name="split_pane_label">%1$s, Bereich %2$s von %3$s</string>
-    <string name="split_header_menu">Tab-Menü</string>
     <string name="split_divider_label">Bereichsgröße ändern</string>
+    <string name="split_corner_label">%1$s, Bereich der geteilten Ansicht</string>
     <string name="split_row_label">%1$s + %2$s</string>
     <string name="split_row_label_more">%1$s + %2$s weitere</string>
     <string name="split_row_name">Geteilte Ansicht: %1$s</string>

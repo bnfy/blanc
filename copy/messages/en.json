@@ -1921,17 +1921,13 @@
     "message": "Keep as split",
     "note": "Glance header button that turns the current Glance into a Split View that stays open."
   },
-  "split.paneLabel": {
-    "message": "{title}, pane {n} of {m}",
-    "note": "Accessible name of one Split View pane's header: the tab's title and its place, e.g. 'Docs, pane 1 of 2'."
-  },
-  "split.headerMenu": {
-    "message": "Tab menu",
-    "note": "Tooltip and accessible name of a Split View pane header's menu button (the tab's menu)."
-  },
   "split.dividerLabel": {
     "message": "Resize panes",
     "note": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again."
+  },
+  "split.cornerLabel": {
+    "message": "{site}, Split View pane",
+    "note": "Accessible name of a Split View pane's corner tab (the small tab on the pane's bottom-right corner): the pane's site or title."
   },
   "split.rowLabel": {
     "message": "{first} + {second}",
