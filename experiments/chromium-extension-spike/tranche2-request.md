@@ -1734,3 +1734,8 @@ The profile-picker attempt did not expose the requested deletion page and was st
 Incremental wrapper times: failed diagnostic compile 19.56s, repaired diagnostic build 45.21s, normal restoration 40.35s. These are routine testing/repair effort, never cold-build cost. Final guard zero actions in 4.89s. No upstream patch changes; prior measured footprint remains 49 files/117 hunks within 49/120. No new runtime fix was required. All task profiles and fixture servers removed; preview untouched/unavailable, tabs not reverified.
 
 Evidence: `evidence/ui138-hot-profile-20261020/`, 300 hash-verified members; archive SHA256 `15791d8fd7cf2afe9583a161aab04e185d6c691a4089491d0b145fb8e06adfb2`. Real encryption-provider/hardware faults, arbitrary lifecycle timing, pre-ack crash durability, and recent unsaved edits remain gaps. Native input pending; latency deferred; Electron diagnostic build unapproved/unstarted. Earlier Task 0 and F12 gates unchanged.
+
+
+### October 20 — Extensions picker Store discovery
+
+Added an explicit query-encoded Chrome Web Store search action alongside installed-extension filtering. Syntax, scoped lint and automated logic checks pass; assets-only preparation, no native source change. Fresh native search/install walkthrough remains pending. See `evidence/store-search-20261020/README.md`. Latency and Electron diagnostic build remain deferred/unapproved.

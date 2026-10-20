@@ -1,5 +1,5 @@
 'use strict';
-// The picker only lists real native actions. Popup UI stays owned by Chromium.
+// Installed actions and Store discovery share the picker. Chromium owns installation and popups.
 window.BlancExtensions = class {
   constructor({ request, close, refreshGeometry, back }) {
     this.request = request;
@@ -59,6 +59,10 @@ window.BlancExtensions = class {
   render() {
     const query = this.search.value.trim().toLocaleLowerCase();
     this.visible = this.items.filter(item => item.name.toLocaleLowerCase().includes(query));
+    if (query) this.visible.push({
+      id: 'store-search', enabled: true, icon: '', storeSearch: true,
+      name: `Search Chrome Web Store for “${this.search.value.trim()}”`,
+    });
     if (!this.visible.some(item => item.id === this.selected && item.enabled)) {
       this.selected = this.visible.find(item => item.enabled)?.id ?? null;
     }
@@ -85,7 +89,7 @@ window.BlancExtensions = class {
       name.textContent = item.name;
       const detail = document.createElement('span');
       detail.className = 'extension-detail';
-      detail.textContent = item.enabled ? 'Open extension' : 'Unavailable on this page';
+      detail.textContent = item.storeSearch ? 'Find and install new extensions' : item.enabled ? 'Open extension' : 'Unavailable on this page';
       text.append(name, detail);
       const hint = document.createElement('span');
       hint.className = 'extension-enter';
@@ -126,6 +130,11 @@ window.BlancExtensions = class {
   }
   async activate(id) {
     if (this.busy) return;
+    if (id === 'store-search') {
+      const query = this.search.value.trim();
+      if (query) await this.openPage(`https://chromewebstore.google.com/search/${encodeURIComponent(query)}`);
+      return;
+    }
     this.busy = true;
     try {
       const tabId = this.tabId;
