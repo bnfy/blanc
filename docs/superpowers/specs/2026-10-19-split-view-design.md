@@ -1,7 +1,7 @@
 # Split View: 2–4 panes that stay open (F53)
 
 **Date:** 2026-10-19
-**Status:** draft for the owner's review. The owner decided D1–D4 on 2026-10-19 (§11). Revised the same day for a design review's four findings (header ownership, layout schema, Close Split in PR 1, the group rule). The owner chose chrome direction A on 2026-10-19 (D5, §11). §12 lists what is still open. No implementation plan yet.
+**Status:** draft for the owner's review. The owner decided D1–D4 on 2026-10-19 (§11). Revised the same day for a design review's four findings (header ownership, layout schema, Close Split in PR 1, the group rule). The owner chose chrome direction A and settled the remaining questions on 2026-10-19 (D5–D8, §11). PR 1's implementation plan is `docs/superpowers/plans/2026-10-19-split-view-pr1.md`.
 **Builds on:** [Glance](2026-08-15-glance-design.md) (F34) and its [refinement](2026-10-15-glance-refinement-design.md): focused-pane commands (`glance-focus.js`), pane geometry (`glance-layout.js`), the reference header, the picker, and Glance's motion vocabulary.
 **Reverses:** three of the Glance spec's non-goals: "more than two simultaneous page panes", "persisting … the Glance relationship" and "a general split-view workspace manager". Glance itself is unchanged. Split View is what Glance turns into when the person asks it to stay.
 **Reference:** Arc's Split View: up to four tabs side by side, which stay together as one item in the sidebar and survive relaunch. Arc has been in maintenance mode since May 2025. This is the most-used Arc habit Blanc still lacks (2026-10-19 parity audit).
@@ -75,7 +75,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **Island dots:** while a split is showing, the Island hides its tab dots, as it does in Glance. Tabs stay reachable from ⌘L, the rail and ⌘1–9.
 - **Moving focus:**
   - Clicking into a pane focuses it.
-  - `Cmd+Option+←/→/↑/↓` on macOS, `Ctrl+Alt+Arrow` on Windows and Linux, moves focus to the neighboring pane (§12 Q2).
+  - `Cmd+Option+]` / `Cmd+Option+[` on macOS, `Ctrl+Alt+]` / `Ctrl+Alt+[` on Windows and Linux, move focus to the next / previous pane in pane order, wrapping (D6).
   - The newly focused pane's title is announced ("{title}, pane 2 of 3").
 
 ### 3.4 In the tab list (D4)
@@ -88,11 +88,11 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
   - A split belongs to at most one group; all its tabs share that `groupId`.
   - Adding a tab from elsewhere moves it into the split's group, or out of a group if the split has none. The tab menu says so in the item's accessible description.
   - A split's row sits in the window's display order wherever its first tab sits, and its tabs stay contiguous (the existing `syncTabLayout` contiguity rule, extended).
-- **Pinning:** a split can't hold a pinned tab. Pinning a pane removes it from the split first (§12 Q3).
+- **Pinning:** a split can't hold a pinned tab. Pinning a pane removes it from the split first, dissolving the split if one pane would remain, then pins it (D7).
 
 ### 3.5 Leaving and dissolving
 
-- **Remove from Split:** the tab leaves the split and stays open as an ordinary tab, placed directly below the split's row. If one pane would remain, the split **dissolves** and both tabs become ordinary tabs in place.
+- **Remove from Split:** the tab leaves the split and stays open as an ordinary tab, placed directly below the split's row (D8), as Remove from Group lands a tab below its group. If one pane would remain, the split **dissolves** and both tabs become ordinary tabs in place.
 - **Closing a pane's tab** (⌘W with that pane focused, or the tab menu): it closes like any tab, and the split re-lays-out, or dissolves at one pane.
 - **Close Split:** closes all its tabs. It's recorded as **one** Recently closed entry that reopens the split whole (a new entry kind beside tab and group, §5).
 - **Move Tab to New Window** on a pane removes it from the split first. Moving the whole split to another window is out of scope (§9).
@@ -192,12 +192,13 @@ Each PR starts from mockups where it adds visible chrome, and is checked in a pa
 - **D3:** Two or three columns; four panes become a 2×2 grid. Narrow windows stack, as Glance does. Dividers are resizable.
 - **D4:** A split is one row in the tab list, and its tabs stay real tabs underneath.
 - **D5 (was Q1):** chrome direction A. One Island stays centered in the strip and always addresses the focused pane; every pane, top row included, has the same header band at its top. The owner chose it over B (the Island follows focus) and C (the Island carries the panes, with no headers). This costs one header band of page height per pane; nothing moves when focus moves, and every pane can be identified and closed in place.
+- **D6 (was Q2):** pane focus cycles with `Cmd+Option+]` / `[` on macOS and `Ctrl+Alt+]` / `[` on Windows and Linux. Directional arrows were rejected: `Cmd+Option+←/→` is tab switching in Chrome and Safari, and some Windows graphics drivers rotate the screen on `Ctrl+Alt+Arrow`.
+- **D7 (was Q3):** pinning a split tab removes it from the split first.
+- **D8 (was Q4):** a tab leaving a split lands directly below the split's row.
 
 ## 12. Open questions
 
-- **Q2. The pane-focus shortcut.** `Cmd+Option+Arrow` (macOS) and `Ctrl+Alt+Arrow` (Windows/Linux) need a conflict check against existing shortcuts, browser-page conventions and Windows' own Ctrl+Alt+Arrow screen rotation on some drivers. The plan verifies this; an alternative is ⌃Tab within the split.
-- **Q3. Pinning a pane.** Pinning a pane removes it from the split (recommended), or a split refuses to pin until the tab is removed.
-- **Q4. Where a removed tab lands.** Directly below the split's row (recommended), or back at its position before it joined the split.
+None. Q1–Q4 became D5–D8 on 2026-10-19.
 
 ## 13. Obligations elsewhere
 
