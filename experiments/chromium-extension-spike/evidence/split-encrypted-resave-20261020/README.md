@@ -1,0 +1,7 @@
+## Fresh encrypted history persistence after corruption — October 20
+
+Four final schedules pass36 checkpoints: encrypted Tabs invalid header, Session invalid header, both stores truncated, and Tabs midpoint bit flip. After each bounded corruption/fallback, a new fixture tab is created, closed/restored, closed again, and allowed five seconds to persist. A clean browser close exits zero; plaintext Session/ Tabs records are removed from the stopped disposable profile before restarting. Native Restore Tab traverses newer Window entries and restores the fresh closed tab exactly once across all windows. This proves bounded fresh closed-history persistence after the tested corruption cases, using mock keychain and encrypted records.
+
+The first both-store run hit a harness readiness error (BlancPrototypeHost undefined in a newly restored host). That failed attempt is retained; an explicit bridge-readiness wait fixes the fixture. No product failure or product repair is claimed. Final both-store and payload cases use that wait.
+
+No native compile or product change; zero-action guard; prior52files/124hunks unchanged. Sources/results hashed; runtime logs local. Disposable profiles removed after exit verification; retained preview untouched. Abrupt crash during the new write, immediate/no-settle persistence, fresh open-session autosave, real key provider/key rotation and physical crash UI remain unqualified. Native input pending, latency deferred, Electron diagnostic build pending approval.
