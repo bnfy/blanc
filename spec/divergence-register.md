@@ -671,9 +671,13 @@ pointer reaching the window's top edge, which touch input has no equivalent for.
   Island (the macOS traffic lights; in float mode the Windows and Linux
   controls, which float top-right, and the main-menu button), so they never
   sit over a site's own corner buttons while it is hidden; the macOS buttons
-  stay beside the vertical rail, which owns that corner. Glance always uses
-  the push layout. Turning it on shows the Island for a few seconds with a
-  tip on how to bring it back. While hidden, a 6px band along the page pane's
+  stay beside the vertical rail, which owns that corner. In push mode resting
+  the pointer just below the top edge also brings the Island back; in float
+  mode only the top edge does, because a site's own header sits in that band
+  and the Island would land on it, and the floating Island hides as soon as
+  the pointer moves below the strip. Glance always uses the push layout.
+  Turning it on shows the Island for a few seconds with a tip on how to bring
+  it back. While hidden, a 6px band along the page pane's
   top edge drags the window (both styles); below it the page's top band
   belongs to the page. With vertical tabs the rail is never reveal territory;
   only the page pane's top band is. On Linux under native Wayland, which gives

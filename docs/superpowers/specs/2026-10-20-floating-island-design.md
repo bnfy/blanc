@@ -75,6 +75,11 @@ page.
   while an Island surface is open; the 5-second intro with its tip;
   hover-open eligibility only while the Island is visible; Wayland's
   reliance on in-window pointer moves.
+- **Amended 2026-10-20 (owner):** in float mode the rest band no longer
+  reveals the Island, and the leave check has no slack below the strip and
+  runs every 120 ms. A site's header sits in the 40px band (YouTube's search
+  box), so resting on it landed the floating Island over it. Push mode keeps
+  both as they were.
 
 ## Behaviour (my calls, confirmed by the owner in playback)
 

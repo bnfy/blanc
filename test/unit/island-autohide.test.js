@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {
-  REVEAL_EDGE_PX, HIDE_SLACK_PX, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
+  REVEAL_EDGE_PX, HIDE_SLACK_PX, HIDE_CHECK_MS, FLOAT_HIDE_CHECK_MS, hideCheckDelay, REACH_ABOVE_PX, pointHoldsIsland, islandPinned, stripHidden, reachAboveWindow,
   easeOutCubic, slidingBounds, SLIDE_IN_MS, SLIDE_OUT_MS,
   REVEAL_DWELL_BAND_PX, REVEAL_DWELL_MS, REVEAL_DWELL_DRIFT_PX, revealDwellStep,
   AUTO_HIDE_STYLES, normalizeAutoHideStyle,
@@ -226,6 +226,32 @@ test('the dwell band sits below the instant edge and inside the window', () => {
   assert.ok(REVEAL_DWELL_MS >= 200 && REVEAL_DWELL_MS <= 400);
 });
 
+test('a floating Island reveals only from the top edge: resting on a site header never does', () => {
+  // YouTube's 56px header holds its search box inside the dwell band.
+  const win = { width: 1200, height: 800, floating: true };
+  let step = revealDwellStep(null, { x: 400, y: 30 }, 0, win);
+  assert.deepEqual(step, { dwell: null, reveal: false });
+  step = revealDwellStep({ anchor: { x: 400, y: 30 }, since: 0 }, { x: 400, y: 30 }, 10000, win);
+  assert.deepEqual(step, { dwell: null, reveal: false });
+  assert.equal(pointHoldsIsland({ x: 600, y: REVEAL_EDGE_PX }, { ...window, ...win, revealed: false }), true);
+});
+
+test('a floating Island hides once the pointer leaves the strip, with no slack below it', () => {
+  const floating = { ...window, revealed: true, floating: true };
+  assert.equal(pointHoldsIsland({ x: 600, y: 67 }, floating), true);
+  assert.equal(pointHoldsIsland({ x: 600, y: 68 }, floating), false);
+  assert.equal(hideCheckDelay(true), FLOAT_HIDE_CHECK_MS);
+  assert.equal(hideCheckDelay(false), HIDE_CHECK_MS);
+  assert.ok(FLOAT_HIDE_CHECK_MS <= 150);
+});
+
+test('main tells the reveal and hide policy whether the Island floats', () => {
+  const geometry = main.slice(main.indexOf('function revealGeometry('), main.indexOf('function sampledWindowCursor('));
+  assert.match(geometry, /floating: islandFloating\(runtime\),/);
+  assert.match(main, /floating: geometry\.floating,/);
+  assert.match(main, /\}\), islandAutoHideModule\.hideCheckDelay\(islandFloating\(runtime\)\)\);/);
+});
+
 test('main feeds the sampled cursor to the dwell and resets it on reveal', () => {
   assert.match(main, /const dwell = islandAutoHideModule\.revealDwellStep\(runtime\.islandRevealDwell, point, Date\.now\(\), geometry\);/);
   assert.match(main, /if \(islandHeldAt\(runtime, point, geometry\) \|\| dwell\.reveal\) \{/);
@@ -370,6 +396,15 @@ test('the strip document draws a 6px drag band while the page covers it', () => 
   assert.match(css, /#strip\.drag-suspended #dragBand \{ -webkit-app-region: no-drag; \}/);
   assert.match(css, /:root\[data-tab-layout="vertical"\] #dragBand \{ left: var\(--vertical-tabs-w\); \}/);
   assert.match(renderer, /dragBand\.addEventListener\('dblclick', \(\) => window\.browserAPI\.maximizeWindow\(\)\)/);
+});
+
+test('a covered strip under a split paints nothing into the gaps between its panes', () => {
+  // The panes are inset cards, so a page covering the strip still leaves the
+  // strip showing around them: its tint and its own copy of the pill (the
+  // floating views draw the revealed one).
+  const css = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  assert.match(css, /#strip\.strip-hidden\.split-open \{ background: transparent; \}/);
+  assert.match(css, /#strip\.strip-hidden\.split-open :is\(#islandPill, #windowControls, #mainMenuButton\) \{ visibility: hidden; \}/);
 });
 
 test('every strip broadcast also reaches the floating Island views', () => {

@@ -224,6 +224,18 @@ When('I move the pointer well below the Island', async function () {
   await restCursor(this, { x: 400, y: 400 });
 });
 
+// Inside the slack a push-style strip keeps (HIDE_SLACK_PX), so only a
+// floating Island hides here.
+When('I move the pointer {int} pixels below the strip', async function (px) {
+  const state = await autoHideState(this);
+  await restCursor(this, { x: 400, y: state.chromeHeight + px });
+});
+
+Then('the Island hides within {int} milliseconds', async function (ms) {
+  await waitForValue(() => autoHideState(this), (value) => value?.revealed === false && value?.stripHidden === true,
+    'the floating Island to hide', ms);
+});
+
 Then('the Island hides again', async function () {
   await waitForAutoHide(this, (value) => !value?.sliding && value?.stripHidden === true && value.pageY === coveredTop(value),
     'the strip to hide again');
