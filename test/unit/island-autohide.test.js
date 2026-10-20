@@ -365,6 +365,15 @@ test('the strip document draws a 6px drag band while the page covers it', () => 
   assert.match(renderer, /dragBand\.addEventListener\('dblclick', \(\) => window\.browserAPI\.maximizeWindow\(\)\)/);
 });
 
+test('a covered strip under a split paints nothing into the gaps between its panes', () => {
+  // The panes are inset cards, so a page covering the strip still leaves the
+  // strip showing around them: its tint and its own copy of the pill (the
+  // floating views draw the revealed one).
+  const css = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
+  assert.match(css, /#strip\.strip-hidden\.split-open \{ background: transparent; \}/);
+  assert.match(css, /#strip\.strip-hidden\.split-open :is\(#islandPill, #windowControls, #mainMenuButton\) \{ visibility: hidden; \}/);
+});
+
 test('every strip broadcast also reaches the floating Island views', () => {
   const helper = main.slice(main.indexOf('function stripSurfaces(runtime) {'), main.indexOf('function restackAboveIslandFloat('));
   assert.match(helper, /window\.webContents\.send\(channel, \.\.\.args\);/);
