@@ -135,10 +135,10 @@
 
 - [ ] **Step 1: Write the failing tests.**
   - The unit source tests above.
-  - Acceptance `@F34-60` "A Glance opens as a centered card over the page": the main tab's bounds equal the page bounds, and the Glance tab's bounds equal `getGlanceCard().page`, at 1100 × (window − 68 − 16 − 32) in a 1600-wide window.
-  - Acceptance `@F34-61` "The card keeps its header on screen when the window is maximized and restored" (Review Focus 5).
-- [ ] **Step 2: Run them and confirm they fail.** Run `node --test test/unit/glance-card-surface.test.js`, then `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F34-60 or @F34-61"`.
-- [ ] **Step 3: Implement** the surface, the view lifecycle, placement, stacking and payload. Add `@F34-60` and `@F34-61` to `RUNNABLE` in `test/desktop/cucumber.mjs` and the rows to `spec/acceptance/index.md`.
+  - Acceptance `@F34-2` "A Glance opens as a centered card over the page": the main tab's bounds equal the page bounds, and the Glance tab's bounds equal `getGlanceCard().page`, at 1100 × (window − 68 − 16 − 32) in a 1600-wide window.
+  - Acceptance `@F34-3` "The card keeps its header on screen when the window is maximized and restored" (Review Focus 5).
+- [ ] **Step 2: Run them and confirm they fail.** Run `node --test test/unit/glance-card-surface.test.js`, then `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F34-2 or @F34-3"`.
+- [ ] **Step 3: Implement** the surface, the view lifecycle, placement, stacking and payload. Add `@F34-2` and `@F34-3` to `RUNNABLE` in `test/desktop/cucumber.mjs` and the rows to `spec/acceptance/index.md`.
 - [ ] **Step 4: Run them and confirm they pass,** plus `npm run browser-api:check` (update the `GlanceLayout` type first and run `npm run browser-api:build`). Run `npm run audit-inventory:write`.
 - [ ] **Step 5: Commit.** `git commit -m "Glance: draw the card on its own chrome surface over the page"`
 
@@ -149,7 +149,7 @@
 - Modify: `src/renderer/styles.css` (ring hit areas: edges 8 px wide, corners 16 × 16 px, resize cursors)
 - Modify: `src/main/preload.js`, `browser-api/contract.json` (remove `resizeGlance`, `resetGlance`; add the three members below)
 - Modify: `src/main/main.js` (handlers; remove `resizeGlanceAt`, `resetGlanceRatio` and `runtime.glanceRatio`)
-- Test: `test/unit/glance-card-pointer.test.js` (main handlers through the test hook or extracted helpers); acceptance `@F34-62` and `@F34-63`
+- Test: `test/unit/glance-card-pointer.test.js` (main handlers through the test hook or extracted helpers); acceptance `@F34-4` and `@F34-5`
 
 **Interfaces:**
 - Consumes: `moveCardFrame`, `resizeCardFrame`, `defaultCardFrame`, `frameToFractions` (Task 1); `setGlanceFrame` (Task 2); `glanceCardFrame` (Task 3).
@@ -163,8 +163,8 @@
   - Unit: a move after `closeGlance` returns `null` and leaves `glanceFrame` unchanged (Review Focus 4).
   - Unit: a resize below the minimum returns the clamped frame.
   - Unit: reset sets `glanceFrame` to `null`.
-  - Acceptance `@F34-62` "Dragging the header moves the card and the next Glance opens there": drag +200, +100; close; reopen; the frame matches.
-  - Acceptance `@F34-63` "Dragging an edge resizes the card and double-clicking the header resets it".
+  - Acceptance `@F34-4` "Dragging the header moves the card and the next Glance opens there": drag +200, +100; close; reopen; the frame matches.
+  - Acceptance `@F34-5` "Dragging an edge resizes the card and double-clicking the header resets it".
 - [ ] **Step 2: Run them and confirm they fail.**
 - [ ] **Step 3: Implement** the handlers, the bridge, the contract and the renderer pointer code. Run `npm run browser-api:build`.
 - [ ] **Step 4: Run the new tests and `npm run browser-api:check`; confirm they pass.**
@@ -184,19 +184,19 @@
 - Test:
   - `test/unit/island-autohide.test.js`: update the `floatingLayout` and `islandPinned` expectations;
   - `test/unit/glance-rules.test.js`: source tests for the swap's removal, the Escape listener only on the card view, and Keep as split at 50/50;
-  - acceptance `@F34-64` through `@F34-68`, plus updates to `@F1-33`, `@F1-39`, `@F53-4` and `@F53-5`.
+  - acceptance `@F34-6` through `@F34-10`, plus updates to `@F1-33`, `@F1-39`, `@F53-4` and `@F53-5`.
 
 **Interfaces:**
 - Consumes: the card view (Task 3).
 - Produces: `openGlanceAsTab() -> boolean`, which replaces `promoteGlance`.
 
 - [ ] **Step 1: Write the failing tests.** Acceptance scenarios:
-  - `@F34-64` "Switching to another tab closes the Glance, and switching back doesn't bring it back";
-  - `@F34-65` "Choosing the Glance tab from the Island dots opens it as the tab";
-  - `@F34-66` "Open as tab makes the Glance page the current tab and keeps the old page open";
-  - `@F34-67` "Escape on the card's header closes it; Escape inside the Glance page goes to the page": a fixture page counts its keydown Escapes, and the count goes up with the Glance still open;
-  - `@F34-68` "Clicking and scrolling the page behind keeps the Glance open";
-  - `@F34-73` "Closing the main page while a Glance is open makes the Glance page the current tab".
+  - `@F34-6` "Switching to another tab closes the Glance, and switching back doesn't bring it back";
+  - `@F34-7` "Choosing the Glance tab from the Island dots opens it as the tab";
+  - `@F34-8` "Open as tab makes the Glance page the current tab and keeps the old page open";
+  - `@F34-9` "Escape on the card's header closes it; Escape inside the Glance page goes to the page": a fixture page counts its keydown Escapes, and the count goes up with the Glance still open;
+  - `@F34-10` "Clicking and scrolling the page behind keeps the Glance open";
+  - `@F34-15` "Closing the main page while a Glance is open makes the Glance page the current tab".
 
   Rewrite `@F1-33` as "A Glance floats over the page in float mode" and `@F1-39` to match. Update `@F53-4` and `@F53-5` (Keep as split) to expect 50/50, main page left.
 - [ ] **Step 2: Run them and confirm they fail.**
@@ -220,15 +220,15 @@
   - add `glance.openAsTab` "Open as tab", `glance.openAsTab.title` "Open this page as a tab", `glance.move` "Move or resize Glance", `glance.move.hint` "Arrow keys move it. Option or Alt with an arrow key resizes it. Enter resets it.", `glance.status.moved` "Glance moved", `glance.status.resized` "Glance resized to {width} by {height}", `glance.status.reset` "Glance reset", `glance.status.openedAsTab` "{title} is now the current tab";
   - remove `glance.promote`, `glance.promoteShort`, `glance.resize`, `glance.dividerValue`, `glance.status.promoted`;
   - rewrite `slash.glance.hint` to "Look at another open tab without leaving this page".
-- Test: `test/unit/glance-header.test.js` (compaction order classes; `#glanceMove` keys map to the right calls; no `innerHTML`); `npm run copy:check`; acceptance `@F34-69` and `@F34-70`.
+- Test: `test/unit/glance-header.test.js` (compaction order classes; `#glanceMove` keys map to the right calls; no `innerHTML`); `npm run copy:check`; acceptance `@F34-11` and `@F34-12`.
 
 **Interfaces:**
 - Consumes: `moveGlanceCard`, `resizeGlanceCard`, `resetGlanceCard` (Task 4); `openGlanceAsTab` (Task 5).
 
 - [ ] **Step 1: Write the failing tests.**
   - Unit: the tests above.
-  - Acceptance `@F34-69` "At 360 px the header keeps Back, Reload, the three actions as icons and ×".
-  - Acceptance `@F34-70` "Arrow keys on Move or resize move the card 16 px and announce it".
+  - Acceptance `@F34-11` "At 360 px the header keeps Back, Reload, the three actions as icons and ×".
+  - Acceptance `@F34-12` "Arrow keys on Move or resize move the card 16 px and announce it".
 - [ ] **Step 2: Run them and confirm they fail.**
 - [ ] **Step 3: Implement** the markup, the compaction, the keyboard handling, the strings and the translations. Translations get real text in each language, then `npm run copy:ack -- <locale> <keys>`.
 - [ ] **Step 4: Run them, plus `npm run copy:check` and `npm run test:i18n:desktop`; confirm they pass.**
@@ -243,7 +243,7 @@
   - the Change picker hangs from the card header's Change control (purpose `change`; `change-stacked` goes away);
   - the permission view is unchanged.
 - Modify: `src/renderer/styles.css` (card enter and exit on the glance surface with `@starting-style`: scale .96→1, opacity 140 ms, 340 ms `cubic-bezier(.2,.9,.25,1)`; under `prefers-reduced-motion`, a 140 ms fade), and `renderer.js` (the closing class from Task 5 plays the exit)
-- Test: acceptance `@F34-71` "Find for the Glance page sits over the card" and `@F34-72` "The card scales in, and under Reduce Motion only fades", through the existing `glanceHeaderMotion` test hook, renamed `glanceCardMotion`.
+- Test: acceptance `@F34-13` "Find for the Glance page sits over the card" and `@F34-14` "The card scales in, and under Reduce Motion only fades", through the existing `glanceHeaderMotion` test hook, renamed `glanceCardMotion`.
 
 - [ ] **Step 1: Write the failing scenarios.**
 - [ ] **Step 2: Run them and confirm they fail.**
@@ -259,7 +259,7 @@
   - `src/renderer/index.html` and `renderer.js` (remove `#glanceDivider` and its pointer and keyboard code, and the stacked layout);
   - `styles.css` (remove the divider and stacked rules);
   - `test/desktop/steps/glance.steps.js`;
-  - `spec/acceptance/glance.feature`: delete or rewrite every scenario about side by side, stacked, the divider or Make main, keeping each surviving scenario's `@F34-n` id;
+  - `spec/acceptance/glance.feature`: delete or rewrite every scenario about side by side, stacked, the divider or Make main (today all of them share `@F34-1`; surviving ones keep it, and the new ones are `@F34-2` to `@F34-15`);
   - `test/desktop/cucumber.mjs` and `spec/acceptance/index.md`.
 - Modify docs:
   - `spec/features.md` F34: describe the floating card;
