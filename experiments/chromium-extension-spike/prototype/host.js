@@ -56,7 +56,7 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = method === 'extensionContextMenu' ? null : setTimeout(() => {
+      const timeout = ['extensionContextMenu', 'closeSplit'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         reject(new Error(`Native bridge timed out: ${method}`));
       }, 10000);

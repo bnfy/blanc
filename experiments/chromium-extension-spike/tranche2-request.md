@@ -2080,3 +2080,8 @@ No nativecompile/product changes; guardzero, prior54/128unchanged. Profilesremov
 ### Web Store theme acceptance — 2026-10-20
 
 Native Island palette and start-page theme artwork implemented. Customize keeps Sunrise/Color/Your image/Theme in one row, preserving existing wash/Fade overlays. Native install, Undo, removal Cancel/Remove, removal restart, selected-theme restart and personal-wallpaper opt-out restart pass with the Cherry Blossom fixture. See evidence/webstore-themes-20261020/README.md for bounded results and retained failed iterations. Three palette tests pass; incremental builds only; final zero-action guard. Full theme/platform/accessibility matrix and same-ID hot-update remain unqualified. Latency and Electron diagnostic build remain pending. Prior partial-cancellation immediate-crash gap unchanged.
+
+
+### Partial Split cancellation acknowledgement repair — 2026-10-20
+
+Resolved the prior immediate-crash gap at the durable close-operation boundary: unload outcome is awaited, cancelled-batch surviving session rebuilt/flushed, then history flushed before cancellation is returned. Both survivor directions, delayed11second decision, private exclusion and complete-close postcorruption regression pass37checkpoints across5schedules. Seven capture tests pass. See evidence/split-partial-ack-20261020/README.md for initial failures and qualifications. Incremental37.89/41.46s, finalguard0, footprint54/128 unchanged. Before-ack interruption/powerloss and broader cancellation fault matrix remain open. Latency/nativephysical/Electron diagnostic build remain pending.

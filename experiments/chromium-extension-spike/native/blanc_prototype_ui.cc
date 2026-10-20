@@ -1817,6 +1817,7 @@ class Handler : public content::WebUIMessageHandler {
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
+    split_closes_.clear();
     extension_menu_runner_.reset();
     extension_menu_adapter_.reset();
     extension_menu_.reset();
@@ -1843,6 +1844,68 @@ class Handler : public content::WebUIMessageHandler {
     if (!IsIslandHost() || !IsJavascriptAllowed()) return;
     web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeReply", base::Value(id),
                                            base::Value(success), result);
+  }
+  class SplitCloseWatch : public content::WebContentsObserver {
+   public:
+    SplitCloseWatch(content::WebContents* tab, base::RepeatingClosure cancelled)
+        : content::WebContentsObserver(tab), cancelled_(std::move(cancelled)) {}
+    void BeforeUnloadFired(bool proceed) override { if (!proceed) cancelled_.Run(); }
+    void BeforeUnloadDialogCancelled() override { cancelled_.Run(); }
+   private:
+    base::RepeatingClosure cancelled_;
+  };
+  struct PendingSplitClose {
+    base::WeakPtr<BrowserWindowInterface> browser;
+    std::vector<int> tabs;
+    std::vector<std::unique_ptr<SplitCloseWatch>> watches;
+    bool cancelled = false;
+  };
+  std::map<std::string, PendingSplitClose> split_closes_;
+  void SplitCloseCancelled(std::string id) {
+    auto it = split_closes_.find(id);
+    if (it != split_closes_.end()) it->second.cancelled = true;
+  }
+  void SplitCloseSaved(std::string id, bool cancelled, bool saved) {
+    if (!split_closes_.erase(id)) return;
+    Reply(id, saved && !cancelled, saved ?
+        (cancelled ? base::Value("Split closure cancelled; partial history and session saved.") : base::Value()) :
+        base::Value("Split history/session persistence failed; recovery is not acknowledged."));
+  }
+  void SplitSessionSaved(std::string id, bool cancelled, bool saved) {
+    auto it = split_closes_.find(id);
+    if (it == split_closes_.end()) return;
+    if (!saved || !it->second.browser) { SplitCloseSaved(id, cancelled, false); return; }
+    auto* service = ClosedService(it->second.browser->GetProfile());
+    if (!service) { SplitCloseSaved(id, cancelled, false); return; }
+    service->SaveAndFlush(base::BindOnce(&Handler::SplitCloseSaved,
+        weak_factory_.GetWeakPtr(), id, cancelled));
+  }
+  void CheckSplitClose(std::string id) {
+    auto it = split_closes_.find(id);
+    if (it == split_closes_.end()) return;
+    auto* browser = it->second.browser.get();
+    if (!browser) { SplitCloseSaved(id, false, false); return; }
+    auto* model = browser->GetTabStripModel();
+    bool surviving = false;
+    for (int i = 0; i < model->count(); ++i)
+      for (int tab_id : it->second.tabs)
+        surviving |= sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() == tab_id;
+    if (surviving && !it->second.cancelled) {
+      base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+          base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id), base::Milliseconds(25));
+      return;
+    }
+    const bool cancelled = it->second.cancelled;
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce(&Handler::SplitCloseSaved, weak_factory_.GetWeakPtr(), id, cancelled, false), base::Seconds(9));
+    if (browser->GetProfile()->IsOffTheRecord()) { SplitCloseSaved(id, cancelled, true); return; }
+    if (!cancelled) { SplitSessionSaved(id, false, true); return; }
+    auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile());
+    if (!service) { SplitCloseSaved(id, cancelled, false); return; }
+    // Run after unload callbacks unwind, capturing only actual surviving tabs.
+    service->ResetFromCurrentBrowsers();
+    service->SaveAndFlushSession(base::BindOnce(&Handler::SplitSessionSaved,
+        weak_factory_.GetWeakPtr(), id, cancelled));
   }
   void ClosedHistorySaved(std::string id, bool saved) {
     if (!history_saves_.erase(id)) return;
@@ -3221,19 +3284,18 @@ class Handler : public content::WebUIMessageHandler {
       ui::ListSelectionModel selection;
       selection.SetSelectedIndex(focused);
       for (size_t i = range.start(); i < range.end(); ++i) selection.AddIndexToSelection(i);
-      std::vector<content::WebContents*> closing;
-      for (size_t i = range.start(); i < range.end(); ++i)
-        closing.push_back(model->GetWebContentsAt(i));
+      auto& pending_close = split_closes_[id];
+      pending_close.browser = browser->GetWeakPtr();
+      for (size_t i = range.start(); i < range.end(); ++i) {
+        auto* closing_tab = model->GetWebContentsAt(i);
+        pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(closing_tab).id());
+        pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(closing_tab,
+            base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
+      }
       model->SetSelectionFromModel(selection);
       model->CloseSelectedTabs();
-      // Compare identities only; closed contents must never be dereferenced.
-      for (auto* closed : closing) {
-        if (model->GetIndexOfWebContents(closed) != TabStripModel::kNoTab) {
-          reply(false, base::Value("Split closure is pending or cancelled; history is not acknowledged."));
-          return;
-        }
-      }
-      SaveClosedHistory(id, browser->GetProfile());
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+          base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
       return;
     } else if (method == "closeTab") {
       if (model->count() == 1) {
