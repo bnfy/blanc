@@ -4526,7 +4526,7 @@ function closeSplit(splitId) {
       (tid) => tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === runtime);
     if (mruId) setActiveTab(mruId);
     else if (runtime.tabOrder.length > 0) setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
-    else if (hasLiveWindow()) setActiveTab(createTab());
+    else if (hasLiveWindow()) openReplacementTab();
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -7242,7 +7242,7 @@ function closeGroup(groupId) {
     } else if (runtime.tabOrder.length > 0) {
       setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
-      setActiveTab(createTab());
+      openReplacementTab();
     }
   }
   broadcastTabs();
@@ -8412,6 +8412,13 @@ function prepareTabViewForClose(tab) {
   return true;
 }
 
+// The blank tab that takes over when a window's last tab closes. Like
+// Cmd/Ctrl+T, it opens with the address field focused, so the keyboard isn't
+// left on an empty page.
+function openReplacementTab() {
+  setActiveTab(createTab(), { focusContent: false, focusAddress: true });
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
@@ -9066,7 +9073,7 @@ function closeTab(id) {
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       rt().activeTabId = null;
-      setActiveTab(createTab());
+      openReplacementTab();
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
       rt().activeTabId = null;
