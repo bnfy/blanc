@@ -1,6 +1,13 @@
 'use strict';
 // Installed actions and Store discovery share the picker. Chromium owns installation and popups.
 window.BlancExtensions = class {
+  static storeIconUrl(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && url.hostname === 'lh3.googleusercontent.com' &&
+        !url.username && !url.password && !url.port && !url.search && !url.hash ? url.href : '';
+    } catch { return ''; }
+  }
   constructor({ request, close, refreshGeometry, back }) {
     this.request = request;
     this.close = close;
@@ -14,6 +21,7 @@ window.BlancExtensions = class {
     this.selected = null;
     this.busy = false;
     this.storeItems = [];
+    this.iconCache = new Map();
     this.searchGeneration = 0;
     this.storeMessage = '';
     this.search.addEventListener('input', () => this.searchStore());
@@ -59,7 +67,7 @@ window.BlancExtensions = class {
         const result = await this.request('storeSearch', [query]);
         if (generation !== this.searchGeneration || this.panel.hidden) return;
         this.storeItems = result.items.filter(item => /^[a-p]{32}$/.test(item.id)).map(item => ({
-          ...item, id: `store-${item.id}`, storeId: item.id, enabled: true, icon: '',
+          ...item, id: `store-${item.id}`, storeId: item.id, enabled: true, icon: window.BlancExtensions.storeIconUrl(item.icon),
         }));
         if (this.selected === 'store-search' && this.storeItems.length) this.selected = null;
         this.storeMessage = this.storeItems.length ? '' : 'No results available here. Open the Store to see the full search.';
@@ -122,7 +130,28 @@ window.BlancExtensions = class {
       const icon = document.createElement('img');
       icon.className = 'extension-icon';
       icon.alt = '';
-      if (item.icon.startsWith('data:image/png;base64,')) icon.src = item.icon;
+      const fallback = document.createElement('span');
+      fallback.className = 'extension-icon extension-icon-fallback';
+      fallback.setAttribute('aria-hidden', 'true');
+      fallback.textContent = item.name.slice(0, 1).toLocaleUpperCase();
+      fallback.hidden = true;
+      if (item.storeId) {
+        icon.addEventListener('error', () => { icon.hidden = true; fallback.hidden = false; }, { once: true });
+        icon.hidden = true;
+        fallback.hidden = false;
+        if (item.icon) {
+          if (!this.iconCache.has(item.icon)) {
+            if (this.iconCache.size >= 32) this.iconCache.delete(this.iconCache.keys().next().value);
+            this.iconCache.set(item.icon, this.request('storeIcon', [item.icon]).catch(() => ''));
+          }
+          this.iconCache.get(item.icon).then(data => {
+            if (!/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data)) return;
+            icon.src = data;
+            icon.hidden = false;
+            fallback.hidden = true;
+          });
+        }
+      } else if (item.icon.startsWith('data:image/png;base64,')) icon.src = item.icon;
       else icon.hidden = true;
       const text = document.createElement('span');
       text.className = 'extension-text';
@@ -137,7 +166,7 @@ window.BlancExtensions = class {
       hint.className = 'extension-enter';
       hint.textContent = 'Enter';
       hint.setAttribute('aria-hidden', 'true');
-      row.append(icon, text, hint);
+      row.append(icon, fallback, text, hint);
       this.list.append(row);
     }
     this.message.textContent = this.storeMessage || (this.visible.length ? '' : this.items.length ? 'No matching extensions' : 'No extensions installed. Search above to find your first one.');

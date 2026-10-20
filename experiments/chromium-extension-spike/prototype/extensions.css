@@ -55,3 +55,6 @@
 
 .extension-section { padding: 10px 14px 3px; font-size: 12px; font-weight: 600; color: var(--extension-muted); }
 .extension-detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.extension-icon-fallback { display: grid; place-items: center; border-radius: 8px; background: #b18a4820; color: var(--extension-muted); font-size: 20px; }
+.extension-icon-fallback[hidden] { display: none; }

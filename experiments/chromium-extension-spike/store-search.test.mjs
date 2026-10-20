@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('./prototype/extensions.js', import.meta.url), 'utf8');
 function picker() {
   const timers = new Map(); let serial = 0;
-  const context = { window: {}, setTimeout: fn => { timers.set(++serial, fn); return serial; }, clearTimeout: id => timers.delete(id) };
+  const context = { URL, window: {}, setTimeout: fn => { timers.set(++serial, fn); return serial; }, clearTimeout: id => timers.delete(id) };
   vm.runInNewContext(source, context);
   const p = Object.create(context.window.BlancExtensions.prototype);
   Object.assign(p, { searchGeneration: 0, search: { value: 'first' }, panel: { hidden: false }, items: [], render() {}, requests: [] });
@@ -41,4 +41,11 @@ test('network failures keep an explicit full-search fallback', async () => {
 test('short queries do not contact Google', () => {
   const { p } = picker(); p.search.value = 'x'; p.searchStore(); assert.equal(p.requests.length, 0);
   assert.match(p.storeMessage, /two characters/);
+});
+
+test('Store icon URLs accept only the exact HTTPS image host', () => {
+  const { p } = picker();
+  const validate = p.constructor.storeIconUrl;
+  assert.equal(validate('https://lh3.googleusercontent.com/icon=s72'), 'https://lh3.googleusercontent.com/icon=s72');
+  for (const url of ['http://lh3.googleusercontent.com/icon', 'https://lh3.googleusercontent.com.evil.test/icon', 'https://user@lh3.googleusercontent.com/icon', 'https://lh3.googleusercontent.com:444/icon', 'data:image/svg+xml,evil', 'javascript:alert(1)', undefined]) assert.equal(validate(url), '');
 });

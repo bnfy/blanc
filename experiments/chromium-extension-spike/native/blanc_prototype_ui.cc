@@ -14,6 +14,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include "base/base64.h"
 #include "base/strings/escape.h"
 #include "content/public/browser/storage_partition.h"
 #include "services/network/public/cpp/simple_url_loader.h"
@@ -1450,6 +1451,24 @@ base::ListValue ParseStoreResults(const std::string& html) {
     item.Set("id", id);
     item.Set("name", name);
     item.Set("description", text("<p class=\"g3IrHd\"", "</p>"));
+    // The card's first image can be a promotional screenshot. The public
+    // serialized item record instead identifies the extension's actual icon.
+    const std::string icon_marker = "[\"" + id + "\",\"";
+    auto icon_at = html.find(icon_marker);
+    if (icon_at != std::string::npos) {
+      icon_at += icon_marker.size();
+      const auto icon_end = html.find('"', icon_at);
+      if (icon_end != std::string::npos && icon_end - icon_at < 2048) {
+        const GURL icon(html.substr(icon_at, icon_end - icon_at));
+        if (icon.is_valid() && icon.SchemeIs("https") &&
+            icon.host() == "lh3.googleusercontent.com" && !icon.has_username() &&
+            !icon.has_password() && !icon.has_port() && !icon.has_query() &&
+            !icon.has_ref() && icon.path().find('=') == std::string::npos) {
+          item.Set("icon", icon.spec() + "=s72");
+        }
+      }
+    }
+
     items.Append(std::move(item));
   }
   return items;
@@ -1467,6 +1486,7 @@ class Handler : public content::WebUIMessageHandler {
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
     store_loader_.reset();
+    icon_loaders_.clear();
   }
 
  private:
@@ -1914,6 +1934,32 @@ class Handler : public content::WebUIMessageHandler {
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+    if (method == "storeIcon" && args.size() == 1 && args[0].is_string()) {
+      const GURL url(args[0].GetString());
+      if (!url.is_valid() || !url.SchemeIs("https") || url.host() != "lh3.googleusercontent.com" ||
+          url.has_username() || url.has_password() || url.has_port() || url.has_query() || url.has_ref() ||
+          url.spec().size() > 2048 || icon_loaders_.size() >= 6 || icon_loaders_.contains(id)) {
+        reply(false, base::Value("Icon unavailable."));
+        return;
+      }
+      auto request = std::make_unique<network::ResourceRequest>();
+      request->url = url;
+      request->credentials_mode = network::mojom::CredentialsMode::kOmit;
+      request->redirect_mode = network::mojom::RedirectMode::kError;
+      auto loader = network::SimpleURLLoader::Create(std::move(request),
+          net::DefineNetworkTrafficAnnotation("blanc_store_icon", R"(
+            semantics { sender: "Blanc extension search" description: "Loads public extension icons for search results."
+              trigger: "User searches for extensions." data: "Public icon URL; no cookies or credentials."
+              destination: GOOGLE_OWNED_SERVICE }
+            policy { cookies_allowed: NO setting: "Only used for user initiated extension search."
+              policy_exception_justification: "Prototype extension discovery." })"));
+      loader->SetTimeoutDuration(base::Seconds(6));
+      auto* pending = loader.get();
+      icon_loaders_[id] = std::move(loader);
+      pending->DownloadToString(profile->GetDefaultStoragePartition()->GetURLLoaderFactoryForBrowserProcess().get(),
+          base::BindOnce(&Handler::StoreIcon, weak_factory_.GetWeakPtr(), id), 256 * 1024);
+      return;
+    }
     if (method == "storeSearch" && args.size() == 1 && args[0].is_string()) {
       const auto& query = args[0].GetString();
       if (query.size() < 2 || query.size() > 256) {
@@ -2614,6 +2660,18 @@ class Handler : public content::WebUIMessageHandler {
     result.Set("items", std::move(items));
     Reply(callback, true, base::Value(std::move(result)));
   }
+  void StoreIcon(const std::string& id, std::optional<std::string> body) {
+    icon_loaders_.erase(id);
+    std::string type;
+    if (body && body->size() >= 12) {
+      if (body->compare(0, 8, "\x89PNG\r\n\x1a\n", 8) == 0) type = "png";
+      else if (body->compare(0, 3, "\xff\xd8\xff", 3) == 0) type = "jpeg";
+      else if (body->substr(0, 4) == "RIFF" && body->substr(8, 4) == "WEBP") type = "webp";
+    }
+    if (type.empty()) { Reply(id, false, base::Value("Icon unavailable.")); return; }
+    Reply(id, true, base::Value("data:image/" + type + ";base64," + base::Base64Encode(*body)));
+  }
+  std::map<std::string, std::unique_ptr<network::SimpleURLLoader>> icon_loaders_;
   std::unique_ptr<network::SimpleURLLoader> store_loader_;
   std::string store_callback_;
   uint64_t space_save_generation_ = 0;
