@@ -775,7 +775,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="glance_status_opened">%1$s in Glance geöffnet</string>
     <string name="glance_status_closed">Glance geschlossen</string>
     <string name="split_glance_unavailable">Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird</string>
-    <string name="glance_status_promoted">%1$s ist jetzt die Hauptseite; %2$s ist in Glance</string>
+    <string name="glance_status_opened_as_tab">%1$s ist jetzt der aktuelle Tab</string>
     <string name="glance_status_tab_closed">Glance geschlossen, weil sein Tab geschlossen wurde</string>
     <string name="glance_status_main_closed">%1$s ist jetzt die Hauptseite. Glance geschlossen.</string>
     <string name="glance_status_cancelled">Dieser Tab wurde nicht in Glance geöffnet</string>

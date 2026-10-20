@@ -999,14 +999,14 @@
         false
       ]
     },
-    "promoteGlance": {
+    "openGlanceAsTab": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "tabs:promote-glance",
+      "channel": "tabs:open-glance-as-tab",
       "calls": [
         {
           "label": "typical",
@@ -1014,7 +1014,7 @@
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:promote-glance",
+              "channel": "tabs:open-glance-as-tab",
               "args": []
             }
           ]

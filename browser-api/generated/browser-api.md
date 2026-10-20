@@ -32,7 +32,7 @@
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
 | `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
 | `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<boolean>` | all |
-| `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<boolean>` | all |
+| `openGlanceAsTab` | glance | invoke | `tabs:open-glance-as-tab` | `() => Promise<boolean>` | all |
 | `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<void>` | all |
 | `groupTabByName` | groups | invoke | `tabs:group-by-name` | `(id: TabId, name: string) => Promise<void>` | all |
 | `toggleGroupCollapsed` | groups | invoke | `tabs:toggle-group-collapsed` | `(groupId: GroupId) => Promise<void>` | all |

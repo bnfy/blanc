@@ -2055,13 +2055,13 @@
       "doc": "Close the Glance view."
     },
     {
-      "name": "promoteGlance",
+      "name": "openGlanceAsTab",
       "group": "glance",
       "kind": "invoke",
-      "channel": "tabs:promote-glance",
+      "channel": "tabs:open-glance-as-tab",
       "params": [],
       "returns": "boolean",
-      "doc": "Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab."
+      "doc": "Open as tab: end the Glance and make its page the current tab. Resolves to whether it became the current tab."
     },
     {
       "name": "setTabGroup",

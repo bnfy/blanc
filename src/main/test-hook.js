@@ -77,6 +77,7 @@ function install(refs) {
     setIslandAutoHideStyle,
     getFloatViewState,
     getFloatWebContents,
+    getGlanceCardWebContents,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
     getChromeButtonRects,
@@ -107,7 +108,7 @@ function install(refs) {
     getSessionRecoveryState,
     setGlanceTab,
     closeGlance: closeGlanceAction,
-    promoteGlance: promoteGlanceAction,
+    openGlanceAsTab: openGlanceAsTabAction,
     resetGlanceCardFrame,
     getGlanceTabId,
     getFocusedPaneTabId,
@@ -579,6 +580,14 @@ function install(refs) {
       wc.sendInputEvent(input);
       return true;
     },
+    // Keys and pointer events to the floating Glance card's own document.
+    sendGlanceCardInput(input) {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      wc.sendInputEvent(input);
+      return true;
+    },
     floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
     chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
     /** The strip's own report of its Windows/Linux window buttons. */
@@ -768,7 +777,7 @@ function install(refs) {
       return true;
     },
     closeGlance() { return closeGlanceAction({ focusContent: false }); },
-    promoteGlance() { return promoteGlanceAction(); },
+    openGlanceAsTab() { return openGlanceAsTabAction(); },
     resetGlanceCard() { return resetGlanceCardFrame(); },
     getGlanceCard() { return getGlanceCard(); },
     setWindowGlance(runtimeId, tabId) {

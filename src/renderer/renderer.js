@@ -175,7 +175,7 @@
   const glancePrivate = document.getElementById('glancePrivate');
   const glanceIdentity = document.querySelector('#glanceHeader .glance-tab-identity');
   let shownGlanceTabId = null;
-  const glancePromote = document.getElementById('glancePromote');
+  const glanceOpenAsTab = document.getElementById('glanceOpenAsTab');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
   const glanceBack = document.getElementById('glanceBack');
@@ -1360,9 +1360,9 @@
     event.stopPropagation();
     window.browserAPI.keepGlanceAsSplit();
   });
-  glancePromote.addEventListener('click', (event) => {
+  glanceOpenAsTab.addEventListener('click', (event) => {
     event.stopPropagation();
-    window.browserAPI.promoteGlance();
+    window.browserAPI.openGlanceAsTab();
   });
   glanceChange.addEventListener('click', (event) => {
     event.stopPropagation();

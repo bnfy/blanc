@@ -419,6 +419,22 @@ Then('the page sits below the strip and no pill floats', async function () {
   assert.ok(!pill || pill.shown === false, 'no pill floats over the push layout');
 });
 
+// The floating Glance card floats over the page in either Auto-hide style
+// and pins nothing: the page keeps the top of the window in float style.
+Then('the Glance card floats over a page at the top of the window', async function () {
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === true && value.pageY === coveredTop(value),
+    'the page to keep the top of the window');
+  assert.equal(state.activeBounds.y, coveredTop(state));
+  const card = await waitForValue(() => this.call('getGlanceCard'), (value) => value?.cardViewVisible === true, 'the Glance card to show');
+  assert.deepEqual(card.viewBounds, card.page);
+});
+
+Then('the Glance card stays open over the page', async function () {
+  const card = await waitForValue(() => this.call('getGlanceCard'), (value) => value?.cardViewVisible === true, 'the Glance card to stay open');
+  assert.deepEqual(card.viewBounds, card.page);
+  assert.equal((await this.call('state')).glanceTabId, this.floatGlanceId);
+});
+
 When('I close the Glance', async function () {
   await this.call('closeGlance');
 });

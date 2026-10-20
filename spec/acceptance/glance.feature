@@ -592,3 +592,44 @@ Feature: Glance reference pane
     Then the Glance card is 300 narrower with its right edge where it was
     When I double-click the Glance card's header
     Then the Glance is a large centered card over the whole main page
+
+  @F34-6 @F34 @D11
+  Scenario: Switching to another tab closes the Glance, and switching back doesn't bring it back
+    Given three ordinary tabs with one open in Glance
+    When I switch to the replacement tab
+    Then Glance is closed and the replacement tab fills the page
+    When I switch back to the original main page
+    Then Glance stays closed
+
+  @F34-7 @F34 @D11
+  Scenario: Choosing the Glance tab itself opens it as the tab
+    Given three ordinary tabs with one open in Glance
+    When I choose the Glance tab from the tab list
+    Then the Glance tab is the current tab and Glance is closed
+
+  @F34-8 @F34 @D11
+  Scenario: Open as tab makes the Glance page the current tab and keeps the old page open
+    Given three ordinary tabs with one open in Glance
+    When I choose Open as tab on the Glance card
+    Then the Glance tab is the current tab and Glance is closed
+    And the original main page is still open
+
+  @F34-9 @F34 @D11
+  Scenario: Escape on the card's header closes it; Escape inside the Glance page goes to the page
+    Given three ordinary tabs with one open in Glance
+    When I press Escape inside the Glance page
+    Then the Glance page received the Escape and Glance is still open
+    When I press Escape on the Glance card's header
+    Then Glance is closed and the original main page fills the page
+
+  @F34-10 @F34 @D11
+  Scenario: Clicking and scrolling the page behind keeps the Glance open
+    Given three ordinary tabs with one open in Glance
+    When I click and scroll the main page beside the card
+    Then Glance is still open over the main page
+
+  @F34-15 @F34 @D11
+  Scenario: Closing the main page while a Glance is open makes the Glance page the current tab
+    Given three ordinary tabs with one open in Glance
+    When I close the main page
+    Then the Glance tab is the current tab and Glance is closed

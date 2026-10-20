@@ -2901,9 +2901,9 @@
     "message": "Glance isn't available while a split is showing",
     "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
   },
-  "glance.status.promoted": {
-    "message": "{title} is now the main page; {other} is in Glance",
-    "note": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance."
+  "glance.status.openedAsTab": {
+    "message": "{title} is now the current tab",
+    "note": "Screen reader announcement after Open as tab on the floating Glance card: the Glance page ({title}) became the current tab, full window, and the Glance ended."
   },
   "glance.status.tabClosed": {
     "message": "Glance closed because its tab was closed",

@@ -54,7 +54,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
   openGlancePicker: (query) => ipcRenderer.invoke('tabs:open-glance-picker', query),
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
-  promoteGlance: () => ipcRenderer.invoke('tabs:promote-glance'),
+  openGlanceAsTab: () => ipcRenderer.invoke('tabs:open-glance-as-tab'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
   groupTabByName: (id, name) => ipcRenderer.invoke('tabs:group-by-name', id, name),
   toggleGroupCollapsed: (groupId) => ipcRenderer.invoke('tabs:toggle-group-collapsed', groupId),

@@ -83,7 +83,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-30 | The revealed Island floats over a page that stays still | D29 | ✅ | ➖ | ➖ |
 | F1-31 | Find and the shield menu open under the floating pill | D29 | ✅ | ➖ | ➖ |
 | F1-32 | Hover-open works on the floating pill | D29 | ✅ | ➖ | ➖ |
-| F1-33 | Glance uses the push layout in float mode | D29 | ✅ | ➖ | ➖ |
+| F1-33 | A Glance floats over the page in float mode | D29 | ✅ | ➖ | ➖ |
 | F1-34 | The floating pill keeps up with tabs, sheets, styles and windows | D29 | ✅ | ➖ | ➖ |
 | F1-35 | The floating pill takes the private theme | D29 | ✅ | ➖ | ➖ |
 | F1-36 | Window buttons come and go with the floating pill on Windows and Linux | D29 | ✅ | ➖ | ➖ |
@@ -218,6 +218,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-3 | The card keeps its header on screen when the window shrinks and grows | D11 | ✅ | ➖ | ➖ |
 | F34-4 | Moving the card keeps it there for the next Glance | D11 | ✅ | ➖ | ➖ |
 | F34-5 | Resizing the card from an edge, and double-clicking its header to reset it | D11 | ✅ | ➖ | ➖ |
+| F34-6 | Switching to another tab closes the Glance, and switching back doesn't bring it back | D11 | ✅ | ➖ | ➖ |
+| F34-7 | Choosing the Glance tab itself opens it as the tab | D11 | ✅ | ➖ | ➖ |
+| F34-8 | Open as tab makes the Glance page the current tab and keeps the old page open | D11 | ✅ | ➖ | ➖ |
+| F34-9 | Escape on the card's header closes it; Escape inside the Glance page goes to the page | D11 | ✅ | ➖ | ➖ |
+| F34-10 | Clicking and scrolling the page behind keeps the Glance open | D11 | ✅ | ➖ | ➖ |
+| F34-15 | Closing the main page while a Glance is open makes the Glance page the current tab | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
 | F35-3 | Footer opens a playable standalone Mahjong tab | — | ✅ | ⬜ | ⬜ |

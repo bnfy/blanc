@@ -2314,3 +2314,86 @@ When("I double-click the Glance card's header", async function () {
   const page = await glanceCardPage();
   await page.dblclick('#glanceEyebrow');
 });
+
+When('I switch to the replacement tab', async function () {
+  await this.call('activateTab', this.glanceReplacementId, false);
+});
+
+Then('Glance is closed and the replacement tab fills the page', async function () {
+  await this.waitForState((state) => state.activeTabId === this.glanceReplacementId && state.glanceTabId == null);
+  assert.equal(await glanceCard(this), null, 'no card while no Glance is open');
+});
+
+When('I switch back to the original main page', async function () {
+  await this.call('activateTab', this.glanceMainId, false);
+  await this.waitForState((state) => state.activeTabId === this.glanceMainId);
+});
+
+Then('Glance stays closed', async function () {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  assert.equal((await this.state()).glanceTabId, null);
+});
+
+When('I choose the Glance tab from the tab list', async function () {
+  await this.call('activateTab', this.glanceReferenceId, false);
+});
+
+Then('the Glance tab is the current tab and Glance is closed', async function () {
+  await this.waitForState((state) => state.activeTabId === this.glanceReferenceId && state.glanceTabId == null);
+  assert.equal(await glanceCard(this), null);
+});
+
+When('I choose Open as tab on the Glance card', async function () {
+  const card = await glanceCardPage();
+  await card.locator('#glanceOpenAsTab').click();
+});
+
+Then('the original main page is still open', async function () {
+  const state = await this.state();
+  assert.ok(state.tabs.some((tab) => tab.id === this.glanceMainId));
+});
+
+When('I press Escape inside the Glance page', async function () {
+  await this.call('workspacePageScript', this.glanceReferenceId,
+    "window.__escapes = 0; document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.__escapes += 1; }, true); true");
+  assert.equal(await this.call('sendMouseInput', this.glanceReferenceId, { type: 'keyDown', keyCode: 'Escape' }), true);
+  await this.call('sendMouseInput', this.glanceReferenceId, { type: 'keyUp', keyCode: 'Escape' });
+});
+
+Then('the Glance page received the Escape and Glance is still open', async function () {
+  await waitForValue(() => this.call('workspacePageScript', this.glanceReferenceId, 'window.__escapes'),
+    (count) => count === 1, 'the Glance page to see its Escape');
+  assert.equal((await this.state()).glanceTabId, this.glanceReferenceId);
+});
+
+When("I press Escape on the Glance card's header", async function () {
+  assert.equal(await this.call('sendGlanceCardInput', { type: 'keyDown', keyCode: 'Escape' }), true);
+});
+
+Then('Glance is closed and the original main page fills the page', async function () {
+  await this.waitForState((state) => state.activeTabId === this.glanceMainId && state.glanceTabId == null);
+  assert.equal(await glanceCard(this), null);
+});
+
+When('I click and scroll the main page beside the card', async function () {
+  const card = await waitForValue(() => glanceCard(this), (value) => value?.cardViewVisible === true, 'the Glance card to show');
+  // Left of the card, inside the main page (its view starts at the page area).
+  const x = Math.max(4, Math.round((card.chrome.x - card.mainViewBounds.x) / 2));
+  const y = Math.round(card.mainViewBounds.height / 2);
+  for (const type of ['mouseDown', 'mouseUp']) {
+    assert.equal(await this.call('sendMouseInput', this.glanceMainId, { type, x, y, button: 'left', clickCount: 1 }), true);
+  }
+  await this.call('sendMouseInput', this.glanceMainId, { type: 'mouseWheel', x, y, deltaX: 0, deltaY: -240 });
+});
+
+Then('Glance is still open over the main page', async function () {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const state = await this.state();
+  assert.equal(state.activeTabId, this.glanceMainId);
+  assert.equal(state.glanceTabId, this.glanceReferenceId);
+  assert.equal((await glanceCard(this))?.cardViewVisible, true);
+});
+
+When('I close the main page', async function () {
+  await this.call('closeTab', this.glanceMainId);
+});

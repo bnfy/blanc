@@ -46,7 +46,8 @@ test('a pointer outside the window never holds the Island', () => {
 test('Island surfaces pin it and the strip is hidden only when nothing holds it', () => {
   assert.equal(islandPinned({}), false);
   assert.equal(islandPinned({ overlayMode: 'find' }), true);
-  assert.equal(islandPinned({ glanceOpen: true }), true);
+  // A floating Glance card draws nothing in the strip, so it pins nothing.
+  assert.equal(islandPinned({ glanceOpen: true }), false);
   assert.equal(islandPinned({ popupOpen: true }), true);
   assert.equal(islandPinned({ introducing: true }), true);
   assert.equal(stripHidden({ autoHide: false, revealed: false, pinned: false }), false);
@@ -70,7 +71,8 @@ test('main lays out every child view through the auto-hide strip height', () => 
   assert.match(main, /chromeHeight: stripCovered\(\) \? islandAutoHideModule\.coveredStripHeight\(process\.platform\) : rt\(\)\.chromeHeight,/);
   assert.match(main, /islandHeight: islandStripHidden\(\) \? 0 : rt\(\)\.chromeHeight,/);
   assert.match(main, /function stripCovered\(runtime = rt\(\)\) \{\s+return islandStripHidden\(runtime\) \|\| islandFloating\(runtime\);/);
-  assert.match(main, /function islandFloating\(runtime = rt\(\)\) \{\s+return islandAutoHideModule\.floatingLayout\(\{\s+autoHide: islandAutoHide,\s+style: islandAutoHideStyle,\s+glanceOpen: !!runtime\.glanceTabId,/);
+  assert.match(main, /function islandFloating\(\) \{\s+return islandAutoHideModule\.floatingLayout\(\{\s+autoHide: islandAutoHide,\s+style: islandAutoHideStyle,\s+\}\);/);
+  assert.doesNotMatch(main, /glanceOpen: !!runtime\.glanceTabId/);
   const show = main.slice(main.indexOf('function showOverlay('), main.indexOf('function hideOverlay('));
   assert.ok(show.indexOf('revealIsland();') < show.indexOf('overlayView.setBounds'),
     'the strip is revealed before overlay bounds are computed');
@@ -320,9 +322,10 @@ test('floating Island constants', () => {
   assert.equal(FLOAT_CHROME_PAD_PX, 8);
 });
 
-test('floatingLayout: only auto-hide with float, and never while Glance is open', () => {
+test('floatingLayout: only auto-hide with float, Glance or not', () => {
   assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: false }), true);
-  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: true }), false);
+  // The floating Glance card floats over the page in either style.
+  assert.equal(floatingLayout({ autoHide: true, style: 'float', glanceOpen: true }), true);
   assert.equal(floatingLayout({ autoHide: true, style: 'push', glanceOpen: false }), false);
   assert.equal(floatingLayout({ autoHide: false, style: 'float', glanceOpen: false }), false);
 });

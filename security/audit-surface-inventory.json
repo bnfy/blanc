@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "ff43c6b7d937b54a099c989064b98692c5b83afa4a97e1bcfbc0747ab6acbdae",
+      "sha256": "b931d1c133756538acbf993f4cda6430e1f8d878a697ff3c760ccc04d01ba71d",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -403,9 +403,9 @@
         "tabs:group-by-name",
         "tabs:move",
         "tabs:navigate",
+        "tabs:open-glance-as-tab",
         "tabs:open-glance-picker",
         "tabs:open-page",
-        "tabs:promote-glance",
         "tabs:reload",
         "tabs:rename",
         "tabs:reopen-closed",
@@ -607,7 +607,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "a66b205c44d5cbb89e4326ba9b003242fd22a0b2f971e1765f842188ed51e151",
+      "sha256": "9deb34d249d9e73c8580cc856540325f65493ae8d2361d9403e0e361ded6ddc8",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -725,9 +725,9 @@
         "tabs:group-by-name",
         "tabs:move",
         "tabs:navigate",
+        "tabs:open-glance-as-tab",
         "tabs:open-glance-picker",
         "tabs:open-page",
-        "tabs:promote-glance",
         "tabs:reload",
         "tabs:rename",
         "tabs:reopen-closed",

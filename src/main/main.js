@@ -3412,7 +3412,6 @@ const INTRO_TIP_MAX_HEIGHT = 64;
 function islandAutoHidePinned(runtime = rt()) {
   return islandAutoHideModule.islandPinned({
     overlayMode: runtime.overlayMode,
-    glanceOpen: !!runtime.glanceTabId,
     // Acceptance only: a drawing check holds a window's Island up without a
     // focused window or a pointer to keep it there.
     popupOpen: ublockPopups.has(runtime.id) || (acceptanceTestMode && runtime.testHoldIsland === true),
@@ -3429,12 +3428,12 @@ function islandStripHidden(runtime = rt()) {
 }
 
 /** Whether the revealed Island floats over the page instead of pushing it
- * down. Glance draws in the strip, so it always lays out as push. */
-function islandFloating(runtime = rt()) {
+ * down. The floating Glance card draws nothing in the strip, so a Glance
+ * changes nothing here. */
+function islandFloating() {
   return islandAutoHideModule.floatingLayout({
     autoHide: islandAutoHide,
     style: islandAutoHideStyle,
-    glanceOpen: !!runtime.glanceTabId,
   });
 }
 
@@ -3884,6 +3883,15 @@ function ensureGlanceCardView(runtime = rt()) {
   view.setVisible(false);
   lockPrivilegedNavigation(contents, CHROME_GLANCE_URL);
   installChromeShortcuts(contents, runtime);
+  // Escape closes the Glance from the card's chrome (its header and
+  // controls) only. Inside the Glance page, Escape stays the site's: closing
+  // its dialogs and menus, leaving fullscreen (owner, October 20).
+  contents.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
+    if (input.type !== 'keyDown' || input.key !== 'Escape') return;
+    if (input.alt || input.control || input.meta || input.shift) return;
+    event.preventDefault();
+    closeGlance();
+  }));
   contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     contents.send('tabs:updated', currentTabsPayload());
     contents.send('chrome:glance-layout', currentGlanceLayoutPayload());
@@ -8579,7 +8587,6 @@ function setActiveTab(id, {
   // predicate and let the fill proceed on a tab the user left.
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
-  const promotingGlance = id === rt().glanceTabId;
   const nextSplit = rt().resident ? null : splitForTab(rt().splits, id);
   const shownBefore = new Set(visibleSplitTabIds(rt()));
 
@@ -8610,17 +8617,11 @@ function setActiveTab(id, {
   const prevId = rt().activeTabId;
   if (prevId !== id) rt().pageTintController?.pause();
   const prev = prevId ? tabs.get(prevId) : null;
-  // EXPLICIT activation of the reference tab (Make main, an island row,
-  // Cmd/Ctrl+digit) swaps the two visible roles. Interacting inside the
-  // reference pane never reaches here — its focus handler deliberately does
-  // not activate (the reference must be usable without changing roles). Keep
-  // the previous active tab visible as the new Glance pane: the action is a
-  // swap between two already-owned tabs, never a cross-window move.
-  if (promotingGlance) {
-    rt().glanceTabId = prev && windowRuntimes.runtimeForTab(prev.id) === rt()
-      ? prev.id
-      : null;
-  }
+  // A Glance belongs to the page it was opened over: switching to any other
+  // tab ends it, and choosing the Glance tab itself (an Island dot, ⌘1–9, the
+  // ⌘L list) opens that page as the tab, like Open as tab. Interacting inside
+  // the Glance page never reaches here: its focus handler doesn't activate.
+  if (rt().glanceTabId) closeGlance({ focusContent: false });
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
@@ -8631,7 +8632,6 @@ function setActiveTab(id, {
   cancelAddressBarFocusReclaim();
   // A split's panes stay attached while focus moves inside it (F53). Leaving
   // a split hides every pane the next tab doesn't share.
-  if (nextSplit && rt().glanceTabId) closeGlance({ focusContent: false });
   const keepShown = new Set(nextSplit?.tabIds ?? []);
   if (liveContents(prev) && prev.id !== rt().glanceTabId && !keepShown.has(prev.id)) {
     // Explicit hiding also stops a detached document's foreground timers.
@@ -8807,21 +8807,20 @@ function closeGlance({ focusContent = true } = {}) {
   return true;
 }
 
-function promoteGlance() {
-  const reference = activeGlanceTab();
-  const id = reference?.id;
+/** Open as tab: the Glance ends and its page becomes the current tab, full
+ * window; the page it floated over stays open as an ordinary tab. */
+function openGlanceAsTab() {
+  const glance = activeGlanceTab();
+  const id = glance?.id;
   if (!id) return false;
-  // Both names, read before the swap: the strip says which page is now main
-  // and which is in Glance.
-  const untitled = mainI18n.t('tab.untitledShort');
-  const title = displayTitle(reference) || untitled;
-  const other = displayTitle(tabs.get(rt().activeTabId)) || untitled;
+  const title = displayTitle(glance) || mainI18n.t('tab.untitledShort');
+  closeGlance({ focusContent: false });
   setActiveTab(id, { focusContent: true });
-  const promoted = rt().activeTabId === id;
-  if (promoted && hasLiveWindow()) {
-    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
+  const opened = rt().activeTabId === id;
+  if (opened && hasLiveWindow()) {
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.openedAsTab', { title }));
   }
-  return promoted;
+  return opened;
 }
 
 /** Open Link in Glance, from the page context menu: the link becomes the
@@ -10335,7 +10334,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
-  chromeHandle('tabs:promote-glance', () => promoteGlance());
+  chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
@@ -13626,7 +13625,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       pinnedHomeActions: () => menuContextActions(rt()),
       chooseSessionRecovery: (choice) => chooseSessionRecovery(choice),
       getSessionRecoveryState: () => ({ ...sessionRecoveryState }),
-      setGlanceTab, closeGlance, promoteGlance, resetGlanceCardFrame,
+      setGlanceTab, closeGlance, openGlanceAsTab, resetGlanceCardFrame,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getFindTargetTabId: () => findTargetTabId(rt()),
@@ -13802,6 +13801,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
+      getGlanceCardWebContents: () => liveGlanceCardView()?.webContents ?? null,
       getFloatWebContentsIds: (runtimeId) => {
         const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
         return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];

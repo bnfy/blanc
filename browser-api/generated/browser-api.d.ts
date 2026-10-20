@@ -969,10 +969,10 @@ export interface BlancBrowserAPI {
    */
   closeGlance(): Promise<boolean>;
   /**
-   * Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab.
-   * IPC: invoke `tabs:promote-glance`.
+   * Open as tab: end the Glance and make its page the current tab. Resolves to whether it became the current tab.
+   * IPC: invoke `tabs:open-glance-as-tab`.
    */
-  promoteGlance(): Promise<boolean>;
+  openGlanceAsTab(): Promise<boolean>;
   /**
    * Move a tab into a group, or out of all groups with null.
    * IPC: invoke `tabs:set-group`.

@@ -2839,9 +2839,9 @@
     "message": "Glance no está disponible mientras se muestra una vista dividida",
     "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
   },
-  "glance.status.promoted": {
-    "message": "{title} es ahora la página principal; {other} está en Glance",
-    "source": "sha256:f1844b81d7e515a8fbe384d87c4dac18634f8b689b6a7da50c71b2dd8a32fd85"
+  "glance.status.openedAsTab": {
+    "message": "{title} es ahora la pestaña actual",
+    "source": "sha256:da42c4ef628bd55efb34be6c34eb1c7f61768d8ae0199d75c7d10f9fdced9eb7"
   },
   "glance.status.tabClosed": {
     "message": "Glance se cerró porque se cerró su pestaña",
