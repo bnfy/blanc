@@ -2066,3 +2066,12 @@ No nativecompile/product edits, guardzero, prior54/128unchanged. Owned fixtures 
 Restoration now reuses the exact durable-identity live survivor, restores only the missing child, rejoins saved layout/focus and removes survivor history. Shared by native Restore Tab and both Island routes. Same-URL decoys are untouched; ambiguous/foreign or incompatible live matches refuse reconciliation. Nine schedules/45checkpoints pass, including left/right unsaved-input preservation, both Island routes, sameURLdecoy,35/65rightfocus, repeatedrestore, heldflushownerdestroy and immediate encrypted-only fullbatch crash regression. Prior duplicate-survivor failure is repaired for these bounded cases.
 
 Seven capture tests pass. Declaration-order compile failure retained; incremental repair38.14seconds/6steps, guardzero, fresh54/128unchanged. Evidence: evidence/split-partial-restore-fix-20261020/README.md. Partial-cancellation crash-before-reconciliation, grouped/pinned/legacy/foreign/ambiguous identity runtime matrices and physicalinput remain gaps. Test profiles removed after exit verification; preview untouched. Latency deferred; Electron diagnostic build pending approval.
+
+
+## Partial-cancellation crash/restart — October 20
+
+Final left/right settled controls pass14checkpoints: pre-cancellation source session acknowledged, five-second postcancel settle, abrupt crash, session-first restart yields lone survivor, Split reconciliation retains its new live ID and restores the missing pane once.
+
+Immediate boundary unresolved: after the same acknowledged pre-cancel baseline, immediate crash returns both fixture tabs separately with no partial Split history, even after page-load/1.5second ready check. Expected lone survivor fails2versus1 in both orders. Not a duplicate-survivor regression or persistence pass. Earlier fullSplit replay/unseeded-loss/unsupportedblank-fixture attempts retained; only final settled controls qualify targeted reuse. Evidence: evidence/split-partial-restart-20261020/README.md.
+
+No nativecompile/product changes; guardzero, prior54/128unchanged. Profilesremoved after verified exit; previewuntouched. Form/scroll crash persistence, broader lifecycle/powerloss and physicalinput unqualified. Latency deferred; Electron diagnostic build pending.
