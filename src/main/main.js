@@ -9552,17 +9552,13 @@ function registerIpcHandlers() {
 
   // The resting pill's tooltips (renderer.js). Only the strip may ask.
   chromeOn('chrome:tooltip-show', (event, raw) => {
-    // A floating Island view measures in its own coordinates.
-    const role = floatRoleOf(rt(), event.sender);
-    if (event.sender !== rt().window?.webContents && !role) return;
+    // A floating Island view reports window coordinates too (renderer.js
+    // measures against the strip stage).
+    if (event.sender !== rt().window?.webContents && !floatRoleOf(rt(), event.sender)) return;
     const request = tooltipRequest(raw);
     if (!request) {
       hidePillTooltip();
       return;
-    }
-    if (role) {
-      const origin = liveFloatRecord(rt(), role).view.getBounds();
-      request.anchor = { ...request.anchor, x: request.anchor.x + origin.x, y: request.anchor.y + origin.y };
     }
     showPillTooltip(request).catch(() => hidePillTooltip());
   });
@@ -9734,13 +9730,9 @@ function registerIpcHandlers() {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
     // narrow as the UI that owns it.
-    // The floating Island's copy of the button sits in its own small view.
-    const role = floatRoleOf(rt(), event.sender);
-    if (event.sender !== rt().window?.webContents && role !== 'menu') return false;
-    if (role && point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
-      const origin = liveFloatRecord(rt(), role).view.getBounds();
-      point = { x: point.x + origin.x, y: point.y + origin.y };
-    }
+    // The floating Island's copy of the button sits in its own small view
+    // and reports window coordinates, like the strip.
+    if (event.sender !== rt().window?.webContents && floatRoleOf(rt(), event.sender) !== 'menu') return false;
     return popupPlatformMainMenu({ Menu, window: rt().window, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));

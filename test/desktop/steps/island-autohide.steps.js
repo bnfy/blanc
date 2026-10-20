@@ -346,7 +346,11 @@ Then('the find bar sits under the floating pill over a page that stays still', a
 });
 
 When('I open the shield menu', async function () {
+  // Keep the Island up once find closes, as a pointer reaching for the
+  // shield would, and click it on the floating pill.
+  await restCursor(this, { x: 400, y: 2 });
   await this.call('closeOverlay');
+  await waitForValue(() => floatState(this), (value) => value?.shown === true, 'the pill to stay shown');
   await this.call('floatEval', 'pill', `document.getElementById('pillShield').click()`);
 });
 
@@ -354,7 +358,7 @@ Then('the shield menu hangs under the floating pill over a page that stays still
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'shield', 'the shield menu to open');
   const rect = await this.call('islandRect');
   const bounds = await this.call('overlayViewBounds');
-  assert.ok(bounds.y >= rect.y, `the shield menu (${bounds.y}) hangs from the pill (${rect.y})`);
+  assert.ok(bounds.y >= rect.y + rect.height / 2, `the shield menu (${bounds.y}) hangs from the pill (${rect.y}+${rect.height})`);
   assert.equal((await autoHideState(this)).activeBounds.y, 0);
   assert.equal((await floatState(this)).shown, true);
 });

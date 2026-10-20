@@ -369,5 +369,5 @@ test('float views are trusted chrome surfaces that never report geometry', () =>
   assert.match(main, /\.map\(\(record\) => \(\{ webContents: record\.view\.webContents, url: CHROME_FLOAT_URL \}\)\)/);
   assert.match(main, /chromeOn\('chrome:island-rect', \(event, rect\) => \{\s+\/\/ [^\n]*\n\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
   assert.match(main, /chromeOn\('chrome:layout', \(event, \{ height \}\) => \{\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
-  assert.match(main, /if \(event\.sender !== rt\(\)\.window\?\.webContents && role !== 'menu'\) return false;/);
+  assert.match(main, /if \(event\.sender !== rt\(\)\.window\?\.webContents && floatRoleOf\(rt\(\), event\.sender\) !== 'menu'\) return false;/);
 });

@@ -10,6 +10,16 @@
   // small views above the page, each showing one element of the strip.
   const floatSurface = window.location.hostname === 'float';
   if (floatSurface) document.documentElement.dataset.surface = 'float';
+  // Window coordinates of an element: its place on the strip stage (#chrome).
+  // The strip's stage sits at the window's origin; a float view's stage is
+  // shifted by the view's origin and, mid-slide, by the slide.
+  const stageRect = (el) => {
+    const r = el.getBoundingClientRect();
+    const stage = document.getElementById('chrome').getBoundingClientRect();
+    const left = r.left - stage.left;
+    const top = r.top - stage.top;
+    return { x: left, y: top, left, top, right: left + r.width, bottom: top + r.height, width: r.width, height: r.height };
+  };
   if (isMac) document.body.classList.add('mac');
 
   // Tooltips for the strip's buttons (the pill, the Glance header, the side
@@ -34,7 +44,7 @@
     if (!text || !el.isConnected) return;
     stripTipMeasure.textContent = text;
     const tip = stripTipMeasure.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
+    const box = stageRect(el);
     window.browserAPI.showTooltip({
       text,
       anchor: { x: box.x, y: box.y, width: box.width, height: box.height },
@@ -397,7 +407,7 @@
     mainMenuButton.hidden = false;
     mainMenuButton.addEventListener('click', async () => {
       if (mainMenuOpen) return;
-      const rect = mainMenuButton.getBoundingClientRect();
+      const rect = stageRect(mainMenuButton);
       mainMenuOpen = true;
       mainMenuButton.setAttribute('aria-expanded', 'true');
       try {
@@ -998,7 +1008,7 @@
   // The menu lines up with the mark but hangs from the Island's bottom edge,
   // so it never covers the Island (spec D18).
   function spacesAnchor() {
-    return { left: pillSpace.getBoundingClientRect().left, bottom: islandPill.getBoundingClientRect().bottom };
+    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
   }
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];
@@ -1207,7 +1217,7 @@
   // real <button>, and islandPill's keydown guard ignores focused children.
   function shieldAnchorFor(trigger) {
     const button = trigger === 'insecure' ? pillInsecure : pillShield;
-    const r = button.getBoundingClientRect();
+    const r = stageRect(button);
     return { right: r.right, center: r.left + r.width / 2, bottom: r.bottom, trigger };
   }
   pillShield.addEventListener('click', (e) => {
@@ -1233,13 +1243,13 @@
 
   pillCapture.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillCapture.getBoundingClientRect();
+    const r = stageRect(pillCapture);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
   pillDisplayShare.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillDisplayShare.getBoundingClientRect();
+    const r = stageRect(pillDisplayShare);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
