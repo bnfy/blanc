@@ -1661,10 +1661,28 @@ class Handler : public content::WebUIMessageHandler {
         }
       }
     }
-    // A v3 rollback retains only session-restored tabs with the exact saved
-    // identity and URL. Missing source tabs still have URL-only reconstruction.
-    // Stage every destination before closing the explicitly saved source.
-    // Public UI remains disabled until residency/autosave/recovery are complete.
+    // Closed-tab history keeps Chromium's serialized page state. Admit only
+    // unique exact identities, never a URL-only history match. Wait for the
+    // history read before making any live-window mutation.
+    std::map<std::string, const sessions::tab_restore::Tab*> closed_tabs;
+    auto* closed = source_ids ? ClosedService(browser->GetProfile()) : nullptr;
+    if (closed && !closed->IsLoaded()) {
+      owner->recovery_checked = false;
+      return;
+    }
+    if (closed) for (const auto& entry : closed->entries()) {
+      if (entry->type != sessions::tab_restore::TAB) continue;
+      const auto identity = entry->extra_data.find(kTabIdentityKey);
+      if (identity == entry->extra_data.end()) continue;
+      if (!std::ranges::any_of(*source_ids, [&](const auto& value) {
+            return value.GetString() == identity->second;
+          })) continue;
+      if (!closed_tabs.emplace(identity->second,
+              static_cast<const sessions::tab_restore::Tab*>(entry.get())).second) {
+        owner->space_error = "Interrupted switch retained: duplicate closed tab identity.";
+        return;
+      }
+    }
     size_t source_index = 0;
     for (const auto& item : *record->FindList("tabs")) {
       content::WebContents* retained = nullptr;
@@ -1673,6 +1691,28 @@ class Handler : public content::WebUIMessageHandler {
         if (found != survivors.end() &&
             found->second->GetLastCommittedURL() == GURL(*item.GetDict().FindString("url")))
           retained = found->second;
+      }
+      if (!retained && source_ids && closed) {
+        const auto& identity = (*source_ids)[source_index].GetString();
+        const auto found = closed_tabs.find(identity);
+        if (found != closed_tabs.end()) {
+          const auto* saved = found->second;
+          if (!saved->group && !saved->saved_group_id &&
+              !saved->navigations.empty() &&
+              saved->navigations[saved->normalized_navigation_index()].virtual_url() ==
+                  GURL(*item.GetDict().FindString("url"))) {
+            auto* live = BrowserLiveTabContext::From(browser)->AddRestoredTab(
+                *saved, model->count(), false, false, sessions::tab_restore::TAB);
+            if (live) {
+              for (int i = 0; i < model->count(); ++i) {
+                auto* candidate = model->GetWebContentsAt(i);
+                if (sessions::SessionTabHelper::IdForTab(candidate) == live->GetSessionID())
+                  retained = candidate;
+              }
+              if (retained) RestoreTabIdentity(retained, saved->extra_data);
+            }
+          }
+        }
       }
       if (retained) added.push_back(retained);
       else {

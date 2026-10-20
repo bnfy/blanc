@@ -51,4 +51,10 @@ export function prepareWindowIdentity(edit) {
     present: "    blanc_prototype::RestoreTabIdentity(web_contents, tab.extra_data);\n"
   }]);
 
+  edit("chrome/browser/ui/browser_live_tab_context.cc", [{
+    anchor: "  glic::PopulateGlicExtraData(tab_strip_model_->GetTabAtIndex(index),",
+    replacement: "  const auto identity = blanc_prototype::TabIdentity(tab_strip_model_->GetWebContentsAt(index));\n  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n\n  glic::PopulateGlicExtraData(tab_strip_model_->GetTabAtIndex(index),",
+    present: "  if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;\n"
+  }]);
+
 }

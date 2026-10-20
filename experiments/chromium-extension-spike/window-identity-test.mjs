@@ -5,7 +5,7 @@ import { prepareWindowIdentity } from './window-identity.mjs';
 test('identity hooks cover session rebuild and both window restore paths', () => {
   const changes = [];
   prepareWindowIdentity((path, edits) => changes.push({ path, edits }));
-  assert.equal(changes.length, 5);
+  assert.equal(changes.length, 6);
   const all = changes.flatMap(c => c.edits.map(e => e.replacement)).join('\n');
   assert.equal((all.match(/RestoreWindowIdentity\(/g) || []).length, 2);
   assert(all.includes('CreateAddWindowExtraDataCommand'));
