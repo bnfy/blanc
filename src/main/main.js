@@ -98,6 +98,7 @@ const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_FLOAT_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,
@@ -494,7 +495,7 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
     const mode = popup.runtime.overlayMode;
     const restore = restoreFocus && !mode;
     if (restore) popup.runtime.window.webContents.focus();
-    popup.runtime.window.webContents.send('chrome:island-state', {
+    stripSurfaces(popup.runtime).send('chrome:island-state', {
       mode, trigger: mode === 'shield' ? popup.runtime.shieldTrigger : null,
       restoreTrigger: restore ? 'shield' : null,
     });
@@ -596,7 +597,11 @@ async function openUblockPopup(anchor) {
   });
   popup.dismissal = wirePopupDismissal({
     window: runtime.window,
-    outsideContents: [runtime.window.webContents, runtime.overlayView?.webContents],
+    outsideContents: [
+      runtime.window.webContents,
+      runtime.overlayView?.webContents,
+      ...FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents),
+    ].filter(Boolean),
     dismiss: () => { if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id); },
   });
   for (const item of tabs.values()) if (item.runtimeId === runtime.id) watchUblockPopupOutsideContents(item);
@@ -611,7 +616,7 @@ async function openUblockPopup(anchor) {
       closeUblockPopup(runtime.id);
       return;
     }
-    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    stripSurfaces(runtime).send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
     popup.ready = true;
     wc.focus();
   }
@@ -1983,7 +1988,7 @@ function applyChromeThemeAppearance(appearance) {
     ? appearance
     : resolvedThemeAppearance();
   rt().window.setBackgroundColor(chromeBackgroundColor(resolved));
-  rt().window.webContents.send(
+  stripSurfaces(rt()).send(
     'chrome:theme-appearance',
     resolved
   );
@@ -1997,7 +2002,7 @@ function beginChromeThemeAppearance(appearance) {
   if (appearance === 'dark' || appearance === 'light') {
     rt().window.setBackgroundColor(chromeBackgroundColor(appearance));
   }
-  rt().window.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
+  stripSurfaces(rt()).send('chrome:theme-appearance', appearance ?? 'pending');
 }
 
 function refreshActivePageTintForThemeChange() {
@@ -3240,7 +3245,7 @@ function sendIslandProximity(runtime, next) {
   runtime.islandProximity = next;
   runtime.islandProximitySentAt = Date.now();
   if (runtime.window && !runtime.window.isDestroyed()) {
-    runtime.window.webContents.send('chrome:island-proximity', next);
+    stripSurfaces(runtime).send('chrome:island-proximity', next);
   }
 }
 
@@ -3665,6 +3670,202 @@ function syncStripHidden(runtime = rt()) {
   if (runtime.stripHiddenSent === hidden) return;
   runtime.stripHiddenSent = hidden;
   runtime.window.webContents.send('chrome:strip-hidden', hidden);
+}
+
+/* ---- Floating Island views ----------------------------------------------
+ * Auto-hide's float style draws the revealed Island in small transparent
+ * views above the page instead of moving the page down. Each runs the strip
+ * document (CHROME_FLOAT_URL) and shows one element of it: the pill, and on
+ * Windows and Linux the window controls and the main-menu button. The strip
+ * beneath stays the geometry authority; its island-rect report places them.
+ * A float view stays window-owned for its whole life and hides with
+ * setVisible(false): Electron 44 on Linux stops drawing a view that is removed
+ * and added back (tab-view-lifecycle.js). Policy is in island-autohide.js. */
+
+/** Bottom to top. */
+const FLOAT_ROLES = Object.freeze(['controls', 'menu', 'pill']);
+
+function liveFloatRecord(runtime, role) {
+  const record = runtime?.islandFloat?.[role];
+  return record && !record.view.webContents.isDestroyed() ? record : null;
+}
+
+function floatRoleOf(runtime, webContents) {
+  if (!runtime?.islandFloat || !webContents) return null;
+  return FLOAT_ROLES.find((role) => liveFloatRecord(runtime, role)?.view.webContents === webContents) ?? null;
+}
+
+/** The documents that draw the strip: the window's own and any floating
+ * Island views, which render from the same broadcasts. */
+function stripSurfaces(runtime) {
+  return {
+    send(channel, ...args) {
+      const window = runtime?.window;
+      if (!window || window.isDestroyed()) return;
+      window.webContents.send(channel, ...args);
+      for (const role of FLOAT_ROLES) liveFloatRecord(runtime, role)?.view.webContents.send(channel, ...args);
+    },
+  };
+}
+
+/** Keep everything that must sit above the float views above them, after a
+ * float view has been added on top. */
+function restackAboveIslandFloat(runtime) {
+  withWindowRuntime(runtime, () => {
+    restackFillStatusView();
+    if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+    restackPermissionView();
+    if (rt().tooltipViewAttached && liveViewContents(rt().tooltipView)) rt().window.contentView.addChildView(rt().tooltipView);
+    const popup = ublockPopups.get(runtime.id);
+    if (popup?.view && !popup.view.webContents.isDestroyed()) rt().window.contentView.addChildView(popup.view);
+  });
+}
+
+function ensureIslandFloatView(runtime, role) {
+  const existing = liveFloatRecord(runtime, role);
+  if (existing) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const contents = view.webContents;
+  const contentsId = contents.id;
+  // payload: the last FloatFrame sent, replayed once the document loads.
+  const record = { view, role, shown: false, hideTimer: null, payload: null, frameKey: null };
+  runtime.islandFloat = { ...(runtime.islandFloat ?? {}), [role]: record };
+  windowRuntimes.registerChromeSurface(runtime, contentsId);
+  contents.once('destroyed', bindWindowRuntime(runtime, () => {
+    windowRuntimes.unregisterChromeSurface(contentsId);
+    if (record.hideTimer) clearTimeout(record.hideTimer);
+    if (runtime.islandFloat?.[role] === record) delete runtime.islandFloat[role];
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+    });
+  }));
+  contents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
+  view.setBackgroundColor('#00000000');
+  view.setVisible(false);
+  lockPrivilegedNavigation(contents, CHROME_FLOAT_URL);
+  installChromeShortcuts(contents, runtime);
+  watchCursorFor(contents, () => {
+    const bounds = view.getBounds();
+    return { x: bounds.x, y: bounds.y };
+  }, (fn) => bindWindowRuntime(runtime, fn));
+  contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    if (record.payload) contents.send('chrome:float-frame', record.payload);
+    if (record.shown) contents.send('chrome:float-shown', true);
+  }));
+  contents.loadURL(CHROME_FLOAT_URL).catch(() => {});
+  runtime.window.contentView.addChildView(view);
+  restackAboveIslandFloat(runtime);
+  return record;
+}
+
+function destroyIslandFloatViews(runtime) {
+  if (!runtime.islandFloat) return;
+  const window = runtime.window;
+  for (const role of FLOAT_ROLES) {
+    const record = runtime.islandFloat[role];
+    if (!record) continue;
+    if (record.hideTimer) clearTimeout(record.hideTimer);
+    if (window && !window.isDestroyed() && window.contentView.children.includes(record.view)) {
+      window.contentView.removeChildView(record.view);
+    }
+    if (!record.view.webContents.isDestroyed()) record.view.webContents.close();
+  }
+  runtime.islandFloat = null;
+}
+
+/** Re-raise the float views above a tab view or the utility sheet that was
+ * just (re)attached, which addChildView put on top. */
+function restackIslandFloatViews(runtime = rt()) {
+  const window = runtime.window;
+  if (!runtime.islandFloat || !window || window.isDestroyed()) return;
+  for (const role of FLOAT_ROLES) {
+    const record = liveFloatRecord(runtime, role);
+    if (record) window.contentView.addChildView(record.view);
+  }
+  if (runtime.tooltipViewAttached && liveViewContents(runtime.tooltipView)) window.contentView.addChildView(runtime.tooltipView);
+}
+
+function floatElementRect(runtime, role) {
+  if (role === 'pill') return runtime.islandRect;
+  return role === 'controls' ? runtime.windowControlsRect : runtime.menuButtonRect;
+}
+
+/** Slide a float view's element in, or out and then hide the view. */
+function setIslandFloatShown(runtime, record, shown) {
+  if (record.shown === shown) return;
+  record.shown = shown;
+  if (record.hideTimer) clearTimeout(record.hideTimer);
+  record.hideTimer = null;
+  const contents = record.view.webContents;
+  if (shown) {
+    record.view.setVisible(true);
+    contents.send('chrome:float-shown', true);
+    return;
+  }
+  contents.send('chrome:float-shown', false);
+  const delay = prefersReducedMotion() ? 0 : islandAutoHideModule.SLIDE_OUT_MS + 32;
+  record.hideTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    record.hideTimer = null;
+    if (!record.shown && !contents.isDestroyed()) record.view.setVisible(false);
+  }), delay);
+}
+
+/** Bring the window's float views in line with the setting, the layout and
+ * the Island's place. Runs at the end of every layout and on island-rect. */
+function syncIslandFloat(runtime = rt()) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  const platform = process.platform;
+  const wanted = islandAutoHideModule.floatViewsWanted({ autoHide: islandAutoHide, style: islandAutoHideStyle, platform });
+  if (!wanted.pill) {
+    destroyIslandFloatViews(runtime);
+    return;
+  }
+  const shown = islandAutoHideModule.floatViewsShown({
+    floating: islandFloating(runtime),
+    islandVisible: !islandStripHidden(runtime),
+    platform,
+  });
+  const content = window.getContentBounds();
+  for (const role of FLOAT_ROLES) {
+    if (!wanted[role]) continue;
+    const record = ensureIslandFloatView(runtime, role);
+    const pill = role === 'pill';
+    const bounds = islandAutoHideModule.floatViewBounds(floatElementRect(runtime, role), {
+      windowWidth: content.width,
+      windowHeight: content.height,
+      side: pill ? islandAutoHideModule.FLOAT_SIDE_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      bottom: pill ? islandAutoHideModule.FLOAT_BOTTOM_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+    });
+    if (bounds) {
+      const frame = { role, x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: content.width };
+      const key = JSON.stringify(frame);
+      if (key !== record.frameKey) {
+        record.frameKey = key;
+        record.payload = frame;
+        record.view.setBounds(bounds);
+        record.view.webContents.send('chrome:float-frame', frame);
+      }
+    }
+    setIslandFloatShown(runtime, record, shown[role] === true && !!bounds);
+  }
+}
+
+/** The document holding the visible pill: a floating one when it shows. */
+function islandSurfaceContents(runtime = rt()) {
+  const pill = liveFloatRecord(runtime, 'pill');
+  return pill?.shown ? pill.view.webContents : runtime.window.webContents;
 }
 
 function endIslandAutoHideIntro(runtime) {
@@ -4414,7 +4615,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   // Another surface replacing the side list's group menu: that header forgets
   // its open state, as it does when the menu closes (hideOverlay).
   if (rt().overlayMode === 'group-menu' && mode !== 'group-menu' && typeof rt().overlayPurpose?.groupId === 'string') {
-    rt().window.webContents.send('chrome:island-state', {
+    stripSurfaces(rt()).send('chrome:island-state', {
       mode: null, trigger: `group-menu:${rt().overlayPurpose.groupId}`, restoreTrigger: null,
     });
   }
@@ -4458,7 +4659,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   });
   syncShieldAnchor();
   rt().overlayView.webContents.focus();
-  rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
+  stripSurfaces(rt()).send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
 // The one place a typed character opens the island. The start page, the
@@ -4548,12 +4749,12 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
                 : null
         )
       : null;
-    if (restoreTrigger) rt().window.webContents.focus();
+    if (restoreTrigger) islandSurfaceContents().focus();
     // The side list's group menu names its group so that header can forget
     // its open state (and take focus back after Escape).
     const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
       ? `group-menu:${closingPurpose.groupId}` : null;
-    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
+    stripSurfaces(rt()).send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
@@ -4815,6 +5016,8 @@ function showUtilityPage(url) {
   // and clicks — the same failure overlay-view-lifecycle.js guards against.
   sheet.view.setVisible(true);
   showOverlayView(runtime.window, sheet.view);
+  // The floating Island stays above the sheet, as the strip's Island does.
+  restackIslandFloatViews(runtime);
   // A pending permission prompt must stay above the sheet — a buried prompt
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
@@ -4889,7 +5092,7 @@ function noteFocusedPane(owner, tabId) {
   if (owner.glanceTabId == null) return;
   withWindowRuntime(owner, () => {
     if (!hasLiveWindow()) return;
-    rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
+    stripSurfaces(rt()).send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
   });
 }
 
@@ -5740,13 +5943,13 @@ function broadcastTabs() {
   if (!rt().window || rt().window.isDestroyed()) return;
   const runtime = rt();
   const payload = currentTabsPayload();
-  rt().window.webContents.send('tabs:updated', payload);
+  stripSurfaces(rt()).send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
 }
 
 function broadcastDownloadsActivity() {
   forEachWindowRuntime(() => {
-    rt().window.webContents.send('chrome:downloads', downloadsActivity());
+    stripSurfaces(rt()).send('chrome:downloads', downloadsActivity());
   }, { liveOnly: true });
 }
 
@@ -5786,10 +5989,11 @@ function resizeActiveView() {
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
-  rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
-  rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
+  stripSurfaces(rt()).send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  stripSurfaces(rt()).send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
   syncWindowButtons();
   syncStripHidden();
+  syncIslandFloat();
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -5982,6 +6186,7 @@ function observeBrowserCommand(delivery) {
 function ownsBrowserShortcutSurface(runtime, wc) {
   if (!runtime.window || runtime.window.isDestroyed() || runtime.closing || runtime.resident) return false;
   if (wc === runtime.window.webContents) return true;
+  if (floatRoleOf(runtime, wc)) return true;
   if (wc === liveViewContents(runtime.overlayView)) return !!runtime.overlayMode;
   if (wc === liveViewContents(runtime.utilitySheetView)) return !!runtime.utilitySheetUrl;
   if (wc === liveViewContents(runtime.permissionView)) return !!runtime.permissionViewAttached;
@@ -6127,7 +6332,7 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
       // still records the sample, but must not repaint the strip.
       if (!settings.getSettings().islandSiteColors) return false;
       // Color-only updates avoid rebuilding tabs and menus during a fade.
-      owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
+      stripSurfaces(owner).send('chrome:page-tint', { id: tab.id, color });
       return true;
     }
   } catch { /* A native view can disappear during capture. */ }
@@ -7650,6 +7855,7 @@ function setActiveTab(id, {
   // but a race must never paint a tab over either floating layer).
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackIslandFloatViews(); // above the pages and the sheet
   restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
@@ -7697,7 +7903,7 @@ async function setGlanceTab(id) {
     // Glance meanwhile (a second, current choice may have attached it while
     // this first wake was still loading).
     if (hasLiveWindow() && rt().glanceTabId !== id) {
-      rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+      stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
     }
     return false;
   }
@@ -7736,13 +7942,14 @@ async function setGlanceTab(id) {
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackIslandFloatViews(); // above the pages and the sheet
   restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
+  stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
   return true;
 }
 
@@ -7767,7 +7974,7 @@ function closeGlance({ focusContent = true } = {}) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.closed'));
+  if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
   if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
@@ -7784,7 +7991,7 @@ function promoteGlance() {
   setActiveTab(id, { focusContent: true });
   const promoted = rt().activeTabId === id;
   if (promoted && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
   }
   return promoted;
 }
@@ -8103,7 +8310,7 @@ function closeTab(id) {
       setActiveTab(survivingGlanceId);
       if (hasLiveWindow()) {
         const promoted = tabs.get(survivingGlanceId);
-        rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
+        stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
           title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
         }));
       }
@@ -8137,7 +8344,7 @@ function closeTab(id) {
     // The reference held keyboard focus: hand it to the main page rather than
     // leaving it on the strip where the detached view dropped it.
     if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -8859,6 +9066,9 @@ function isTrustedChromeSender(event) {
     rt().permissionView && !rt().permissionView.webContents.isDestroyed()
       ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
       : null,
+    ...FLOAT_ROLES.map((role) => liveFloatRecord(rt(), role))
+      .filter(Boolean)
+      .map((record) => ({ webContents: record.view.webContents, url: CHROME_FLOAT_URL })),
     rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
       ? { webContents: rt().fillStatusView.webContents, url: CHROME_FILL_STATUS_URL }
       : null,
@@ -8952,7 +9162,7 @@ function broadcastWorkspacesUpdated() {
   onSpacesChangedForStartPage();
   forEachWindowRuntime((runtime) => {
     const payload = workspacesProjection();
-    runtime.window.webContents.send('chrome:workspaces-updated', payload);
+    stripSurfaces(runtime).send('chrome:workspaces-updated', payload);
     if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
       runtime.overlayView.webContents.send('chrome:workspaces-updated', payload);
     }
@@ -9041,7 +9251,7 @@ function clearRecentBangsAndIcons() {
 function broadcastBangsChanged() {
   forEachWindowRuntime((runtime) => {
     const payload = bangsState();
-    runtime.window.webContents.send('bangs:changed', payload);
+    stripSurfaces(runtime).send('bangs:changed', payload);
     if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
       runtime.overlayView.webContents.send('bangs:changed', payload);
     }
@@ -9342,19 +9552,27 @@ function registerIpcHandlers() {
 
   // The resting pill's tooltips (renderer.js). Only the strip may ask.
   chromeOn('chrome:tooltip-show', (event, raw) => {
-    if (event.sender !== rt().window?.webContents) return;
+    // A floating Island view measures in its own coordinates.
+    const role = floatRoleOf(rt(), event.sender);
+    if (event.sender !== rt().window?.webContents && !role) return;
     const request = tooltipRequest(raw);
     if (!request) {
       hidePillTooltip();
       return;
     }
+    if (role) {
+      const origin = liveFloatRecord(rt(), role).view.getBounds();
+      request.anchor = { ...request.anchor, x: request.anchor.x + origin.x, y: request.anchor.y + origin.y };
+    }
     showPillTooltip(request).catch(() => hidePillTooltip());
   });
   chromeOn('chrome:tooltip-hide', (event) => {
-    if (event.sender === rt().window?.webContents) hidePillTooltip();
+    if (event.sender === rt().window?.webContents || floatRoleOf(rt(), event.sender)) hidePillTooltip();
   });
 
   chromeOn('chrome:island-rect', (event, rect) => {
+    // The strip beneath is the one geometry authority; float views copy it.
+    if (floatRoleOf(rt(), event.sender)) return;
     // The strip measures the narrowest main pane its Island needs and the
     // narrowest reference its Glance header needs (renderer.js
     // measureGlanceFloors); the Glance divider stops at both.
@@ -9400,9 +9618,19 @@ function registerIpcHandlers() {
       setSpacesAnchor(rect.spacesAnchor);
       rt().overlayView?.setBounds(overlayBounds());
     }
+    if (event.sender === rt().window?.webContents) {
+      // Windows and Linux: where the strip draws its own window controls and
+      // main-menu button, for the floating Island's copies of them.
+      const box = (value) => value && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(value[f])) && value.width > 0
+        ? { x: value.x, y: value.y, width: value.width, height: value.height } : null;
+      rt().windowControlsRect = box(rect?.windowControlsRect);
+      rt().menuButtonRect = box(rect?.menuButtonRect);
+      syncIslandFloat();
+    }
   });
 
-  chromeOn('chrome:layout', (_e, { height }) => {
+  chromeOn('chrome:layout', (event, { height }) => {
+    if (floatRoleOf(rt(), event.sender)) return;
     if (typeof height === 'number' && height > 0) {
       rt().chromeHeight = height;
       resizeActiveView();
@@ -9432,7 +9660,7 @@ function registerIpcHandlers() {
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
       syncShieldAnchor();
-      rt().window.webContents.send('chrome:island-state', { mode: 'shield', trigger });
+      stripSurfaces(rt()).send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
@@ -9506,7 +9734,13 @@ function registerIpcHandlers() {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
     // narrow as the UI that owns it.
-    if (event.sender !== rt().window?.webContents) return false;
+    // The floating Island's copy of the button sits in its own small view.
+    const role = floatRoleOf(rt(), event.sender);
+    if (event.sender !== rt().window?.webContents && role !== 'menu') return false;
+    if (role && point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+      const origin = liveFloatRecord(rt(), role).view.getBounds();
+      point = { x: point.x + origin.x, y: point.y + origin.y };
+    }
     return popupPlatformMainMenu({ Menu, window: rt().window, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
@@ -9524,7 +9758,7 @@ function registerIpcHandlers() {
   chromeOn('overlay:panel-drawn', (event) => {
     if (event.sender !== rt().overlayView?.webContents) return;
     if (rt().overlayMode !== 'panel') return;
-    rt().window.webContents.send('chrome:island-covered');
+    stripSurfaces(rt()).send('chrome:island-covered');
   });
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
@@ -10534,6 +10768,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     runtime.windowButtonsVisible = null;
     runtime.stripHiddenSent = null;
     runtime.lastPointer = null;
+    destroyIslandFloatViews(runtime);
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -12620,6 +12855,28 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
       setIslandAutoHide,
       setIslandAutoHideStyle,
+      getFloatViewState: (role) => {
+        const record = liveFloatRecord(rt(), role);
+        if (!record || !hasLiveWindow()) return null;
+        const children = rt().window.contentView.children;
+        const index = children.indexOf(record.view);
+        const below = [...tabs.values()].filter((tab) => tab.view && children.includes(tab.view)).map((tab) => children.indexOf(tab.view));
+        const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+        if (sheet && children.includes(sheet.view)) below.push(children.indexOf(sheet.view));
+        return {
+          attached: index >= 0,
+          shown: record.shown,
+          visible: typeof record.view.getVisible === 'function' ? record.view.getVisible() : record.shown,
+          bounds: record.view.getBounds(),
+          aboveTabsAndSheet: index >= 0 && below.every((other) => other < index),
+        };
+      },
+      getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
+      getFloatWebContentsIds: (runtimeId) => {
+        const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
+        return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];
+      },
+      isChromeSurfaceRegistered: (id) => !!windowRuntimes.runtimeForChromeWebContentsId(id),
       getIslandAutoHideState: () => ({
         enabled: islandAutoHide,
         style: islandAutoHideStyle,

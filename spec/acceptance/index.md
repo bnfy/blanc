@@ -79,6 +79,17 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F1-27 | The vertical rail is never reveal territory | D29 | ✅ | ➖ | ➖ |
 | F1-28 | A floating Island keeps a thin top band to drag the window | D29 | ✅ | ➖ | ➖ |
 | F1-29 | A floating Island leaves the page where it is | D29 | ✅ | ➖ | ➖ |
+| F1-30 | The revealed Island floats over a page that stays still | D29 | ✅ | ➖ | ➖ |
+| F1-31 | Find and the shield menu open under the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-32 | Hover-open works on the floating pill | D29 | ✅ | ➖ | ➖ |
+| F1-33 | Glance uses the push layout in float mode | D29 | ✅ | ➖ | ➖ |
+| F1-34 | The floating pill keeps up with tabs, sheets, styles and windows | D29 | ✅ | ➖ | ➖ |
+| F1-35 | The floating pill takes the private theme | D29 | ✅ | ➖ | ➖ |
+| F1-37 | Switching to push while the pill slides in leaves nothing behind | D29 | ✅ | ➖ | ➖ |
+| F1-38 | Turning auto-hide off while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-39 | Changing the style while Glance is open | D29 | ✅ | ➖ | ➖ |
+| F1-40 | Resizing the window while the pill floats | D29 | ✅ | ➖ | ➖ |
+| F1-41 | Changing the theme while the pill floats | D29 | ✅ | ➖ | ➖ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |

@@ -13,6 +13,8 @@ const CHROME_SCHEME = 'blanc-chrome';
 const CHROME_PARTITION = 'blanc-chrome';
 const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
+// The floating Island's views (auto-hide, float style) run the strip document.
+const CHROME_FLOAT_URL = `${CHROME_SCHEME}://float/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
 const CHROME_TOOLTIP_URL = `${CHROME_SCHEME}://tooltip/`;
@@ -43,21 +45,23 @@ const SHARED_ASSETS = new Set([
   // strip and the start page share one copy so they cannot disagree.
   '/pages/type-to-open.js',
 ]);
+const STRIP_ASSETS = new Map([
+  ['/', 'index.html'],
+  ['/renderer.js', 'renderer.js'],
+  ['/vertical-tabs.js', 'vertical-tabs.js'],
+  // Pure drag-to-reorder controller shared by the rail and the island so the
+  // two surfaces cannot disagree. No IPC of its own and no application data.
+  ['/tab-drag.js', 'tab-drag.js'],
+  // Pure tab-order sections (groups and runs of ungrouped tabs), shared
+  // with main so the rail, the island and main draw one order. No IPC.
+  ['/tab-sections.js', 'tab-sections.js'],
+  // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
+  // and no application data; the strip mark and the Spaces menu share it.
+  ['/space-identity.js', 'space-identity.js'],
+]);
 const HOST_ASSETS = new Map([
-  ['index', new Map([
-    ['/', 'index.html'],
-    ['/renderer.js', 'renderer.js'],
-    ['/vertical-tabs.js', 'vertical-tabs.js'],
-    // Pure drag-to-reorder controller shared by the rail and the island so the
-    // two surfaces cannot disagree. No IPC of its own and no application data.
-    ['/tab-drag.js', 'tab-drag.js'],
-    // Pure tab-order sections (groups and runs of ungrouped tabs), shared
-    // with main so the rail, the island and main draw one order. No IPC.
-    ['/tab-sections.js', 'tab-sections.js'],
-    // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
-    // and no application data; the strip mark and the Spaces menu share it.
-    ['/space-identity.js', 'space-identity.js'],
-  ])],
+  ['index', STRIP_ASSETS],
+  ['float', STRIP_ASSETS],
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
@@ -162,6 +166,7 @@ module.exports = {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_FLOAT_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,

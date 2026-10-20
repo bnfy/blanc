@@ -4,7 +4,8 @@
   "surfaces": [
     "blanc-chrome://index/",
     "blanc-chrome://overlay/",
-    "blanc-chrome://permission/"
+    "blanc-chrome://permission/",
+    "blanc-chrome://float/"
   ],
   "types": {
     "Platform": {
@@ -1337,6 +1338,16 @@
           "type": "number",
           "optional": true,
           "doc": "With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there."
+        },
+        "windowControlsRect": {
+          "type": "Rect",
+          "optional": true,
+          "doc": "Windows and Linux: where the strip draws its window controls, for the floating Island’s copy."
+        },
+        "menuButtonRect": {
+          "type": "Rect",
+          "optional": true,
+          "doc": "Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy."
         }
       }
     },
@@ -1479,6 +1490,33 @@
           "type": "boolean",
           "optional": true,
           "doc": "Whether the strip is in its private theme."
+        }
+      }
+    },
+    "FloatRole": {
+      "ts": "'pill' | 'controls' | 'menu'",
+      "doc": "Which strip element a floating Island view shows."
+    },
+    "FloatFrame": {
+      "doc": "Where a floating Island view sits (window coordinates) and the width of the strip it replicates.",
+      "fields": {
+        "role": {
+          "type": "FloatRole"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "stageWidth": {
+          "type": "number"
         }
       }
     }
@@ -3090,6 +3128,22 @@
       "channel": "chrome:strip-hidden",
       "payload": "boolean",
       "doc": "Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region."
+    },
+    {
+      "name": "onFloatFrame",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:float-frame",
+      "payload": "FloatFrame",
+      "doc": "Which element a floating Island view shows and where the view sits (float surface only)."
+    },
+    {
+      "name": "onFloatShown",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:float-shown",
+      "payload": "boolean",
+      "doc": "A floating Island view slides its element in (true) or out (false) (float surface only)."
     },
     {
       "name": "onFindResult",

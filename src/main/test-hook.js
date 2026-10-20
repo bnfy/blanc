@@ -74,6 +74,10 @@ function install(refs) {
     setIslandHoverOpen,
     setIslandAutoHide,
     setIslandAutoHideStyle,
+    getFloatViewState,
+    getFloatWebContents,
+    getFloatWebContentsIds,
+    isChromeSurfaceRegistered,
     getIslandAutoHideState,
     getOverlayShowCount,
     resetOverlayShowCount,
@@ -541,6 +545,27 @@ function install(refs) {
     setIslandHoverOpen(on) { return setIslandHoverOpen(on); },
     setIslandAutoHide(on) { return setIslandAutoHide(on === true); },
     setIslandAutoHideStyle(style) { return setIslandAutoHideStyle(style); },
+    /** A floating Island view (auto-hide, float style): its native state, or
+     * null when the window has none for that role. */
+    floatViewState(role) { return getFloatViewState(String(role)); },
+    floatEval(role, script) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
+    sendFloatMouseInput(role, input) {
+      const wc = getFloatWebContents(String(role));
+      if (!wc || wc.isDestroyed()) return false;
+      wc.sendInputEvent(input);
+      return true;
+    },
+    floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
+    chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
+    chromeEval(script) {
+      const wc = getChromeWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(String(script));
+    },
     /** Auto-hide state plus where the page view starts (0 = strip hidden). */
     islandAutoHideState() { return getIslandAutoHideState(); },
     overlayShowCount() { return getOverlayShowCount(); },

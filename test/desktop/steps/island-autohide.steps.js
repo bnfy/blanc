@@ -234,7 +234,12 @@ When('the palette closes with the pointer well below the Island', async function
 });
 
 After({ tags: '@island-autohide' }, async function () {
+  if (this.floatOriginalSize) {
+    await this.call('setWindowContentSize', this.floatOriginalSize.width, this.floatOriginalSize.height).catch(() => {});
+    this.floatOriginalSize = null;
+  }
   await this.call('setIslandAutoHide', false).catch(() => {});
+  await this.call('setIslandAutoHideStyle', 'float').catch(() => {});
   await this.call('setTabLayout', 'island').catch(() => {});
   await this.call('setTestCursorPoint', null).catch(() => {});
   await this.call('setCursorSamplingUnavailable', false).catch(() => {});
@@ -260,4 +265,225 @@ Then('the Island is revealed while the page stays at the top of the window', asy
   assert.equal(state.sliding, false, 'a floating Island never slides the page');
   assert.equal(state.pageY, 0);
   assert.equal(state.activeBounds.y, 0);
+});
+
+/* ---- Floating Island (float style) ---------------------------------------
+ * The pill floats in its own transparent view over a page that never moves.
+ * floatViewState reports the native view; floatEval reads its document. */
+
+const FLOAT_SHADOW_PX = 20; // --shadow-island-float's reach below the pill
+
+function floatState(world, role = 'pill') {
+  return world.call('floatViewState', role);
+}
+
+/** The float view wraps the Island's rect with a little room on each side. */
+function assertWraps(bounds, rect, label) {
+  assert.ok(bounds && rect, `${label}: no bounds or rect`);
+  assert.equal(bounds.y, 0, `${label}: the view starts at the window top`);
+  const left = rect.x - bounds.x;
+  const right = bounds.x + bounds.width - (rect.x + rect.width);
+  const below = bounds.height - (rect.y + rect.height);
+  for (const [side, gap] of [['left', left], ['right', right], ['below', below]]) {
+    assert.ok(gap >= -1 && gap <= 30, `${label}: ${side} gap ${gap} (bounds ${JSON.stringify(bounds)}, rect ${JSON.stringify(rect)})`);
+  }
+}
+
+async function pillBottomInView(world) {
+  return world.call('floatEval', 'pill', `document.getElementById('islandPill').getBoundingClientRect().bottom`);
+}
+
+Then('the floating pill waits above the window edge', async function () {
+  // The view hides once its element has slid out (SLIDE_OUT_MS).
+  const state = await waitForValue(() => floatState(this), (value) => value?.attached === true && value.shown === false && value.visible === false,
+    'the hidden floating pill view');
+  assert.equal(state.attached, true);
+  const bottom = await waitForValue(() => pillBottomInView(this), (value) => typeof value === 'number' && value + FLOAT_SHADOW_PX <= 0,
+    'the hidden pill to sit wholly above the window edge');
+  assert.ok(bottom + FLOAT_SHADOW_PX <= 0);
+});
+
+Then('the floating pill slides in over a page that stays still', async function () {
+  for (let i = 0; i < 10; i += 1) {
+    const state = await autoHideState(this);
+    assert.equal(state.pageY, 0, 'the page pane kept the top of the window');
+    assert.equal(state.activeBounds?.y, 0, 'the page view never moved');
+    await sleep(30);
+  }
+  const pill = await waitForValue(() => floatState(this), (value) => value?.shown === true && value.visible === true,
+    'the floating pill to show');
+  assertWraps(pill.bounds, await this.call('islandRect'), 'pill');
+  await waitForValue(() => this.call('floatEval', 'pill', `document.documentElement.classList.contains('float-shown')`),
+    (value) => value === true, 'the pill to slide in');
+  const bottom = await pillBottomInView(this);
+  assert.ok(bottom > 0, 'the pill came down into the window');
+  const state = await autoHideState(this);
+  assert.equal(state.activeBounds.y, 0);
+});
+
+Then('the floating pill slides away and stays attached', async function () {
+  await waitForAutoHide(this, (value) => value?.revealed === false && value.stripHidden === true, 'the Island to hide');
+  const state = await waitForValue(() => floatState(this), (value) => value?.shown === false && value.visible === false,
+    'the pill view to hide after its slide');
+  assert.equal(state.attached, true, 'the view stays window-owned (never removed and re-added)');
+  const bottom = await pillBottomInView(this);
+  assert.ok(bottom + FLOAT_SHADOW_PX <= 0, `the hidden pill peeks below the edge: ${bottom}`);
+  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+});
+
+When('I open find', async function () {
+  await this.call('openFind');
+});
+
+Then('the find bar sits under the floating pill over a page that stays still', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find to open');
+  const rect = await this.call('islandRect');
+  const bounds = await this.call('overlayViewBounds');
+  assert.ok(bounds.y >= rect.y + rect.height, `find (${bounds.y}) sits under the pill (${rect.y + rect.height})`);
+  const state = await autoHideState(this);
+  assert.equal(state.activeBounds.y, 0);
+  assert.equal((await floatState(this)).shown, true);
+});
+
+When('I open the shield menu', async function () {
+  await this.call('closeOverlay');
+  await this.call('floatEval', 'pill', `document.getElementById('pillShield').click()`);
+});
+
+Then('the shield menu hangs under the floating pill over a page that stays still', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'shield', 'the shield menu to open');
+  const rect = await this.call('islandRect');
+  const bounds = await this.call('overlayViewBounds');
+  assert.ok(bounds.y >= rect.y, `the shield menu (${bounds.y}) hangs from the pill (${rect.y})`);
+  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+  assert.equal((await floatState(this)).shown, true);
+});
+
+When('I rest the pointer on the floating address', async function () {
+  const hover = await waitForValue(() => this.call('islandHoverRect'), Boolean, 'the address rectangle');
+  const pill = await floatState(this);
+  const point = { x: Math.round(hover.x + hover.width / 2), y: Math.round(hover.y + hover.height / 2) };
+  await restCursor(this, point);
+  // Into the float view, in its own coordinates, as a real pointer would be.
+  assert.equal(await this.call('sendFloatMouseInput', 'pill',
+    { type: 'mouseMove', x: point.x - pill.bounds.x, y: point.y - pill.bounds.y }), true);
+});
+
+When('I open a Glance beside the page', async function () {
+  const state = await this.call('state');
+  this.floatMainId = state.activeTabId;
+  this.floatGlanceId = await this.call('openTab', this.fixtureUrl('autohide-page'));
+  await this.call('activateTab', this.floatMainId, false);
+  assert.equal(await this.call('setGlance', this.floatGlanceId), true);
+});
+
+Then('the page sits below the strip and no pill floats', async function () {
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === false && value.pageY > 0,
+    'the page to sit below the strip');
+  assert.equal(state.activeBounds.y, state.pageY);
+  const pill = await floatState(this);
+  assert.ok(!pill || pill.shown === false, 'no pill floats over the push layout');
+});
+
+When('I close the Glance', async function () {
+  await this.call('closeGlance');
+});
+
+Then('the page returns to the top of the window and the pill hides', async function () {
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.floating === true && value.pageY === 0 && value.revealed === false,
+    'the page to return to the top');
+  assert.equal(state.activeBounds.y, 0);
+  await waitForValue(() => floatState(this), (value) => value?.shown === false, 'the pill to hide');
+});
+
+When('I open another tab', async function () {
+  await this.call('openTab', this.fixtureUrl('autohide-page'));
+});
+
+Then('the floating pill follows the Island\'s place', async function () {
+  await waitForValue(async () => {
+    const [pill, rect] = await Promise.all([floatState(this), this.call('islandRect')]);
+    try { assertWraps(pill?.bounds, rect, 'pill'); return true; } catch { return false; }
+  }, (ok) => ok === true, 'the pill view to follow the Island');
+  assert.equal((await autoHideState(this)).activeBounds.y, 0);
+});
+
+Then('the floating pill stays above the pages', async function () {
+  const pill = await waitForValue(() => floatState(this), (value) => value?.shown === true, 'the pill to show');
+  assert.equal(pill.aboveTabsAndSheet, true, 'the pill is stacked above every page and the sheet');
+});
+
+When('I open Settings', async function () {
+  await this.call('openTab', 'blanc://settings/');
+  await waitForValue(() => this.call('utilitySurface'), (value) => !!value?.url || value?.visible === true, 'the Settings sheet');
+});
+
+When('I close Settings', async function () {
+  await this.call('closeUtilitySurface');
+});
+
+When('I open a second window and close it', async function () {
+  const runtimeId = await this.call('openNewWindow');
+  const ids = await waitForValue(() => this.call('floatWebContentsIds', runtimeId), (value) => value?.length > 0,
+    'the second window to make its floating views');
+  this.closedFloatIds = ids;
+  await this.call('closeWindowRuntime', runtimeId);
+  await frontChromeWindow(this);
+});
+
+Then('the closed window\'s floating views are gone', async function () {
+  for (const id of this.closedFloatIds) {
+    await waitForValue(() => this.call('chromeSurfaceRegistered', id), (value) => value === false,
+      `float surface ${id} to unregister`);
+  }
+});
+
+When('I switch auto-hide to {word}', async function (style) {
+  assert.equal(await this.call('setIslandAutoHideStyle', style), style);
+});
+
+Then('no floating views remain and the page sits below the strip', async function () {
+  const state = await waitForAutoHide(this, (value) => !value?.sliding && value?.pageY > 0 && value?.stripHidden === false,
+    'the page to sit below the strip');
+  assert.equal(state.activeBounds.y, state.pageY);
+  for (const role of ['pill', 'controls', 'menu']) {
+    assert.equal(await floatState(this, role), null, `no ${role} float view`);
+  }
+});
+
+When('I open a private tab', async function () {
+  await this.call('openTab', this.fixtureUrl('autohide-page'), { private: true });
+});
+
+Then('the floating pill shows the private theme', async function () {
+  await waitForValue(() => this.call('floatEval', 'pill', 'document.documentElement.dataset.theme || null'),
+    (value) => value === 'private', 'the floating pill to take the private theme');
+});
+
+When('I point at the top edge of the window and switch auto-hide to push at once', async function () {
+  const state = await this.call('state');
+  await restCursor(this, { x: 400, y: 2 });
+  assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
+  assert.equal(await this.call('setIslandAutoHideStyle', 'push'), 'push');
+});
+
+When('I resize the window to {int} by {int}', async function (width, height) {
+  if (!this.floatOriginalSize) {
+    const bounds = await this.call('windowContentBounds');
+    this.floatOriginalSize = { width: bounds.width, height: bounds.height };
+  }
+  await this.call('setWindowContentSize', width, height);
+  await restCursor(this, { x: 400, y: 2 });
+});
+
+When('I set the appearance to {string}', async function (theme) {
+  assert.equal(await this.call('setAppearance', theme), theme);
+});
+
+Then('the floating pill matches the strip\'s theme', async function () {
+  const probe = `({ dark: matchMedia('(prefers-color-scheme: dark)').matches, bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() })`;
+  await waitForValue(async () => {
+    const [strip, pill] = await Promise.all([this.call('chromeEval', probe), this.call('floatEval', 'pill', probe)]);
+    return strip && pill && strip.dark === pill.dark && strip.bg === pill.bg ? strip : null;
+  }, Boolean, 'the floating pill to match the strip\'s theme');
 });

@@ -236,6 +236,124 @@ Feature: Island chrome, command palette, and slash commands
     When the pointer rests at the top edge without the page seeing it move
     Then the Island is revealed while the page stays at the top of the window
 
+  @F1-30 @F1 @desktop @island-autohide
+  Scenario: The revealed Island floats over a page that stays still
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the floating pill waits above the window edge
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I move the pointer well below the Island
+    Then the floating pill slides away and stays attached
+
+  @F1-31 @F1 @desktop @island-autohide
+  Scenario: Find and the shield menu open under the floating pill
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open find
+    Then the find bar sits under the floating pill over a page that stays still
+    When I open the shield menu
+    Then the shield menu hangs under the floating pill over a page that stays still
+
+  @F1-32 @F1 @desktop @island-autohide @island-hover
+  Scenario: Hover-open works on the floating pill
+    Given a tab open on "autohide-page"
+    And Island hover-open is on
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I rest the pointer on the floating address
+    Then the Island panel opens from hover
+
+  @F1-33 @F1 @desktop @island-autohide
+  Scenario: Glance uses the push layout in float mode
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a Glance beside the page
+    Then the page sits below the strip and no pill floats
+    When I close the Glance
+    Then the page returns to the top of the window and the pill hides
+
+  @F1-34 @F1 @desktop @island-autohide
+  Scenario: The floating pill keeps up with tabs, sheets, styles and windows
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I open another tab
+    Then the floating pill follows the Island's place
+    And the floating pill stays above the pages
+    When I open Settings
+    Then the floating pill stays above the pages
+    When I close Settings
+    And I open a second window and close it
+    Then the closed window's floating views are gone
+    When I switch auto-hide to push
+    Then no floating views remain and the page sits below the strip
+
+  @F1-35 @F1 @desktop @island-autohide
+  Scenario: The floating pill takes the private theme
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a private tab
+    And I point at the top edge of the window
+    Then the floating pill shows the private theme
+
+  @F1-37 @F1 @desktop @island-autohide
+  Scenario: Switching to push while the pill slides in leaves nothing behind
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window and switch auto-hide to push at once
+    Then no floating views remain and the page sits below the strip
+    When I move the pointer well below the Island
+    Then the Island hides again
+
+  @F1-38 @F1 @desktop @island-autohide
+  Scenario: Turning auto-hide off while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When auto-hide is turned off
+    Then no floating views remain and the page sits below the strip
+    And the strip drags the window again
+    And the window buttons stay on screen
+
+  @F1-39 @F1 @desktop @island-autohide
+  Scenario: Changing the style while Glance is open
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a Glance beside the page
+    Then the page sits below the strip and no pill floats
+    When I switch auto-hide to push
+    Then the page sits below the strip and no pill floats
+    When I switch auto-hide to float
+    Then the page sits below the strip and no pill floats
+    When I close the Glance
+    Then the page returns to the top of the window and the pill hides
+
+  @F1-40 @F1 @desktop @island-autohide
+  Scenario: Resizing the window while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I resize the window to 900 by 700
+    Then the floating pill follows the Island's place
+    When I resize the window to 1280 by 800
+    Then the floating pill follows the Island's place
+
+  @F1-41 @F1 @desktop @island-autohide
+  Scenario: Changing the theme while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I set the appearance to "dark"
+    Then the floating pill matches the strip's theme
+    When I set the appearance to "light"
+    Then the floating pill matches the strip's theme
+
   @F1-18 @F1 @desktop @island-autohide
   Scenario: Auto-hide works with vertical tabs
     Given a tab open on "autohide-page"

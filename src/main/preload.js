@@ -15,6 +15,7 @@ const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://index/',
   'blanc-chrome://overlay/',
   'blanc-chrome://permission/',
+  'blanc-chrome://float/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
@@ -247,6 +248,16 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = () => callback();
     ipcRenderer.on('chrome:island-covered', listener);
     return () => ipcRenderer.removeListener('chrome:island-covered', listener);
+  },
+  onFloatFrame: (callback) => {
+    const listener = (_e, frame) => callback(frame);
+    ipcRenderer.on('chrome:float-frame', listener);
+    return () => ipcRenderer.removeListener('chrome:float-frame', listener);
+  },
+  onFloatShown: (callback) => {
+    const listener = (_e, shown) => callback(shown);
+    ipcRenderer.on('chrome:float-shown', listener);
+    return () => ipcRenderer.removeListener('chrome:float-shown', listener);
   },
   onStripHidden: (callback) => {
     const listener = (_e, hidden) => callback(hidden);

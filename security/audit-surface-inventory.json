@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "5a5940fdf9caacc8cf4cdd91f98c7ac3085f96e6e55697a20eaa4cf10a2eb19a",
+      "sha256": "c0a96407200692a54e8b453f559335f9f3f0f908b6ee1835a5748c6a5c7efe32",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "c74c510216c445da54bd4d6fff70f78d00a431a36026cd67de8c0c2a2d0c694e",
+      "sha256": "8e7d4eddaeb538090dd29e5060fb57a9566e8ec68d5c71e7f5c162488a43f421",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -281,6 +281,8 @@
         "chrome:downloads",
         "chrome:downloads-ack",
         "chrome:favorites-list",
+        "chrome:float-frame",
+        "chrome:float-shown",
         "chrome:glance-layout",
         "chrome:glance-status",
         "chrome:history-clear",
@@ -597,7 +599,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "6f87406f848fc9572feea9de821c7e3e9d9a5cc1eacbc652222203a4d35b04b0",
+      "sha256": "f6f2dfce6a5fe171c65f3c0a93a2e0179e454fef279d9d0376a35cde59fbf7d6",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -619,6 +621,8 @@
         "chrome:downloads-ack",
         "chrome:favorites-list",
         "chrome:find-result",
+        "chrome:float-frame",
+        "chrome:float-shown",
         "chrome:glance-layout",
         "chrome:glance-status",
         "chrome:history-clear",

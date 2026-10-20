@@ -344,3 +344,30 @@ test('the strip document draws a 6px drag band while the page covers it', () => 
   assert.match(css, /:root\[data-tab-layout="vertical"\] #dragBand \{ left: var\(--vertical-tabs-w\); \}/);
   assert.match(renderer, /dragBand\.addEventListener\('dblclick', \(\) => window\.browserAPI\.maximizeWindow\(\)\)/);
 });
+
+test('every strip broadcast also reaches the floating Island views', () => {
+  const helper = main.slice(main.indexOf('function stripSurfaces(runtime) {'), main.indexOf('function restackAboveIslandFloat('));
+  assert.match(helper, /window\.webContents\.send\(channel, \.\.\.args\);/);
+  assert.match(helper, /liveFloatRecord\(runtime, role\)\?\.view\.webContents\.send\(channel, \.\.\.args\)/);
+  const outside = main.replace(helper, '');
+  // Only the strip's own drag-region signal stays strip-only.
+  assert.deepEqual([...outside.matchAll(/window\??\.webContents\??\.send\('([^']+)'/g)].map((m) => m[1]), ['chrome:strip-hidden']);
+});
+
+test('the floating Island views stay above pages and the sheet, and die with their window', () => {
+  assert.equal(main.match(/if \(sheet\) rt\(\)\.window\.contentView\.addChildView\(sheet\.view\);\s+restackIslandFloatViews\(\); \/\/ above the pages and the sheet/g)?.length, 2);
+  assert.match(main, /showOverlayView\(runtime\.window, sheet\.view\);\s+\/\/ The floating Island stays above the sheet, as the strip's Island does\.\s+restackIslandFloatViews\(runtime\);/);
+  assert.match(main, /syncStripHidden\(\);\s+syncIslandFloat\(\);\s+\}/);
+  assert.match(main, /runtime\.lastPointer = null;\s+destroyIslandFloatViews\(runtime\);/);
+  // Never removed and re-added while alive: hidden by visibility only.
+  const shown = main.slice(main.indexOf('function setIslandFloatShown('), main.indexOf('function syncIslandFloat('));
+  assert.doesNotMatch(shown, /removeChildView|addChildView/);
+  assert.match(shown, /record\.view\.setVisible\(false\)/);
+});
+
+test('float views are trusted chrome surfaces that never report geometry', () => {
+  assert.match(main, /\.map\(\(record\) => \(\{ webContents: record\.view\.webContents, url: CHROME_FLOAT_URL \}\)\)/);
+  assert.match(main, /chromeOn\('chrome:island-rect', \(event, rect\) => \{\s+\/\/ [^\n]*\n\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
+  assert.match(main, /chromeOn\('chrome:layout', \(event, \{ height \}\) => \{\s+if \(floatRoleOf\(rt\(\), event\.sender\)\) return;/);
+  assert.match(main, /if \(event\.sender !== rt\(\)\.window\?\.webContents && role !== 'menu'\) return false;/);
+});
