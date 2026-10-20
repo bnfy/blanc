@@ -1611,6 +1611,20 @@ class Handler : public content::WebUIMessageHandler {
     }
     const auto* record = result.FindDict("record");
     if (!record || !ValidSpace(*record)) { Reply(id, false, base::Value("Invalid saved space.")); return; }
+    // SessionRestore already reconstructed these exact source tabs, including
+    // Chromium-owned page state. Reopening their URLs would discard form and
+    // scroll state. Preserve only a complete matching restored window, after
+    // the UUID, restore-in-progress and live-tab guards above have succeeded.
+    if (method == "spaceRollback" && browser->CreatedBySessionRestore() &&
+        *current == *record) {
+      owner->space_name = name;
+      owner->space_saved = record->Clone();
+      owner->space_destination_ids = std::move(live_ids);
+      owner->space_expected = record->Clone();
+      owner->space_transaction = *result.FindString("transaction");
+      owner->space_error.clear();
+      return;
+    }
     auto* model = browser->GetTabStripModel();
     std::vector<content::WebContents*> old_tabs, added;
     for (int i = 0; i < model->count(); ++i) old_tabs.push_back(model->GetWebContentsAt(i));

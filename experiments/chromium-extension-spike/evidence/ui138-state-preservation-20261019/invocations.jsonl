@@ -1,0 +1,38 @@
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:04:05.353517+00:00", "seconds": 0.14308175, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:04:05.527348+00:00", "seconds": 8.864642959, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:04:14.432856+00:00", "seconds": 22.483020167, "exit_code": 1}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:04:36.956175+00:00", "seconds": 0.6670734580000001, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:04:46.386201+00:00", "seconds": 0.053230957999999995, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:04:46.469147+00:00", "seconds": 5.195805417, "exit_code": 0}
+{"name": "prime-close", "argv": ["node", "/private/tmp/blanc-state-preserve/close.mjs"], "started": "2026-10-20T00:04:51.706869+00:00", "seconds": 1.100028042, "exit_code": 0}
+{"name": "prime-restart", "argv": ["node", "/private/tmp/blanc-state-preserve/launch.mjs"], "started": "2026-10-20T00:04:52.854291+00:00", "seconds": 0.031396292, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:04:52.913753+00:00", "seconds": 7.647990458, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:05:00.592258+00:00", "seconds": 0.6321805829999999, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:05:08.077488+00:00", "seconds": 0.056403459, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:05:08.168511+00:00", "seconds": 5.034473, "exit_code": 0}
+{"name": "prime-close", "argv": ["node", "/private/tmp/blanc-state-preserve/close.mjs"], "started": "2026-10-20T00:05:13.234852+00:00", "seconds": 1.183589375, "exit_code": 0}
+{"name": "prime-restart", "argv": ["node", "/private/tmp/blanc-state-preserve/launch.mjs"], "started": "2026-10-20T00:05:14.472531+00:00", "seconds": 0.029661459, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:05:14.529794+00:00", "seconds": 7.987718708, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:05:22.553128+00:00", "seconds": 0.660866958, "exit_code": 0}
+{"name": "prepare", "argv": ["/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "experiments/chromium-extension-spike/prepare.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-20T00:05:33.779790+00:00", "seconds": 2.258847, "exit_code": 0}
+{"name": "focused-tests", "argv": ["/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "--test", "experiments/chromium-extension-spike/space-capture-test.mjs", "experiments/chromium-extension-spike/window-identity-test.mjs"], "started": "2026-10-20T00:05:57.123158+00:00", "seconds": 0.15109441599999998, "exit_code": 0}
+{"name": "incremental-build", "argv": ["/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-20T00:05:36.086888+00:00", "seconds": 42.842579042, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:06:25.991335+00:00", "seconds": 0.091697708, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:06:26.115545+00:00", "seconds": 8.967417333, "exit_code": 0}
+{"name": "prime-close", "argv": ["node", "/private/tmp/blanc-state-preserve/close.mjs"], "started": "2026-10-20T00:06:35.115916+00:00", "seconds": 1.107191416, "exit_code": 0}
+{"name": "prime-restart", "argv": ["node", "/private/tmp/blanc-state-preserve/launch.mjs"], "started": "2026-10-20T00:06:36.272920+00:00", "seconds": 0.029714208, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:06:36.331598+00:00", "seconds": 8.032175875, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:06:44.402738+00:00", "seconds": 0.641487292, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:06:54.250896+00:00", "seconds": 0.051568167000000005, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:06:54.331635+00:00", "seconds": 5.074759, "exit_code": 0}
+{"name": "prime-close", "argv": ["node", "/private/tmp/blanc-state-preserve/close.mjs"], "started": "2026-10-20T00:06:59.444423+00:00", "seconds": 1.185731917, "exit_code": 0}
+{"name": "prime-restart", "argv": ["node", "/private/tmp/blanc-state-preserve/launch.mjs"], "started": "2026-10-20T00:07:00.660027+00:00", "seconds": 0.027610083, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:07:00.717800+00:00", "seconds": 3.9379135, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:07:04.691058+00:00", "seconds": 0.642061958, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-state-preserve/start.mjs"], "started": "2026-10-20T00:07:36.192457+00:00", "seconds": 0.053961208000000004, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-state-preserve/check.mjs", "seed"], "started": "2026-10-20T00:07:36.279016+00:00", "seconds": 5.042840459, "exit_code": 0}
+{"name": "prime-close", "argv": ["node", "/private/tmp/blanc-state-preserve/close.mjs"], "started": "2026-10-20T00:07:41.361374+00:00", "seconds": 1.0842810829999998, "exit_code": 0}
+{"name": "prime-restart", "argv": ["node", "/private/tmp/blanc-state-preserve/launch.mjs"], "started": "2026-10-20T00:07:42.475722+00:00", "seconds": 0.029122791, "exit_code": 0}
+{"name": "state-proof", "argv": ["node", "/private/tmp/blanc-state-preserve/state.mjs"], "started": "2026-10-20T00:07:42.539110+00:00", "seconds": 3.697838208, "exit_code": 0}
+{"name": "cleanup", "argv": ["node", "/private/tmp/blanc-state-preserve/cleanup.mjs"], "started": "2026-10-20T00:07:46.265708+00:00", "seconds": 0.6220752079999999, "exit_code": 0}
+{"name": "final-guard", "argv": ["/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-20T00:08:26.785685+00:00", "seconds": 3.488146334, "exit_code": 0}

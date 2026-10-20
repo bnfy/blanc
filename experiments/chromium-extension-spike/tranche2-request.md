@@ -1616,3 +1616,17 @@ Only disposable profiles and the public mock keychain were used. The Session rea
 Native input pending, latency deferred, Electron diagnostic build unapproved/unstarted. Remaining: exact concurrent restoration scheduling, immediate post-restore crash behavior, unsaved document state, real provider/hot-profile/power-loss qualification. Evidence: `evidence/ui138-overlap-unsaved-20261019/`.
 
 39 archive members SHA-256 verified. No new unit-test count claimed.
+
+## Preserve session-restored page state during Spaces rollback — October 19, 2026
+
+The old rollback reopened every source URL even when Chromium had already restored the exact source window, destroying its restored page state. After the existing durable UUID, SessionRestore-in-progress, capture and live-tab-ID guards, a complete matching session-restored window is now retained. Its existing tab IDs enter the same completion/journal-clear checks. Mismatching/partially staged windows continue through the existing source reconstruction path. No renderer form extraction or extra plaintext form storage is introduced.
+
+A named authored form populated through CDP Input.insertText and a 700px scroll establish the regression: ordinary settled session restoration retains both; old Spaces rollback loses both; the fixed binary retains both. The earlier fixture used autocomplete=off and direct value assignment, so it was not an adequate guarantee of Chromium form serialization; that limitation is corrected explicitly rather than rewriting historical evidence. beforeunload refusal remains passing. Eight malformed/valid-journal regressions and five focused capture/identity tests pass.
+
+Immediate-crash investigation: cleanly primed two-window and held-read/overlapping three-window repeats recover the expected structural state without the four-second settling pause, but lose very recent form/scroll updates. A no-Spaces immediate control loses those updates too. Source audit records Chromium's delayed page-state synchronization and 2.5-second session-save timer. This explains the unpersisted-state limitation, not the original timeout: **that earlier timeout was not reproduced and its cause remains unresolved**. A separate unprimed control timed out with one new window, retained as a profile-initialization limitation; it must not be substituted as proof of the historical timeout's cause.
+
+This fix preserves state Chromium actually restored. It does not serialize arbitrary DOM state, recover edits lost before session persistence, or retain forms when a partially staged window must be reconstructed from URL/group/pin records. Full unsaved-state and lifecycle acceptance remains open. Password/disabled-autocomplete semantics remain Chromium-owned. Nonowner recovery-status errors remain a separate gap.
+
+One guarded incremental build:42.84s wrapper/36.46s Siso/six steps. Final guard zero/3.49s. Only Blanc-owned source changes; prior measured49files/114hunks unchanged within49/120, not re-enumerated. Test interposer compilation is separate from native build cost. No cold output, GN or toolchain changes. Disposable profiles/servers removed; retained preview untouched/unavailable. Test-only crash-bubble bypass is not native input acceptance. Latency deferred; native input pending; Electron diagnostic build unapproved/unstarted. Evidence: `evidence/ui138-state-preservation-20261019/`.
+
+134 archived members SHA-256 verified; failed/control results remain included.
