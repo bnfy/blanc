@@ -221,3 +221,14 @@ The encrypted run explicitly enables EncryptSessionStorage stage write_encrypted
 No product edits or native compile; only small test read-hold dylibs compiled. Zero-action build guard. Prior52files/124hunks unchanged. Published source/results hashed; runtime logs remain local. Owned profiles removed after process-exit verification; retained preview untouched. Physical native input, arbitrary ownership order/cancellation/private/profile combinations and broader lifecycle remain open. Latency deferred; Electron diagnostic build pending approval.
 
 Evidence: `evidence/split-multiowner-encrypted-20261020/README.md`.
+
+
+## Combined encrypted-only session recovery — October 20
+
+Eleven bounded checkpoints pass on the unchanged normal binary. After seeding two open windows and a closed persistent split, the stopped disposable profile's plaintext Session_* and Tabs_* files are removed while encrypted open/closed records are retained. EncryptSessionStorage explicitly uses write_encrypted_read_prefer_encrypted with mock keychain. The actual encrypted Tabs read is held; Restore Tab accepted during loading restores newer Window entries first, then the older split. All four fixture URLs appear exactly once across all windows, with one35/65 split and right-pane focus. Assertions inspect all windows to avoid the prior requester-only fixture error.
+
+This extends earlier isolated encrypted closed-history coverage to combined encrypted-only open-session and closed-history recovery through native Restore Tab. It uses diagnostic crash-bubble bypass and explicit Restore commands; it is not physical crash-bubble acceptance, automatic startup restoration, key rotation, corrupt ciphertext, real OS provider failure or power-loss qualification.
+
+No product changes/native compile; small test interposer compiled only, final guard schedules zero actions. Prior52files/124hunks unchanged. Published sources/results hashed; browser/guard logs retained locally. Disposable profile removed after exit verification; retained preview untouched. Plan and evidence updated. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-combined-encrypted-20261020/README.md`.
