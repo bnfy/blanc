@@ -208,3 +208,16 @@ test('filterRestoredSession carries lastViewedAt with its own tab', () => {
   }, drop);
   assert.equal(out.meta[0].lastViewedAt, 2);
 });
+
+// Split View (F53): the splitIds column is zipped with the others.
+test('filterRestoredSession keeps splitIds aligned when an entry is dropped', () => {
+  const out = filterRestoredSession({
+    urls: ['https://a.example/', 'blanc://settings/', 'https://b.example/'],
+    splitIds: ['split-1', 'split-1', 'split-1'],
+    meta: [],
+  }, drop);
+  assert.deepEqual(out.urls, ['https://a.example/', 'https://b.example/']);
+  assert.deepEqual(out.splitIds, ['split-1', 'split-1']);
+  const none = filterRestoredSession({ urls: ['https://a.example/'] }, drop);
+  assert.equal('splitIds' in none, false);
+});

@@ -93,6 +93,9 @@
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 5.5h9M10 3l2.5 2.5L10 8M12.5 10.5h-9M6 8l-2.5 2.5L6 13"/></svg>
             <span data-i18n="glance.promoteShort">Make main</span>
           </button>
+          <button id="glanceKeepSplit" class="glance-keep-split" type="button" data-tooltip="Keep as split" aria-label="Keep as split" data-i18n-tooltip="split.keepAsSplit" data-i18n-aria-label="split.keepAsSplit">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/><path d="M8 3.5v9"/></svg>
+          </button>
           <button id="glanceChange" class="glance-action" type="button" data-tooltip="Choose a different tab for Glance" data-i18n-tooltip="glance.change.title" aria-expanded="false" data-i18n="glance.change">Change</button>
           <button id="glanceClose" class="glance-close" type="button" data-tooltip="Close Glance" aria-label="Close Glance" data-i18n-tooltip="glance.close" data-i18n-aria-label="glance.close">
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
@@ -102,6 +105,9 @@
       <div id="windowControls" class="no-drag"></div>
       <div id="glanceStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     </div>
+    <!-- Split View (F53): one header band per pane and the dividers, drawn in
+         the space the page views leave free (spec D5). -->
+    <div id="splitPanes" class="split-panes no-drag" hidden></div>
     <div
       id="glanceDivider"
       class="glance-divider no-drag"

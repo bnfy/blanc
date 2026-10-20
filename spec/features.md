@@ -889,6 +889,8 @@ From the desktop `DEFAULTS`:
   62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
   made quiet (F31).
+- **Keep as split** in the reference header turns Glance into a Split View
+  (F53) that stays open.
 - Glance is a desktop window-model capability (D11). Phone ports are N/A unless
   a future tablet/foldable contract defines a comparable multi-pane surface.
 - **Acceptance:**
@@ -1483,3 +1485,38 @@ searchable Archive, in the style of Arc's archived Today tabs
   Electron dependency.
 - **Acceptance:** `spec/acceptance/tab-archive.feature`,
   `test/unit/tab-archive.test.js`.
+
+## F53 — Split View (desktop)
+
+Two to four ordinary tabs in one window shown side by side, kept as one item
+that survives relaunch and Spaces (spec
+`docs/superpowers/specs/2026-10-19-split-view-design.md`). Glance is the first
+step: **Keep as split** in its header turns the current Glance into a split.
+
+- **Making one.** Keep as split (from Glance), or a tab's **Split with ▸**
+  menu. Pinned tabs never join a split. The initiating tab's group wins: every
+  other tab moves into it, or out of its group (D1).
+- **Layout.** Two or three columns; four panes are a 2×2 grid with one shared
+  cross. Narrow windows fall back in a fixed order (rows, then focus only;
+  for four panes, four columns first). Fallbacks are never saved (D3).
+- **Chrome.** One Island, centred in the strip, always addresses the focused
+  pane, which is the window's active tab. Every pane has a header band at its
+  top, painted by the chrome document in space reserved between page views
+  (D5). Pane focus cycles with `Cmd+Option+]` / `[` on macOS and
+  `Ctrl+Alt+]` / `[` on Windows and Linux (D6).
+- **In the tab list.** One row per split in the ⌘L panel and the rail; its
+  tabs stay real tabs. ⌘1–9 count a split once (D4).
+- **Leaving.** Remove from Split lands the tab directly below the split's row
+  (D8); a split left with one tab dissolves. Pinning a split tab removes it
+  first (D7). Close Split is one Recently closed entry that reopens it whole.
+- **Persistence.** Saved in `session.json` v2 windows and in Spaces
+  (`splits`, `splitIds`), never in the flat rollback mirror, never synced.
+  Private tabs are never saved; a split with fewer than two saved tabs is
+  written as plain tabs (D2).
+- **Other features.** Visible panes never go quiet; split tabs are never
+  archived (F52); Glance is unavailable while a split shows.
+- **Portability.** `src/main/split-model.js` and `src/main/split-layout.js`
+  hold every decision without an Electron dependency. A desktop window-model
+  capability (D11); phones are N/A.
+- **Acceptance:** `spec/acceptance/split-view.feature`,
+  `test/unit/split-model.test.js`, `test/unit/split-layout.test.js`.

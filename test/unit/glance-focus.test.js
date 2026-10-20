@@ -98,3 +98,17 @@ test('livePaneId names the visible pane that really holds keyboard focus, else n
   assert.equal(livePaneId(runtime(), () => null), null);
   assert.equal(livePaneId(null, focused('ref')), null);
 });
+
+// Split View (F53): a visible split's tabs are all visible panes; the focused
+// pane is the active tab, so commands already follow it.
+test('visiblePaneIds returns every split tab when the active tab is in a split', () => {
+  const runtime = { activeTabId: 'b', glanceTabId: null, splits: [{ id: 's', tabIds: ['a', 'b'] }] };
+  assert.deepEqual(visiblePaneIds(runtime), ['a', 'b']);
+  assert.equal(isVisiblePaneId(runtime, 'a'), true);
+  assert.equal(isVisiblePaneId(runtime, 'c'), false);
+});
+
+test('a split in a set-aside window shows nothing extra, and an inactive split is not visible', () => {
+  assert.deepEqual(visiblePaneIds({ activeTabId: 'b', resident: true, splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['b']);
+  assert.deepEqual(visiblePaneIds({ activeTabId: 'c', splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['c']);
+});

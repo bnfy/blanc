@@ -6,6 +6,7 @@
 
 const { validProfileId } = require('./local-profile-model');
 const { recaseWorkspacesFile } = require('./group-name-case');
+const { savedSplitColumns } = require('./split-model');
 // A workspace id must survive a round-trip through session.json's
 // `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
 // and imported here — one direction only. Defining it here and importing it
@@ -84,6 +85,7 @@ function normalizeWorkspace(raw) {
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(raw),
+    ...savedSplitColumns(raw, urls.length),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -149,7 +151,7 @@ function loadFile(raw) {
   return { status: 'supported', file };
 }
 
-const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex'];
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
@@ -167,6 +169,7 @@ const captureColumns = (capture) => {
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(source),
+    ...savedSplitColumns(source, urls.length),
   };
 };
 

@@ -35,7 +35,7 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canCloseAbove = false, canCloseBelow = false, siteMuted = null, t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -83,6 +83,25 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     enabled: isFavoritable(tab),
   });
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
+  // Split View (F53): a split tab can leave or close its split; any other tab
+  // can make one with an eligible tab (main passes the candidates, each with
+  // a note when the group rule will move it). Pinned tabs never join.
+  if (tab.splitId) {
+    items.push({ id: 'remove-from-split', label: t('tabMenu.removeFromSplit') });
+    items.push({ id: 'close-split', label: t('tabMenu.closeSplit') });
+  } else if (tab.pinned) {
+    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), submenu: [{ label: t('tabMenu.splitPinnedRefused'), enabled: false }] });
+  } else if (!splitCandidates.length) {
+    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), enabled: false });
+  } else {
+    items.push({
+      id: 'split-with',
+      label: t('tabMenu.splitWith'),
+      submenu: splitCandidates.map((c) => ({
+        id: 'split-with-tab', label: c.title, tabId: c.id, ...(c.groupNote ? { sublabel: c.groupNote } : {}),
+      })),
+    });
+  }
   items.push({ type: 'separator' });
 
   if (surface === 'row' && !isActive) {

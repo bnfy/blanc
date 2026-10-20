@@ -66,6 +66,12 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * compact, window-control space included, as the strip last measured it
      * (0 until then; glance-layout.js then uses its 300px default). */
     glanceMinReferenceWidth: 0,
+    /** Split View (F53): this window's splits, { id, tabIds, layout,
+     * focusedIndex } (split-model.js). Saved with the session and Spaces. */
+    splits: [],
+    /** The narrowest pane that holds a split pane's header at its most
+     * compact, as the strip last measured it (null until then). */
+    splitPaneMinWidth: null,
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */

@@ -9,7 +9,7 @@ const { buildTabContextMenu } = require('./tab-context-menu-model');
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actions }) {
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
     // The model computed cleanedUrl when it decided to SHOW the item — copy
@@ -30,6 +30,9 @@ function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
     case 'group-new': return actions.beginNewGroup(tab.id);
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
+    case 'split-with-tab': return actions.splitWith(tab.id, otherTabId);
+    case 'remove-from-split': return actions.removeFromSplit(tab.id);
+    case 'close-split': return actions.closeSplit(tab.id);
     case 'quiet': return actions.quiet(tab.id);
     case 'new-tab-below': return actions.newTabBelow(tab.id);
     case 'new-tab': return actions.newTab();
@@ -48,13 +51,14 @@ function toElectronTemplate(modelItems, { tab, actions }) {
     if (item.type === 'separator') return { type: 'separator' };
     const el = { label: item.label };
     if (item.accelerator) el.accelerator = item.accelerator;
+    if (item.sublabel) el.sublabel = item.sublabel;
     if (item.enabled === false) el.enabled = false;
     if (item.type === 'radio') { el.type = 'radio'; el.checked = !!item.checked; }
     if (item.submenu) {
       el.submenu = toElectronTemplate(item.submenu, { tab, actions });
     } else {
       el.click = () => runTabContextMenuItem(item.id,
-        { tab, groupId: item.groupId, cleanedUrl: item.cleanedUrl, actions });
+        { tab, groupId: item.groupId, otherTabId: item.tabId, cleanedUrl: item.cleanedUrl, actions });
     }
     return el;
   });
@@ -152,4 +156,4 @@ function attachRowMenu(wc, deps) {
   });
 }
 
-module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu };
+module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu, toElectronTemplate };

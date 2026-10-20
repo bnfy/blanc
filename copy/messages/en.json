@@ -1885,6 +1885,70 @@
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
   },
+  "tabMenu.splitWith": {
+    "message": "Split with",
+    "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
+  },
+  "tabMenu.splitPinnedRefused": {
+    "message": "Pinned tabs can't join a split",
+    "note": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View."
+  },
+  "tabMenu.removeFromSplit": {
+    "message": "Remove from Split",
+    "note": "Tab context menu and pane header: take this tab out of its Split View."
+  },
+  "tabMenu.closeSplit": {
+    "message": "Close Split",
+    "note": "Tab context menu and pane header: close every tab of this Split View."
+  },
+  "split.groupMoveInto": {
+    "message": "Moves {title} into {group}",
+    "note": "Note beside a Split with choice: making the split moves that tab into the right-clicked tab's group."
+  },
+  "split.groupMoveOutOf": {
+    "message": "Moves {title} out of {group}",
+    "note": "Note beside a Split with choice: making the split takes that tab out of its group."
+  },
+  "split.made": {
+    "message": "{first} and {second} are now side by side",
+    "note": "Screen reader announcement after a Split View is made."
+  },
+  "split.dissolved": {
+    "message": "Split closed; {title} fills the window",
+    "note": "Screen reader announcement when a Split View ends and its remaining tab fills the window."
+  },
+  "split.keepAsSplit": {
+    "message": "Keep as split",
+    "note": "Glance header button that turns the current Glance into a Split View that stays open."
+  },
+  "split.paneLabel": {
+    "message": "{title}, pane {n} of {m}",
+    "note": "Accessible name of one Split View pane's header: the tab's title and its place, e.g. 'Docs, pane 1 of 2'."
+  },
+  "split.headerMenu": {
+    "message": "Tab menu",
+    "note": "Tooltip and accessible name of a Split View pane header's menu button (the tab's menu)."
+  },
+  "split.dividerLabel": {
+    "message": "Resize panes",
+    "note": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again."
+  },
+  "split.rowLabel": {
+    "message": "{first} + {second}",
+    "note": "A Split View's row in the tab panel and side list: its two tabs' titles."
+  },
+  "split.rowLabelMore": {
+    "message": "{first} + {count} more",
+    "note": "A Split View's row with three or four tabs: the first title and how many more."
+  },
+  "split.rowName": {
+    "message": "Split: {titles}",
+    "note": "Accessible name of a Split View's row: 'Split:' and every tab title joined with ' + '."
+  },
+  "split.showTabs": {
+    "message": "Show this split's tabs",
+    "note": "Tooltip and accessible name of a Split View row's disclosure, which lists its tabs."
+  },
   "tabMenu.removeFromGroup": {
     "message": "Remove from Group",
     "note": "Tab context menu command in the Move to Group submenu."
@@ -2836,6 +2900,10 @@
   "glance.status.closed": {
     "message": "Glance closed",
     "note": "Screen reader announcement."
+  },
+  "split.glanceUnavailable": {
+    "message": "Glance isn't available while a split is showing",
+    "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
   },
   "glance.status.promoted": {
     "message": "{title} is now the main page; {other} is in Glance",

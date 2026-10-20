@@ -113,9 +113,12 @@
     // The Glance header's title and empty area address the reference tab;
     // its buttons are controls and open nothing.
     const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button');
+    // A Split View pane header addresses its own tab (F53).
+    const splitHeader = e.target.closest('button') ? null : e.target.closest('.split-pane-header[data-tab-id]');
     window.__blancCtxRowTabId =
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
+      ?? splitHeader?.dataset.tabId
       ?? null;
     // A rail group header opens its group menu (tab group colors spec §6).
     const groupHeader = window.__blancCtxRowTabId == null
@@ -210,6 +213,7 @@
   // cistern, which must be the same drawing at a different size.
   const DOWNLOAD_D = 'M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9';
   const SVG_NS = 'http://www.w3.org/2000/svg';
+  const SPLIT_MENU_ICON = '<svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="12" cy="8" r="1"/></svg>';
   const PILL_ICONS = {
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
@@ -231,6 +235,189 @@
     // instead of reading a size smaller beside them.
     close: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
   };
+
+  // ---- Split View (F53): pane headers and dividers ---------------------
+  // Main sends each pane's header band and page rect (split-layout.js); the
+  // headers sit in space no page view covers, so this document draws them
+  // and takes their clicks. Geometry rides CSS custom properties.
+  const splitPanesEl = document.getElementById('splitPanes');
+  const splitHeaders = new Map(); // tabId -> header element
+  let splitLayoutState = null;
+
+  const placeAt = (el, rect) => {
+    el.style.setProperty('--split-x', `${rect.x}px`);
+    el.style.setProperty('--split-y', `${rect.y}px`);
+    el.style.setProperty('--split-w', `${rect.width}px`);
+    el.style.setProperty('--split-h', `${rect.height}px`);
+  };
+
+  function splitPaneHeader(tabId) {
+    let el = splitHeaders.get(tabId);
+    if (el) return el;
+    el = document.createElement('section');
+    el.className = 'split-pane-header';
+    el.dataset.tabId = tabId;
+    el.setAttribute('role', 'group');
+    const favicon = document.createElement('span');
+    favicon.className = 'favicon';
+    favicon.setAttribute('aria-hidden', 'true');
+    const title = document.createElement('span');
+    title.className = 'split-pane-title';
+    title.dataset.i18nIgnore = '';
+    const priv = document.createElement('span');
+    priv.className = 'row-private';
+    priv.hidden = true;
+    priv.textContent = blancI18n.t('rail.state.private');
+    const actions = document.createElement('span');
+    actions.className = 'split-pane-actions';
+    const button = (cls, icon, labelKey, onClick) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `split-pane-btn ${cls}`;
+      b.innerHTML = icon; // a fixed glyph from PILL_ICONS, never a message
+      b.setAttribute('aria-label', blancI18n.t(labelKey));
+      b.dataset.tooltip = blancI18n.t(labelKey);
+      b.addEventListener('click', (event) => { event.stopPropagation(); onClick(b); });
+      return b;
+    };
+    const back = button('split-pane-back', PILL_ICONS.back, 'pill.back', () => window.browserAPI.goBack(tabId));
+    const reload = button('split-pane-reload', PILL_ICONS.reload, 'pill.reload', (b) => {
+      if (b.dataset.mode === 'stop') window.browserAPI.stop(tabId);
+      else window.browserAPI.reload(tabId);
+    });
+    const menu = button('split-pane-menu', SPLIT_MENU_ICON, 'split.headerMenu', (b) => {
+      const r = b.getBoundingClientRect();
+      window.browserAPI.openSplitPaneMenu(tabId, { x: Math.round(r.left), y: Math.round(r.bottom) });
+    });
+    const remove = button('split-pane-remove', PILL_ICONS.close, 'tabMenu.removeFromSplit', () => window.browserAPI.removeFromSplit(tabId));
+    actions.append(back, reload, menu, remove);
+    el.append(favicon, title, priv, actions);
+    // Clicking a header focuses its pane's page, as a click into the page does.
+    el.addEventListener('mousedown', (event) => {
+      if (event.target.closest('button')) return;
+      window.browserAPI.switchTab(tabId);
+    });
+    splitHeaders.set(tabId, el);
+    splitPanesEl.append(el);
+    return el;
+  }
+
+  function splitDivider(index, axis) {
+    const el = document.createElement('div');
+    el.className = 'split-divider';
+    el.tabIndex = 0;
+    el.setAttribute('role', 'separator');
+    el.setAttribute('aria-label', blancI18n.t('split.dividerLabel'));
+    el.dataset.index = String(index);
+    el.dataset.axis = axis;
+    el.setAttribute('aria-orientation', axis === 'x' ? 'vertical' : 'horizontal');
+    let drag = null;
+    const report = (point) => {
+      if (!splitLayoutState) return;
+      window.browserAPI.resizeSplit(splitLayoutState.splitId, index, axis, point);
+    };
+    el.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || el.dataset.saved !== 'true') return;
+      event.preventDefault();
+      const r = el.getBoundingClientRect();
+      drag = { pointerId: event.pointerId, dx: event.clientX - (r.left + r.width / 2), dy: event.clientY - (r.top + r.height / 2) };
+      el.setPointerCapture(event.pointerId);
+    });
+    el.addEventListener('pointermove', (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      report({ x: Math.round(event.clientX - drag.dx), y: Math.round(event.clientY - drag.dy) });
+    });
+    const finish = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      drag = null;
+      if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+    };
+    el.addEventListener('pointerup', finish);
+    el.addEventListener('pointercancel', finish);
+    el.addEventListener('dblclick', () => splitLayoutState && window.browserAPI.resetSplit(splitLayoutState.splitId));
+    el.addEventListener('keydown', (event) => {
+      if (!splitLayoutState || el.dataset.saved !== 'true') return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        window.browserAPI.resetSplit(splitLayoutState.splitId);
+        return;
+      }
+      const keys = axis === 'x' ? { ArrowLeft: -1, ArrowRight: 1 } : { ArrowUp: -1, ArrowDown: 1 };
+      const dir = keys[event.key];
+      if (!dir) return;
+      event.preventDefault();
+      const r = el.getBoundingClientRect();
+      const step = Math.round(window.innerWidth * (event.shiftKey ? 0.05 : 0.02)) * dir;
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      report(axis === 'x' ? { x: Math.round(cx + step), y: Math.round(cy) } : { x: Math.round(cx), y: Math.round(cy + step) });
+    });
+    return el;
+  }
+
+  function renderSplitPanes(layout) {
+    splitLayoutState = layout;
+    const visible = !!layout?.panes?.length;
+    splitPanesEl.hidden = !visible;
+    stripEl.classList.toggle('split-open', visible);
+    if (!visible) {
+      for (const el of splitHeaders.values()) el.remove();
+      splitHeaders.clear();
+      splitPanesEl.querySelectorAll('.split-divider').forEach((el) => el.remove());
+      return;
+    }
+    const keep = new Set(layout.panes.map((p) => p.tabId));
+    for (const [tabId, el] of splitHeaders) {
+      if (!keep.has(tabId)) { el.remove(); splitHeaders.delete(tabId); }
+    }
+    layout.panes.forEach((layoutPane, index) => {
+      // Title, Back, loading and privacy come from the live tab list, so a
+      // header follows its page between layout messages (main sends those on
+      // switches and resizes only).
+      const tab = state.tabs.find((t) => t.id === layoutPane.tabId);
+      const pane = tab ? {
+        ...layoutPane,
+        title: tab.title || layoutPane.title,
+        canGoBack: !!tab.canGoBack,
+        loading: !!tab.isLoading,
+        private: !!tab.private,
+      } : layoutPane;
+      const el = splitPaneHeader(pane.tabId);
+      el.hidden = !pane.header || pane.header.height <= 0;
+      if (pane.header) placeAt(el, pane.header);
+      el.classList.toggle('focused', !!pane.focused);
+      el.classList.toggle('private', !!pane.private);
+      el.setAttribute('aria-label', blancI18n.t('split.paneLabel', {
+        title: pane.title || blancI18n.t('tab.untitledShort'), n: index + 1, m: layout.panes.length,
+      }));
+      el.querySelector('.split-pane-title').textContent = pane.title || blancI18n.t('tab.untitledShort');
+      el.querySelector('.row-private').hidden = !pane.private;
+      setFavicon(el.querySelector('.favicon'), tab ?? { url: '', favicon: pane.favicon, isLoading: pane.loading, title: pane.title });
+      el.querySelector('.split-pane-back').disabled = !pane.canGoBack;
+      const reload = el.querySelector('.split-pane-reload');
+      const mode = pane.loading ? 'stop' : 'reload';
+      if (reload.dataset.mode !== mode) {
+        reload.dataset.mode = mode;
+        reload.innerHTML = PILL_ICONS[mode];
+        const key = mode === 'stop' ? 'pill.stop' : 'pill.reload';
+        reload.setAttribute('aria-label', blancI18n.t(key));
+        reload.dataset.tooltip = blancI18n.t(key);
+      }
+      splitPanesEl.append(el); // keep DOM (and Tab) order in pane order
+    });
+    const existing = [...splitPanesEl.querySelectorAll('.split-divider')];
+    layout.dividers.forEach((d, i) => {
+      let el = existing[i];
+      if (!el || el.dataset.index !== String(d.index) || el.dataset.axis !== d.axis) {
+        el?.remove();
+        el = splitDivider(d.index, d.axis);
+      }
+      el.dataset.saved = String(!!d.saved);
+      placeAt(el, d.rect);
+      splitPanesEl.append(el);
+    });
+    existing.slice(layout.dividers.length).forEach((el) => el.remove());
+  }
 
   // The reference header reuses the pill's own back and reload glyphs.
   glanceBack.innerHTML = PILL_ICONS.back;
@@ -559,7 +746,8 @@
     }
     // With vertical tabs or Glance the dot row is not drawn, so fewer dots
     // free nothing.
-    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
+    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open')
+      && !stripEl.classList.contains('split-open');
     // Stacked on Windows and Linux (the platforms with window controls on
     // the strip's right edge) the Island is centred between two reservations
     // for them (styles.css); when even the slim Island does not fit, it gives
@@ -1095,6 +1283,8 @@
 
   function render() {
     requestAnimationFrame(() => reportIslandRect());
+    // Split View headers follow their pages (title, Back, loading).
+    if (splitLayoutState) renderSplitPanes(splitLayoutState);
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
     // center the resting Island over the remaining website pane.
@@ -1265,6 +1455,10 @@
     if (glanceReload.dataset.mode === 'stop') window.browserAPI.stop(state.glanceTabId);
     else window.browserAPI.reload(state.glanceTabId);
   });
+  document.getElementById('glanceKeepSplit').addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.keepGlanceAsSplit();
+  });
   glancePromote.addEventListener('click', (event) => {
     event.stopPropagation();
     window.browserAPI.promoteGlance();
@@ -1414,6 +1608,10 @@
     renderFillHint();
     fitIslandDots();
     requestAnimationFrame(() => reportIslandRect());
+  });
+  window.browserAPI.onSplitLayout((layout) => {
+    renderSplitPanes(layout);
+    fitIslandDots();
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;

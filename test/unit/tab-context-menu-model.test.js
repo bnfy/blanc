@@ -21,6 +21,7 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseAbove: over.canCloseAbove ?? true,
   canCloseBelow: over.canCloseBelow ?? true,
   siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
+  splitCandidates: over.splitCandidates ?? [],
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -30,7 +31,7 @@ test('core items present, in order, for a row on a non-active tab', () => {
   const m = build({ activeTabId: 2, surface: 'row' });
   assert.deepEqual(ids(m), [
     'copy-link', 'copy-clean-link', 'reload', 'duplicate', 'rename',
-    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'group',
+    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'group', 'split-with',
     'glance', 'quiet', 'new-tab-below', 'new-tab', 'new-private-tab',
     'close-others', 'close-above', 'close-below', 'move-new-window', 'reopen-closed', 'close',
   ]);
@@ -190,4 +191,32 @@ test('closableBeside skips pins and the kept tab', () => {
   assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'above' }), ['a']);
   assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'below' }), ['b', 'c']);
   assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'c', direction: 'below' }), []);
+});
+
+// Split View (F53), spec §3.1 and §3.5.
+test('menu: Split with lists eligible tabs only, each carrying its tab id', () => {
+  const m = build({ splitCandidates: [{ id: 2, title: 'Docs' }, { id: 3, title: 'Preview', groupNote: 'Moves Preview out of Read' }] });
+  const item = byId(m, 'split-with');
+  assert.equal(item.label, 'Split with');
+  assert.notEqual(item.enabled, false);
+  assert.deepEqual(item.submenu.map((i) => [i.id, i.label, i.tabId]), [['split-with-tab', 'Docs', 2], ['split-with-tab', 'Preview', 3]]);
+  assert.equal(item.submenu[1].sublabel, 'Moves Preview out of Read');
+});
+
+test('menu: Split with is disabled with no other tab to split with', () => {
+  assert.equal(byId(build(), 'split-with').enabled, false);
+});
+
+test('menu: Split with is disabled for a pinned tab, with the reason', () => {
+  const item = byId(build({ tab: { pinned: true }, splitCandidates: [{ id: 2, title: 'Docs' }] }), 'split-with');
+  assert.deepEqual(item.submenu.map((i) => [i.label, i.enabled]), [["Pinned tabs can't join a split", false]]);
+});
+
+test('menu: a split tab offers Remove from Split and Close Split instead', () => {
+  const m = build({ tab: { splitId: 'split-1' }, splitCandidates: [{ id: 2, title: 'Docs' }] });
+  assert.equal(byId(m, 'split-with'), undefined);
+  assert.equal(byId(m, 'remove-from-split').label, 'Remove from Split');
+  assert.equal(byId(m, 'close-split').label, 'Close Split');
+  const order = ids(m);
+  assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
 });
