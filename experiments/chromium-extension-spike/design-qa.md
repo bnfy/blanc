@@ -102,3 +102,7 @@ Sunrise Dark Dock icon: passed. The actual native Dock capture
 on the dark tile. Verified after relaunch with the existing permanent profile;
 tabs and extension popup behavior were preserved. The runtime icon refresh
 replaces the stale Chromium tile while reusing the shipping icon artwork.
+
+## Island extension removal — October 20, 2026
+
+Right-click installed Island rows now opens the native extension menu with **Remove from Blanc**. Native Store installation, confirmation Cancel preserving the extension, and confirmed removal updating the picker pass in a disposable profile; eight focused tests and scoped lint pass. Existing native policy and active-tab/user-activation guards are retained. Final zero-action guard passes after two successful incremental builds and one retained include failure. No upstream hooks added: prior measured 50 files/118 hunks remains within 50/120. Evidence: [island-extension-removal-20261020](evidence/island-extension-removal-20261020/README.md). Retained preview untouched; private/managed/localized/platform matrices remain open. Latency deferred; Electron diagnostic build unapproved; all unrelated recovery and migration gaps unchanged.

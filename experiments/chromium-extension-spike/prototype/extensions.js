@@ -34,6 +34,12 @@ window.BlancExtensions = class {
       const button = event.target.closest('[data-extension-id]');
       if (button && !button.disabled) this.activate(button.dataset.extensionId);
     });
+    this.list.addEventListener('contextmenu', event => {
+      const row = event.target.closest('[data-extension-id]');
+      if (!row || !this.items.some(item => item.id === row.dataset.extensionId)) return;
+      event.preventDefault();
+      this.activate(row.dataset.extensionId, true);
+    });
     this.list.addEventListener('pointermove', event => {
       const button = event.target.closest('[data-extension-id]');
       if (button && !button.disabled) this.select(button.dataset.extensionId, false);
@@ -103,8 +109,8 @@ window.BlancExtensions = class {
       id: 'store-search', enabled: true, icon: '', storeSearch: true,
       name: `Search Chrome Web Store for “${this.search.value.trim()}”`,
     });
-    if (!this.visible.some(item => item.id === this.selected && item.enabled)) {
-      this.selected = this.visible.find(item => item.enabled)?.id ?? null;
+    if (!this.visible.some(item => item.id === this.selected)) {
+      this.selected = this.visible[0]?.id ?? null;
     }
     this.list.replaceChildren();
     let section = '';
@@ -125,7 +131,8 @@ window.BlancExtensions = class {
       row.dataset.extensionId = item.id;
       row.setAttribute('role', 'option');
       row.tabIndex = -1;
-      row.disabled = !item.enabled;
+      // Unavailable actions remain manageable through their native context menu.
+      row.disabled = false;
       row.title = item.title || item.name;
       const icon = document.createElement('img');
       icon.className = 'extension-icon';
@@ -188,8 +195,14 @@ window.BlancExtensions = class {
       return;
     }
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); return; }
+    if ((event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) &&
+        this.items.some(item => item.id === this.selected)) {
+      event.preventDefault();
+      this.activate(this.selected, true);
+      return;
+    }
     if (event.target !== this.search) return;
-    const choices = this.visible?.filter(item => item.enabled) ?? [];
+    const choices = this.visible ?? [];
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const index = choices.findIndex(item => item.id === this.selected);
@@ -200,7 +213,7 @@ window.BlancExtensions = class {
       this.activate(this.selected);
     }
   }
-  async activate(id) {
+  async activate(id, contextMenu = false) {
     if (this.busy) return;
     const storeItem = this.storeItems.find(item => item.id === id);
     if (storeItem) {
@@ -212,13 +225,15 @@ window.BlancExtensions = class {
       if (query) await this.openPage(`https://chromewebstore.google.com/search/${encodeURIComponent(query)}`);
       return;
     }
+    const installed = this.items.find(item => item.id === id);
+    if (!installed || (!contextMenu && !installed.enabled)) return;
     this.busy = true;
     try {
       const tabId = this.tabId;
       await this.close(false);
       // Let the native anchor become visible before Chromium opens its popup.
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      await this.request('extensionAction', [id, tabId]);
+      await this.request(contextMenu ? 'extensionContextMenu' : 'extensionAction', [id, tabId]);
     } catch (error) {
       await window.BlancPrototypeHost.extensions();
       this.message.textContent = error.message;

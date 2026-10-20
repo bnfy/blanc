@@ -123,6 +123,8 @@
 #include "ui/gfx/image/image_skia.h"
 #include "ui/gfx/image/image_skia_rep.h"
 #include "chrome/browser/ui/toolbar/toolbar_action_view_model.h"
+#include "chrome/grit/branded_strings.h"
+#include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
 
@@ -2408,7 +2410,7 @@ class Handler : public content::WebUIMessageHandler {
           .Set("tabId", active ? sessions::SessionTabHelper::IdForTab(active).id() : -1)));
       return;
     }
-    if (method == "extensionAction" && args.size() == 2 &&
+    if ((method == "extensionAction" || method == "extensionContextMenu") && args.size() == 2 &&
         args[0].is_string() && args[1].is_int()) {
       auto* active = model->GetActiveWebContents();
       if (!active || sessions::SessionTabHelper::IdForTab(active).id() != args[1].GetInt() ||
@@ -2420,11 +2422,19 @@ class Handler : public content::WebUIMessageHandler {
                             ->toolbar()->extensions_container_for_testing();
       auto* action = container ? container->GetToolbarViewModel()
           ->GetActionModelForId(args[0].GetString()) : nullptr;
-      if (!action || !action->IsEnabled(active)) {
+      if (!action || (method == "extensionAction" && !action->IsEnabled(active)) ||
+          (method == "extensionContextMenu" && !container->GetViewForId(args[0].GetString()))) {
         reply(false, base::Value("This extension is unavailable on the current page."));
         return;
       }
       reply(true, base::Value());
+      if (method == "extensionContextMenu") {
+        // Prototype branding only; Chromium still owns command policy and confirmation.
+        ui::ResourceBundle::GetSharedInstance().OverrideLocaleStringResource(
+            IDS_EXTENSIONS_UNINSTALL, u"Remove from Blanc");
+        container->ShowContextMenuAsFallback(args[0].GetString());
+        return;
+      }
       // Use Chromium's user-action path: activeTab grants, onClicked, popup,
       // side-panel behavior and permissions remain owned by Chromium.
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);

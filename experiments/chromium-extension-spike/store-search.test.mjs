@@ -49,3 +49,28 @@ test('Store icon URLs accept only the exact HTTPS image host', () => {
   assert.equal(validate('https://lh3.googleusercontent.com/icon=s72'), 'https://lh3.googleusercontent.com/icon=s72');
   for (const url of ['http://lh3.googleusercontent.com/icon', 'https://lh3.googleusercontent.com.evil.test/icon', 'https://user@lh3.googleusercontent.com/icon', 'https://lh3.googleusercontent.com:444/icon', 'data:image/svg+xml,evil', 'javascript:alert(1)', undefined]) assert.equal(validate(url), '');
 });
+
+test('installed unavailable actions remain manageable without opening their popup', async () => {
+  const context = { window: {}, requestAnimationFrame: fn => fn() };
+  vm.runInNewContext(source, context);
+  const p = Object.create(context.window.BlancExtensions.prototype);
+  const calls = [];
+  Object.assign(p, { items: [{ id: 'a'.repeat(32), enabled: false }], storeItems: [], tabId: 7,
+    close: async () => calls.push('close'), request: async (method, args) => calls.push([method, ...args]) });
+  await p.activate('a'.repeat(32)); assert.equal(calls.length, 0);
+  await p.activate('a'.repeat(32), true);
+  assert.deepEqual(calls, ['close', ['extensionContextMenu', 'a'.repeat(32), 7]]);
+  calls.length = 0;
+  await p.activate('b'.repeat(32), true); assert.equal(calls.length, 0);
+});
+
+test('keyboard context menus apply only to installed extensions', () => {
+  const { p } = picker(); let opened = null; let prevented = false;
+  p.items = [{ id: 'a'.repeat(32) }]; p.selected = 'store-search';
+  p.activate = (id, context) => { opened = [id, context]; };
+  p.keydown({ key: 'F10', shiftKey: true, preventDefault() { prevented = true; } });
+  assert.equal(opened, null);
+  p.selected = p.items[0].id;
+  p.keydown({ key: 'F10', shiftKey: true, preventDefault() { prevented = true; } });
+  assert.deepEqual(opened, [p.selected, true]); assert.equal(prevented, true);
+});
