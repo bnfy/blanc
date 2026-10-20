@@ -46,6 +46,7 @@ inline constexpr char kTabIdentityKey[] = "blanc.tab.identity.v1";
 std::string TabIdentity(content::WebContents* tab);
 void RestoreTabIdentity(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data);
+bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);

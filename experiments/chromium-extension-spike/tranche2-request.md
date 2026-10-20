@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (51 files, 120 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (51 files, 122 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1176,7 +1176,7 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 ## 7. Kill criteria that apply during this tranche
 
 **Patch budget, amended October 20:** **51 upstream files
-and 120 hunks**, counted as follows. A *file* is an existing upstream file
+and 122 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 51 files or 120 hunks and
+From plan §5: criterion 2 (the count above exceeds 51 files or 122 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -1917,3 +1917,16 @@ Physical native hit-testing, broad accessibility, rail/fullscreen/drag-drop and 
 ## October 20 — Archived menu harness CodeQL repair
 
 Four archived menu harnesses now use a static Runtime.callFunctionOn declaration with the tab identity passed as a protocol argument. The four line-26 CodeQL findings on f228ccc1 were source interpolation in test code. All four syntax checks and twelve normal/adversarial identity dispatch checks pass; git diff --check passes. No native build, browser mutation or full runtime rerun was needed. Original runtime results remain historical evidence; modified harness hashes are refreshed. CodeQL clearance awaits pushed-head CI. Upstream patch footprint remains 51 files/120 hunks; latency deferred and Electron diagnostic build pending approval.
+
+## October 20 — Split View shortcut budget approval
+
+Owner approved: **Raise to 122 hunks; keep 51 files**. Two native command-function hooks in the already patched browser_commands.cc route numbered selection from page and Island focus through the same PR993-based slot policy. This supersedes the 120-hunk ceiling; no additional upstream files are authorized. Latency deferred; Electron diagnostic build pending approval.
+
+
+## 2026-10-20 — Split View rail, numbered commands and Recently Closed
+
+Implemented against PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8: persistent pairs appear as one rail row with both icons/titles and last-focused-pane activation. Explicit Close Split View uses native batch closure, creating one Recently Closed Split entry. Island reopening restores persistent markers, ratio and last focus, including explicit-entry reopening after restart. Native numbered commands count splits once (and group/pinned/loose clusters in grouped windows); cyclic navigation still visits each pane. Private closure creates no history.
+
+Validation: 31 regular/private acceptance checks, 37 pane regressions, seven capture tests and eleven counter tests pass. Initial missing restore metadata was repaired. A later most-recent restart timeout was a fixture assumption: shutdown added a newer Window entry; known-latest split and explicit-entry restart semantics are now tested separately. Pane drag fixture failures were overlay interception and pass after dismissal. Failed attempts retained in [evidence](evidence/split-rail-shortcuts-20261020/README.md).
+
+Five guarded incremental builds (37.83/61.85/37.77/37.56/37.95 seconds), final guard zero. Fresh upstream inventory: 51 files/122 hunks, exactly the owner-approved ceiling. No latency measurements or Electron diagnostic build. Retained preview untouched. Physical shortcuts, browser-menu/accelerator Restore Tab metadata, whole-split drag/reorder, group/window-contained history, partial beforeunload cancellation and wider platform/accessibility parity remain open; this is bounded migration acceptance, not full PR993 parity.

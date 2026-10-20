@@ -3641,3 +3641,12 @@ Physical native hit-testing, broad accessibility, rail/fullscreen/drag-drop and 
 ## October 20 — Archived menu harness CodeQL repair
 
 Four archived menu harnesses now use a static Runtime.callFunctionOn declaration with the tab identity passed as a protocol argument. The four line-26 CodeQL findings on f228ccc1 were source interpolation in test code. All four syntax checks and twelve normal/adversarial identity dispatch checks pass; git diff --check passes. No native build, browser mutation or full runtime rerun was needed. Original runtime results remain historical evidence; modified harness hashes are refreshed. CodeQL clearance awaits pushed-head CI. Upstream patch footprint remains 51 files/120 hunks; latency deferred and Electron diagnostic build pending approval.
+
+
+## 2026-10-20 — Split View rail, numbered commands and Recently Closed
+
+Implemented against PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8: persistent pairs appear as one rail row with both icons/titles and last-focused-pane activation. Explicit Close Split View uses native batch closure, creating one Recently Closed Split entry. Island reopening restores persistent markers, ratio and last focus, including explicit-entry reopening after restart. Native numbered commands count splits once (and group/pinned/loose clusters in grouped windows); cyclic navigation still visits each pane. Private closure creates no history.
+
+Validation: 31 regular/private acceptance checks, 37 pane regressions, seven capture tests and eleven counter tests pass. Initial missing restore metadata was repaired. A later most-recent restart timeout was a fixture assumption: shutdown added a newer Window entry; known-latest split and explicit-entry restart semantics are now tested separately. Pane drag fixture failures were overlay interception and pass after dismissal. Failed attempts retained in [evidence](evidence/split-rail-shortcuts-20261020/README.md).
+
+Five guarded incremental builds (37.83/61.85/37.77/37.56/37.95 seconds), final guard zero. Fresh upstream inventory: 51 files/122 hunks, exactly the owner-approved ceiling. No latency measurements or Electron diagnostic build. Retained preview untouched. Physical shortcuts, browser-menu/accelerator Restore Tab metadata, whole-split drag/reorder, group/window-contained history, partial beforeunload cancellation and wider platform/accessibility parity remain open; this is bounded migration acceptance, not full PR993 parity.

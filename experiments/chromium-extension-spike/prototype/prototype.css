@@ -55,3 +55,8 @@
 html, body { background: transparent; }
 
 .prototype-tab-menu { max-height:calc(100vh - 16px); overflow-y:auto; }
+
+/* PR993 clustered Split View rail row. */
+.vertical-split-icons { display: flex; flex: none; gap: 3px; }
+.vertical-split-icons .vertical-tab-favicon { width: 14px; height: 14px; }
+.vertical-split-row .vertical-tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

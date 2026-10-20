@@ -147,7 +147,7 @@
     menu.style.top = `${Math.max(68, Math.min(rect.bottom, innerHeight - 220))}px`;
     for (const [label, method] of [
       ['Reload', 'reload'], [tab.muted ? 'Unmute tab' : 'Mute tab', 'toggleMuted'],
-      ['Pin tab', 'togglePinned'], ['Remove from Split View', 'removeFromSplit'], ['Close tab', 'closeTab'],
+      ['Pin tab', 'togglePinned'], ['Remove from Split View', 'removeFromSplit'], ['Close tab', 'closeTab'], ['Close Split View', 'closeSplit'],
     ]) {
       const button = document.createElement('button'); button.textContent = label; button.setAttribute('role', 'menuitem');
       button.addEventListener('click', async () => {
@@ -573,7 +573,7 @@
     };
   }
 
-  for (const method of ['switchTab', 'closeTab', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
+  for (const method of ['switchTab', 'closeTab', 'closeSplit', 'goBack', 'goForward', 'reload', 'stop', 'newTabBelow', 'closeAbove', 'closeBelow']) {
     implemented[method] = async (id) => {
       const pageCommand = ['goBack', 'goForward', 'reload', 'stop'].includes(method);
       const routed = pageCommand && String(id) === snapshot?.activeTabId

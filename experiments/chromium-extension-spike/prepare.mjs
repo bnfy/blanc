@@ -145,6 +145,51 @@ for (const name of ['index.html', 'overlay.html']) {
   assets.set(target, html);
 }
 
+// PR993 rail semantics: one row per persistent split, selecting its last focus.
+// Keep the reviewed 1.38 source immutable; adapt only the prototype copy.
+const railFile = path.join(generated, 'vertical-tabs.js');
+let railSource = assets.get(railFile).toString('utf8');
+railSource = railSource.replace('activeTabId: payload.activeTabId,', 'activeTabId: payload.activeTabId, splits: payload.splits,');
+railSource = railSource.replace('  function tabRow(tab, activeTabId) {', `  let railSplits = [];
+  function rowsFor(tabs, activeTabId) {
+    const byId = new Map(tabs.map(tab => [tab.id, tab]));
+    const consumed = new Set();
+    const rows = [];
+    for (const tab of tabs) {
+      if (consumed.has(tab.id)) continue;
+      const split = railSplits.find(s => s.tabIds.includes(tab.id) && s.tabIds.every(id => byId.has(id)));
+      if (!split) { rows.push(tabRow(tab, activeTabId)); continue; }
+      const members = split.tabIds.map(id => byId.get(id));
+      members.forEach(t => consumed.add(t.id));
+      const focused = members[split.focusedIndex] || members[0];
+      const row = document.createElement('div');
+      row.className = 'vertical-tab-row vertical-split-row' + (split.tabIds.includes(activeTabId) ? ' active' : '');
+      row.setAttribute('role', 'listitem'); row.dataset.splitId = split.id;
+      const label = members.map(titleFor).join(' + ');
+      row.setAttribute('aria-label', 'Split View: ' + label);
+      const primary = document.createElement('button'); primary.type = 'button';
+      primary.className = 'vertical-tab-primary'; primary.tabIndex = -1;
+      primary.dataset.tabId = focused.id; primary.dataset.focusKey = 'split:' + split.id;
+      primary.setAttribute('aria-label', 'Switch to Split View: ' + label);
+      const icons = document.createElement('span'); icons.className = 'vertical-split-icons';
+      for (const member of members) icons.appendChild(faviconFor(member));
+      const title = document.createElement('span'); title.className = 'vertical-tab-title'; title.textContent = label;
+      primary.append(icons, title); primary.addEventListener('click', () => activateTab(focused));
+      const close = document.createElement('button'); close.type = 'button'; close.className = 'vertical-tab-close';
+      close.textContent = '×'; close.setAttribute('aria-label', 'Close Split View: ' + label);
+      close.addEventListener('click', () => invoke('close split', () => api.closeSplit(focused.id)));
+      row.append(primary, close); rows.push(row);
+    }
+    return rows;
+  }
+  function tabRow(tab, activeTabId) {`);
+for (const bucket of ['tabs', 'pinned', 'regular']) {
+  railSource = railSource.replaceAll('for (const tab of ' + bucket + ') section.appendChild(tabRow(tab, activeTabId));',
+    'for (const row of rowsFor(' + bucket + ', activeTabId)) section.appendChild(row);');
+}
+railSource = railSource.replace('    const tabs = payload.tabs || [];', '    railSplits = payload.splits || [];\n    const tabs = payload.tabs || [];');
+assets.set(railFile, railSource);
+
 // Reuse the shipping new-tab document with a narrowly scoped Chromium adapter.
 const newTabFile = path.join(generated, 'pages/newtab.html');
 let newTabHtml = assets.get(newTabFile).toString('utf8');
@@ -436,6 +481,9 @@ edit('chrome/browser/ui/views/frame/browser_view.cc', [{
 
 
 edit('chrome/browser/ui/browser_commands.cc', [
+  { anchor: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n", present: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n" },
+  { anchor: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n", present: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n" },
+
   {
     anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
     replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
@@ -454,14 +502,16 @@ edit('chrome/browser/ui/browser_commands.cc', [
 ]);
 
 // Native Find routes through the same command function as menu and Cmd-F.
-edit('chrome/browser/ui/browser_commands.cc', [{
+edit('chrome/browser/ui/browser_commands.cc', [
+{
   anchor: 'void Find(BrowserWindowInterface* browser) {\n',
   replacement: 'void Find(BrowserWindowInterface* browser) {\n  if (blanc_prototype::OpenFindIsland(browser)) return;\n',
   present: '  if (blanc_prototype::OpenFindIsland(browser)) return;',
 }]);
 
 // Next/previous share this helper, including menu and native Cmd-G variants.
-edit('chrome/browser/ui/browser_commands.cc', [{
+edit('chrome/browser/ui/browser_commands.cc', [
+{
   anchor: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n',
   replacement: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n  if (blanc_prototype::OpenFindIsland(browser, find_next ? (forward_direction ? 1 : -1) : 0)) return;\n',
   present: '  if (blanc_prototype::OpenFindIsland(browser, find_next ?',

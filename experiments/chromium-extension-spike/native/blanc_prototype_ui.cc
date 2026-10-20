@@ -83,6 +83,7 @@
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "ui/base/models/list_selection_model.h"
 #include "chrome/browser/ui/exclusive_access/exclusive_access_manager.h"
 #include "chrome/browser/ui/exclusive_access/fullscreen_controller.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -1041,6 +1042,19 @@ std::optional<bool> ClosedGroupCollapsed(const sessions::tab_restore::Entry& ent
       .visual_data.is_collapsed();
 }
 
+std::optional<int> ClosedSplitFocus(const sessions::tab_restore::Entry& entry) {
+  if (entry.type != sessions::tab_restore::SPLIT) return std::nullopt;
+  const auto& tabs = static_cast<const sessions::tab_restore::Split&>(entry).tabs;
+  if (tabs.size() != 2) return std::nullopt;
+  int focused = -1;
+  for (int i = 0; i < 2; ++i) {
+    const auto found = tabs[i]->extra_data.find(kPersistentSplitKey);
+    if (found == tabs[i]->extra_data.end() || (found->second != "1" && found->second != "2")) return std::nullopt;
+    if (found->second == "2") { if (focused >= 0) return std::nullopt; focused = i; }
+  }
+  return focused < 0 ? std::nullopt : std::make_optional(focused);
+}
+
 base::ListValue ClosedEntries(Profile* profile) {
   base::ListValue result;
   auto* service = ClosedService(profile);
@@ -1096,6 +1110,26 @@ void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* 
     if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
       service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? (focused ? "2" : "1") : "0");
 }
+void RestoreClosedSplitMetadata(BrowserWindowInterface* browser,
+    std::optional<int> focus, const std::vector<sessions::LiveTab*>& restored) {
+  if (!focus || restored.size() != 2) return;
+  auto* model = browser->GetTabStripModel();
+  std::vector<int> indices;
+  for (auto* live : restored) {
+    if (!live) return;
+    int index = -1;
+    for (int i = 0; i < model->count(); ++i)
+      if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)) == live->GetSessionID()) index = i;
+    if (index < 0) return;
+    indices.push_back(index);
+  }
+  const auto split = model->GetSplitForTab(indices[0]);
+  if (!split || split != model->GetSplitForTab(indices[1])) return;
+  for (int i = 0; i < 2; ++i)
+    MarkPersistentSplit(browser, model->GetWebContentsAt(indices[i]), true, i == *focus);
+  model->ActivateTabAt(indices[*focus]);
+}
+
 void UpdatePersistentSplitFocus(BrowserWindowInterface* browser) {
   if (SessionRestore::IsRestoring(browser->GetProfile())) return;
   auto* model = browser->GetTabStripModel();
@@ -2305,6 +2339,8 @@ class Handler : public content::WebUIMessageHandler {
     }
     if (method == "previewPageCommand" && args.size() == 1 && args[0].is_string()) {
       const std::map<std::string, int> commands = {
+        {"slot1", IDC_SELECT_TAB_0}, {"slot2", IDC_SELECT_TAB_1}, {"slot3", IDC_SELECT_TAB_2}, {"slot9", IDC_SELECT_LAST_TAB},
+        {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
         {"zoomReset", IDC_ZOOM_NORMAL}, {"print", IDC_PRINT}};
@@ -2422,7 +2458,15 @@ class Handler : public content::WebUIMessageHandler {
             : ClosedGroupCollapsed(*service->entries().front());
         const auto saved_group = service->entries().empty() ? std::nullopt
             : ClosedSavedGroup(*service->entries().front());
-        const auto restored = service->RestoreMostRecentEntry(context);
+        const auto split_focus = service->entries().empty() ? std::nullopt
+            : ClosedSplitFocus(*service->entries().front());
+        // UNKNOWN disposition routes an old browser ID to another window
+        // after restart. Blanc reopens a closed split into the current window.
+        const auto restored = split_focus
+            ? service->RestoreEntryById(context, service->entries().front()->id,
+                  WindowOpenDisposition::NEW_FOREGROUND_TAB).value_or(std::vector<sessions::LiveTab*>())
+            : service->RestoreMostRecentEntry(context);
+        RestoreClosedSplitMetadata(browser, split_focus, restored);
         const bool group_restored = RestoreClosedGroupCollapsed(
             browser, collapsed, saved_group, restored);
         reply(true, base::Value(!restored.empty() || group_restored));
@@ -2443,9 +2487,13 @@ class Handler : public content::WebUIMessageHandler {
         } else {
           const auto collapsed = ClosedGroupCollapsed(*entry);
           const auto saved_group = ClosedSavedGroup(*entry);
+          const auto split_focus = ClosedSplitFocus(*entry);
           const auto restored = service->RestoreEntryById(context, id_to_restore,
               WindowOpenDisposition::NEW_FOREGROUND_TAB);
-          if (restored) RestoreClosedGroupCollapsed(browser, collapsed, saved_group, *restored);
+          if (restored) {
+            RestoreClosedSplitMetadata(browser, split_focus, *restored);
+            RestoreClosedGroupCollapsed(browser, collapsed, saved_group, *restored);
+          }
           reply(true, base::Value(restored.has_value()));
         }
         return;
@@ -2966,6 +3014,30 @@ class Handler : public content::WebUIMessageHandler {
     }
     if (method == "switchTab") {
       model->ActivateTabAt(index);
+    } else if (method == "closeSplit") {
+      const auto split = model->GetSplitForTab(index);
+      if (!split || !tab->GetUserData(kPersistentSplitKey)) {
+        reply(true, base::Value(false)); return;
+      }
+      const auto range = model->GetSplitData(*split)->GetIndexRange();
+      for (int i = range.start(); i < static_cast<int>(range.end()); ++i)
+        if (!model->GetWebContentsAt(i)->GetUserData(kPersistentSplitKey)) {
+          reply(true, base::Value(false)); return;
+        }
+      // Native batch closing records one historical Split entry and retains
+      // Chromium's unload/cancellation handling, including private exclusion.
+      if (static_cast<size_t>(model->count()) == range.length())
+        chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, false);
+      int focused = index;
+      for (int i = range.start(); i < static_cast<int>(range.end()); ++i) {
+        const auto* state = static_cast<PersistentSplitData*>(model->GetWebContentsAt(i)->GetUserData(kPersistentSplitKey));
+        if (state && state->focused) focused = i;
+      }
+      ui::ListSelectionModel selection;
+      selection.SetSelectedIndex(focused);
+      for (size_t i = range.start(); i < range.end(); ++i) selection.AddIndexToSelection(i);
+      model->SetSelectionFromModel(selection);
+      model->CloseSelectedTabs();
     } else if (method == "closeTab") {
       if (model->count() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
@@ -3047,6 +3119,50 @@ class TabIdentityData : public base::SupportsUserData::Data {
 std::string PersistentSplitState(content::WebContents* tab) {
   auto* data = static_cast<PersistentSplitData*>(tab->GetUserData(kPersistentSplitKey));
   return data ? (data->focused ? "2" : "1") : "0";
+}
+// PR993: numbered shortcuts select clusters when groups exist; otherwise a
+// persistent split counts once, at its first pane. Cyclic next/previous still
+// visits individual panes, matching the Electron reference.
+bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
+  if (!IsIslandWindow(browser)) return false;
+  auto* model = browser->GetTabStripModel();
+  if (slot < 0 || slot > 8 || model->empty()) return true;
+  const bool grouped = !GroupsInOrder(model).empty();
+  std::vector<int> slots;
+  std::optional<tab_groups::TabGroupId> previous_group;
+  bool loose = false;
+  bool pins = false;
+  for (int i = 0; i < model->count(); ++i) {
+    const auto group = model->GetTabGroupForTab(i);
+    if (grouped) {
+      if (group) {
+        if (group != previous_group) slots.push_back(i);
+        loose = false;
+      } else if (model->IsTabPinned(i)) {
+        if (!pins) slots.insert(slots.begin(), i);
+        pins = true; loose = false;
+      } else {
+        if (!loose) slots.push_back(i);
+        loose = true;
+      }
+      previous_group = group;
+    } else {
+      const auto split = model->GetSplitForTab(i);
+      if (split && model->GetWebContentsAt(i)->GetUserData(kPersistentSplitKey) &&
+          i != static_cast<int>(model->GetSplitData(*split)->GetIndexRange().start())) continue;
+      slots.push_back(i);
+    }
+  }
+  if (slots.empty()) return true;
+  if (!grouped && slot == 8) slot = static_cast<int>(slots.size()) - 1;
+  if (slot >= static_cast<int>(slots.size())) return true;
+  const int index = slots[slot];
+  if (auto group = model->GetTabGroupForTab(index)) {
+    const auto* visual = model->group_model()->GetTabGroup(*group)->visual_data();
+    model->ChangeTabGroupVisuals(*group, tab_groups::TabGroupVisualData(visual->title(), visual->color(), false));
+  }
+  model->ActivateTabAt(index);
+  return true;
 }
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
