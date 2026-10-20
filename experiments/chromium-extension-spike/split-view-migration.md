@@ -175,3 +175,14 @@ Seven isolated fixture checkpoints pass: Restore Tab is accepted while an actual
 Cross-window move intents reject foreign source/destination identities and preserve both windows. Actual cross-window dragging remains unsupported: the rail API lacks a destination-window field. Negative boundary tests are not transfer acceptance. [Evidence](evidence/split-unloaded-crosswindow-20261020/README.md) records all attempts and the corrected fixture.
 
 No product changes/native compile; guard zero, prior52/124 unchanged. Only the small diagnostic read-hold helper was compiled. Profiles removed; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending. Combined-session ordering, async owner destruction/repeated requests and physical cross-window transfer remain open.
+
+
+## Unloaded-history owner destruction and repeated requests — October 20
+
+On the unchanged native binary, five Restore Tab requests while an actual Tabs read is held coalesce into exactly one split restoration, preserving 35/65 ratio and right focus (six checkpoints). Closing the requesting window through Target.closeTarget before release leaves the surviving window unchanged and the browser exits cleanly (seven checkpoints). These are automated disposable-profile checks, not physical native input.
+
+The owner-close first attempt used Island closeTab and timed out because that path retained the last tab/window; it does not establish an owner-destruction failure. A Node WebSocket runtime mismatch and stale release-marker timeout also preceded the fresh successful fixture. Failed results are retained. Closed history was isolated by removing only disposable open-session records from both clear/encrypted stores while stopped, retaining Tabs records. Combined session priority, post-load repeated requests, replacement-owner requests and full profile destruction remain unqualified.
+
+No product changes or native compile. Read-only build guard schedules zero actions; sandbox ps denial retained before successful escalated guard. Prior upstream footprint 52 files/124 hunks unchanged. Retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
+
+Evidence: `evidence/split-history-owner-repeat-20261020/README.md`.
