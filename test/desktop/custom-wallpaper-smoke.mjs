@@ -157,12 +157,15 @@ try {
   // Settings shows the same state and can remove it; the page follows live.
   await callTestHook(app, 'openSettings');
   const sheet = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://settings/'), Boolean, 'settings sheet');
-  await sheet.waitForFunction(() => document.getElementById('newtabCustomWallpaper').checked
-    && !document.getElementById('customWallpaperRemove').hidden);
+  // The sheet is found by its URL, which can be before its page has built
+  // these controls: read them null-safe so the wait retries instead of
+  // throwing on null (CI flake, October 20, 2026).
+  await sheet.waitForFunction(() => document.getElementById('newtabCustomWallpaper')?.checked === true
+    && document.getElementById('customWallpaperRemove')?.hidden === false);
   assert.equal(await sheet.locator('#customWallpaperChoose').textContent(), 'Change');
   await sheet.locator('#customWallpaperRemove').click();
-  await sheet.waitForFunction(() => !document.getElementById('newtabCustomWallpaper').checked
-    && document.getElementById('customWallpaperRemove').hidden);
+  await sheet.waitForFunction(() => document.getElementById('newtabCustomWallpaper')?.checked === false
+    && document.getElementById('customWallpaperRemove')?.hidden === true);
   await page.waitForFunction(() => document.body.dataset.wallpaperPhase !== 'custom'
     && document.getElementById('customWallpaperRow').hidden);
   assert.equal(fs.existsSync(path.join(userData, 'wallpaper', 'current.jpg')), false);
