@@ -1388,6 +1388,18 @@ export function payloadFixtures() {
       glanceLayoutPayload(calculateGlanceLayout({ x: 0, y: 68, width: 1400, height: 900 }), pane));
   }
   add('glanceLayoutPayload(null)', 'GlanceLayout | null', glanceLayoutPayload(null, 'glance'));
+  const { computeSplitLayout, splitLayoutPayload, defaultSplitLayout } = requireMain('./split-layout');
+  const splitPanes = (n) => Array.from({ length: n }, (_, i) => ({
+    tabId: `t${i}`, title: `Tab ${i}`, favicon: i % 2 ? 'data:image/png;base64,AAAA' : 'https://example.com/x.png',
+    private: i === 1, canGoBack: i === 0, loading: i === 2,
+  }));
+  for (const n of [2, 3, 4]) {
+    for (const bounds of [{ x: 0, y: 68, width: 1400, height: 900 }, { x: 0, y: 68, width: 500, height: 900 }, { x: 0, y: 68, width: 400, height: 200 }]) {
+      add(`splitLayoutPayload(${n} panes, ${bounds.width}x${bounds.height})`, 'SplitLayout | null',
+        splitLayoutPayload('split-1', computeSplitLayout(bounds, defaultSplitLayout(n), n, { focusedIndex: 1 }), splitPanes(n), 1));
+    }
+  }
+  add('splitLayoutPayload(null)', 'SplitLayout | null', splitLayoutPayload('split-1', null, [], 0));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }

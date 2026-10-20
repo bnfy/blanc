@@ -1463,7 +1463,8 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": []
         },
         {
           "tabs": [
@@ -1516,7 +1517,8 @@
                   "example"
                 ],
                 "error": "site-info-1"
-              }
+              },
+              "splitId": "tab-entry-1"
             }
           ],
           "activeTabId": "tab-id-1",
@@ -1543,7 +1545,24 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": [
+            {
+              "id": "split-info-1",
+              "tabIds": [
+                "split-info-1"
+              ],
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  1
+                ],
+                "column": 1,
+                "row": 1
+              },
+              "focusedIndex": 1
+            }
+          ]
         }
       ]
     },
@@ -2427,6 +2446,350 @@
                   "height": 1
                 },
                 "focusedPane": "main"
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "keepGlanceAsSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-keep-glance",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-keep-glance",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "removeFromSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-remove",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-remove",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "closeSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-close",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-close",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "resizeSplit": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:resize-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            1,
+            "x",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "x",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "axis = \"y\"",
+          "args": [
+            "example",
+            1,
+            "y",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "y",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "resetSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:reset-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:reset-split",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "openSplitPaneMenu": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-pane-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:split-pane-menu",
+              "args": [
+                "example",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "onSplitLayout": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-layout",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [],
+              "dividers": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [],
+                "dividers": []
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [
+                {
+                  "tabId": "split-pane-1",
+                  "header": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "content": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "focused": true,
+                  "title": "split-pane-1",
+                  "favicon": "split-pane-1",
+                  "private": true,
+                  "canGoBack": true,
+                  "loading": true
+                }
+              ],
+              "dividers": [
+                {
+                  "index": 1,
+                  "axis": "x",
+                  "rect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "saved": true
+                }
+              ]
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [
+                  {
+                    "tabId": "split-pane-1",
+                    "header": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "content": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "focused": true,
+                    "title": "split-pane-1",
+                    "favicon": "split-pane-1",
+                    "private": true,
+                    "canGoBack": true,
+                    "loading": true
+                  }
+                ],
+                "dividers": [
+                  {
+                    "index": 1,
+                    "axis": "x",
+                    "rect": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "saved": true
+                  }
+                ]
               }
             ]
           ]
@@ -5238,7 +5601,8 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": []
             }
           ],
           "callbacks": [
@@ -5289,7 +5653,8 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": []
               }
             ]
           ]
@@ -5347,7 +5712,8 @@
                       "example"
                     ],
                     "error": "site-info-1"
-                  }
+                  },
+                  "splitId": "tab-entry-1"
                 }
               ],
               "activeTabId": "tab-id-1",
@@ -5426,7 +5792,24 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": [
+                {
+                  "id": "split-info-1",
+                  "tabIds": [
+                    "split-info-1"
+                  ],
+                  "layout": {
+                    "kind": "columns",
+                    "widths": [
+                      1
+                    ],
+                    "column": 1,
+                    "row": 1
+                  },
+                  "focusedIndex": 1
+                }
+              ]
             }
           ],
           "callbacks": [
@@ -5482,7 +5865,8 @@
                         "example"
                       ],
                       "error": "site-info-1"
-                    }
+                    },
+                    "splitId": "tab-entry-1"
                   }
                 ],
                 "activeTabId": "tab-id-1",
@@ -5561,7 +5945,24 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": [
+                  {
+                    "id": "split-info-1",
+                    "tabIds": [
+                      "split-info-1"
+                    ],
+                    "layout": {
+                      "kind": "columns",
+                      "widths": [
+                        1
+                      ],
+                      "column": 1,
+                      "row": 1
+                    },
+                    "focusedIndex": 1
+                  }
+                ]
               }
             ]
           ]

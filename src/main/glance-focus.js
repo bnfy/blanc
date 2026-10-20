@@ -4,9 +4,14 @@
 // panes (spec: Commands follow focus). Pure — no Electron — so the routing
 // rule is unit-tested; main.js owns the runtime and passes a liveness lookup.
 
-/** The window's visible page tab ids: the main page, then the reference. */
+/** The window's visible page tab ids: the main page, then the reference; or,
+ * while the active tab is in a Split View (F53), every tab of that split in
+ * pane order. A set-aside (resident) window shows no split. */
 function visiblePaneIds(runtime) {
   if (!runtime) return [];
+  const split = runtime.resident ? null
+    : (runtime.splits ?? []).find((s) => s.tabIds.includes(runtime.activeTabId));
+  if (split) return [...split.tabIds];
   return [runtime.activeTabId, runtime.glanceTabId].filter((id) => id != null);
 }
 

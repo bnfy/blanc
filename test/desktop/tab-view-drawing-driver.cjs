@@ -122,6 +122,22 @@ app.whenReady().then(async () => {
     await measure(H, a, 'Glance');
     await H.closeWindowGlance('primary'); await settle();
 
+    // Split View (F53): both panes draw when the split shows, after it is
+    // hidden by another tab, and after it comes back. Its own two tabs, so
+    // the measuring scroll never makes a later case's tab "deep scrolled".
+    const left = await open('drawing-split-left');
+    const right = await open('drawing-split-right');
+    if (!H.makeSplit(left, [right])) throw new Error('the split was not made');
+    await activate(left);
+    await measure(H, left, 'split: first pane');
+    await measure(H, right, 'split: second pane');
+    await activate(b);
+    await activate(right);
+    await measure(H, right, 'split: second pane, shown again');
+    await measure(H, left, 'split: first pane, shown again');
+    H.runTabMenuItem(left, 'remove-from-split'); await settle();
+    await activate(b);
+
     const closed = await open('drawing-closed');
     H.closeTabInWindow('primary', closed); await sleep(300);
     H.reopenClosedInWindow('primary');

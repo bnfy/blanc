@@ -35,7 +35,7 @@ function serialize(tabList) {
 const EXPECTED_KEYS = [
   'id', 'title', 'pageTitle', 'url', 'isLoading', 'canGoBack', 'canGoForward', 'favicon',
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
-  'groupId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
+  'groupId', 'splitId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
   'capture', 'fillHint',
   'siteInfo',
 ].sort();

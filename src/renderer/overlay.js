@@ -327,6 +327,8 @@
     // The group header's ⋮ (tab group colors spec §6).
     more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    // A split row's disclosure (F53): points right when closed, down when open.
+    caret: '<svg viewBox="0 0 16 16"><path d="M6.25 4.5 9.75 8l-3.5 3.5"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
     secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
@@ -365,6 +367,89 @@
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
+
+  // ---- Split View (F53): one row per split ------------------------------
+  // A split's tabs collapse into one row (TabSections.rowsOf); its disclosure
+  // lists them as ordinary rows. Which splits are open is this document's.
+  const openSplitRows = new Set();
+
+  /** Row nodes for a run of tabs, a split drawn once. `inGroup` marks rows
+   *  indented under a group header. */
+  function tabRowsFor(tabs, { inGroup = false } = {}) {
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    return TabSections.rowsOf(tabs.map((t) => t.id), state.tabs).flatMap((row) => {
+      if (row.kind === 'tab') {
+        const node = tabRow(byId.get(row.id));
+        if (inGroup) node.classList.add('in-group');
+        return [node];
+      }
+      return splitRowNodes(row.splitId, row.tabIds.map((id) => byId.get(id)).filter(Boolean), { inGroup });
+    });
+  }
+
+  function splitRowNodes(splitId, tabs, { inGroup = false } = {}) {
+    const split = (state.splits ?? []).find((s) => s.id === splitId);
+    const titles = tabs.map((t) => t.title || blancI18n.t('tab.untitled'));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'island-row split-row'
+      + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
+      + (inGroup ? ' in-group' : '');
+    row.dataset.splitId = splitId;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label'; // page titles
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary split-row-primary';
+    const icons = document.createElement('span');
+    icons.className = 'split-row-icons';
+    for (const tab of tabs.slice(0, 4)) {
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      icons.append(favicon);
+    }
+    const title = document.createElement('span');
+    title.className = 'row-title split-row-title';
+    title.textContent = label;
+    title.dataset.i18nIgnore = '';
+    primary.append(icons, title);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
+    primary.addEventListener('click', () => {
+      if (focused) window.browserAPI.switchTab(focused.id);
+      window.browserAPI.closeOverlay();
+    });
+    const open = openSplitRows.has(splitId);
+    const disclosure = document.createElement('button');
+    disclosure.type = 'button';
+    disclosure.className = 'split-row-disclosure' + (open ? ' open' : '');
+    disclosure.dataset.noDrag = '';
+    disclosure.innerHTML = ICONS.caret;
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.setAttribute('aria-label', blancI18n.t('split.showTabs'));
+    disclosure.dataset.tooltip = blancI18n.t('split.showTabs');
+    disclosure.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (openSplitRows.has(splitId)) openSplitRows.delete(splitId);
+      else openSplitRows.add(splitId);
+      renderList();
+    });
+    row.append(primary, disclosure);
+    const nodes = [row];
+    if (open) {
+      for (const tab of tabs) {
+        const node = tabRow(tab);
+        node.classList.add('in-split');
+        if (inGroup) node.classList.add('in-group');
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
@@ -2432,25 +2517,21 @@
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) {
-            for (const t of gtabs) {
-              const row = tabRow(t);
-              row.classList.add('in-group');
-              bandNodes.push(row);
-            }
-          }
+          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
           rows.push(groupBand(group, bandNodes, gtabs[0].id));
           itemIndex += 1;
         } else {
           let chunk = [];
-          for (const t of gtabs) {
+          // A split is drawn once; Recently closed never lands inside one.
+          for (const row of TabSections.rowsOf(gtabs.map((t) => t.id), state.tabs)) {
             if (due()) {
               if (chunk.length) rows.push(dragSection('loose', chunk));
               chunk = [];
               placeClosed();
             }
-            chunk.push(tabRow(t));
-            itemIndex += 1;
+            const members = row.kind === 'tab' ? [row.id] : row.tabIds;
+            chunk.push(...tabRowsFor(members.map((id) => gtabs.find((t) => t.id === id)).filter(Boolean)));
+            itemIndex += members.length;
           }
           if (chunk.length) rows.push(dragSection('loose', chunk));
         }

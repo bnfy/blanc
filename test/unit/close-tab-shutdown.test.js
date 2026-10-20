@@ -29,6 +29,10 @@ test('a quitting active-tab teardown never selects and wakes a quiet replacement
     ['quiet', { id: 'quiet', url: 'https://quiet.test/', private: false, asleep: true, view: null }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     fillHintScheduler: null,
     sleepTeardownInProgress: true,
@@ -83,6 +87,10 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
     ['malformed', { id: 'malformed', url: { not: 'a string' }, private: false, view: null }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(),
     fillHintScheduler: null,
     sleepTeardownInProgress: false,
@@ -140,6 +148,10 @@ test('closing a quiet storage-bearing tab also closes its retained WebContents',
     ['quiet', { view: { webContents: retainedWc }, entries: [], index: 0 }],
   ]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: snapshots,
     sleepTeardownInProgress: false,
     fillHintScheduler: null,
@@ -203,6 +215,10 @@ test('active private close keeps its native parent until WebContents destruction
   };
   const tabs = new Map([[tab.id, tab]]);
   const sandbox = {
+    // Split View (F53): no split in these fixtures.
+    splitForTab: () => null,
+    pruneSplits: () => {},
+    visibleSplitTabIds: () => [],
     sleepSnapshots: new Map(), sleepTeardownInProgress: false, fillHintScheduler: null,
     tabs, rt: () => runtime, isQuitting: false, process: { platform: 'win32' },
     setImmediate: task => deferred.push(task),
