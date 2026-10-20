@@ -4232,7 +4232,7 @@ function splitGroupMoveNotes(initiatorId, otherIds) {
 
 /** Say something to screen readers through the strip's live region. */
 function announceSplit(message) {
-  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', message);
+  if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', message);
 }
 
 /** Keep as split (D1): the open Glance becomes a two-pane split led by the
@@ -8341,7 +8341,7 @@ function setActiveTab(id, {
 async function setGlanceTab(id) {
   if (visibleSplitOf()) {
     // Glance and a visible split never share a window (F53).
-    if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
+    if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
     return false;
   }
   let tab = tabs.get(id);
@@ -8466,7 +8466,7 @@ function openLinkInGlance(opener, url) {
 function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
   if (visibleSplitOf()) {
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
     return false;
   }
   rt().window.focus();
