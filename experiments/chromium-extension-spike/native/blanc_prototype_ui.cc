@@ -544,6 +544,7 @@ class Owner : public base::SupportsUserData::Data,
   int initial_window_save_failures = 0;
   base::TimeTicks initial_window_retry_at;
   bool recovery_checked = false;
+  bool partial_close_save_failed = false;
   bool space_busy = false;
   std::string space_name;
   std::vector<int> space_pending_ids;
@@ -1867,6 +1868,8 @@ class Handler : public content::WebUIMessageHandler {
   }
   void SplitCloseSaved(std::string id, bool cancelled, bool saved) {
     if (!split_closes_.erase(id)) return;
+    if (cancelled && !saved)
+      if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->partial_close_save_failed = true;
     Reply(id, saved && !cancelled, saved ?
         (cancelled ? base::Value("Split closure cancelled; partial history and session saved.") : base::Value()) :
         base::Value("Split history/session persistence failed; recovery is not acknowledged."));
@@ -1909,8 +1912,17 @@ class Handler : public content::WebUIMessageHandler {
   }
   void ClosedHistorySaved(std::string id, bool saved) {
     if (!history_saves_.erase(id)) return;
+    if (saved)
+      if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->partial_close_save_failed = false;
     Reply(id, saved, saved ? base::Value() :
         base::Value("Tab closed, but history persistence failed or timed out."));
+  }
+  void ClosedSessionRetried(std::string id, base::WeakPtr<Profile> profile, bool saved) {
+    if (!history_saves_.contains(id)) return;
+    auto* service = saved && profile ? ClosedService(profile.get()) : nullptr;
+    if (!service) { ClosedHistorySaved(id, false); return; }
+    service->SaveAndFlush(base::BindOnce(&Handler::ClosedHistorySaved,
+        weak_factory_.GetWeakPtr(), id));
   }
   void SaveClosedHistory(std::string id, Profile* profile) {
     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
@@ -1920,8 +1932,19 @@ class Handler : public content::WebUIMessageHandler {
       ClosedHistorySaved(id, false);
       return;
     }
-    service->SaveAndFlush(base::BindOnce(
-        &Handler::ClosedHistorySaved, weak_factory_.GetWeakPtr(), id));
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (owner && owner->partial_close_save_failed) {
+      auto* session = SessionServiceFactory::GetForProfile(profile);
+      if (!session) { ClosedHistorySaved(id, false); return; }
+      // A later history flush cannot repair a failed surviving-session write.
+      // Rebuild after reconciliation, and acknowledge both stores in order.
+      session->ResetFromCurrentBrowsers();
+      session->SaveAndFlushSession(base::BindOnce(&Handler::ClosedSessionRetried,
+          weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
+    } else {
+      service->SaveAndFlush(base::BindOnce(
+          &Handler::ClosedHistorySaved, weak_factory_.GetWeakPtr(), id));
+    }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
         FROM_HERE, base::BindOnce(&Handler::ClosedHistorySaved,
           weak_factory_.GetWeakPtr(), id, false), base::Seconds(10));
