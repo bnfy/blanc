@@ -124,6 +124,12 @@
 #include "ui/gfx/image/image_skia_rep.h"
 #include "chrome/browser/ui/toolbar/toolbar_action_view_model.h"
 #include "chrome/grit/branded_strings.h"
+#include "chrome/browser/extensions/extension_context_menu_model.h"
+#include "extensions/browser/extension_registry.h"
+#include "ui/views/controls/menu/menu_model_adapter.h"
+#include "ui/views/controls/menu/menu_runner.h"
+#include "ui/views/controls/menu/menu_item_view.h"
+#include "ui/display/screen.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
@@ -1603,6 +1609,29 @@ base::ListValue ParseStoreResults(const std::string& html) {
   return items;
 }
 
+// Keep the native extension commands and policy checks, but report the menu outcome
+// separately from focus changes so the Island can stay visible behind the menu.
+class IslandExtensionMenu : public extensions::ExtensionContextMenuModel {
+ public:
+  IslandExtensionMenu(const extensions::Extension* extension,
+                      BrowserWindowInterface* browser, bool pinned,
+                      base::RepeatingClosure closed)
+      : ExtensionContextMenuModel(extension, browser, pinned, nullptr, true,
+                                  ContextMenuSource::kToolbarAction),
+        closed_(std::move(closed)) {}
+  void ExecuteCommand(int command, int flags) override {
+    selected = true;
+    ExtensionContextMenuModel::ExecuteCommand(command, flags);
+  }
+  void MenuClosed(ui::SimpleMenuModel* source) override {
+    ExtensionContextMenuModel::MenuClosed(source);
+    if (source == this) closed_.Run();
+  }
+  bool selected = false;
+ private:
+  base::RepeatingClosure closed_;
+};
+
 class Handler : public content::WebUIMessageHandler {
  public:
   void RegisterMessages() override {
@@ -1614,11 +1643,22 @@ class Handler : public content::WebUIMessageHandler {
     // A navigated or torn-down host must not receive a late history reply.
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
+    extension_menu_runner_.reset();
+    extension_menu_adapter_.reset();
+    extension_menu_.reset();
     store_loader_.reset();
     icon_loaders_.clear();
   }
 
  private:
+  void ExtensionMenuClosed(std::string id) {
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&Handler::ExtensionMenuResult,
+                                 weak_factory_.GetWeakPtr(), std::move(id)));
+  }
+  void ExtensionMenuResult(std::string id) {
+    Reply(id, true, base::Value(extension_menu_ && extension_menu_->selected));
+  }
   bool IsIslandHost() {
     auto* contents = web_ui()->GetWebContents();
     return GetOwner(contents) && contents->GetLastCommittedURL() ==
@@ -2427,14 +2467,37 @@ class Handler : public content::WebUIMessageHandler {
         reply(false, base::Value("This extension is unavailable on the current page."));
         return;
       }
-      reply(true, base::Value());
       if (method == "extensionContextMenu") {
         // Prototype branding only; Chromium still owns command policy and confirmation.
         ui::ResourceBundle::GetSharedInstance().OverrideLocaleStringResource(
             IDS_EXTENSIONS_UNINSTALL, u"Remove from Blanc");
-        container->ShowContextMenuAsFallback(args[0].GetString());
+        if (extension_menu_runner_ && extension_menu_runner_->IsRunning()) {
+          reply(false, base::Value("An extension menu is already open."));
+          return;
+        }
+        const auto* extension = extensions::ExtensionRegistry::Get(profile)
+            ->enabled_extensions().GetByID(args[0].GetString());
+        if (!extension) {
+          reply(false, base::Value("This extension is no longer installed."));
+          return;
+        }
+        extension_menu_runner_.reset();
+        extension_menu_adapter_.reset();
+        extension_menu_ = std::make_unique<IslandExtensionMenu>(
+            extension, browser,
+            ToolbarActionsModel::Get(profile)->IsActionPinned(args[0].GetString()),
+            base::BindRepeating(&Handler::ExtensionMenuClosed,
+                                weak_factory_.GetWeakPtr(), id));
+        extension_menu_adapter_ = std::make_unique<views::MenuModelAdapter>(extension_menu_.get());
+        extension_menu_runner_ = std::make_unique<views::MenuRunner>(
+            extension_menu_adapter_->CreateMenu(), views::MenuRunner::CONTEXT_MENU);
+        extension_menu_runner_->RunMenuAt(
+            BrowserView::GetBrowserViewForBrowser(browser)->GetWidget(), nullptr,
+            gfx::Rect(display::Screen::Get()->GetCursorScreenPoint(), gfx::Size()),
+            views::MenuAnchorPosition::kTopLeft, ui::mojom::MenuSourceType::kNone);
         return;
       }
+      reply(true, base::Value());
       // Use Chromium's user-action path: activeTab grants, onClicked, popup,
       // side-panel behavior and permissions remain owned by Chromium.
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
@@ -2893,6 +2956,9 @@ class Handler : public content::WebUIMessageHandler {
   std::string store_callback_;
   uint64_t space_save_generation_ = 0;
   bool space_save_pending_ = false;
+  std::unique_ptr<IslandExtensionMenu> extension_menu_;
+  std::unique_ptr<views::MenuModelAdapter> extension_menu_adapter_;
+  std::unique_ptr<views::MenuRunner> extension_menu_runner_;
   base::CancelableTaskTracker tracker_;
   base::WeakPtrFactory<Handler> weak_factory_{this};
 };

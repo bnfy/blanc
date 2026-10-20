@@ -56,7 +56,7 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = setTimeout(() => {
+      const timeout = method === 'extensionContextMenu' ? null : setTimeout(() => {
         pending.delete(id);
         reject(new Error(`Native bridge timed out: ${method}`));
       }, 10000);
@@ -241,10 +241,11 @@
     reportGeometry();
   }
   document.addEventListener('pointerdown', event => {
-    if (extensionsOpened && !extensionsPanel.panel.contains(event.target)) close();
+    if (extensionsOpened && !extensionsPanel.contextMenuOpen &&
+        !extensionsPanel.panel.contains(event.target)) close();
   });
   window.addEventListener('blur', () => {
-    setTimeout(() => { if (extensionsOpened && !document.hasFocus()) close(); }, 0);
+    setTimeout(() => { if (extensionsOpened && !extensionsPanel.contextMenuOpen && !document.hasFocus()) close(); }, 0);
   });
   setInterval(() => extensionsPanel.update(), 1000);
 

@@ -59,7 +59,7 @@ test('installed unavailable actions remain manageable without opening their popu
     close: async () => calls.push('close'), request: async (method, args) => calls.push([method, ...args]) });
   await p.activate('a'.repeat(32)); assert.equal(calls.length, 0);
   await p.activate('a'.repeat(32), true);
-  assert.deepEqual(calls, ['close', ['extensionContextMenu', 'a'.repeat(32), 7]]);
+  assert.deepEqual(calls, [['extensionContextMenu', 'a'.repeat(32), 7], 'close']);
   calls.length = 0;
   await p.activate('b'.repeat(32), true); assert.equal(calls.length, 0);
 });
@@ -73,4 +73,20 @@ test('keyboard context menus apply only to installed extensions', () => {
   p.selected = p.items[0].id;
   p.keydown({ key: 'F10', shiftKey: true, preventDefault() { prevented = true; } });
   assert.deepEqual(opened, [p.selected, true]); assert.equal(prevented, true);
+});
+
+ test('Island stays open until a menu choice; dismissal keeps it open', async () => {
+  const context = { window: {} }; vm.runInNewContext(source, context);
+  const p = Object.create(context.window.BlancExtensions.prototype);
+  let finish; let closes = 0; let focuses = 0;
+  Object.assign(p, {items: [{id: 'a', enabled: true}], storeItems: [], tabId: 1,
+    panel: {hidden: false}, search: {focus() {focuses++;}},
+    close: async () => {closes++;}, request: () => new Promise(r => {finish = r;})});
+  const dismissed = p.activate('a', true);
+  assert.equal(p.contextMenuOpen, true); assert.equal(closes, 0);
+  finish(false); await dismissed;
+  assert.equal(closes, 0); assert.equal(focuses, 1); assert.equal(p.contextMenuOpen, false);
+  const chosen = p.activate('a', true);
+  assert.equal(closes, 0); finish(true); await chosen;
+  assert.equal(closes, 1); assert.equal(p.contextMenuOpen, false);
 });

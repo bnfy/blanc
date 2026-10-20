@@ -230,14 +230,22 @@ window.BlancExtensions = class {
     this.busy = true;
     try {
       const tabId = this.tabId;
+      if (contextMenu) {
+        this.contextMenuOpen = true;
+        const selected = await this.request('extensionContextMenu', [id, tabId]);
+        this.contextMenuOpen = false;
+        if (selected) await this.close(false);
+        else if (!this.panel.hidden) this.search.focus();
+        return;
+      }
       await this.close(false);
       // Let the native anchor become visible before Chromium opens its popup.
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      await this.request(contextMenu ? 'extensionContextMenu' : 'extensionAction', [id, tabId]);
+      await this.request('extensionAction', [id, tabId]);
     } catch (error) {
       await window.BlancPrototypeHost.extensions();
       this.message.textContent = error.message;
-    } finally { this.busy = false; }
+    } finally { this.contextMenuOpen = false; this.busy = false; }
   }
   async openPage(url) {
     await this.close();
