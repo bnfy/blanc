@@ -80,6 +80,42 @@
     document.documentElement.style.setProperty('--page-bg', color);
   }
 
+  let splitHeaderKey = '';
+  function paintSplitHeaders() {
+    const box = document.getElementById('splitHeaders');
+    const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
+    const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
+    const key = JSON.stringify([split, tabs, layout, railWidth]);
+    if (key === splitHeaderKey) return;
+    splitHeaderKey = key;
+    box.hidden = !split;
+    box.dataset.private = String(tabs.some(t => t?.private));
+    box.replaceChildren();
+    if (!split) return;
+    box.style.left = layout === 'vertical' ? `${railWidth}px` : '0';
+    box.style.gridTemplateColumns = split.layout.widths.map(w => `${w}fr`).join(' ');
+    for (const tab of tabs) {
+      const pane = document.createElement('div');
+      pane.className = 'split-pane-header';
+      pane.dataset.active = String(tab.id === snapshot.activeTabId);
+      if (tab.favicon?.startsWith('data:image/')) {
+        const icon = document.createElement('img'); icon.src = tab.favicon; icon.alt = ''; pane.append(icon);
+      }
+      for (const [label, title, action, disabled] of [
+        ['←', `Back in ${tab.title}`, () => request('goBack', [nativeId(tab.id)]), !tab.canGoBack],
+        [tab.title || tab.url, `Focus ${tab.title}`, () => request('switchTab', [nativeId(tab.id)]), false],
+        ['×', `Remove ${tab.title} from Split View`, () => request('removeFromSplit', [nativeId(tab.id)]), false],
+      ]) {
+        const button = document.createElement('button');
+        button.textContent = label; button.title = title;
+        button.setAttribute('aria-label', title); button.disabled = disabled;
+        button.addEventListener('click', () => action().then(refresh).catch(e => notice(e.message)));
+        pane.append(button);
+      }
+      box.append(pane);
+    }
+  }
+
   function pageTint(nativeTabId, color) {
     const id = String(nativeTabId);
     if (snapshot?.activeTabId !== id || (color && !/^#[0-9a-f]{6}$/i.test(color))) return;
@@ -113,6 +149,7 @@
       const beforeIndex = items.findIndex(item => item.id === closedBefore);
       snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
       paintHeader();
+      paintSplitHeaders();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');
       if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
       reportGeometry();
@@ -377,6 +414,12 @@
     },
     listRemoteTabs: async () => [],
     // Internal migration probes; no user-facing Glance acceptance yet.
+    createSplit: async (first, second) => {
+      const result = await request('createSplit', [nativeId(first), nativeId(second)]);
+      if (!result) throw new Error('These tabs can no longer be split.');
+      await close(); await refresh(); return result;
+    },
+    removeFromSplit: async id => { await request('removeFromSplit', [nativeId(id)]); await refresh(); },
     previewSplitPair: (main, reference) => request('previewSplitPair', [nativeId(main), nativeId(reference)]),
     previewGlancePair: (main, reference) => request('previewGlancePair', [nativeId(main), nativeId(reference)]),
     previewGlanceClose: id => request('previewGlanceClose', [nativeId(id)]),

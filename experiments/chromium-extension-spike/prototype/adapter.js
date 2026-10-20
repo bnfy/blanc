@@ -63,6 +63,14 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       ['Close Tab', () => window.browserAPI.closeTab(id)],
     ];
     if (typeof tab.siteMuted === 'boolean') actions.splice(3, 0, [tab.siteMuted ? 'Unmute Site' : 'Mute Site', () => window.browserAPI.toggleSiteMute(id)]);
+    const split = state.splits?.find(s => s.tabIds.includes(id));
+    if (split) actions.unshift(['Remove from Split View', () => window.browserAPI.removeFromSplit(id)]);
+    else if (!tab.pinned) {
+      for (const other of state.tabs.filter(t => t.id !== id && !t.pinned && !state.splits?.some(s => s.tabIds.includes(t.id)))) {
+        const groupNote = other.groupId !== tab.groupId ? ' (moves to this tab’s group)' : '';
+        actions.push([`Split with ${other.title || other.url}${groupNote}`, () => window.browserAPI.createSplit(id, other.id)]);
+      }
+    }
     for (const [label, action] of actions) {
       const button = document.createElement('button');
       button.type = 'button'; button.textContent = label; button.setAttribute('role', 'menuitem');

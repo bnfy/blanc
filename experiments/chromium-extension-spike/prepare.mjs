@@ -295,6 +295,9 @@ edit('chrome/browser/ui/views/frame/browser_view.cc', [
   },
 ]);
 edit('chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc', [
+  { anchor: 'params.visual_client_area.width(), 68);',
+    replacement: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));',
+    present: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));' },
   { anchor: '  // Lay out infobar container.\n',
     replacement: '  params.InsetHorizontal(blanc_prototype::RailWidth(views().browser_view), /*leading=*/true);\n\n  // Lay out infobar container.\n',
     present: 'params.InsetHorizontal(blanc_prototype::RailWidth' },
@@ -322,7 +325,7 @@ BrowserViewTabbedLayoutImpl::SidePanelContentAnimation`,
     for (views::View* child : views().top_container->children())
       layout.AddChild(child, gfx::Rect(), false);
     return gfx::Rect(params.visual_client_area.x(), original_top,
-                     params.visual_client_area.width(), 68);
+                     params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));
   }
 `,
     present: '    for (views::View* child : views().top_container->children())',

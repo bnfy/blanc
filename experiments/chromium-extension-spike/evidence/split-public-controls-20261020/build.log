@@ -1,0 +1,51 @@
+Dry-run scheduled actions: 7 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log
+offline mode
+ninja: Entering directory `/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype'
+
+
+disable fast local for non-interactive: fastlocal=1->0
+ use `--fast_local` to enable fast local with non-interactive mode
+schedule pending:1+ready:0 (node:86853 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+
+loading build.ninja... done 772.7975ms
+load siso config done 7.482833ms
+schedule pending:1+ready:0 (node:433354 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+schedule pending:1+ready:0 (node:433354 edge:9)
+build start: Ready 8253 Pending 88010
+[0/2380] 3.32s S CXX obj/chrome/browser/ui/browser_command_controller_impl/browser_command_controller.o
+[0/1174] 3.34s S CXX obj/chrome/browser/ui/webui/configs/chrome_web_ui_configs.o
+[0/747] 3.35s S CXX obj/chrome/browser/ui/views/frame/browser_view/browser_view.o
+[0/685] 3.35s S CXX obj/chrome/browser/ui/views/frame/browser_view/blanc_prototype_ui.o
+[0/622] 3.35s S CXX obj/chrome/browser/ui/browser_commands_impl/browser_commands.o
+[0/402] 3.37s S CXX obj/chrome/browser/prefs/impl/browser_prefs.o
+[0/402] 14.83s F CXX obj/chrome/browser/ui/webui/configs/chrome_web_ui_configs.o
+[1/400] 15.77s F CXX obj/chrome/browser/ui/browser_command_controller_impl/browser_command_controller.o
+[2/399] 16.17s F CXX obj/chrome/browser/ui/views/frame/browser_view/blanc_prototype_ui.o
+[3/398] 17.58s F CXX obj/chrome/browser/ui/browser_commands_impl/browser_commands.o
+[4/397] 19.63s F CXX obj/chrome/browser/prefs/impl/browser_prefs.o
+[5/395] 23.31s F CXX obj/chrome/browser/ui/views/frame/browser_view/browser_view.o
+[6/393] 23.35s S SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[6/393] 45.25s F SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[7/85] 45.26s S COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework'
+[7/85] 45.51s F COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework'
+[8/83] 45.51s S ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[8/83] 48.36s F ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[9/47] 48.36s S COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[9/15] 48.45s F COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[10/14] 48.45s S ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+[10/14] 48.50s F ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+build finished
+
+	
+noexec:2 local:9 remote:0 cache:0 skip:96252
+  cache-write:0(err:0) fallback:0 retry:0
+fs: ops: 4041(err:566) / r:581(err:0) 1.12GiB / w:2(err:0) 569.06MiB
+
+
+shutdown cloud logging/monitoring done 13.417µs
+
+48.76s Build Succeeded: 11 steps - 0.23/s

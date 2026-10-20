@@ -48,6 +48,7 @@ bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
+int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
 bool OpenExtensions(BrowserWindowInterface* browser);

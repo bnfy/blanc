@@ -53,3 +53,5 @@
 /* The embedded strip extends to the window bottom in rail mode. Its root
    must stay transparent so only the rail and header cover native page content. */
 html, body { background: transparent; }
+
+.prototype-tab-menu { max-height:calc(100vh - 16px); overflow-y:auto; }

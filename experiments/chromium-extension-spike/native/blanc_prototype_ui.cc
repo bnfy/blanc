@@ -916,7 +916,7 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
   bool DoesIntersectRect(const views::View*, const gfx::Rect& rect) const override {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
     if (!owner || !owner->vertical) return GetLocalBounds().Intersects(rect);
-    return gfx::Rect(0, 0, width(), 68).Intersects(rect) ||
+    return gfx::Rect(0, 0, width(), HeaderHeight(const_cast<views::View*>(parent()))).Intersects(rect) ||
         gfx::Rect(0, 68, owner->rail_width, std::max(0, height() - 68)).Intersects(rect) ||
         (owner->height > 68 && owner->interactive_bounds.Intersects(rect));
   }
@@ -2304,7 +2304,7 @@ class Handler : public content::WebUIMessageHandler {
     }
     // Native split foundation only: UI exposure waits for Glance role/focus
     // parity. Never merge pin/group ownership as a side effect of a probe.
-    if ((method == "previewGlancePair" || method == "previewSplitPair") && args.size() == 2 &&
+    if ((method == "previewGlancePair" || method == "previewSplitPair" || method == "createSplit") && args.size() == 2 &&
         args[0].is_int() && args[1].is_int()) {
       // PR993: a visible split owns both panes. Even a request naming two
       // loose tabs must not replace that presentation with temporary Glance.
@@ -2320,27 +2320,48 @@ class Handler : public content::WebUIMessageHandler {
       }
       if (first < 0 || second < 0 || first == second ||
           model->IsTabPinned(first) || model->IsTabPinned(second) ||
-          model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second) ||
+          (method != "createSplit" && (model->GetTabGroupForTab(first) || model->GetTabGroupForTab(second))) ||
           model->GetSplitForTab(first) || model->GetSplitForTab(second)) {
         reply(true, base::Value(false)); return;
       }
-      MarkPersistentSplit(browser, model->GetWebContentsAt(first), method == "previewSplitPair", true);
-      MarkPersistentSplit(browser, model->GetWebContentsAt(second), method == "previewSplitPair");
+      if (method == "createSplit") {
+        const auto group = model->GetTabGroupForTab(first);
+        auto* initiating = model->GetWebContentsAt(first);
+        auto* other = model->GetWebContentsAt(second);
+        if (model->GetTabGroupForTab(second) != group) {
+          if (group) model->AddToExistingGroup({second}, *group);
+          else model->RemoveFromGroup({second});
+          first = model->GetIndexOfWebContents(initiating);
+          second = model->GetIndexOfWebContents(other);
+        }
+      }
+      MarkPersistentSplit(browser, model->GetWebContentsAt(first), method != "previewGlancePair", true);
+      MarkPersistentSplit(browser, model->GetWebContentsAt(second), method != "previewGlancePair");
       const bool reverse = first > second;
       const auto split = model->AddToNewSplit({first, second},
-          split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, method == "previewSplitPair" ? 0.5 : 0.62),
+          split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide, method != "previewGlancePair" ? 0.5 : 0.62),
           split_tabs::SplitTabCreatedSource::kToolbarButton);
       if (reverse) model->ReverseTabsInSplit(split);
-      owner->glance_main = method == "previewSplitPair" ? -1 : args[0].GetInt();
-      owner->glance_reference = method == "previewSplitPair" ? -1 : args[1].GetInt();
-      if (method == "previewSplitPair") model->ActivateTabAt(first);
+      owner->glance_main = method != "previewGlancePair" ? -1 : args[0].GetInt();
+      owner->glance_reference = method != "previewGlancePair" ? -1 : args[1].GetInt();
+      if (method != "previewGlancePair") model->ActivateTabAt(first);
       reply(true, base::Value(true)); return;
     }
-    if (method == "previewGlanceClose" && args.size() == 1 && args[0].is_int()) {
+    if ((method == "previewGlanceClose" || method == "removeFromSplit") && args.size() == 1 && args[0].is_int()) {
       for (int i = 0; i < model->count(); ++i) {
         if (sessions::SessionTabHelper::IdForTab(model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
         const auto split = model->GetSplitForTab(i);
-        if (split) model->RemoveSplit(*split);
+        if (split) {
+          int after = i;
+          for (int member = 0; member < model->count(); ++member)
+            if (model->GetSplitForTab(member) == split) after = std::max(after, member);
+          auto* removed = model->GetWebContentsAt(i);
+          model->RemoveSplit(*split);
+          if (method == "removeFromSplit") {
+            if (after != i) model->MoveWebContentsAt(i, after, false);
+            model->ActivateTabAt(model->GetIndexOfWebContents(removed));
+          }
+        }
         // Clear stale temporary ownership before a synchronous Spaces capture.
         // Snapshot polling must not be required to make saving available again.
         owner->MainIndex();
@@ -3184,6 +3205,12 @@ bool HasIsland(views::View* parent) {
   return !IsPageFullscreen(static_cast<BrowserView*>(parent)->browser());
 }
 
+int HeaderHeight(views::View* parent) {
+  if (!HasIsland(parent)) return 68;
+  auto* model = static_cast<BrowserView*>(parent)->browser()->GetTabStripModel();
+  return model->active_index() >= 0 && model->GetSplitForTab(model->active_index()) ? 98 : 68;
+}
+
 int RailWidth(views::View* parent) {
   if (!HasIsland(parent)) return 0;
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
@@ -3216,7 +3243,7 @@ void LayoutIsland(views::View* parent, int top) {
   auto* owner = GetOwner(view->GetWebContents());
   const int available = std::max(0, parent->height() - top);
   view->SetBounds(0, top, parent->width(),
-                  std::min(owner && owner->vertical ? available : owner ? owner->height : 68, available));
+                  std::min(owner && owner->vertical ? available : owner ? std::max(owner->height, HeaderHeight(parent)) : 68, available));
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
