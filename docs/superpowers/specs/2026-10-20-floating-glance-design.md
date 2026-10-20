@@ -165,11 +165,14 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
   doesn't flood it. The new strings go through the message catalog in every
   language. *(My call, after the October 20 review.)*
 - **Motion:** the card fades and scales in from 96% over Glance's existing
-  timing (opacity 140 ms, 340 ms ease `cubic-bezier(.2,.9,.25,1)`), and out
-  the same way reversed. Reduce Motion: a 140 ms fade only. *(My call.)*
-  **A closing card stops taking input at once**, the moment the close
-  begins: clicks, keys and drags go to the page behind while the card's
-  exit animation finishes.
+  timing (opacity 140 ms, 340 ms ease `cubic-bezier(.2,.9,.25,1)`). Reduce
+  Motion: a 140 ms fade only. *(My call.)*
+- **A closing card stops taking input at once** and disappears at once,
+  with no exit animation. *(My call, revised after the October 20 plan
+  review: an Electron view can't let clicks through, so any view still
+  drawing an exit would keep catching the clicks meant for the page behind.
+  Disappearing at once is the only way to honor "stops taking input at
+  once".)*
 
 ### What goes away
 

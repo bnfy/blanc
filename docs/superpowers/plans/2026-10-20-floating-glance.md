@@ -28,7 +28,7 @@
   - resize ring 8 px;
   - a window smaller than the minimum gets the page area less an 8 px margin;
   - keyboard steps 16 px and, with Shift, 64 px;
-  - motion: scale from 0.96, opacity 140 ms, 340 ms `cubic-bezier(.2,.9,.25,1)`; Reduce Motion is a 140 ms fade.
+  - motion: the card enters with a scale from 0.96, opacity 140 ms, 340 ms `cubic-bezier(.2,.9,.25,1)`; Reduce Motion is a 140 ms fade. It closes instantly with no exit animation, because a view can't let clicks through (spec, revised).
 - **Page area:** `{ x: railWidth, y: rt().chromeHeight, width: pageWidth, height: windowHeight - rt().chromeHeight }`. It sits below the Island's *resting* band whatever the Auto-hide state, and it's what the remembered fractions are measured against.
 - Stacking: main tab < Glance card view < Glance tab view < utility sheet < Island float views < fill capsule < overlay < permission view < tooltip and uBO popup.
 
@@ -37,7 +37,7 @@
 1. **A remembered frame from a much larger window or display.** Opening on a small window must clamp inside the page area, not leave the header off screen. The test goes in Task 1 (`clampCardFrame` with fractions from a 2560-wide window applied to 900 × 600).
 2. **A corrupt or hand-edited `glanceFrame` in settings.json** (NaN, negative, fractions above 1, a string). Blanc must fall back to the default frame, not throw at launch. The test goes in Task 2.
 3. **Dragging the header past the window edge, or resizing below the minimum mid-drag.** The card must stop at the clamp and keep tracking the pointer, without jumping when the pointer comes back. Tests go in Task 1 (`moveCardFrame`/`resizeCardFrame` with overshooting deltas).
-4. **Closing a Glance mid-drag** (⌘⇧G, a tab switch or a closed tab while the pointer is down). No later move or resize may reattach or reposition anything. A test goes in Task 4: a `moveGlanceCard` call after `closeGlance` returns `null` and changes no setting.
+4. **Closing a Glance mid-drag** (⌘⇧G, a tab switch or a closed tab while the pointer is down), **including closing and at once opening another one** while a drag message is still in flight. No stale move or resize may reposition anything, including the new card. Tests go in Task 4: a `moveGlanceCard` carrying the old generation is rejected, both after a plain close and after close-then-reopen.
 5. **A Glance open when the window goes fullscreen or is maximized.** The card rescales from its fractions and keeps its header on screen. An acceptance scenario goes in Task 3.
 
 ---
@@ -57,7 +57,7 @@
   - `fractionsToFrame(fractions, pageArea) -> Rect`, clamped; `null` input gives the default frame.
   - `moveCardFrame(frame, dx, dy, pageArea) -> Rect`
   - `resizeCardFrame(frame, edge, dx, dy, pageArea) -> Rect`, where `edge` is one of `'n','s','e','w','ne','nw','se','sw'`.
-  - `cardGeometry(frame) -> { chrome: Rect, header: Rect, page: Rect }`. `chrome` is the frame grown by `CARD_RING` on every side; `header` is the frame's top `CARD_HEADER_HEIGHT` px; `page` is the rest, inset by the 1 px border.
+  - `cardGeometry(frame) -> { chrome: Rect, header: Rect, page: Rect }`. `chrome` is the frame grown by `CARD_RING` on every side; `header` is the frame's top `CARD_HEADER_HEIGHT` px, including the top border; `page` is the rest, inside the 1 px side and bottom borders: `{ x: frame.x + 1, y: frame.y + 40, width: frame.width - 2, height: frame.height - 41 }`.
   - `Rect` is `{x, y, width, height}` in window coordinates, integers.
 
 - [ ] **Step 1: Write the failing tests** in `test/unit/glance-card.test.js`:
@@ -69,7 +69,7 @@
   - `fractionsToFrame(frameToFractions(f, big), small)`, with `big` 2560 × 1400 and `small` 900 × 600, lies inside `small` with its header fully on screen (Review Focus 1).
   - `moveCardFrame` by `dx: +5000` stops at the clamp; moving back by `-5000` returns to the left clamp with no extra offset (Review Focus 3).
   - `resizeCardFrame(f, 'nw', +1000, +1000, area)` stops at 360 × 280 and keeps the `se` corner fixed.
-  - `cardGeometry`: `chrome.x === frame.x - 8`, `header.height === 40`, `page.y === frame.y + 40`.
+  - `cardGeometry({x:250,y:84,width:1100,height:884})` → `chrome` `{x:242,y:76,width:1116,height:900}`, `header` `{x:250,y:84,width:1100,height:40}`, `page` `{x:251,y:124,width:1098,height:843}`.
 - [ ] **Step 2: Run them and confirm they fail.** Run `node --test test/unit/glance-card.test.js`. Expected: FAIL, "Cannot find module".
 - [ ] **Step 3: Implement the functions** in `src/main/glance-card.js` with the signatures above. Round to integers last.
 - [ ] **Step 4: Run them and confirm they pass.** Run `node --test test/unit/glance-card.test.js`. Expected: all PASS.
@@ -119,7 +119,7 @@
   - `glanceCardFrame(runtime)` reads `settings.getSettings().glanceFrame` through `fractionsToFrame`;
   - `resizeActiveView()` places the card view at `cardGeometry(frame).chrome` and the Glance tab at `.page`, with `setBorderRadius(PANE_RADIUS - PANE_BORDER)`, while the main tab keeps the full page bounds;
   - `restackAboveTabViews()` puts the card view directly above the main tab and below the Glance tab;
-  - `glanceLayoutPayload` (in `glance-focus.js`) carries `{ card: cardGeometry(frame), focusedPane }`;
+  - `glanceLayoutPayload` (in `glance-focus.js`) carries `{ card: cardGeometry(frame), focusedPane, generation }`, where `generation` is the runtime's `glanceCardGeneration`. `setGlanceTab` and `closeGlance` each increment it, so every open card has its own value;
   - `chrome:glance-layout` goes through `stripSurfaces` and the card view.
 - Test:
   - `test/unit/glance-card-surface.test.js`: source tests for the protocol allowlist, the stacking order, the window-owned lifecycle and the payload shape;
@@ -130,12 +130,12 @@
 - Produces:
   - `glanceCardFrame(runtime) -> Rect`;
   - `glanceCardGeometry(runtime) -> {chrome, header, page} | null`, which replaces `glanceGeometry()`;
-  - payload field `GlanceLayout.card`;
+  - payload fields `GlanceLayout.card` and `GlanceLayout.generation`, and `runtime.glanceCardGeneration` (an integer starting at 0);
   - test-hook `getGlanceCard() -> { frame, chrome, page, viewBounds, cardViewBounds, stackIndex }`.
 
 - [ ] **Step 1: Write the failing tests.**
   - The unit source tests above.
-  - Acceptance `@F34-2` "A Glance opens as a centered card over the page": the main tab's bounds equal the page bounds, and the Glance tab's bounds equal `getGlanceCard().page`, at 1100 × (window − 68 − 16 − 32) in a 1600-wide window.
+  - Acceptance `@F34-2` "A Glance opens as a centered card over the page": in a 1600 × 1000 window with the Island resting at 68 px, the main tab's bounds equal the page bounds; the card frame is `{x:250, y:84, width:1100, height:884}`; and the Glance tab's view bounds are exactly `cardGeometry(frame).page`, `{x:251, y:124, width:1098, height:843}`, so the page never covers the card's own header or border.
   - Acceptance `@F34-3` "The card keeps its header on screen when the window is maximized and restored" (Review Focus 5).
 - [ ] **Step 2: Run them and confirm they fail.** Run `node --test test/unit/glance-card-surface.test.js`, then `npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags "@F34-2 or @F34-3"`.
 - [ ] **Step 3: Implement** the surface, the view lifecycle, placement, stacking and payload. Add `@F34-2` and `@F34-3` to `RUNNABLE` in `test/desktop/cucumber.mjs` and the rows to `spec/acceptance/index.md`.
@@ -154,13 +154,16 @@
 **Interfaces:**
 - Consumes: `moveCardFrame`, `resizeCardFrame`, `defaultCardFrame`, `frameToFractions` (Task 1); `setGlanceFrame` (Task 2); `glanceCardFrame` (Task 3).
 - Produces, as bridge members, IPC channels and main handlers:
-  - `moveGlanceCard({dx, dy})`, `chrome:glance-card-move`, returns `Rect | null`;
-  - `resizeGlanceCard({edge, dx, dy})`, `chrome:glance-card-resize`, returns `Rect | null`;
-  - `resetGlanceCard()`, `chrome:glance-card-reset`, returns `Rect | null`.
-  - Each returns `null` with no Glance open. Each saves through `setGlanceFrame(frameToFractions(...))`, debounced 250 ms; reset saves `null`.
+  - `moveGlanceCard({generation, dx, dy})`, `chrome:glance-card-move`, returns `Rect | null`;
+  - `resizeGlanceCard({generation, edge, dx, dy})`, `chrome:glance-card-resize`, returns `Rect | null`;
+  - `resetGlanceCard({generation})`, `chrome:glance-card-reset`, returns `Rect | null`.
+  - The renderer sends the `generation` from the last `chrome:glance-layout` it applied. Main returns `null` and changes nothing when no Glance is open or when `generation !== runtime.glanceCardGeneration`. A pointer drag also captures the generation at pointerdown and drops its queued rAF update if a newer layout arrives meanwhile.
+  - Each accepted change saves through `setGlanceFrame(frameToFractions(...))`, debounced 250 ms; reset saves `null`. `closeGlance` flushes a pending save at once, so the place you left the card is kept, and a new Glance never inherits a timer from the old one.
 
 - [ ] **Step 1: Write the failing tests.**
-  - Unit: a move after `closeGlance` returns `null` and leaves `glanceFrame` unchanged (Review Focus 4).
+  - Unit: a move carrying the old generation after `closeGlance` returns `null` and leaves `glanceFrame` unchanged (Review Focus 4).
+  - Unit: close, then at once open another Glance; a move carrying the first card's generation returns `null` and leaves the new card's frame unchanged (Review Focus 4).
+  - Unit: a move, then `closeGlance` within 250 ms: `glanceFrame` holds the moved frame immediately after the close, with no timer pending.
   - Unit: a resize below the minimum returns the clamped frame.
   - Unit: reset sets `glanceFrame` to `null`.
   - Acceptance `@F34-4` "Dragging the header moves the card and the next Glance opens there": drag +200, +100; close; reopen; the frame matches.
@@ -178,7 +181,7 @@
   - `promoteGlance` becomes `openGlanceAsTab()`: close the Glance, then `setActiveTab(glanceId, {focusContent: true})`;
   - `keepGlanceAsSplit` (4443): `widths: [0.5, 0.5]`, main page first;
   - the card view's `before-input-event`: Escape (no modifiers) calls `closeGlance()`; the Glance *page's* own input never does;
-  - `closeGlance`: the card stops taking input at once. Electron views can't pass clicks through, so: detach the Glance tab's view immediately, send `chrome:glance-closing` (the card surface sets `inert` on `#glanceCard` and plays its exit, Task 7), and hide the card view with `setVisible(false)` after 340 ms. If a Glance opens again within those 340 ms, cancel the pending hide.
+  - `closeGlance`: in the same synchronous step, detach the Glance tab's view and hide the card view with `setVisible(false)`, before any other work or message. There is no exit animation and no pending timer: an Electron view takes every click inside its bounds, so nothing may stay on screen after the close begins.
 - Modify: `src/main/island-autohide.js` (drop `glanceOpen` from `islandPinned` and `floatingLayout`) and its callers at `main.js` ~3417 and ~3439
 - Modify: `src/main/preload.js`, `browser-api/contract.json` (rename `promoteGlance` to `openGlanceAsTab`, channel `tabs:open-glance-as-tab`)
 - Test:
@@ -213,7 +216,7 @@
   - make Change, Open as tab and Keep as split carry an icon plus a label span)
 - Modify: `src/renderer/renderer.js`:
   - `fitGlanceHeader()` applies classes `compact-actions`, then `no-eyebrow`, then `no-host` in that order, measuring as today;
-  - on `#glanceMove`: Arrow keys call `moveGlanceCard` with ±16 px (Shift ±64 px); Option/Alt+Arrow call `resizeGlanceCard({edge:'se', …})`; Enter calls `resetGlanceCard`;
+  - on `#glanceMove`: Arrow keys call `moveGlanceCard({generation, dx, dy})` with ±16 px (Shift ±64 px); Option/Alt+Arrow call `resizeGlanceCard({generation, edge:'se', dx, dy})`; Enter calls `resetGlanceCard({generation})`, always with the generation from the last applied layout (Task 4);
   - announcements go to `#glanceStatus`, throttled to one per 500 ms of key repeat.
 - Modify: `src/renderer/styles.css` (the three compaction classes; Back, Reload, × and the private chip never hide)
 - Modify: `copy/messages/en.json` and the five translations, then `npm run copy:build`:
@@ -242,8 +245,8 @@
   - find and the fill capsule for the Glance page anchor to it;
   - the Change picker hangs from the card header's Change control (purpose `change`; `change-stacked` goes away);
   - the permission view is unchanged.
-- Modify: `src/renderer/styles.css` (card enter and exit on the glance surface with `@starting-style`: scale .96→1, opacity 140 ms, 340 ms `cubic-bezier(.2,.9,.25,1)`; under `prefers-reduced-motion`, a 140 ms fade), and `renderer.js` (the closing class from Task 5 plays the exit)
-- Test: acceptance `@F34-13` "Find for the Glance page sits over the card" and `@F34-14` "The card scales in, and under Reduce Motion only fades", through the existing `glanceHeaderMotion` test hook, renamed `glanceCardMotion`.
+- Modify: `src/renderer/styles.css` (the card's enter on the glance surface with `@starting-style`: scale .96→1, opacity 140 ms, 340 ms `cubic-bezier(.2,.9,.25,1)`; under `prefers-reduced-motion`, a 140 ms fade; no exit rules)
+- Test: acceptance `@F34-13` "Find for the Glance page sits over the card" and `@F34-14` "The card scales in, under Reduce Motion only fades, and closes at once", through the existing `glanceHeaderMotion` test hook, renamed `glanceCardMotion`. The close half asserts that the card view isn't visible in the same tick `closeGlance` returns, and that a click at the card's old center reaches the main page.
 
 - [ ] **Step 1: Write the failing scenarios.**
 - [ ] **Step 2: Run them and confirm they fail.**
