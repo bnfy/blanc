@@ -39,6 +39,12 @@ const REVEAL_WATCH_MS = 120;
 const HIDE_SLACK_PX = 24;
 /** How often a revealed Island checks whether the pointer has left it. */
 const HIDE_CHECK_MS = 450;
+/** The same, while it floats: it covers the page, so it leaves at once. */
+const FLOAT_HIDE_CHECK_MS = 120;
+
+function hideCheckDelay(floating) {
+  return floating === true ? FLOAT_HIDE_CHECK_MS : HIDE_CHECK_MS;
+}
 /** How long turning the setting on shows the Island with its how-to tip. */
 const INTRO_MS = 5000;
 
@@ -51,31 +57,35 @@ function finite(value) {
  * or keeps it revealed. A position outside the window holds it only in the
  * `reachAbove` px directly above the window's top edge. The bands start at
  * `left`, the page pane's left edge: the vertical rail's column is its own.
+ * A floating Island covers the page, so it gets no slack below the strip.
  * @param {{x: number, y: number}|null} point
- * @param {{revealed: boolean, chromeHeight: number, width: number, height: number, reachAbove?: number, left?: number}} state
+ * @param {{revealed: boolean, chromeHeight: number, width: number, height: number, reachAbove?: number, left?: number, floating?: boolean}} state
  */
-function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachAbove = 0, left = 0 }) {
+function pointHoldsIsland(point, { revealed, chromeHeight, width, height, reachAbove = 0, left = 0, floating = false }) {
   if (!point || !finite(point.x) || !finite(point.y)) return false;
   const above = finite(reachAbove) ? Math.max(0, reachAbove) : 0;
   const from = finite(left) ? Math.max(0, left) : 0;
   if (point.x < from || point.y < -above || point.x > width || point.y > height) return false;
   if (point.y <= REVEAL_EDGE_PX) return true;
-  return revealed === true && point.y < Math.max(0, chromeHeight) + HIDE_SLACK_PX;
+  const slack = floating === true ? 0 : HIDE_SLACK_PX;
+  return revealed === true && point.y < Math.max(0, chromeHeight) + slack;
 }
 
 /**
  * One cursor sample for the dwell band. `dwell` is the rest in progress
  * ({anchor, since}) or null; the result carries the next one and whether the
  * rest has lasted long enough to reveal the Island. The instant edge band is
- * pointHoldsIsland's; this covers the band below it.
+ * pointHoldsIsland's; this covers the band below it. A floating Island has
+ * no dwell band: a site's own header sits there (YouTube's search box), and
+ * the Island would land on it.
  * @param {{anchor: {x: number, y: number}, since: number}|null} dwell
  * @param {{x: number, y: number}|null} point window content coordinates
  * @param {number} now ms
- * @param {{width: number, left?: number}} window `left` is the page pane's left edge
+ * @param {{width: number, left?: number, floating?: boolean}} window `left` is the page pane's left edge
  */
-function revealDwellStep(dwell, point, now, { width, left = 0 }) {
+function revealDwellStep(dwell, point, now, { width, left = 0, floating = false }) {
   const from = finite(left) ? Math.max(0, left) : 0;
-  const inBand = !!point && finite(point.x) && finite(point.y) &&
+  const inBand = floating !== true && !!point && finite(point.x) && finite(point.y) &&
     point.x >= from && point.x <= width &&
     point.y > REVEAL_EDGE_PX && point.y <= REVEAL_DWELL_BAND_PX;
   if (!inBand) return { dwell: null, reveal: false };
@@ -226,6 +236,8 @@ module.exports = {
   REVEAL_EDGE_PX,
   HIDE_SLACK_PX,
   HIDE_CHECK_MS,
+  FLOAT_HIDE_CHECK_MS,
+  hideCheckDelay,
   INTRO_MS,
   REACH_ABOVE_PX,
   REVEAL_WATCH_MS,
