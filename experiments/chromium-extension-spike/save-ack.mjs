@@ -1,4 +1,10 @@
 export function prepareSaveAcknowledgement(edit) {
+  edit("chrome/browser/prefs/browser_prefs.cc", [{
+    anchor: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");',
+    replacement: '  TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");\n#if __has_include("chrome/browser/ui/blanc_prototype_ui.h")\n  registry->RegisterStringPref("blanc.prototype.preference_write", "");\n#endif',
+    present: 'registry->RegisterStringPref("blanc.prototype.preference_write", "");'
+  }]);
+
   edit("components/sessions/core/command_storage_backend.h", [
   {
     "anchor": "\n  bool inited_for_testing() const { return inited_; }\n",

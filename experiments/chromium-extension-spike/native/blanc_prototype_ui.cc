@@ -11,6 +11,7 @@
 #include <cmath>
 #include <algorithm>
 #include <memory>
+#include <limits>
 #include <map>
 #include <optional>
 #include <set>
@@ -1665,21 +1666,41 @@ class Handler : public content::WebUIMessageHandler {
     }
     Reply(id, false, base::Value("Session metadata save acknowledgement timed out."));
   }
+  static std::string BeginPreferenceWrite(Profile* profile) {
+    static const base::NoDestructor<std::string> epoch(
+        base::Uuid::GenerateRandomV4().AsLowercaseString());
+    static uint64_t sequence = 0;
+    CHECK(sequence < std::numeric_limits<uint64_t>::max());
+    std::string marker = *epoch + ":" + base::NumberToString(++sequence);
+    profile->GetPrefs()->SetString("blanc.prototype.preference_write", marker);
+    return marker;
+  }
+  static bool PreferenceWriteReached(base::FilePath path, std::string expected) {
+    std::string bytes;
+    if (!base::ReadFileToString(path, &bytes)) return false;
+    auto prefs = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+    const auto* marker = prefs ? prefs->FindStringByDottedPath(
+        "blanc.prototype.preference_write") : nullptr;
+    const auto split = expected.find(':');
+    if (!marker || split == std::string::npos ||
+        !base::StartsWith(*marker, expected.substr(0, split + 1))) return false;
+    uint64_t requested = 0, persisted = 0;
+    return base::StringToUint64(expected.substr(split + 1), &requested) &&
+        base::StringToUint64(marker->substr(split + 1), &persisted) &&
+        persisted >= requested;
+  }
   void SpacePreferencesCommitted(std::string id, std::string name,
       base::DictValue captured, base::DictValue disk_capture,
       base::WeakPtr<BrowserWindowInterface> expected_browser,
-      std::string identity, uint64_t generation) {
+      std::string identity, uint64_t generation, std::string write_marker) {
     if (!space_save_pending_ || generation != space_save_generation_ ||
         !expected_browser) return;
-    // PrefService's completion orders writes but does not report disk errors.
-    // A readable dictionary is required so restart will not create a new profile
-    // and silently ignore the persisted session. Never write preferences here.
+    // Require this attempt's marker, or a later write from this process.
+    // A stale readable dictionary cannot prove that this write succeeded.
     SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
-        base::BindOnce([](base::FilePath path) {
-          std::string bytes;
-          return base::ReadFileToString(path, &bytes) &&
-              base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS).has_value();
-        }, expected_browser->GetProfile()->GetPath().AppendASCII("Preferences")),
+        base::BindOnce(&Handler::PreferenceWriteReached,
+            expected_browser->GetProfile()->GetPath().AppendASCII("Preferences"),
+            std::move(write_marker)),
         base::BindOnce(&Handler::SpaceProfileAcknowledged,
             weak_factory_.GetWeakPtr(), id, name, std::move(captured),
             std::move(disk_capture), expected_browser, identity, generation));
@@ -1696,10 +1717,12 @@ class Handler : public content::WebUIMessageHandler {
     }
     // Session bytes alone are insufficient on the first run: without the
     // Preferences file, ProfileImpl::IsNewProfile suppresses session restore.
+    std::string marker = BeginPreferenceWrite(expected_browser->GetProfile());
     expected_browser->GetProfile()->GetPrefs()->CommitPendingWrite(
         base::BindOnce(&Handler::SpacePreferencesCommitted,
             weak_factory_.GetWeakPtr(), id, name, std::move(captured),
-            std::move(disk_capture), expected_browser, identity, generation));
+            std::move(disk_capture), expected_browser, identity, generation,
+            std::move(marker)));
   }
   void SpaceProfileAcknowledged(std::string id, std::string name,
       base::DictValue captured, base::DictValue disk_capture,
@@ -1724,14 +1747,13 @@ class Handler : public content::WebUIMessageHandler {
             "previewSpaceOpen", name, std::move(captured)));
   }
   void InitialWindowPreferencesCommitted(
-      base::WeakPtr<BrowserWindowInterface> expected, base::DictValue capture) {
+      base::WeakPtr<BrowserWindowInterface> expected, base::DictValue capture,
+      std::string write_marker) {
     if (!expected) return;
     SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
-        base::BindOnce([](base::FilePath path) {
-          std::string bytes;
-          return base::ReadFileToString(path, &bytes) &&
-              base::JSONReader::ReadDict(bytes, base::JSON_PARSE_CHROMIUM_EXTENSIONS).has_value();
-        }, expected->GetProfile()->GetPath().AppendASCII("Preferences")),
+        base::BindOnce(&Handler::PreferenceWriteReached,
+            expected->GetProfile()->GetPath().AppendASCII("Preferences"),
+            std::move(write_marker)),
         base::BindOnce(&Handler::InitialWindowSaved, weak_factory_.GetWeakPtr(),
             expected, std::move(capture)));
   }
@@ -1744,9 +1766,10 @@ class Handler : public content::WebUIMessageHandler {
     }
     // A fresh profile without Preferences is classified as new on restart,
     // even when its session stream contains every acknowledged window.
+    std::string marker = BeginPreferenceWrite(expected->GetProfile());
     expected->GetProfile()->GetPrefs()->CommitPendingWrite(base::BindOnce(
         &Handler::InitialWindowPreferencesCommitted, weak_factory_.GetWeakPtr(),
-        expected, std::move(capture)));
+        expected, std::move(capture), std::move(marker)));
   }
   void InitialWindowSaved(base::WeakPtr<BrowserWindowInterface> expected,
       base::DictValue capture, bool success) {

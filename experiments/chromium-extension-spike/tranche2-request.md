@@ -728,7 +728,7 @@ pending, not part of this recovery acceptance. Spikes A/B remain in progress.
 | --- | --- | --- |
 | 1. Spike A | **In progress** | Request-path audit, origin-preserving replay, synthetic 2,000/2,000 corpus, browser-process factory proxy, sandboxed Mojo Ghostery engine, regular/private network parity, fail-closed probes, GET redirects, dedicated workers, bounded service-worker identity, two shared-worker clients and one exact-owner teardown are measured. Current evidence is linked from `results.md`, including `evidence/f12-shared-lifecycle-20261017/`. Remaining acceptance work includes the rest of the request-path matrix, CSS/procedural cosmetics/scriptlets, the private real-page sanity sample and qualified quiet-machine latency. The final aggregate `evidence/f12-spike-a/` report is pending. |
 | 2. Spike B | **In progress: full synthetic network parity** | `evidence/f12-ubo-reload-20261017/` records sandboxed component readiness, bundled-list local replacement, authored-rule blocking, acknowledged pre-reset cancellation, stale/page/popup rejection, background-target loss and independent private Blanc Blocker. Profile lifetime and empty-body response bugs were caught and repaired incrementally. No extension-core MV2 override. `evidence/f12-ubo-parity-20261017/` adds two fresh runs per runtime over 5,123 candidates plus four controls: 2,113 blocks / 3,014 allows, zero context/decision/fixture differences. `evidence/f12-ubo-cosmetics-20261017/` adds eight matching regular main-frame pages: static CSS, has-text mutations and late fetch scriptlets pass; historical document-start failure is superseded for Chromium main frames by `evidence/f12-document-gate-20261017/`: 12/12 early constant/fetch passes versus Electron 0/12, seven safety probes and 12 native-only update-loader joins. The subframe follow-up `evidence/f12-subframe-trace-20261017/` adds 16/16 early native cases and identifies two late Electron ancestor misses per session. Cross-runtime identity remains open. Broader cosmetics/scriptlets/paths, exhaustive failures/lifecycle, privilege containment and production recovery UX remain open. |
-| 3. A1 patch-budget design | **Drafted; review pending** | `a1-patch-budget-design.md` specifies layout, patch/override accounting, strict application and CI reporting. Fresh October 20 inventory is 49 files / 117 hunks within the approved 49/120 ceiling. No reductions or layout move implemented; authoritative CI wiring remains proposed. |
+| 3. A1 patch-budget design | **Drafted; review pending** | `a1-patch-budget-design.md` specifies layout, patch/override accounting, strict application and CI reporting. Fresh October 20 inventory is 50 files / 118 hunks within the approved 50/120 ceiling. No reductions or layout move implemented; authoritative CI wiring remains proposed. |
 | 4. Visual comparison | **Not started** | Fixed-size Electron/Chromium capture matrix remains required. |
 | 5. VoiceOver pass | **Not started** | Island rotor, labels, order and Escape focus-return checklist remains required. |
 | 6. Cost sheet | **Not started** | Task 0 clean recovery, fortnightly maintenance and extension-release wait must remain three separate lines. |
@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (49 files, 120 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (50 files, 120 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1175,7 +1175,7 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Patch budget, amended October 19:** **49 upstream files
+**Patch budget, amended October 20:** **50 upstream files
 and 120 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 49 files or 120 hunks and
+From plan §5: criterion 2 (the count above exceeds 50 files or 120 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -1851,3 +1851,19 @@ The encrypted-session consumer also recovers in the same browser process after a
 The stale fixture seeds a minimal authored readable dictionary, not an old production profile. Other stale schema/content and current-preference durability remain unqualified. No product code changes; temporary diagnostic removed byte-for-byte and normal binary restored. Native input pending, latency deferred, Electron diagnostic build unapproved/unstarted.
 
 Four schedules (11 checkpoints) and eight focused tests pass, including a normal-binary stale-file repeat. Incremental diagnostic/restore builds30.69s/30.34s, six steps each; final guard zero. Prior normal49files/117hunks unchanged; temporary one-hunk addition in an existing patched file gives conservative49/118 upper bound, within49/120. No new full inventory claimed. Four test profiles removed; retained preview untouched. Evidence: `evidence/stale-provider-recovery-20261020/`.
+
+## October 20 — Preference acknowledgement budget approval
+
+Owner explicitly approved: **"Raise to 50 files; keep 120 hunks"**. This permits one prototype preference registration hunk in `chrome/browser/prefs/browser_prefs.cc` for the stale-file acknowledgement repair. Prior measurements remain historical. Latency, native input and the Electron diagnostic build remain deferred/pending as before.
+
+## October 20 — Stale preference acknowledgement repaired
+
+Owner approval: **"Raise to 50 files; keep 120 hunks"**. A prototype-only preference is registered through Chromium's normal profile registration. Both initial-window and Spaces-switch acknowledgements now write a process-unique epoch plus increasing sequence through PrefService and require that marker (or a later sequence from the same process) in Preferences after completion. An old readable file no longer satisfies a fresh request. Later coalesced writes can satisfy earlier requests; owner/capture/timeout/retry validation remains. No direct writes to Preferences from the prototype.
+
+Clear and encrypted-only tests inject actual Preferences rename EIO. An old-process marker refuses initial acknowledgement and switching with source/store unchanged; removing the fault permits automatic retry. A previous marker from the same process also refuses a later switch under EIO, then explicit retry succeeds and crash restart restores the exact authored-page owner. Twelve checkpoints across these two schedules pass.
+
+The first clear run retained a separate failure: a successful Source switch produced two blank New Tabs and restart restored one. Its five acknowledgement checkpoints passed before the final exact-tab assertion failed. The final clear/encrypted recovery runs remove blank tabs before saving the fixture; they do not close this blank-tab lifecycle discrepancy. First-attempt evidence is retained.
+
+This verifies the ordinary Preferences write marker, not Secure Preferences, all preference freshness under arbitrary concurrent edits, or hardware/power-loss durability. Broader provider/rebuild/lifecycle gates remain open. Native input pending, latency deferred, Electron diagnostic build unapproved/unstarted.
+
+Concurrent creation/replacement/pending-close crash recovery also passes all six checkpoints, restoring four remaining window identities and preserving the source grouped split. Total final schedules:18 checkpoints plus eight focused tests. One42.21s/seven-step guarded incremental build; final guard zero. Fresh authoritative footprint50files/118hunks within owner-approved50/120. All four disposable profiles removed; preview untouched. Evidence: `evidence/preference-ack-fix-20261020/`.
