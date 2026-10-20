@@ -4,7 +4,10 @@
 //
 //   npm run site:whats-new -- --release 1.39 [--force]
 //
-// It reads the X.Y.0 release in site/src/data/releases.json and turns its
+// It reads the X.Y.0 release in site/src/data/releases.json, or, before the
+// release is public, its prepared notes in docs/press/release-notes/vX.Y.0.md
+// (the page must be live before the release publishes:
+// scripts/check-whats-new-page.mjs), and turns its
 // "Added" bullets that lead with a bold feature name (the convention
 // release-feature-names.json and the changelog rely on) into two to five
 // highlights. Every word comes from the note; media are left as a TODO marker
@@ -16,6 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { TODO_MEDIA_KIND, validateWhatsNew } from '../src/lib/whats-new.mjs';
+import { parseGeneratedNotes } from '../../scripts/generate-site-changelog.mjs';
 
 const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_HIGHLIGHTS = 5;
@@ -105,7 +109,7 @@ function uniqueId(name, release, taken) {
 // cannot fill one.
 export function draftPage(featureRelease, releases, { data = { pages: [] }, topics = [], featurePages = new Set(), captures = [] } = {}) {
   const release = releases.find((r) => r.version === `${featureRelease}.0`);
-  if (!release) throw new Error(`${featureRelease}.0 is not in releases.json; run npm run site:changelog after the release is public.`);
+  if (!release) throw new Error(`${featureRelease}.0 is not in releases.json and has no prepared notes.`);
   const bullets = featureBullets(release);
   if (bullets.length < MIN_HIGHLIGHTS) {
     throw new Error(`${featureRelease}.0 has ${bullets.length} bold-named "Added" bullet(s); a page needs ${MIN_HIGHLIGHTS}. Write the page by hand, or add "${featureRelease}" to noPage.`);
@@ -151,6 +155,7 @@ export function addDraft(data, page, { force = false } = {}) {
 export function run(argv, {
   site = SITE,
   log = console.log,
+  notesDir = path.join(site, '..', 'docs/press/release-notes'),
 } = {}) {
   const at = argv.indexOf('--release');
   const featureRelease = at >= 0 ? argv[at + 1] : undefined;
@@ -160,6 +165,12 @@ export function run(argv, {
   const dataPath = path.join(site, 'src/data/whats-new.json');
   const data = read('src/data/whats-new.json');
   const releases = read('src/data/releases.json');
+  // Not public yet: draft from the notes the release will publish.
+  if (!releases.some((r) => r.version === `${featureRelease}.0`)) {
+    const notes = path.join(notesDir, `v${featureRelease}.0.md`);
+    if (!fs.existsSync(notes)) throw new Error(`${featureRelease}.0 is not in releases.json, and ${notes} does not exist yet.`);
+    releases.push({ version: `${featureRelease}.0`, ...parseGeneratedNotes(fs.readFileSync(notes, 'utf8')) });
+  }
   const topics = read('src/data/guide-topics.json');
   const featuresDir = path.join(site, 'src/pages/features');
   const featurePages = new Set(fs.existsSync(featuresDir) ? fs.readdirSync(featuresDir).filter((f) => f.endsWith('.astro')).map((f) => f.slice(0, -'.astro'.length)) : []);

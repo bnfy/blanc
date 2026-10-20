@@ -98,13 +98,21 @@ export function validateWhatsNew(data, releases, { publicDir, requireEveryReleas
   const released = new Set(releases.map((r) => r.version));
   const featureReleases = new Set(releases.map((r) => featureRelease(r.version)).filter(Boolean));
   const paged = new Set();
+  let upcoming = null;
   // Ids are unique across every page, since a page also shows earlier ones.
   const ids = new Set();
   for (const pageData of data.pages ?? []) {
     const release = pageData.release;
     if (!FEATURE_RE.test(release ?? '')) { errors.push(`page "${release}": release must be major.minor`); continue; }
     paged.add(release);
-    if (!released.has(`${release}.0`)) errors.push(`page ${release}: ${release}.0 is not in releases.json`);
+    if (!released.has(`${release}.0`)) {
+      // The next release's page deploys before that release publishes (the
+      // release gate, scripts/check-whats-new-page.mjs, requires it live).
+      const next = [...featureReleases].every((r) => compareFeature(release, r) > 0);
+      if (!next) errors.push(`page ${release}: ${release}.0 is not in releases.json and is not newer than every release`);
+      else if (upcoming) errors.push(`page ${release}: only one page can come ahead of its release (${upcoming} already does)`);
+      else upcoming = release;
+    }
     const highlights = pageData.highlights ?? [];
     if (highlights.length < MIN_HIGHLIGHTS || highlights.length > MAX_HIGHLIGHTS) {
       errors.push(`page ${release}: needs ${MIN_HIGHLIGHTS} to ${MAX_HIGHLIGHTS} highlights, has ${highlights.length}`);
@@ -154,16 +162,24 @@ export function pageDescription(page) {
 }
 
 // The pages to build, newest first, with the date and changelog anchor of
-// their release's .0 version. Each page's entries lead with its own
+// their release's .0 version. A page whose release isn't public yet is
+// upcoming: it builds with no date and links to the changelog itself (its
+// release has no entry there yet), so
+// the release gate can find it live, and stays unlisted until the release is
+// in releases.json (validateWhatsNew allows only the next one). Each page's entries lead with its own
 // highlights (current: true), then add those of the EARLIER_PAGES previous
 // pages, newest first, up to MAX_ENTRIES in all; its own always fit.
 export function publishedPages(data, releases) {
   const byVersion = new Map(releases.map((r) => [r.version, r]));
+  const newest = releases.map((r) => featureRelease(r.version)).filter(Boolean).sort(compareFeature).at(-1);
   const pages = (data.pages ?? [])
-    .filter((p) => byVersion.has(`${p.release}.0`))
+    .filter((p) => FEATURE_RE.test(p.release ?? '') && (byVersion.has(`${p.release}.0`) || !newest || compareFeature(p.release, newest) > 0))
     .map((p) => {
       const release = byVersion.get(`${p.release}.0`);
-      return { release: p.release, version: release.version, humanDate: release.humanDate, anchor: release.anchor, highlights: p.highlights };
+      if (!release) {
+        return { release: p.release, version: `${p.release}.0`, humanDate: null, anchor: null, upcoming: true, highlights: p.highlights };
+      }
+      return { release: p.release, version: release.version, humanDate: release.humanDate, anchor: release.anchor, upcoming: false, highlights: p.highlights };
     })
     .sort((a, b) => compareFeature(b.release, a.release));
   const entriesOf = (page, current) => page.highlights.map((highlight) => ({ highlight, release: page.release, humanDate: page.humanDate, current }));

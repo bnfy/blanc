@@ -132,3 +132,18 @@ test('draft ids stay unique across pages and the page sorts newest first', async
   assert.deepEqual(page.highlights.map((h) => h.id), ['tab-group-notes-2-1', 'sunset-wallpaper']);
   assert.deepEqual(addDraft(data, page).pages.map((p) => p.release), ['2.1', '2.0']);
 });
+
+// The release gate needs the page live before the release publishes, so a
+// page is drafted from the prepared notes (docs/press/release-notes) while the
+// release is not yet in releases.json.
+test('before the release is public, the draft comes from its prepared notes', async () => {
+  const { run } = await draft();
+  const site = tempSite();
+  const notesDir = fs.mkdtempSync(path.join(os.tmpdir(), 'whats-new-notes-'));
+  fs.writeFileSync(path.join(notesDir, 'v2.9.0.md'), '# Blanc 2.9.0\n\n## Added\n\n- **Alpha mode.** Turn on Alpha mode in\n  Settings.\n- **Beta tabs.** Beta tabs stay put.\n\n## Fixed\n\n- **Gamma.** Not a highlight.\n');
+  run(['--release', '2.9'], { site, log: quiet, notesDir });
+  const page = readWhatsNew(site).pages.find((p) => p.release === '2.9');
+  assert.deepEqual(page.highlights.map((h) => h.title), ['Alpha mode', 'Beta tabs']);
+  assert.equal(page.highlights[0].body, 'Turn on Alpha mode in Settings.');
+  assert.throws(() => run(['--release', '2.8'], { site: tempSite(), log: quiet, notesDir }), /v2\.8\.0\.md/);
+});

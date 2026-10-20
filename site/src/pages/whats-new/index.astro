@@ -6,7 +6,7 @@ import data from '../../data/whats-new.json';
 import releases from '../../data/releases.json';
 import { publishedPages } from '../../lib/whats-new.mjs';
 
-const newest = publishedPages(data, releases)[0];
+const newest = publishedPages(data, releases).find((page) => !page.upcoming);
 const target = newest ? `/whats-new/${newest.release}` : '/changelog';
 ---
 <BaseLayout

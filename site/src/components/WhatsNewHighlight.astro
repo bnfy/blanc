@@ -23,7 +23,7 @@ interface Props {
       | { kind: 'todo'; todo: string; candidates: string[] };
   };
   release: string;   // the highlight's feature release, e.g. '1.38'
-  humanDate: string; // that release's date, e.g. 'October 18, 2026'
+  humanDate: string | null; // that release's date, e.g. 'October 18, 2026'; null before it is public
   current: boolean;  // from this page's release, not an earlier one
   first: boolean;
 }
@@ -31,11 +31,11 @@ const { highlight: h, release, humanDate, current, first } = Astro.props;
 const media = h.media;
 // Backticked keys and codes render as the site's chip.
 const rich = (text: string) => chipSpans(text).map((span) => (span.chip ? { chip: span.text } : { text: span.text }));
-const shortDate = humanDate.replace(/,\s*\d{4}$/, '');
+const shortDate = humanDate?.replace(/,\s*\d{4}$/, '');
 ---
 <section class="wn-highlight" id={h.id} aria-labelledby={`${h.id}-title`}>
   <div class="wn-copy">
-    <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release} · {shortDate}</p>
+    <p class="section-kicker">{current ? 'What’s new' : 'Recently'} · Blanc {release}{shortDate && ` · ${shortDate}`}</p>
     <h2 id={`${h.id}-title`}>{h.title}</h2>
     <p class="wn-body">{rich(h.body).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>
     {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{rich(step).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</li>)}</ol>}

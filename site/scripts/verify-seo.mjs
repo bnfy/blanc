@@ -3,14 +3,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { SITE_ORIGIN } from '../src/lib/site-origin.mjs';
+import { publishedPages } from '../src/lib/whats-new.mjs';
 
 const LEGACY_ROUTES = JSON.parse(await readFile(new URL('../src/data/legacy-routes.json', import.meta.url), 'utf8'));
+// The next release's What's New page deploys before that release is public
+// (scripts/check-whats-new-page.mjs) and stays noindex and out of the
+// sitemap until it is.
+const UPCOMING_WHATS_NEW = publishedPages(
+  JSON.parse(await readFile(new URL('../src/data/whats-new.json', import.meta.url), 'utf8')),
+  JSON.parse(await readFile(new URL('../src/data/releases.json', import.meta.url), 'utf8')),
+).filter((page) => page.upcoming).map((page) => `/whats-new/${page.release}`);
 const FEATURE_TOPICS = JSON.parse(await readFile(new URL('../src/data/guide-topics.json', import.meta.url), 'utf8'));
 const RETAINED_FEATURE_ROUTES = ['/features', ...FEATURE_TOPICS.map(topic => `/features/${topic.id}`)];
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const NO_SOCIAL_ROUTES = new Set(['/404', '/whats-new', '/privacy', '/terms', '/mail/privacy', '/mail/terms', '/import-tabs']);
-const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', '/whats-new', ...Object.keys(LEGACY_ROUTES)]);
+const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', '/whats-new', ...UPCOMING_WHATS_NEW, ...Object.keys(LEGACY_ROUTES)]);
 const OG_ASPECT_RATIO = 1200 / 630;
 const VERSIONED_SOCIAL_ASSET = /(?:^|[-_/])v?\d+\.\d+(?:\.\d+)?(?=[-_.\/]|$)/i;
 const htmlFiles = [];
