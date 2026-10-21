@@ -47,8 +47,10 @@ Drawn after the Lock Screen's Font & Color sheet (owner request, October 21,
 samples, the chosen one marked by a thin outline only; full-width sliders
 with thin capsule tracks filled to a white pill thumb and nothing else
 (each changes the clock as it is dragged; end glyphs were tried and the owner
-dropped them), Tone's track being the color itself from its deepest to its
-lightest; 28 px swatches, the chosen one ringed with a gap; and a full-size
+dropped them), Weight's rail a wedge from a hairline at light to thick at
+heavy as on the Lock Screen (drawn behind the slider, cut to its exact width
+by a CSS `path()`, since the thumb lives inside the slider's own track), and
+Tone's track the color itself from its deepest to its lightest; 28 px swatches, the chosen one ringed with a gap; and a full-size
 Glass | Solid control. The sliders' names stay for screen readers and as
 hover tooltips. A back chevron at the top left, mirroring the chevron on
 Customize's Clock row, returns to Customize. It grows out of the clock and settles

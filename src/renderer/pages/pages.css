@@ -4867,14 +4867,20 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
 .clock-font[aria-pressed="true"]:focus-visible { border-color: var(--text-dim); outline: none; }
 
 /* Slider rows: one full-width track each, nothing else. */
-.clock-slider-row { display: flex; align-items: center; min-height: 32px; }
+.clock-slider-row {
+  --thumb-w: 30px;
+  --slider-fill: var(--text);
+  --slider-rest: color-mix(in srgb, var(--text) 12%, transparent);
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
 .clock-fonts + .clock-slider-row { margin-top: 14px; }
 .clock-slider-row + .clock-slider-row { margin-top: 2px; }
 /* A thin capsule track, filled up to the thumb, and a white pill thumb. */
 .clock-slider {
-  --thumb-w: 30px;
-  --slider-fill: var(--text);
-  --slider-rest: color-mix(in srgb, var(--text) 12%, transparent);
+  position: relative;
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -4914,6 +4920,20 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
   box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--text) 18%, transparent);
 }
 .clock-tone::-webkit-slider-thumb { margin-top: -6px; }
+/* Weight's rail is a wedge, hairline at light and thick at heavy, drawn
+   behind the slider (the thumb lives inside the slider's own track, so that
+   track can't be clipped). newtab.js cuts it to the rail's exact width. */
+.clock-rail {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 10px;
+  transform: translateY(-50%);
+  background: linear-gradient(to right,
+    var(--slider-fill) calc(var(--thumb-w) / 2 + (100% - var(--thumb-w)) * var(--fill, 0)),
+    var(--slider-rest) 0);
+  pointer-events: none;
+}
+.clock-slider-tapered::-webkit-slider-runnable-track { background: transparent; }
 .clock-divider { margin: 16px 0; }
 .clock-swatches {
   display: flex;

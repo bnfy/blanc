@@ -310,9 +310,11 @@
         <!-- Unlabelled sliders, as on the Lock Screen: each changes the clock
              as it is dragged, so the clock itself says what it does. The
              label stays for screen readers and as the hover tooltip. -->
-        <div class="clock-slider-row">
+        <div class="clock-slider-row clock-weight-row">
           <label class="page-sr-only" for="clockWeight" data-i18n="newtab.clock.weight">Weight</label>
-          <input id="clockWeight" class="clock-slider" title="Weight" data-i18n-title="newtab.clock.weight" type="range" min="400" max="700" step="10" value="500" />
+          <!-- Weight's rail tapers from thin to thick, as on the Lock Screen. -->
+          <span id="clockWeightRail" class="clock-rail" aria-hidden="true"></span>
+          <input id="clockWeight" class="clock-slider clock-slider-tapered" title="Weight" data-i18n-title="newtab.clock.weight" type="range" min="400" max="700" step="10" value="500" />
         </div>
         <div id="clockHeightLine" class="clock-slider-row">
           <label class="page-sr-only" for="clockHeight" data-i18n="newtab.clock.height">Height</label>

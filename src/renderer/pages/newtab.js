@@ -1090,12 +1090,26 @@ function applyClock(clock) {
   paintClockWeight(clock.weight);
   paintClockInk(clock.ink);
 }
-// A slider's track is filled up to its thumb (pages.css reads --fill, 0–1).
+// A slider's track is filled up to its thumb (pages.css reads --fill, 0–1,
+// from the row, so Weight's rail behind the slider reads it too).
 function paintSliderFill(slider) {
   const min = Number(slider.min), max = Number(slider.max);
   const fill = max > min ? (Number(slider.value) - min) / (max - min) : 0;
-  slider.style.setProperty('--fill', String(Math.max(0, Math.min(1, fill))));
+  slider.parentElement.style.setProperty('--fill', String(Math.max(0, Math.min(1, fill))));
 }
+// Weight's wedge: a rounded taper from a hairline to a thick end, cut to the
+// rail's exact width so its rounded ends stay round.
+const clockWeightRail = document.getElementById('clockWeightRail');
+const RAIL_THIN = 2;
+const RAIL_THICK = 10;
+function shapeWeightRail() {
+  const width = clockWeightRail.clientWidth;
+  if (!width) return;
+  const mid = RAIL_THICK / 2, a = RAIL_THIN / 2, b = RAIL_THICK / 2;
+  clockWeightRail.style.clipPath = `path('M ${a} ${mid - a} L ${width - b} ${mid - b} `
+    + `A ${b} ${b} 0 0 1 ${width - b} ${mid + b} L ${a} ${mid + a} A ${a} ${a} 0 0 1 ${a} ${mid - a} Z')`;
+}
+new ResizeObserver(shapeWeightRail).observe(clockWeightRail);
 for (const button of clockFontPicks) {
   button.addEventListener('click', () => setClock({ font: button.dataset.clockFontPick }));
 }
