@@ -130,3 +130,19 @@ test('with motion, the Island hides and floats back', async () => {
     assert.ok(seen.includes('hidden') && seen.includes('shown'), JSON.stringify(seen));
   } finally { await close(); }
 });
+
+test('without script the Island still keeps its captured size at every width', async () => {
+  const share = measured.islandRect.width / measured.window.width;
+  for (const width of [390, 768, 1024, 1280, 1440]) {
+    const { page, close } = await openHome({ width, javaScriptEnabled: false });
+    try {
+      const w = await page.evaluate(() => {
+        const figure = document.querySelector('[data-float-window]').getBoundingClientRect();
+        const pill = document.querySelector('.float-window .hero-native-model').shadowRoot.querySelector('[id$="islandPill"]').getBoundingClientRect();
+        return pill.width / figure.width;
+      });
+      // Breakpoint steps may draw it a little small, never larger than the capture.
+      assert.ok(w <= share * 1.01 && w >= share * 0.92, `${width}: Island width share ${w} (captured ${share})`);
+    } finally { await close(); }
+  }
+});

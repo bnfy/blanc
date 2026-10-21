@@ -38,6 +38,27 @@
   height: 100%;
   visibility: var(--art-visibility, hidden);
 }
+/* Without script (the fit never runs) the pill takes these steps of the
+   window's width instead: the window is min(1120px, 100vw - 44px) wide and the
+   pill's natural width is 35.4% of a 1277 px window. Each step sizes it for
+   the narrowest viewport in its range, so it is never drawn larger than the
+   capture. The fit replaces the value as soon as it runs. */
+.float-window .hero-native-model { --art-scale: 0.204; }
+@media (min-width: 380px) { .float-window .hero-native-model { --art-scale: 0.251; } }
+@media (min-width: 440px) { .float-window .hero-native-model { --art-scale: 0.298; } }
+@media (min-width: 500px) { .float-window .hero-native-model { --art-scale: 0.345; } }
+@media (min-width: 560px) { .float-window .hero-native-model { --art-scale: 0.392; } }
+@media (min-width: 620px) { .float-window .hero-native-model { --art-scale: 0.439; } }
+@media (min-width: 680px) { .float-window .hero-native-model { --art-scale: 0.486; } }
+@media (min-width: 740px) { .float-window .hero-native-model { --art-scale: 0.532; } }
+@media (min-width: 800px) { .float-window .hero-native-model { --art-scale: 0.579; } }
+@media (min-width: 860px) { .float-window .hero-native-model { --art-scale: 0.626; } }
+@media (min-width: 920px) { .float-window .hero-native-model { --art-scale: 0.673; } }
+@media (min-width: 980px) { .float-window .hero-native-model { --art-scale: 0.720; } }
+@media (min-width: 1040px) { .float-window .hero-native-model { --art-scale: 0.767; } }
+@media (min-width: 1100px) { .float-window .hero-native-model { --art-scale: 0.814; } }
+@media (min-width: 1160px) { .float-window .hero-native-model { --art-scale: 0.861; } }
+@media (min-width: 1180px) { .float-window .hero-native-model { --art-scale: 0.877; } }
 /* Shown and hidden as the app's float view does: the Island slides up past the
    window's top edge (by twice its height, which clears its top margin and its
    shadow) and the window's buttons go with it (#1003). Same times and easing

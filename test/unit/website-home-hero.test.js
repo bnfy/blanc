@@ -39,6 +39,8 @@ function fakeHero({ reducedMotion = false } = {}) {
   const pointer = { style: { setProperty: (k, v) => pointerStyle.set(k, v), getPropertyValue: k => pointerStyle.get(k) } };
   const root = {
     dataset: { state: 'shown' },
+    focusVisible: true,
+    matches: sel => sel === ':focus-visible' && root.focusVisible,
     querySelector: sel => (sel === '.float-window-pointer' ? pointer : null),
     addEventListener: (type, fn) => { (listeners[type] ||= []).push(fn); },
     removeEventListener: (type, fn) => { listeners[type] = (listeners[type] || []).filter(f => f !== fn); },
@@ -188,4 +190,27 @@ test('the homepage starts the peek', () => {
   const home = read('site/src/scripts/home.js');
   assert.match(home, /import \{ initFloatingIslandHero \} from "\.\/floating-island-hero\.js";/);
   assert.match(home, /initFloatingIslandHero\(document\.querySelector\("\[data-float-window\]"\), \{ view \}\);/);
+});
+
+test('a click or tap that focuses the window doesn’t hold the Island open', async () => {
+  const { initFloatingIslandHero, TOP_BAND } = await loadHero();
+  const h = fakeHero();
+  initFloatingIslandHero(h.root, { view: h.view });
+  h.intersect(true);
+  h.root.focusVisible = false; // focus from a pointer, not the keyboard
+  h.fire('focusin');
+  assert.equal(h.root.dataset.state, 'hidden');
+  assert.equal(h.root.dataset.loop, '', 'the loop keeps running');
+  assert.equal(h.timers.size, 1);
+  h.fire('pointermove', { pointerType: 'mouse', clientY: 100 + 625 * TOP_BAND * 0.5 });
+  h.fire('pointerleave', { pointerType: 'mouse' });
+  assert.equal(h.root.dataset.state, 'hidden', 'leaving through the top still hides it');
+  h.fire('focusout');
+  assert.equal(h.root.dataset.state, 'hidden');
+});
+
+test('a click in the window doesn’t cut the sunrise copy’s entrance short', () => {
+  const css = read('site/src/styles/home.css');
+  assert.doesNotMatch(css, /\.sun-copy:focus-within \{ animation: none; \}/);
+  assert.match(css, /\.sun-copy:has\(:focus-visible\) \{ animation: none; \}/);
 });

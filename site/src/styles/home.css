@@ -2177,8 +2177,9 @@ details[open] .faq-sign::after {
   .sun-mark .sun-disc { animation-name: sun-disc; }
   .sun-rays { animation-name: sun-rays; }
   .sun-copy { margin-top: calc(var(--w) * -0.52 + 8px); animation-name: sun-copy; }
-  /* The copy never hides from the keyboard: focusing a link shows it at once. */
-  .sun-copy:focus-within { animation: none; }
+  /* The copy never hides from the keyboard: focusing a link shows it at once.
+     Keyboard focus only, so a click in the window doesn't cut the entrance short. */
+  .sun-copy:has(:focus-visible) { animation: none; }
 }
 
 @keyframes home-rise { from { opacity: 0; transform: translateY(80px); } to { opacity: 1; transform: none; } }

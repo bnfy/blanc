@@ -71,8 +71,18 @@ export function initFloatingIslandHero(root, { view = window } = {}) {
     visitor = false;
     takeOver(focused ? 'shown' : 'hidden');
   };
-  const onFocusIn = () => { if (motion.matches) return; focused = true; takeOver('shown'); };
-  const onFocusOut = () => { if (motion.matches) return; focused = false; takeOver(visitor ? 'shown' : 'hidden'); };
+  // Only keyboard focus shows it: a click or tap also focuses the window, and
+  // must not hold the Island open.
+  const onFocusIn = () => {
+    if (motion.matches || !root.matches(':focus-visible')) return;
+    focused = true;
+    takeOver('shown');
+  };
+  const onFocusOut = () => {
+    if (motion.matches || !focused) return;
+    focused = false;
+    takeOver(visitor ? 'shown' : 'hidden');
+  };
   const onVisibility = () => (canLoop() && !visitor ? start() : pause());
 
   root.addEventListener('pointermove', onPointerMove);
