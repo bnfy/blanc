@@ -42,12 +42,13 @@ Customize. Changing away from Billboard closes it.
 Drawn after the Lock Screen's Font & Color sheet (owner request, October 21,
 2026): a 380 px card with 28 px corners and generous padding; large "12"
 samples, the chosen one marked by a thin outline only; full-width sliders
-with thin capsule tracks filled to a white pill thumb and no word labels, a
-glyph at each end saying what the slider changes (a thin and a heavy ring
-for weight, a short and a tall bar for height, the color's deepest and
-lightest tones for tone, whose track is the color itself); 28 px swatches,
-the chosen one ringed with a gap; and a full-size Glass | Solid control. The
-labels stay for screen readers. It grows out of the clock and settles
+with thin capsule tracks filled to a white pill thumb and nothing else
+(each changes the clock as it is dragged; end glyphs were tried and the owner
+dropped them), Tone's track being the color itself from its deepest to its
+lightest; 28 px swatches, the chosen one ringed with a gap; and a full-size
+Glass | Solid control. The sliders' names stay for screen readers and as
+hover tooltips. A back chevron at the top left, mirroring the chevron on
+Customize's Clock row, returns to Customize. It grows out of the clock and settles
 without overshoot (a fade only under reduced motion), and presses answer on
 pointer-down. Opened with the pointer, focus rests on the sheet; opened from
 the keyboard, on the chosen font. It hangs below the clock, flips above it

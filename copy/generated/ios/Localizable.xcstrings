@@ -57409,6 +57409,48 @@
         }
       }
     },
+    "newtab.clock.back": {
+      "comment": "Start page → the clock’s Font & color sheet: accessible name and tooltip of the chevron button at its top left, which closes the sheet and reopens the Customize popover (“Customize” is the footer button’s name).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to Customize"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zu „Anpassen“"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a Personalizar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenir à Personnaliser"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torna a Personalizza"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar para Personalizar"
+          }
+        }
+      }
+    },
     "newtab.clock.font": {
       "comment": "Start page → clock Font & color popover: accessible name of the row of four typefaces, each shown as the numerals “12”.",
       "extractionState": "manual",
@@ -57662,7 +57704,7 @@
       }
     },
     "newtab.clock.weight": {
-      "comment": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
+      "comment": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -57704,7 +57746,7 @@
       }
     },
     "newtab.clock.height": {
-      "comment": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows.",
+      "comment": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -57830,7 +57872,7 @@
       }
     },
     "newtab.clock.tone": {
-      "comment": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right).",
+      "comment": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right). Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
       "extractionState": "manual",
       "localizations": {
         "en": {

@@ -1070,7 +1070,7 @@ function applyClock(clock) {
   // Only a face with room on its width axis can stand taller.
   const tallest = clock.heightRange?.max ?? 100;
   clockHeightLine.hidden = tallest <= 100;
-  // Tone's track and end glyphs show the color from its deepest to its lightest.
+  // Tone's track shows the color from its deepest to its lightest.
   if (clock.base && clock.toneMix) {
     const { mixHex } = globalThis.blancClockArt;
     clockToneLine.style.setProperty('--clock-tone-deep', mixHex(clock.base, '#000000', clock.toneMix.darken));
@@ -1159,9 +1159,19 @@ clockStyleOpen.addEventListener('click', (event) => {
   if (event.detail === 0) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
   else clockPopover.focus();
 });
+// Back returns to Customize, where the sheet was opened from. From the
+// keyboard, focus lands on the Clock row again.
+let clockGoingBack = false;
+document.getElementById('clockPopoverBack').addEventListener('click', (event) => {
+  clockGoingBack = true;
+  clockPopover.hidePopover();
+  clockGoingBack = false;
+  document.getElementById('customizePopover').showPopover();
+  if (event.detail === 0) clockStyleOpen.focus();
+});
 clockPopover.addEventListener('toggle', (event) => {
-  if (event.newState !== 'closed') return;
-  // Keyboard focus returns to Customize, where the popover was opened from.
+  if (event.newState !== 'closed' || clockGoingBack) return;
+  // Closed any other way, keyboard focus returns to the Customize button.
   if (document.activeElement === document.body || clockPopover.contains(document.activeElement)) {
     document.getElementById('customizeButton').focus();
   }

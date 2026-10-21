@@ -196,6 +196,14 @@ try {
   assert.deepEqual({ font: refused.font, weight: refused.weight, color: refused.color, style: refused.style },
     { font: 'inter', weight: 200, color: 'auto', style: 'glass' });
 
+  // Back returns to Customize, with the Clock row reflecting the choices.
+  await page.getByRole('button', { name: 'Back to Customize', exact: true }).click();
+  await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open')
+    && document.getElementById('customizePopover').matches(':popover-open'));
+  assert.match(await page.locator('#clockStyleSummary').textContent(), /^Inter · Glass$/);
+  await page.getByRole('button', { name: 'Clock font & color…', exact: true }).click();
+  await page.waitForFunction(() => document.getElementById('clockPopover').matches(':popover-open'));
+
   // Escape closes it and returns focus to Customize.
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open'));

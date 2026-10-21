@@ -5135,6 +5135,10 @@
     "message": "Carattere e colore",
     "source": "sha256:eaa8ddde892810344eecb2cb43ddf137460efbdfeedccdb5d586004824493bd5"
   },
+  "newtab.clock.back": {
+    "message": "Torna a Personalizza",
+    "source": "sha256:6e9e39bdc9ae0b1acc9c96e6495536dda11a8fdfe2b2f8f8a17e10c5833ab636"
+  },
   "newtab.clock.font": {
     "message": "Carattere",
     "source": "sha256:e33d20f9eed0e3c124073675ac01a4f14fb3bdb6b1b846ffec05fc091d5e1e7e"
@@ -5161,11 +5165,11 @@
   },
   "newtab.clock.weight": {
     "message": "Peso",
-    "source": "sha256:37234f84770d4794a6954002728906ad5cc8142080afb0cce635e11616926fa0"
+    "source": "sha256:2e338358a18921b3fb57ef986c17b87064b60d4c6311af33247ed2d70712b59a"
   },
   "newtab.clock.height": {
     "message": "Altezza",
-    "source": "sha256:d34d10e202bc1116d92444195fb52fa854412b9ca1696c5c10db5944ea9418ae"
+    "source": "sha256:029e171b6858cddf4a22745a84b32120d27a7aef8765dbc56c76a2326cc8d366"
   },
   "newtab.clock.color": {
     "message": "Colore",
@@ -5177,7 +5181,7 @@
   },
   "newtab.clock.tone": {
     "message": "Tonalità",
-    "source": "sha256:4e2dcec3039f3335a87b71b7c3b25be7ae640286420646a5c0b3a46c356a7c5d"
+    "source": "sha256:c3e75899980b0f2932a04cb0b72a56cd00557e750c137747dec9b2a395912c9d"
   },
   "newtab.clock.style": {
     "message": "Stile",

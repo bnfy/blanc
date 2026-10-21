@@ -4810,13 +4810,35 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
   font-family: var(--font-text);
 }
 .clock-popover:focus { outline: none; }
+.clock-popover-head {
+  display: grid;
+  grid-template-columns: 30px 1fr 30px;
+  align-items: center;
+  margin: -4px -6px 12px;
+}
 .clock-popover-title {
-  margin: 0 0 14px;
+  margin: 0;
   color: var(--text);
   font: 600 15px/1.3 var(--font-text);
   letter-spacing: -0.005em;
   text-align: center;
 }
+.clock-popover-back {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 120ms var(--start-ease), background-color 120ms ease;
+}
+.clock-popover-back:hover { background: color-mix(in srgb, var(--text) 11%, transparent); }
+.clock-popover-back:active { transform: scale(0.92); transition-duration: 0ms; }
+.clock-popover-back:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .clock-fonts {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -4844,26 +4866,10 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
 /* Focused and chosen: one ring, never two. */
 .clock-font[aria-pressed="true"]:focus-visible { border-color: var(--text-dim); outline: none; }
 
-/* Slider rows: a glyph at each end, the track between, every track aligned. */
-.clock-slider-row {
-  display: grid;
-  grid-template-columns: 16px 1fr 16px;
-  align-items: center;
-  gap: 12px;
-  min-height: 32px;
-  color: var(--text-dim);
-}
+/* Slider rows: one full-width track each, nothing else. */
+.clock-slider-row { display: flex; align-items: center; min-height: 32px; }
 .clock-fonts + .clock-slider-row { margin-top: 14px; }
 .clock-slider-row + .clock-slider-row { margin-top: 2px; }
-.clock-slider-end { display: block; }
-.clock-tone-deep circle { fill: var(--clock-tone-deep, var(--text)); }
-.clock-tone-light circle { fill: var(--clock-tone-light, var(--bg)); }
-/* An edge in the opposite tone, so a deep end shows on a dark sheet and a
-   light end on a light one. */
-.clock-tone-row .clock-slider-end circle {
-  stroke: color-mix(in srgb, var(--text) 24%, transparent);
-  stroke-width: 1;
-}
 /* A thin capsule track, filled up to the thumb, and a white pill thumb. */
 .clock-slider {
   --thumb-w: 30px;
@@ -4969,6 +4975,7 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
   .clock-font:active,
   .clock-swatch:active,
   .clock-styles > button:active,
+  .clock-popover-back:active,
   .clock-slider:active::-webkit-slider-thumb { transform: none; }
   @starting-style {
     .clock-popover:popover-open { transform: none; }

@@ -1407,6 +1407,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_customize_wallpaper_heading">Wallpaper</string>
     <string name="newtab_clock_open">Clock font &amp; color…</string>
     <string name="newtab_clock_title">Font &amp; color</string>
+    <string name="newtab_clock_back">Back to Customize</string>
     <string name="newtab_clock_font">Font</string>
     <string name="newtab_clock_font_instrument">Instrument Sans</string>
     <string name="newtab_clock_font_condensed">Instrument Sans Condensed</string>

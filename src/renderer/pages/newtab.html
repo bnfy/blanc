@@ -291,7 +291,15 @@
            five bundled faces with weight and height sliders, then the page's
            own ink or a Spaces color with a tone slider, then Glass or Solid. -->
       <div id="clockPopover" class="clock-popover" popover role="dialog" aria-labelledby="clockPopoverTitle" tabindex="-1">
-        <h2 id="clockPopoverTitle" class="clock-popover-title" data-i18n="newtab.clock.title">Font &amp; color</h2>
+        <!-- Back to Customize, where the sheet was opened from: the chevron
+             mirrors the one on Customize's Clock row. -->
+        <div class="clock-popover-head">
+          <button id="clockPopoverBack" class="clock-popover-back" type="button" aria-label="Back to Customize" title="Back to Customize" data-i18n-aria-label="newtab.clock.back" data-i18n-title="newtab.clock.back">
+            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <h2 id="clockPopoverTitle" class="clock-popover-title" data-i18n="newtab.clock.title">Font &amp; color</h2>
+          <span aria-hidden="true"></span>
+        </div>
         <div id="clockFonts" class="clock-fonts" role="group" aria-label="Font" data-i18n-aria-label="newtab.clock.font">
           <button type="button" class="clock-font" data-clock-font-pick="instrument" aria-pressed="true" aria-label="Instrument Sans" title="Instrument Sans" data-i18n-aria-label="newtab.clock.font.instrument" data-i18n-title="newtab.clock.font.instrument"><span aria-hidden="true">12</span></button>
           <button type="button" class="clock-font" data-clock-font-pick="condensed" aria-pressed="false" aria-label="Instrument Sans Condensed" title="Instrument Sans Condensed" data-i18n-aria-label="newtab.clock.font.condensed" data-i18n-title="newtab.clock.font.condensed"><span aria-hidden="true">12</span></button>
@@ -299,29 +307,22 @@
           <button type="button" class="clock-font" data-clock-font-pick="mono" aria-pressed="false" aria-label="JetBrains Mono" title="JetBrains Mono" data-i18n-aria-label="newtab.clock.font.mono" data-i18n-title="newtab.clock.font.mono"><span aria-hidden="true">12</span></button>
           <button type="button" class="clock-font" data-clock-font-pick="flex" aria-pressed="false" aria-label="Roboto Flex" title="Roboto Flex" data-i18n-aria-label="newtab.clock.font.flex" data-i18n-title="newtab.clock.font.flex"><span aria-hidden="true">12</span></button>
         </div>
-        <!-- Unlabelled sliders, as on the Lock Screen: the glyph at each end
-             says what the slider changes (a thin and a heavy ring for
-             weight, a short and a tall bar for height, the color's deepest
-             and lightest tones for tone); the label stays for screen readers. -->
+        <!-- Unlabelled sliders, as on the Lock Screen: each changes the clock
+             as it is dragged, so the clock itself says what it does. The
+             label stays for screen readers and as the hover tooltip. -->
         <div class="clock-slider-row">
           <label class="page-sr-only" for="clockWeight" data-i18n="newtab.clock.weight">Weight</label>
-          <svg class="clock-slider-end" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.2"></circle></svg>
-          <input id="clockWeight" class="clock-slider" type="range" min="400" max="700" step="10" value="500" />
-          <svg class="clock-slider-end" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width="3.4"></circle></svg>
+          <input id="clockWeight" class="clock-slider" title="Weight" data-i18n-title="newtab.clock.weight" type="range" min="400" max="700" step="10" value="500" />
         </div>
         <div id="clockHeightLine" class="clock-slider-row">
           <label class="page-sr-only" for="clockHeight" data-i18n="newtab.clock.height">Height</label>
-          <svg class="clock-slider-end" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="5.5" y="5.5" width="5" height="5" rx="1.5" fill="currentColor"></rect></svg>
-          <input id="clockHeight" class="clock-slider" type="range" min="100" max="300" step="5" value="100" />
-          <svg class="clock-slider-end" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="5.5" y="1.75" width="5" height="12.5" rx="1.5" fill="currentColor"></rect></svg>
+          <input id="clockHeight" class="clock-slider" title="Height" data-i18n-title="newtab.clock.height" type="range" min="100" max="300" step="5" value="100" />
         </div>
         <hr class="customize-divider clock-divider" />
         <div id="clockColors" class="clock-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.clock.color"></div>
         <div id="clockToneLine" class="clock-slider-row clock-tone-row">
           <label class="page-sr-only" for="clockTone" data-i18n="newtab.clock.tone">Tone</label>
-          <svg class="clock-slider-end clock-tone-deep" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="4.5"></circle></svg>
-          <input id="clockTone" class="clock-slider clock-tone" type="range" min="0" max="100" step="1" value="50" />
-          <svg class="clock-slider-end clock-tone-light" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="4.5"></circle></svg>
+          <input id="clockTone" class="clock-slider clock-tone" title="Tone" data-i18n-title="newtab.clock.tone" type="range" min="0" max="100" step="1" value="50" />
         </div>
         <div id="clockStyles" class="wallpaper-seg clock-styles" role="group" aria-label="Style" data-i18n-aria-label="newtab.clock.style">
           <button type="button" data-clock-style-pick="glass" aria-pressed="false" data-i18n="newtab.clock.glass">Glass</button>

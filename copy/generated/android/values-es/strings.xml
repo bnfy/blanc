@@ -1445,6 +1445,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_customize_wallpaper_heading">Fondo</string>
     <string name="newtab_clock_open">Fuente y color del reloj…</string>
     <string name="newtab_clock_title">Fuente y color</string>
+    <string name="newtab_clock_back">Volver a Personalizar</string>
     <string name="newtab_clock_font">Fuente</string>
     <string name="newtab_clock_font_instrument">Instrument Sans</string>
     <string name="newtab_clock_font_condensed">Instrument Sans condensada</string>

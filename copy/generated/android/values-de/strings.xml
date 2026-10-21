@@ -1407,6 +1407,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_customize_wallpaper_heading">Hintergrund</string>
     <string name="newtab_clock_open">Uhr: Schrift &amp; Farbe…</string>
     <string name="newtab_clock_title">Schrift &amp; Farbe</string>
+    <string name="newtab_clock_back">Zurück zu „Anpassen“</string>
     <string name="newtab_clock_font">Schrift</string>
     <string name="newtab_clock_font_instrument">Instrument Sans</string>
     <string name="newtab_clock_font_condensed">Instrument Sans schmal</string>

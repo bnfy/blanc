@@ -5293,6 +5293,10 @@
     "note": "Start page → the Billboard clock’s Font & color sheet: its heading, after the iOS Lock Screen’s Font & Color sheet; also the title of the row in Customize’s Clock section that opens it.",
     "maxLength": 24
   },
+  "newtab.clock.back": {
+    "message": "Back to Customize",
+    "note": "Start page → the clock’s Font & color sheet: accessible name and tooltip of the chevron button at its top left, which closes the sheet and reopens the Customize popover (“Customize” is the footer button’s name)."
+  },
   "newtab.clock.font": {
     "message": "Font",
     "note": "Start page → clock Font & color popover: accessible name of the row of four typefaces, each shown as the numerals “12”."
@@ -5319,12 +5323,12 @@
   },
   "newtab.clock.weight": {
     "message": "Weight",
-    "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
+    "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
     "maxLength": 10
   },
   "newtab.clock.height": {
     "message": "Height",
-    "note": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows.",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
     "maxLength": 10
   },
   "newtab.clock.color": {
@@ -5337,7 +5341,7 @@
   },
   "newtab.clock.tone": {
     "message": "Tone",
-    "note": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right).",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right). Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
     "maxLength": 10
   },
   "newtab.clock.style": {
