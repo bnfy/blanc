@@ -34,8 +34,11 @@ the height when above 100%, and Solid or Glass, as in "Roboto Flex · 200% ·
 Glass"), and a chevron. Its accessible name is "Clock font & color…". It
 closes Customize and opens the clock's own sheet, anchored to the clock, so
 the clock stays in view and every change shows on it as it is made, as on
-iOS. Escape or a click elsewhere closes it; keyboard focus returns to
-Customize. Changing away from Billboard closes it.
+iOS. Right-clicking the clock opens the same sheet directly, as a long press
+on the Lock Screen does, instead of the page's context menu (on macOS and
+Linux it opens once the button is released, or that release would count as a
+click outside and close it). Escape or a click elsewhere closes it; keyboard
+focus returns to Customize. Changing away from Billboard closes it.
 
 ### The popover (iOS order)
 

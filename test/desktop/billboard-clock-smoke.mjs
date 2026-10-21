@@ -196,6 +196,12 @@ try {
   assert.deepEqual({ font: refused.font, weight: refused.weight, color: refused.color, style: refused.style },
     { font: 'inter', weight: 200, color: 'auto', style: 'glass' });
 
+  // Right-clicking the clock opens the sheet directly.
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open'));
+  await page.locator('.bb-clock-row').click({ button: 'right' });
+  await page.waitForFunction(() => document.getElementById('clockPopover').matches(':popover-open'));
+
   // Back returns to Customize, with the Clock row reflecting the choices.
   await page.getByRole('button', { name: 'Back to Customize', exact: true }).click();
   await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open')
@@ -207,7 +213,8 @@ try {
   // Escape closes it and returns focus to Customize.
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open'));
-  assert.equal(await page.evaluate(() => document.activeElement?.id), 'customizeButton');
+  // The toggle event that returns focus is queued, so wait for it.
+  await page.waitForFunction(() => document.activeElement?.id === 'customizeButton');
 
   const errors = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8').trim() : '';
   assert.equal(errors, '', 'no uncaught errors');

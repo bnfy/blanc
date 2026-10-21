@@ -1153,11 +1153,24 @@ for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [cloc
 // Opened from the keyboard (a click with no pointer behind it), focus lands
 // on the chosen font, ringed; opened with the pointer, it lands on the sheet
 // itself, so no ring shows until Tab moves into it.
-clockStyleOpen.addEventListener('click', (event) => {
+function openClockSheet(fromKeyboard) {
   document.getElementById('customizePopover').hidePopover();
   clockPopover.showPopover();
-  if (event.detail === 0) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
+  if (fromKeyboard) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
   else clockPopover.focus();
+}
+clockStyleOpen.addEventListener('click', (event) => openClockSheet(event.detail === 0));
+// Right-clicking the clock opens its sheet, as a long press on the Lock
+// Screen does, instead of the page's context menu. On macOS and Linux the
+// event comes on press, and the release that follows would count as a click
+// outside the new sheet and close it, so it opens once the button is up.
+clockRow.addEventListener('contextmenu', (event) => {
+  if (state.layout !== 'billboard') return;
+  event.preventDefault();
+  if (clockPopover.matches(':popover-open')) return;
+  const open = () => setTimeout(() => openClockSheet(false));
+  if (event.buttons) addEventListener('pointerup', open, { once: true });
+  else open();
 });
 // Back returns to Customize, where the sheet was opened from. From the
 // keyboard, focus lands on the Clock row again.
