@@ -297,16 +297,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "bento-130-004",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "View two tabs side by side with Glance",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "bento-130-005",
       "source": "site/src/pages/features.astro",
       "exactWording": "The Island",
@@ -610,26 +600,6 @@
       "id": "bento-130-038",
       "source": "site/src/pages/features.astro",
       "exactWording": "Glance",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-039",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "View two tabs side by side with Glance.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "bento-130-040",
-      "source": "site/src/pages/features.astro",
-      "exactWording": "Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -1932,6 +1902,39 @@
       ],
       "verdict": "qualified",
       "reason": "October 16, 2026: the owner chose to announce 1Password login fill on Windows and Linux, shipped in public v1.34.0, so the site no longer limits it to macOS. The replacement wording is recorded in docs/website-v1.34-claims.json."
+    },
+    {
+      "id": "bento-130-004",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "View two tabs side by side with Glance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "bento-130-039",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "View two tabs side by side with Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "bento-130-040",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
     }
   ]
 }

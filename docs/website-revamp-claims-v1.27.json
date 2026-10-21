@@ -537,47 +537,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-113",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Give each page the room it needs",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-114",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage",
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-115",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Change, swap, or finish",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-116",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-117",
       "source": "site/src/components/guides/glance.astro",
       "exactWording": "A temporary view for the task in front of you.",
@@ -591,16 +550,6 @@
       "id": "website-115-118",
       "source": "site/src/components/guides/glance.astro",
       "exactWording": "Both visible pages stay available",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-119",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -625,16 +574,6 @@
       "evidenceGroups": [
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-122",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -3654,36 +3593,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-039",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "View two tabs with Glance.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-040",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-046",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "Drag the divider to resize.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-047",
       "source": "site/src/components/GestureDemo.astro",
       "exactWording": "Navigate with mouse gestures.",
@@ -4648,26 +4557,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-107",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Keep a reference beside the page you’re using.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-109",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "The main page and reference share one window. You choose the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-123",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "Make room for the way you browse.",
@@ -5092,47 +4981,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-113",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Give each page the room it needs",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-114",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage",
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-115",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Change, swap, or finish",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-116",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-117",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "A temporary view for the task in front of you.",
@@ -5146,16 +4994,6 @@
       "id": "feature-retained-website-115-118",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "Both visible pages stay available",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-119",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -5180,16 +5018,6 @@
       "evidenceGroups": [
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-122",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -8162,26 +7990,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-10",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Two pages side by side.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-11",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Glance keeps a reference tab beside the page you are using. Resize the split, swap the pages or close the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-12",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "One shortcut for everything.",
@@ -10323,6 +10131,217 @@
       ],
       "verdict": "qualified",
       "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-113",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Give each page the room it needs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-114",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-115",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Change, swap, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-116",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-119",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-122",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-039",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "View two tabs with Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-040",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-046",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Drag the divider to resize.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-107",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Keep a reference beside the page you’re using.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-109",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The main page and reference share one window. You choose the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-113",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Give each page the room it needs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-114",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-115",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Change, swap, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-116",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-119",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-122",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-10",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Two pages side by side.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-11",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Glance keeps a reference tab beside the page you are using. Resize the split, swap the pages or close the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -13129,6 +13148,74 @@
           {
             "before": "dawn, day, dusk and night with your computer’s clock.</p>\n",
             "after": "dawn, day, dusk and night with your computer’s clock.</p>\n          <p>Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.</p>\n"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008), so its page and the /features tile and pop-up describe the card instead of the side-by-side pane, and point to Split View (F53) for side by side. Recorded in docs/website-v1.40-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>View two tabs side by side with Glance</h3>",
+            "after": "<h3>Look at another tab over your page with Glance</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-glance-title\">View two tabs side by side with Glance.</h2>",
+            "after": "<h2 id=\"pop-glance-title\">Look at another tab over your page with Glance.</h2>"
+          },
+          {
+            "before": "<p>Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.</p>",
+            "after": "<p>Choose another tab from this window to open as a card over your page. Move it, resize it, open it as a tab, or keep the two side by side in Split View.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/glance.astro",
+        "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008), so its page and the /features tile and pop-up describe the card instead of the side-by-side pane, and point to Split View (F53) for side by side. Recorded in docs/website-v1.40-claims.json.",
+        "replacements": [
+          {
+            "before": "title=\"Glance: Browse Two Pages Side by Side | Blanc Browser\"",
+            "after": "title=\"Glance: Look at Another Tab Over Your Page | Blanc Browser\""
+          },
+          {
+            "before": "description=\"Keep a reference tab beside your main page with Blanc Glance. Choose a local tab, resize the split, swap pages, or close the temporary view.\"",
+            "after": "description=\"Open another tab as a card over your page with Blanc Glance. Move and resize it, keep using the page behind, or open it as a tab or a split.\""
+          },
+          {
+            "before": "<h1 id=\"glance-title\">Keep a reference beside the page you’re using.</h1>",
+            "after": "<h1 id=\"glance-title\">Look at another tab without leaving your page.</h1>"
+          },
+          {
+            "before": "<p>Glance shows another open tab beside your main page, with room to read both.</p>",
+            "after": "<p>Glance opens another open tab as a card over the page you’re on, and the page behind stays usable.</p>"
+          },
+          {
+            "before": "<figcaption>The main page and reference share one window. You choose the reference.</figcaption>",
+            "after": "<figcaption>The card floats over your page. You choose the tab it shows.</figcaption>"
+          },
+          {
+            "before": "<h3>Give each page the room it needs</h3>",
+            "after": "<h3>Put it where you want it</h3>"
+          },
+          {
+            "before": "<p>Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.</p>",
+            "after": "<p>Drag the card’s header to move it, or an edge to resize it, or use the arrow keys on its Move or resize control. Double-click the header to put it back. Blanc remembers where you left it on this device.</p>"
+          },
+          {
+            "before": "<h3>Change, swap, or finish</h3>",
+            "after": "<h3>Change, open, or finish</h3>"
+          },
+          {
+            "before": "<p>Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.</p>",
+            "after": "<p>Use Change to choose another tab, Open as tab to make it the current tab, or Keep as split to show the two side by side in Split View. Close Glance, or press Escape on its header, without closing either tab.</p>"
+          },
+          {
+            "before": "<p>Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.</p>",
+            "after": "<p>Selecting a quiet tab for Glance reloads it. While it is open in Glance, Quiet Tabs leaves it alone. The page behind the card stays usable, and switching to another tab closes Glance.</p>"
+          },
+          {
+            "before": "<p>The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.</p>",
+            "after": "<p>Glance is never written to session restore or sync. Only the card’s size and place are remembered, on this device. The underlying ordinary tabs keep their usual browsing behavior.</p>"
           }
         ]
       }

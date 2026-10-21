@@ -452,16 +452,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "cinema-tools-glance",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Glance Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "cinema-tools-quiet",
       "source": "site/src/pages/index.astro",
       "exactWording": "Quiet Tabs",
@@ -1138,5 +1128,18 @@
     "Setup and shortcuts ›",
     "How it was measured1",
     "Explore Blanc Spaces ›"
+  ],
+  "supersededClaims": [
+    {
+      "id": "cinema-tools-glance",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Glance Bring another open tab into view beside the page you’re on. Narrow windows stack it below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "verified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    }
   ]
 }

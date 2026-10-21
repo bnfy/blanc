@@ -17,6 +17,7 @@ const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
 const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1.38.json'));
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
+const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -58,7 +59,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -70,7 +71,7 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
     for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
@@ -242,7 +243,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -324,7 +325,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
   const v135Ledger = JSON.parse(read('docs/website-v1.35-claims.json'));
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims, ...JSON.parse(read('docs/website-v1.38-claims.json')).claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims, ...JSON.parse(read('docs/website-v1.38-claims.json')).claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
@@ -415,6 +416,32 @@ test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evid
   const notes = execFileSync('git', ['show', `${v138.publicRelease}:docs/press/release-notes/v1.38.0.md`], { cwd: root, encoding: 'utf8' });
   assert.match(notes, /\*\*Your own Start Page image\.\*\*/);
   assert.match(notes, /\*\*A Start Page color\.\*\*/);
+});
+
+// Glance as a card floating over the page (F34) and Split View for side by
+// side (F53), announced once public v1.40.0 shipped them.
+test('v1.40.0 floating Glance copy resolves to verified public v1.40.0 evidence', () => {
+  assert.equal(v140Ledger.publicRelease, 'v1.40.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v140Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v140Ledger.sourceSha);
+  assert.ok(read(v140Ledger.releaseEvidence).includes(v140Ledger.sourceSha));
+  for (const claim of v140Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    const source = read(claim.source);
+    assert.ok(normalize(source).includes(claim.exactWording) || source.includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v140Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v140Ledger.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // The side-by-side Glance of v1.35.0 to v1.39.0 is gone from every page that describes Glance.
+  for (const file of new Set(v140Ledger.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retired of v140Ledger.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
+  const notes = execFileSync('git', ['show', `${v140Ledger.publicRelease}:docs/press/release-notes/v1.40.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Glance floats over the page\.\*\*/);
+  assert.match(notes, /\*\*Split View\.\*\*/);
 });
 
 // Bangs page copy, written before v1.36.0 as candidates (owner decision,
@@ -524,6 +551,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.31.0.json', 'v1.31.0', '5bb0e0da01e05d612382fa99a434524ed2c5b108', 4],
     ['docs/website-captures-v1.36.0.json', 'v1.36.0', '3c214274958c15d8f3b28f8c61f2fac26937e333', 6],
     ['docs/website-captures-v1.38.0.json', 'v1.38.0', '87538deee7e8acd0019f25bdae74f22a7481cb2d', 14],
+    ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
