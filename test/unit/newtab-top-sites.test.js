@@ -21,11 +21,13 @@ test('Billboard top sites stay local, private-safe, and independently dismissibl
   assert.match(main, /return history\.listTopSites\(options\)\.map/);
   assert.match(main, /history\.cacheSiteIcon\(tab\.url, sanitized\)/);
   assert.match(renderer, /const sites = isPrivate \? \[\] : visibleBillboardSites\(\);/);
-  assert.match(renderer, /billboardPins\.billboardSites\(pinnedTopSites, state\.topSites, hiddenTopSites, 6\)/);
+  assert.match(renderer, /startPins\.billboardSites\(pinnedTopSites, state\.topSites, hiddenTopSites, 6\)/);
   assert.match(renderer, /start\.topSites\(\{[\s\S]*?offset,[\s\S]*?limit: TOP_SITES_PAGE_SIZE/);
   assert.match(renderer, /localStorage\.setItem\(TOP_SITES_HIDDEN_KEY/);
   assert.match(renderer, /localStorage\.setItem\(TOP_SITES_PINNED_KEY, JSON\.stringify\(pinnedTopSites\)\)/);
   assert.match(renderer, /function readPinnedTopSites\(\) \{\s*if \(isPrivate\) return \[\];/);
+  assert.match(renderer, /localStorage\.setItem\(FAVORITES_PINNED_KEY, JSON\.stringify\(pinnedFavorites\)\)/);
+  assert.match(renderer, /function readPinnedFavorites\(\) \{\s*if \(isPrivate\) return \[\];/);
   assert.match(renderer, /key\.length > 0 && key\.length <= 255/);
   assert.match(renderer, /const fullTitle = \(site\.title \|\| hostOf\(site\.url\) \|\| t\('newtab\.billboard\.untitled'\)\)\.trim\(\);/);
   assert.match(renderer, /label\.textContent = globalThis\.blancStartSiteName\.shortSiteName\(fullTitle, site\.url\);/);
@@ -36,6 +38,6 @@ test('Billboard top sites stay local, private-safe, and independently dismissibl
     'Billboard labels stay on one line');
   assert.match(renderer, /t\('newtab\.billboard\.hide', \{ title: fullTitle \}\)/);
   assert.match(preload, /topSites: \(options\) => invoke\('pages:start:top-sites', options\)/);
-  assert.doesNotMatch(preload, /hideTopSite|dismissTopSite|pinTopSite/);
+  assert.doesNotMatch(preload, /hideTopSite|dismissTopSite|pinTopSite|pinFavorite/);
   assert.doesNotMatch(pages, /pages:start:(?:hide|dismiss|pin|unpin)-top-site/);
 });

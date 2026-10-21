@@ -1446,6 +1446,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_private_footer">no history · separate from regular tabs · ends at quit, passkeys made here too</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Favorite a page with ♥ to pin it here</string>
+    <string name="newtab_favorites_pin_title">Pin %1$s</string>
+    <string name="newtab_favorites_pin">Pin %1$s to the Start Page</string>
+    <string name="newtab_favorites_unpin_title">Unpin %1$s</string>
+    <string name="newtab_favorites_unpin">Unpin %1$s from the Start Page</string>
+    <string name="newtab_favorites_pinned">%1$s pinned to the Start Page.</string>
+    <string name="newtab_favorites_unpinned">%1$s unpinned from the Start Page.</string>
     <string name="onboarding_skip">skip setup</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
     <string name="onboarding_step_default">default browser</string>

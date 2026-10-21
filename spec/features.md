@@ -931,7 +931,17 @@ From the desktop `DEFAULTS`:
   that origin until history ranks the site again. Hiding a pinned site
   unpins it; pinning a hidden site unhides it. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites and show no pins. All four re-ink under the light, dark, and private themes.
+  no history-derived sites and show no pins.
+- Ledger, Shelf and Tally share one list of pinned favorites. Each favorite
+  has a pin beside its link (at the end of a Ledger or Tally row, in a Shelf
+  card's corner) that shows on hover and focus and stays on show once
+  pinned. Pinned favorites come first on all three layouts in the order they
+  were pinned, so a favorite pinned on Shelf (eight tiles) also leads Tally
+  (five) and Ledger (six); the rest keep their Favorites order. At most eight
+  favorites can be pinned. The list holds only the favorites' own URLs, in
+  the same `blanc://newtab` localStorage, and deleting a favorite drops its
+  pin. Private start pages draw favorites without pins, in their Favorites
+  order. All four re-ink under the light, dark, and private themes.
 - All four start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and standalone Mahjong documents; other
@@ -993,7 +1003,8 @@ From the desktop `DEFAULTS`:
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
-  Billboard's local frequency ranking, dismissal and pinning, and confirms that each
+  Billboard's local frequency ranking, dismissal and pinning, a pinned
+  favorite leading every favorites layout, and confirms that each
   footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding

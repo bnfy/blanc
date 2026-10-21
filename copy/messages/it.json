@@ -5291,6 +5291,30 @@
     "message": "Aggiungi una pagina ai Preferiti con ♥ per fissarla qui",
     "source": "sha256:a8c5bc39f2ff768a828feb602b5653e437c279ff00061ada1b503b684a4f4e32"
   },
+  "newtab.favorites.pinTitle": {
+    "message": "Fissa {title}",
+    "source": "sha256:9a6733d0db239f4e2eac589b2fb8d7c7c3a8e7862a6112657c7f97ec67b99cdf"
+  },
+  "newtab.favorites.pin": {
+    "message": "Fissa {title} nella pagina iniziale",
+    "source": "sha256:1f63871790cb2ef9b0bddacd0f5e89e7303f3b45d68fafbc95082b8dd9ee03eb"
+  },
+  "newtab.favorites.unpinTitle": {
+    "message": "Rilascia {title}",
+    "source": "sha256:5ad805cef80f60890db76a5c309f13920b46ffcd320a198733bb2cabec69e1fc"
+  },
+  "newtab.favorites.unpin": {
+    "message": "Rilascia {title} dalla pagina iniziale",
+    "source": "sha256:dc17a21e1f88c2aa55071e9d021eecc863d63e715b3d039599de7ea48b34f9bc"
+  },
+  "newtab.favorites.pinned": {
+    "message": "{title} fissato nella pagina iniziale.",
+    "source": "sha256:37789009fa3c61e598dd2fe66764a04b2280ca6838760e07ac0f7df2538ba0c4"
+  },
+  "newtab.favorites.unpinned": {
+    "message": "{title} rilasciato dalla pagina iniziale.",
+    "source": "sha256:ebed547d581d633e91a8b679efad9e50590637dfcbedfbcf67143419d1650a71"
+  },
   "onboarding.skip": {
     "message": "salta tutto",
     "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"

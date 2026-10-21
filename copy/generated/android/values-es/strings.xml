@@ -1484,6 +1484,12 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_private_footer">sin historial · separada de las pestañas normales · termina al salir, también las llaves de acceso creadas aquí</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Marca una página como favorita con ♥ para fijarla aquí</string>
+    <string name="newtab_favorites_pin_title">Fijar %1$s</string>
+    <string name="newtab_favorites_pin">Fijar %1$s en la página de inicio</string>
+    <string name="newtab_favorites_unpin_title">Soltar %1$s</string>
+    <string name="newtab_favorites_unpin">Soltar %1$s de la página de inicio</string>
+    <string name="newtab_favorites_pinned">%1$s se fijó en la página de inicio.</string>
+    <string name="newtab_favorites_unpinned">%1$s se soltó de la página de inicio.</string>
     <string name="onboarding_skip">omitir los pasos</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
     <string name="onboarding_step_default">navegador predeterminado</string>

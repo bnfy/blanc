@@ -1610,6 +1610,57 @@ function install(refs) {
           : null,
       }))()`);
     },
+    async clearStartPagePins() {
+      const current = tabs.get(getActiveTabId());
+      await current?.view?.webContents?.session.clearStorageData({
+        origin: 'blanc://newtab',
+        storages: ['localstorage'],
+      });
+      return true;
+    },
+    // The favorites the showing favorites layout draws, and the stored pins.
+    readStartFavorites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const layout = document.body.dataset.layout;
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
+        const items = list ? [...document.getElementById(list).querySelectorAll('[data-favorite-url]')] : [];
+        return {
+          layout,
+          favorites: items.map((item) => ({
+            url: item.dataset.favoriteUrl,
+            title: item.querySelector('.name')?.textContent ?? null,
+            pinned: item.classList.contains('pinned'),
+            pinLabel: item.querySelector('.fav-pin')?.getAttribute('aria-label') ?? null,
+            pinShown: (() => {
+              const pin = item.querySelector('.fav-pin');
+              return !!pin && getComputedStyle(pin).opacity === '1';
+            })(),
+          })),
+          pins: JSON.parse(localStorage.getItem('blanc.start.pinned-favorites.v1') || '[]'),
+          status: document.getElementById('favoritesPinStatus')?.textContent ?? '',
+          focusedPinOf: document.activeElement?.classList.contains('fav-pin')
+            ? document.activeElement.closest('[data-favorite-url]')?.dataset.favoriteUrl ?? null
+            : null,
+        };
+      })()`);
+    },
+    // Clicks a favorite's pin in the showing favorites layout.
+    toggleFavoritePin(title) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
+        const item = list && [...document.getElementById(list).querySelectorAll('[data-favorite-url]')]
+          .find((candidate) => candidate.querySelector('.name')?.textContent === ${JSON.stringify(String(title))});
+        const button = item?.querySelector('.fav-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
     // Clicks a site's pin, which pins an unpinned site and unpins a pinned one.
     toggleBillboardPin(key) {
       const tab = tabs.get(getActiveTabId());

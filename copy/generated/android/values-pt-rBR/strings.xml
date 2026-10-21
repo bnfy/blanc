@@ -1484,6 +1484,12 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_private_footer">sem histórico · separada das abas comuns · termina ao sair, inclusive as chaves de acesso criadas aqui</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Marque uma página como favorita com ♥ para fixá-la aqui</string>
+    <string name="newtab_favorites_pin_title">Fixar %1$s</string>
+    <string name="newtab_favorites_pin">Fixar %1$s na página inicial</string>
+    <string name="newtab_favorites_unpin_title">Desafixar %1$s</string>
+    <string name="newtab_favorites_unpin">Desafixar %1$s da página inicial</string>
+    <string name="newtab_favorites_pinned">%1$s foi fixado na página inicial.</string>
+    <string name="newtab_favorites_unpinned">%1$s foi desafixado da página inicial.</string>
     <string name="onboarding_skip">pular etapas</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
     <string name="onboarding_step_default">navegador padrão</string>

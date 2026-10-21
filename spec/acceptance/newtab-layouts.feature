@@ -80,6 +80,22 @@ Feature: Start page layouts
     And the Billboard keeps no pins
 
   @F35-5 @desktop
+  Scenario: A pinned favorite leads every favorites layout
+    Given eight favorites fill the Start Page
+    And the Start Page has no pins
+    And a profile whose start page layout is "shelf"
+    When I open a new tab
+    And I pin "Favorite 8" on the Start Page
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    When I choose the "ledger" start page layout from its footer
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    When I choose the "tally" start page layout from its footer
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    And the favorites pin stays in local page storage as that favorite's address
+    When I unpin "Favorite 8" on the Start Page
+    Then the Start Page's favorites are back in their saved order
+
+  @F35-5 @desktop
   Scenario: Billboard continues past its initial candidate page
     Given local history contains sixty ranked sites for the Billboard
     And the first forty-eight Billboard sites are hidden locally

@@ -1360,6 +1360,55 @@ a.ledger-label:hover { color: var(--accent); }
 }
 .fav:hover .name { color: var(--accent); }
 
+/* A favorite with its pin. The pin is the link's sibling (a button can't sit
+   inside a link): at the end of a Ledger or Tally row, in a Shelf card's top
+   right corner. Like the Billboard's, it shows on hover and focus, and stays
+   on show, filled, once the favorite is pinned. */
+.fav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+}
+.fav-item > .fav { min-width: 0; }
+.fav-pin {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  box-shadow: var(--start-shadow-icon);
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, border-color 120ms ease;
+}
+.fav-item:hover > .fav-pin,
+.fav-item:focus-within > .fav-pin,
+.shelf-item:hover > .fav-pin,
+.shelf-item:focus-within > .fav-pin,
+.pinned > .fav-pin {
+  opacity: 1;
+  pointer-events: auto;
+}
+.fav-pin:hover { border-color: var(--text-dim); }
+.fav-pin:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.shelf-item {
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+.shelf-item > .fav-pin { position: absolute; top: 10px; right: 10px; }
+@media (hover: none) {
+  .fav-pin { opacity: 1; pointer-events: auto; }
+}
+
 /* Group rows are buttons (they act on the app, not a URL) — strip the
    global button chrome back to a bare ledger line. */
 .group-row { background: none; border: none; padding: 0; font: inherit; text-align: left; }
@@ -2751,7 +2800,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* The pin mirrors the × on the tile's other corner. Pinned, it stays on show
    and fills, so the row says which sites hold their place. */
 .bb-site-pin { right: auto; left: 28px; color: var(--text); }
-.bb-site-pin svg {
+.bb-site-pin svg,
+.fav-pin svg {
   width: 10px;
   height: 10px;
   fill: none;
@@ -2761,7 +2811,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   stroke-linejoin: round;
   opacity: 0.68;
 }
-.bb-site.pinned .bb-site-pin svg { fill: currentColor; }
+.bb-site.pinned .bb-site-pin svg,
+.pinned > .fav-pin svg { fill: currentColor; }
 .bb-site:hover .bb-site-dismiss,
 .bb-site:focus-within .bb-site-dismiss,
 .bb-site-dismiss:focus-visible,
@@ -3145,7 +3196,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-card {
   border-color: color-mix(in srgb, var(--border) 86%, transparent);
 }
-.shelf-tile:hover { border-color: var(--accent); }
+.shelf-tile:hover,
+.shelf-item:hover > .shelf-tile { border-color: var(--accent); }
 .shelf-tile .name { font-size: 13px; }
 .shelf-tile .host { font-family: var(--font-text); }
 .shelf-count { font-family: var(--font-ui); font-size: 32px; color: var(--accent); }
@@ -3848,7 +3900,8 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
 .layout-preview,
 .start-customize,
 .js-patron-callout { transition: transform 120ms var(--start-ease), border-color 120ms ease; }
-.shelf-tile:hover { transform: translateY(-1px); }
+.shelf-tile:hover,
+.shelf-item:hover > .shelf-tile { transform: translateY(-1px); }
 .js-patron-callout:has(> a:active),
 .migration-checklist-shell:has(> .migration-checklist-compact:active),
 .fav:active,
@@ -3868,6 +3921,7 @@ body.layout-ready .start-content > main { transition: opacity 160ms var(--start-
   }
   body.layout-ready .start-content > main { transition: none; }
   .shelf-tile:hover,
+  .shelf-item:hover > .shelf-tile,
   .fav:active,
   .bb-fav:active,
   .shelf-tile:active,

@@ -6,11 +6,24 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/billboard-pins.js'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/start-pins.js'), 'utf8');
 const sandbox = { URL };
 sandbox.globalThis = sandbox;
 vm.runInNewContext(source, sandbox);
-const { MAX_PINS, pinFor, readPins, addPin, removePin, billboardSites } = sandbox.blancBillboardPins;
+const {
+  MAX_SITE_PINS,
+  MAX_FAVORITE_PINS,
+  pinFor,
+  readPins,
+  addPin,
+  removePin,
+  billboardSites,
+  readFavoritePins,
+  addFavoritePin,
+  removeFavoritePin,
+  livingFavoritePins,
+  favoriteTiles,
+} = sandbox.blancStartPins;
 // Results come from the vm's realm; compare them as plain data.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -45,7 +58,7 @@ test('saved pins are re-derived, de-duplicated and bounded to the row', () => {
     ...Array.from({ length: 10 }, (_, i) => ({ key: `site-${i}.example`, url: `https://site-${i}.example/` })),
   ];
   const pins = plain(readPins(saved));
-  assert.equal(pins.length, MAX_PINS);
+  assert.equal(pins.length, MAX_SITE_PINS);
   assert.deepEqual(pins.slice(0, 2), [
     { key: 'youtube.com', url: 'https://www.youtube.com/' },
     // A stored path is never kept, even from a hand-edited entry.
@@ -67,7 +80,7 @@ test('pinning adds a site once, at the end, up to the row size', () => {
   // A key that doesn't match its own URL is refused.
   assert.equal(addPin(pins, { key: 'cnet.com', url: 'https://other.example/' }), pins);
   for (let i = 0; i < 10; i++) pins = addPin(pins, site(`site-${i}.example`));
-  assert.equal(pins.length, MAX_PINS);
+  assert.equal(pins.length, MAX_SITE_PINS);
   assert.deepEqual(plain(removePin(pins, 'cnet.com')).map((pin) => pin.key).slice(0, 2), ['youtube.com', 'site-0.example']);
 });
 
@@ -107,4 +120,60 @@ test('the row never exceeds its limit', () => {
   const ranked = Array.from({ length: 20 }, (_, i) => site(`site-${i}.example`));
   assert.equal(billboardSites([], ranked, new Set()).length, 6);
   assert.equal(billboardSites([], ranked, new Set(), 4).length, 4);
+});
+
+const favorite = (n) => ({ id: `id-${n}`, url: `https://favorite-${n}.example/page?ref=${n}`, title: `Favorite ${n}` });
+
+test('saved favorite pins are bounded strings, without repeats', () => {
+  const saved = [
+    favorite(1).url,
+    favorite(1).url,
+    '',
+    42,
+    null,
+    'x'.repeat(8193),
+    ...Array.from({ length: 12 }, (_, i) => favorite(i + 2).url),
+  ];
+  const pins = plain(readFavoritePins(saved));
+  assert.equal(pins.length, MAX_FAVORITE_PINS);
+  assert.deepEqual(pins.slice(0, 2), [favorite(1).url, favorite(2).url]);
+  assert.deepEqual(plain(readFavoritePins({})), []);
+});
+
+test('pinning a favorite adds it once, at the end, up to Shelf\'s eight', () => {
+  let pins = [];
+  pins = addFavoritePin(pins, favorite(3).url);
+  pins = addFavoritePin(pins, favorite(1).url);
+  pins = addFavoritePin(pins, favorite(3).url);
+  assert.deepEqual(plain(pins), [favorite(3).url, favorite(1).url]);
+  for (let n = 10; n < 20; n++) pins = addFavoritePin(pins, favorite(n).url);
+  assert.equal(pins.length, MAX_FAVORITE_PINS);
+  assert.deepEqual(plain(removeFavoritePin(pins, favorite(3).url)).slice(0, 2), [favorite(1).url, favorite(10).url]);
+});
+
+test('pinned favorites lead in pin order; the rest keep their Favorites order', () => {
+  const favorites = Array.from({ length: 9 }, (_, i) => favorite(i + 1));
+  const pins = [favorite(7).url, 'https://deleted.example/', favorite(2).url];
+  const tiles = plain(favoriteTiles(pins, favorites, 5));
+  assert.deepEqual(tiles.map((tile) => [tile.id, tile.pinned]), [
+    ['id-7', true],
+    ['id-2', true],
+    ['id-1', false],
+    ['id-3', false],
+    ['id-4', false],
+  ]);
+  assert.equal(tiles[0].url, favorite(7).url);
+  assert.equal(tiles[0].title, 'Favorite 7');
+  // A pin can bring a favorite past a layout's limit onto it.
+  assert.equal(plain(favoriteTiles([favorite(9).url], favorites, 5))[0].id, 'id-9');
+  assert.equal(favoriteTiles([], favorites, 8).length, 8);
+});
+
+test('a deleted favorite\'s pin is dropped', () => {
+  const favorites = [favorite(1), favorite(2)];
+  assert.deepEqual(
+    plain(livingFavoritePins([favorite(2).url, 'https://deleted.example/', favorite(1).url], favorites)),
+    [favorite(2).url, favorite(1).url],
+  );
+  assert.deepEqual(plain(livingFavoritePins([favorite(1).url], [])), []);
 });

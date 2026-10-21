@@ -5463,6 +5463,30 @@
     "message": "Favorite a page with ♥ to pin it here",
     "note": "Start page: shown when there are no Favorites; ♥ is the Favorite button."
   },
+  "newtab.favorites.pinTitle": {
+    "message": "Pin {title}",
+    "note": "Start page → Ledger, Shelf and Tally layouts: tooltip of the pin on a favorite; {title} is its title. A pinned favorite comes first on the Start Page."
+  },
+  "newtab.favorites.pin": {
+    "message": "Pin {title} to the Start Page",
+    "note": "Start page → Ledger, Shelf and Tally layouts: accessible name of the pin on a favorite; {title} is its title."
+  },
+  "newtab.favorites.unpinTitle": {
+    "message": "Unpin {title}",
+    "note": "Start page → Ledger, Shelf and Tally layouts: tooltip of the pin on a pinned favorite; {title} is its title."
+  },
+  "newtab.favorites.unpin": {
+    "message": "Unpin {title} from the Start Page",
+    "note": "Start page → Ledger, Shelf and Tally layouts: accessible name of the pin on a pinned favorite; {title} is its title."
+  },
+  "newtab.favorites.pinned": {
+    "message": "{title} pinned to the Start Page.",
+    "note": "Start page → Ledger, Shelf and Tally layouts: announced after pinning a favorite; {title} is its title."
+  },
+  "newtab.favorites.unpinned": {
+    "message": "{title} unpinned from the Start Page.",
+    "note": "Start page → Ledger, Shelf and Tally layouts: announced after unpinning a favorite; {title} is its title."
+  },
   "onboarding.skip": {
     "message": "skip setup",
     "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",

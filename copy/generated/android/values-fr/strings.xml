@@ -1484,6 +1484,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_private_footer">aucun historique · séparé des onglets ordinaires · se termine à la fermeture, clés d’accès créées ici comprises</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Ajoutez une page aux favoris avec ♥ pour l’épingler ici</string>
+    <string name="newtab_favorites_pin_title">Épingler %1$s</string>
+    <string name="newtab_favorites_pin">Épingler %1$s à la page d’accueil</string>
+    <string name="newtab_favorites_unpin_title">Détacher %1$s</string>
+    <string name="newtab_favorites_unpin">Détacher %1$s de la page d’accueil</string>
+    <string name="newtab_favorites_pinned">%1$s épinglé à la page d’accueil.</string>
+    <string name="newtab_favorites_unpinned">%1$s détaché de la page d’accueil.</string>
     <string name="onboarding_skip">tout passer</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
     <string name="onboarding_step_default">navigateur par défaut</string>

@@ -3,9 +3,10 @@ const isMac = navigator.platform.startsWith('Mac');
 const { t } = blancI18n;
 const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
 const TOP_SITES_PINNED_KEY = 'blanc.billboard.pinned-top-sites.v1';
+const FAVORITES_PINNED_KEY = 'blanc.start.pinned-favorites.v1';
 const MAX_HIDDEN_TOP_SITES = 200;
 const TOP_SITES_PAGE_SIZE = 48;
-const billboardPins = globalThis.blancBillboardPins;
+const startPins = globalThis.blancStartPins;
 
 function readHiddenTopSites() {
   if (isPrivate) return new Set();
@@ -39,11 +40,11 @@ function saveHiddenTopSites() {
 }
 
 // Pins live beside the hidden list, in this profile's page storage only, and
-// hold just a hostname and its origin (billboard-pins.js).
+// hold just a hostname and its origin (start-pins.js).
 function readPinnedTopSites() {
   if (isPrivate) return [];
   try {
-    return billboardPins.readPins(JSON.parse(localStorage.getItem(TOP_SITES_PINNED_KEY) || '[]'));
+    return startPins.readPins(JSON.parse(localStorage.getItem(TOP_SITES_PINNED_KEY) || '[]'));
   } catch {
     return [];
   }
@@ -69,22 +70,46 @@ function rememberHiddenTopSite(key) {
   saveHiddenTopSites();
   // Hiding a pinned site takes it off the row entirely.
   if (pinnedTopSites.some((pin) => pin.key === key)) {
-    pinnedTopSites = billboardPins.removePin(pinnedTopSites, key);
+    pinnedTopSites = startPins.removePin(pinnedTopSites, key);
     savePinnedTopSites();
   }
 }
 
 function pinTopSite(site) {
   if (isPrivate) return;
-  pinnedTopSites = billboardPins.addPin(pinnedTopSites, site);
+  pinnedTopSites = startPins.addPin(pinnedTopSites, site);
   savePinnedTopSites();
   if (hiddenTopSites.delete(site.key)) saveHiddenTopSites();
 }
 
 function unpinTopSite(key) {
   if (isPrivate) return;
-  pinnedTopSites = billboardPins.removePin(pinnedTopSites, key);
+  pinnedTopSites = startPins.removePin(pinnedTopSites, key);
   savePinnedTopSites();
+}
+
+// Favorites pins are one list shared by Ledger, Shelf and Tally, kept the same
+// way: this profile's page storage only, as the favorites' own URLs. A private
+// start page shares neither the storage nor the pins.
+function readPinnedFavorites() {
+  if (isPrivate) return [];
+  try {
+    return startPins.readFavoritePins(JSON.parse(localStorage.getItem(FAVORITES_PINNED_KEY) || '[]'));
+  } catch {
+    return [];
+  }
+}
+
+let pinnedFavorites = readPinnedFavorites();
+
+function savePinnedFavorites(next) {
+  if (isPrivate) return;
+  pinnedFavorites = next;
+  try {
+    localStorage.setItem(FAVORITES_PINNED_KEY, JSON.stringify(pinnedFavorites));
+  } catch {
+    // As above: the pin still holds for this page.
+  }
 }
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
@@ -499,6 +524,54 @@ function favRow(b) {
   return row;
 }
 
+/** One favorite in a favorites layout with its pin beside it, never inside
+ * the link. A pinned favorite leads every favorites layout and keeps its pin
+ * on show. Private start pages draw no pin. */
+function pinnableFavorite(b, link, className) {
+  const item = document.createElement('div');
+  item.className = className;
+  item.classList.toggle('pinned', b.pinned);
+  item.dataset.favoriteUrl = b.url;
+  item.appendChild(link);
+  if (isPrivate) return item;
+
+  const title = b.title || b.url;
+  const pin = document.createElement('button');
+  pin.type = 'button';
+  pin.className = 'fav-pin';
+  pin.title = b.pinned
+    ? t('newtab.favorites.unpinTitle', { title })
+    : t('newtab.favorites.pinTitle', { title });
+  pin.setAttribute('aria-label', b.pinned
+    ? t('newtab.favorites.unpin', { title })
+    : t('newtab.favorites.pin', { title }));
+  pin.appendChild(pinGlyph());
+  pin.addEventListener('click', () => {
+    const list = item.parentElement;
+    const index = [...list.children].indexOf(item);
+    savePinnedFavorites(b.pinned
+      ? startPins.removeFavoritePin(pinnedFavorites, b.url)
+      : startPins.addFavoritePin(pinnedFavorites, b.url));
+    renderFavoritesLayouts();
+    document.getElementById('favoritesPinStatus').textContent = b.pinned
+      ? t('newtab.favorites.unpinned', { title })
+      : t('newtab.favorites.pinned', { title });
+    // Focus follows the favorite to its new place, or stays in the slot it
+    // left when unpinning drops it past the layout's last tile.
+    const moved = [...list.children].find((candidate) => candidate.dataset.favoriteUrl === b.url);
+    const next = moved?.querySelector('.fav-pin') ??
+      list.children[Math.min(index, list.children.length - 1)]?.querySelector('a, .fav-pin');
+    next?.focus();
+  });
+  item.appendChild(pin);
+  return item;
+}
+
+/** The favorites a layout draws, pinned first, up to its limit. */
+function favoriteTilesFor(limit) {
+  return startPins.favoriteTiles(pinnedFavorites, state.favorites, limit);
+}
+
 /** Group chip for billboard/shelf/tally. `withCount` adds the trailing number
  * the shelf card shows; the billboard and tally chips carry the name alone. */
 /** A colored group's dots take its color (tab group colors spec §7). Main
@@ -541,14 +614,25 @@ function emptyFavoritesHint() {
   return hint;
 }
 
-function renderLedgerFavorites(items) {
+function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  if (!items.length) {
+  if (!state.favorites.length) {
     list.appendChild(emptyFavoritesHint());
     return;
   }
-  for (const b of items.slice(0, 6)) list.appendChild(favRow(b));
+  for (const b of favoriteTilesFor(6)) list.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
+}
+
+/** A favorites pin changes all three favorites layouts: Ledger, which is
+ * always drawn, and whichever of Shelf and Tally is showing redraw now; the
+ * other redraws when it is next shown. */
+function renderFavoritesLayouts() {
+  renderLedgerFavorites();
+  invalidate();
+  if (state.layout === 'shelf') renderShelf();
+  if (state.layout === 'tally') renderTally();
+  rendered.add(state.layout);
 }
 
 // Tab sync: other devices' tabs, read-only — clicking navigates the current
@@ -733,7 +817,7 @@ function renderBillboard() {
 }
 
 function visibleBillboardSites() {
-  return billboardPins.billboardSites(pinnedTopSites, state.topSites, hiddenTopSites, 6);
+  return startPins.billboardSites(pinnedTopSites, state.topSites, hiddenTopSites, 6);
 }
 
 /** The ⌘L panel's pin glyph, drawn inline so it takes the theme's text color. */
@@ -799,7 +883,7 @@ function renderShelf() {
   grid.replaceChildren();
   document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(Math.min(state.favorites.length, 8)));
   if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 8)) {
+  for (const b of favoriteTilesFor(8)) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
     tileLink.href = b.url;
@@ -816,7 +900,7 @@ function renderShelf() {
     text.dataset.i18nIgnore = ''; // the page's title and host
     text.append(name, host);
     tileLink.append(tile, text);
-    grid.appendChild(tileLink);
+    grid.appendChild(pinnableFavorite(b, tileLink, 'shelf-item'));
   }
 
   const groups = document.getElementById('shGroups');
@@ -835,7 +919,7 @@ function renderTally() {
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
   if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
+  for (const b of favoriteTilesFor(5)) favs.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
 
   const groups = document.getElementById('tlGroups');
   groups.replaceChildren();
@@ -961,7 +1045,10 @@ customizePopover.addEventListener('toggle', (event) => {
 // has.
 const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   state.favorites = items;
-  renderLedgerFavorites(items);
+  // Deleting a favorite drops its pin.
+  const living = startPins.livingFavoritePins(pinnedFavorites, items);
+  if (living.length !== pinnedFavorites.length) savePinnedFavorites(living);
+  renderLedgerFavorites();
   invalidate();
 });
 

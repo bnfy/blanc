@@ -186,6 +186,70 @@ Then('the Billboard shows only {string}, pinned, opening its origin', async func
   assert.equal(dom.sites[0].label, key);
 });
 
+Given('the Start Page has no pins', async function () {
+  assert.equal(await this.call('clearStartPagePins'), true);
+});
+
+When('I pin {string} on the Start Page', async function (title) {
+  await waitForValue(
+    () => this.call('readStartFavorites'),
+    (value) => value?.favorites?.some((favorite) => favorite.title === title && !favorite.pinned),
+    `${title} to show unpinned on the Start Page`,
+  );
+  assert.equal(await this.call('toggleFavoritePin', title), true);
+});
+
+When('I unpin {string} on the Start Page', async function (title) {
+  await waitForValue(
+    () => this.call('readStartFavorites'),
+    (value) => value?.favorites?.some((favorite) => favorite.title === title && favorite.pinned),
+    `${title} to show pinned on the Start Page`,
+  );
+  assert.equal(await this.call('toggleFavoritePin', title), true);
+});
+
+Then("{string} leads the Start Page's favorites, pinned", async function (title) {
+  const dom = await waitForValue(
+    () => this.call('readStartFavorites'),
+    (value) => value?.favorites?.[0]?.title === title && value.favorites[0].pinned,
+    `${title} to lead the Start Page's favorites, pinned`,
+  );
+  const limit = { ledger: 6, shelf: 8, tally: 5 }[dom.layout];
+  assert.equal(dom.favorites.length, limit);
+  assert.equal(dom.favorites.filter((favorite) => favorite.pinned).length, 1);
+  assert.equal(dom.favorites[0].pinLabel, `Unpin ${title} from the Start Page`);
+  assert.equal(dom.favorites[0].pinShown, true, 'a pinned favorite keeps its pin on show');
+  assert.ok(dom.favorites.slice(1).every((favorite) => favorite.pinLabel === `Pin ${favorite.title} to the Start Page`));
+  // The others keep their saved order after it.
+  assert.deepEqual(
+    dom.favorites.slice(1).map((favorite) => favorite.title),
+    ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7'].slice(0, limit - 1),
+  );
+  this.pinnedFavoriteUrl = dom.favorites[0].url;
+  if (dom.layout === 'shelf') {
+    assert.equal(dom.status, `${title} pinned to the Start Page.`);
+    assert.equal(dom.focusedPinOf, dom.favorites[0].url);
+  }
+});
+
+Then("the favorites pin stays in local page storage as that favorite's address", async function () {
+  const dom = await this.call('readStartFavorites');
+  assert.deepEqual(dom.pins, [this.pinnedFavoriteUrl]);
+});
+
+Then("the Start Page's favorites are back in their saved order", async function () {
+  const dom = await waitForValue(
+    () => this.call('readStartFavorites'),
+    (value) => Array.isArray(value?.pins) && value.pins.length === 0 && value.favorites.every((favorite) => !favorite.pinned),
+    'the Start Page favorites to unpin',
+  );
+  assert.deepEqual(
+    dom.favorites.map((favorite) => favorite.title),
+    ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5'],
+  );
+  assert.equal(dom.status, 'Favorite 8 unpinned from the Start Page.');
+});
+
 Then('the Billboard backfills with {string}', async function (key) {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),
