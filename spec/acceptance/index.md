@@ -231,6 +231,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F34-16 | Closing the Glance tab or the main page just after moving the card keeps the move and takes the card at once | D11 | ✅ | ➖ | ➖ |
 | F34-17 | A window's first Glance shows nothing until its card has drawn | D11 | ✅ | ➖ | ➖ |
 | F34-18 | Open as tab and Keep as split on the Glance card are announced once, not as a close first | D11 | ✅ | ➖ | ➖ |
+| F34-19 | The card stays put while a pushed Island slides in | D11 | ✅ | ➖ | ➖ |
 | F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
 | F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
 | F35-3 | Footer opens a playable standalone Mahjong tab | — | ✅ | ⬜ | ⬜ |

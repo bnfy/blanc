@@ -6737,13 +6737,15 @@ function resizeActiveView() {
     // card's chrome view and the Glance page inside it float over it.
     if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
     const cardDrawn = rt().glanceCardDrawn === true;
+    // The card is fixed to the window: a pushed Island sliding in moves the
+    // main page beneath it, never the card or the page inside it.
     if (liveContents(glanceTab) && card) {
-      glanceTab.view.setBounds(place(card.page));
+      glanceTab.view.setBounds(card.page);
       roundGlancePage(glanceTab, true);
       if (glanceTab.view.getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
     }
     if (cardView) {
-      if (card) cardView.setBounds(place(card.chrome));
+      if (card) cardView.setBounds(card.chrome);
       cardView.setVisible(!!card && cardDrawn);
     }
   }

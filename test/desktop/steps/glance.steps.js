@@ -1788,3 +1788,28 @@ Then('the strip announced only {string}', async function (announcement) {
   const heard = await chrome.evaluate(() => window.__glanceAnnouncements.filter((text) => text.trim() !== ''));
   assert.deepEqual(heard, [announcement]);
 });
+
+// The card is fixed to the window (spec: the page area starts below the
+// Island's resting band whatever the Auto-hide setting), so a pushed Island
+// sliding in moves the main page, never the card or the page inside it.
+When('I watch the Glance card while I point at the top edge of the window', async function () {
+  const read = async () => {
+    const card = await glanceCard(this);
+    return JSON.stringify({ card: card?.cardViewBounds, page: card?.viewBounds });
+  };
+  this.glanceCardSeen = new Set([await read()]);
+  const state = await this.state();
+  assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
+  const until = Date.now() + 1200;
+  let slid = false;
+  while (Date.now() < until) {
+    this.glanceCardSeen.add(await read());
+    if ((await this.call('islandAutoHideState'))?.sliding) slid = true;
+  }
+  this.glanceIslandSlid = slid;
+});
+
+Then('the Glance card never moved while the Island slid in', async function () {
+  assert.equal(this.glanceIslandSlid, true, 'the Island slid in while the card was watched');
+  assert.deepEqual([...this.glanceCardSeen].map((value) => JSON.parse(value)), [JSON.parse([...this.glanceCardSeen][0])]);
+});

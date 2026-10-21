@@ -533,3 +533,10 @@ Feature: Glance reference pane
       | action        | announcement                                         |
       | Open as tab   | glance-reference is now the current tab              |
       | Keep as split | glance-main and glance-reference are now side by side |
+
+  @F34-19 @F34 @D11 @island-autohide
+  Scenario: The card stays put while a pushed Island slides in
+    Given three ordinary tabs with one open in Glance
+    And the Island auto-hides
+    When I watch the Glance card while I point at the top edge of the window
+    Then the Glance card never moved while the Island slid in

@@ -893,7 +893,7 @@ From the desktop `DEFAULTS`:
   tab through the dedicated picker as a centered card over the whole main page
   (F34-2), keeps it on screen as the window changes (F34-3), moves, resizes and
   resets it and remembers where it was (F34-4, F34-5), closes it on a tab
-  switch and opens it as the tab (F34-6 to F34-8, F34-15), saves a move and hides the card at once whichever way the Glance ends (F34-16), shows nothing of a window's first Glance until its card has drawn (F34-17), announces Open as tab and Keep as split once (F34-18), keeps Escape in the
+  switch and opens it as the tab (F34-6 to F34-8, F34-15), saves a move and hides the card at once whichever way the Glance ends (F34-16), shows nothing of a window's first Glance until its card has drawn (F34-17), announces Open as tab and Keep as split once (F34-18), keeps the card still while a pushed Island slides in (F34-19), keeps Escape in the
   page and closes from the header (F34-9), leaves the page behind usable
   (F34-10), compacts the header and moves it from the keyboard (F34-11,
   F34-12), anchors find to the card (F34-13) and fades in and closes at once
