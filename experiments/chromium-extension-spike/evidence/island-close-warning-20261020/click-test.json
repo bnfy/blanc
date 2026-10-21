@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "name": "ordinary close completes without warning",
+      "value": true
+    },
+    {
+      "name": "pending unload waits without rejection",
+      "value": true
+    },
+    {
+      "name": "Cancel keeps tab and live state without warning",
+      "value": true
+    },
+    {
+      "name": "accepting unload closes and acknowledges history",
+      "value": true
+    },
+    {
+      "name": "last-tab close retains a fresh start tab",
+      "value": true
+    },
+    {
+      "name": "no warning banner across close and cancellation",
+      "value": true
+    }
+  ],
+  "pass": true
+}

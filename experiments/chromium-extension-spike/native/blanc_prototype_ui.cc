@@ -1868,6 +1868,7 @@ class Handler : public content::WebUIMessageHandler {
     std::vector<int> tabs;
     std::vector<std::unique_ptr<SplitCloseWatch>> watches;
     bool cancelled = false;
+    bool single_tab = false;
   };
   std::map<std::string, PendingSplitClose> split_closes_;
   void SplitCloseCancelled(std::string id) {
@@ -1907,6 +1908,13 @@ class Handler : public content::WebUIMessageHandler {
       return;
     }
     const bool cancelled = it->second.cancelled;
+    if (it->second.single_tab) {
+      split_closes_.erase(it);
+      // A cancelled native unload is a normal outcome, not a storage failure.
+      if (cancelled) Reply(id, true, base::Value(false));
+      else SaveClosedHistory(id, browser->GetProfile());
+      return;
+    }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
         base::BindOnce(&Handler::SplitCloseSaved, weak_factory_.GetWeakPtr(), id, cancelled, false), base::Seconds(9));
     if (browser->GetProfile()->IsOffTheRecord()) { SplitCloseSaved(id, cancelled, true); return; }
@@ -3366,12 +3374,15 @@ class Handler : public content::WebUIMessageHandler {
       if (model->count() == 1) {
         chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
       }
+      auto& pending_close = split_closes_[id];
+      pending_close.browser = browser->GetWeakPtr();
+      pending_close.single_tab = true;
+      pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
+      pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(tab,
+          base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
-      if (model->GetIndexOfWebContents(tab) != TabStripModel::kNoTab) {
-        reply(false, base::Value("Tab closure is pending or cancelled; history is not acknowledged."));
-        return;
-      }
-      SaveClosedHistory(id, browser->GetProfile());
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+          base::BindOnce(&Handler::CheckSplitClose, weak_factory_.GetWeakPtr(), id));
       return;
     } else if (method == "navigate" && args.size() == 2 && args[1].is_string()) {
       const GURL url(args[1].GetString());

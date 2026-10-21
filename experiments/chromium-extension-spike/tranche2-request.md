@@ -2122,3 +2122,13 @@ Evidence: evidence/shaded-purple-restart-20261020. Theme changes remain uncommit
 2026-10-20 Island highlight recurrence repaired in prototype/prototype.css: pinned renderer base retained top inset white shadow despite earlier source styling change. Native override now removes top highlight across theme states. Assets-only prepare and live host reload; computed shadow confirms bottom inset/external shadow only, all three tab IDs/URLs and active selection unchanged. Evidence /private/tmp/blanc-highlight-verification.json. No native build, latency or Electron diagnostic build.
 
 Shaded Purple commit checkpoint: native prototype radius14px/top-highlight removal verified with unchanged tab IDs and selection. Token source/generated outputs synchronized for prior substrate drift;12tests/scopedlint/tokencheck/inventory pass. Prior-head site /mail320px overflow and Intel directoryRows166ms assertion remain separate CI failures; monitor new head. No additional native build; latency and Electron diagnostic build pending.
+
+### Island single-tab close warning repair — 2026-10-20
+
+The old closeTab handler tested tab removal synchronously, reporting pending Chromium closure as an error. Single-tab close now uses the native unload observer/pending-close lifecycle: waits for actual removal before history flush and treats Cancel as a successful no-op. The bridge permits time for the native decision dialog; history flush retains its existing bounded failure handling. No claim of durability is made on cancellation.
+
+Two isolated normal-binary schedules pass six checkpoints each, including actual Island .pill-close DOM click, ordinary close, pending beforeunload, Cancel retaining live state, Leave removing the tab, last-tab replacement and no warning banner. These are CDP/DOM checks, not physical-input qualification. Scoped lint and twelve existing theme/Store tests pass. One38.63second incremental build, final guard zero. No upstream hook changes; prior54/128 budget unchanged.
+
+Retained dev instance/tabs untouched and still use the previously launched binary; restart required to load this native fix. Disposable test profiles removed after clean exits. Pending save-failure/owner-destruction matrices and broader lifecycle remain unqualified. Latency and Electron diagnostic build remain pending. Evidence: evidence/island-close-warning-20261020.
+
+Tab-close fix owner-approved dev restart: both open New Tab pages and active second tab restored through native session restoration. No URL fallback required. Commit checkpoint: no additional build; latency and Electron diagnostic build pending.
