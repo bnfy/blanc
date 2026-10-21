@@ -20,6 +20,7 @@
     audible: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.25h2L8 3.5v9L5 9.75H3zM10.25 6a3 3 0 0 1 0 4M11.75 4.5a5 5 0 0 1 0 7"/></svg>',
     muted: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.25h2L8 3.5v9L5 9.75H3zM10.25 6.25l3.5 3.5M13.75 6.25l-3.5 3.5"/></svg>',
     caret: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.75 4 4.25-4 4.25"/></svg>',
+    more: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -52,7 +53,7 @@
   function railSignature(payload) {
     return JSON.stringify({
       activeTabId: payload.activeTabId,
-      groups: (payload.groups || []).map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+      groups: (payload.groups || []).map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
       tabs: (payload.tabs || []).map((tab) => ({
         id: tab.id,
         title: tab.title,
@@ -66,7 +67,9 @@
         audible: tab.audible,
         asleep: tab.asleep,
         groupId: tab.groupId ?? null,
+        splitId: tab.splitId ?? null,
       })),
+      splits: (payload.splits || []).map(({ id, tabIds, focusedIndex }) => ({ id, tabIds, focusedIndex })),
     });
   }
 
@@ -354,8 +357,8 @@
     close.type = 'button';
     close.className = 'vertical-tab-close';
     close.innerHTML = ICONS.close;
-    close.title = blancI18n.t('rail.close', { title });
-    close.setAttribute('aria-label', close.title);
+    close.dataset.tooltip = blancI18n.t('rail.close', { title });
+    close.setAttribute('aria-label', close.dataset.tooltip);
     close.dataset.focusKey = `close:${tab.id}`;
     // ArrowRight from the row primary reaches this sibling without placing
     // every close action into the document's sequential Tab order.
@@ -415,6 +418,88 @@
     return section;
   }
 
+  /** A run of ungrouped tabs: plain rows with no heading, set apart from the
+   * tinted group blocks around it (as in the island). The heading text stays
+   * its accessible name. */
+  function looseRun(tabs, activeTabId) {
+    const section = document.createElement('section');
+    section.className = 'vertical-tabs-section vertical-tabs-run';
+    section.dataset.dragSection = 'loose';
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-label', blancI18n.t('rail.section.tabs'));
+    for (const row of rowsFor(tabs, activeTabId)) section.appendChild(row);
+    return section;
+  }
+
+  // Split View (F53): a split's tabs are one row (TabSections.rowsOf).
+  // Choosing it shows the split, focused on its last-focused pane.
+  let railSplits = [];
+  function rowsFor(tabs, activeTabId) {
+    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+    return TabSections.rowsOf(tabs.map((tab) => tab.id), tabs).map((row) => (row.kind === 'tab'
+      ? tabRow(byId.get(row.id), activeTabId)
+      : splitRow(row.splitId, row.tabIds.map((id) => byId.get(id)), activeTabId)));
+  }
+  function splitRow(splitId, members, activeTabId) {
+    const split = railSplits.find((s) => s.id === splitId);
+    const focused = members[Math.min(split?.focusedIndex ?? 0, members.length - 1)] ?? members[0];
+    const titles = members.map((tab) => titleFor(tab));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'vertical-tab-row vertical-split-row'
+      + (members.some((tab) => tab.id === activeTabId) ? ' active' : '');
+    row.setAttribute('role', 'listitem');
+    row.dataset.splitId = splitId;
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label';
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'vertical-tab-primary';
+    primary.dataset.tabId = focused?.id ?? '';
+    primary.dataset.focusKey = `split:${splitId}`;
+    primary.tabIndex = -1;
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const icons = document.createElement('span');
+    icons.className = 'vertical-split-icons';
+    for (const tab of members.slice(0, 4)) icons.appendChild(faviconFor(tab));
+    const titleEl = document.createElement('span');
+    titleEl.className = 'vertical-tab-title';
+    titleEl.dataset.i18nIgnore = '';
+    titleEl.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.className = 'vertical-tab-title-text';
+    text.textContent = label;
+    titleEl.appendChild(text);
+    primary.append(icons, titleEl);
+    if (focused) primary.addEventListener('click', () => activateTab(focused));
+    row.appendChild(primary);
+    return row;
+  }
+
+  // The group menu (tab group colors spec §6): main draws it in the overlay
+  // beside this header, from the ⋮ or a right-click (renderer.js).
+  let openGroupMenuId = null;
+  function openRailGroupMenu(groupId, headerRow) {
+    const r = headerRow.getBoundingClientRect();
+    openGroupMenuId = groupId;
+    headerRow.classList.add('menu-open');
+    api.openGroupMenu(groupId, { right: r.right, top: r.top, bottom: r.bottom });
+  }
+  window.blancRailGroupMenu = {
+    open(groupId) {
+      const row = list.querySelector(`.vertical-tabs-group[data-group-id="${CSS.escape(groupId)}"] .vertical-tabs-group-row`);
+      if (row) openRailGroupMenu(groupId, row);
+    },
+    closed(groupId, { focus }) {
+      openGroupMenuId = null;
+      list.querySelectorAll('.vertical-tabs-group-row.menu-open').forEach((row) => row.classList.remove('menu-open'));
+      if (focus) list.querySelector(`.vertical-tabs-group[data-group-id="${CSS.escape(groupId)}"] .vertical-tabs-group-more`)?.focus();
+    },
+  };
+
   function groupSection(group, members, activeTabId, index) {
     if (!members.length) return null;
     const section = document.createElement('section');
@@ -422,6 +507,9 @@
     section.setAttribute('role', 'group');
     section.dataset.dragSection = 'group';
     section.dataset.groupId = group.id;
+    // The gap above a group names its first tab (tab-drag.js).
+    section.dataset.firstTabId = members[0].id;
+    TabSections.paintGroup(section, group, 'group-colored');
     section.dataset.collapsed = String(!!group.collapsed);
 
     const containsActive = members.some((tab) => tab.id === activeTabId);
@@ -455,6 +543,12 @@
     caret.className = 'vertical-tabs-group-caret';
     caret.innerHTML = ICONS.caret;
     caret.setAttribute('aria-hidden', 'true');
+    // The color dot before the name; the block carries --group-color.
+    const colorDot = group.color ? document.createElement('span') : null;
+    if (colorDot) {
+      colorDot.className = 'group-color-dot';
+      colorDot.setAttribute('aria-hidden', 'true');
+    }
     const name = document.createElement('span');
     name.className = 'vertical-tabs-group-name';
     name.textContent = group.name;
@@ -462,7 +556,7 @@
     const count = document.createElement('span');
     count.className = 'vertical-tabs-group-count';
     count.textContent = String(members.length);
-    header.append(caret, name, count);
+    header.append(...[caret, colorDot, name, count].filter(Boolean));
     if (containsActive && group.collapsed) {
       const activeMarker = document.createElement('span');
       activeMarker.className = 'vertical-tabs-group-active';
@@ -496,13 +590,29 @@
         }
       }
     });
-    section.appendChild(header);
+    // The header and its ⋮ sit side by side: a button can't hold a button.
+    const headerRow = document.createElement('div');
+    headerRow.className = 'vertical-tabs-group-row' + (openGroupMenuId === group.id ? ' menu-open' : '');
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'vertical-tabs-group-more';
+    more.dataset.noDrag = '';
+    more.dataset.focusKey = `group-more:${group.id}`;
+    more.innerHTML = ICONS.more;
+    more.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    more.setAttribute('aria-haspopup', 'dialog');
+    more.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openRailGroupMenu(group.id, headerRow);
+    });
+    headerRow.append(header, more);
+    section.appendChild(headerRow);
 
     if (!group.collapsed) {
       const pinned = members.filter((tab) => tab.pinned);
       const regular = members.filter((tab) => !tab.pinned);
       for (const tab of pinned) section.appendChild(tabRow(tab, activeTabId));
-      for (const tab of regular) section.appendChild(tabRow(tab, activeTabId));
+      for (const row of rowsFor(regular, activeTabId)) section.appendChild(row);
     }
     return section;
   }
@@ -570,6 +680,7 @@
     const scrollTop = list.scrollTop;
     const tabs = payload.tabs || [];
     const groups = payload.groups || [];
+    railSplits = payload.splits || [];
     const activeTabId = payload.activeTabId;
     const knownGroupIds = new Set(groups.map((group) => group.id));
     const fragment = document.createDocumentFragment();
@@ -577,19 +688,31 @@
     const standalonePins = tabs.filter((tab) => tab.pinned && (tab.groupId ?? null) === null);
     fragment.appendChild(staticBucket(blancI18n.t('rail.section.pinned'), 'pinned', standalonePins, activeTabId));
 
-    groups.forEach((group, index) => {
-      const members = tabs.filter((tab) => tab.groupId === group.id);
-      const section = groupSection(group, members, activeTabId, index);
-      if (section) fragment.appendChild(section);
-    });
-
-    // Invalid orphaned group ids should never escape main's model, but keep
-    // their tabs visible if a future migration briefly produces one.
-    const looseTabs = tabs.filter((tab) => (
-      !tab.pinned &&
-      ((tab.groupId ?? null) === null || !knownGroupIds.has(tab.groupId))
-    ));
-    fragment.appendChild(staticBucket(blancI18n.t('rail.section.tabs'), 'loose', looseTabs, activeTabId));
+    // Groups and runs of ungrouped tabs, in tab order, as the island draws
+    // them (tab-sections.js). Invalid orphaned group ids should never escape
+    // main's model, but keep their tabs visible as a run if a future
+    // migration briefly produces one.
+    const byId = new Map(tabs.map((tab) => [tab.id, tab]));
+    let groupIndex = 0;
+    let endsInRun = false;
+    for (const entry of TabSections.sectionsOf(tabs)) {
+      const members = entry.tabIds.map((id) => byId.get(id));
+      const group = entry.groupId && knownGroupIds.has(entry.groupId)
+        ? groups.find((candidate) => candidate.id === entry.groupId)
+        : null;
+      if (group) {
+        const section = groupSection(group, members, activeTabId, groupIndex);
+        groupIndex += 1;
+        if (section) fragment.appendChild(section);
+        endsInRun = false;
+      } else {
+        fragment.appendChild(looseRun(members.filter((tab) => !tab.pinned), activeTabId));
+        endsInRun = true;
+      }
+    }
+    // Below a last group there is still a place for an ungrouped tab: the
+    // empty zone a drag reveals.
+    if (!endsInRun) fragment.appendChild(emptyZone('loose'));
 
     list.replaceChildren(fragment);
     list.scrollTop = scrollTop;

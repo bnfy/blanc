@@ -215,7 +215,10 @@
       "spaces.picker.hex",
       "result.tag.space",
       "settings.general.bangs.label",
-      "settings.general.customBangs.name"
+      "settings.general.customBangs.name",
+      "newtab.wallpaper.styleAuto",
+      "newtab.wallpaper.styleSpotlight",
+      "newtab.wallpaper.sunrise"
     ],
     "es": [
       "about.chromium",
@@ -253,7 +256,11 @@
       "spaces.color.iris",
       "spaces.picker.hex",
       "result.tag.space",
-      "settings.general.bangs.label"
+      "settings.general.bangs.label",
+      "groupMenu.colorLabel",
+      "newtab.wallpaper.styleAuto",
+      "newtab.wallpaper.sunrise",
+      "newtab.wallpaper.color"
     ],
     "fr": [
       "about.chromium",
@@ -298,7 +305,11 @@
       "spaces.picker.hex",
       "result.tag.space",
       "settings.general.bangs.label",
-      "settings.general.customBangs.code"
+      "settings.general.customBangs.code",
+      "newtab.wallpaper.filter",
+      "newtab.wallpaper.styleAuto",
+      "newtab.wallpaper.sunrise",
+      "newtab.wallpaper.imageLabel"
     ],
     "pt-BR": [
       "about.chromium",
@@ -338,7 +349,9 @@
       "mahjong.combo.combo",
       "spaces.picker.hex",
       "result.tag.space",
-      "settings.general.bangs.label"
+      "settings.general.bangs.label",
+      "newtab.wallpaper.styleAuto",
+      "newtab.wallpaper.sunrise"
     ],
     "it": [
       "about.chromium",
@@ -389,7 +402,9 @@
       "mahjong.setup.dailyDescription",
       "spaces.color.iris",
       "spaces.picker.hex",
-      "result.tag.space"
+      "result.tag.space",
+      "newtab.wallpaper.styleAuto",
+      "newtab.wallpaper.sunrise"
     ]
   }
 }

@@ -633,3 +633,34 @@ test('a Space drops local-file marks once its tabs no longer need them', () => {
   assert.equal('localFiles' in next.workspace, false);
   assert.equal(updateCapture(next.file, 'ws_1', CAPTURE(), 6).unchanged, true);
 });
+
+test('a Space keeps its section order marker and band item index', () => {
+  const { captureColumns: columns } = require('../../src/main/workspaces-model');
+  const kept = normalizeWorkspace({ ...VALID(), sectionOrder: true, closedIndex: 4 });
+  assert.equal(kept.sectionOrder, true);
+  assert.equal(kept.closedIndex, 4);
+  assert.equal('sectionOrder' in normalizeWorkspace({ ...VALID(), sectionOrder: 'yes' }), false);
+  assert.equal('closedIndex' in normalizeWorkspace({ ...VALID(), closedIndex: 0 }), false);
+  assert.equal(columns({ urls: [], sectionOrder: true, closedIndex: 2 }).closedIndex, 2);
+  assert.equal(columns({ urls: [], sectionOrder: true }).sectionOrder, true);
+  const start = createWorkspace(EMPTY_FILE(), {
+    name: 'Work', profileId: 'default', capture: { ...CAPTURE(), sectionOrder: true, closedIndex: 2 }, now: 1, id: 'ws_1',
+  }).file;
+  const moved = updateCapture(start, 'ws_1', { ...CAPTURE(), sectionOrder: true }, 5);
+  assert.equal('closedIndex' in moved.workspace, false, 'index 0 is not left at the old value');
+});
+
+// Split View (F53): Spaces keep a window's splits like its groups.
+test('workspaces keep splits through normalize and capture', () => {
+  const capture = {
+    ...CAPTURE(),
+    urls: ['https://a.test/', 'https://b.test/'],
+    meta: [],
+    splits: [{ id: 'split-1', layout: { kind: 'columns', widths: [0.5, 0.5] }, focusedIndex: 0 }],
+    splitIds: ['split-1', 'split-1'],
+  };
+  const created = createWorkspace(EMPTY_FILE(), { name: 'Pair', profileId: 'default', capture, now: 1, id: 'pair' });
+  assert.deepEqual(created.workspace.splitIds, ['split-1', 'split-1']);
+  assert.deepEqual(normalizeWorkspace(created.workspace).splits, capture.splits);
+  assert.equal('splits' in normalizeWorkspace({ ...created.workspace, splitIds: ['split-1'] }), false);
+});

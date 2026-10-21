@@ -39,6 +39,30 @@ There is no press-page version to bump: the website derives the version from
 `npm run compliance:check`. Merge only when every check run on the PR's head
 commit has finished green.
 
+## 1b. Put the What's New page live (feature releases, X.Y.0)
+
+`release.sh` refuses a feature release until
+`https://blanc.day/whats-new/X.Y` answers 200 (`scripts/check-whats-new-page.mjs`,
+run before building and again before Sigstore). Blanc asks for the page once
+per launch after the update, and people update within a minute of
+publication, so it has to be live first.
+
+- After the prep PR merges, draft it with
+  `npm run site:whats-new -- --release X.Y`. Before the release is public it
+  reads `docs/press/release-notes/vX.Y.0.md`, turns the bold-named Added
+  bullets into highlights with TODO media, lists candidate captures, and
+  never overwrites a page (`--force` replaces only a draft).
+- Take its captures from the merged build, show the owner the rendered page,
+  and get the owner's explicit sign-off on its final text and media. Give a
+  highlight for some platforms only a `platforms` list (Sunrise Gold:
+  `["mac"]`), so other platforms' visitors never see it. With
+  the owner's approval, a release can instead go in `noPage` in
+  `site/src/data/whats-new.json`.
+- Merge it in a website-only PR, then run `npm run site:deploy` from a clean
+  `origin/main`. Until the release is in `releases.json` it builds as the
+  one *upcoming* page: no date, `noindex`, and left out of the sitemap and
+  the `/whats-new` redirect.
+
 ## 2. Preflight
 
 - Use a clean throwaway worktree detached at `origin/main`:
@@ -211,8 +235,16 @@ short:
    inside the previous public Blanc, which finds, downloads and installs the
    update through **Restart Now**. Opening an installer directly never
    counts. Record them as pending until the user reports each one.
+7. **r/blancbrowser release post:** after the site deploy, draft a post for
+   Blanc's own subreddit in the format of the v1.36.0 post in
+   `docs/reddit-community/r-blancbrowser-setup.md` (title naming the main
+   changes, Release flair, a link to the version's `/changelog#vX-Y-Z`
+   anchor). Check every claim against the new release with
+   `docs/marketing-claims.md`. The owner approves the exact text and posts
+   it; Claude can't open reddit.com.
 
-No posts or launch channels go out as part of a release.
+Apart from that r/blancbrowser post, no posts or launch channels go out as
+part of a release.
 
 ## macOS signing details
 

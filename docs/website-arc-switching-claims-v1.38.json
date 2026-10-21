@@ -1,0 +1,314 @@
+{
+  "publicRelease": "v1.38.0",
+  "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
+  "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
+  "scope": "Owner-approved October 19 switching-guide copy. Replaces retired wording in the v1.27, v1.32 and v1.33 ledgers without changing public copy. Table cells and support anchor are included.",
+  "evidenceGroups": {
+    "arcImport": {
+      "evidence": [
+        "src/main/arc-import.js",
+        "src/main/arc-import-source.js",
+        "src/main/arc-sidebar.js",
+        "src/renderer/pages/tab-import-arc.js",
+        "spec/acceptance/arc-spaces-import.feature",
+        "test/unit/arc-import.test.js",
+        "docs/evidence/f45-arc-import-real-sidebars-2026-10-12.md"
+      ],
+      "qualification": "User-selected local sidebar import, not a live connection or account migration. Each selected Space becomes a Blanc Space; loose pins remain pinned and folders become groups. Optional top-row Favorites go to the Arc folder. No sign-ins, passwords, history, archived tabs, Notes or Easels. Linux requires a copied sidebar file. Real-sidebar hand checks do not establish Intel Mac or x64 Windows acceptance."
+    },
+    "limits": {
+      "evidence": [
+        "docs/marketing-claims.md",
+        "src/renderer/overlay.js"
+      ],
+      "qualification": "No general Chrome Web Store installation or built-in AI assistant. /bring-tabs is user-invoked from the command panel. Headings and navigation labels describe this guide, not additional capabilities."
+    }
+  },
+  "claims": [
+    {
+      "id": "arc-switching-138-01",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Bring the Arc Spaces you choose into Blanc as separate spaces, with pinned tabs, Today tabs and folders converted to tab groups. The guide below explains what transfers, what stays in Arc and how to start the import.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "This is a tab import, not a transfer of your accounts or browsing history. Blanc reads Arc’s sidebar file without changing it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-03",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Before you switch",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-04",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "From Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-05",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "In Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-06",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Selected Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-07",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Separate Blanc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-08",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Pinned tabs and Today tabs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-09",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Tabs in the imported space; loose pinned tabs remain pinned",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-10",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Folders",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-11",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Tab groups",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-12",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Top-row Favorites, if selected",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-13",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "A Favorites folder named Arc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-14",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Sign-ins, passwords, history and archived tabs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-15",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Not imported",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-16",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Notes and Easels",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-17",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc does not install extensions from the Chrome Web Store or include an AI assistant. If either is essential to you, check those limits before switching. Importing your tabs does not sign you into their websites.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-18",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "How to bring your Arc Spaces into Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-19",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "1. Open Bring Your Tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-20",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "In Blanc, press ⌘L on Mac or Ctrl+L on Windows and Linux, then run /bring-tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-21",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "2. Choose your Arc data.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-22",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Use the Arc option to preview your Spaces. If Blanc cannot find the sidebar file, use Choose file… to select StorableSidebar.json. On Linux, select a copy of that file from your Mac or Windows computer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-23",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "3. Review and import.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-24",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Select the Spaces you want and decide whether to include Arc’s top-row Favorites, then confirm the import. Each selected Space becomes a Blanc Space. Open an imported space when you are ready to use it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-25",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Ready to bring your Arc Spaces into Blanc?",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "limits"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "arc-switching-138-support",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Moving from Arc? See what transfers and how to bring your Spaces into Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}

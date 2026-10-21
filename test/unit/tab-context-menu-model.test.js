@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { buildTabContextMenu, closableTabIds } = require('../../src/main/tab-context-menu-model');
+const { buildTabContextMenu, closableTabIds, closableBeside } = require('../../src/main/tab-context-menu-model');
 const { englishT } = require('../support/english-t');
 
 const baseTab = {
@@ -18,6 +18,10 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
   canQuiet: over.canQuiet ?? true,
+  canCloseAbove: over.canCloseAbove ?? true,
+  canCloseBelow: over.canCloseBelow ?? true,
+  siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
+  splitCandidates: over.splitCandidates ?? [],
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -27,9 +31,9 @@ test('core items present, in order, for a row on a non-active tab', () => {
   const m = build({ activeTabId: 2, surface: 'row' });
   assert.deepEqual(ids(m), [
     'copy-link', 'copy-clean-link', 'reload', 'duplicate', 'rename',
-    'toggle-pin', 'toggle-mute', 'toggle-favorite', 'group',
-    'glance', 'quiet', 'new-tab', 'new-private-tab',
-    'close-others', 'move-new-window', 'reopen-closed', 'close',
+    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'group', 'split-with',
+    'glance', 'quiet', 'new-tab-below', 'new-tab', 'new-private-tab',
+    'close-others', 'close-above', 'close-below', 'move-new-window', 'reopen-closed', 'close',
   ]);
 });
 
@@ -51,6 +55,23 @@ test('pin/mute/favorite labels reflect state', () => {
   assert.equal(byId(build({ tab: { muted: true } }), 'toggle-mute').label, 'Unmute Tab');
   assert.equal(byId(build(), 'toggle-favorite').label, 'Save to Favorites');
   assert.equal(byId(build({ tab: { bookmarked: true } }), 'toggle-favorite').label, 'Remove from Favorites');
+});
+
+test('pinned-home commands appear directly after pin and mirror main eligibility', () => {
+  const unpinned = build();
+  assert.equal(byId(unpinned, 'return-pinned-home'), undefined);
+  assert.equal(byId(unpinned, 'set-pinned-home'), undefined);
+
+  const pinned = build({
+    tab: { pinned: true, pinnedHome: { canReturn: true, canSet: false } },
+  });
+  const itemIds = ids(pinned);
+  const pinIndex = itemIds.indexOf('toggle-pin');
+  assert.deepEqual(itemIds.slice(pinIndex, pinIndex + 3), [
+    'toggle-pin', 'return-pinned-home', 'set-pinned-home',
+  ]);
+  assert.equal(byId(pinned, 'return-pinned-home').enabled, true);
+  assert.equal(byId(pinned, 'set-pinned-home').enabled, false);
 });
 
 test('save-to-favorites disabled for private and non-http tabs', () => {
@@ -136,4 +157,112 @@ test('the current Glance reference offers Close Glance instead of Open in Glance
   const other = build({ activeTabId: 2, surface: 'row', glanceTabId: 3 });
   assert.equal(byId(other, 'glance').label, 'Open in Glance');
   assert.equal(byId(other, 'close-glance'), undefined);
+});
+
+// Tab menu additions (spec 2026-10-17-tab-menu-additions-design.md).
+test('the menu offers New Tab Below first in the new-tab section', () => {
+  const m = build();
+  const at = m.findIndex((i) => i.id === 'new-tab-below');
+  assert.equal(m[at - 1].type, 'separator');
+  assert.equal(m[at + 1].id, 'new-tab');
+  assert.equal(byId(m, 'new-tab-below').label, 'New Tab Below');
+});
+
+test('Close Tabs Above and Below sit after Close Other Tabs and follow their enabled state', () => {
+  const m = build({ canCloseAbove: false, canCloseBelow: true });
+  assert.equal(byId(m, 'close-above').label, 'Close Tabs Above');
+  assert.equal(byId(m, 'close-above').enabled, false);
+  assert.equal(byId(m, 'close-below').enabled, true);
+});
+
+test('nothing to close disables the item', () => {
+  assert.equal(byId(build({ canCloseBelow: false }), 'close-below').enabled, false);
+});
+
+test('the site-mute label follows the site\'s state and hides for non-web tabs', () => {
+  assert.equal(byId(build({ siteMuted: false }), 'toggle-site-mute').label, 'Mute Site');
+  assert.equal(byId(build({ siteMuted: true }), 'toggle-site-mute').label, 'Unmute Site');
+  assert.equal(byId(build({ siteMuted: null }), 'toggle-site-mute'), undefined);
+});
+
+test('closableBeside skips pins and the kept tab', () => {
+  const tabsById = new Map([['p', { pinned: true }], ['a', {}], ['k', {}], ['b', {}], ['q', { pinned: true }], ['c', {}]]);
+  const tabOrder = ['p', 'a', 'k', 'b', 'q', 'c'];
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'above' }), ['a']);
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'k', direction: 'below' }), ['b', 'c']);
+  assert.deepEqual(closableBeside({ tabOrder, tabsById, keepId: 'c', direction: 'below' }), []);
+});
+
+// Split View (F53), spec §3.1 and §3.5.
+test('menu: Split with lists fellow ungrouped tabs first and other groups as submenus', () => {
+  const m = build({
+    groups: [{ id: 'g1', name: 'Read' }, { id: 'g2', name: 'Work' }],
+    splitCandidates: [
+      { id: 2, title: 'Docs', groupId: null },
+      { id: 3, title: 'Preview', groupId: 'g1' },
+      { id: 4, title: 'Notes', groupId: null },
+    ],
+  });
+  const item = byId(m, 'split-with');
+  assert.equal(item.label, 'Split with');
+  assert.notEqual(item.enabled, false);
+  const rows = item.submenu.map((i) => [i.type ?? i.id, i.label, i.tabId]);
+  assert.deepEqual(rows, [
+    ['split-with-tab', 'Docs', 2], ['split-with-tab', 'Notes', 4], ['separator', undefined, undefined],
+    ['split-with-group', 'Read', undefined],
+  ], 'a group with no eligible tab (Work) has no submenu; no header above ungrouped tabs');
+  assert.deepEqual(item.submenu[3].submenu.map((i) => [i.type ?? i.id, i.label, i.tabId]),
+    [['header', 'Moves out of Read', undefined], ['split-with-tab', 'Preview', 3]]);
+});
+
+test('menu: from a grouped tab, its group leads under a header and Ungrouped is a submenu', () => {
+  const m = build({
+    tab: { groupId: 'g1' },
+    groups: [{ id: 'g1', name: 'Read' }, { id: 'g2', name: 'Work' }],
+    splitCandidates: [
+      { id: 2, title: 'Mail', groupId: 'g2' },
+      { id: 3, title: 'Preview', groupId: 'g1' },
+      { id: 4, title: 'Notes', groupId: null },
+    ],
+  });
+  const sub = byId(m, 'split-with').submenu;
+  assert.deepEqual(sub.map((i) => [i.type ?? i.id, i.label]), [
+    ['header', 'Read'], ['split-with-tab', 'Preview'], ['separator', undefined],
+    ['split-with-group', 'Work'], ['split-with-ungrouped', 'Ungrouped'],
+  ]);
+  assert.deepEqual(sub[3].submenu.map((i) => i.label), ['Moves into Read', 'Mail']);
+  assert.deepEqual(sub[4].submenu.map((i) => i.label), ['Moves into Read', 'Notes']);
+});
+
+test('menu: Split with skips the separator when every choice is in another group', () => {
+  const sub = byId(build({
+    groups: [{ id: 'g1', name: 'Read' }],
+    splitCandidates: [{ id: 3, title: 'Preview', groupId: 'g1' }],
+  }), 'split-with').submenu;
+  assert.deepEqual(sub.map((i) => i.type ?? i.id), ['split-with-group']);
+});
+
+test('menu: Split with cuts long titles so the menu stays narrow', () => {
+  const long = 'Shop @ Anthony Interiors ~ Home ~ Shopify ~ Products ~ All';
+  const [row] = byId(build({ splitCandidates: [{ id: 2, title: long, groupId: null }] }), 'split-with').submenu;
+  assert.ok(row.label.length <= 48 && row.label.endsWith('…'), row.label);
+  assert.ok(long.startsWith(row.label.slice(0, -1)));
+});
+
+test('menu: Split with is disabled with no other tab to split with', () => {
+  assert.equal(byId(build(), 'split-with').enabled, false);
+});
+
+test('menu: Split with is disabled for a pinned tab, with the reason', () => {
+  const item = byId(build({ tab: { pinned: true }, splitCandidates: [{ id: 2, title: 'Docs' }] }), 'split-with');
+  assert.deepEqual(item.submenu.map((i) => [i.label, i.enabled]), [["Pinned tabs can't join a split", false]]);
+});
+
+test('menu: a split tab offers Remove from Split and Close Split instead', () => {
+  const m = build({ tab: { splitId: 'split-1' }, splitCandidates: [{ id: 2, title: 'Docs' }] });
+  assert.equal(byId(m, 'split-with'), undefined);
+  assert.equal(byId(m, 'remove-from-split').label, 'Remove from Split');
+  assert.equal(byId(m, 'close-split').label, 'Close Split');
+  const order = ids(m);
+  assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
 });

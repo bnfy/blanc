@@ -52,3 +52,35 @@ export function filterBangs(rows, query) {
   byCode.sort((a, b) => a.length - b.length || (a.row.code < b.row.code ? -1 : a.row.code > b.row.code ? 1 : 0));
   return [...byCode.map((entry) => entry.row), ...byText];
 }
+
+/**
+ * The page's featured cards: the app's own popular bangs (what its ⌘L panel
+ * lists for `!`), in its order. Each shows the popular code first, the one
+ * people type, then up to two more of the bang's codes.
+ */
+export function featuredCards(data) {
+  return data.popular.map((code) => {
+    const [primary, aliases, name, host] = data.entries.find(([own, others]) => own === code || others.includes(code));
+    const codes = [code, ...[primary, ...aliases].filter((other) => other !== code)].slice(0, 3);
+    return { code, codes, name, host };
+  });
+}
+
+const TONES = 6;
+
+/**
+ * The lettered tile under every icon, which shows while the icon loads and
+ * stays when a site has none: the name's first letter or digit, on one of six
+ * tones picked by a stable hash (FNV-1a) of the host.
+ */
+export function iconTile(host, name) {
+  const glyph = String(name).match(/[\p{L}\p{N}]/u) ?? String(host).match(/[\p{L}\p{N}]/u);
+  let hash = 0x811c9dc5;
+  for (const char of String(host)) hash = Math.imul(hash ^ char.codePointAt(0), 0x01000193) >>> 0;
+  return { letter: glyph ? glyph[0].toUpperCase() : '?', tone: hash % TONES };
+}
+
+/** Where the icon server (cloudflare/bang-icons-worker) answers for `host`. */
+export function iconUrl(host) {
+  return `/bang-icons/${host}`;
+}

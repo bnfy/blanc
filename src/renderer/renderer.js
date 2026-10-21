@@ -6,7 +6,110 @@
   const { platform } = window.browserAPI;
   const isMac = platform === 'darwin';
   document.documentElement.dataset.platform = platform;
+  // The floating Island (auto-hide, float style) runs this document again in
+  // small views above the page, each showing one element of the strip.
+  const floatSurface = window.location.hostname === 'float';
+  if (floatSurface) document.documentElement.dataset.surface = 'float';
+  // The floating Glance card's chrome runs it again too, showing only the
+  // card (main.js ensureGlanceCardView).
+  const glanceSurface = window.location.hostname === 'glance';
+  if (glanceSurface) document.documentElement.dataset.surface = 'glance';
+  // Copies of the strip draw from its broadcasts but never report geometry:
+  // the strip itself is the one authority.
+  const copySurface = floatSurface || glanceSurface;
+  // Window coordinates of an element: its place on the strip stage (#chrome).
+  // The strip's stage sits at the window's origin; a float view's stage is
+  // shifted by the view's origin and, mid-slide, by the slide.
+  const stageRect = (el) => {
+    const r = el.getBoundingClientRect();
+    const stage = document.getElementById('chrome').getBoundingClientRect();
+    const left = r.left - stage.left;
+    const top = r.top - stage.top;
+    return { x: left, y: top, left, top, right: left + r.width, bottom: top + r.height, width: r.width, height: r.height };
+  };
   if (isMac) document.body.classList.add('mac');
+
+  // Tooltips for the strip's buttons (the pill, the Glance header, the side
+  // list). Each carries data-tooltip rather than a native title, like the
+  // overlay's (overlay.js islandTip), so the two look and time alike. The
+  // strip is only 68px tall and the page view covers anything past it, so
+  // main draws the tip in its own small view (tooltip.html): this measures it
+  // with the same .island-tip styles and asks main to float it under the
+  // button. Visual only; each button's aria-label already says the same.
+  const stripTipMeasure = document.createElement('div');
+  stripTipMeasure.className = 'island-tip';
+  stripTipMeasure.setAttribute('aria-hidden', 'true');
+  document.body.append(stripTipMeasure);
+  const STRIP_TIP_DELAY_MS = 350;
+  let stripTipTarget = null;
+  let stripTipTimer = 0;
+  let stripTipShown = false;
+  let stripTipPointer = null;
+
+  function showStripTip(el) {
+    const text = el.dataset.tooltip;
+    if (!text || !el.isConnected) return;
+    stripTipMeasure.textContent = text;
+    const tip = stripTipMeasure.getBoundingClientRect();
+    const box = stageRect(el);
+    window.browserAPI.showTooltip({
+      text,
+      anchor: { x: box.x, y: box.y, width: box.width, height: box.height },
+      width: tip.width,
+      height: tip.height,
+      privateTheme: document.documentElement.dataset.theme === 'private',
+    });
+    stripTipShown = true;
+  }
+
+  function hideStripTip() {
+    clearTimeout(stripTipTimer);
+    stripTipTarget = null;
+    if (!stripTipShown) return;
+    stripTipShown = false;
+    window.browserAPI.hideTooltip();
+  }
+
+  function aimStripTip(el, delay) {
+    if (el === stripTipTarget) return;
+    hideStripTip();
+    if (!el || !el.dataset.tooltip) return;
+    stripTipTarget = el;
+    if (delay) stripTipTimer = setTimeout(() => showStripTip(el), delay);
+    else showStripTip(el);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    stripTipPointer = { x: e.clientX, y: e.clientY };
+    aimStripTip(e.target.closest?.('[data-tooltip]') || null, STRIP_TIP_DELAY_MS);
+  });
+  document.documentElement.addEventListener('pointerleave', () => {
+    stripTipPointer = null;
+    hideStripTip();
+  });
+  document.addEventListener('pointerdown', hideStripTip, true);
+  document.addEventListener('focusin', (e) => {
+    const el = e.target.closest?.('[data-tooltip]');
+    if (el && el.matches(':focus-visible')) aimStripTip(el, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target === stripTipTarget) hideStripTip();
+  });
+  // The strip redraws its buttons on every tab update: carry the tip over to
+  // whatever button now sits under a still pointer, and keep a shown tip's
+  // text current (a download count, Reload turning into Stop).
+  new MutationObserver((mutations) => {
+    if (!stripTipTarget) return;
+    if (!stripTipTarget.isConnected) {
+      const shown = stripTipShown;
+      const under = stripTipPointer
+        && document.elementFromPoint(stripTipPointer.x, stripTipPointer.y)?.closest('[data-tooltip]');
+      hideStripTip();
+      if (under) aimStripTip(under, shown ? 0 : STRIP_TIP_DELAY_MS);
+    } else if (stripTipShown && mutations.some((m) => m.target === stripTipTarget && m.type === 'attributes')) {
+      showStripTip(stripTipTarget);
+    }
+  }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-tooltip'] });
 
   // Right-click opens the pill's unified menu, or a vertical-rail row's tab
   // menu (both native, built in main). Everywhere else on the strip — window
@@ -16,16 +119,21 @@
   document.addEventListener('contextmenu', (e) => {
     // The Glance header's title and empty area address the reference tab;
     // its buttons are controls and open nothing.
-    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button');
+    const onGlanceHeader = !!e.target.closest('#glanceHeader') && !e.target.closest('button, [role="button"]');
     window.__blancCtxRowTabId =
       e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId
       ?? (onGlanceHeader ? state.glanceTabId : null)
       ?? null;
-    // A rail group header gets main's group menu (group-context-menu.js).
-    window.__blancCtxGroupId = window.__blancCtxRowTabId == null
-      ? e.target.closest('.vertical-tabs-group-header[data-group-id]')?.dataset.groupId ?? null
+    // A rail group header opens its group menu (tab group colors spec §6).
+    const groupHeader = window.__blancCtxRowTabId == null
+      ? e.target.closest('.vertical-tabs-group-row')?.querySelector('.vertical-tabs-group-header[data-group-id]')
       : null;
-    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null && window.__blancCtxGroupId == null) {
+    if (groupHeader) {
+      e.preventDefault();
+      window.blancRailGroupMenu?.open(groupHeader.dataset.groupId);
+      return;
+    }
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
   });
@@ -44,7 +152,7 @@
   const fillHintLabel = blancI18n.t('pill.fillHint', {
     shortcut: isMac ? '⌥⌘P' : `${blancI18n.t('key.ctrl')}+${blancI18n.t('key.shift')}+P`,
   });
-  pillFillHint.title = fillHintLabel;
+  pillFillHint.dataset.tooltip = fillHintLabel;
   pillFillHint.setAttribute('aria-label', fillHintLabel);
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
@@ -60,18 +168,18 @@
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
+  const glanceCard = document.getElementById('glanceCard');
   const glanceHeader = document.getElementById('glanceHeader');
   const glanceFavicon = document.getElementById('glanceFavicon');
   const glanceTitle = document.getElementById('glanceTitle');
   const glancePrivate = document.getElementById('glancePrivate');
   const glanceIdentity = document.querySelector('#glanceHeader .glance-tab-identity');
   let shownGlanceTabId = null;
-  const glancePromote = document.getElementById('glancePromote');
+  const glanceOpenAsTab = document.getElementById('glanceOpenAsTab');
   const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
   const glanceBack = document.getElementById('glanceBack');
   const glanceReload = document.getElementById('glanceReload');
-  const glanceDivider = document.getElementById('glanceDivider');
   const glanceStatus = document.getElementById('glanceStatus');
 
   let state = {
@@ -82,13 +190,6 @@
     tabLayout: 'island',
   };
   let glanceLayout = null;
-  let glanceResizeState = null;
-  let glanceResizeFrame = 0;
-  let queuedGlancePoint = null;
-  /** Optimistic ratio for keyboard resizing: key repeat outruns the
-   * main-process layout echo, so consecutive keydowns step from here rather
-   * than recomputing every step from the same stale layout. */
-  let glanceKeyRatio = null;
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
@@ -124,10 +225,139 @@
     stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
     download: `<svg viewBox="0 0 16 16"><path d="${DOWNLOAD_D}"/></svg>`,
-    // Same cut as the panel row's close (overlay.js ICONS.close) — both mean
-    // "close tab". The only ✕ in the pill; see `stop` above.
-    close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    // The only ✕ in the pill; see `stop` above. Drawn 8 units across — larger
+    // than the panel row's close (overlay.js ICONS.close) — so it carries the
+    // same optical weight as its neighbours, reload's r=5 ring and the heart,
+    // instead of reading a size smaller beside them.
+    close: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
   };
+
+  // ---- Split View (F53, spec D9): pane cards and dividers --------------
+  // Main sends each pane's card and page rect (split-layout.js). The page
+  // views sit inside the cards, so this document draws each card's border
+  // and the dividers in the space around them; the corner tabs are views of
+  // their own (main.js). Geometry rides CSS custom properties.
+  const splitPanesEl = document.getElementById('splitPanes');
+  const splitFrames = new Map(); // tabId -> card element
+  let splitLayoutState = null;
+
+  const placeAt = (el, rect) => {
+    el.style.setProperty('--split-x', `${rect.x}px`);
+    el.style.setProperty('--split-y', `${rect.y}px`);
+    el.style.setProperty('--split-w', `${rect.width}px`);
+    el.style.setProperty('--split-h', `${rect.height}px`);
+  };
+
+  function splitFrame(tabId) {
+    let el = splitFrames.get(tabId);
+    if (el) return el;
+    el = document.createElement('div');
+    el.className = 'split-pane-frame';
+    el.dataset.tabId = tabId;
+    el.setAttribute('aria-hidden', 'true');
+    splitFrames.set(tabId, el);
+    // Cards come before the dividers, in the order they are made.
+    splitPanesEl.insertBefore(el, splitPanesEl.querySelector('.split-divider'));
+    return el;
+  }
+
+  function splitDivider(index, axis) {
+    const el = document.createElement('div');
+    el.className = 'split-divider';
+    el.tabIndex = 0;
+    el.setAttribute('role', 'separator');
+    el.setAttribute('aria-label', blancI18n.t('split.dividerLabel'));
+    el.dataset.index = String(index);
+    el.dataset.axis = axis;
+    el.setAttribute('aria-orientation', axis === 'x' ? 'vertical' : 'horizontal');
+    const grip = document.createElement('span');
+    grip.className = 'split-divider-grip';
+    el.append(grip);
+    let drag = null;
+    const report = (point) => {
+      if (!splitLayoutState) return;
+      window.browserAPI.resizeSplit(splitLayoutState.splitId, index, axis, point);
+    };
+    el.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || el.dataset.saved !== 'true') return;
+      event.preventDefault();
+      const r = el.getBoundingClientRect();
+      drag = { pointerId: event.pointerId, dx: event.clientX - (r.left + r.width / 2), dy: event.clientY - (r.top + r.height / 2) };
+      el.setPointerCapture(event.pointerId);
+    });
+    const finish = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      drag = null;
+      if (el.hasPointerCapture(event.pointerId)) el.releasePointerCapture(event.pointerId);
+    };
+    el.addEventListener('pointermove', (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      // A release this document never heard (it landed in a page view) must
+      // not leave the divider following a plain hover.
+      if (!(event.buttons & 1)) { finish(event); return; }
+      report({ x: Math.round(event.clientX - drag.dx), y: Math.round(event.clientY - drag.dy) });
+    });
+    el.addEventListener('pointerup', finish);
+    el.addEventListener('pointercancel', finish);
+    el.addEventListener('lostpointercapture', () => { drag = null; });
+    el.addEventListener('dblclick', () => splitLayoutState && window.browserAPI.resetSplit(splitLayoutState.splitId));
+    el.addEventListener('keydown', (event) => {
+      if (!splitLayoutState || el.dataset.saved !== 'true') return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        window.browserAPI.resetSplit(splitLayoutState.splitId);
+        return;
+      }
+      const keys = axis === 'x' ? { ArrowLeft: -1, ArrowRight: 1 } : { ArrowUp: -1, ArrowDown: 1 };
+      const dir = keys[event.key];
+      if (!dir) return;
+      event.preventDefault();
+      const r = el.getBoundingClientRect();
+      const step = Math.round(window.innerWidth * (event.shiftKey ? 0.05 : 0.02)) * dir;
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      report(axis === 'x' ? { x: Math.round(cx + step), y: Math.round(cy) } : { x: Math.round(cx), y: Math.round(cy + step) });
+    });
+    return el;
+  }
+
+  function renderSplitPanes(layout) {
+    splitLayoutState = layout;
+    const visible = !!layout?.panes?.length;
+    splitPanesEl.hidden = !visible;
+    stripEl.classList.toggle('split-open', visible);
+    if (!visible) {
+      for (const el of splitFrames.values()) el.remove();
+      splitFrames.clear();
+      splitPanesEl.querySelectorAll('.split-divider').forEach((el) => el.remove());
+      return;
+    }
+    const keep = new Set(layout.panes.map((p) => p.tabId));
+    for (const [tabId, el] of splitFrames) {
+      if (!keep.has(tabId)) { el.remove(); splitFrames.delete(tabId); }
+    }
+    for (const pane of layout.panes) {
+      const el = splitFrame(pane.tabId);
+      el.hidden = !pane.frame;
+      if (pane.frame) placeAt(el, pane.frame);
+      el.classList.toggle('focused', !!pane.focused);
+      el.classList.toggle('private', !!pane.private);
+    }
+    const existing = [...splitPanesEl.querySelectorAll('.split-divider')];
+    layout.dividers.forEach((d, i) => {
+      let el = existing[i];
+      if (!el || el.dataset.index !== String(d.index) || el.dataset.axis !== d.axis) {
+        el?.remove();
+        el = splitDivider(d.index, d.axis);
+      }
+      el.dataset.saved = String(!!d.saved);
+      placeAt(el, d.rect);
+      // Re-appending a divider would move it in the DOM, which drops its
+      // pointer capture in the middle of a drag.
+      if (!el.isConnected) splitPanesEl.append(el);
+    });
+    existing.slice(layout.dividers.length).forEach((el) => el.remove());
+  }
 
   // The reference header reuses the pill's own back and reload glyphs.
   glanceBack.innerHTML = PILL_ICONS.back;
@@ -140,7 +370,7 @@
     const b = document.createElement('button');
     b.className = 'pill-btn';
     b.innerHTML = PILL_ICONS[iconKey];
-    b.title = title;
+    b.dataset.tooltip = title;
     b.setAttribute('aria-label', title);
     // Don't let a mouse click focus the button. Reload (and friends) retain
     // focus after a click since they don't navigate away; a later keypress
@@ -291,9 +521,10 @@
       : active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
 
-    downloadsBtn.title = active > 0
+    downloadsBtn.dataset.tooltip = active > 0
       ? blancI18n.t('pill.downloading', { count: active })
       : heldFull ? blancI18n.t('pill.downloadDone') : blancI18n.t('pill.downloads');
+    downloadsBtn.setAttribute('aria-label', downloadsBtn.dataset.tooltip);
   }
   renderDownloads();
 
@@ -303,7 +534,7 @@
     mainMenuButton.hidden = false;
     mainMenuButton.addEventListener('click', async () => {
       if (mainMenuOpen) return;
-      const rect = mainMenuButton.getBoundingClientRect();
+      const rect = stageRect(mainMenuButton);
       mainMenuOpen = true;
       mainMenuButton.setAttribute('aria-expanded', 'true');
       try {
@@ -435,12 +666,11 @@
     return pillDomain.scrollWidth > pillDomain.clientWidth + 1;
   }
 
-  /** When the pill is narrower than its contents (a narrow Glance main
-   * pane), the address keeps priority and the rest gives way in order: fewer
+  /** When the pill is narrower than its contents (a narrow window or rail
+   * layout), the address keeps priority and the rest gives way in order: fewer
    * dots, with the rest folded into +N (the active tab always keeps its
    * dot); then, with one dot left, Forward and Favorite hide. Only then may
-   * the address truncate; the Glance divider stops before it gets unreadable
-   * (measureGlanceFloors). Any change to the room or to what the Island shows
+   * the address truncate. Any change to the room or to what the Island shows
    * starts again from the full Island, so it grows back when room returns;
    * when nothing changed, the last fit stands and nothing is measured. */
   function fitIslandDots() {
@@ -449,28 +679,20 @@
     if (refit) {
       dotFitKey = key;
       dotBudget = DOT_CAP;
-      islandPill.classList.remove('slim', 'uncentred');
+      islandPill.classList.remove('slim');
     } else if (dotsSignature() === lastDotsSig) {
       return;
     }
-    // With vertical tabs or Glance the dot row is not drawn, so fewer dots
+    // With vertical tabs or a split the dot row is not drawn, so fewer dots
     // free nothing.
-    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('glance-open');
-    // Stacked on Windows and Linux (the platforms with window controls on
-    // the strip's right edge) the Island is centred between two reservations
-    // for them (styles.css); when even the slim Island does not fit, it gives
-    // up its centre line before its address.
-    const canUncentre = stripEl.dataset.glanceDirection === 'vertical'
-      && document.documentElement.dataset.platform !== 'darwin';
+    const dotsShown = state.tabLayout !== 'vertical' && !stripEl.classList.contains('split-open');
     for (;;) {
       renderDotRow();
       if (!pillOverflows() && !addressTruncated()) break;
       if (dotsShown && dotBudget > 1) dotBudget -= 1;
       else if (!islandPill.classList.contains('slim')) islandPill.classList.add('slim');
-      else if (canUncentre && !islandPill.classList.contains('uncentred')) islandPill.classList.add('uncentred');
       else break;
     }
-    if (refit) measureGlanceFloors();
   }
 
   /** Everything the fit depends on except the dots themselves: the room the
@@ -484,8 +706,9 @@
     const shown = [...islandPill.children, ...pillShortcuts.children, ...pillActions.children]
       .map((element) => (element.hidden ? 0 : 1)).join('');
     return [
-      window.innerWidth, root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
-      stripEl.dataset.glanceDirection ?? '', stripEl.style.getPropertyValue('--glance-primary-width'),
+      // A float view copies a strip of the window's width, not its own.
+      floatSurface ? root.style.getPropertyValue('--float-stage-width') : window.innerWidth,
+      root.dataset.platform, state.tabLayout, root.style.getPropertyValue('--vertical-tabs-w'),
       shown, state.tabs.length, state.activeTabId, pillDomain.textContent,
     ].join('|');
   }
@@ -519,34 +742,6 @@
     return islandPill.getBoundingClientRect().width / (1 + ISLAND_SCALE * k);
   }
 
-  /** With Glance side by side, measure the two minimums main stops the
-   * divider at. The main pane's: the slim Island (no Forward or Favorite, and
-   * no dot row: Glance hides it) with about ten characters of address, plus
-   * the clearance the stylesheet gives the Island in this layout. The
-   * reference's: the Glance header at its most compact, with the padding the
-   * stylesheet gives it (which reserves the window controls on Windows and
-   * Linux). Measured on the live elements, so every chip, label and language
-   * counts and the spacing stays defined in one place (styles.css). */
-  function measureGlanceFloors() {
-    if (glanceLayout?.direction !== 'horizontal' || !islandPill.getBoundingClientRect().width) return;
-    // The room the stylesheet allows: a filler grows the pill to its max-width.
-    const filler = document.createElement('span');
-    filler.className = 'island-measure-filler';
-    islandPill.append(filler);
-    const room = pillWidth();
-    filler.remove();
-    const wasSlim = islandPill.classList.contains('slim');
-    islandPill.classList.add('slim', 'measuring');
-    const needed = pillWidth();
-    islandPill.classList.remove('measuring');
-    islandPill.classList.toggle('slim', wasSlim);
-    islandFloor = Math.ceil(glanceLayout.primary.width - room + needed);
-    glanceHeader.classList.add('measuring');
-    const header = glanceHeader.getBoundingClientRect().width;
-    glanceHeader.classList.remove('measuring');
-    referenceFloor = Math.ceil(header - glanceLayout.divider.width);
-  }
-
   /** With Glance open the fill chip follows the focused pane, like the fill. */
   function renderFillHint() {
     const hintTab = glanceLayout?.focusedPane === 'glance' ? glanceTab() : activeTab();
@@ -556,44 +751,24 @@
 
   function renderGlance() {
     const tab = glanceTab();
-    const visible = !!tab && !!glanceLayout;
+    // The card's chrome draws on the glance surface only; the strip itself
+    // no longer draws anything for Glance.
+    const visible = glanceSurface && !!tab && !!glanceLayout?.card;
+    glanceCard.hidden = !visible;
     glanceHeader.hidden = !visible;
-    glanceDivider.hidden = !visible;
-    stripEl.classList.toggle('glance-open', visible);
     if (!visible) {
-      stripEl.style.removeProperty('--glance-primary-right');
-      stripEl.style.removeProperty('--glance-primary-width');
-      delete stripEl.dataset.glanceDirection;
       shownGlanceTabId = null;
       fitGlanceHeader();
       return;
     }
 
-    const { primary, glanceHeader: header, divider, page, direction, ratio } = glanceLayout;
-    // Side by side the Island sits over the main pane; stacked, the main
-    // pane is the full page width.
-    const chromePrimaryRight = direction === 'horizontal'
-      ? primary.x + primary.width
-      : page.x + page.width;
-    stripEl.dataset.glanceDirection = direction;
-    stripEl.style.setProperty('--glance-primary-right', `${chromePrimaryRight}px`);
-    stripEl.style.setProperty('--glance-primary-width', `${chromePrimaryRight - page.x}px`);
-    glanceDivider.dataset.direction = direction;
-    glanceDivider.style.left = `${divider.x}px`;
-    glanceDivider.style.top = `${divider.y}px`;
-    glanceDivider.style.width = `${divider.width}px`;
-    glanceDivider.style.height = `${divider.height}px`;
-    glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
-    glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-    glanceDivider.setAttribute('aria-valuemin', String(Math.round((glanceLayout.minRatio ?? 0.5) * 100)));
-    glanceDivider.setAttribute('aria-valuemax', String(Math.round((glanceLayout.maxRatio ?? 0.78) * 100)));
-    glanceDivider.setAttribute('aria-valuetext', blancI18n.t('glance.dividerValue', { percent: Math.round(ratio * 100) }));
-
-    glanceHeader.style.left = `${header.x}px`;
-    glanceHeader.style.top = `${header.y}px`;
-    glanceHeader.style.width = `${header.width}px`;
-    glanceHeader.style.height = `${header.height}px`;
-    glanceHeader.dataset.direction = direction;
+    // The view is the card plus its resize ring; the card sits inside it.
+    const { chrome, header } = glanceLayout.card;
+    const root = document.documentElement;
+    root.style.setProperty('--glance-card-w', `${header.width}px`);
+    root.style.setProperty('--glance-card-h', `${chrome.height - (header.x - chrome.x) * 2}px`);
+    glanceCard.classList.toggle('private', !!tab.private);
+    glanceCard.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     glanceHeader.classList.toggle('private', !!tab.private);
     glanceHeader.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     // A different reference (Make main, Change): the favicon, title and chip
@@ -612,66 +787,50 @@
       glanceReload.dataset.mode = glanceReloadMode;
       glanceReload.innerHTML = PILL_ICONS[glanceReloadMode];
       const label = blancI18n.t(glanceReloadMode === 'stop' ? 'pill.stop' : 'pill.reload');
-      glanceReload.title = label;
+      glanceReload.dataset.tooltip = label;
       glanceReload.setAttribute('aria-label', label);
     }
-    // Keep an already-known title visible while the reference navigates —
-    // same rule as the picker rows: replacing useful identity with a generic
-    // loading label makes the header useless on slow or long-lived loads.
-    glanceTitle.textContent = tab.title || tabDomain(tab)
+    // The card names its site: the favicon and the host (spec). The page's
+    // title rides along as the header's tooltip. A page with no host yet
+    // (loading, a new tab) keeps a word in its place.
+    glanceTitle.textContent = tabDomain(tab) || tab.title
       || (tab.isLoading ? blancI18n.t('tab.loading') : tab.private ? blancI18n.t('tab.privateLabel') : blancI18n.t('tab.new'));
     glanceHeader.title = tab.title || glanceTitle.textContent;
     fitGlanceHeader();
   }
 
-  // The title is what the header is for. Before it is cut below about ten
-  // characters, Make main gives up its label for its swap icon (its name and
-  // tooltip stay). Measured, not a fixed width, because the label's length
-  // depends on the language and Windows and Linux reserve the window
-  // controls' width. 70 px is the floor the Island keeps for its address
-  // too. Measured only when an input changed (the title, the header's width
-  // or direction, the font swap), not on every broadcast.
+  // A narrow card gives up header room one step at a time, in this order:
+  // the actions' labels (they keep their names and tooltips), the GLANCE
+  // label, then the host once it would be cut below about 8 characters (the
+  // favicon stays). Measured on the live header, so every label and language
+  // counts, and only when an input changed (the host, the card's width).
+  const GLANCE_HEADER_STEPS = ['compact-actions', 'no-eyebrow', 'no-host'];
+  const GLANCE_HOST_FLOOR = 64;
   let glanceHeaderFitKey = '';
   function fitGlanceHeader() {
-    const titleFloor = 70;
-    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceHeader.style.width, glanceHeader.dataset.direction].join('|');
+    const key = glanceHeader.hidden ? '' : [glanceTitle.textContent, glanceLayout?.card?.header.width ?? ''].join('|');
     if (key === glanceHeaderFitKey) return;
     glanceHeaderFitKey = key;
-    glanceHeader.classList.remove('promote-icon');
+    glanceHeader.classList.remove(...GLANCE_HEADER_STEPS);
     if (glanceHeader.hidden) return;
-    // At the narrowest tier the stylesheet hides the title altogether; Make
-    // main is icon-only there too.
-    if (glanceTitle.getClientRects().length === 0) { glanceHeader.classList.add('promote-icon'); return; }
-    const cut = glanceTitle.scrollWidth > glanceTitle.clientWidth + 1;
-    if (cut && glanceTitle.getBoundingClientRect().width < titleFloor) glanceHeader.classList.add('promote-icon');
+    const crowded = () => glanceHeader.scrollWidth > glanceHeader.clientWidth + 1
+      || (glanceTitle.scrollWidth > glanceTitle.clientWidth + 1 && glanceTitle.getBoundingClientRect().width < GLANCE_HOST_FLOOR);
+    for (const step of GLANCE_HEADER_STEPS) {
+      if (!crowded()) break;
+      glanceHeader.classList.add(step);
+    }
   }
 
-  function queueGlanceResize(point) {
-    queuedGlancePoint = point;
-    if (glanceResizeFrame) return;
-    glanceResizeFrame = requestAnimationFrame(() => {
-      glanceResizeFrame = 0;
-      const queued = queuedGlancePoint;
-      queuedGlancePoint = null;
-      if (queued) window.browserAPI.resizeGlance(queued);
-    });
-  }
-
-  function pointForGlanceRatio(ratio) {
-    if (!glanceLayout) return null;
-    const { page, direction, divider, glanceHeader: header } = glanceLayout;
-    return direction === 'horizontal'
-      ? { x: page.x + (page.width - divider.width) * ratio, y: page.y }
-      : { x: page.x, y: page.y + (page.height - divider.height - header.height) * ratio };
-  }
 
   /** Faux header: paint the strip with the active page's own top-edge
    * color so it reads as a continuation of the site, not a chrome bar.
-   * Private tabs keep the private theme untinted. */
+   * Private tabs take only a sampled Start Page wallpaper (main samples
+   * nothing else for them); a private site's theme-color never tints. */
   function applyStripTint(tab) {
+    if (copySurface) return;
     // A theme handoff invalidates the previous website sample. Ignore any
     // stale tabs:updated payload still in flight until main clears/resamples it.
-    const tint = (!themeHandoffPending && !tab?.private && (tab?.pageBg || tab?.themeColor)) || null;
+    const tint = (!themeHandoffPending && (tab?.private ? tab.pageBg : (tab?.pageBg || tab?.themeColor))) || null;
     if (!tint) {
       // Private keeps its dedicated token scope. For ordinary tabs, paint the
       // newly selected theme immediately instead of waiting for Electron to
@@ -730,11 +889,6 @@
    * narrow for its controls (fitIslandDots). */
   let dotBudget = DOT_CAP;
   let dotFitKey = '';
-  /** The last measured main-pane minimum (measureGlanceFloors), reported to
-   * main with the Island's rectangle. */
-  let islandFloor = null;
-  /** The last measured reference minimum (the compact Glance header). */
-  let referenceFloor = null;
 
   /** The resting Island is current context, not a false total-tab map:
    * standalone pins stay globally reachable, followed by the active section
@@ -777,11 +931,12 @@
     // Reserve one slot for the active tab before applying pinned-first
     // priority. Any additional standalone pins remain included in +N.
     const pinned = standalonePins.slice(0, Math.max(0, dotBudget - 1));
-    const sectionMembers = tab.groupId
-      ? state.tabs
-        .filter((t) => t.groupId === tab.groupId)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned))
-      : state.tabs.filter((t) => !t.groupId && !t.pinned);
+    // The active tab's group, or its run of ungrouped tabs (tab-sections.js:
+    // ungrouped tabs between groups form separate runs, spec 2026-10-17).
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
+    const sectionMembers = (TabSections.sectionsOf(state.tabs)
+      .find((entry) => entry.tabIds.includes(tab.id))?.tabIds ?? [tab.id])
+      .map((id) => byId.get(id));
     const section = activeWindow(sectionMembers, dotBudget - pinned.length);
     const shown = [...pinned, ...section];
     return {
@@ -802,8 +957,8 @@
       const more = document.createElement('button');
       more.className = 'pill-overflow';
       more.textContent = `+${hidden}`;
-      more.title = blancI18n.t('pill.moreTabs', { count: hidden });
-      more.setAttribute('aria-label', more.title);
+      more.dataset.tooltip = blancI18n.t('pill.moreTabs', { count: hidden });
+      more.setAttribute('aria-label', more.dataset.tooltip);
       more.addEventListener('click', (e) => { e.stopPropagation(); window.browserAPI.openIsland(); });
       nodes.push(more);
     }
@@ -825,6 +980,8 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
+        // A colored group's dots take its color (tab group colors spec §5).
+        color: t.groupId ? (state.groups || []).find((g) => g.id === t.groupId)?.color ?? null : null,
         title: t.title || 'untitled',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the
@@ -845,13 +1002,16 @@
     // Stable identity lets trusted chrome tests and future focus restoration
     // address a dot without relying on page titles, which are not unique.
     dot.dataset.tabId = t.id;
+    // A colored group's dots take its color (tab group colors spec §5).
+    const dotGroup = t.groupId ? (state.groups || []).find((g) => g.id === t.groupId) : null;
     dot.className =
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
       (t.private ? ' private' : '');
+    TabSections.paintGroup(dot, dotGroup, 'dot-group-colored');
     const dotTitle = t.title || blancI18n.t('tab.untitled');
-    dot.title = dotTitle;
+    dot.dataset.tooltip = dotTitle;
     // A tab title is page data, not interface copy (pseudo-locale sweep).
     if (t.title) dot.dataset.i18nIgnore = '';
     // A dot is a switch target, not a status field: quiet is carried by the
@@ -896,7 +1056,7 @@
   // The menu lines up with the mark but hangs from the Island's bottom edge,
   // so it never covers the Island (spec D18).
   function spacesAnchor() {
-    return { left: pillSpace.getBoundingClientRect().left, bottom: islandPill.getBoundingClientRect().bottom };
+    return { left: stageRect(pillSpace).left, bottom: stageRect(islandPill).bottom };
   }
   function renderSpaceMark() {
     const items = Array.isArray(spaces.items) ? spaces.items : [];
@@ -918,15 +1078,15 @@
       pillSpace.style.setProperty('--space-on', painted.on);
       pillSpace.dataset.edge = String(painted.edge);
       document.documentElement.style.setProperty('--space-band-wash', SpaceIdentity.wash(painted.fill, theme));
-      pillSpace.title = blancI18n.t('spaces.mark.current', { name: bound.name });
+      pillSpace.dataset.tooltip = blancI18n.t('spaces.mark.current', { name: bound.name });
     } else {
       pillSpace.style.removeProperty('--space-fill');
       pillSpace.style.removeProperty('--space-on');
       delete pillSpace.dataset.edge;
       document.documentElement.style.removeProperty('--space-band-wash');
-      pillSpace.title = blancI18n.t('footer.workspaces');
+      pillSpace.dataset.tooltip = blancI18n.t('footer.workspaces');
     }
-    pillSpace.setAttribute('aria-label', pillSpace.title);
+    pillSpace.setAttribute('aria-label', pillSpace.dataset.tooltip);
     const symbol = bound ? (SpaceIdentity.isSymbol(bound.symbol) ? bound.symbol : SpaceIdentity.SYMBOL_IDS[0]) : 'neutral';
     if (pillSpaceSymbol.dataset.symbol !== symbol) {
       pillSpaceSymbol.replaceChildren(symbolSvg(bound ? SpaceIdentity.SYMBOLS[symbol] : SpaceIdentity.SPACES_GLYPH));
@@ -981,6 +1141,7 @@
 
   function render() {
     requestAnimationFrame(() => reportIslandRect());
+    // Split View headers follow their pages (title, Back, loading).
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
     // center the resting Island over the remaining website pane.
@@ -994,7 +1155,8 @@
     if (reloadBtn.dataset.mode !== reloadMode) {
       reloadBtn.dataset.mode = reloadMode;
       reloadBtn.innerHTML = PILL_ICONS[reloadMode];
-      reloadBtn.title = reloadMode === 'stop' ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.dataset.tooltip = reloadMode === 'stop' ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.setAttribute('aria-label', reloadBtn.dataset.tooltip);
     }
     // Nothing to close with no tabs. This has to ride the tab render pass:
     // renderDownloads() only runs on download broadcasts, so a session with
@@ -1006,7 +1168,8 @@
     const favoritable = /^https?:\/\//.test(tab?.url || '');
     favoriteBtn.disabled = !favoritable;
     favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
-    favoriteBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
+    favoriteBtn.dataset.tooltip = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('pill.favorite');
+    favoriteBtn.setAttribute('aria-label', favoriteBtn.dataset.tooltip);
 
     // The dot row is fitted after renderGlance below: the pill's width
     // depends on the Glance geometry it applies.
@@ -1018,8 +1181,8 @@
     // old page's security state can't linger under a "Loading…" domain).
     const securityWarning = ['insecure', 'certificate-error', 'certificate-exception'].includes(tab?.siteInfo?.state);
     pillInsecure.hidden = !securityWarning;
-    pillInsecure.title = tab?.siteInfo?.title ?? blancI18n.t('pill.insecure.fallback');
-    pillInsecure.setAttribute('aria-label', blancI18n.t('pill.insecure.open', { title: pillInsecure.title }));
+    pillInsecure.dataset.tooltip = tab?.siteInfo?.title ?? blancI18n.t('pill.insecure.fallback');
+    pillInsecure.setAttribute('aria-label', blancI18n.t('pill.insecure.open', { title: pillInsecure.dataset.tooltip }));
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -1044,7 +1207,7 @@
     pillShield.classList.toggle('shield-quiet', shield.mode === 'quiet');
     pillShield.classList.toggle('shield-restarting', shield.mode === 'restarting');
     pillShieldCount.textContent = shield.mode === 'count' ? String(shield.count) : '';
-    pillShield.title = shield.title;
+    pillShield.dataset.tooltip = shield.title;
     pillShield.setAttribute('aria-label', shield.title);
 
     // Capture chip: WINDOW-WIDE — lit while any tab or popup captures
@@ -1057,7 +1220,7 @@
     pillCaptureCam.toggleAttribute('hidden', !cap.video);
     const capTitle = cap.audio && cap.video ? blancI18n.t('capture.both')
       : cap.video ? blancI18n.t('capture.camera') : blancI18n.t('capture.microphone');
-    pillCapture.title = capTitle;
+    pillCapture.dataset.tooltip = capTitle;
     pillCapture.setAttribute('aria-label', capTitle);
 
     // Display-share chip: WINDOW-WIDE — pending picker or active share on
@@ -1068,7 +1231,7 @@
       : shares[0].pending ? blancI18n.t('share.choosing')
         : shares[0].surfaceLabel ? blancI18n.t('share.sharing', { surface: shares[0].surfaceLabel })
           : blancI18n.t('share.sharingScreen');
-    pillDisplayShare.title = shareTitle;
+    pillDisplayShare.dataset.tooltip = shareTitle;
     pillDisplayShare.setAttribute('aria-label', shareTitle);
 
     // The private theme scope follows the active tab.
@@ -1103,7 +1266,7 @@
   // real <button>, and islandPill's keydown guard ignores focused children.
   function shieldAnchorFor(trigger) {
     const button = trigger === 'insecure' ? pillInsecure : pillShield;
-    const r = button.getBoundingClientRect();
+    const r = stageRect(button);
     return { right: r.right, center: r.left + r.width / 2, bottom: r.bottom, trigger };
   }
   pillShield.addEventListener('click', (e) => {
@@ -1129,13 +1292,13 @@
 
   pillCapture.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillCapture.getBoundingClientRect();
+    const r = stageRect(pillCapture);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
   pillDisplayShare.addEventListener('click', (e) => {
     e.stopPropagation();
-    const r = pillDisplayShare.getBoundingClientRect();
+    const r = stageRect(pillDisplayShare);
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
@@ -1149,9 +1312,13 @@
     if (glanceReload.dataset.mode === 'stop') window.browserAPI.stop(state.glanceTabId);
     else window.browserAPI.reload(state.glanceTabId);
   });
-  glancePromote.addEventListener('click', (event) => {
+  document.getElementById('glanceKeepSplit').addEventListener('click', (event) => {
     event.stopPropagation();
-    window.browserAPI.promoteGlance();
+    window.browserAPI.keepGlanceAsSplit();
+  });
+  glanceOpenAsTab.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.openGlanceAsTab();
   });
   glanceChange.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -1162,77 +1329,100 @@
     window.browserAPI.closeGlance();
   });
 
-  glanceDivider.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || !glanceLayout) return;
-    event.preventDefault();
-    // Main maps the reported point to the divider's leading edge, so report
-    // the pointer minus where inside the grip it went down — otherwise the
-    // first move jumps the divider by that much.
-    const rect = glanceDivider.getBoundingClientRect();
-    glanceResizeState = {
-      pointerId: event.pointerId,
-      grabOffset: glanceLayout.direction === 'horizontal'
-        ? event.clientX - rect.left
-        : event.clientY - rect.top,
-    };
-    glanceDivider.setPointerCapture(event.pointerId);
-    document.documentElement.dataset.glanceResizing = glanceLayout.direction;
+  // ---- The floating Glance card: drag the header to move it, an edge or
+  // corner to resize it, double-click the header to reset it. The view moves
+  // with the card, so the drag follows screen coordinates. The lifecycle is
+  // glance-card-drag.js (each step from the last frame main returned; a
+  // release mid-step ends the drag); a layout for a newer card generation
+  // cancels it.
+  const cardDrag = globalThis.GlanceCardDrag.createCardDrag({
+    send: (kind, input) => (kind === 'move'
+      ? window.browserAPI.moveGlanceCard({ generation: input.generation, dx: input.dx, dy: input.dy })
+      : window.browserAPI.resizeGlanceCard({ generation: input.generation, edge: input.edge, dx: input.dx, dy: input.dy })),
+    schedule: (fn) => requestAnimationFrame(fn),
   });
-  function glanceDragPoint(event) {
-    return glanceLayout?.direction === 'horizontal'
-      ? { x: event.clientX - glanceResizeState.grabOffset, y: event.clientY }
-      : { x: event.clientX, y: event.clientY - glanceResizeState.grabOffset };
-  }
-  glanceDivider.addEventListener('pointermove', (event) => {
-    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize(glanceDragPoint(event));
-  });
-  const finishGlanceResize = (event) => {
-    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
-    queueGlanceResize(glanceDragPoint(event));
-    glanceResizeState = null;
-    delete document.documentElement.dataset.glanceResizing;
-    if (glanceDivider.hasPointerCapture(event.pointerId)) {
-      glanceDivider.releasePointerCapture(event.pointerId);
-    }
+  const cardFrameOfLayout = () => {
+    const card = glanceLayout?.card;
+    if (!card) return null;
+    const ring = card.header.x - card.chrome.x;
+    return { x: card.header.x, y: card.header.y, width: card.header.width, height: card.chrome.height - 2 * ring };
   };
-  glanceDivider.addEventListener('pointerup', finishGlanceResize);
-  glanceDivider.addEventListener('pointercancel', finishGlanceResize);
-  glanceDivider.addEventListener('lostpointercapture', () => {
-    glanceResizeState = null;
-    delete document.documentElement.dataset.glanceResizing;
-  });
-  glanceDivider.addEventListener('dblclick', (event) => {
+  function startCardDrag(event, edge) {
+    const frame = cardFrameOfLayout();
+    if (event.button !== 0 || !frame) return;
     event.preventDefault();
-    window.browserAPI.resetGlance();
+    cardDrag.start({ pointerId: event.pointerId, edge, generation: glanceLayout.generation, x: event.screenX, y: event.screenY, frame });
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function moveCardDrag(event) {
+    cardDrag.move(event.pointerId, event.screenX, event.screenY);
+  }
+  function endCardDrag(event) {
+    cardDrag.end(event.pointerId, event.screenX, event.screenY);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+  const onHeaderBackground = (event) => !event.target.closest('button, [role="button"], a, input');
+  glanceHeader.addEventListener('pointerdown', (event) => { if (onHeaderBackground(event)) startCardDrag(event, null); });
+  glanceHeader.addEventListener('pointermove', moveCardDrag);
+  glanceHeader.addEventListener('pointerup', endCardDrag);
+  glanceHeader.addEventListener('pointercancel', endCardDrag);
+  glanceHeader.addEventListener('dblclick', (event) => {
+    if (!onHeaderBackground(event) || !glanceLayout) return;
+    cardDrag.cancel();
+    window.browserAPI.resetGlanceCard({ generation: glanceLayout.generation });
   });
-  glanceDivider.addEventListener('keydown', (event) => {
+  // The Move or resize control: it drags like the header, and from the
+  // keyboard the arrow keys move the card 16 px (Shift: 64 px), Option or
+  // Alt with an arrow resizes it from its bottom-right corner, and Enter
+  // resets it. Each change is announced in the card's own live region (the
+  // strip's sits in another document), at most every half second so holding
+  // a key doesn't flood it.
+  const CARD_KEY_STEP = 16;
+  const CARD_KEY_STEP_LARGE = 64;
+  const glanceMove = document.getElementById('glanceMove');
+  const glanceCardStatus = document.getElementById('glanceCardStatus');
+  let cardAnnounceAt = 0;
+  let cardAnnounceTimer = 0;
+  function announceCard(message) {
+    const wait = Math.max(0, cardAnnounceAt + 500 - Date.now());
+    clearTimeout(cardAnnounceTimer);
+    cardAnnounceTimer = setTimeout(() => {
+      cardAnnounceAt = Date.now();
+      glanceCardStatus.textContent = message;
+    }, wait);
+  }
+  glanceMove.addEventListener('pointerdown', (event) => startCardDrag(event, null));
+  glanceMove.addEventListener('pointermove', moveCardDrag);
+  glanceMove.addEventListener('pointerup', endCardDrag);
+  glanceMove.addEventListener('pointercancel', endCardDrag);
+  glanceMove.addEventListener('keydown', async (event) => {
     if (!glanceLayout) return;
-    let next = glanceKeyRatio ?? glanceLayout.ratio;
-    const step = event.shiftKey ? 0.05 : 0.02;
-    const minRatio = glanceLayout.minRatio ?? 0.5;
-    const maxRatio = glanceLayout.maxRatio ?? 0.78;
-    if (event.key === 'Home') next = minRatio;
-    else if (event.key === 'End') next = maxRatio;
-    else if (event.key === 'Enter' || event.key === ' ') {
+    const generation = glanceLayout.generation;
+    if (event.key === 'Enter') {
       event.preventDefault();
-      glanceKeyRatio = null;
-      window.browserAPI.resetGlance();
+      if (await window.browserAPI.resetGlanceCard({ generation })) announceCard(blancI18n.t('glance.status.reset'));
       return;
-    } else if (
-      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowLeft') ||
-      (glanceLayout.direction === 'vertical' && event.key === 'ArrowUp')
-    ) next -= step;
-    else if (
-      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowRight') ||
-      (glanceLayout.direction === 'vertical' && event.key === 'ArrowDown')
-    ) next += step;
-    else return;
+    }
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const direction = arrows[event.key];
+    if (!direction) return;
     event.preventDefault();
-    glanceKeyRatio = Math.max(minRatio, Math.min(maxRatio, next));
-    const point = pointForGlanceRatio(glanceKeyRatio);
-    if (point) window.browserAPI.resizeGlance(point);
+    const step = event.shiftKey ? CARD_KEY_STEP_LARGE : CARD_KEY_STEP;
+    const dx = direction[0] * step;
+    const dy = direction[1] * step;
+    if (event.altKey) {
+      const frame = await window.browserAPI.resizeGlanceCard({ generation, edge: 'se', dx, dy });
+      if (frame) announceCard(blancI18n.t('glance.status.resized', { width: frame.width, height: frame.height }));
+      return;
+    }
+    if (await window.browserAPI.moveGlanceCard({ generation, dx, dy })) announceCard(blancI18n.t('glance.status.moved'));
   });
+  for (const edge of document.querySelectorAll('.glance-card-edge[data-edge]')) {
+    edge.addEventListener('pointerdown', (event) => startCardDrag(event, edge.dataset.edge));
+    edge.addEventListener('pointermove', moveCardDrag);
+    edge.addEventListener('pointerup', endCardDrag);
+    edge.addEventListener('pointercancel', endCardDrag);
+  }
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
@@ -1263,9 +1453,13 @@
   });
 
   // Double-click on empty strip area zooms the window (desktop convention).
+  // Not in a float view: its bare strip is the margin around its one element.
   stripEl.addEventListener('dblclick', (e) => {
-    if (e.target === stripEl) window.browserAPI.maximizeWindow();
+    if (e.target === stripEl && !floatSurface) window.browserAPI.maximizeWindow();
   });
+  // The covered strip's top band zooms the window the same way.
+  const dragBand = document.getElementById('dragBand');
+  dragBand.addEventListener('dblclick', () => window.browserAPI.maximizeWindow());
 
   // Permission prompts render in their own floating bottom-center view
   // (permission.html/permission.js) — the strip no longer hosts them.
@@ -1277,15 +1471,17 @@
   });
   window.browserAPI.onPageTint(({ id, color }) => {
     const tab = activeTab();
-    if (!tab || tab.id !== id || tab.private || !/^#[0-9a-f]{6}$/i.test(color)) return;
+    // Main samples a private tab only on its Start Page (page-tint-policy.js).
+    if (!tab || tab.id !== id || !/^#[0-9a-f]{6}$/i.test(color)) return;
     tab.pageBg = color;
     applyStripTint(tab);
   });
   window.browserAPI.onGlanceLayout((layout) => {
+    // A newer card (closed, reopened or changed) ends a drag begun on the old one.
+    cardDrag.cancelUnless(layout?.generation);
     glanceLayout = layout;
-    // Main has echoed the applied ratio; later keydowns step from the layout
-    // again until the next same-task burst.
-    glanceKeyRatio = null;
+    // Read by the acceptance steps, which drive the card's bridge as its drag does.
+    if (glanceSurface) document.documentElement.dataset.glanceGeneration = layout ? String(layout.generation) : '';
     // Only the Glance header and the fill chip depend on this message. A full
     // render() here would re-apply the rail width from the last tabs payload
     // on every resize, snapping the rail back mid-drag.
@@ -1293,6 +1489,10 @@
     renderFillHint();
     fitIslandDots();
     requestAnimationFrame(() => reportIslandRect());
+  });
+  window.browserAPI.onSplitLayout((layout) => {
+    renderSplitPanes(layout);
+    fitIslandDots();
   });
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
@@ -1307,6 +1507,45 @@
   window.browserAPI.onIslandCovered(() => {
     if (islandMode === 'panel') islandPill.classList.add('covered');
   });
+
+  // Auto-hide moves the page over the strip, but the strip's drag region
+  // hit-tests above every view: left on, it would drag the window from the
+  // page's top band and (on Wayland) keep the page from seeing the pointer.
+  window.browserAPI.onStripHidden((hidden) => {
+    stripEl.classList.toggle('strip-hidden', hidden === true);
+  });
+
+  // A float view is a clipped window onto a full-size copy of the strip: main
+  // says which element it shows and where the view sits, and the stage is
+  // offset so that element lands exactly where the strip draws it. The strip
+  // underneath stays the only one reporting geometry.
+  if (floatSurface) {
+    const root = document.documentElement;
+    window.browserAPI.onFloatFrame(({ role, x, y, width, height, stageWidth }) => {
+      root.dataset.floatRole = role;
+      root.style.setProperty('--float-x', `${x}px`);
+      root.style.setProperty('--float-y', `${y}px`);
+      root.style.setProperty('--float-width', `${width}px`);
+      root.style.setProperty('--float-height', `${height}px`);
+      root.style.setProperty('--float-stage-width', `${stageWidth}px`);
+      // The pill fits the strip's room, which may just have changed.
+      fitIslandDots();
+    });
+    let showGeneration = 0;
+    window.browserAPI.onFloatShown((shown) => {
+      const generation = ++showGeneration;
+      if (!shown) {
+        root.classList.remove('float-shown');
+        return;
+      }
+      // Two frames: the view has just become visible, and the slide must start
+      // from above the window edge rather than land at once.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (generation === showGeneration) root.classList.add('float-shown');
+      }));
+    });
+  }
+  // end float surface
 
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger, nativePopup }) => {
     islandMode = mode;
@@ -1334,6 +1573,11 @@
     if (restoreTrigger === 'shield') pillShield.focus();
     else if (restoreTrigger === 'insecure') pillInsecure.focus();
     if (restoreTrigger === 'spaces') pillSpace.focus();
+    // The side list's group menu closed: its header row forgets the open
+    // state, and Escape hands focus back to that header's ⋮.
+    if (mode === null && typeof trigger === 'string' && trigger.startsWith('group-menu:')) {
+      window.blancRailGroupMenu?.closed(trigger.slice('group-menu:'.length), { focus: restoreTrigger === 'group-menu' });
+    }
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {
@@ -1347,6 +1591,7 @@
 
   // --- Report strip height so main can size tab views below it. ---
   const reportLayout = () => {
+    if (copySurface) return;
     window.browserAPI.reportChromeLayout(chromeEl.getBoundingClientRect().height);
   };
   new ResizeObserver(reportLayout).observe(chromeEl);
@@ -1362,9 +1607,29 @@
   // itself: closer reads as bigger reads as closer.
   const ISLAND_SCALE = 0.02;    // keep in step with #islandPill in styles.css
   const ISLAND_RISE = 2;
+  const hoverQuery = matchMedia('(any-hover: hover) and (any-pointer: fine)');
 
   let lastIslandReport = '';
+  // Hover-open's target: the favicon and domain, full pill height, never the
+  // buttons, dots or chips around them. Unscaled like the pill rectangle (the
+  // swell grows from the top center). The Not-secure badge between favicon
+  // and domain is a button of its own, so while it shows only the domain counts.
+  const islandUrlArea = (pill, scale, y, height) => {
+    const parts = [pillDomain.getBoundingClientRect()];
+    if (pillInsecure.hidden) parts.push(pillFavicon.getBoundingClientRect());
+    const visible = parts.filter((part) => part.width > 0);
+    if (!visible.length) return null;
+    const left = Math.min(...visible.map((part) => part.left));
+    const right = Math.max(...visible.map((part) => part.right));
+    const center = pill.left + pill.width / 2;
+    return { x: center + (left - center) / scale, y, width: (right - left) / scale, height };
+  };
+  const boxOf = (el) => {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 ? { x: r.left, y: r.top, width: r.width, height: r.height } : null;
+  };
   const reportIslandRect = () => {
+    if (copySurface) return;
     const r = islandPill.getBoundingClientRect();
     if (!r.width) return;
     const k = islandPill.classList.contains('shield-open') || islandPill.classList.contains('spaces-open') ? 0 : Number(islandPill.style.getPropertyValue('--island-k')) || 0;
@@ -1374,15 +1639,24 @@
     const height = r.height / scale;
     const trigger = pillShield.getAttribute('aria-expanded') === 'true' ? 'shield'
       : pillInsecure.getAttribute('aria-expanded') === 'true' ? 'insecure' : null;
+    const y = r.top + ISLAND_RISE * k;
+    const hoverRect = islandUrlArea(r, scale, y, height);
+    // Windows and Linux: where the window controls and the main-menu button
+    // sit, so a floating Island can draw its copies of them in place.
+    const controlsBox = isMac ? null : boxOf(windowControls);
+    // With vertical tabs the rail covers the strip's menu button: never float it.
+    const menuBox = isMac || state.tabLayout === 'vertical' ? null : boxOf(mainMenuButton);
     const rect = {
       x: (r.left + r.width / 2) - width / 2,
-      y: r.top + ISLAND_RISE * k,
+      y,
       width,
       height,
+      hoverCapable: hoverQuery.matches,
+      ...(hoverRect ? { hoverRect } : {}),
       ...(trigger ? { shieldAnchor: shieldAnchorFor(trigger) } : {}),
       ...(pillSpace.getAttribute('aria-expanded') === 'true' ? { spacesAnchor: spacesAnchor() } : {}),
-      ...(islandFloor != null ? { minPrimaryWidth: islandFloor } : {}),
-      ...(referenceFloor != null ? { minReferenceWidth: referenceFloor } : {}),
+      ...(controlsBox ? { windowControlsRect: controlsBox } : {}),
+      ...(menuBox ? { menuButtonRect: menuBox } : {}),
     };
     const serialized = JSON.stringify(rect);
     if (serialized === lastIslandReport) return;
@@ -1395,6 +1669,7 @@
   // morph (and proximity glow) anchored to where the centre USED to be,
   // visibly growing out of the left or right instead of the pill.
   window.addEventListener('resize', reportIslandRect);
+  hoverQuery.addEventListener('change', reportIslandRect);
   requestAnimationFrame(reportIslandRect);
 
   // Main's value is a target, and it arrives on main's clock (at most ~60 a

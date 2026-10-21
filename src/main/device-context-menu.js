@@ -1,6 +1,6 @@
 // src/main/device-context-menu.js
 // Electron glue for a device header's right-click menu. Mirrors
-// group-context-menu.js: the overlay records the header it was invoked on
+// workspace-context-menu.js: the overlay records the header it was invoked on
 // (window.__blancCtxDeviceId) at contextmenu time, and main reads and clears
 // it, then re-validates the id against the devices it lists.
 

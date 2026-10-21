@@ -6,6 +6,7 @@
 
 const { validProfileId } = require('./local-profile-model');
 const { recaseWorkspacesFile } = require('./group-name-case');
+const { savedSplitColumns } = require('./split-model');
 // A workspace id must survive a round-trip through session.json's
 // `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
 // and imported here — one direction only. Defining it here and importing it
@@ -44,8 +45,13 @@ function sanitizeName(raw) {
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
 /** Where the Recently closed band sits among the Space's groups; the default
  * (0, under Pinned) is never written. */
-const closedSlotColumn = (source) => (
-  Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {});
+const closedSlotColumn = (source) => ({
+  ...(Number.isInteger(source.closedSlot) && source.closedSlot > 0 ? { closedSlot: source.closedSlot } : {}),
+  // The order as drawn (spec 2026-10-17) and the band's item index; the
+  // closedSlot above stays the rollback copy, counting groups only.
+  ...(source.sectionOrder === true ? { sectionOrder: true } : {}),
+  ...(Number.isInteger(source.closedIndex) && source.closedIndex > 0 ? { closedIndex: source.closedIndex } : {}),
+});
 
 /** One workspace record, repaired — or null when it cannot be trusted.
  * Rejects (rather than repairs) identity fields: a record with no id, no
@@ -79,6 +85,7 @@ function normalizeWorkspace(raw) {
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(raw),
+    ...savedSplitColumns(raw, urls.length),
     // Identity fields only when valid; normalizeFile assigns the defaults.
     ...(Identity.normalizeHex(raw.color) ? { color: Identity.normalizeHex(raw.color) } : {}),
     ...(Identity.isSymbol(raw.symbol) ? { symbol: raw.symbol } : {}),
@@ -144,7 +151,7 @@ function loadFile(raw) {
   return { status: 'supported', file };
 }
 
-const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot'];
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
@@ -162,6 +169,7 @@ const captureColumns = (capture) => {
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(source),
+    ...savedSplitColumns(source, urls.length),
   };
 };
 

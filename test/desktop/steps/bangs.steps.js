@@ -177,3 +177,77 @@ Then('Settings lists no bangs', async function () {
 Then('Settings says {string}', async function (text) {
   await waitForValue(() => this.call('settingsBangControls'), (c) => c.error === text || c.replaces === text, `Settings notice “${text}”`);
 });
+
+// Site icons on bang rows (2026-10-17-bang-icons-in-app-design.md). The icon
+// server is stubbed in main (stubBangIconServer); test mode never reaches the
+// network. Rows ask only after staying on screen 300 ms, so "not asked" waits
+// well past that before reading the request log.
+const bangsCatalog = require('../../../src/renderer/pages/bangs-catalog');
+const BangsModule = require('../../../src/renderer/pages/bangs');
+
+const popularHosts = () => bangsCatalog.popular
+  .map((code) => BangsModule.findBang(code, bangsCatalog, [])?.domain?.toLowerCase())
+  .filter(Boolean);
+const firstPick = (rows) => rows.find((row) => row.cmd && !row.enter);
+const settleAsks = () => new Promise((resolve) => setTimeout(resolve, 1200));
+
+Given("Blanc's icon server has an icon for every popular bang", async function () {
+  await this.call('stubBangIconServer', Object.fromEntries(popularHosts().map((host) => [host, 'png'])));
+});
+
+When('I close the command bar and type {string} again', async function (text) {
+  await this.call('closeOverlay');
+  await openOverlaySurface(this, 'openPalette', 'palette');
+  assert.strictEqual(await this.call('editAddressInput', text, 'insertText'), true);
+});
+
+Then('the first picker row shows a site icon', async function () {
+  await waitForValue(
+    bangRows.bind(null, this),
+    (rows) => firstPick(rows)?.faviconHasIcon === true && firstPick(rows).faviconDecoded === '32x32',
+    'a decoded 32px icon on the first picker row'
+  );
+});
+
+Then("the first picker row shows the site's letter", async function () {
+  await settleAsks();
+  const row = firstPick(await bangRows(this));
+  assert.ok(row, 'a picker row is drawn');
+  assert.match(row.faviconClass, /\bfallback\b/, `letter tile, got "${row.faviconClass}"`);
+});
+
+Then("Blanc's icon server was asked only for popular sites, once each", async function () {
+  const asked = await waitForValue(() => this.call('bangIconRequests'), (hosts) => hosts.length > 0, 'an icon request');
+  await settleAsks();
+  const final = await this.call('bangIconRequests');
+  const popular = new Set(popularHosts());
+  assert.ok(asked.length > 0);
+  assert.deepEqual(final.filter((host) => !popular.has(host)), [], 'only popular sites');
+  assert.strictEqual(new Set(final).size, final.length, `each site once: ${final.join(', ')}`);
+});
+
+Then("Blanc's icon server has not been asked", async function () {
+  await settleAsks();
+  assert.deepEqual(await this.call('bangIconRequests'), []);
+});
+
+Then("Blanc's icon server has not been asked for {string}", async function (host) {
+  await settleAsks();
+  assert.ok(!(await this.call('bangIconRequests')).includes(host), `${host} was never asked for`);
+});
+
+Then('bang icons are kept on the device', async function () {
+  await waitForValue(() => this.call('bangIconStore'), (hosts) => hosts.length > 0, 'a kept bang icon');
+});
+
+Then('no bang icons are kept on the device', async function () {
+  await waitForValue(() => this.call('bangIconStore'), (hosts) => hosts.length === 0, 'an empty bang icon store');
+});
+
+Then("Blanc's icon server was asked again for a site it answered before", async function () {
+  await waitForValue(
+    () => this.call('bangIconRequests'),
+    (hosts) => new Set(hosts).size < hosts.length,
+    'a second request for a site after the clear'
+  );
+});

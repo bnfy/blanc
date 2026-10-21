@@ -148,4 +148,6 @@ function sanitizeFavicon(source, signal, {
   return promise;
 }
 
-module.exports = { sanitizeFavicon };
+// Bang icons read bytes from Blanc's icon server themselves (to tell a 404 from a
+// failure) and only need the conversion to the stored 32px PNG.
+module.exports = { sanitizeFavicon, sanitizeIconBytes: sanitizeFetched };

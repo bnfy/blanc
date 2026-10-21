@@ -16,14 +16,14 @@ function linkMenuItems(params, actions, t) {
   ];
 }
 
-/** Open Link in Glance: the same guards as Open Link in New Tab, then a tab
- * in the opener's profile, private flag and group that becomes the
+/** Open Link in Glance: the same guards as Open Link in New Tab, then an
+ * ungrouped tab in the opener's profile and private flag that becomes the
  * reference (replacing the current one while Glance is open). Resolves to
  * whether the tab is in Glance. */
 async function openLinkInGlance(opener, url, { handOffToOs, isForbiddenTopLevelUrl, createTab, setGlanceTab }) {
   if (handOffToOs(url)) return false;
   if (isForbiddenTopLevelUrl(url)) return false;
-  const id = createTab(url, { private: !!opener.private, groupId: opener.groupId ?? null });
+  const id = createTab(url, { private: !!opener.private });
   return (await setGlanceTab(id)) === true;
 }
 

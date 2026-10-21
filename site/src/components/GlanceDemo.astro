@@ -1,38 +1,26 @@
 ---
+import GlanceCard from './GlanceCard.astro';
 import GlanceIsland from './GlanceIsland.astro';
 
 interface Props {
-  // compact: the split alone, for a homepage tool card that carries its own
-  // copy; the divider is the one control.
+  // compact: the window alone, for a homepage tool card that carries its own
+  // copy; moving the card is the one control.
   compact?: boolean;
 }
 const { compact = false } = Astro.props;
 ---
 <div class="tool-feature" id="glance" aria-labelledby={compact ? undefined : 'glance-title'}>
-  {!compact && <h3 id="glance-title">View two tabs with Glance.</h3>}
-  {!compact && <p class="lead">Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.</p>}
-  <figure class="glance-demo" id="glance-demo" aria-label={compact ? 'Glance demo' : undefined}>
-    {compact ? <p class="sr-only" id="glance-hint">Drag the divider to resize.</p> : <figcaption class="glance-toolbar">
-      <div class="glance-invitation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v16M15 4v16M6 9l-3 3 3 3M3 12h3M18 9l3 3-3 3M18 12h3" /></svg>
-        <div><strong>Interactive demo</strong><p id="glance-hint">Drag the divider to resize.</p></div>
-      </div>
-      <div class="glance-actions">
-        <button type="button" id="glance-swap">Swap pages</button>
-        <button type="button" id="glance-reset">Reset</button>
-        <button type="button" id="glance-close">Close Glance view</button>
-        <button type="button" id="glance-reopen" hidden>Open Glance view</button>
-      </div>
-    </figcaption>}
+  {!compact && <h3 id="glance-title">Look at another tab with Glance.</h3>}
+  <figure class="glance-demo" id="glance-demo" aria-label="Glance demo">
+    <p class="sr-only" id="glance-hint">Drag the card’s header to move it. Arrow keys move it too, and Enter puts it back.</p>
     <div class="glance-viewport" id="glance-viewport">
-      <div class="glance-window" id="glance-window" data-main-page="copenhagen" style="--split:62%">
+      <div class="glance-window" id="glance-window">
         <section class="glance-pane glance-main" aria-label="Main page illustration">
           <div class="glance-chrome">
             <GlanceIsland page="copenhagen" />
-            <GlanceIsland page="louisiana" />
           </div>
-          <div class="glance-document" id="glance-main-document">
-            <div class="glance-site glance-copenhagen" data-page="copenhagen" data-title="Nyhavn — Visit Copenhagen">
+          <div class="glance-document">
+            <div class="glance-site glance-copenhagen" data-page="copenhagen">
               <div class="glance-site-nav" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" /><path d="m15 15 5 5" /></svg>
                 <span class="copenhagen-wordmark">visit<br />copenhagen</span>
@@ -48,15 +36,9 @@ const { compact = false } = Astro.props;
             </div>
           </div>
         </section>
-        <div class="glance-divider" id="glance-divider" role="slider" tabindex="0" aria-label="Resize the Glance split" aria-valuemin="50" aria-valuemax="78" aria-valuenow="62" aria-valuetext="Main page 62 percent, reference 38 percent" aria-orientation="horizontal" aria-describedby="glance-hint">
-          <span aria-hidden="true"></span>
-        </div>
-        <section class="glance-pane glance-reference" aria-label="Reference page illustration">
-          <div class="glance-reference-chrome">
-            <span>Glance</span><span class="reference-name">Kusama installation — Louisiana</span><span class="glance-close-mark" aria-hidden="true">×</span>
-          </div>
-          <div class="glance-document" id="glance-reference-document">
-            <div class="glance-site glance-louisiana" data-page="louisiana" data-title="Kusama installation — Louisiana">
+        <div class="glance-card-frame" id="glance-card">
+          <GlanceCard host="louisiana.dk" icon="/revamp/louisiana-favicon.ico">
+            <div class="glance-site glance-louisiana" data-page="louisiana">
               <img class="louisiana-photo" src="/revamp/glance-kusama.jpg" width="640" height="959" alt="Colored lights reflected in Yayoi Kusama’s Gleaming Lights of the Souls installation" loading="lazy" decoding="async" draggable="false" />
               <div class="glance-site-nav" aria-hidden="true">
                 <span class="louisiana-wordmark">LOUISIANA</span>
@@ -67,8 +49,9 @@ const { compact = false } = Astro.props;
                 <p>Gleaming Lights of the Souls</p>
               </div>
             </div>
-          </div>
-        </section>
+          </GlanceCard>
+          <div class="glance-card-handle" id="glance-handle" role="button" tabindex="0" aria-label="Move the Glance card" aria-describedby="glance-hint"></div>
+        </div>
       </div>
     </div>
     <p class="sr-only" id="glance-status" aria-live="polite"></p>

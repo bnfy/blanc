@@ -55,12 +55,11 @@ test('focusedPane is glance only while the focused id is the current reference',
   assert.equal(focusedPane(null), 'main');
 });
 
-test('glanceLayoutPayload adds focusedPane to a layout and keeps null as null', () => {
-  const layout = { direction: 'horizontal', ratio: 0.62 };
-  assert.deepEqual(glanceLayoutPayload(layout, 'glance'), { direction: 'horizontal', ratio: 0.62, focusedPane: 'glance' });
-  assert.deepEqual(glanceLayoutPayload(layout, 'anything'), { direction: 'horizontal', ratio: 0.62, focusedPane: 'main' });
-  assert.equal(glanceLayoutPayload(null, 'glance'), null);
-  assert.equal('focusedPane' in layout, false, 'the geometry object is not mutated');
+test('glanceLayoutPayload wraps the card with the focused pane and its generation, and keeps null as null', () => {
+  const card = { chrome: {}, header: {}, page: {} };
+  assert.deepEqual(glanceLayoutPayload(card, 'glance', 2), { card, focusedPane: 'glance', generation: 2 });
+  assert.deepEqual(glanceLayoutPayload(card, 'anything', 2), { card, focusedPane: 'main', generation: 2 });
+  assert.equal(glanceLayoutPayload(null, 'glance', 2), null);
 });
 
 test('a pane that really holds keyboard focus wins over a stale record', () => {
@@ -97,4 +96,18 @@ test('livePaneId names the visible pane that really holds keyboard focus, else n
   assert.equal(livePaneId(runtime({ glanceTabId: null }), focused('ref')), null, 'a pane that is not visible never counts');
   assert.equal(livePaneId(runtime(), () => null), null);
   assert.equal(livePaneId(null, focused('ref')), null);
+});
+
+// Split View (F53): a visible split's tabs are all visible panes; the focused
+// pane is the active tab, so commands already follow it.
+test('visiblePaneIds returns every split tab when the active tab is in a split', () => {
+  const runtime = { activeTabId: 'b', glanceTabId: null, splits: [{ id: 's', tabIds: ['a', 'b'] }] };
+  assert.deepEqual(visiblePaneIds(runtime), ['a', 'b']);
+  assert.equal(isVisiblePaneId(runtime, 'a'), true);
+  assert.equal(isVisiblePaneId(runtime, 'c'), false);
+});
+
+test('a split in a set-aside window shows nothing extra, and an inactive split is not visible', () => {
+  assert.deepEqual(visiblePaneIds({ activeTabId: 'b', resident: true, splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['b']);
+  assert.deepEqual(visiblePaneIds({ activeTabId: 'c', splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['c']);
 });

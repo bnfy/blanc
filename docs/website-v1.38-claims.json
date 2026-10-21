@@ -1,0 +1,491 @@
+{
+  "publicRelease": "v1.38.0",
+  "sourceSha": "87538deee7e8acd0019f25bdae74f22a7481cb2d",
+  "releaseEvidence": "docs/release-incidents/2026-10-18-v1.38.0.md",
+  "scope": "Site copy verified against public v1.38.0 on October 18, 2026: your own Start Page image (F49, #945) and the Start Page Color wallpaper (F50, #952), on /features/start-page. Hand-checked on macOS and Windows; the Linux hand check was waived, so the copy makes no platform-specific claim. Later the same day: the line under the Start Page headline, the homepage's wallpaper scene and Start Page card, and the /features wallpaper tile and pop-up. Later: the memory figures from a fresh run on October 19, 2026 (Blanc 1.38.0), on the homepage, in the memory chart (ad-blocking, Features and Media pages) and in the fact sheet.",
+  "prohibitedClaims": [
+    "Bridge / Burst",
+    "Four ways to begin. Mahjong when you want a break.",
+    "a different image for each space",
+    "per-space image",
+    "synced image",
+    "uses less memory than Brave"
+  ],
+  "evidenceGroups": {
+    "customImage": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Customize → Wallpaper → Your image, or Settings → General → Start Page image, shows a JPEG or PNG up to 25 MB (MAX_INPUT_BYTES), fitted inside 3840 px. Not in private tabs. Hand-checked on Windows; Linux waived (release report)."
+    },
+    "washAndFade": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Wash styles Auto, Light, Dark and Spotlight (newtabWallpaperStyle); Light and Dark also set the page's text colors whatever the app theme; Spotlight washes only behind the content and header. Fade (newtabWallpaperWash) runs 0–100, where 0 shows the image as chosen; the footer fog always stays."
+    },
+    "imagePrivacy": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/wallpaper-model.js",
+        "test/unit/wallpaper-model.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "The stored copy is re-encoded with every metadata field except orientation removed, owner-only in userData/wallpaper/, device-local and never synced; private tabs never get the image or its controls."
+    },
+    "colorWallpaper": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/start-page-paint.js",
+        "test/unit/start-page-paint.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "Color draws one of the eight Spaces presets as a Soft, Solid or Gradient fill. newtabColorWallpaper, newtabWallpaperColor, newtabWallpaperFill and newtabFollowSpaceColor are synced through Personal's optional Sync; a device's own image takes priority on that device; private tabs never show a color."
+    },
+    "matchSpace": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/start-page-paint.js",
+        "test/unit/start-page-paint.test.js",
+        "test/desktop/custom-wallpaper-smoke.mjs",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "With Match each space's color on, a window that belongs to a space draws that space's color while the Color wallpaper shows; the page receives only the hex color. There is no separate image per space."
+    },
+    "captures": {
+      "evidence": [
+        "docs/press/release-notes/v1.38.0.md",
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/newtab-wallpaper.js"
+      ],
+      "qualification": "Captions describe the recorded states in docs/website-captures-v1.38.0.json, taken from the public v1.38.0 arm64 DMG. The painting is a CC0 Met Open Access image used as the sample."
+    },
+    "layouts": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "settings-schema/schema.json",
+        "docs/press/release-notes/v1.38.0.md"
+      ],
+      "qualification": "The Customize popover offers the four layouts (Ledger, Billboard, Shelf, Tally) and, since v1.38.0, the Sunrise, Color and Your image wallpapers."
+    },
+    "mahjongCapture": {
+      "evidence": [
+        "src/renderer/pages/mahjong.html",
+        "src/renderer/pages/mahjong.js",
+        "src/renderer/pages/mahjong-engine.js"
+      ],
+      "qualification": "The capture shows a fresh profile's standalone Mahjong: the Daily deal, which that day was the Turtle board, in Burst mode."
+    },
+    "timeOfDay": {
+      "evidence": [
+        "src/renderer/pages/newtab-wallpaper.js",
+        "src/renderer/pages/newtab.html",
+        "settings-schema/schema.json"
+      ],
+      "qualification": "Time-of-day wallpaper (Settings → General or Customize) is unchanged since earlier releases and still available in v1.38.0 beside Color and Your image."
+    },
+    "mahjongFooter": {
+      "evidence": [
+        "src/renderer/pages/newtab.html",
+        "src/renderer/pages/mahjong.html"
+      ],
+      "qualification": "Every Start Page layout's footer links to standalone Mahjong, which opens as an ordinary tab."
+    },
+    "memoryRun": {
+      "evidence": [
+        "bench/memory/README.md",
+        "bench/memory/run.js",
+        "bench/memory/browsers.json",
+        "bench/memory/workloads.json"
+      ],
+      "qualification": "Measured October 19, 2026 (03:13–03:47 UTC) with the harness above on one Apple Silicon Mac (macOS 27.2, 24 GiB RAM, a different Mac from the October 15 run's 8 GiB one) with Blanc 1.38.0, Brave 1.97.59 (Chromium 155), Chrome 155.0.8059.80, Edge 155.0.4283.62, Zen 1.23.3b and Vivaldi 8.2.4133.89: the six ad-heavy pages in workloads.json, fresh profiles, no extensions, three repetitions, median of phys_footprint summed across each browser's process tree. Committed run: bench/memory/results/memory-2026-10-19T03-13-32-296Z.{json,md}; test/unit/public-truth.test.js recomputes the medians. Blanc 1.5 GiB (1.4–1.5), Brave 1.7 (1.7–1.8), Zen 4.7, Chrome 4.9 (4.9–5.1), Edge 7.4, Vivaldi 7.4; Blanc with its blocker off 5.2 (5.0–5.3), overlapping Chrome. Brave stays named as the fair peer, and because the October 15 run had Brave lower (1.5 against 1.7), never claim Blanc reliably uses less memory than Brave. Arc could not be measured (it ignored the throwaway profile; the harness rejected every cell) and is not shown."
+    }
+  },
+  "labels": [
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Use your own image"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Keep the page readable"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your image stays on this device"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Or paint it a color"
+    },
+    {
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Match each space"
+    }
+  ],
+  "claims": [
+    {
+      "id": "v138-001",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your own image, or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-002",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Open Customize on the Start Page and choose Your image under Wallpaper to show a JPEG or PNG of your own, up to 25 MB.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-003",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Settings → General → Start Page image offers the same choice.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-004",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Wash covers your image so the page stays easy to read: Auto follows your theme, Light and Dark pick one whatever your theme, and Spotlight washes only behind the content.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-005",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Fade sets how strongly the wash covers the image, down to none.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-006",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Blanc keeps a resized copy with location, camera and time details removed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-007",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "It isn’t synced, and private tabs never show it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-008",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose Color under Wallpaper for one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-009",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on its Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "matchSpace"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-010",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-011",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your image with the Spotlight wash.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "washAndFade",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-012",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Van Gogh, Wheat Field with Cypresses, The Met (public domain).",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-013",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Your image",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-014",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Color: Sky with the Gradient fill",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-015",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Customize → Wallpaper → Color",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "colorWallpaper",
+        "captures"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-016",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose your Start Page layout and wallpaper.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-071"
+    },
+    {
+      "id": "v138-017",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong — Daily Turtle / Burst",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongCapture"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-259"
+    },
+    {
+      "id": "v138-018",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-072"
+    },
+    {
+      "id": "v138-019",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Every footer also opens Mahjong in its own tab and leaves your Start Page in place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongFooter"
+      ],
+      "verdict": "verified",
+      "replaces": "website-115-072"
+    },
+    {
+      "id": "v138-020",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Or choose your own image or a color from Customize on the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-021",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Start Page layouts and wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-022",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "layouts",
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-023",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your own image stays on this device and never shows in private tabs.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "imagePrivacy"
+      ],
+      "verdict": "verified",
+      "replaces": "cinema-tools-start"
+    },
+    {
+      "id": "v138-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose your Start Page wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "bento-130-008"
+    },
+    {
+      "id": "v138-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose your Start Page wallpaper.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "timeOfDay",
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "replaces": "bento-130-051"
+    },
+    {
+      "id": "v138-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper",
+        "imagePrivacy"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v138-027",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Under a third of Chrome’s 4.9 GB, with six ad-heavy sites open.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory-claim"
+    },
+    {
+      "id": "v138-028",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Brave, which also blocks by default, used a little more: 1.7 GB. With its blocker off, Blanc used 5.2 GB, about the same as Chrome.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory-limit"
+    },
+    {
+      "id": "v138-029",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Measured October 19, 2026 on one Apple Silicon Mac with 24 GB of memory, with Blanc 1.38.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in the Blanc repository.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-note-memory"
+    },
+    {
+      "id": "v138-030",
+      "source": "site/src/components/MemoryChart.astro",
+      "exactWording": "Measured 19 October 2026 with Blanc 1.38.0, on fresh profiles with no extensions. Brave also blocks by default, and in this run it used a little more. With Blanc’s blocker turned off, the same pages used 5.2 GB, about the same as Chrome, so the saving comes from blocking. Method and raw data are in our repository.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "v134-008"
+    },
+    {
+      "id": "v138-031",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "1.5 GB",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "memoryRun"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-proof-memory"
+    }
+  ]
+}

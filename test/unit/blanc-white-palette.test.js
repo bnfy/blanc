@@ -38,5 +38,5 @@ test('the Start Page palette sits on Blanc White', () => {
   assert.match(ledger, /--surface-raised: rgba\(255, 255, 255, 0\.88\);/);
   assert.match(ledger, /--onboarding-surface: #ffffff;/);
   assert.match(ledger, /--border: #e1d7c9;/);
-  assert.match(ledger, /--start-footer: rgba\(248, 242, 232, 0\.82\);/);
+  assert.match(ledger, /--start-footer-tint-sunrise: #f8ede2;/);
 });

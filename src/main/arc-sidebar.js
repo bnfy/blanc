@@ -229,7 +229,7 @@ function planSpaceCapture(space, { randomId }) {
     const name = normalizeGroupName(folder.name) || 'Folder';
     let group = groupByName.get(name.toLowerCase());
     if (!group && groups.length < MAX_SPACE_GROUPS) {
-      group = { id: randomId(), name, collapsed: false };
+      group = { id: randomId(), name, collapsed: false, color: null };
       groupByName.set(name.toLowerCase(), group);
       groups.push(group);
     }

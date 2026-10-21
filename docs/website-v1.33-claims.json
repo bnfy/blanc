@@ -142,17 +142,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-workspaces-10",
-      "source": "site/src/pages/features/workspaces.astro",
-      "exactWording": "When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces",
-        "spacesRedesign"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-workspaces-11",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Switch spaces from the Island.",
@@ -372,17 +361,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-arc-alternative-02",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "freeSpaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-133-features-01",
       "source": "site/src/pages/features.astro",
       "exactWording": "Now free",
@@ -447,6 +425,18 @@
   ],
   "supersededClaims": [
     {
+      "id": "site-133-arc-alternative-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
       "id": "site-133-workspaces-01",
       "source": "site/src/pages/features/workspaces.astro",
       "exactWording": "Switch between saved sets from the Island’s space control.",
@@ -479,6 +469,18 @@
       ],
       "verdict": "verified",
       "reason": "October 15, 2026 cinematic homepage redesign (owner request; draft PR, not deployed): the homepage was rebuilt from the Switch-page brainstorm, and this wording no longer renders. The replacement copy is recorded in docs/website-cinematic-homepage-claims-v1.34.json."
+    },
+    {
+      "id": "site-133-workspaces-10",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "spacesRedesign"
+      ],
+      "verdict": "verified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
     }
   ]
 }

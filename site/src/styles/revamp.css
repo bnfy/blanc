@@ -190,6 +190,81 @@ main .section-kicker {
 .revamp-nav .revamp-nav-link[aria-current="page"] {
   color: #000;
 }
+/* The Browser menu: a click-to-open panel with Download and Features
+   columns, hung under its trigger. */
+.site-browser-menu {
+  position: relative;
+}
+.revamp-nav .site-browser-trigger {
+  gap: 4px;
+}
+.site-browser-caret {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  transition: transform 0.15s ease;
+}
+.site-browser-menu[data-open="true"] .site-browser-caret {
+  transform: rotate(180deg);
+}
+.site-browser-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -28px;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 120px minmax(190px, auto);
+  gap: 30px;
+  padding: 24px 28px;
+  border: 1px solid #ece6dc;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgb(40 30 10 / 0.14);
+}
+.site-browser-panel[hidden] {
+  display: none;
+}
+.site-browser-label {
+  margin: 0 0 10px;
+  color: #8b8378;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.site-browser-panel ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-browser-panel a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  color: #1b1a18;
+  font-size: 15px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.site-browser-panel a:hover {
+  color: var(--site-gold);
+}
+.site-browser-download {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--site-gold);
+  stroke-width: 1.5;
+}
+.site-browser-more {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #ece6dc;
+}
 .revamp-nav .site-nav-cta {
   display: inline-flex;
   align-items: center;
@@ -301,6 +376,23 @@ main .section-kicker {
     border-bottom: 1px solid rgb(14 14 14 / 0.08);
     color: #1b1a18;
     font-size: 17px;
+  }
+  /* Inside the phone menu the Browser panel opens in place, one column. */
+  .site-header[data-menu="open"] .site-browser-panel {
+    position: static;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 10px 0 14px 14px;
+    border: 0;
+    border-bottom: 1px solid rgb(14 14 14 / 0.08);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .site-header[data-menu="open"] .site-browser-panel[hidden] {
+    display: none;
+  }
+  .site-header[data-menu="open"] .site-browser-panel a {
+    font-size: 16px;
   }
 }
 

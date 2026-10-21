@@ -5,7 +5,6 @@
 // lifecycle unit-testable.
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
-const { DEFAULT_GLANCE_RATIO } = require('./glance-layout');
 
 let nextId = 1;
 let runtimes = [];
@@ -54,18 +53,23 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Temporary second visible tab. Glance is deliberately workspace-local
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
-    glanceRatio: DEFAULT_GLANCE_RATIO,
-    /** The visible pane (main or reference tab id) that last took keyboard
+    // The floating Glance card's chrome view (main.js ensureGlanceCardView)
+    // and its generation: every open and close bumps it, so a stale move or
+    // resize is refused.
+    glanceCardView: null,
+    glanceCardGeneration: 0,
+    /** The visible pane (main page or Glance tab id) that last took keyboard
      * focus; browser commands without a sending pane act on it
      * (glance-focus.js). Main-process only: never crosses IPC or disk. */
     focusedPaneTabId: null,
-    /** The narrowest side-by-side main pane that holds the slim Island with
-     * a readable address, as the strip last measured it (0 until then). */
-    islandMinPrimaryWidth: 0,
-    /** The narrowest reference that holds the Glance header at its most
-     * compact, window-control space included, as the strip last measured it
-     * (0 until then; glance-layout.js then uses its 300px default). */
-    glanceMinReferenceWidth: 0,
+    /** Split View (F53): this window's splits, { id, tabIds, layout,
+     * focusedIndex } (split-model.js). Saved with the session and Spaces. */
+    splits: [],
+    /** The narrowest pane that holds a split pane's header at its most
+     * compact, as the strip last measured it (null until then). */
+    splitPaneMinWidth: null,
+    // Split View corner tab views by tab id (main.js syncSplitCornerTabs).
+    splitCornerViews: new Map(),
     /** Reopen-closed history belongs to this native workspace, not the app
      * process. Entries remain memory-only, matching the pre-M2 behavior, and
      * the newest may hold the closed tab's still-live view (spec §2.1). */
@@ -127,7 +131,16 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * boundary — reset on view creation and render-process-gone. */
     fillStatusView: null,
     fillStatusViewAttached: false,
+    // The tab the fill capsule's message is about: with a Glance open, a
+    // message about the Glance page sits at the bottom of the card.
+    fillStatusTabId: null,
     fillStatusViewLoaded: false,
+    /** The resting pill's tooltip (tooltip.html), floated under the pill
+     * while the strip asks for it; `tooltipGeneration` drops a show that a
+     * later hide or show overtook while its text was being written. */
+    tooltipView: null,
+    tooltipViewAttached: false,
+    tooltipGeneration: 0,
     tabsWantingAddressBarFocus: new Set(),
     addressFocusGeneration: 0,
     /** Tab ids in activation order, most recent last, one occurrence per id.
@@ -161,11 +174,40 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * the cursor spends most of its life over the page, which is a different
      * view from the one the pill lives in, so the chrome never sees it. */
     islandRect: null,
+    islandHoverCapable: false,
+    /** The pill's favicon + domain area, hover-open's only target. */
+    islandHoverRect: null,
+    islandHover: null,
     /** Last proximity actually sent, so an unchanged value costs no IPC. */
     islandProximity: { k: 0 },
     islandProximitySentAt: 0,
     islandProximityTimer: null,
     islandProximityPending: null,
+    /** Auto-hide Island: whether the strip is currently revealed, the check
+     * that hides it again, and the last macOS traffic-light visibility set. */
+    islandRevealed: false,
+    islandAutoHideTimer: null,
+    /** The page's slide while the strip comes and goes: {from, to, top,
+     * start, duration, timer}, or null. */
+    islandSlide: null,
+    /** Cursor sampling that reveals a hidden Island at the top edge. */
+    islandRevealWatchTimer: null,
+    islandRevealDwell: null,
+    lastPointer: null,
+    stripHiddenSent: null,
+    windowButtonsVisible: null,
+    /** Floating Island views (auto-hide, float style), by role ('pill',
+     * 'controls', 'menu'): {view, role, shown, hideTimer, payload, frameKey}.
+     * Null when the window has none. */
+    islandFloat: null,
+    /** Where the strip draws its Windows/Linux window controls and main-menu
+     * button (window coordinates), for the floating copies of them. */
+    windowControlsRect: null,
+    menuButtonRect: null,
+    /** The how-to tip shown when auto-hide is turned on, and the tooltip
+     * generation it drew under (a newer pill tooltip replaces it). */
+    islandAutoHideIntroTimer: null,
+    islandAutoHideIntroGeneration: 0,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
   };
@@ -226,6 +268,8 @@ function detachWindow(runtime) {
   runtime.fillStatusView = null;
   runtime.fillStatusViewAttached = false;
   runtime.fillStatusViewLoaded = false;
+  runtime.tooltipView = null;
+  runtime.tooltipViewAttached = false;
 }
 
 /** A user-closed secondary window has no dock-reopen contract. Remove every

@@ -361,8 +361,8 @@ test('published memory figures agree across the site, the fact sheet, and the ru
   // edited alone. If a re-run changes the figures, all three change together or
   // this fails.
   // Figures are strings so a whole number keeps its published one decimal (4.0).
-  const MEASURED = [['Brave', '1.5'], ['Blanc', '1.7'], ['Zen', '4.0'], ['Chrome', '5.7'], ['Vivaldi', '7.4']];
-  const RESULT = 'bench/memory/results/memory-2026-10-15T06-03-46-052Z.json';
+  const MEASURED = [['Blanc', '1.5'], ['Brave', '1.7'], ['Zen', '4.7'], ['Chrome', '4.9'], ['Edge', '7.4'], ['Vivaldi', '7.4']];
+  const RESULT = 'bench/memory/results/memory-2026-10-19T03-13-32-296Z.json';
 
   const chart = read('site/src/components/MemoryChart.astro');
   const factSheet = read('docs/press/fact-sheet.md');
@@ -387,7 +387,7 @@ test('published memory figures agree across the site, the fact sheet, and the ru
     return median / 1024 ** 3;
   };
   for (const [name, gb] of MEASURED) {
-    const actual = medianGiB(name === 'Zen' ? 'Zen Browser' : name === 'Chrome' ? 'Google Chrome' : name);
+    const actual = medianGiB({ Zen: 'Zen Browser', Chrome: 'Google Chrome', Edge: 'Microsoft Edge' }[name] ?? name);
     assert.ok(
       Math.abs(actual - Number(gb)) < 0.06, // displayed GiB rounds to 1 dp
       `${name}: published ${gb} GB but the committed run measured ${actual.toFixed(2)}`
@@ -404,7 +404,7 @@ test('published memory figures agree across the site, the fact sheet, and the ru
   // Both qualifications must travel with the figures wherever they are shown.
   for (const [file, text] of [['MemoryChart', chart], ['fact sheet', factSheet], ['homepage', homepage]]) {
     assert.match(text, /blocks by default/i, `${file} must name Brave as the fair peer`);
-    assert.match(text, /5\.4 GB/, `${file} must state the blocking-off figure`);
+    assert.match(text, /5\.2 GB/, `${file} must state the blocking-off figure`);
     assert.match(text, /no extensions/i, `${file} must disclose the profile conditions`);
   }
 });

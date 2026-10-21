@@ -89,6 +89,15 @@ if (window.location.protocol === 'blanc:') {
         openSpaces: () => invoke('pages:start:open-spaces'),
         setLayout: (name) => invoke('pages:start:set-layout', name),
         setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        setWallpaperWash: (wash) => invoke('pages:start:set-wallpaper-wash', wash),
+        setWallpaperStyle: (style) => invoke('pages:start:set-wallpaper-style', style),
+        setWallpaperColor: (preset) => invoke('pages:start:set-wallpaper-color', preset),
+        setWallpaperFill: (fill) => invoke('pages:start:set-wallpaper-fill', fill),
+        setWallpaperFollowSpace: (enabled) => invoke('pages:start:set-wallpaper-follow-space', enabled),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),
         openIsland: (char) => invoke('pages:start:open-island', char),
@@ -159,6 +168,12 @@ if (window.location.protocol === 'blanc:') {
         remove: (url, visitedAt) => invoke('pages:history:remove', url, visitedAt),
         clear: () => invoke('pages:history:clear'),
       },
+      archive: {
+        list: (opts) => invoke('pages:archive:list', opts),
+        restore: (id) => invoke('pages:archive:restore', id),
+        forget: (id) => invoke('pages:archive:forget', id),
+        clear: () => invoke('pages:archive:clear'),
+      },
     };
   } else if (host === 'downloads') {
     api = {
@@ -214,6 +229,12 @@ if (window.location.protocol === 'blanc:') {
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
         set: (partial) => invoke('pages:settings:set', partial),
+        wallpaper: () => invoke('pages:start:wallpaper'),
+        setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
+        setWallpaperWash: (wash) => invoke('pages:start:set-wallpaper-wash', wash),
+        setWallpaperStyle: (style) => invoke('pages:start:set-wallpaper-style', style),
+        chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
+        removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         language: (code, restart) => invoke('pages:settings:language', code, restart),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));

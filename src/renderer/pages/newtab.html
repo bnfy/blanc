@@ -195,10 +195,66 @@
           </button>
         </div>
         <hr class="customize-divider" />
-        <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-label="Time-of-day wallpaper" aria-pressed="false" title="Time-of-day wallpaper" disabled data-i18n-aria-label="settings.general.newtabDynamicWallpaper.label" data-i18n-title="settings.general.newtabDynamicWallpaper.label">
-          <span class="wallpaper-toggle-track" aria-hidden="true"></span>
-          <span data-i18n="newtab.customize.wallpaper">Dynamic wallpaper</span>
-        </button>
+        <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
+        <!-- A cover preview of what the Start Page will show. Only the chosen
+             wallpaper's options appear, so the clock switch can never look
+             like it applies to your image. -->
+        <div id="wallpaperSourcePicker" class="wallpaper-seg" role="group" aria-labelledby="customizeWallpaperLabel">
+          <button id="sunriseWallpaperPick" type="button" aria-pressed="true" disabled data-i18n="newtab.wallpaper.sunrise">Sunrise</button>
+          <button id="colorWallpaperPick" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.color">Color</button>
+          <button id="customWallpaperToggle" type="button" aria-pressed="false" disabled data-i18n="newtab.wallpaper.custom">Your image</button>
+        </div>
+        <div id="customWallpaperCover" class="wallpaper-cover" data-source="sunrise"></div>
+        <!-- A caption line under the cover: replacing the picture leads,
+             removing it stays quiet at the far end. -->
+        <div id="customWallpaperActions" class="wallpaper-caption" role="group" aria-label="Image" data-i18n-aria-label="newtab.wallpaper.imageLabel" hidden>
+          <button id="customWallpaperChange" class="wallpaper-caption-action" type="button" data-i18n="newtab.wallpaper.chooseAnother">Choose another image…</button>
+          <button id="customWallpaperRemove" class="wallpaper-caption-action wallpaper-caption-quiet" type="button" data-i18n="newtab.wallpaper.remove">Remove</button>
+        </div>
+        <!-- Color: the Spaces presets as swatches (built by the page script from
+             main's list), how the color is drawn, and whether a window in a
+             space takes that space's color instead. -->
+        <div id="colorWallpaperOptions" class="wallpaper-color" hidden>
+          <div id="colorWallpaperSwatches" class="wallpaper-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.wallpaper.color"></div>
+          <div class="wallpaper-line wallpaper-fill-line">
+            <span id="colorWallpaperFillLabel" class="wallpaper-line-label" data-i18n="newtab.wallpaper.fillLabel">Fill</span>
+            <div id="colorWallpaperFillRow" class="wallpaper-seg wallpaper-seg-fill" role="group" aria-labelledby="colorWallpaperFillLabel">
+              <button type="button" data-wallpaper-fill-pick="soft" aria-pressed="false" data-i18n="newtab.wallpaper.fillSoft">Soft</button>
+              <button type="button" data-wallpaper-fill-pick="solid" aria-pressed="false" data-i18n="newtab.wallpaper.fillSolid">Solid</button>
+              <button type="button" data-wallpaper-fill-pick="gradient" aria-pressed="true" data-i18n="newtab.wallpaper.fillGradient">Gradient</button>
+            </div>
+          </div>
+          <div class="wallpaper-follow">
+            <button id="colorWallpaperFollow" class="wallpaper-toggle" type="button" aria-pressed="false" aria-describedby="colorWallpaperFollowHint">
+              <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+              <span data-i18n="newtab.wallpaper.followSpace">Match each space’s color</span>
+            </button>
+            <p id="colorWallpaperFollowHint" class="wallpaper-follow-hint" data-i18n="newtab.wallpaper.followSpaceHint">In a space, the Start Page takes that space’s color.</p>
+          </div>
+        </div>
+        <div class="wallpaper-lines">
+          <button id="dynamicWallpaperToggle" class="wallpaper-toggle" type="button" aria-pressed="false" disabled>
+            <span class="wallpaper-toggle-track" aria-hidden="true"></span>
+            <span data-i18n="newtab.wallpaper.timeOfDay">Change with time of day</span>
+          </button>
+          <div id="customWallpaperRow" class="wallpaper-tuning" hidden>
+            <div class="wallpaper-line">
+              <span id="customWallpaperStyleLabel" class="wallpaper-line-label" data-i18n="newtab.wallpaper.styleLabel">Wash</span>
+              <div id="customWallpaperStyleRow" class="wallpaper-seg wallpaper-seg-fill" role="group" aria-labelledby="customWallpaperStyleLabel">
+                <button type="button" data-wallpaper-style-pick="auto" aria-pressed="true" data-i18n="newtab.wallpaper.styleAuto">Auto</button>
+                <button type="button" data-wallpaper-style-pick="light" aria-pressed="false" data-i18n="newtab.wallpaper.styleLight">Light</button>
+                <button type="button" data-wallpaper-style-pick="dark" aria-pressed="false" data-i18n="newtab.wallpaper.styleDark">Dark</button>
+                <button type="button" data-wallpaper-style-pick="spotlight" aria-pressed="false" data-i18n="newtab.wallpaper.styleSpotlight">Spotlight</button>
+              </div>
+            </div>
+            <div class="wallpaper-line">
+              <label class="wallpaper-line-label" for="customWallpaperWash" data-i18n="newtab.wallpaper.wash">Fade</label>
+              <input id="customWallpaperWash" class="wallpaper-fade" type="range" min="0" max="100" step="5" value="100" />
+              <output id="customWallpaperWashValue" for="customWallpaperWash" class="wallpaper-fade-value"></output>
+            </div>
+          </div>
+        </div>
+        <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
       </div>
     </span>
     <span class="footer-right">
@@ -260,6 +316,12 @@
           <figcaption id="obTabDiscoveryCaption" class="page-sr-only" data-i18n="onboarding.island.caption">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
         </figure>
         <p class="ob-island-hint" id="obIslandHint"></p>
+        <!-- F52 spec D5: offered to a fresh profile only, preset on; Continue
+             from this step saves it, anything else leaves Tab Archive Off. -->
+        <div id="obArchiveRow" class="ob-control-row ob-control-row-tall ob-archive-row" hidden>
+          <span data-i18n="onboarding.island.archive">Archive tabs after 7 days<small>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</small></span>
+          <button id="obArchive" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Archive tabs after 7 days" data-i18n-aria-label="onboarding.island.archiveLabel"><span class="ob-knob"></span></button>
+        </div>
       </section>
       <section data-step="3" hidden>
         <div class="ob-vignette ob-vignette-shield">

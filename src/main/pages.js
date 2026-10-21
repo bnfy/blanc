@@ -9,8 +9,11 @@ const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
+const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
+const wallpaper = require('./wallpaper');
+const { settingsForSource } = require('./wallpaper-model');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
@@ -103,6 +106,9 @@ function setupPages(hooks = {}) {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return internalFileResponse(branding);
     const { host, pathname } = new URL(request.url);
+    // The custom Start Page image is a userData file, so it is answered by
+    // its own exact name, never through the flat PAGES_DIR resolver below.
+    if (host === 'newtab' && wallpaper.isServedPath(pathname)) return wallpaper.serve();
     // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     // Unknown host → 404; malformed name on a known host → 400.
@@ -328,6 +334,16 @@ function setupPages(hooks = {}) {
     // owns history.json, so the main-process hook drops the persisted copy.
   });
 
+  // F52 Tab Archive: the History sheet's Archived view. Restore goes through
+  // main, which opens the tab in the requesting window.
+  handle('pages:archive:list', 'history', (opts) => archive.listArchive({
+    query: typeof opts?.query === 'string' ? opts.query : '',
+    now: Date.now(),
+  }));
+  handle('pages:archive:restore', 'history', (id) => hooks.restoreArchived?.(typeof id === 'string' ? id : '') === true);
+  handle('pages:archive:forget', 'history', (id) => archive.forgetEntry(typeof id === 'string' ? id : ''));
+  handle('pages:archive:clear', 'history', () => archive.clearArchive());
+
   handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
   handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
   handle('pages:downloads:resume', 'downloads', (id) => downloads.resumeDownload(id));
@@ -538,6 +554,8 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
     wallpaperVisible: hooks.startPage?.visibleFor?.(event.sender) === true,
+    // Per-tab: a private Start Page never receives the custom image.
+    wallpaper: hooks.startPage?.wallpaperFor?.(event.sender) ?? null,
     // Per-tab guard: the shared status never carries profile or privacy.
     migrationChecklist: hooks.startPage?.migrationChecklistFor?.(event.sender) ?? null,
     // A utility sheet is a separate WebContentsView layered over this tab;
@@ -564,6 +582,62 @@ function setupPages(hooks = {}) {
   handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {
     if (typeof enabled === 'boolean') settings.setSettings({ newtabDynamicWallpaper: enabled });
     return settings.isDynamicWallpaperEnabled();
+  });
+  // F49 custom wallpaper. Replies carry only the sender's projection
+  // ({ source, hasImage, image }), never a file path or the image bytes.
+  const wallpaperReply = (event) => hooks.startPage?.wallpaperFor?.(event.sender) ?? null;
+  handleEvent('pages:start:wallpaper', ['newtab', 'settings'], (event) => wallpaperReply(event));
+  handleEvent('pages:start:set-wallpaper', ['newtab', 'settings'], (event, source) => {
+    const write = settingsForSource(source);
+    if (write) settings.setSettings(write);
+    return wallpaperReply(event);
+  });
+  // The Fade slider: only an integer 0–100 is saved; anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-wash', ['newtab', 'settings'], (event, wash) => {
+    settings.setSettings({ newtabWallpaperWash: wash });
+    return wallpaperReply(event);
+  });
+  // The wash style (auto | light | dark | spotlight); anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-style', ['newtab', 'settings'], (event, style) => {
+    settings.setSettings({ newtabWallpaperStyle: style });
+    return wallpaperReply(event);
+  });
+  // The Color wallpaper (synced): a Spaces preset id, a fill, and whether a
+  // window in a Space takes that Space's color. Anything else is ignored.
+  handleEvent('pages:start:set-wallpaper-color', 'newtab', (event, preset) => {
+    settings.setSettings({ newtabWallpaperColor: preset });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:set-wallpaper-fill', 'newtab', (event, fill) => {
+    settings.setSettings({ newtabWallpaperFill: fill });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:set-wallpaper-follow-space', 'newtab', (event, enabled) => {
+    if (typeof enabled === 'boolean') settings.setSettings({ newtabFollowSpaceColor: enabled });
+    return wallpaperReply(event);
+  });
+  handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
+    let file = hooks.wallpaperTestFile?.() ?? null;
+    if (!file) {
+      const picked = await dialog.showOpenDialog(hooks.getMainWindow?.() ?? undefined, {
+        title: t('newtab.wallpaper.chooseTitle'),
+        filters: [{ name: t('newtab.wallpaper.filter'), extensions: ['jpg', 'jpeg', 'png'] }],
+        properties: ['openFile'],
+      });
+      if (picked.canceled || !picked.filePaths.length) return { cancelled: true, wallpaper: wallpaperReply(event) };
+      file = picked.filePaths[0];
+    }
+    const result = await wallpaper.importFile(file);
+    if (result.error) return { error: result.error, wallpaper: wallpaperReply(event) };
+    settings.setSettings({ newtabCustomWallpaper: true });
+    hooks.startPage?.wallpaperChanged?.();
+    return { ok: true, wallpaper: wallpaperReply(event) };
+  });
+  handleEvent('pages:start:remove-wallpaper', ['newtab', 'settings'], async (event) => {
+    await wallpaper.remove();
+    settings.setSettings({ newtabCustomWallpaper: false });
+    hooks.startPage?.wallpaperChanged?.();
+    return wallpaperReply(event);
   });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
@@ -639,13 +713,18 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
-  // Onboarding may change exactly these two settings, live — never the whole
+  // Onboarding may change exactly these settings, live — never the whole
   // settings surface. Values still pass setSettings' own validation.
   handle('pages:start:onboarding-set', 'newtab', (partial) => {
     const clean = {};
     if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
     if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
     if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
+    // F52 spec D5: the island step's Tab Archive offer — After 7 days or Off,
+    // and main accepts it only while first run is pending.
+    if (partial && (partial.tabArchive === '7d' || partial.tabArchive === 'off')) {
+      hooks.startPage?.offerTabArchive?.(partial.tabArchive);
+    }
   });
 
   // Replays the first-run walkthrough. Main creates and activates the tour

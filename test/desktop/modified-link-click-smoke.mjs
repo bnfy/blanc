@@ -143,7 +143,11 @@ try {
             `${label} HTTP Referer obeys policy`);
           assert.equal(result.storage, policy.storage, `${label} inherits document sandbox restrictions`);
           const state = await callTestHook(app, 'state');
-          assert.equal(state.tabs.find((tab) => tab.id === child.id).groupId, context.groupId);
+          // A link child opens ungrouped, where a plain new tab goes: last in
+          // its window's tab order, even when its source is grouped.
+          assert.equal(state.tabs.find((tab) => tab.id === child.id).groupId, null,
+            `${label} opens ungrouped`);
+          assert.equal(owner.tabOrder.at(-1), child.id, `${label} lands last, like a plain new tab`);
           const childSession = await callTestHook(app, 'profileTabSession', [child.id]);
           assert.equal(childSession.profileId, context.profileId);
           assert.equal(childSession.private, isPrivate);

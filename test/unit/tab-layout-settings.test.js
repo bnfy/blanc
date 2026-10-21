@@ -153,7 +153,7 @@ test('vertical rail top chrome is reduced to an accessible sidebar toggle', () =
 
   assert.match(
     html,
-    /id="verticalTabsUseIsland"[\s\S]*title="Turn vertical tabs off"[\s\S]*aria-label="Turn vertical tabs off"/
+    /id="verticalTabsUseIsland"[\s\S]*data-tooltip="Turn vertical tabs off"[\s\S]*aria-label="Turn vertical tabs off"/
   );
   assert.match(html, /class="vertical-tabs-layout-icon"/);
   assert.doesNotMatch(html, /vertical-tabs-heading|<span>Island<\/span>/);

@@ -109,10 +109,50 @@ test('sessionTabMeta writes customTitle only for a renamed tab', () => {
   assert.equal(onError.customTitle, 'Budget');
 });
 
+test('pinned tab meta carries its home after the old keys', () => {
+  const plain = sessionTabMeta(tab({
+    pinned: true,
+    url: 'https://b.example/',
+    pinnedHomeUrl: 'https://a.example/',
+  }));
+  assert.deepEqual(plain, {
+    title: 'A',
+    favicon: null,
+    pinnedHomeUrl: 'https://a.example/',
+  });
+  assert.deepEqual(Object.keys(plain), ['title', 'favicon', 'pinnedHomeUrl']);
+
+  const renamed = sessionTabMeta(tab({
+    pinned: true,
+    customTitle: 'Budget',
+    pinnedHomeUrl: 'https://a.example/',
+  }));
+  assert.deepEqual(Object.keys(renamed), ['title', 'favicon', 'customTitle', 'pinnedHomeUrl']);
+});
+
+test('unpinned or private tab meta has no home key', () => {
+  const unpinned = sessionTabMeta(tab({ pinnedHomeUrl: 'https://a.example/' }));
+  const privatePinned = sessionTabMeta(tab({
+    pinned: true,
+    private: true,
+    pinnedHomeUrl: 'https://a.example/',
+  }));
+  assert.equal(Object.hasOwn(unpinned, 'pinnedHomeUrl'), false);
+  assert.equal(Object.hasOwn(privatePinned, 'pinnedHomeUrl'), false);
+});
+
 test('syncSnapshot sends the name a renamed tab shows', () => {
   const snap = syncSnapshot([tab({ title: 'Sheets', customTitle: 'Budget' }), tab({ id: 'b', title: 'Plain' })], []);
   assert.deepEqual(snap.tabs.map((t) => t.title), ['Budget', 'Plain']);
   assert.deepEqual(Object.keys(snap.tabs[0]).sort(), ['groupId', 'pinned', 'title', 'url']);
+});
+
+test('sync snapshot never carries homes', () => {
+  const snap = syncSnapshot([tab({
+    pinned: true,
+    pinnedHomeUrl: 'https://home.example/',
+  })], []);
+  assert.doesNotMatch(JSON.stringify(snap), /pinnedHomeUrl|home\.example/);
 });
 
 test('metaAfterHistoryClear keeps typed names and drops page titles and icons', () => {
@@ -126,9 +166,38 @@ test('metaAfterHistoryClear keeps typed names and drops page titles and icons', 
   ]);
 });
 
+test('history clear keeps pinned homes', () => {
+  assert.deepEqual(metaAfterHistoryClear([
+    { title: 'B', favicon: SAFE_ICON, pinnedHomeUrl: 'https://a.example/' },
+    { title: 'Mail', favicon: null },
+  ]), [
+    { title: '', favicon: null, pinnedHomeUrl: 'https://a.example/' },
+    { title: '', favicon: null },
+  ]);
+});
+
 test('metaAfterHistoryClear returns null when there is no name to keep', () => {
   assert.equal(metaAfterHistoryClear([{ title: 'Mail', favicon: null }]), null);
   assert.equal(metaAfterHistoryClear([{ title: 'Mail', customTitle: '   ' }]), null);
   assert.equal(metaAfterHistoryClear(undefined), null);
   assert.equal(metaAfterHistoryClear('junk'), null);
+});
+
+// F52: the Tab Archive's idle clock survives relaunches through session meta.
+test('sessionTabMeta writes a finite lastViewedAt and nothing otherwise', () => {
+  assert.equal(sessionTabMeta(tab({ lastViewedAt: 1_700_000_000_000 })).lastViewedAt, 1_700_000_000_000);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab()), false);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab({ lastViewedAt: Number.NaN })), false);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab({ lastViewedAt: '5' })), false);
+});
+
+test('metaAfterHistoryClear keeps lastViewedAt but drops titles and icons', () => {
+  const kept = metaAfterHistoryClear([
+    { title: 'Secret', favicon: SAFE_ICON, lastViewedAt: 1_700_000_000_000 },
+    { title: 'Other', favicon: null },
+  ]);
+  assert.deepEqual(kept, [
+    { title: '', favicon: null, lastViewedAt: 1_700_000_000_000 },
+    { title: '', favicon: null },
+  ]);
 });

@@ -98,11 +98,16 @@ const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_FLOAT_URL,
+  CHROME_GLANCE_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_TOOLTIP_URL,
+  CHROME_SPLIT_TAB_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const { tooltipRequest, tooltipBounds } = require('./tooltip-geometry');
 const { evaluateAdmission, evaluateDocumentVisible, isVisiblePane } = require('./display-capture-admission');
 const { parseDisplayMediaOptions } = require('./display-capture-constraints');
 const { createBrokerRegistry } = require('./display-capture-state');
@@ -153,13 +158,17 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { releaseHiddenWindowsOnLastClose } = require('./last-window-close');
-const { sanitizeFavicon } = require('./favicon-sanitizer');
+const { sanitizeFavicon, sanitizeIconBytes } = require('./favicon-sanitizer');
+const { readIconBytes } = require('./favicon-network');
 const {
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,
 } = require('./favicon-policy');
-const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
+const { effectiveTabMuted, shownMuted, revealTabAudio } = require('./tab-audio');
+const { hostOf, siteMuteKey, createSiteMutes } = require('./site-mute');
+// Mute Site: hosts muted until Blanc quits (tab menu additions spec §4).
+const siteMutes = createSiteMutes();
 const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
 const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
@@ -176,10 +185,14 @@ const { createDockReopenLifecycle } = require('./dock-reopen');
 const { createWindowViewShutdown } = require('./window-view-shutdown');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
-const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
+const { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
+const wallpaper = require('./wallpaper');
+const { effectiveSource } = require('./wallpaper-model');
+const { colorWallpaper } = require('./start-page-paint');
+const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
 // main, and main's resolver over the settings (spec
 // docs/superpowers/specs/2026-10-16-bangs-design.md).
@@ -187,6 +200,8 @@ const Bangs = require('../renderer/pages/bangs');
 const bangsCatalog = require('../renderer/pages/bangs-catalog');
 const { createBangResolver } = require('./bang-resolution');
 const bangResolver = createBangResolver({ settings, catalog: bangsCatalog, Bangs });
+const { createBangIcons } = require('./bang-icons');
+const bangIconsPolicy = require('./bang-icons-policy');
 /** The chrome documents' view of the bang settings (chrome:bangs and the
  * bangs:changed push share this one literal so the bridge check can read it). */
 function bangsState() {
@@ -197,9 +212,11 @@ const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
-const { persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
   PRIMARY_WINDOW_ID,
@@ -222,14 +239,15 @@ const {
   defaultTaskIntroduction,
 } = require('./migration-checklist');
 const { patronCalloutSnoozedUntil } = require('./patron-callout');
-const { whatsNewOnLaunch, whatsNewState } = require('./whats-new');
+const { whatsNewOnLaunch, whatsNewState, whatsNewCheckDue, whatsNewAfterCheck, whatsNewPageUrl } = require('./whats-new');
+const { checkWhatsNewPage } = require('./whats-new-check');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
 const {
   withLocalProfile,
   setFocusedLocalProfile,
 } = require('./local-profile-context');
-const { filterRestoredSession, restoreTargetId } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId, restoredLastViewedAt } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
   MAX_TAB_IMPORT_ENVELOPE_BYTES,
@@ -252,6 +270,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -260,6 +279,7 @@ const {
 const { hasExclusiveRenderer, hasBeforeUnloadListener, terminateRenderer } = require('./renderer-discard');
 const {
   createTabView,
+  primeTabLoadingBackground,
   wireTabView,
   unwireTabView,
   initTabView,
@@ -288,11 +308,9 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const {
-  DEFAULT_GLANCE_RATIO,
-  calculateGlanceLayout,
-  ratioForGlanceDivider,
-} = require('./glance-layout');
+const { cardGeometry, fractionsToFrame } = require('./glance-card');
+const { onScreenFocusedContents } = require('./focused-contents');
+const { createGlanceCardController } = require('./glance-card-controller');
 const {
   visiblePaneIds,
   isVisiblePaneId,
@@ -301,14 +319,22 @@ const {
   focusedPane,
   glanceLayoutPayload,
 } = require('./glance-focus');
-const { moveTab: resolveTabMove } = require('./tab-order');
-const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot, reorderGroupsWithClosed } = require('./closed-slot');
+const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
+const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
+const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
+const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, captureSplits, restoreSplits } = require('./split-model');
+const {
+  computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout,
+  cornerTabBounds, cornerTabHit, cornerTabSite, PANE_RADIUS, PANE_BORDER,
+} = require('./split-layout');
 const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./group-name-case');
+const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
-const { attachGroupHeaderMenu } = require('./group-context-menu');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
+const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
+const islandAutoHideModule = require('./island-autohide');
 const {
   installPlatformMainMenuShortcut,
   menuLabelText,
@@ -316,6 +342,7 @@ const {
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
 const { inviteFriend } = require('./invite-friend');
+const { xdgOpen } = require('./xdg-open');
 const { webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
@@ -350,7 +377,7 @@ const { buildHintProbeScript, configTransition, createFillHintScheduler } = requ
 const { FILL_KINDS, MODES: FILL_MODES } = require('./fill-status-kinds');
 const { fillCopy } = require('../renderer/fill-status-copy');
 const {
-  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
+  holdEligibility, mayParkTabView, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildSplitEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -392,6 +419,51 @@ const certificateExceptions = createCertificateExceptions({
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+/** Acceptance only: act as Windows or Linux on another platform, in main and
+ * in the chrome renderers (passed to them as --blanc-test-platform), so the
+ * floating Island's window controls can be tested on any machine. */
+const testPlatform = acceptanceTestMode && ['win32', 'linux'].includes(process.env.BLANC_TEST_PLATFORM)
+  ? process.env.BLANC_TEST_PLATFORM : null;
+/** Main-menu requests recorded instead of shown while the platform is faked. */
+const testMainMenuRequests = [];
+
+/** The platform the chrome is drawn for: the real one outside acceptance. */
+function chromePlatform() {
+  return testPlatform ?? process.platform;
+}
+
+/** webPreferences for the documents that draw the strip. */
+function stripWebPreferences() {
+  return testPlatform ? { additionalArguments: [`--blanc-test-platform=${testPlatform}`] } : {};
+}
+
+// Site icons on the ⌘L panel's bang rows: icons saved from visits first,
+// then copies kept from Blanc's icon server, then that server on demand.
+// Device-level like recent bangs, cleared with them, never synced. Design:
+// docs/superpowers/specs/2026-10-17-bang-icons-in-app-design.md.
+const bangIcons = createBangIcons({
+  store: new JsonStore('bang-icons', { records: [] }),
+  readIconBytes,
+  sanitizeIconBytes,
+  catalogHosts: bangIconsPolicy.catalogHostSet(bangsCatalog),
+});
+// The acceptance harness runs offline; scenarios stub the server through the
+// test hook instead.
+if (acceptanceTestMode) bangIcons.setFetcherForTest(async () => null);
+// Every host whose icon an overlay was given since the last history clear,
+// so a clear can withdraw them from the overlays' memory too.
+const bangIconHostsShown = new Set();
+function broadcastBangIcon(host, icon) {
+  forEachWindowRuntime((runtime) => {
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.send('bang-icons:changed', { host, icon });
+    }
+  }, { liveOnly: true });
+}
+bangIcons.onChange((host, icon) => {
+  if (icon) bangIconHostsShown.add(host);
+  broadcastBangIcon(host, icon);
+});
 // Interface language: resolved once at whenReady (first statement) and frozen
 // for this process; a change applies on relaunch through changeUiLanguage().
 // Resolution only returns registry codes, so the dynamic paths are bounded.
@@ -447,7 +519,7 @@ function closeUblockPopup(runtimeId, { restoreFocus = false } = {}) {
     const mode = popup.runtime.overlayMode;
     const restore = restoreFocus && !mode;
     if (restore) popup.runtime.window.webContents.focus();
-    popup.runtime.window.webContents.send('chrome:island-state', {
+    stripSurfaces(popup.runtime).send('chrome:island-state', {
       mode, trigger: mode === 'shield' ? popup.runtime.shieldTrigger : null,
       restoreTrigger: restore ? 'shield' : null,
     });
@@ -549,7 +621,11 @@ async function openUblockPopup(anchor) {
   });
   popup.dismissal = wirePopupDismissal({
     window: runtime.window,
-    outsideContents: [runtime.window.webContents, runtime.overlayView?.webContents],
+    outsideContents: [
+      runtime.window.webContents,
+      runtime.overlayView?.webContents,
+      ...FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents),
+    ].filter(Boolean),
     dismiss: () => { if (ublockPopups.get(runtime.id) === popup) closeUblockPopup(runtime.id); },
   });
   for (const item of tabs.values()) if (item.runtimeId === runtime.id) watchUblockPopupOutsideContents(item);
@@ -564,7 +640,7 @@ async function openUblockPopup(anchor) {
       closeUblockPopup(runtime.id);
       return;
     }
-    runtime.window.webContents.send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
+    stripSurfaces(runtime).send('chrome:island-state', { mode: 'shield', trigger: 'shield' });
     popup.ready = true;
     wc.focus();
   }
@@ -1243,7 +1319,10 @@ function applyTabImport(sessionId, request = {}) {
 
   tabImportApplyBroadcasted = false;
   const priorTabOrder = [...rt().tabOrder];
-  const insertAt = computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+  // Imported tabs and groups land at the bottom, like any new tab: the tab
+  // order is drawn as is, so splicing beside the active tab would pull a
+  // same-named group up or split a run (spec 2026-10-17).
+  const insertAt = rt().tabOrder.length;
   const batch = createQuietTabsBatch(rt(), plan.tabs, { insertAt });
   if (batch.error) return batch;
 
@@ -1591,6 +1670,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 }
 
 let launchPingSent = false;
+let whatsNewCheckStarted = false;
+// Set once anything else asks Blanc for a tab (a link, a file, a tab import),
+// so the What's New tab never takes the foreground from it.
+let launchHandedUrls = false;
 const defaultBrowserStatus = createDefaultBrowserStatus({ app, platform: process.platform, execFileSync });
 const defaultBrowserSettable = () => canSetDefaultBrowser({ app, platform: process.platform });
 // The moving-in checklist's "Make Blanc your default" completes the first
@@ -1681,6 +1764,34 @@ function maybeSendLaunchPing() {
   dayOneSignals.start();
 }
 
+// After a feature update, open that release's What's New page on blanc.day
+// once, but only after asking whether it exists (the site deploy can trail the
+// release, and a release may have no page). One check per launch, while the
+// Start Page pill is live; the answer also points the pill at the page.
+async function maybeOpenWhatsNew() {
+  if (!app.isPackaged || whatsNewCheckStarted) return;
+  whatsNewCheckStarted = true;
+  const version = app.getVersion();
+  if (!whatsNewCheckDue(settings.getSettings(), { version, now: Date.now() })) return;
+  const url = whatsNewPageUrl(version);
+  if (!bananifyServiceAllowed(url)) return;
+  const found = await checkWhatsNewPage(url, { fetch: net.fetch });
+  // The window that gets the tab is the one focused once the answer arrives.
+  withWindowRuntime(focusedRuntime ?? primaryRuntime, () => {
+    const { patch, openUrl } = whatsNewAfterCheck(settings.getSettings(), {
+      version,
+      found,
+      // Never over a link, a tab import or an open sheet: the tab stays owed
+      // for a later launch instead.
+      canOpen: !isQuitting && hasLiveWindow() && !launchHandedUrls && !rt().utilitySheetUrl && !pendingTabHandoff,
+    });
+    if (!patch) return;
+    // Settings changes re-broadcast the Start Page status, pill included.
+    settings.setSettings(patch);
+    if (openUrl) setActiveTab(createTab(openUrl), { focusContent: true });
+  });
+}
+
 function maybeSendProductUsage(wc, report) {
   const tabId = tabIdByWebContentsId.get(wc?.id);
   const tab = tabId ? tabs.get(tabId) : null;
@@ -1703,10 +1814,12 @@ function resolveExternalRuntime(preferred = focusedRuntime) {
 }
 
 function openExternalUrls(urls) {
+  if (urls?.length) launchHandedUrls = true;
   externalUrlHandoff.open(urls);
 }
 
 function openLocalHtmlFiles(paths) {
+  if (paths?.length) launchHandedUrls = true;
   externalUrlHandoff.openLocalFiles(paths);
 }
 
@@ -1899,7 +2012,7 @@ function applyChromeThemeAppearance(appearance) {
     ? appearance
     : resolvedThemeAppearance();
   rt().window.setBackgroundColor(chromeBackgroundColor(resolved));
-  rt().window.webContents.send(
+  stripSurfaces(rt()).send(
     'chrome:theme-appearance',
     resolved
   );
@@ -1913,7 +2026,7 @@ function beginChromeThemeAppearance(appearance) {
   if (appearance === 'dark' || appearance === 'light') {
     rt().window.setBackgroundColor(chromeBackgroundColor(appearance));
   }
-  rt().window.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
+  stripSurfaces(rt()).send('chrome:theme-appearance', appearance ?? 'pending');
 }
 
 function refreshActivePageTintForThemeChange() {
@@ -2000,7 +2113,33 @@ function applyAppIcon({ force = false } = {}) {
     developmentPreviewPath,
     developmentDarkPreviewPath,
     darkAppearance: nativeTheme.shouldUseDarkColors,
+    iconStyle: currentIconStyle(),
   }, { force });
+}
+
+// macOS 26's Icon & widget style (Default, Dark, Clear or Tinted). Only the
+// bundle icon follows Clear and Tinted, so app-icon.js shows it in those
+// styles. macOS sends apps no notice when the style changes, so Blanc looks
+// again when it becomes active and every 10 s; reading the default is cheap,
+// and the Dock is touched only when the style actually changed.
+const ICON_STYLE_CHECK_MS = 10_000;
+function currentIconStyle() {
+  return process.platform === 'darwin'
+    ? systemPreferences.getUserDefault('AppleIconAppearanceTheme', 'string')
+    : null;
+}
+let lastIconStyle = null;
+function watchIconStyle() {
+  if (process.platform !== 'darwin' || !app.isPackaged) return;
+  lastIconStyle = currentIconStyle();
+  const refresh = () => {
+    const style = currentIconStyle();
+    if (style === lastIconStyle) return;
+    lastIconStyle = style;
+    applyAppIcon();
+  };
+  app.on('did-become-active', refresh);
+  setInterval(refresh, ICON_STYLE_CHECK_MS).unref?.();
 }
 
 function developmentPreviewPath(environmentKey) {
@@ -2111,16 +2250,16 @@ async function probeTabDirty(tab, wc) {
   // its privileged frame and defeat the space-saving use case for dead tabs.
   if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
     tab.deepScrolled = false;
-    return { dirty: false, hasSessionStorage: false };
+    return { dirty: false, unsaved: false, hasSessionStorage: false };
   }
 
   let frames;
   try {
     frames = wc.mainFrame?.framesInSubtree ?? [];
   } catch {
-    return { dirty: true, hasSessionStorage: false };
+    return { dirty: true, unsaved: true, hasSessionStorage: false };
   }
-  if (frames.length === 0) return { dirty: true, hasSessionStorage: false };
+  if (frames.length === 0) return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   // One budget for the complete frame tree, never 250 ms per iframe.
   const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
@@ -2133,18 +2272,20 @@ async function probeTabDirty(tab, wc) {
     })),
     budget,
   ]);
-  if (answers === 'timeout') return { dirty: true, hasSessionStorage: false };
+  if (answers === 'timeout') return { dirty: true, unsaved: true, hasSessionStorage: false };
 
   let deepScrolled = false;
   let hasSessionStorage = false;
   for (const answer of answers) {
-    if (!answer || typeof answer !== 'object') return { dirty: true, hasSessionStorage: false };
-    if (answer.dirty) return { dirty: true, hasSessionStorage: false };
+    if (!answer || typeof answer !== 'object') return { dirty: true, unsaved: true, hasSessionStorage: false };
+    if (answer.dirty) return { dirty: true, unsaved: true, hasSessionStorage: false };
     if (answer.deepScrolled) deepScrolled = true;
     if (answer.hasSessionStorage) hasSessionStorage = true;
   }
   tab.deepScrolled = deepScrolled;
-  return { dirty: deepScrolled, hasSessionStorage };
+  // `unsaved` excludes deep scroll: a scroll position is not work the
+  // Tab Archive (F52) must protect, only something Quiet Tabs can't restore.
+  return { dirty: deepScrolled, unsaved: false, hasSessionStorage };
 }
 
 /** True while sleepTab has replaced a tab's listeners with its temporary
@@ -2169,6 +2310,7 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   // capture, which a background tab can legitimately begin during the await,
   // and Glance, which can make the tab visible during it.
   if (!tabs.has(tab.id) || (tab.id === rt().activeTabId && !rt().resident) || tab.id === rt().glanceTabId
+    || visibleSplitTabIds(rt()).includes(tab.id)
       || tab.navEpoch !== navEpoch || tab.isLoading
       || !tab.sleeping || !mayDiscardRenderer(tab) || liveContents(tab) !== wc
       // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
@@ -2258,6 +2400,7 @@ async function quietTab(id, { broadcast = true } = {}) {
   // one that began CAPTURING after candidate selection, or one that became
   // the visible Glance reference while an earlier candidate's probe awaited.
   if (!tabs.has(id) || (id === rt().activeTabId && !rt().resident) || id === rt().glanceTabId
+    || visibleSplitTabIds(rt()).includes(id)
       || tab.navEpoch !== epochAtProbe
       || tab.isLoading || tab.sleeping || !mayDiscardRenderer(tab) || !liveContents(tab)
       // Same moved-tab blind spot as the sessionStorage path: the runtime
@@ -2513,12 +2656,26 @@ function parkTabView(tab, entry) {
  * remain authoritative. */
 // Help → Invite a Friend… and /invite: a prefilled email in the person's own
 // mail app (invite-friend.js), or the invite on the clipboard without one.
+// On Linux, shell.openExternal resolves even when no app takes the link, so
+// xdg-open's own exit status decides (xdg-open.js).
 function inviteFriendNow() {
   return inviteFriend({
     t: mainI18n.t,
-    openExternal: (url) => shell.openExternal(url),
+    openExternal: (url) => (process.platform === 'linux' ? xdgOpen(url) : shell.openExternal(url)),
     writeClipboard: (text) => clipboard.writeText(text),
   });
+}
+
+// The menu has no palette to show /invite's notice in, so a copied invite
+// gets the same words in a native dialog on the focused window.
+function inviteFriendFromMenu() {
+  inviteFriendNow().then((result) => {
+    if (result !== 'copied') return;
+    const win = (focusedRuntime ?? primaryRuntime)?.window;
+    const t = mainI18n.t;
+    const options = { type: 'info', message: t('slash.invite.copied'), buttons: [t('dialog.ok')], noLink: true };
+    return win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options);
+  }).catch(() => {});
 }
 
 async function sleepBackgroundTabsNow() {
@@ -2538,7 +2695,7 @@ async function sleepBackgroundTabsNow() {
     snapshotCount: sleepSnapshots.size,
     permissionPendingTabIds,
     popupChildCounts,
-    visibleTabIds: new Set([runtime.glanceTabId].filter(Boolean)),
+    visibleTabIds: new Set([runtime.glanceTabId, ...visibleSplitTabIds(runtime)].filter(Boolean)),
   });
   const quieted = [];
   for (const id of ids) {
@@ -2646,6 +2803,8 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     const retainedContents = retainedView?.webContents;
     retained = !!retainedContents && !retainedContents.isDestroyed();
     const view = retained ? retainedView : createTabView(tab);
+    // A retained view reloads into a new renderer; createTabView primes its own.
+    if (retained) primeTabLoadingBackground(view, tab);
     tab.view = view;
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
     rootManagedExtensionView(tab);
@@ -2775,7 +2934,7 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
     maxSnapshots: MAX_SLEEP_SNAPSHOTS,
     permissionPendingTabIds: permissionPendingTabIds(),
     popupChildCounts,
-    visibleTabIds: new Set([rt().glanceTabId].filter(Boolean)),
+    visibleTabIds: new Set([rt().glanceTabId, ...visibleSplitTabIds(rt())].filter(Boolean)),
   });
 
   const quieted = [];
@@ -2787,6 +2946,143 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
   // sleepTab broadcasts every actual transition; an empty sweep stays silent.
   return { quieted, skippedReason: null };
 }
+// ---- Tab Archive (F52) ------------------------------------------------------
+// Idle loose tabs close into the profile's Archive. Pure policy lives in
+// tab-archive.js; the store in archive.js. See
+// docs/superpowers/specs/2026-10-19-tab-archive-design.md.
+
+/** Set only by the acceptance hook, whose synthetic first-run status stands
+ *  for a fresh profile while the test profile has completed first run. */
+let firstRunPendingForTest = false;
+function firstRunPending() {
+  return !settings.isFirstRunComplete() || firstRunPendingForTest;
+}
+
+/** Nothing is archived before this wall-clock time: launch, resume and a
+ *  change to the setting each push it ARCHIVE_GRACE_MS ahead (spec §2.4). */
+let archiveGraceUntil = 0;
+let lastArchiveSweepAt = 0;
+/** Window runtimes with an archive sweep running. */
+const archiveSweepsInFlight = new Set();
+/** Acceptance-only seam (BLANC_TEST): called after each candidate's probe. */
+let archiveProbeObserverForTest = null;
+
+function resetArchiveGrace(now = Date.now()) {
+  archiveGraceUntil = now + ARCHIVE_GRACE_MS;
+}
+
+function currentArchiveThresholdMs() {
+  const key = settings.getSettings().tabArchive;
+  return Object.hasOwn(TAB_ARCHIVE_DELAY_MS, key) ? TAB_ARCHIVE_DELAY_MS[key] : null;
+}
+
+/** True when a live tab holds work a close would lose. Quiet tabs passed the
+ *  same probe when they went quiet. Any probe failure protects the tab. */
+async function tabHoldsUnsavedWork(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  try {
+    if ((await probeTabDirty(tab, wc)).unsaved) return true;
+    return await hasBeforeUnloadListener(wc);
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * One archive pass over the bound window runtime.
+ * @returns {Promise<{archived: string[], closed: string[], skippedReason: string|null}>}
+ */
+async function runArchiveSweep() {
+  const runtime = rt();
+  // A set-aside Space keeps its tabs in a hidden resident runtime. Spec §8:
+  // nothing is archived from a Space that isn't open.
+  if (runtime.resident) return { archived: [], closed: [], skippedReason: 'set-aside' };
+  // One sweep per window at a time: an overlapping tick could otherwise pick
+  // the same candidate twice.
+  if (archiveSweepsInFlight.has(runtime)) return { archived: [], closed: [], skippedReason: 'busy' };
+  archiveSweepsInFlight.add(runtime);
+  try {
+    return await archiveSweepPass(runtime);
+  } finally {
+    archiveSweepsInFlight.delete(runtime);
+  }
+}
+
+async function archiveSweepPass(runtime) {
+  const skip = (reason) => ({ archived: [], closed: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  const thresholdMs = currentArchiveThresholdMs();
+  if (thresholdMs === null) return skip('off');
+
+  const now = Date.now();
+  // A gap in sweeps means the machine slept: give the person a moment with
+  // their tabs before anything is tidied away.
+  if (lastArchiveSweepAt && now - lastArchiveSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) resetArchiveGrace(now);
+  lastArchiveSweepAt = now;
+  if (now < archiveGraceUntil) return skip('grace');
+
+  // Read fresh every time: the person keeps using the window while probes run.
+  const policy = (perSweepLimit) => ({
+    now,
+    thresholdMs,
+    activeTabId: runtime.activeTabId,
+    visibleTabIds: new Set([runtime.glanceTabId, ...visibleSplitTabIds(runtime)].filter(Boolean)),
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+    graceUntil: archiveGraceUntil,
+    perSweepLimit,
+  });
+  const candidates = archiveCandidates(
+    runtime.tabOrder.map((id) => tabs.get(id)).filter(Boolean), policy(undefined),
+  );
+
+  const spaceName = namedWorkspaces.get(runtime.workspaceId)?.name ?? null;
+  const archived = [];
+  const closed = [];
+  for (const { id } of candidates) {
+    const probed = tabs.get(id);
+    if (!probed || await tabHoldsUnsavedWork(probed)) continue;
+    if (archiveProbeObserverForTest) await archiveProbeObserverForTest(id);
+    // Spec §2.5, "in one step": after the probe's await, re-run the whole
+    // eligibility check on this one tab, then save and close it at once.
+    // The person may have switched to it, pinned, grouped or moved it.
+    const tab = tabs.get(id);
+    if (!tab || windowRuntimes.runtimeForTab(id) !== runtime) continue;
+    const [still] = archiveCandidates([tab], policy(1));
+    if (!still) continue;
+    if (!still.closeOnly) {
+      const entry = buildArchiveEntry(tab, { now, spaceName });
+      if (!entry) continue;
+      archive.addEntries([entry], now);
+      archived.push(id);
+    }
+    closeTab(id, { record: false, selectReplacement: false });
+    closed.push(id);
+  }
+  // Spec D6: only a sweep that added Archive entries records the one-time
+  // notice; closing an idle blank New Tab alone announces nothing.
+  if (archived.length) archive.noteArchived(archived.length);
+  return { archived, closed, skippedReason: null };
+}
+
+/** Restore one archived tab into the bound window as a new ungrouped tab at
+ *  the end, selected. False when the entry is already gone, so a second
+ *  restore of the same id opens nothing. */
+function restoreArchivedEntry(entryId) {
+  // The restored tab is always a normal tab, even from a window whose active
+  // tab is private; the Quick Switcher alone hides the Archive there.
+  const entry = archive.takeEntry(String(entryId ?? ''));
+  if (!entry) return false;
+  // Archived tabs were never pinned, so there is no home to carry.
+  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  if (!id) return false;
+  setActiveTab(id, { focusContent: true, focusAddress: false });
+  return true;
+}
+
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
@@ -2863,6 +3159,8 @@ let testSearchSuggestionFixture = null;
 let testSearchSuggestionRequests = [];
 let testSearchNavigationCapture = false;
 let testSearchSubmission = null;
+let testCursorPoint = null;
+let testCursorSamplingUnavailable = false;
 
 function setTestSearchSuggestionFixture(suggestions) {
   if (!acceptanceTestMode) return;
@@ -2916,6 +3214,9 @@ function cancelPermissionPromptsForTab(tabId) {
 // one coherent value throughout a layout transition.
 const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
+let islandHoverOpen = initialPresentationSettings.islandHoverOpen === true;
+let islandAutoHide = initialPresentationSettings.islandAutoHide === true;
+let islandAutoHideStyle = islandAutoHideModule.normalizeAutoHideStyle(initialPresentationSettings.islandAutoHideStyle);
 let onePasswordConfigurationKey = JSON.stringify([
   initialPresentationSettings.onePasswordEnabled,
   initialPresentationSettings.onePasswordAccount,
@@ -2940,12 +3241,13 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
  * first (two right-clicks racing the handler's await), the stale popup's
  * close callback must not disarm the guard under the live one. 0 = no menu. */
 
-function currentChromeLayout() {
-  const { width, height } = rt().window.getContentBounds();
+function currentChromeLayout(content = rt().window.getContentBounds()) {
+  const { width, height } = content;
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight: rt().chromeHeight,
+    chromeHeight: stripCovered() ? islandAutoHideModule.coveredStripHeight(process.platform) : rt().chromeHeight,
+    islandHeight: islandStripHidden() ? 0 : rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -2971,7 +3273,7 @@ function sendIslandProximity(runtime, next) {
   runtime.islandProximity = next;
   runtime.islandProximitySentAt = Date.now();
   if (runtime.window && !runtime.window.isDestroyed()) {
-    runtime.window.webContents.send('chrome:island-proximity', next);
+    stripSurfaces(runtime).send('chrome:island-proximity', next);
   }
 }
 
@@ -3020,6 +3322,64 @@ function updateIslandProximity(point) {
   }), 16 - since);
 }
 
+function islandHoverRecord(runtime) {
+  if (!runtime.islandHover) runtime.islandHover = { state: initialHoverState(), timer: null, point: null };
+  return runtime.islandHover;
+}
+
+function islandHoverEligible(runtime) {
+  if (!islandHoverOpen) return false;
+  return runtime.islandHoverCapable === true && !islandStripHidden(runtime) &&
+    runtime.window && !runtime.window.isDestroyed() && runtime.window.isFocused() &&
+    !runtime.overlayMode && !runtime.utilitySheetUrl && !runtime.glanceTabId &&
+    !runtime.permissionViewAttached && !!runtime.islandHoverRect && !overlayDragActive(runtime);
+}
+
+function clearIslandHoverTimer(runtime) {
+  const hover = islandHoverRecord(runtime);
+  if (hover.timer) clearTimeout(hover.timer);
+  hover.timer = null;
+}
+
+function applyIslandHoverStep(runtime, event) {
+  const hover = islandHoverRecord(runtime);
+  const next = hoverStep(hover.state, event);
+  hover.state = next.state;
+  if (next.effect === 'cancel') clearIslandHoverTimer(runtime);
+  if (next.effect === 'start') {
+    clearIslandHoverTimer(runtime);
+    hover.timer = setTimeout(bindWindowRuntime(runtime, () => {
+      hover.timer = null;
+      if (!islandHoverEligible(runtime) || !pointInRect(hover.point, runtime.islandHoverRect)) {
+        applyIslandHoverStep(runtime, { type: 'ineligible' });
+        return;
+      }
+      const fired = hoverStep(hover.state, { type: 'fired' });
+      hover.state = fired.state;
+      // Marked so the overlay closes it again once the pointer leaves it
+      // (hover-panel-leave.js): an open panel stops the strip dragging.
+      if (fired.effect === 'open') showOverlay('panel', { purpose: { hoverOpened: true } });
+    }), HOVER_OPEN_DWELL_MS);
+  }
+  return next;
+}
+
+function updateIslandHover(runtime, point, { buttonsDown = false, sampled = false } = {}) {
+  const hover = islandHoverRecord(runtime);
+  hover.point = point;
+  // An auto-hidden pill cannot be hovered: the pointer is over the page. Were
+  // that counted as entering, the entry would disarm hover-open before the
+  // rest band reveals the Island under a resting pointer.
+  return applyIslandHoverStep(runtime, {
+    type: 'move', inside: !islandStripHidden(runtime) && pointInRect(point, runtime.islandHoverRect),
+    eligible: islandHoverEligible(runtime), buttonsDown, sampled,
+  });
+}
+
+function suppressIslandHover(runtime = rt()) {
+  if (runtime) applyIslandHoverStep(runtime, { type: 'ineligible' });
+}
+
 /**
  * Watch one view's mouse moves. `offset` maps its coordinates into the window's
  * (a function when the offset can move, as it does with vertical tabs). `bind`
@@ -3030,8 +3390,779 @@ function watchCursorFor(wc, offset, bind) {
   wc.on('input-event', bind((_event, input) => {
     if (!input || input.type !== 'mouseMove') return;
     if (!hasLiveWindow()) return;
-    updateIslandProximity(toWindowPoint(input, typeof offset === 'function' ? offset() : offset));
+    const point = toWindowPoint(input, typeof offset === 'function' ? offset() : offset);
+    rt().lastPointer = point;
+    updateIslandProximity(point);
+    updateIslandHover(rt(), point, {
+      buttonsDown: input.modifiers?.some((modifier) => /buttondown$/i.test(modifier)) === true,
+    });
+    revealIslandAtPoint(rt(), point);
   }));
+}
+
+const INTRO_TIP_MAX_WIDTH = 300;
+const INTRO_TIP_MAX_HEIGHT = 64;
+
+/* ---- Auto-hide Island ---------------------------------------------------
+ * With the setting on, the page fills the window and the strip waits beneath
+ * it. The cursor moves watched above reveal it at the window's top edge; once
+ * revealed, a slow check samples the cursor and hides it again after the
+ * pointer has left the strip. Only revealing needs move events — the cursor can
+ * leave the window, or rest over an overlay, without sending any. Policy is in
+ * island-autohide.js. */
+
+function islandAutoHidePinned(runtime = rt()) {
+  return islandAutoHideModule.islandPinned({
+    overlayMode: runtime.overlayMode,
+    // Acceptance only: a drawing check holds a window's Island up without a
+    // focused window or a pointer to keep it there.
+    popupOpen: ublockPopups.has(runtime.id) || (acceptanceTestMode && runtime.testHoldIsland === true),
+    introducing: !!runtime.islandAutoHideIntroTimer,
+  });
+}
+
+function islandStripHidden(runtime = rt()) {
+  return islandAutoHideModule.stripHidden({
+    autoHide: islandAutoHide,
+    revealed: runtime.islandRevealed,
+    pinned: islandAutoHidePinned(runtime),
+  });
+}
+
+/** Whether the revealed Island floats over the page instead of pushing it
+ * down. The floating Glance card draws nothing in the strip, so a Glance
+ * changes nothing here. */
+function islandFloating() {
+  return islandAutoHideModule.floatingLayout({
+    autoHide: islandAutoHide,
+    style: islandAutoHideStyle,
+  });
+}
+
+/** Whether the page covers the strip: it is hidden, or the Island floats. */
+function stripCovered(runtime = rt()) {
+  return islandStripHidden(runtime) || islandFloating(runtime);
+}
+
+/** Whether Chromium is drawing through the native Wayland platform. */
+function linuxWaylandOzone() {
+  const ozone = app.commandLine.getSwitchValue('ozone-platform');
+  return ozone === 'wayland'
+    || (!ozone && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY));
+}
+
+/** Native Wayland gives Electron no global pointer position:
+ * screen.getCursorScreenPoint() reads 0,0 wherever the pointer is (measured on
+ * GNOME with Electron 44), which held an auto-hidden Island up for good. */
+function cursorSamplingUnavailable() {
+  if (acceptanceTestMode && testCursorSamplingUnavailable) return true;
+  return process.platform === 'linux' && linuxWaylandOzone();
+}
+
+/** What a reveal or hide decision needs of the window, read once: its
+ * content bounds, the page pane's left edge (the vertical rail owns the
+ * column before it), how far above it the pointer may be, and whether the
+ * Island floats (only the top edge reveals it, and it leaves at once). */
+function revealGeometry(runtime) {
+  const content = runtime.window.getContentBounds();
+  const display = screen.getDisplayMatching(content);
+  return {
+    content,
+    left: withWindowRuntime(runtime, () => currentChromeLayout(content).pageBounds.x),
+    width: content.width,
+    height: content.height,
+    reachAbove: islandAutoHideModule.reachAboveWindow({
+      contentTop: content.y,
+      workAreaTop: display.workArea.y,
+      displayTop: display.bounds.y,
+    }),
+    floating: islandFloating(runtime),
+  };
+}
+
+/** Window content coordinates of the cursor right now (or the test's). Where
+ * the cursor cannot be read, the last move a Blanc view saw stands in; a
+ * pointer outside the window then counts from where it left. */
+function sampledWindowCursor(runtime, geometry = null) {
+  const testPoint = acceptanceTestMode && testCursorPoint;
+  if (!testPoint && cursorSamplingUnavailable()) return runtime.lastPointer ?? null;
+  const cursor = testPoint || screen.getCursorScreenPoint();
+  const content = geometry?.content ?? runtime.window.getContentBounds();
+  return { x: cursor.x - content.x, y: cursor.y - content.y };
+}
+
+function islandHeldAt(runtime, point, geometry = revealGeometry(runtime)) {
+  return islandAutoHideModule.pointHoldsIsland(point, {
+    revealed: runtime.islandRevealed,
+    chromeHeight: runtime.chromeHeight,
+    width: geometry.width,
+    height: geometry.height,
+    reachAbove: geometry.reachAbove,
+    left: geometry.left,
+    floating: geometry.floating,
+  });
+}
+
+function stopIslandRevealWatch(runtime) {
+  if (runtime.islandRevealWatchTimer) clearTimeout(runtime.islandRevealWatchTimer);
+  runtime.islandRevealWatchTimer = null;
+  runtime.islandRevealDwell = null;
+}
+
+/** While the strip is hidden in the focused window, sample the cursor so the
+ * top edge (or just above it) reveals the Island even when no view sees the
+ * pointer move. Stops on blur, close, reveal or turning the setting off. */
+function watchIslandReveal(runtime) {
+  if (runtime.islandRevealWatchTimer || !islandAutoHide) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  runtime.islandRevealWatchTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandRevealWatchTimer = null;
+    if (!islandAutoHide || !runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+    if (!runtime.islandRevealed) {
+      // The top edge reveals at once; resting just below it, after a dwell.
+      const geometry = revealGeometry(runtime);
+      const point = sampledWindowCursor(runtime, geometry);
+      const dwell = islandAutoHideModule.revealDwellStep(runtime.islandRevealDwell, point, Date.now(), geometry);
+      runtime.islandRevealDwell = dwell.dwell;
+      if (islandHeldAt(runtime, point, geometry) || dwell.reveal) {
+        revealIsland(runtime);
+        return;
+      }
+      watchIslandReveal(runtime);
+    }
+  }), islandAutoHideModule.REVEAL_WATCH_MS);
+}
+
+function clearIslandAutoHideTimer(runtime) {
+  if (runtime.islandAutoHideTimer) clearTimeout(runtime.islandAutoHideTimer);
+  runtime.islandAutoHideTimer = null;
+}
+
+function pageTopFor(runtime) {
+  return withWindowRuntime(runtime, () => currentChromeLayout().pageBounds.y);
+}
+
+function stopIslandSlide(runtime) {
+  if (runtime.islandSlide?.timer) clearTimeout(runtime.islandSlide.timer);
+  runtime.islandSlide = null;
+}
+
+function prefersReducedMotion() {
+  try {
+    return systemPreferences.getAnimationSettings?.().prefersReducedMotion === true;
+  } catch {
+    return false;
+  }
+}
+
+/** The first reveal after the strip has sat under the page for a while
+ * showed the page jump to its final place in one step, while a reveal soon
+ * after a hide slid (measured under xvfb). Asking the strip for two animation
+ * frames before the clock starts turned that jump into a short slide; it costs
+ * one or two frames, and never more than the cap below. */
+const STRIP_WARM_MAX_MS = 120;
+
+function warmStrip(runtime) {
+  const contents = runtime.window?.webContents;
+  if (!contents || contents.isDestroyed()) return Promise.resolve();
+  const drawn = contents.executeJavaScript(
+    'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))'
+  ).catch(() => false);
+  return Promise.race([drawn, new Promise((resolve) => setTimeout(resolve, STRIP_WARM_MAX_MS))]);
+}
+
+/** Slide the page views from one strip height to another. Each frame only
+ * moves them (resizeActiveView applies slidingBounds); the frame after the
+ * last one lays them out at their final size. A reveal first wakes the strip
+ * (the page holds still meanwhile). Reduce Motion skips it all. */
+function slideIsland(runtime, fromTop, toTop) {
+  stopIslandSlide(runtime);
+  if (fromTop === toTop || prefersReducedMotion()) {
+    withWindowRuntime(runtime, () => resizeActiveView());
+    return;
+  }
+  const revealing = toTop > fromTop;
+  const slide = {
+    from: fromTop,
+    to: toTop,
+    top: fromTop,
+    start: Date.now(),
+    duration: revealing ? islandAutoHideModule.SLIDE_IN_MS : islandAutoHideModule.SLIDE_OUT_MS,
+    timer: null,
+  };
+  runtime.islandSlide = slide;
+  const frame = bindWindowRuntime(runtime, () => {
+    if (runtime.islandSlide !== slide) return;
+    slide.timer = null;
+    if (!runtime.window || runtime.window.isDestroyed()) {
+      runtime.islandSlide = null;
+      return;
+    }
+    const progress = (Date.now() - slide.start) / slide.duration;
+    if (progress >= 1) {
+      runtime.islandSlide = null;
+      resizeActiveView();
+      return;
+    }
+    slide.top = slide.from + (slide.to - slide.from) * islandAutoHideModule.easeOutCubic(progress);
+    resizeActiveView();
+    slide.timer = setTimeout(frame, 16);
+  });
+  if (!revealing) {
+    frame();
+    return;
+  }
+  // Hold the page where it is (any relayout meanwhile keeps it there) until
+  // the strip has drawn, then start the clock.
+  withWindowRuntime(runtime, () => resizeActiveView());
+  warmStrip(runtime).then(() => {
+    if (runtime.islandSlide !== slide) return;
+    slide.start = Date.now();
+    frame();
+  });
+}
+
+/** Move the strip in or out. Always re-lays: a pin set just before (the
+ * intro tip) changes the layout without anyone having applied it yet. A slide
+ * already under way continues from where the page is now. */
+function setIslandRevealed(runtime, revealed) {
+  if (runtime.islandRevealed === revealed) return;
+  if (!runtime.window || runtime.window.isDestroyed()) {
+    runtime.islandRevealed = revealed;
+    return;
+  }
+  const fromTop = runtime.islandSlide ? runtime.islandSlide.top : pageTopFor(runtime);
+  runtime.islandRevealed = revealed;
+  slideIsland(runtime, fromTop, pageTopFor(runtime));
+  if (revealed) stopIslandRevealWatch(runtime);
+  else watchIslandReveal(runtime);
+}
+
+function scheduleIslandAutoHideCheck(runtime) {
+  if (runtime.islandAutoHideTimer) return;
+  runtime.islandAutoHideTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandAutoHideTimer = null;
+    if (!islandAutoHide || !runtime.islandRevealed) return;
+    if (!runtime.window || runtime.window.isDestroyed()) return;
+    const geometry = revealGeometry(runtime);
+    if (islandAutoHidePinned(runtime) || islandHeldAt(runtime, sampledWindowCursor(runtime, geometry), geometry)) {
+      scheduleIslandAutoHideCheck(runtime);
+      return;
+    }
+    setIslandRevealed(runtime, false);
+  }), islandAutoHideModule.hideCheckDelay(islandFloating(runtime)));
+}
+
+/** Reveal for a surface drawn from the Island (⌘L, find, popovers). */
+function revealIsland(runtime = rt()) {
+  if (!islandAutoHide) return;
+  setIslandRevealed(runtime, true);
+  scheduleIslandAutoHideCheck(runtime);
+}
+
+function revealIslandAtPoint(runtime, point) {
+  if (!islandAutoHide || runtime.islandRevealed) return;
+  // Only the top edge reveals from a move (the rest band is the watch's), so
+  // a move anywhere below it costs no native call: this runs on every move.
+  if (!point || !(point.y <= islandAutoHideModule.REVEAL_EDGE_PX)) return;
+  if (!runtime.window || runtime.window.isDestroyed() || !runtime.window.isFocused()) return;
+  if (!islandHeldAt(runtime, point)) return;
+  revealIsland(runtime);
+}
+
+/** macOS's standard traffic-light placement: Safari and Finder put the close
+ * button's frame 18pt from the window's top-left corner on macOS 26 and 27,
+ * and Electron's position is one point outside that frame. `hiddenInset`
+ * alone draws them at 11pt, and showing them again with
+ * setWindowButtonVisibility drops even that, so syncWindowButtons sets it on
+ * the window's first layout and after each show. Passing it to the window as
+ * `trafficLightPosition` instead stops the auto-hidden strip revealing from
+ * the top edge in the vertical layout (acceptance F1-18). */
+const MAC_WINDOW_BUTTON_POSITION = Object.freeze({ x: 19, y: 19 });
+
+/** macOS draws its traffic lights over the top-left of the window; while the
+ * strip is hidden they would sit on the page (over YouTube's menu button),
+ * so they come and go with the Island in both styles. The vertical rail owns
+ * that corner in its own right, so they stay there. */
+function syncWindowButtons(runtime = rt()) {
+  if (process.platform !== 'darwin' || !runtime.window || runtime.window.isDestroyed()) return;
+  const visible = tabLayout === 'vertical' || !islandStripHidden(runtime);
+  if (runtime.windowButtonsVisible === visible) return;
+  runtime.windowButtonsVisible = visible;
+  runtime.window.setWindowButtonVisibility(visible);
+  if (visible) runtime.window.setWindowButtonPosition(MAC_WINDOW_BUTTON_POSITION);
+}
+
+/** The strip is the window's own page, and its drag region hit-tests above
+ * every child view. Hidden under the page it would still drag the window from
+ * the page's top band, and on Wayland keep the page from seeing the pointer
+ * there, so the strip drops it while hidden. */
+function syncStripHidden(runtime = rt()) {
+  if (!runtime.chromeReady || !runtime.window || runtime.window.isDestroyed()) return;
+  const hidden = stripCovered(runtime);
+  if (runtime.stripHiddenSent === hidden) return;
+  runtime.stripHiddenSent = hidden;
+  runtime.window.webContents.send('chrome:strip-hidden', hidden);
+}
+
+/* ---- Floating Island views ----------------------------------------------
+ * Auto-hide's float style draws the revealed Island in small transparent
+ * views above the page instead of moving the page down. Each runs the strip
+ * document (CHROME_FLOAT_URL) and shows one element of it: the pill, and on
+ * Windows and Linux the window controls and the main-menu button. The strip
+ * beneath stays the geometry authority; its island-rect report places them.
+ * A float view stays window-owned for its whole life and hides with
+ * setVisible(false): Electron 44 on Linux stops drawing a view that is removed
+ * and added back (tab-view-lifecycle.js). Policy is in island-autohide.js. */
+
+/** Bottom to top. */
+const FLOAT_ROLES = Object.freeze(['controls', 'menu', 'pill']);
+
+function liveFloatRecord(runtime, role) {
+  const record = runtime?.islandFloat?.[role];
+  return record && !record.view.webContents.isDestroyed() ? record : null;
+}
+
+function floatRoleOf(runtime, webContents) {
+  if (!runtime?.islandFloat || !webContents) return null;
+  return FLOAT_ROLES.find((role) => liveFloatRecord(runtime, role)?.view.webContents === webContents) ?? null;
+}
+
+/** The documents that draw the strip: the window's own and any floating
+ * Island views, which render from the same broadcasts. */
+function stripSurfaces(runtime) {
+  return {
+    send(channel, ...args) {
+      const window = runtime?.window;
+      if (!window || window.isDestroyed()) return;
+      window.webContents.send(channel, ...args);
+      for (const role of FLOAT_ROLES) liveFloatRecord(runtime, role)?.view.webContents.send(channel, ...args);
+      liveGlanceCardView(runtime)?.webContents.send(channel, ...args);
+    },
+  };
+}
+
+/** Keep everything that must sit above the float views above them, after a
+ * float view has been added on top. */
+function restackAboveIslandFloat(runtime) {
+  withWindowRuntime(runtime, () => {
+    restackFillStatusView();
+    if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+    restackPermissionView();
+    if (rt().tooltipViewAttached && liveViewContents(rt().tooltipView)) rt().window.contentView.addChildView(rt().tooltipView);
+    const popup = ublockPopups.get(runtime.id);
+    if (popup?.view && !popup.view.webContents.isDestroyed()) rt().window.contentView.addChildView(popup.view);
+  });
+}
+
+function ensureIslandFloatView(runtime, role) {
+  const existing = liveFloatRecord(runtime, role);
+  if (existing) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      ...stripWebPreferences(),
+    },
+  });
+  const contents = view.webContents;
+  const contentsId = contents.id;
+  // payload: the last FloatFrame sent, replayed once the document loads.
+  const record = { view, role, shown: false, hideTimer: null, payload: null, frameKey: null };
+  runtime.islandFloat = { ...(runtime.islandFloat ?? {}), [role]: record };
+  windowRuntimes.registerChromeSurface(runtime, contentsId);
+  contents.once('destroyed', bindWindowRuntime(runtime, () => {
+    windowRuntimes.unregisterChromeSurface(contentsId);
+    if (record.hideTimer) clearTimeout(record.hideTimer);
+    if (runtime.islandFloat?.[role] === record) delete runtime.islandFloat[role];
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+    });
+  }));
+  contents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
+  view.setBackgroundColor('#00000000');
+  view.setVisible(false);
+  lockPrivilegedNavigation(contents, CHROME_FLOAT_URL);
+  installChromeShortcuts(contents, runtime);
+  watchCursorFor(contents, () => {
+    const bounds = view.getBounds();
+    return { x: bounds.x, y: bounds.y };
+  }, (fn) => bindWindowRuntime(runtime, fn));
+  contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    if (record.payload) contents.send('chrome:float-frame', record.payload);
+    if (record.shown) contents.send('chrome:float-shown', true);
+    // Downloads and the pill's proximity only ever arrive as broadcasts, and
+    // proximity goes quiet once the pointer settles; the renderer pulls the rest.
+    contents.send('chrome:downloads', downloadsActivity());
+    contents.send('chrome:island-proximity', { k: runtime.islandProximity?.k ?? 0 });
+  }));
+  if (role === 'pill') {
+    // The pill's right-click menu, as on the strip, placed at the pointer.
+    attachChromeMenu(contents, {
+      t: mainI18n.t,
+      getWindow: bindWindowRuntime(runtime, () => rt().window),
+      suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
+      resolveActiveTab: bindWindowRuntime(runtime, () => tabContextData(tabs.get(rt().activeTabId), runtime)),
+      resolveTab: () => null,
+      actions: menuContextActions(runtime),
+      getOffset: () => {
+        const bounds = view.getBounds();
+        return { x: bounds.x, y: bounds.y };
+      },
+    });
+  }
+  contents.loadURL(CHROME_FLOAT_URL).catch(() => {});
+  runtime.window.contentView.addChildView(view);
+  restackAboveIslandFloat(runtime);
+  return record;
+}
+
+function destroyIslandFloatViews(runtime) {
+  if (!runtime.islandFloat) return;
+  const window = runtime.window;
+  for (const role of FLOAT_ROLES) {
+    const record = runtime.islandFloat[role];
+    if (!record) continue;
+    if (record.hideTimer) clearTimeout(record.hideTimer);
+    if (window && !window.isDestroyed() && window.contentView.children.includes(record.view)) {
+      window.contentView.removeChildView(record.view);
+    }
+    if (!record.view.webContents.isDestroyed()) record.view.webContents.close();
+  }
+  runtime.islandFloat = null;
+}
+
+/* ---- Floating Glance card ------------------------------------------------
+ * The Glance page floats over the main page in a card (spec
+ * docs/superpowers/specs/2026-10-20-floating-glance-design.md). The card's
+ * chrome (border, shadow, the 8 px resize ring and the header) is the strip
+ * document again on CHROME_GLANCE_URL, in its own view just below the Glance
+ * page's view. Like the float views it stays window-owned for its whole life
+ * and hides with setVisible(false), the Linux redraw rule. A view takes every
+ * click inside its bounds, so it is never visible without an open Glance.
+ * Geometry is glance-card.js. */
+
+function liveGlanceCardView(runtime = rt()) {
+  const view = runtime?.glanceCardView;
+  return view && !view.webContents.isDestroyed() ? view : null;
+}
+
+/** How long a window's first Glance waits for its card to draw before it
+ * shows anyway. */
+const GLANCE_CARD_DRAW_MAX_MS = 300;
+
+function ensureGlanceCardView(runtime = rt()) {
+  const existing = liveGlanceCardView(runtime);
+  if (existing) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      ...stripWebPreferences(),
+    },
+  });
+  const contents = view.webContents;
+  const contentsId = contents.id;
+  runtime.glanceCardView = view;
+  windowRuntimes.registerChromeSurface(runtime, contentsId);
+  contents.once('destroyed', bindWindowRuntime(runtime, () => {
+    windowRuntimes.unregisterChromeSurface(contentsId);
+    if (runtime.glanceCardView === view) runtime.glanceCardView = null;
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+    });
+  }));
+  contents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
+  view.setBackgroundColor('#00000000');
+  view.setVisible(false);
+  lockPrivilegedNavigation(contents, CHROME_GLANCE_URL);
+  installChromeShortcuts(contents, runtime);
+  // Escape closes the Glance from the card's chrome (its header and
+  // controls) only. Inside the Glance page, Escape stays the site's: closing
+  // its dialogs and menus, leaving fullscreen (owner, October 20).
+  contents.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
+    if (input.type !== 'keyDown' || input.key !== 'Escape') return;
+    if (input.alt || input.control || input.meta || input.shift) return;
+    event.preventDefault();
+    closeGlance();
+  }));
+  // Until the card's document has drawn, its view would show as a clear
+  // hole with the Glance page floating chromeless inside it: the card and the
+  // page are held back (resizeActiveView) and show together once it has.
+  runtime.glanceCardDrawn = false;
+  contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    contents.send('tabs:updated', currentTabsPayload());
+    contents.send('chrome:glance-layout', currentGlanceLayoutPayload());
+    const drawn = contents.executeJavaScript(
+      'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))'
+    ).catch(() => false);
+    Promise.race([drawn, new Promise((resolve) => setTimeout(resolve, GLANCE_CARD_DRAW_MAX_MS))]).then(bindWindowRuntime(runtime, () => {
+      if (runtime.glanceCardView !== view || contents.isDestroyed()) return;
+      runtime.glanceCardDrawn = true;
+      if (activeGlanceTab() && hasLiveWindow()) resizeActiveView();
+    }));
+  }));
+  // The header's right-click: the Glance tab's menu, at the pointer.
+  attachChromeMenu(contents, {
+    t: mainI18n.t,
+    getWindow: bindWindowRuntime(runtime, () => rt().window),
+    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
+    resolveActiveTab: bindWindowRuntime(runtime, () => tabContextData(tabs.get(rt().activeTabId), runtime)),
+    resolveTab: bindWindowRuntime(runtime, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), runtime);
+    }),
+    actions: menuContextActions(runtime),
+    getOffset: () => {
+      const bounds = view.getBounds();
+      return { x: bounds.x, y: bounds.y };
+    },
+  });
+  contents.loadURL(CHROME_GLANCE_URL).catch(() => {});
+  runtime.window.contentView.addChildView(view);
+  return view;
+}
+
+function destroyGlanceCardView(runtime) {
+  const view = runtime.glanceCardView;
+  if (!view) return;
+  const window = runtime.window;
+  if (window && !window.isDestroyed() && window.contentView.children.includes(view)) window.contentView.removeChildView(view);
+  if (!view.webContents.isDestroyed()) view.webContents.close();
+  runtime.glanceCardView = null;
+}
+
+/** With a Glance open: the card just above the main page, the Glance page
+ * just above the card. Runs before the sheet and the Island surfaces are
+ * raised over both. */
+function restackGlanceCard() {
+  const glanceTab = activeGlanceTab();
+  const cardView = liveGlanceCardView();
+  if (!glanceTab?.view || !cardView || !hasLiveWindow()) return;
+  rt().window.contentView.addChildView(cardView);
+  rt().window.contentView.addChildView(glanceTab.view);
+}
+
+/** The Glance page's view gets the card's corners; it goes back to square
+ * when it leaves the card. */
+function roundGlancePage(tab, rounded) {
+  if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
+  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.glanceRounded = rounded;
+}
+
+/** Re-raise the float views above a tab view or the utility sheet that was
+ * just (re)attached, which addChildView put on top. */
+function restackIslandFloatViews(runtime = rt()) {
+  const window = runtime.window;
+  if (!runtime.islandFloat || !window || window.isDestroyed()) return;
+  for (const role of FLOAT_ROLES) {
+    const record = liveFloatRecord(runtime, role);
+    if (record) window.contentView.addChildView(record.view);
+  }
+  if (runtime.tooltipViewAttached && liveViewContents(runtime.tooltipView)) window.contentView.addChildView(runtime.tooltipView);
+}
+
+function floatElementRect(runtime, role) {
+  if (role === 'pill') return runtime.islandRect;
+  return role === 'controls' ? runtime.windowControlsRect : runtime.menuButtonRect;
+}
+
+/** Slide a float view's element in, or out and then hide the view. */
+function setIslandFloatShown(runtime, record, shown) {
+  if (record.shown === shown) return;
+  record.shown = shown;
+  if (record.hideTimer) clearTimeout(record.hideTimer);
+  record.hideTimer = null;
+  const contents = record.view.webContents;
+  if (shown) {
+    record.view.setVisible(true);
+    contents.send('chrome:float-shown', true);
+    return;
+  }
+  contents.send('chrome:float-shown', false);
+  const delay = prefersReducedMotion() ? 0 : islandAutoHideModule.SLIDE_OUT_MS + 32;
+  record.hideTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    record.hideTimer = null;
+    if (!record.shown && !contents.isDestroyed()) record.view.setVisible(false);
+  }), delay);
+}
+
+/** Bring the window's float views in line with the setting, the layout and
+ * the Island's place. Runs at the end of every layout and on island-rect. */
+function syncIslandFloat(runtime = rt()) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  const platform = chromePlatform();
+  const wanted = islandAutoHideModule.floatViewsWanted({ autoHide: islandAutoHide, style: islandAutoHideStyle, platform });
+  if (!wanted.pill) {
+    destroyIslandFloatViews(runtime);
+    return;
+  }
+  const shown = islandAutoHideModule.floatViewsShown({
+    floating: islandFloating(runtime),
+    islandVisible: !islandStripHidden(runtime),
+    platform,
+  });
+  const content = window.getContentBounds();
+  for (const role of FLOAT_ROLES) {
+    if (!wanted[role]) continue;
+    const record = ensureIslandFloatView(runtime, role);
+    const pill = role === 'pill';
+    const bounds = islandAutoHideModule.floatViewBounds(floatElementRect(runtime, role), {
+      windowWidth: content.width,
+      windowHeight: content.height,
+      side: pill ? islandAutoHideModule.FLOAT_SIDE_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+      bottom: pill ? islandAutoHideModule.FLOAT_BOTTOM_PX : islandAutoHideModule.FLOAT_CHROME_PAD_PX,
+    });
+    if (bounds) {
+      const frame = { role, x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, stageWidth: content.width };
+      const key = JSON.stringify(frame);
+      if (key !== record.frameKey) {
+        record.frameKey = key;
+        record.payload = frame;
+        record.view.setBounds(bounds);
+        record.view.webContents.send('chrome:float-frame', frame);
+      }
+    }
+    setIslandFloatShown(runtime, record, shown[role] === true && !!bounds);
+  }
+  keepIslandFloatOnTop(runtime);
+}
+
+/**
+ * Whatever attached it, no page view or split corner tab may sit above the
+ * floating Island: restack when one does. Cheap when the order is right.
+ */
+function keepIslandFloatOnTop(runtime = rt()) {
+  const window = runtime.window;
+  if (!runtime.islandFloat || !window || window.isDestroyed()) return;
+  const children = window.contentView.children;
+  const floats = FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view).filter(Boolean)
+    .map((view) => children.indexOf(view)).filter((index) => index >= 0);
+  if (!floats.length) return;
+  const lowestFloat = Math.min(...floats);
+  const pages = [...tabs.values()].filter((tab) => liveContents(tab)).map((tab) => tab.view);
+  const corners = [...runtime.splitCornerViews.values()].map((entry) => entry.view);
+  if ([...pages, ...corners].some((view) => children.indexOf(view) > lowestFloat)) {
+    withWindowRuntime(runtime, () => restackAboveTabViews());
+  }
+}
+
+/** The document holding the visible pill: a floating one when it shows. */
+function islandSurfaceContents(runtime = rt()) {
+  const pill = liveFloatRecord(runtime, 'pill');
+  return pill?.shown ? pill.view.webContents : runtime.window.webContents;
+}
+
+function endIslandAutoHideIntro(runtime) {
+  if (!runtime.islandAutoHideIntroTimer) return;
+  clearTimeout(runtime.islandAutoHideIntroTimer);
+  runtime.islandAutoHideIntroTimer = null;
+  if (runtime.islandAutoHideIntroGeneration === runtime.tooltipGeneration) hidePillTooltip(runtime);
+}
+
+/** Turning the setting on would otherwise make the Island vanish with no
+ * word on how to get it back. In the window where it was turned on, keep the
+ * strip up for a few seconds with a tip under the pill. The tip reuses the
+ * pill's tooltip view; it wraps, so that view measures it here rather than
+ * the strip (which only measures single-line tips). */
+async function showIslandAutoHideIntro(runtime) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  endIslandAutoHideIntro(runtime);
+  withWindowRuntime(runtime, () => revealIsland(runtime));
+  runtime.islandAutoHideIntroTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    endIslandAutoHideIntro(runtime);
+  }), islandAutoHideModule.INTRO_MS);
+  if (runtime.overlayMode) return;
+  const generation = ++runtime.tooltipGeneration;
+  runtime.islandAutoHideIntroGeneration = generation;
+  const view = withWindowRuntime(runtime, () => ensureTooltipView());
+  const contents = view.webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== runtime.tooltipGeneration || contents.isDestroyed() || window.isDestroyed()) return;
+  // Laid out just below the window's visible area at its largest size, then
+  // moved under the pill at its measured size.
+  const { width, height } = window.getContentBounds();
+  view.setBounds({ x: 0, y: height, width: INTRO_TIP_MAX_WIDTH, height: INTRO_TIP_MAX_HEIGHT });
+  showOverlayView(window, view);
+  runtime.tooltipViewAttached = true;
+  const text = mainI18n.t('island.autoHide.intro', {
+    shortcut: process.platform === 'darwin' ? '⌘L' : 'Ctrl+L',
+  });
+  // JSON.stringify makes the text a plain string literal; it is never markup.
+  const size = await contents.executeJavaScript(`(() => {
+    const tip = document.getElementById('tip');
+    tip.classList.add('intro');
+    tip.textContent = ${JSON.stringify(text)};
+    delete document.documentElement.dataset.theme;
+    const box = tip.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  })()`);
+  if (generation !== runtime.tooltipGeneration || window.isDestroyed() || runtime.tooltipView !== view) return;
+  const anchor = runtime.islandRect ?? { x: width / 2, y: 0, width: 0, height: runtime.chromeHeight };
+  view.setBounds(tooltipBounds({
+    anchor,
+    width: Math.min(INTRO_TIP_MAX_WIDTH, Math.ceil(size?.width) || INTRO_TIP_MAX_WIDTH),
+    height: Math.min(INTRO_TIP_MAX_HEIGHT, Math.ceil(size?.height) || INTRO_TIP_MAX_HEIGHT),
+  }, { windowWidth: width, windowHeight: height }));
+}
+
+function applyIslandAutoHide(next) {
+  if (next === islandAutoHide) return;
+  islandAutoHide = next;
+  const target = focusedRuntime;
+  for (const runtime of windowRuntimes.all()) {
+    clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
+    stopIslandSlide(runtime);
+    // The window showing the intro keeps its strip up from the start, so its
+    // page never jumps up only to slide straight back down.
+    runtime.islandRevealed = islandAutoHide && runtime === target;
+    if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
+  }
+  if (islandAutoHide && target?.window && !target.window.isDestroyed()) {
+    showIslandAutoHideIntro(target).catch(() => endIslandAutoHideIntro(target));
+  }
+  scheduleMenuRebuild();
+}
+
+/** Float the revealed Island over the page, or push the page down. */
+function applyIslandAutoHideStyle(next) {
+  const style = islandAutoHideModule.normalizeAutoHideStyle(next);
+  if (style === islandAutoHideStyle) return;
+  islandAutoHideStyle = style;
+  for (const runtime of windowRuntimes.all()) {
+    if (runtime.window && !runtime.window.isDestroyed()) withWindowRuntime(runtime, () => resizeActiveView());
+  }
+  scheduleMenuRebuild();
+}
+
+function setIslandAutoHideStyle(style) {
+  return settings.setSettings({ islandAutoHideStyle: style }).islandAutoHideStyle;
+}
+
+function setIslandAutoHide(on) {
+  return settings.setSettings({ islandAutoHide: on === true }).islandAutoHide;
+}
+
+function toggleIslandAutoHide() {
+  return setIslandAutoHide(!islandAutoHide);
 }
 
 function verticalTabsMetrics(layout = currentChromeLayout()) {
@@ -3051,50 +4182,576 @@ function activeGlanceTab() {
   return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
 }
 
-/** The last Island minimum any window's strip measured. A window that has
- * not measured its own yet starts from it, so its first Glance layout does
- * not lay out side by side and then flip once its strip reports. */
-let lastIslandMinPrimaryWidth = 0;
-/** The same for the reference's minimum (the compact Glance header). */
-let lastGlanceMinReferenceWidth = 0;
-
-/** The narrowest main pane the divider allows, in px: what the strip last
- * measured the slim Island to need, chips and clearance included. */
-function glanceMinPrimaryWidth() {
-  return rt().islandMinPrimaryWidth || lastIslandMinPrimaryWidth;
+/** The floating Glance card's page area: the window's content area below
+ * the Island's resting band, whatever the Auto-hide state (glance-card.js). */
+function glancePageArea(layout = currentChromeLayout()) {
+  const { height } = rt().window.getContentBounds();
+  const top = Math.max(0, rt().chromeHeight || 0);
+  return { x: layout.pageBounds.x, y: top, width: layout.pageBounds.width, height: Math.max(0, height - top) };
 }
 
-/** The narrowest reference the divider allows, in px: what the strip last
- * measured the compact Glance header to need (0 = not yet; the layout then
- * uses its default). */
-function glanceMinReferenceWidth() {
-  return rt().glanceMinReferenceWidth || lastGlanceMinReferenceWidth;
+/** Moves, resizes and resets of the card, with its debounced save
+ * (glance-card-controller.js). One remembered frame per device. */
+const glanceCards = createGlanceCardController({
+  isOpen: () => !!activeGlanceTab() && hasLiveWindow(),
+  generation: () => rt().glanceCardGeneration ?? 0,
+  pageArea: () => glancePageArea(),
+  readFrame: () => settings.getSettings().glanceFrame,
+  writeFrame: (fractions) => settings.setGlanceFrame(fractions),
+  relayout: () => resizeActiveView(),
+});
+
+/** The card's frame: the remembered one (device-local, or a change not yet
+ * saved), else the first-open one. */
+function glanceCardFrame() {
+  return glanceCards.frame();
 }
 
-function glanceGeometry(layout = currentChromeLayout()) {
-  if (!activeGlanceTab()) return null;
-  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
+/** The card's views' bounds while a Glance is open, else null. */
+function glanceCardGeometry() {
+  if (!activeGlanceTab() || !hasLiveWindow()) return null;
+  return cardGeometry(glanceCards.frame());
+}
+
+function currentGlanceLayoutPayload(card = glanceCardGeometry()) {
+  return glanceLayoutPayload(card, focusedPane(rt()), rt().glanceCardGeneration ?? 0);
+}
+
+// ---- Split View (F53) ----------------------------------------------------
+// A split is { id, tabIds, layout, focusedIndex } in runtime.splits; each
+// member tab carries splitId. The focused pane is always the runtime's active
+// tab, so the Island and every "current tab" command already follow it.
+// Pure rules: split-model.js and split-layout.js.
+
+/** The split showing in this window: the active tab's, unless set aside. */
+function visibleSplitOf(runtime = rt()) {
+  if (!runtime || runtime.resident) return null;
+  return splitForTab(runtime.splits, runtime.activeTabId);
+}
+
+/** Tab ids of the visible split, or none. */
+function visibleSplitTabIds(runtime = rt()) {
+  return visibleSplitOf(runtime)?.tabIds ?? [];
+}
+
+/** What renderers see of a window's splits. */
+function projectSplits(runtime) {
+  return (runtime.splits ?? []).map(({ id, tabIds, layout, focusedIndex }) => ({
+    id, tabIds: [...tabIds], layout: structuredClone(layout), focusedIndex,
+  }));
+}
+
+/** Drop splits that lost members (a closed or moved tab) and free the
+ *  survivors of any split left with fewer than two tabs. */
+function pruneSplits(runtime) {
+  if (!runtime.splits?.length) return;
+  const kept = [];
+  for (const split of runtime.splits) {
+    const tabIds = split.tabIds.filter((id) => tabs.has(id) && windowRuntimes.runtimeForTab(id) === runtime);
+    // A member that left the window (Move Group to New Window) is no longer
+    // in this split: never leave it pointing at one that isn't there.
+    for (const id of split.tabIds) {
+      const tab = tabs.get(id);
+      if (tab && !tabIds.includes(id) && tab.splitId === split.id) tab.splitId = null;
+    }
+    if (tabIds.length >= 2) {
+      kept.push(tabIds.length === split.tabIds.length
+        ? split
+        : { ...split, tabIds, focusedIndex: Math.min(split.focusedIndex, tabIds.length - 1) });
+    } else {
+      for (const id of tabIds) {
+        const tab = tabs.get(id);
+        if (tab) tab.splitId = null;
+      }
+    }
+  }
+  runtime.splits = kept;
+}
+
+/** The drawn geometry of the visible split, or null. */
+function splitGeometry(layout = currentChromeLayout()) {
+  const split = visibleSplitOf();
+  if (!split) return null;
+  const focusedIndex = Math.max(0, split.tabIds.indexOf(rt().activeTabId));
+  return {
+    split,
+    focusedIndex,
+    ...computeSplitLayout(layout.pageBounds, split.layout, split.tabIds.length, {
+      paneMinWidth: rt().splitPaneMinWidth,
+      focusedIndex,
+    }),
+  };
+}
+
+/** The chrome:split-layout payload (split-layout.js), with each pane's tab. */
+function currentSplitLayoutPayload(geometry) {
+  if (!geometry) return null;
+  return splitLayoutPayload(geometry.split.id, geometry, geometry.split.tabIds.map((tabId) => {
+    const tab = tabs.get(tabId);
+    return {
+      tabId,
+      title: displayTitle(tab) || '',
+      favicon: tab?.favicon ?? null,
+      private: !!tab?.private,
+      canGoBack: !!tab?.canGoBack,
+      loading: !!tab?.isLoading,
+    };
+  }), geometry.focusedIndex);
+}
+
+// --- Split View corner tabs (split-tab.html, spec D9) ----------------------
+// Each visible pane gets a small view on its card's bottom-right corner,
+// floating over the page as Chromium draws split panes. No preload and no
+// script: main writes the site, sizes the view to it and reads its clicks
+// from input events, then hands keyboard focus back to the pane.
+
+/** At most this wide, so a long host never covers much of a pane. */
+const SPLIT_CORNER_MAX_WIDTH = 240;
+
+function ensureSplitCornerView(runtime, tabId) {
+  const existing = runtime.splitCornerViews.get(tabId);
+  if (existing && !existing.view.webContents.isDestroyed()) return existing;
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const entry = { view, tabId, key: null, width: 0, frame: null, generation: 0, pressed: null };
+  runtime.splitCornerViews.set(tabId, entry);
+  view.setBackgroundColor('#00000000');
+  view.webContents.on('input-event', bindWindowRuntime(runtime, (_e, input) => onSplitCornerInput(entry, input)));
+  view.webContents.on('context-menu', bindWindowRuntime(runtime, (_e, params) => {
+    const at = view.getBounds();
+    openSplitPaneMenu(tabId, { x: at.x + params.x, y: at.y + params.y });
+  }));
+  view.webContents.once('destroyed', bindWindowRuntime(runtime, () => {
+    if (runtime.splitCornerViews.get(tabId) === entry) runtime.splitCornerViews.delete(tabId);
+    // On Linux a hidden view stays window-owned (hideOverlayView); drop the
+    // dead one once its native destruction has returned.
+    setImmediate(() => {
+      const window = runtime.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
+  }));
+  lockPrivilegedNavigation(view.webContents, CHROME_SPLIT_TAB_URL);
+  view.webContents.loadURL(CHROME_SPLIT_TAB_URL).catch(() => {});
+  return entry;
+}
+
+/** A press and its release on the same part act: the × removes the tab from
+ *  the split, the rest of the tab focuses its pane. */
+function onSplitCornerInput(entry, input) {
+  if ((input?.type !== 'mouseDown' && input?.type !== 'mouseUp') || input.button !== 'left') return;
+  const at = entry.view.getBounds();
+  const part = cornerTabHit({ width: at.width, height: at.height }, { x: input.x, y: input.y });
+  if (input.type === 'mouseDown') {
+    entry.pressed = part;
+    return;
+  }
+  const pressed = entry.pressed;
+  entry.pressed = null;
+  if (!part || part !== pressed) return;
+  if (part === 'close') {
+    removeTabFromSplit(entry.tabId);
+  } else if (rt().activeTabId !== entry.tabId) {
+    setActiveTab(entry.tabId);
+  }
+  liveContents(tabs.get(rt().activeTabId))?.focus();
+}
+
+function splitCornerModel(tab, focused) {
+  const site = cornerTabSite(tab.url, displayTitle(tab)) || mainI18n.t('tab.untitledShort');
+  const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/png;base64,') ? tab.favicon : null;
+  return {
+    focused: !!focused,
+    private: !!tab.private,
+    site,
+    favicon,
+    label: mainI18n.t('split.cornerLabel', { site }),
+    closeLabel: mainI18n.t('tabMenu.removeFromSplit'),
+  };
+}
+
+/** Write a corner tab's contents and measure the view width they need. */
+async function paintSplitCorner(runtime, entry, model) {
+  const generation = ++entry.generation;
+  const contents = entry.view.webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== entry.generation || contents.isDestroyed()) return;
+  // JSON.stringify makes the model plain data; every string lands as text.
+  const width = await contents.executeJavaScript(`(async (m) => {
+    document.body.classList.toggle('focused', m.focused);
+    if (m.private) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+    const icon = document.getElementById('icon');
+    const globe = document.getElementById('globe');
+    const site = document.getElementById('site');
+    const tab = document.getElementById('tab');
+    icon.hidden = !m.favicon;
+    if (m.favicon) icon.src = m.favicon; else icon.removeAttribute('src');
+    if (m.favicon) globe.setAttribute('hidden', ''); else globe.removeAttribute('hidden');
+    site.textContent = m.site;
+    tab.setAttribute('aria-label', m.label);
+    document.getElementById('close').setAttribute('aria-label', m.closeLabel);
+    // Measure in the face it draws with, not a fallback still standing in.
+    await document.fonts.ready;
+    // The view may still be too narrow for the tab, so measure the tab at
+    // its natural width, then let it fill the resized view again.
+    document.body.classList.add('measuring');
+    const natural = tab.getBoundingClientRect().width;
+    document.body.classList.remove('measuring');
+    return Math.ceil(natural + tab.offsetLeft);
+  })(${JSON.stringify(model)})`).catch(() => 0);
+  if (generation !== entry.generation || contents.isDestroyed()) return;
+  entry.width = Math.min(SPLIT_CORNER_MAX_WIDTH, Number(width) || 0);
+  withWindowRuntime(runtime, () => placeSplitCorner(runtime, entry));
+}
+
+/** Put a painted corner tab on its card, just above its pane's page view
+ *  (and so under the overlay, prompts and sheets), or hide it. */
+function placeSplitCorner(runtime, entry) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed() || entry.view.webContents.isDestroyed()) return;
+  const pane = tabs.get(entry.tabId);
+  const bounds = entry.width ? cornerTabBounds(entry.frame, entry.width) : null;
+  const children = window.contentView.children;
+  const below = liveContents(pane) ? children.indexOf(pane.view) : -1;
+  if (!bounds || below < 0) {
+    if (children.includes(entry.view)) hideOverlayView(window, entry.view);
+    return;
+  }
+  entry.view.setBounds(bounds);
+  const at = children.indexOf(entry.view);
+  if (at < below) window.contentView.addChildView(entry.view, at < 0 ? below + 1 : below);
+  if (process.platform === 'linux') entry.view.setVisible(true);
+}
+
+/**
+ * Match the corner tab views to the visible split: one per shown pane, on its
+ * card. A pane that stops showing keeps its view hidden while its tab is still
+ * in a split; a tab that left every split loses its view.
+ */
+function syncSplitCornerTabs(geometry, place = (bounds) => bounds, runtime = rt()) {
+  if (!runtime.window || runtime.window.isDestroyed()) return;
+  const wanted = new Map();
+  geometry?.split.tabIds.forEach((id, index) => {
+    const frame = geometry.panes[index]?.frame;
+    if (frame) wanted.set(id, { frame: place(frame), focused: index === geometry.focusedIndex });
+  });
+  for (const [tabId, entry] of [...runtime.splitCornerViews]) {
+    if (wanted.has(tabId)) continue;
+    entry.frame = null;
+    placeSplitCorner(runtime, entry);
+    if (!tabs.get(tabId)?.splitId) {
+      runtime.splitCornerViews.delete(tabId);
+      liveViewContents(entry.view)?.close();
+    }
+  }
+  for (const [tabId, want] of wanted) {
+    const tab = tabs.get(tabId);
+    if (!tab) continue;
+    const entry = ensureSplitCornerView(runtime, tabId);
+    entry.frame = want.frame;
+    const model = splitCornerModel(tab, want.focused);
+    const key = JSON.stringify(model);
+    if (key !== entry.key) {
+      entry.key = key;
+      paintSplitCorner(runtime, entry, model);
+    }
+    placeSplitCorner(runtime, entry);
+  }
+}
+
+/** Split panes' page views get the card's corners; a tab leaving a split
+ *  gets its square corners back. */
+function roundSplitPane(tab, rounded) {
+  if (!liveContents(tab) || !!tab.splitRounded === rounded) return;
+  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.splitRounded = rounded;
+}
+
+/**
+ * Make a split led by `initiatorId` (spec §3.1): every other tab takes the
+ * initiator's group (or leaves its own), the split's tabs sit together where
+ * the initiator was, and Glance closes. Returns the split, or null.
+ * `announced`: the caller announces the split itself, so a Glance it ends
+ * closes quietly rather than saying so first.
+ */
+function createSplitFromTabs(initiatorId, otherIds, { layout = null, announced = false } = {}) {
+  const runtime = rt();
+  const initiator = tabs.get(initiatorId);
+  const others = otherIds.map((id) => tabs.get(id));
+  const all = [initiator, ...others];
+  if (all.some((tab) => !tab || tab.pinned || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
+  if (all.length < 2 || new Set(all.map((tab) => tab.id)).size !== all.length) return null;
+  const { split, groupId } = createSplit({ initiator, others, layout });
+  if (runtime.glanceTabId) closeGlance({ focusContent: false, announce: !announced });
+  for (const tab of all) {
+    tab.groupId = groupId;
+    tab.splitId = split.id;
+  }
+  runtime.splits = [...(runtime.splits ?? []), split];
+  pruneEmptyGroups();
+  syncTabLayout(runtime);
+  if (all.some((tab) => tab.id === runtime.activeTabId)) showActiveSplit(runtime);
+  broadcastTabs();
+  persistSession();
+  return split;
+}
+
+/** Attach and lay out every pane of the visible split. */
+function showActiveSplit(runtime = rt()) {
+  const split = visibleSplitOf(runtime);
+  if (!split || !hasLiveWindow()) return;
+  for (const id of split.tabIds) {
+    const tab = tabs.get(id);
+    if (!tab) continue;
+    if (tab.asleep) wakeTab(id).catch(() => {});
+    if (!liveContents(tab)) continue;
+    setTabViewVisible(tab, true);
+    attachTabViewToWindow(tab);
+  }
+  // The panes just attached must not cover the floating Island or the sheet.
+  restackAboveTabViews();
+  resizeActiveView();
+}
+
+/** session.json / Spaces columns for a window's splits (none written when
+ *  no split keeps two saved tabs). */
+function savedWindowSplits(runtime, entries) {
+  const { splits, splitIds } = captureSplits(runtime.splits ?? [], entries.map((item) => item.id));
+  return splits.length ? { splits, splitIds } : {};
+}
+
+/** Rebuild a restored window's splits from its saved columns; `restoredIds`
+ *  is parallel to `splitIds` (null where a tab wasn't created). */
+function applyRestoredSplits(runtime, saved, restoredIds) {
+  const rebuilt = restoreSplits(saved?.splits, saved?.splitIds, restoredIds);
+  for (const split of rebuilt) {
+    for (const id of split.tabIds) {
+      const tab = tabs.get(id);
+      if (tab) tab.splitId = split.id;
+    }
+  }
+  runtime.splits = [...(runtime.splits ?? []), ...rebuilt];
+  syncTabLayout(runtime);
+}
+
+/** A split's tabs share one group (spec §3.4): after one member changed
+ *  group by some path other than setTabGroup, the others follow it. */
+function alignSplitGroup(tabId) {
+  const tab = tabs.get(tabId);
+  const split = tab ? splitForTab(rt().splits, tabId) : null;
+  if (!split) return;
+  for (const id of split.tabIds) {
+    const member = tabs.get(id);
+    if (member && member !== tab) member.groupId = tab.groupId ?? null;
+  }
+  pruneEmptyGroups();
+  syncTabLayout(rt());
+}
+
+/** "Moves {title} into/out of {group}" for each tab the group rule moves
+ *  (spec §3.1), worked out before the split is made. */
+function splitGroupMoveNotes(initiatorId, otherIds) {
+  const to = tabs.get(initiatorId)?.groupId ?? null;
+  const nameOf = (id) => rt().groups.find((g) => g.id === id)?.name ?? '';
+  return otherIds.map((id) => tabs.get(id)).filter(Boolean).flatMap((other) => {
+    const from = other.groupId ?? null;
+    const title = displayTitle(other) || mainI18n.t('tab.untitledShort');
+    if (to && from !== to) return [mainI18n.t('split.groupMoveInto', { title, group: nameOf(to) })];
+    if (!to && from) return [mainI18n.t('split.groupMoveOutOf', { title, group: nameOf(from) })];
+    return [];
+  });
+}
+
+/** Say something to screen readers through the strip's live region. */
+function announceSplit(message) {
+  if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', message);
+}
+
+/** Keep as split (D1): the open Glance becomes a two-pane split led by the
+ *  main page, at the current proportions. */
+function keepGlanceAsSplit() {
+  const runtime = rt();
+  const mainId = runtime.activeTabId;
+  const referenceId = activeGlanceTab()?.id ?? null;
+  if (!mainId || !referenceId) return null;
+  // A fresh 50/50 split, main page first: a floating card has no ratio.
+  const ratio = 0.5;
+  const notes = splitGroupMoveNotes(mainId, [referenceId]);
+  const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] }, announced: true });
+  if (split) announceSplitMade(split, notes);
+  return split;
+}
+
+/** Split with ▸ (D1): the right-clicked tab leads; the chosen tab joins. */
+function splitTabWith(tabId, otherId) {
+  const notes = splitGroupMoveNotes(tabId, [otherId]);
+  const split = createSplitFromTabs(tabId, [otherId], { announced: true });
+  if (!split) return null;
+  setActiveTab(tabId);
+  announceSplitMade(split, notes);
+  return split;
+}
+
+function announceSplitMade(split, notes = []) {
+  const [first, second] = split.tabIds.map((id) => displayTitle(tabs.get(id)) || mainI18n.t('tab.untitledShort'));
+  announceSplit([mainI18n.t('split.made', { first, second }), ...notes].join('. '));
+}
+
+/** Remove from Split (D8): the tab lands directly below the split; a split
+ *  left with one tab dissolves in place. */
+function removeTabFromSplit(tabId) {
+  const runtime = windowRuntimes.runtimeForTab(tabId) ?? rt();
+  const tab = tabs.get(tabId);
+  const split = splitForTab(runtime.splits, tabId);
+  if (!tab || !split) return false;
+  const { split: rest, dissolved } = splitWithout(split, tabId);
+  runtime.tabOrder = placeAfterSplit(runtime.tabOrder, split.tabIds, tabId);
+  tab.splitId = null;
+  for (const id of dissolved) {
+    const survivor = tabs.get(id);
+    if (survivor) survivor.splitId = null;
+  }
+  runtime.splits = runtime.splits.flatMap((s) => (s.id !== split.id ? [s] : rest ? [rest] : []));
+  withWindowRuntime(runtime, () => {
+    // The removed tab, if it was showing, steps out of view: the rest of the
+    // split (or the survivor, full-window) takes the window.
+    if (runtime.activeTabId === tabId) {
+      const next = rest ? rest.tabIds[rest.focusedIndex] : dissolved[0];
+      if (next) setActiveTab(next);
+    } else if (visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId)) {
+      if (liveContents(tab)) detachTabView(tab, { retainManagedRoot: true });
+      resizeActiveView();
+    }
+    if (!rest && dissolved.length) {
+      announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(dissolved[0])) || mainI18n.t('tab.untitledShort') }));
+    }
+    broadcastTabs();
+    scheduleMenuRebuild();
+    persistSession();
+  });
+  return true;
+}
+
+/** Close Split: every tab closes, recorded as ONE Recently closed entry that
+ *  reopens the split whole (spec §3.5). */
+function closeSplit(splitId) {
+  const runtime = rt();
+  const split = (runtime.splits ?? []).find((s) => s.id === splitId);
+  if (!split) return;
+  const ids = split.tabIds.filter((id) => tabs.has(id));
+  const entry = buildSplitEntry({
+    layout: split.layout,
+    focusedIndex: split.focusedIndex,
+    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId),
+    groupId: tabs.get(ids[0])?.groupId ?? null,
+  }, ids.map(closedMemberRecord), Date.now());
+  const wasShowing = ids.includes(runtime.activeTabId);
+  const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
+  runtime.splits = runtime.splits.filter((s) => s.id !== splitId);
+  for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 1) pushClosedEntry(entry);
+  else if (entry.tabs.length === 1) pushClosedEntry(buildBatchEntry(entry.tabs, Date.now()));
+  if (wasShowing || !runtime.activeTabId) {
+    const mruId = previousSurvivor(runtime.activationHistory,
+      (tid) => tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === runtime);
+    if (mruId) setActiveTab(mruId);
+    else if (runtime.tabOrder.length > 0) setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
+    else if (hasLiveWindow()) openReplacementTab();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** Reopen a Close Split entry: the tabs come back quiet, in order, as one
+ *  split with its layout, at its place, in its group if that still exists. */
+function reopenSplitEntry(entry) {
+  const runtime = rt();
+  const groupId = entry.split.groupId && runtime.groups.some((g) => g.id === entry.split.groupId)
+    ? entry.split.groupId
+    : null;
+  const ids = entry.tabs.map((member) => {
+    const id = createTab(member.url, {
+      groupId, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
+      allowLocalFile: member.localFile === true,
+      openerSandboxFlags: member.openerSandboxFlags,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  if (ids.length >= 2) {
+    const [lead, ...others] = ids;
+    createSplitFromTabs(lead, others, { layout: entry.split.layout });
+    const split = splitForTab(runtime.splits, lead);
+    if (split) split.focusedIndex = Math.min(entry.split.focusedIndex, ids.length - 1);
+  }
+  if (!groupId) {
+    const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id).filter((id) => !ids.includes(id));
+    items.splice(Math.min(Math.max(entry.split.index, 0), items.length), 0, ...ids);
+    runtime.tabOrder = layoutItems(items, tabLayoutList(runtime));
+  }
+  syncTabLayout(runtime);
+  setActiveTab(ids[Math.min(entry.split.focusedIndex, ids.length - 1)]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** Split with ▸ choices for a tab's menu: this window's other eligible tabs
+ *  with their groups; the menu model sorts them by group (spec §3.1). */
+function splitCandidatesFor(tab, owner) {
+  if (!tab || tab.pinned || tab.splitId) return [];
+  return owner.tabOrder
+    .map((id) => tabs.get(id))
+    .filter((other) => other && other.id !== tab.id && splitEligible(other))
+    .map((other) => ({
+      id: other.id,
+      title: displayTitle(other) || mainI18n.t('tab.untitledShort'),
+      groupId: other.groupId ?? null,
+    }));
 }
 
 function currentTabBounds(tab) {
   const layout = currentChromeLayout();
-  const glance = glanceGeometry(layout);
-  if (!glance) return layout.pageBounds;
-  if (tab?.id === rt().glanceTabId) return glance.glance;
-  if (tab?.id === rt().activeTabId) return glance.primary;
+  const split = splitGeometry(layout);
+  if (split) {
+    const index = split.split.tabIds.indexOf(tab?.id);
+    return index >= 0 ? split.panes[index].content : layout.pageBounds;
+  }
+  const card = glanceCardGeometry(layout);
+  if (card && tab?.id === rt().glanceTabId) return card.page;
   return layout.pageBounds;
 }
 
 function overlayBounds() {
   const layout = currentChromeLayout();
-  const glance = glanceGeometry(layout);
+  const card = glanceCardGeometry(layout);
   if (rt().overlayMode === 'display-share') {
     const { width, height } = rt().window.getContentBounds();
     return { x: 0, y: 0, width, height };
   }
   if (rt().overlayMode === 'find') {
-    if (!glance) return layout.findBounds;
-    const pane = findTargetTabId(rt()) === rt().glanceTabId ? glance.glance : glance.primary;
+    const split = splitGeometry(layout);
+    const splitPane = split?.panes[split.split.tabIds.indexOf(findTargetTabId(rt()))]?.content;
+    const glancePane = card && findTargetTabId(rt()) === rt().glanceTabId ? card.page : null;
+    if (!glancePane && !splitPane) return layout.findBounds;
+    const pane = splitPane ?? glancePane;
     const width = Math.min(560, pane.width);
     return {
       x: pane.x + Math.round((pane.width - width) / 2),
@@ -3104,22 +4761,17 @@ function overlayBounds() {
     };
   }
   if (rt().overlayMode === 'palette' || rt().overlayMode === 'panel') {
-    if (!glance) return rt().overlayMode === 'palette' ? layout.paletteBounds : layout.panelBounds;
-    return {
-      x: glance.primary.x,
-      y: 0,
-      width: glance.primary.width,
-      height: rt().window.getContentBounds().height,
-    };
+    return rt().overlayMode === 'palette' ? layout.paletteBounds : layout.panelBounds;
   }
   if (rt().overlayMode === 'glance') {
     const windowHeight = rt().window.getContentBounds().height;
-    if (glance && rt().overlayPurpose === 'change') {
+    // Change hangs from the card's header, over the card.
+    if (card && rt().overlayPurpose === 'change') {
       return {
-        x: glance.glanceHeader.x,
-        y: glance.glanceHeader.y,
-        width: glance.glanceHeader.width,
-        height: Math.min(Math.max(0, windowHeight - glance.glanceHeader.y), 520),
+        x: card.header.x,
+        y: card.header.y,
+        width: card.header.width,
+        height: Math.min(Math.max(0, windowHeight - card.header.y), 520),
       };
     }
     return {
@@ -3146,6 +4798,12 @@ function overlayBounds() {
       anchorRight: rt().captureAnchorRight,
       rowCount: captureRowCount(),
     });
+  }
+  // The side list's group menu: a transparent layer over the whole window,
+  // so the menu can sit beside the header and a click anywhere else closes it.
+  if (rt().overlayMode === 'group-menu') {
+    const { width, height } = rt().window.getContentBounds();
+    return { x: 0, y: 0, width, height };
   }
   if (rt().overlayMode === 'spaces') {
     return calculateSpacesBounds({
@@ -3233,8 +4891,10 @@ function ensurePermissionView() {
   view.setBackgroundColor('#00000000');
   // Electron focuses a brand-new view when it is first attached, which would
   // take the keyboard from the page on the first prompt. Hand it straight
-  // back; once the prompt has loaded, a click into it keeps focus there.
-  const focusedBefore = webContents.getFocusedWebContents();
+  // back; once the prompt has loaded, a click into it keeps focus there. The
+  // page is asked for among what is on screen: a hidden tab can still report
+  // focus on macOS (focused-contents.js).
+  const focusedBefore = onScreenFocusedContents(rt().window, webContents.getFocusedWebContents());
   const handBackFocus = () => {
     if (focusedBefore && !focusedBefore.isDestroyed()) focusedBefore.focus();
   };
@@ -3295,6 +4955,13 @@ function detachPermissionView() {
 
 function fillStatusViewBounds() {
   const { width, height } = rt().window.getContentBounds();
+  // A message about the Glance page sits at the bottom of the card.
+  const card = rt().fillStatusTabId === rt().glanceTabId ? glanceCardGeometry()?.page : null;
+  if (card) {
+    const w = Math.min(560, Math.max(0, card.width - 24));
+    const h = Math.min(88, card.height);
+    return { x: card.x + Math.round((card.width - w) / 2), y: card.y + card.height - h, width: w, height: h };
+  }
   const w = Math.min(560, Math.max(0, width - 24));
   // Title row + up-to-two-line body + padding + the 12px bottom margin the
   // document draws. The capsule bottom-anchors inside this band, so keep it
@@ -3369,8 +5036,9 @@ function restackFillStatusView() {
   }
 }
 
-function attachFillStatusView() {
+function attachFillStatusView(tabId = null) {
   if (!hasLiveWindow()) return;
+  rt().fillStatusTabId = tabId;
   const view = ensureFillStatusView();
   view.setBounds(fillStatusViewBounds());
   // Never detached between messages on Linux: Electron 44 stops a
@@ -3387,6 +5055,76 @@ function detachFillStatusView() {
   if (hasLiveWindow() && rt().fillStatusView) {
     hideOverlayView(rt().window, rt().fillStatusView);
   }
+}
+
+// --- Resting pill tooltip view (tooltip.html) ----------------------------
+// The 68px strip can't draw a tooltip under the pill: the page view covers
+// everything past it. So the strip measures the tip and asks main to float
+// this view, sized exactly to it, under the button. No preload and no script:
+// main writes the text, and the view is never focused.
+
+function ensureTooltipView() {
+  if (rt().tooltipView && !rt().tooltipView.webContents.isDestroyed()) return rt().tooltipView;
+  const owner = rt();
+  const view = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  owner.tooltipView = view;
+  view.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    if (rt().tooltipView === view) {
+      rt().tooltipView = null;
+      rt().tooltipViewAttached = false;
+    }
+    // On Linux a hidden view stays window-owned (hideOverlayView); drop the
+    // dead one once its native destruction has returned.
+    setImmediate(() => {
+      const window = owner.window;
+      if (window && !window.isDestroyed() && window.contentView.children.includes(view)) {
+        window.contentView.removeChildView(view);
+      }
+    });
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_TOOLTIP_URL);
+  view.webContents.loadURL(CHROME_TOOLTIP_URL).catch(() => {});
+  return view;
+}
+
+async function showPillTooltip(request) {
+  if (!hasLiveWindow() || rt().overlayMode) return;
+  const owner = rt();
+  const generation = ++owner.tooltipGeneration;
+  const contents = ensureTooltipView().webContents;
+  if (contents.isLoading()) await new Promise((resolve) => contents.once('did-stop-loading', resolve));
+  if (generation !== owner.tooltipGeneration || contents.isDestroyed()) return;
+  // JSON.stringify makes the text a plain string literal; it is never markup.
+  await contents.executeJavaScript(`(() => {
+    document.getElementById('tip').classList.remove('intro');
+    document.getElementById('tip').textContent = ${JSON.stringify(request.text)};
+    if (${request.privateTheme}) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
+  })()`);
+  const window = owner.window;
+  if (generation !== owner.tooltipGeneration || !window || window.isDestroyed()) return;
+  const view = owner.tooltipView;
+  if (!view || view.webContents !== contents) return;
+  const { width, height } = window.getContentBounds();
+  view.setBounds(tooltipBounds(request, { windowWidth: width, windowHeight: height }));
+  showOverlayView(window, view);
+  owner.tooltipViewAttached = true;
+}
+
+function hidePillTooltip(runtime = rt()) {
+  runtime.tooltipGeneration += 1;
+  if (!runtime.tooltipViewAttached) return;
+  runtime.tooltipViewAttached = false;
+  const window = runtime.window;
+  if (window && !window.isDestroyed() && runtime.tooltipView) hideOverlayView(window, runtime.tooltipView);
 }
 
 function createOverlay() {
@@ -3450,7 +5188,8 @@ function createOverlay() {
     if (overlayDragActive(rt())) return;
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield') && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+      if ((rt().workspaceSwitcherOpen || rt().overlayMode === 'shield' || rt().overlayMode === 'group-menu')
+        && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
         rt().overlayView.webContents.send('overlay:escape');
         return;
       }
@@ -3532,6 +5271,7 @@ function createOverlay() {
   // Tab-row context menu, same webContents; shares the guard above.
   attachRowMenu(rt().overlayView.webContents, {
     ...overlayMenuGuardDeps,
+    suppressIslandHover: bindWindowRuntime(owner, () => suppressIslandHover(owner)),
     t: mainI18n.t,
     resolveTab: bindWindowRuntime(owner, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
@@ -3552,16 +5292,6 @@ function createOverlay() {
     actions: workspaceMenuContextActions(owner),
   });
   // Group headers in the panel: same webContents, guard and recording scheme.
-  attachGroupHeaderMenu(rt().overlayView.webContents, {
-    isLive: overlayMenuGuardDeps.isOverlayLive,
-    getWindow: overlayMenuGuardDeps.getWindow,
-    getOffset: overlayMenuGuardDeps.getOverlayBounds,
-    acquireMenuGuard: overlayMenuGuardDeps.acquireMenuGuard,
-    releaseMenuGuard: overlayMenuGuardDeps.releaseMenuGuard,
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(owner, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(owner),
-  });
   // Device headers in the Other devices drawer: Rename Device….
   attachDeviceHeaderMenu(rt().overlayView.webContents, {
     isLive: overlayMenuGuardDeps.isOverlayLive,
@@ -3586,6 +5316,12 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  if (acceptanceTestMode) rt().testOverlayShowCount = (rt().testOverlayShowCount ?? 0) + 1;
+  // Every overlay is drawn from the Island, so the strip comes back first:
+  // the bounds computed below (find, the popovers) sit under it.
+  revealIsland();
+  hidePillTooltip();
+  suppressIslandHover();
   closeUblockPopup(rt().id);
   if (rt().overlayMode === 'display-share'
       && (mode !== 'display-share' || purpose?.requestId !== rt().overlayPurpose?.requestId)) {
@@ -3605,6 +5341,13 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // panel. The strip snaps its own pill to rest on the same island-state.
     cancelPendingIslandProximity(rt());
     if (rt().islandProximity.k !== 0) sendIslandProximity(rt(), { k: 0 });
+  }
+  // Another surface replacing the side list's group menu: that header forgets
+  // its open state, as it does when the menu closes (hideOverlay).
+  if (rt().overlayMode === 'group-menu' && mode !== 'group-menu' && typeof rt().overlayPurpose?.groupId === 'string') {
+    stripSurfaces(rt()).send('chrome:island-state', {
+      mode: null, trigger: `group-menu:${rt().overlayPurpose.groupId}`, restoreTrigger: null,
+    });
   }
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
@@ -3646,7 +5389,7 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   });
   syncShieldAnchor();
   rt().overlayView.webContents.focus();
-  rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
+  stripSurfaces(rt()).send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
 // The one place a typed character opens the island. The start page, the
@@ -3696,7 +5439,10 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // the pill, and a view that has already been removed has nothing left to
     // draw. Only the pixels linger: focus and island state hand over below at
     // once, so the user is never waiting on the animation.
-    const retracts = closingMode === 'panel' || closingMode === 'palette';
+    // A panel closing because the pointer left it (hover-panel-leave.js)
+    // goes at once: a retract would keep the overlay view over the strip for
+    // OVERLAY_RETRACT_MS and swallow the press the pointer was heading for.
+    const retracts = (closingMode === 'panel' || closingMode === 'palette') && reason !== 'hover-leave';
     rt().overlayView.webContents.send('overlay:hide', { retract: retracts });
     if (rt().overlayExitTimer) {
       clearTimeout(rt().overlayExitTimer);
@@ -3725,23 +5471,32 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
               : closingMode === 'spaces' ? 'spaces'
+              : closingMode === 'group-menu' ? 'group-menu'
               // The Change control only exists while Glance is still open —
               // if the reference tab closed under the picker, fall through to
               // the ordinary content refocus instead of a hidden button.
-              : closingMode === 'glance' && (closingPurpose === 'change' || closingPurpose === 'change-stacked') && activeGlanceTab() ? 'glance-change'
+              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
                 : null
         )
       : null;
-    if (restoreTrigger) rt().window.webContents.focus();
-    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    // The Change control lives on the Glance card, in its own document.
+    if (restoreTrigger === 'glance-change') liveGlanceCardView()?.webContents.focus();
+    else if (restoreTrigger) islandSurfaceContents().focus();
+    // The side list's group menu names its group so that header can forget
+    // its open state (and take focus back after Escape).
+    const closedTrigger = closingMode === 'group-menu' && typeof closingPurpose?.groupId === 'string'
+      ? `group-menu:${closingPurpose.groupId}` : null;
+    stripSurfaces(rt()).send('chrome:island-state', { mode: null, trigger: closedTrigger, restoreTrigger });
     if (refocusContent && !restoreTrigger) liveContents(tabs.get(rt().activeTabId))?.focus();
     if (retracts) {
       // Wake proximity from where the cursor is now. Moves over the expanded
       // overlay are never watched, so waiting for the next one would leave the
       // pill flat under a resting cursor until the mouse twitched.
-      const cursor = screen.getCursorScreenPoint();
-      const content = rt().window.getContentBounds();
-      updateIslandProximity({ x: cursor.x - content.x, y: cursor.y - content.y });
+      const point = sampledWindowCursor(rt());
+      if (point) {
+        updateIslandProximity(point);
+        updateIslandHover(rt(), point, { sampled: true });
+      }
     }
   }
 }
@@ -3993,6 +5748,8 @@ function showUtilityPage(url) {
   // and clicks — the same failure overlay-view-lifecycle.js guards against.
   sheet.view.setVisible(true);
   showOverlayView(runtime.window, sheet.view);
+  // The floating Island stays above the sheet, as the strip's Island does.
+  restackIslandFloatViews(runtime);
   // A pending permission prompt must stay above the sheet — a buried prompt
   // has no visible Allow/Block until the sheet happens to be dismissed.
   bindWindowRuntime(runtime, restackPermissionView)();
@@ -4062,12 +5819,24 @@ function bumpGlanceRequestEpoch() {
 /** A visible pane's page took keyboard focus (tab-view.js). Only the strip's
  * focus cue needs to hear about it; nothing is re-laid out. */
 function noteFocusedPane(owner, tabId) {
-  if (!owner || !isVisiblePaneId(owner, tabId) || owner.focusedPaneTabId === tabId) return;
+  if (!owner || !isVisiblePaneId(owner, tabId)) return;
+  // Split View: the focused pane IS the active tab. Attaching a view can
+  // fire a transient focus, so act only if it still holds focus a tick later.
+  if (tabId !== owner.activeTabId && visibleSplitTabIds(owner).includes(tabId)) {
+    setImmediate(() => withWindowRuntime(owner, () => {
+      const tab = tabs.get(tabId);
+      if (!visibleSplitTabIds(owner).includes(tabId) || owner.activeTabId === tabId) return;
+      if (liveContents(tab)?.isFocused?.() !== true) return;
+      setActiveTab(tabId, { focusContent: false });
+    }));
+    return;
+  }
+  if (owner.focusedPaneTabId === tabId) return;
   owner.focusedPaneTabId = tabId;
   if (owner.glanceTabId == null) return;
   withWindowRuntime(owner, () => {
     if (!hasLiveWindow()) return;
-    rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glanceGeometry(), focusedPane(rt())));
+    stripSurfaces(rt()).send('chrome:glance-layout', currentGlanceLayoutPayload());
   });
 }
 
@@ -4277,7 +6046,7 @@ function getFillStatusSurface() {
           }
           : null;
       }),
-      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView()),
+      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView(target.tabId)),
       hide: (target) => withWindowRuntime(target.runtime, () => detachFillStatusView()),
       showFallbackDialog: showFillFallbackDialog,
       restoreFocus: (target) => {
@@ -4433,12 +6202,15 @@ function serializeTabs() {
         blockedCount: tab.blockedCount,
         private: tab.private,
         pinned: tab.pinned,
-        muted: tab.muted,
+        // shownMuted() in tab-audio.js, spelled out: this projection stays
+        // self-contained for the tests that lift it.
+        muted: !!(tab.muted || (tab.siteMuted && !tab.siteUnmuted)),
         // isCurrentlyAudible() describes a playing stream even when Electron
         // has muted its output. Chrome should report sound only when it can
         // actually reach the speakers.
-        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
+        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted || (tab.siteMuted && !tab.siteUnmuted)),
         groupId: tab.groupId,
+        splitId: tab.splitId ?? null,
         pageBg: islandSiteColors ? tab.pageBg : null,
         themeColor: islandSiteColors ? tab.themeColor : null,
         // The sole Quiet Tabs field chrome may see. Operational sleep state
@@ -4564,6 +6336,7 @@ app.on('will-quit', () => {
   onePasswordBroker?.stop();
 });
 app.on('before-quit', () => {
+  glanceCards.flush(); // a card moved inside the save debounce keeps its place
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
       const existing = namedWorkspaces.get(runtime.workspaceId);
@@ -4586,12 +6359,18 @@ app.on('before-quit', () => {
 function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // Private tabs leave no trail, error pages persist their real destination,
   // and url-less adopted children drop out in lockstep with their metadata.
+  syncTabLayout(runtime);
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-  syncClosedSlot(runtime);
   const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
-  // The band's slot counts only groups that are written, so a group held
-  // only by private tabs never shifts it on the next launch.
-  const closedSlot = runtime.groups.slice(0, runtime.closedSlot).filter((group) => persistedGroups.includes(group)).length;
+  // The band's place counts only items that are written, so a private tab or
+  // a group held only by private tabs never shifts it on the next launch.
+  // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
+  // copy, counts groups only.
+  const persistedIds = new Set(entries.map((item) => item.id));
+  const above = itemsOf(tabLayoutList(runtime)).slice(0, runtime.closedSlot)
+    .filter((item) => (item.groupId ? persistedGroups.some((group) => group.id === item.id) : persistedIds.has(item.id)));
+  const closedIndex = above.length;
+  const closedSlot = above.filter((item) => item.groupId).length;
   const entry = {
     id: runtime.id,
     profileId: runtime.profileId,
@@ -4611,7 +6390,10 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
       localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
     } : {}),
     groups: persistedGroups,
+    ...savedWindowSplits(runtime, entries),
     ...(closedSlot > 0 ? { closedSlot } : {}),
+    sectionOrder: true,
+    ...(closedIndex > 0 ? { closedIndex } : {}),
     activeIndex: previousActiveIndex,
   };
   // A private or provisional active tab preserves this window's last good
@@ -4869,12 +6651,13 @@ function currentTabsPayload() {
   // derived a single time per broadcast.
   const serialized = serializeTabs();
   const runtime = rt();
-  syncClosedSlot(runtime);
+  syncTabLayout(runtime);
   return {
     tabs: serialized,
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
+    splits: projectSplits(runtime),
     closedSlot: runtime.closedSlot,
     // Closed entries cross only as the five-field projection (spec §4.1);
     // snapshots, seeds, slot metadata, and view references stay in main.
@@ -4908,13 +6691,16 @@ function broadcastTabs() {
   if (!rt().window || rt().window.isDestroyed()) return;
   const runtime = rt();
   const payload = currentTabsPayload();
-  rt().window.webContents.send('tabs:updated', payload);
+  stripSurfaces(rt()).send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
+  // A pane's site or favicon may have changed; the corner tabs repaint only
+  // when their contents differ (syncSplitCornerTabs compares).
+  if (runtime.splitCornerViews.size || visibleSplitOf(runtime)) syncSplitCornerTabs(splitGeometry());
 }
 
 function broadcastDownloadsActivity() {
   forEachWindowRuntime(() => {
-    rt().window.webContents.send('chrome:downloads', downloadsActivity());
+    stripSurfaces(rt()).send('chrome:downloads', downloadsActivity());
   }, { liveOnly: true });
 }
 
@@ -4933,9 +6719,42 @@ function resizeActiveView() {
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const glanceTab = activeGlanceTab();
-  const glance = glanceTab ? glanceGeometry(layout) : null;
-  if (liveContents(tab)) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
-  if (liveContents(glanceTab) && glance) glanceTab.view.setBounds(glance.glance);
+  const card = glanceTab ? glanceCardGeometry(layout) : null;
+  const cardView = liveGlanceCardView();
+  // Mid-slide (auto-hide), page panes move toward their final bounds.
+  const slide = rt().islandSlide;
+  const place = (bounds) => slide
+    ? islandAutoHideModule.slidingBounds(bounds, { stripTop: layout.pageBounds.y, animatedTop: slide.top })
+    : bounds;
+  const split = splitGeometry(layout);
+  if (split) {
+    split.split.tabIds.forEach((id, index) => {
+      const pane = tabs.get(id);
+      const content = split.panes[index]?.content;
+      if (!liveContents(pane) || !content) return;
+      roundSplitPane(pane, true);
+      pane.view.setBounds(place(content));
+    });
+  } else {
+    roundSplitPane(tab, false);
+    // The floating Glance card: the main page keeps the whole page area; the
+    // card's chrome view and the Glance page inside it float over it.
+    if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
+    const cardDrawn = rt().glanceCardDrawn === true;
+    // The card is fixed to the window: a pushed Island sliding in moves the
+    // main page beneath it, never the card or the page inside it.
+    if (liveContents(glanceTab) && card) {
+      glanceTab.view.setBounds(card.page);
+      roundGlancePage(glanceTab, true);
+      if (glanceTab.view.getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+    }
+    if (cardView) {
+      if (card) cardView.setBounds(card.chrome);
+      cardView.setVisible(!!card && cardDrawn);
+    }
+  }
+  syncSplitCornerTabs(split, place);
+  keepIslandFloatOnTop();
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   syncShieldAnchor();
   if (rt().permissionViewAttached && rt().permissionView) {
@@ -4945,12 +6764,16 @@ function resizeActiveView() {
     rt().fillStatusView.setBounds(fillStatusViewBounds());
   }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) sheet.view.setBounds(layout.utilityBounds);
+  if (sheet) sheet.view.setBounds(place(layout.utilityBounds));
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
-  rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
-  rt().window.webContents.send('chrome:glance-layout', glanceLayoutPayload(glance, focusedPane(rt())));
+  stripSurfaces(rt()).send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  stripSurfaces(rt()).send('chrome:glance-layout', currentGlanceLayoutPayload(card));
+  stripSurfaces(rt()).send('chrome:split-layout', currentSplitLayoutPayload(split));
+  syncWindowButtons();
+  syncStripHidden();
+  syncIslandFloat();
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -5028,6 +6851,30 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
     // duplicate native-menu accelerator dispatch for this same key event.
     event.preventDefault();
     toggleTabLayout();
+  }));
+}
+
+// Cmd/Ctrl+Alt+B: same before-dispatch handling as the vertical tabs shortcut.
+function installIslandAutoHideShortcut(webContents, owner = rt()) {
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    // On macOS Option changes the key value (⌥B is ∫), so the physical key
+    // counts too. On Windows and Linux Ctrl+Alt is AltGr, and AltGr+B types a
+    // character on some layouts (Hungarian: {), so only the letter counts.
+    const keyMatches = String(input.key).toLowerCase() === 'b'
+      || (process.platform === 'darwin' && input.code === 'KeyB');
+    if (
+      input.type !== 'keyDown' ||
+      !keyMatches ||
+      !input.alt ||
+      !primaryModifier ||
+      input.shift
+    ) return;
+    event.preventDefault();
+    if (input.isAutoRepeat) return;
+    toggleIslandAutoHide();
   }));
 }
 
@@ -5119,6 +6966,7 @@ function observeBrowserCommand(delivery) {
 function ownsBrowserShortcutSurface(runtime, wc) {
   if (!runtime.window || runtime.window.isDestroyed() || runtime.closing || runtime.resident) return false;
   if (wc === runtime.window.webContents) return true;
+  if (floatRoleOf(runtime, wc)) return true;
   if (wc === liveViewContents(runtime.overlayView)) return !!runtime.overlayMode;
   if (wc === liveViewContents(runtime.utilitySheetView)) return !!runtime.utilitySheetUrl;
   if (wc === liveViewContents(runtime.permissionView)) return !!runtime.permissionViewAttached;
@@ -5126,7 +6974,7 @@ function ownsBrowserShortcutSurface(runtime, wc) {
   const tab = tabs.get(tabId);
   return !!tab && windowRuntimes.runtimeForTab(tabId) === runtime &&
     liveContents(tab) === wc && !tab.sleeping &&
-    (runtime.activeTabId === tabId || runtime.glanceTabId === tabId);
+    (runtime.activeTabId === tabId || runtime.glanceTabId === tabId || visibleSplitTabIds(runtime).includes(tabId));
 }
 
 function installChromeShortcuts(webContents, owner = rt()) {
@@ -5139,6 +6987,7 @@ function installChromeShortcuts(webContents, owner = rt()) {
     observe: observeBrowserCommand,
   });
   installVerticalTabsShortcut(webContents, owner);
+  installIslandAutoHideShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
   installOnePasswordShortcut(webContents, owner);
   // Escape dismisses a visible fill capsule no matter which surface holds
@@ -5263,7 +7112,7 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
       // still records the sample, but must not repaint the strip.
       if (!settings.getSettings().islandSiteColors) return false;
       // Color-only updates avoid rebuilding tabs and menus during a fade.
-      owner.window.webContents.send('chrome:page-tint', { id: tab.id, color });
+      stripSurfaces(owner).send('chrome:page-tint', { id: tab.id, color });
       return true;
     }
   } catch { /* A native view can disappear during capture. */ }
@@ -5284,34 +7133,30 @@ function scheduleSampleTint(tab) {
 
 // --- Tab groups (Island Tab Groups design) ---
 
-/** Pill/panel cluster order: each non-empty group in group order, then a
- * trailing pseudo-cluster of ungrouped, unpinned tabs. Pinned members stay
- * inside their named group and lead that group's rows; only ungrouped pins
- * use the standalone pinned shelf. Cmd/Ctrl+1–9 jump by this. */
+/** One window's tabs as tab-sections.js reads them, in tab order. */
+function tabLayoutList(runtime) {
+  return runtime.tabOrder
+    .map((id) => tabs.get(id))
+    .filter(Boolean)
+    .map((tab) => ({ id: tab.id, groupId: tab.groupId ?? null, pinned: !!tab.pinned, splitId: tab.splitId ?? null }));
+}
+
+/** Pill/panel cluster order: groups and runs of ungrouped tabs, in tab order
+ * (spec 2026-10-17). Pinned members stay inside their named group and lead
+ * that group's rows; only ungrouped pins use the standalone pinned shelf.
+ * Cmd/Ctrl+1–9 jump by this. A run's `key` is 'run:' + its first tab id. */
 function clusterList() {
-  const list = [];
-  for (const g of rt().groups) {
-    const members = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
-    const tabIds = [
-      ...members.filter((id) => tabs.get(id)?.pinned),
-      ...members.filter((id) => !tabs.get(id)?.pinned),
-    ];
-    if (tabIds.length) list.push({ group: g, tabIds });
-  }
-  const loose = rt().tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
-  if (loose.length) list.push({ group: null, tabIds: loose });
-  return list;
+  const byId = new Map(rt().groups.map((group) => [group.id, group]));
+  return sectionsOf(tabLayoutList(rt()))
+    .map(({ key, groupId, tabIds }) => ({ key, group: groupId ? byId.get(groupId) ?? null : null, tabIds }))
+    .filter(({ group, key }) => group || key.startsWith('run:'));
 }
 
 /** clusterList() plus a leading pseudo-cluster for ungrouped pinned tabs,
  * each slot tagged with a stable key — the one definition of "cluster order"
  * shared by Cmd/Ctrl+1–9 and the ⌥⌘ arrow navigation. */
 function clusterSlots() {
-  const slots = clusterList().map(({ group, tabIds }) => ({
-    key: group ? group.id : 'loose',
-    group,
-    tabIds,
-  }));
+  const slots = clusterList().map(({ key, group, tabIds }) => ({ key, group, tabIds }));
   const pinnedIds = rt().tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
   if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
   return slots;
@@ -5323,7 +7168,9 @@ function clusterSlots() {
 // first tab wins.
 
 function clusterKeyForTab(tab) {
-  return tab.groupId ?? (tab.pinned ? 'pinned' : 'loose');
+  if (tab.groupId) return tab.groupId;
+  if (tab.pinned) return 'pinned';
+  return sectionsOf(tabLayoutList(rt())).find((section) => section.tabIds.includes(tab.id))?.key ?? 'loose';
 }
 
 /** A group exists only while it holds tabs — closing or moving out the
@@ -5338,10 +7185,23 @@ function pruneEmptyGroups() {
 function setTabGroup(tabId, groupId) {
   const tab = tabs.get(tabId);
   if (!tab) return;
+  // A split's tabs share one group: moving one moves the split (spec §3.4).
+  const split = splitForTab(rt().splits, tabId);
+  if (split && !arguments[2]?.splitMember) {
+    for (const id of split.tabIds) setTabGroup(id, groupId, { splitMember: true });
+    return;
+  }
   // A requested group that no longer exists (a picker click racing the
   // group's dissolution) is a no-op — it must not ungroup the tab instead.
   if (groupId && !rt().groups.some((g) => g.id === groupId)) return;
-  tab.groupId = groupId || null;
+  const from = tab.groupId ?? null;
+  const to = groupId || null;
+  if (from !== to) {
+    // Joining lands at the end of the group; leaving lands directly below the
+    // group left (spec 2026-10-17 §5.3).
+    rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, to ?? from);
+  }
+  tab.groupId = to;
   pruneEmptyGroups();
   broadcastTabs();
   scheduleMenuRebuild();
@@ -5360,12 +7220,19 @@ function groupTabByName(tabId, rawName, { adoptCase = false } = {}) {
   if (!tab || !name) return;
   let group = rt().groups.find((g) => sameGroupName(g.name, name));
   if (group && adoptCase && name !== name.toLowerCase()) group.name = name;
+  const from = tab.groupId ?? null;
   if (!group) {
-    group = { id: crypto.randomUUID(), name, collapsed: false };
+    group = { id: crypto.randomUUID(), name, collapsed: false, color: null };
     rt().groups.push(group);
+    // A new group appears where its tab was; a tab leaving another group
+    // first moves directly below that group (spec 2026-10-17 §3.3).
+    if (from) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, from);
+  } else if (from !== group.id) {
+    rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), tabId, group.id);
   }
   tab.groupId = group.id;
   pruneEmptyGroups();
+  alignSplitGroup(tabId);
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -5381,6 +7248,20 @@ function renameGroup(groupId, rawName) {
   if (!name || name === group.name) return { ok: true };
   if (runtime.groups.some((g) => g !== group && sameGroupName(g.name, name))) return { ok: false, error: 'duplicate' };
   group.name = name;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return { ok: true };
+}
+
+/** Give a group one of the Spaces preset colors, or none with null (spec
+ * 2026-10-17-tab-group-colors-design.md). Anything but a preset is refused
+ * and changes nothing. */
+function setGroupColor(groupId, color) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  if (!group) return { ok: false };
+  const next = sanitizeGroupColor(color);
+  if (color != null && next === null) return { ok: false };
+  group.color = next;
   broadcastTabs();
   scheduleMenuRebuild();
   return { ok: true };
@@ -5475,6 +7356,7 @@ function closedMemberRecord(id) {
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
     customTitle: tab.customTitle ?? null,
+    pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
@@ -5493,8 +7375,10 @@ function closeGroup(groupId) {
   // Capture EVERYTHING first: pruneEmptyGroups destroys the record mid-loop
   // otherwise, and quiet members must be snapshotted, never woken (§2.2).
   const entry = buildGroupEntry({
-    id: group.id, name: group.name, collapsed: group.collapsed,
-    index: runtime.groups.indexOf(group),
+    // The group's place among the window's top-level items (groups and
+    // ungrouped tabs), so it reopens where it was (spec 2026-10-17).
+    id: group.id, name: group.name, collapsed: group.collapsed, color: group.color ?? null,
+    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => item.id === group.id),
     activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
   }, ids.map(closedMemberRecord), Date.now());
   const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
@@ -5506,12 +7390,12 @@ function closeGroup(groupId) {
   if (!runtime.activeTabId) {
     const referenceId = runtime.glanceTabId && tabs.has(runtime.glanceTabId) ? runtime.glanceTabId : null;
     if (referenceId) {
-      runtime.glanceTabId = null;
+      endGlance(runtime);
       setActiveTab(referenceId);
     } else if (runtime.tabOrder.length > 0) {
       setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
-      setActiveTab(createTab());
+      openReplacementTab();
     }
   }
   broadcastTabs();
@@ -5543,7 +7427,7 @@ function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
   return {
     ...entry,
-    groups: entry.groups.map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+    groups: entry.groups.map(groupRecord),
   };
 }
 
@@ -5646,10 +7530,20 @@ function stageWorkspace(runtime, workspace) {
       if (tab?.view) {
         detachTabView(tab);
       }
-      if (tab && id === runtime.activeTabId) tab.lastActiveAt = Date.now();
+      if (tab && id === runtime.activeTabId) {
+        tab.lastActiveAt = Date.now();
+        tab.lastViewedAt = tab.lastActiveAt;
+      }
     }
     move(runtime, outgoing);
     move(incoming, runtime);
+    // Tab Archive (F52, spec §2.3): tabs entering from a Space start their
+    // idle clock now. A set-aside Space's tabs kept their old stamps.
+    const viewedAt = Date.now();
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab) tab.lastViewedAt = viewedAt;
+    }
     transferred = true;
   } catch (error) {
     if (outgoing?.tabOrder.length && !runtime.tabOrder.length) move(outgoing, runtime);
@@ -5858,6 +7752,8 @@ const workspaceController = createWorkspaceController({
 // platform, the real dialog, and never consults these.
 let arcTestPlatform = 'darwin';
 let arcTestChosenFile = null;
+// Acceptance-only stand-in for the wallpaper file picker (F49).
+let wallpaperTestChosenFile = null;
 let arcSidebarReadCount = 0;
 function arcDiscoveryOptions() {
   const home = acceptanceTestMode ? process.env.BLANC_TEST_BROWSER_HOME : undefined;
@@ -5992,7 +7888,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     // mirror image of workspaceCapture's fix above, on the read side).
     runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
       .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-      .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+      .map(groupRecord);
     runtime.closedSlot = clampClosedSlot(workspace.closedSlot, runtime.groups.length);
     runtime.closedSlotIds = runtime.groups.map((group) => group.id);
 
@@ -6004,6 +7900,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       pinned: workspace.pinned,
       meta: workspace.meta,
       localFiles: workspace.localFiles,
+      splitIds: workspace.splitIds,
       activeIndex: workspace.activeIndex,
     }, (url, _index, localFile) => isUtilityUrl(url)
       || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
@@ -6018,10 +7915,14 @@ function applyWorkspaceToWindow(runtime, workspace) {
       title: cleaned.meta?.[index]?.title ?? '',
       favicon: cleaned.meta?.[index]?.favicon ?? null,
       customTitle: cleaned.meta?.[index]?.customTitle ?? null,
+      pinnedHomeUrl: cleaned.meta?.[index]?.pinnedHomeUrl ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
     }));
     pruneEmptyGroups();
+    applySavedLayout(runtime, workspace, restoredIds);
+    runtime.splits = [];
+    applyRestoredSplits(runtime, { splits: workspace.splits, splitIds: cleaned.splitIds }, restoredIds);
     const target = restoreTargetId(restoredIds, cleaned.activeIndex);
     // 8. A workspace with nothing left after filtering (or saved empty) must
     // never leave the window tabless. NEW_TAB_URL, not newTabUrl() — the
@@ -6086,7 +7987,23 @@ function undoRemoveNamedWorkspace(id) {
 function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
+  // A split never holds a pinned tab: pinning takes it out first (D7).
+  if (!tab.pinned && tab.splitId) {
+    const owner = windowRuntimes.runtimeForTab(id) ?? rt();
+    const wasShown = owner.activeTabId === id;
+    removeTabFromSplit(id);
+    if (wasShown) withWindowRuntime(owner, () => setActiveTab(id));
+  }
   tab.pinned = !tab.pinned;
+  tab.pinnedHomeUrl = tab.pinned
+    ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
+    : null;
+  // Ungrouped pins sit first in the tab order; an unpinned one goes to the
+  // bottom with the other new ungrouped tabs, not above every group.
+  if (!tab.pinned && !tab.groupId) {
+    const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
+    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => tabId !== id), id];
+  }
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.pinned;
@@ -6095,14 +8012,21 @@ function toggleTabPinned(id) {
 function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
-  tab.muted = !tab.muted;
+  // Unmuting a tab on a muted site overrides the site for this tab only
+  // (tab menu additions spec §4); muting it again is the person's own mute.
+  if (shownMuted(tab)) {
+    tab.muted = false;
+    if (tab.siteMuted) tab.siteUnmuted = true;
+  } else {
+    tab.muted = true;
+  }
   // An explicit user choice supersedes the temporary background-autoplay
   // guard. This keeps the visible mute control truthful in both directions.
   tab.backgroundAutoplayMuted = false;
   liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
   broadcastTabs();
   scheduleMenuRebuild();
-  return tab.muted;
+  return shownMuted(tab);
 }
 
 function duplicateTab(id) {
@@ -6122,6 +8046,7 @@ function duplicateTab(id) {
     openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
+    pinnedHomeUrl: source.pinnedHomeUrl,
     muted: source.muted,
     // Only worth restoring if there's more than just the current page.
     restoreHistory: entries.length > 1 ? { entries, index: activeIndex } : null,
@@ -6139,6 +8064,7 @@ function duplicateTab(id) {
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
   if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
   tab.usedMedia = false;
@@ -6324,7 +8250,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -6356,6 +8282,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // opener relationship, so none of the window.open family rules apply.
   const adopting = !adopted && !!adoptView;
   if (adopting) view = adoptView;
+  const suppliedPinnedHome = pinnedHomeFor(pinnedHomeUrl, {
+    localFile: typeof pinnedHomeUrl === 'string' && pinnedHomeUrl.startsWith('file:'),
+  });
+  const pinnedHome = pinned
+    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
+    : null;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
   // already live and can never be born quiet.
@@ -6376,6 +8308,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // `title` stays the page's own; restore paths hand in file contents, so
     // the name is normalized here too.
     customTitle: normalizeTabName(customTitle),
+    pinnedHomeUrl: pinnedHome,
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
@@ -6429,6 +8362,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     waking: false,            // a wake generation is open
     wakeGeneration: 0,        // monotonic, never reset
     lastActiveAt: null,       // ms epoch; null until first stamp
+    // Tab Archive (F52): wall-clock time the tab was last seen. Saved in
+    // session meta and never re-stamped by a clock jump, unlike lastActiveAt.
+    lastViewedAt: Number.isFinite(lastViewedAt) ? lastViewedAt : Date.now(),
+    // Split View (F53): the split this tab belongs to, or null.
+    splitId: null,
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
@@ -6444,6 +8382,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     httpEntryCount: 0,        // http(s) entries in navigationHistory
   };
   tabs.set(id, tab);
+  refreshSiteMute(tab, url); // a muted site's new tab starts muted (Mute Site)
   // A background-created tab (cmd-click, session restore, window.open child)
   // never passes through setActiveTab, so it would otherwise never be stamped.
   // A foreground creation overwrites this the moment it is deactivated.
@@ -6512,7 +8451,7 @@ function startPageViewVisible(tab) {
   const owner = windowRuntimes.runtimeForTab(tab.id);
   return !!owner?.window && !owner.window.isDestroyed()
     && owner.window.isVisible() && !owner.window.isMinimized()
-    && (owner.activeTabId === tab.id || owner.glanceTabId === tab.id)
+    && (owner.activeTabId === tab.id || owner.glanceTabId === tab.id || visibleSplitTabIds(owner).includes(tab.id))
     && tab.view?.getVisible() === true;
 }
 
@@ -6532,6 +8471,21 @@ function setTabViewVisible(tab, visible) {
 }
 
 // Attach or re-raise a tab view in the current window (tab-view-lifecycle.js).
+/**
+ * After a tab view is attached, raise what must stay above every page, in
+ * order: the utility sheet, the floating Island views, the fill capsule, the
+ * overlay and the permission prompt.
+ */
+function restackAboveTabViews() {
+  restackGlanceCard();
+  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+  if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackIslandFloatViews(); // above the pages and the sheet
+  restackFillStatusView(); // below the overlay and permission prompt
+  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
+}
+
 function attachTabViewToWindow(tab) {
   attachTabView(rt().window, tab.view, { createView: () => new View() });
 }
@@ -6612,6 +8566,13 @@ function prepareTabViewForClose(tab) {
   return true;
 }
 
+// The blank tab that takes over when a window's last tab closes. Like
+// Cmd/Ctrl+T, it opens with the address field focused, so the keyboard isn't
+// left on an empty page.
+function openReplacementTab() {
+  setActiveTab(createTab(), { focusContent: false, focusAddress: true });
+}
+
 function setActiveTab(id, {
   focusContent = true,
   focusAddress = false,
@@ -6638,7 +8599,8 @@ function setActiveTab(id, {
   // predicate and let the fill proceed on a tab the user left.
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
-  const promotingGlance = id === rt().glanceTabId;
+  const nextSplit = rt().resident ? null : splitForTab(rt().splits, id);
+  const shownBefore = new Set(visibleSplitTabIds(rt()));
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
@@ -6660,35 +8622,41 @@ function setActiveTab(id, {
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule. The Spaces menu
   // describes this window, but a switch away from it is a fresh context too.
-  if (['find', 'shield', 'capture', 'spaces'].includes(rt().overlayMode)) {
+  if (['find', 'shield', 'capture', 'spaces', 'group-menu'].includes(rt().overlayMode)) {
     hideOverlay({ refocusContent: false });
   }
 
   const prevId = rt().activeTabId;
   if (prevId !== id) rt().pageTintController?.pause();
   const prev = prevId ? tabs.get(prevId) : null;
-  // EXPLICIT activation of the reference tab (Make main, an island row,
-  // Cmd/Ctrl+digit) swaps the two visible roles. Interacting inside the
-  // reference pane never reaches here — its focus handler deliberately does
-  // not activate (the reference must be usable without changing roles). Keep
-  // the previous active tab visible as the new Glance pane: the action is a
-  // swap between two already-owned tabs, never a cross-window move.
-  if (promotingGlance) {
-    rt().glanceTabId = prev && windowRuntimes.runtimeForTab(prev.id) === rt()
-      ? prev.id
-      : null;
-  }
+  // A Glance belongs to the page it was opened over: switching to any other
+  // tab ends it, and choosing the Glance tab itself (an Island dot, ⌘1–9, the
+  // ⌘L list) opens that page as the tab, like Open as tab. Interacting inside
+  // the Glance page never reaches here: its focus handler doesn't activate.
+  if (rt().glanceTabId) closeGlance({ focusContent: false });
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
+    prev.lastViewedAt = prev.lastActiveAt;
   }
   cancelAddressBarFocusReclaim();
-  if (liveContents(prev) && prev.id !== rt().glanceTabId) {
+  // A split's panes stay attached while focus moves inside it (F53). Leaving
+  // a split hides every pane the next tab doesn't share.
+  const keepShown = new Set(nextSplit?.tabIds ?? []);
+  if (liveContents(prev) && prev.id !== rt().glanceTabId && !keepShown.has(prev.id)) {
     // Explicit hiding also stops a detached document's foreground timers.
     detachTabView(prev, { retainManagedRoot: true });
   }
+  for (const paneId of shownBefore) {
+    const pane = tabs.get(paneId);
+    if (paneId === prev?.id || paneId === id || keepShown.has(paneId) || !liveContents(pane)) continue;
+    pane.lastActiveAt = Date.now();
+    pane.lastViewedAt = pane.lastActiveAt;
+    detachTabView(pane, { retainManagedRoot: true });
+  }
+  if (nextSplit) nextSplit.focusedIndex = nextSplit.tabIds.indexOf(id);
 
   rt().activeTabId = id;
   resetFocusedPane();
@@ -6709,14 +8677,18 @@ function setActiveTab(id, {
     setTabViewVisible(glanceTab, true);
     attachTabViewToWindow(glanceTab);
   }
+  for (const paneId of nextSplit?.tabIds ?? []) {
+    const pane = tabs.get(paneId);
+    if (!pane || paneId === id) continue;
+    if (pane.asleep) wakeTab(paneId).catch(() => {});
+    if (!liveContents(pane)) continue;
+    setTabViewVisible(pane, true);
+    attachTabViewToWindow(pane);
+  }
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) rt().window.contentView.addChildView(sheet.view);
-  restackFillStatusView(); // below the overlay and permission prompt
-  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
-  restackPermissionView();
+  restackAboveTabViews();
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -6742,6 +8714,11 @@ function setActiveTab(id, {
 }
 
 async function setGlanceTab(id) {
+  if (visibleSplitOf()) {
+    // Glance and a visible split never share a window (F53).
+    if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
+    return false;
+  }
   let tab = tabs.get(id);
   // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
   // its renderer is already being discarded — attaching it would paint a dead
@@ -6761,7 +8738,7 @@ async function setGlanceTab(id) {
     // Glance meanwhile (a second, current choice may have attached it while
     // this first wake was still loading).
     if (hasLiveWindow() && rt().glanceTabId !== id) {
-      rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
+      stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.cancelled'));
     }
     return false;
   }
@@ -6784,38 +8761,55 @@ async function setGlanceTab(id) {
   if (previous?.view && previous.id !== id) {
     detachTabView(previous, { retainManagedRoot: true });
     previous.lastActiveAt = Date.now();
+    previous.lastViewedAt = previous.lastActiveAt;
   }
   if (previous && findTargetTabId(rt()) === previous.id) hideOverlay({ refocusContent: false });
 
   bumpSurfaceGeneration();
   rt().glanceTabId = id;
+  rt().glanceCardGeneration = (rt().glanceCardGeneration ?? 0) + 1;
+  ensureGlanceCardView(rt());
+  if (previous) roundGlancePage(previous, false);
   if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
-  setTabViewVisible(tab, true);
+  // Held back until the card has drawn (a window's first Glance).
+  setTabViewVisible(tab, rt().glanceCardDrawn === true);
   attachTabViewToWindow(tab);
   // On Linux an inactive tab view stays attached and can already hold focus,
   // so it arrives focused with no focus event: record what holds focus now.
   syncFocusedPane(rt());
   fillHintScheduler?.noteActivated(tab);
   // Floating trusted surfaces must stay above both page panes.
-  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
-  if (sheet) rt().window.contentView.addChildView(sheet.view);
-  restackFillStatusView(); // below the overlay and permission prompt
-  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
-  restackPermissionView();
+  restackAboveTabViews();
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
+  stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.opened', { title: displayTitle(tab) || mainI18n.t('tab.untitledShort') }));
   return true;
 }
 
-function closeGlance({ focusContent = true } = {}) {
+/** Every way a Glance ends comes through here, closeGlance and the paths
+ * that close or move one of its two pages alike: a save of where the card was
+ * left is written now (a quit inside the debounce would lose it), messages
+ * still in flight from the card are refused, and its view goes at once,
+ * because a view takes every click inside it. */
+function endGlance(runtime = rt()) {
+  glanceCards.flush();
+  runtime.glanceTabId = null;
+  runtime.glanceCardGeneration = (runtime.glanceCardGeneration ?? 0) + 1;
+  liveGlanceCardView(runtime)?.setVisible(false);
+}
+
+/** announce: false when the caller says what happened instead (Open as
+ * tab, Keep as split), so a screen reader hears one message, not a close
+ * first. */
+function closeGlance({ focusContent = true, announce = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
   if (findTargetTabId(rt()) === rt().glanceTabId) hideOverlay({ refocusContent: false });
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
-  rt().glanceTabId = null;
+  endGlance();
+  roundGlancePage(tab, false);
   resetFocusedPane();
   // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
   // about a pane that no longer exists, so it goes with it. glanceTabId is
@@ -6825,30 +8819,30 @@ function closeGlance({ focusContent = true } = {}) {
   if (tab?.view && hasLiveWindow()) {
     detachTabView(tab, { retainManagedRoot: true });
     tab.lastActiveAt = Date.now();
+    tab.lastViewedAt = tab.lastActiveAt;
   }
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.closed'));
+  if (announce && hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
   if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
 
-function promoteGlance() {
-  const reference = activeGlanceTab();
-  const id = reference?.id;
+/** Open as tab: the Glance ends and its page becomes the current tab, full
+ * window; the page it floated over stays open as an ordinary tab. */
+function openGlanceAsTab() {
+  const glance = activeGlanceTab();
+  const id = glance?.id;
   if (!id) return false;
-  // Both names, read before the swap: the strip says which page is now main
-  // and which is in Glance.
-  const untitled = mainI18n.t('tab.untitledShort');
-  const title = displayTitle(reference) || untitled;
-  const other = displayTitle(tabs.get(rt().activeTabId)) || untitled;
+  const title = displayTitle(glance) || mainI18n.t('tab.untitledShort');
+  closeGlance({ focusContent: false, announce: false });
   setActiveTab(id, { focusContent: true });
-  const promoted = rt().activeTabId === id;
-  if (promoted && hasLiveWindow()) {
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.promoted', { title, other }));
+  const opened = rt().activeTabId === id;
+  if (opened && hasLiveWindow()) {
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.openedAsTab', { title }));
   }
-  return promoted;
+  return opened;
 }
 
 /** Open Link in Glance, from the page context menu: the link becomes the
@@ -6860,13 +8854,14 @@ function openLinkInGlance(opener, url) {
 
 function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
+  if (visibleSplitOf()) {
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
+    return false;
+  }
   rt().window.focus();
-  const glance = glanceGeometry();
-  // Side by side, the Change picker hangs from the header's Change control.
-  // Stacked, that header sits low in the window with no room beneath it, so
-  // the picker takes the open picker's centred, page-wide placement. With a
-  // single tab the picker still opens, to say what to do.
-  const purpose = !glance ? 'open' : glance.direction === 'vertical' ? 'change-stacked' : 'change';
+  // With a Glance open, the Change picker hangs from the card header's Change
+  // control. With a single tab the picker still opens, to say what to do.
+  const purpose = activeGlanceTab() ? 'change' : 'open';
   // /glance <text>: the picker opens already filtered to the text.
   showOverlay('glance', { purpose, prefill: query || undefined });
   return true;
@@ -6876,22 +8871,56 @@ function toggleGlance() {
   return activeGlanceTab() ? closeGlance() : openGlancePicker();
 }
 
-function resizeGlanceAt(point) {
+/** A split divider moved (drag or keyboard): save the new layout; the
+ *  session write is debounced so a drag is one save. */
+function resizeSplitAt(splitId, index, axis, point) {
+  const split = visibleSplitOf();
+  if (!split || split.id !== splitId || !point) return null;
   const layout = currentChromeLayout();
-  const glance = glanceGeometry(layout);
-  if (!glance) return null;
-  const ratio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction, glanceMinPrimaryWidth(), glanceMinReferenceWidth());
-  if (ratio == null) return null;
-  rt().glanceRatio = ratio;
+  const next = layoutForDivider(layout.pageBounds, split.layout, split.tabIds.length,
+    { index: Number(index), axis }, { x: Number(point.x), y: Number(point.y) }, { paneMinWidth: rt().splitPaneMinWidth });
+  if (!next) return null;
+  split.layout = next;
   resizeActiveView();
-  return rt().glanceRatio;
+  scheduleSplitPersist();
+  return next;
 }
 
-function resetGlanceRatio() {
-  if (!activeGlanceTab()) return null;
-  rt().glanceRatio = DEFAULT_GLANCE_RATIO;
+function resetSplitLayout(splitId) {
+  const split = visibleSplitOf();
+  if (!split || split.id !== splitId) return false;
+  split.layout = defaultSplitLayout(split.tabIds.length);
   resizeActiveView();
-  return rt().glanceRatio;
+  scheduleSplitPersist();
+  return true;
+}
+
+let splitPersistTimer = null;
+function scheduleSplitPersist() {
+  clearTimeout(splitPersistTimer);
+  splitPersistTimer = setTimeout(() => { splitPersistTimer = null; persistSession(); }, 250);
+}
+
+/** The pane header's menu button: the tab's own menu, at the button. */
+function openSplitPaneMenu(tabId, point) {
+  const tab = tabs.get(tabId);
+  if (!tab || !hasLiveWindow() || !visibleSplitTabIds().includes(tabId)) return;
+  const ctx = tabContextData(tab, rt());
+  if (!ctx) return;
+  const template = buildTabContextMenu({ ...ctx, surface: 'row', t: mainI18n.t });
+  const menu = Menu.buildFromTemplate(tabMenuTemplate(template, { tab: ctx.tab, actions: menuContextActions(rt()) }));
+  try {
+    menu.popup({ window: rt().window, x: Math.round(Number(point?.x) || 0), y: Math.round(Number(point?.y) || 0) });
+  } catch { /* window died mid-popup */ }
+}
+
+/** Forget the card's remembered frame: the next layout uses the first-open
+ * frame. */
+function resetGlanceCardFrame() {
+  glanceCards.flush();
+  settings.setGlanceFrame(null);
+  if (activeGlanceTab()) resizeActiveView();
+  return activeGlanceTab() ? glanceCardFrame() : null;
 }
 
 function activateTabFromRail(id) {
@@ -6991,13 +9020,14 @@ function reopenGroupEntry(entry) {
   const runtime = rt();
   let group = runtime.groups.find((g) => sameGroupName(g.name, entry.group.name));
   if (!group) {
-    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    group = groupRecord(entry.group);
     runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
   }
   const ids = entry.tabs.map((member) => {
     const id = createTab(member.url, {
       groupId: group.id, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -7012,6 +9042,9 @@ function reopenGroupEntry(entry) {
     return id;
   }).filter(Boolean);
   if (ids.length === 0) return;
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id).filter((id) => id !== group.id);
+  items.splice(Math.min(Math.max(entry.group.index, 0), items.length), 0, group.id);
+  runtime.tabOrder = layoutItems(items, tabLayoutList(runtime));
   setActiveTab(ids[Math.min(entry.activeMemberIndex, ids.length - 1)]);
   broadcastTabs();
   scheduleMenuRebuild();
@@ -7029,6 +9062,7 @@ function reopenBatchEntry(entry) {
     const id = createTab(member.url, {
       groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
+      pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
@@ -7061,6 +9095,9 @@ function closeTab(id) {
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   const wasActive = id === rt().activeTabId;
   const wasGlance = id === rt().glanceTabId;
+  // Split View: closing a pane hands the window to the split's other pane.
+  const splitSurvivors = (splitForTab(rt().splits, id)?.tabIds ?? []).filter((other) => other !== id);
+  const wasSplitPane = visibleSplitTabIds(rt()).includes(id);
   // A find capsule searching this tab goes with it. Its focus counts as the
   // tab's: ⌘W pressed in the find bar on the reference hands focus to the
   // main page, like ⌘W pressed in the reference itself.
@@ -7120,9 +9157,9 @@ function closeTab(id) {
 
   if (tab.view) {
     if (!parked) prepareTabViewForClose(tab);
-    else if (wasActive || wasGlance) detachTabView(tab);
+    else if (wasActive || wasGlance || wasSplitPane) detachTabView(tab);
   }
-  if (wasGlance) { rt().glanceTabId = null; resetFocusedPane(); }
+  if (wasGlance) { endGlance(); resetFocusedPane(); }
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
@@ -7155,14 +9192,24 @@ function closeTab(id) {
       // Closing the main page leaves the visible reference as the sole page.
       // Promote it and collapse Glance rather than silently choosing a third
       // background tab for the newly-empty primary pane.
-      rt().glanceTabId = null;
+      endGlance();
       rt().activeTabId = null;
       setActiveTab(survivingGlanceId);
       if (hasLiveWindow()) {
         const promoted = tabs.get(survivingGlanceId);
-        rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
+        stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
           title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
         }));
+      }
+      return;
+    }
+    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
+    if (splitSurvivor) {
+      rt().activeTabId = null;
+      pruneSplits(rt());
+      setActiveTab(splitSurvivor);
+      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
+        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
       }
       return;
     }
@@ -7179,7 +9226,7 @@ function closeTab(id) {
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
       rt().activeTabId = null;
-      setActiveTab(createTab());
+      openReplacementTab();
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
       rt().activeTabId = null;
@@ -7189,12 +9236,16 @@ function closeTab(id) {
   // Closing the underlying reference is also a layout transition. The normal
   // broadcast updates the header state, but only an explicit resize gives the
   // surviving main WebContentsView its full page bounds in the same turn.
+  if (splitSurvivors.length && hasLiveWindow()) {
+    pruneSplits(rt());
+    resizeActiveView();
+  }
   if (wasGlance && hasLiveWindow()) {
     resizeActiveView();
     // The reference held keyboard focus: hand it to the main page rather than
     // leaving it on the strip where the detached view dropped it.
     if (referenceHeldFocus) liveContents(tabs.get(rt().activeTabId))?.focus();
-    rt().window.webContents.send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
+    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.tabClosed'));
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -7223,7 +9274,7 @@ function explicitSleepEligible(tab, owner) {
       maxSnapshots: MAX_SLEEP_SNAPSHOTS,
       permissionPendingTabIds: permissionPendingTabIds(),
       popupChildCounts,
-      visibleTabIds: new Set([rt().glanceTabId].filter(Boolean)),
+      visibleTabIds: new Set([rt().glanceTabId, ...visibleSplitTabIds(rt())].filter(Boolean)),
     }).includes(tab.id);
   });
 }
@@ -7242,6 +9293,87 @@ function sleepTabNow(id) {
  * doomed tabs; closeTab's own comment forbids that caller pattern), close
  * with record/selectReplacement off, then record ONE batch entry so a single
  * ⌘⇧T undoes the whole action instead of flooding the 25-entry history. */
+/** Close Tabs Above / Below (tab menu additions spec §3): every unpinned
+ * tab before or after `keepId` in the window's order, as one Recently closed
+ * entry, keeping the selection on `keepId`. */
+function closeTabsBeside(keepId, direction) {
+  if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
+  if (direction !== 'above' && direction !== 'below') return;
+  const doomed = closableBeside({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId, direction });
+  if (!doomed.length) return;
+  const entry = buildBatchEntry(doomed.map(closedMemberRecord), Date.now());
+  if (rt().activeTabId !== keepId) setActiveTab(keepId, { focusContent: false });
+  for (const id of doomed) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** New Tab Below (tab menu additions spec §2): a new tab directly under
+ * `tabId`, inside its group if it has one. Under a pin it opens as the first
+ * tab after the pins (the group's for a grouped pin). A private tab makes a
+ * private tab, never grouped. */
+function newTabBelow(tabId) {
+  const runtime = rt();
+  const source = tabs.get(tabId);
+  if (!source || !runtime.tabOrder.includes(tabId)) return null;
+  const isPrivate = !!source.private;
+  const groupId = isPrivate ? null : (source.groupId ?? null);
+  const id = createTab(isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl(), { private: isPrivate, groupId });
+  if (!id) return null;
+  const order = runtime.tabOrder.filter((tid) => tid !== id);
+  const isShelfPin = (tid) => !!tabs.get(tid)?.pinned && !tabs.get(tid)?.groupId;
+  let at;
+  if (!source.pinned) {
+    at = order.indexOf(tabId) + 1;
+  } else if (groupId) {
+    const firstUnpinned = order.findIndex((tid) => tabs.get(tid)?.groupId === groupId && !tabs.get(tid)?.pinned);
+    at = firstUnpinned !== -1 ? firstUnpinned : order.findLastIndex((tid) => tabs.get(tid)?.groupId === groupId) + 1;
+  } else {
+    at = order.findLastIndex(isShelfPin) + 1;
+  }
+  order.splice(at, 0, id);
+  runtime.tabOrder = order;
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** Mute Site / Unmute Site: toggles the tab's exact host for its profile
+ * (private tabs apart) until Blanc quits, on every matching tab. */
+function toggleSiteMute(tabId) {
+  const tab = tabs.get(tabId);
+  const host = hostOf(tab?.url);
+  if (!tab || !host) return false;
+  const key = siteMuteKey(tab);
+  const muted = siteMutes.toggle(key, host);
+  for (const other of tabs.values()) {
+    if (siteMuteKey(other) !== key || hostOf(other.url) !== host) continue;
+    other.siteMuted = muted;
+    other.siteUnmuted = false;
+    other.siteMuteHost = host;
+    liveContents(other)?.setAudioMuted(effectiveTabMuted(other));
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return muted;
+}
+
+/** After a navigation: a tab on a muted host is muted; moving to another
+ * host drops a one-tab unmute. */
+function refreshSiteMute(tab, url = tab.url) {
+  // Compare what the page hears, not just the flag: a one-tab unmute that
+  // ends on another muted site changes the audio while siteMuted stays true.
+  const before = effectiveTabMuted(tab);
+  const host = hostOf(url);
+  if (host !== (tab.siteMuteHost ?? null)) {
+    tab.siteUnmuted = false;
+    tab.siteMuteHost = host;
+  }
+  tab.siteMuted = siteMutes.has(siteMuteKey(tab), host);
+  if (effectiveTabMuted(tab) !== before) liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
+}
+
 function closeOtherTabsInWindow(keepId) {
   if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
   const doomed = closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId });
@@ -7279,11 +9411,13 @@ function reopenEntry(entry) {
   clearTimeout(entry.holdTimer);
   if (entry.kind === 'group') return reopenGroupEntry(entry);
   if (entry.kind === 'batch') return reopenBatchEntry(entry);
+  if (entry.kind === 'split') return reopenSplitEntry(entry);
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
+    pinnedHomeUrl: entry.pinnedHomeUrl,
     openerSandboxFlags: entry.openerSandboxFlags,
     managedExtension: restorableUblockTool(entry.url),
   };
@@ -7325,6 +9459,14 @@ function finishReopen(id, entry) {
     order.splice(from, 1);
     order.splice(Math.min(entry.index, order.length), 0, id);
   }
+  // A tab back beside a member of its group keeps that slot; one that came
+  // back outside its group's block rejoins at the group's end, so it never
+  // drags the group to where it landed.
+  const groupId = tabs.get(id)?.groupId;
+  const at = rt().tabOrder.indexOf(id);
+  const besideMember = [rt().tabOrder[at - 1], rt().tabOrder[at + 1]]
+    .some((neighbour) => neighbour && tabs.get(neighbour)?.groupId === groupId);
+  if (groupId && !besideMember) rt().tabOrder = placeInGroup(rt().tabOrder, tabLayoutList(rt()), id, groupId);
   if (!tabs.get(id)?.groupId && entry.groupName) groupTabByName(id, entry.groupName);
   setActiveTab(id);
   broadcastTabs();
@@ -7348,19 +9490,54 @@ function moveTabTo(id, target) {
   if (typeof beforeId === 'string' && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
   // Renderer input is only a proposal. Main re-resolves every id against its
   // live model; a stale/cross-window/pin-crossing target is rejected.
-  const result = resolveTabMove(rt().tabOrder, tabs, rt().groups, id, target);
+  const runtime = rt();
+  syncTabLayout(runtime);
+  // An ungrouped place directly above or below the Recently closed band
+  // resolves to the same tab order, so the band side travels separately:
+  // beforeId 'recently-closed' means directly above the band, and the first
+  // item below the band means directly below it (spec 2026-10-17 §6).
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const others = items.filter((itemId) => itemId !== id);
+  const ownAt = items.indexOf(id);
+  const firstBelow = others[runtime.closedSlot - (ownAt !== -1 && ownAt < runtime.closedSlot ? 1 : 0)] ?? null;
+  const itemOf = (tabId) => tabs.get(tabId)?.groupId ?? tabId;
+  // Only an unpinned tab going ungrouped can sit beside the band.
+  const toLoose = target?.groupId === null && !tabs.get(id)?.pinned;
+  let bandSide = null;
+  let resolved = target;
+  if (toLoose && target.beforeId === CLOSED_SECTION_ID) {
+    // The first item below the band is a loose tab or a group (its first tab).
+    const lead = firstBelow === null || tabs.has(firstBelow) ? firstBelow
+      : sectionsOf(tabLayoutList(runtime)).find((section) => section.groupId === firstBelow)?.tabIds[0] ?? null;
+    resolved = { ...target, beforeId: lead };
+    bandSide = 'after';
+  } else if (toLoose && typeof target.beforeId === 'string' && firstBelow !== null
+    && itemOf(target.beforeId) === firstBelow) {
+    bandSide = 'before';
+  } else if (toLoose && target.beforeId === null && firstBelow === null) {
+    // The end of the list, below a band that sits last.
+    bandSide = 'before';
+  }
+  const result = resolveTabMove(runtime.tabOrder, tabs, runtime.groups, id, resolved);
   if (!result) return false;
   const tab = tabs.get(id);
   const groupChanged = (tab.groupId ?? null) !== result.groupId;
-  const orderChanged = result.order.some((tabId, index) => rt().tabOrder[index] !== tabId);
-  if (!groupChanged && !orderChanged) return true;
-  rt().tabOrder = result.order;
+  const orderChanged = result.order.some((tabId, index) => runtime.tabOrder[index] !== tabId);
+  if (!groupChanged && !orderChanged && !bandSide) return true;
+  runtime.tabOrder = result.order;
   if (groupChanged) {
     // Same effect as Move to Group (setTabGroup): a group whose last tab
     // left dissolves; the target keeps its collapsed state.
     tab.groupId = result.groupId;
     pruneEmptyGroups();
+    alignSplitGroup(id);
   }
+  const after = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const movedAt = after.indexOf(id);
+  runtime.closedSlot = bandSide && movedAt !== -1
+    ? movedAt + (bandSide === 'after' ? 1 : 0)
+    : reconcileClosedSlot(items, runtime.closedSlot, after, id);
+  runtime.closedSlotIds = after;
   broadcastTabs();
   scheduleMenuRebuild();
   return true;
@@ -7382,12 +9559,31 @@ function recaseSavedGroupNamesOnce() {
   settings.markGroupNamesRecased();
 }
 
-/** Keep the ⌘L panel's Recently closed band where the user left it across
- * any change to this window's groups (spec 2026-10-16 §4.4). Groups change in
- * many places; this one reconciliation runs before every payload and capture
- * instead of each of them adjusting the slot. */
-function syncClosedSlot(runtime) {
-  const ids = runtime.groups.map((group) => group.id);
+/** Keep one order for this window (spec 2026-10-17): the tab order becomes
+ * groups and runs of ungrouped tabs exactly as drawn, `groups` follows it,
+ * and the ⌘L panel's Recently closed band stays where the user left it
+ * (spec 2026-10-16 §4.4). The band's slot is an item index: the number of
+ * groups and ungrouped tabs above it. Tabs and groups change in many places;
+ * this one reconciliation runs before every payload and capture instead of
+ * each of them adjusting the order. */
+function syncTabLayout(runtime) {
+  pruneSplits(runtime);
+  const list = tabLayoutList(runtime);
+  const live = new Set(list.map((tab) => tab.id));
+  const order = normalizeSplitOrder(
+    [...normalizeOrder(list), ...runtime.tabOrder.filter((id) => !live.has(id))],
+    runtime.splits,
+  );
+  if (order.some((id, index) => runtime.tabOrder[index] !== id)) runtime.tabOrder = order;
+  const rank = new Map(sectionsOf(list).filter((s) => s.groupId).map((s, index) => [s.groupId, index]));
+  const ranked = (group) => rank.get(group.id) ?? rank.size;
+  if (runtime.groups.some((group, index) => index > 0 && ranked(runtime.groups[index - 1]) > ranked(group))) {
+    runtime.groups = runtime.groups
+      .map((group, index) => ({ group, index }))
+      .sort((a, b) => ranked(a.group) - ranked(b.group) || a.index - b.index)
+      .map(({ group }) => group);
+  }
+  const ids = itemsOf(list).map((item) => item.id);
   const known = runtime.closedSlotIds ?? [];
   if (ids.length !== known.length || ids.some((id, index) => id !== known[index])) {
     runtime.closedSlot = reconcileClosedSlot(known, runtime.closedSlot, ids);
@@ -7396,34 +9592,67 @@ function syncClosedSlot(runtime) {
   runtime.closedSlot = clampClosedSlot(runtime.closedSlot, ids.length);
 }
 
-function reorderGroupBefore(id, beforeGroupId) {
+/** Lay out a window just restored from a saved entry (session or Space).
+ * An entry saved by a build before sections (no `sectionOrder`) is drawn as
+ * that build drew it: groups in saved order, then ungrouped tabs, with the
+ * band's slot counting groups. Otherwise the saved order already is the
+ * drawn order and `closedIndex` counts the restored items above the band;
+ * any other tab in the window (the startup tab) is new to it and the band
+ * keeps its place relative to the restored items (spec 2026-10-17 §4). */
+function applySavedLayout(runtime, saved, restoredIds) {
+  const groupIds = runtime.groups.map((group) => group.id);
+  if (saved?.sectionOrder !== true) {
+    const savedOrder = (Array.isArray(saved?.groups) ? saved.groups : []).map((group) => group?.id);
+    const live = new Set(tabLayoutList(runtime).map((tab) => tab.id));
+    runtime.tabOrder = [
+      ...legacyOrder(tabLayoutList(runtime), savedOrder),
+      ...runtime.tabOrder.filter((id) => !live.has(id)),
+    ];
+    // Laid out as groups then ungrouped tabs, the old slot (groups above the
+    // band) already is the item index; record the items so nothing reconciles.
+    const known = savedOrder.filter((id) => groupIds.includes(id));
+    runtime.closedSlot = clampClosedSlot(saved?.closedSlot ?? 0, known.length);
+    runtime.closedSlotIds = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  } else {
+    const restored = new Set(restoredIds);
+    const ids = itemsOf(tabLayoutList(runtime).filter((tab) => restored.has(tab.id))).map((item) => item.id);
+    runtime.closedSlot = clampClosedSlot(saved.closedIndex ?? 0, ids.length);
+    runtime.closedSlotIds = ids;
+  }
+  syncTabLayout(runtime);
+}
+
+function reorderGroupBefore(id, beforeId) {
   // rt().groups is per-window, so another window's group id simply fails.
-  // beforeGroupId may be the Recently closed band: the group lands directly
-  // above it. The band itself moves through moveClosedSection.
+  // beforeId is a top-level item: a group, an ungrouped tab (the group lands
+  // directly above it), the Recently closed band, or null for the end. The
+  // band itself moves through moveClosedSection.
   const runtime = rt();
-  if (id === CLOSED_SECTION_ID) return false;
-  syncClosedSlot(runtime);
-  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, id, beforeGroupId);
+  if (id === CLOSED_SECTION_ID || !runtime.groups.some((group) => group.id === id)) return false;
+  syncTabLayout(runtime);
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const next = reorderItems(items, runtime.closedSlot, id, beforeId);
   if (!next) return false;
-  const byId = new Map(runtime.groups.map((group) => [group.id, group]));
-  const groups = next.order.map((groupId) => byId.get(groupId));
-  if (next.slot !== runtime.closedSlot || groups.some((group, index) => runtime.groups[index] !== group)) {
-    runtime.groups = groups;
+  const order = layoutItems(next.order, tabLayoutList(runtime));
+  if (next.slot !== runtime.closedSlot || order.some((tabId, index) => runtime.tabOrder[index] !== tabId)) {
+    runtime.tabOrder = order;
     runtime.closedSlot = next.slot;
     runtime.closedSlotIds = next.order;
+    syncTabLayout(runtime);
     broadcastTabs();
     scheduleMenuRebuild();
   }
   return true;
 }
 
-/** Move the Recently closed band before `beforeGroupId` (null = after the
- * last group). Group order never changes. */
-function moveClosedSection(beforeGroupId) {
+/** Move the Recently closed band before a top-level item (a group or an
+ * ungrouped tab), or to the end with null. The tab order never changes. */
+function moveClosedSection(beforeId) {
   const runtime = rt();
-  if (beforeGroupId === CLOSED_SECTION_ID) return false;
-  syncClosedSlot(runtime);
-  const next = reorderGroupsWithClosed(runtime.groups.map((group) => group.id), runtime.closedSlot, CLOSED_SECTION_ID, beforeGroupId);
+  if (beforeId === CLOSED_SECTION_ID) return false;
+  syncTabLayout(runtime);
+  const items = itemsOf(tabLayoutList(runtime)).map((item) => item.id);
+  const next = reorderItems(items, runtime.closedSlot, CLOSED_SECTION_ID, beforeId);
   if (!next) return false;
   if (next.slot !== runtime.closedSlot) {
     runtime.closedSlot = next.slot;
@@ -7446,7 +9675,9 @@ function selectTabAtIndex(index) {
     else setActiveTab(slot.tabIds[0]);
     return;
   }
-  const id = index >= 8 ? rt().tabOrder[rt().tabOrder.length - 1] : rt().tabOrder[index];
+  // A split counts once, at its first tab (F53).
+  const numbered = numberedTabIds(tabLayoutList(rt()));
+  const id = index >= 8 ? numbered[numbered.length - 1] : numbered[index];
   if (id) setActiveTab(id);
 }
 
@@ -7744,6 +9975,10 @@ function isTrustedChromeSender(event) {
     rt().permissionView && !rt().permissionView.webContents.isDestroyed()
       ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
       : null,
+    ...FLOAT_ROLES.map((role) => liveFloatRecord(rt(), role))
+      .filter(Boolean)
+      .map((record) => ({ webContents: record.view.webContents, url: CHROME_FLOAT_URL })),
+    liveGlanceCardView(rt()) ? { webContents: liveGlanceCardView(rt()).webContents, url: CHROME_GLANCE_URL } : null,
     rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
       ? { webContents: rt().fillStatusView.webContents, url: CHROME_FILL_STATUS_URL }
       : null,
@@ -7830,14 +10065,95 @@ function workspacesProjection() {
  * can plausibly render the list — mirroring how chrome:island-proximity
  * targets the window's webContents and chrome:remote-tabs-updated targets
  * the overlay's. */
+// Set once the Start Page hooks exist: a Space created, switched or recolored
+// repaints any Start Page following its Space's color.
+let onSpacesChangedForStartPage = () => {};
 function broadcastWorkspacesUpdated() {
+  onSpacesChangedForStartPage();
   forEachWindowRuntime((runtime) => {
     const payload = workspacesProjection();
-    runtime.window.webContents.send('chrome:workspaces-updated', payload);
+    stripSurfaces(runtime).send('chrome:workspaces-updated', payload);
     if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
       runtime.overlayView.webContents.send('chrome:workspaces-updated', payload);
     }
   }, { liveOnly: true });
+}
+
+// One ask covers the rows on screen; more is not a real list.
+const MAX_BANG_ICON_HOSTS = 40;
+
+/** Icons this profile already holds from the person's own visits, by site
+ * key: the history site-icon cache, then Favorites, then live normal tabs
+ * (the start page's top-sites merge, in the same order). Built once per ask;
+ * no request is ever made for these. Returns host → icon or null. */
+function visitIconLookup() {
+  const byKey = new Map(history.siteIconsByKey());
+  for (const favorite of bookmarks.listBookmarks()) {
+    const key = favorite.favicon ? topSiteKey(favorite.url) : null;
+    if (key && !byKey.has(key)) byKey.set(key, favorite.favicon);
+  }
+  const profileId = rt().profileId;
+  for (const tab of tabs.values()) {
+    if (tab.profileId !== profileId || tab.private || !tab.favicon) continue;
+    const key = topSiteKey(tab.url);
+    if (key && !byKey.has(key)) byKey.set(key, tab.favicon);
+  }
+  return (host) => {
+    const key = topSiteKey(`https://${host}/`);
+    return (key && byKey.get(key)) || null;
+  };
+}
+
+/** chrome:bang-icons: the icons already on the device for the bang rows on
+ * screen, then a request to Blanc's icon server for the rest where the rules
+ * allow. Whether the window's tab is private is decided here, never by the
+ * overlay; a private tab reads what is held and writes nothing. */
+function bangIconsFor(hosts) {
+  if (!Array.isArray(hosts)) return [];
+  const wanted = [...new Set(
+    hosts
+      .filter((host) => typeof host === 'string' && host.length > 0 && host.length <= 253)
+      .map((host) => host.toLowerCase()),
+  )].slice(0, MAX_BANG_ICON_HOSTS);
+  const privateActive = tabs.get(rt().activeTabId)?.private === true;
+  const current = settings.getSettings();
+  // The person's own bangs use icons from their visits only (spec).
+  const customHosts = bangIconsPolicy.customHostSet(current.customBangs, Bangs);
+  const heldVisitIcon = visitIconLookup();
+  const answers = [];
+  const fromStore = [];
+  const toAsk = [];
+  for (const host of wanted) {
+    const visit = heldVisitIcon(host);
+    if (visit) {
+      answers.push({ host, icon: visit });
+      continue;
+    }
+    const held = customHosts.has(host) ? null : bangIcons.held(host);
+    if (held) {
+      answers.push({ host, icon: held.icon });
+      fromStore.push(host);
+    }
+    toAsk.push(host);
+  }
+  for (const answer of answers) bangIconHostsShown.add(answer.host);
+  if (!privateActive) bangIcons.touch(fromStore);
+  bangIcons.request(toAsk, {
+    enabled: current.bangsEnabled !== false,
+    setupComplete: settings.isFirstRunComplete(),
+    privateActive,
+    customHosts,
+  });
+  return answers;
+}
+
+/** Which bangs were used goes with the history, and the bang icons with it
+ * (taken together they hint at which bangs someone looked at). */
+function clearRecentBangsAndIcons() {
+  settings.clearRecentBangs();
+  bangIcons.clear();
+  for (const host of bangIconHostsShown) broadcastBangIcon(host, null);
+  bangIconHostsShown.clear();
 }
 
 /** The bang settings changed (switch, the person's own bangs, recents): every
@@ -7845,7 +10161,7 @@ function broadcastWorkspacesUpdated() {
 function broadcastBangsChanged() {
   forEachWindowRuntime((runtime) => {
     const payload = bangsState();
-    runtime.window.webContents.send('bangs:changed', payload);
+    stripSurfaces(runtime).send('bangs:changed', payload);
     if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
       runtime.overlayView.webContents.send('bangs:changed', payload);
     }
@@ -7857,15 +10173,6 @@ function sendWorkspaceAction(kind, workspaceId) {
   const wc = rt().overlayView?.webContents;
   if (wc && !wc.isDestroyed()) wc.send('overlay:workspace-action', { kind, id: workspaceId });
 }
-function groupMenuContextActions(owner) {
-  const b = (fn) => bindWindowRuntime(owner, fn);
-  return {
-    rename: b((id) => beginRenameGroup(id)),
-    ungroup: b((id) => ungroupGroup(id)),
-    closeGroup: b((id) => closeGroup(id)),
-  };
-}
-
 function workspaceMenuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
@@ -8014,9 +10321,9 @@ function registerIpcHandlers() {
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Only window.open/context-
-    // menu children inherit the opener's group (see CLAUDE.md → Tab groups);
-    // don't copy that `groupId: tab.groupId` pattern into new-tab entry points.
+    // to null and we intentionally don't pass one. Link children
+    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
     const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
       private: isPrivate,
     });
@@ -8049,7 +10356,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
-  chromeHandle('tabs:promote-glance', () => promoteGlance());
+  chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
@@ -8106,6 +10413,9 @@ function registerIpcHandlers() {
   chromeHandle('groups:reorder', (_e, id, beforeGroupId) => reorderGroupBefore(id, beforeGroupId));
   chromeHandle('groups:move-closed', (_e, beforeGroupId) => moveClosedSection(beforeGroupId));
   chromeHandle('groups:rename', (_e, id, name) => renameGroup(id, name));
+  chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
+  chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
+  chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -8123,15 +10433,31 @@ function registerIpcHandlers() {
   chromeHandle('tabs:rename', (_e, id, name) => { renameTab(id, name ?? null); });
   chromeHandle('tabs:open-page', (_e, name, section) => {
     if (name === 'settings') return openSettingsSection(section);
+    // F52: /archive opens History on its Archived view.
+    if (name === 'history' && section === 'archived') {
+      openInternalPage('blanc://history/?view=archived');
+      return;
+    }
     if (['bookmarks', 'history', 'downloads', 'tab-import'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
     }
   });
-  chromeHandle('tabs:get-all', () => (syncClosedSlot(rt()), {
+  // Split View (F53): the Glance header's Keep as split, and the pane headers'
+  // Remove from Split and Close Split. Ids are proposals; main re-resolves them.
+  chromeHandle('chrome:split-keep-glance', () => !!keepGlanceAsSplit());
+  chromeHandle('chrome:split-remove', (_e, tabId) => (typeof tabId === 'string' ? removeTabFromSplit(tabId) : false));
+  chromeHandle('chrome:split-close', (_e, tabId) => {
+    const split = typeof tabId === 'string' ? splitForTab(rt().splits, tabId) : null;
+    if (!split) return false;
+    closeSplit(split.id);
+    return true;
+  });
+  chromeHandle('tabs:get-all', () => (syncTabLayout(rt()), {
     tabs: serializeTabs(),
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
+    splits: projectSplits(rt()),
     closedSlot: rt().closedSlot,
     closed: projectEntries(rt().closedEntries ?? []),
     tabLayout,
@@ -8145,30 +10471,42 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
-  chromeOn('chrome:island-rect', (event, rect) => {
-    // The strip measures the narrowest main pane its Island needs and the
-    // narrowest reference its Glance header needs (renderer.js
-    // measureGlanceFloors); the Glance divider stops at both.
-    if (event.sender === rt().window?.webContents) {
-      const measured = (value) => {
-        const width = Number(value);
-        return Number.isFinite(width) && width >= 0 && width <= 4000 ? Math.round(width) : null;
-      };
-      const primary = measured(rect?.minPrimaryWidth);
-      const reference = measured(rect?.minReferenceWidth);
-      let changed = false;
-      if (primary != null && primary !== rt().islandMinPrimaryWidth) {
-        rt().islandMinPrimaryWidth = lastIslandMinPrimaryWidth = primary;
-        changed = true;
-      }
-      if (reference != null && reference !== rt().glanceMinReferenceWidth) {
-        rt().glanceMinReferenceWidth = lastGlanceMinReferenceWidth = reference;
-        changed = true;
-      }
-      if (changed && activeGlanceTab()) resizeActiveView();
+  // The resting pill's tooltips (renderer.js). Only the strip may ask.
+  chromeOn('chrome:tooltip-show', (event, raw) => {
+    // A floating Island view reports window coordinates too (renderer.js
+    // measures against the strip stage). The Glance card's document measures
+    // against its own view, so its anchor moves by the view's origin.
+    const cardView = liveGlanceCardView();
+    const offset = cardView && event.sender === cardView.webContents ? cardView.getBounds() : null;
+    if (event.sender !== rt().window?.webContents && !floatRoleOf(rt(), event.sender) && !offset) return;
+    const anchor = raw?.anchor;
+    if (offset && anchor && typeof anchor === 'object') raw = { ...raw, anchor: { ...anchor, x: Number(anchor.x) + offset.x, y: Number(anchor.y) + offset.y } };
+    const request = tooltipRequest(raw);
+    if (!request) {
+      hidePillTooltip();
+      return;
     }
+    showPillTooltip(request).catch(() => hidePillTooltip());
+  });
+  chromeOn('chrome:tooltip-hide', (event) => {
+    if (event.sender === rt().window?.webContents || floatRoleOf(rt(), event.sender)
+      || event.sender === liveGlanceCardView()?.webContents) hidePillTooltip();
+  });
+
+  chromeOn('chrome:island-rect', (event, rect) => {
+    // The strip beneath is the one geometry authority; float views copy it.
+    if (floatRoleOf(rt(), event.sender)) return;
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
     rt().islandRect = ok && rect.width > 0 ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
+    rt().islandHoverCapable = rect?.hoverCapable === true;
+    // Hover-open listens only over the favicon and domain, so reaching for
+    // the pill's buttons, dots and chips never opens the panel over them.
+    const hover = rect?.hoverRect;
+    rt().islandHoverRect = rt().islandRect && hover
+      && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(hover[f])) && hover.width > 0
+      ? { x: hover.x, y: hover.y, width: hover.width, height: hover.height }
+      : null;
+    if (!rt().islandHoverCapable || !rt().islandHoverRect) suppressIslandHover();
     const popup = ublockPopups.get(rt().id);
     if (popup && event.sender === rt().window?.webContents && rect?.shieldAnchor?.trigger === 'shield') {
       popup.anchor = rect.shieldAnchor; layoutUblockPopup(popup);
@@ -8182,9 +10520,19 @@ function registerIpcHandlers() {
       setSpacesAnchor(rect.spacesAnchor);
       rt().overlayView?.setBounds(overlayBounds());
     }
+    if (event.sender === rt().window?.webContents) {
+      // Windows and Linux: where the strip draws its own window controls and
+      // main-menu button, for the floating Island's copies of them.
+      const box = (value) => value && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(value[f])) && value.width > 0
+        ? { x: value.x, y: value.y, width: value.width, height: value.height } : null;
+      rt().windowControlsRect = box(rect?.windowControlsRect);
+      rt().menuButtonRect = box(rect?.menuButtonRect);
+      syncIslandFloat();
+    }
   });
 
-  chromeOn('chrome:layout', (_e, { height }) => {
+  chromeOn('chrome:layout', (event, { height }) => {
+    if (floatRoleOf(rt(), event.sender)) return;
     if (typeof height === 'number' && height > 0) {
       rt().chromeHeight = height;
       resizeActiveView();
@@ -8214,7 +10562,7 @@ function registerIpcHandlers() {
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
       syncShieldAnchor();
-      rt().window.webContents.send('chrome:island-state', { mode: 'shield', trigger });
+      stripSurfaces(rt()).send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
@@ -8228,6 +10576,15 @@ function registerIpcHandlers() {
   // The Island's space mark opens the Spaces menu on its own, tight around it.
   // Escape, blur, a click outside, a tab switch or a space switch close it;
   // focus returns to the mark.
+  // The side list's group menu (tab group colors spec §6), beside the header
+  // that opened it. The renderer's group id and header box are re-checked.
+  chromeOn('chrome:open-group-menu', (_e, groupId, anchor) => {
+    if (!rt().groups.some((group) => group.id === groupId)) return;
+    const { width, height } = rt().window?.getContentBounds() ?? { width: 0, height: 0 };
+    const inside = (value, max) => Number.isFinite(value) && value >= 0 && value <= max;
+    if (!anchor || !inside(anchor.right, width) || !inside(anchor.top, height) || !inside(anchor.bottom, height)) return;
+    showOverlay('group-menu', { purpose: { groupId, anchor: { right: anchor.right, top: anchor.top, bottom: anchor.bottom } } });
+  });
   chromeOn('chrome:open-spaces', (_e, anchor) => {
     if (rt().overlayMode === 'spaces') return hideOverlay({ refocusContent: false }); // re-click toggles shut
     // A press that began on the open menu has already closed it (the overlay's
@@ -8279,7 +10636,14 @@ function registerIpcHandlers() {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
     // narrow as the UI that owns it.
-    if (event.sender !== rt().window?.webContents) return false;
+    // The floating Island's copy of the button sits in its own small view
+    // and reports window coordinates, like the strip.
+    const role = floatRoleOf(rt(), event.sender);
+    if (event.sender !== rt().window?.webContents && role !== 'menu') return false;
+    if (testPlatform) {
+      testMainMenuRequests.push({ from: role ?? 'strip', point: point ? { x: point.x, y: point.y } : null });
+      return true;
+    }
     return popupPlatformMainMenu({ Menu, window: rt().window, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
@@ -8287,8 +10651,13 @@ function registerIpcHandlers() {
     previewVerticalTabsWidth(width));
   chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
     setVerticalTabsWidth(width));
-  chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
-  chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
+  chromeOn('chrome:resize-split', (_e, splitId, index, axis, point) => resizeSplitAt(splitId, index, axis === 'y' ? 'y' : 'x', point));
+  chromeHandle('chrome:reset-split', (_e, splitId) => resetSplitLayout(splitId));
+  // The floating Glance card (glance-card-controller.js refuses a stale
+  // generation and anything while no Glance is open).
+  chromeHandle('chrome:glance-card-move', (_e, input) => glanceCards.move(input));
+  chromeHandle('chrome:glance-card-resize', (_e, input) => glanceCards.resize(input));
+  chromeHandle('chrome:glance-card-reset', (_e, input) => glanceCards.reset(input));
   chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   // The overlay has drawn the expanding panel exactly over the resting pill.
   // Only now may the strip hide the pill: the two are separate views painting
@@ -8297,7 +10666,7 @@ function registerIpcHandlers() {
   chromeOn('overlay:panel-drawn', (event) => {
     if (event.sender !== rt().overlayView?.webContents) return;
     if (rt().overlayMode !== 'panel') return;
-    rt().window.webContents.send('chrome:island-covered');
+    stripSurfaces(rt()).send('chrome:island-covered');
   });
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
@@ -8306,6 +10675,22 @@ function registerIpcHandlers() {
 
   // Data + actions behind the island's slash commands and Quick Switcher.
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
+  // F52: a private tab never sees the Archive; restore re-resolves the id
+  // against the sender's own profile store, so a stale id opens nothing.
+  chromeHandle('chrome:archive-list', () => (
+    tabs.get(rt().activeTabId)?.private ? [] : archive.listArchive({ now: Date.now() })
+  ));
+  chromeHandle('chrome:archive-restore', (_e, id) => restoreArchivedEntry(typeof id === 'string' ? id : ''));
+  // Spec D6: the one-time first-archive notice. A private tab never sees it;
+  // View Archive and Dismiss both finish it for good.
+  chromeHandle('chrome:archive-notice', () => (
+    tabs.get(rt().activeTabId)?.private ? null : archive.pendingNotice()
+  ));
+  chromeHandle('chrome:archive-notice-done', (_e, action) => {
+    const finished = archive.finishNotice();
+    if (action === 'view') openInternalPage('blanc://history/?view=archived');
+    return finished;
+  });
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
@@ -8478,12 +10863,15 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:history-clear', () => {
     history.clearHistory();
+    // Archived tabs are browsing history too (F52).
+    archive.clearArchive();
     clearSessionMeta();
     // Which bangs were used goes with the history (the History page's own
     // clear does the same through onHistoryCleared).
-    settings.clearRecentBangs();
+    clearRecentBangsAndIcons();
   });
   chromeHandle('chrome:bangs', () => bangsState());
+  chromeHandle('chrome:bang-icons', (_event, hosts) => bangIconsFor(hosts));
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:dark-site-active', () => {
@@ -8663,6 +11051,7 @@ const SLASH_COMMANDS = [
   ['/bring-tabs', 'slash.bringTabs.hint'],
   ['/save [folder]', 'slash.save.doc'],
   ['/history', 'slash.history.hint'],
+  ['/archive', 'slash.archive.hint'],
   ['/downloads', 'slash.downloads.hint'],
   ['/settings', 'slash.settings.hint'],
   ['/sync', 'slash.sync.hint'],
@@ -8903,6 +11292,14 @@ function buildMenuForRuntime(runtime) {
           ],
         },
         {
+          id: 'toggle-island-autohide',
+          label: t('menu.autoHideIsland'),
+          type: 'checkbox',
+          checked: islandAutoHide,
+          accelerator: 'CmdOrCtrl+Alt+B',
+          click: bound(toggleIslandAutoHide),
+        },
+        {
           id: 'toggle-glance',
           label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
           accelerator: 'CmdOrCtrl+Shift+G',
@@ -9015,7 +11412,7 @@ function buildMenuForRuntime(runtime) {
           ],
         },
         { type: 'separator' },
-        { label: t('menu.inviteFriend'), click: () => { inviteFriendNow(); } },
+        { label: t('menu.inviteFriend'), click: () => { inviteFriendFromMenu(); } },
         ...(isMac ? [] : [
           { type: 'separator' },
           { label: t('menu.app.about', { app: app.name }), click: bound(() => showAboutPanel({ app, t })) },
@@ -9030,12 +11427,22 @@ function buildMenuForRuntime(runtime) {
  * is the window runtime the menu belongs to. Null if the tab isn't in it. */
 function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
+  const home = tab.pinnedHomeUrl;
+  const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
-      pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
+      pinned: !!tab.pinned, muted: shownMuted(tab), private: !!tab.private,
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+      splitId: tab.splitId ?? null,
+      pinnedHome: {
+        // A file grant belongs only to the live tab while it is on that file.
+        // Returning from a website must not invent a fresh local-file grant.
+        canReturn: !!tab.pinned && !!home && !home.startsWith('file:')
+          && persistableUrl(tab.url) !== home,
+        canSet: !!tab.pinned && candidate !== null && candidate !== home,
+      },
     },
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
@@ -9043,6 +11450,11 @@ function tabContextData(tab, owner) {
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     canQuiet: explicitSleepEligible(tab, owner),
+    canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
+    canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
+    // null: not a web page, so no site to mute.
+    siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
+    splitCandidates: splitCandidatesFor(tab, owner),
   };
 }
 
@@ -9061,6 +11473,21 @@ function menuContextActions(owner) {
     }),
     duplicate: b((id) => duplicateTab(id)),
     togglePin: b((id) => toggleTabPinned(id)),
+    returnPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned || !tab.pinnedHomeUrl || tab.pinnedHomeUrl.startsWith('file:')) return false;
+      navigateTabToAddress(id, tab.pinnedHomeUrl);
+      return true;
+    }),
+    setPinnedHome: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab?.pinned) return false;
+      const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+      if (!candidate || candidate === tab.pinnedHomeUrl) return false;
+      tab.pinnedHomeUrl = candidate;
+      persistSession();
+      return true;
+    }),
     toggleMute: b((id) => toggleTabMuted(id)),
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
@@ -9072,10 +11499,16 @@ function menuContextActions(owner) {
     // wakes first inside setGlanceTab, so success can take a beat).
     glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
     closeGlance: b(() => closeGlance()),
+    splitWith: b((id, otherId) => { if (splitTabWith(id, otherId)) hideOverlay(); }),
+    removeFromSplit: b((id) => removeTabFromSplit(id)),
+    closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
+    closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
+    newTabBelow: b((id) => newTabBelow(id)),
+    toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),
@@ -9124,6 +11557,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      ...stripWebPreferences(),
     },
   });
   windowRuntimes.attachWindow(runtime, { window: newWindow });
@@ -9144,17 +11578,10 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     diagnostics.recordRendererCrash('chrome', details);
   }));
   // Group headers on the vertical tabs rail (chrome document coordinates).
-  attachGroupHeaderMenu(rt().window.webContents, {
-    isLive: () => true,
-    getWindow: bindWindowRuntime(runtime, () => rt().window),
-    getOffset: () => ({ x: 0, y: 0 }),
-    t: mainI18n.t,
-    resolveGroup: bindWindowRuntime(runtime, (rawId) => rt().groups.find((g) => g.id === rawId) ?? null),
-    actions: groupMenuContextActions(runtime),
-  });
   attachChromeMenu(rt().window.webContents, {
     t: mainI18n.t,
     getWindow: bindWindowRuntime(runtime, () => rt().window),
+    suppressIslandHover: bindWindowRuntime(runtime, () => suppressIslandHover(runtime)),
     resolveActiveTab: bindWindowRuntime(runtime, () =>
       tabContextData(tabs.get(rt().activeTabId), runtime)),
     // Vertical-rail rows: same string→number id coercion as the overlay rows.
@@ -9167,6 +11594,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, () => {
+    hidePillTooltip(runtime);
     resizeActiveView();
     scheduleSampleTint(tabs.get(runtime.activeTabId));
   }));
@@ -9179,12 +11607,18 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   }
   rt().window.on('focus', bindWindowRuntime(runtime, () => {
     focusedRuntime = runtime;
+    if (!runtime.islandRevealed) watchIslandReveal(runtime);
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
     refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
     // Activation can hand a pane focus without that pane's 'focus' event.
     setImmediate(() => syncFocusedPane(runtime));
+  }));
+  rt().window.on('blur', bindWindowRuntime(runtime, () => {
+    stopIslandRevealWatch(runtime);
+    suppressIslandHover(runtime);
+    hidePillTooltip(runtime);
   }));
   const dockReopenLifecycle = createDockReopenLifecycle({
     platform: process.platform,
@@ -9243,6 +11677,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       ...runtime.tabOrder.flatMap((id) => [tabs.get(id)?.view, sleepSnapshots.get(id)?.view]),
       ...(runtime.closedEntries ?? []).map((entry) => entry.view),
       runtime.overlayView, runtime.utilitySheetView, runtime.permissionView, runtime.fillStatusView,
+      runtime.tooltipView, runtime.glanceCardView,
+      ...Object.values(runtime.islandFloat ?? {}).map((entry) => entry.view),
+      ...[...runtime.splitCornerViews.values()].map((entry) => entry.view),
     ],
     resume: bindWindowRuntime(runtime, () => {
       if (isQuitting) app.quit();
@@ -9261,6 +11698,17 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     if (process.platform !== 'darwin') drainWindowViews(event);
   }));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    clearIslandHoverTimer(runtime);
+    clearIslandAutoHideTimer(runtime);
+    endIslandAutoHideIntro(runtime);
+    stopIslandRevealWatch(runtime);
+    stopIslandSlide(runtime);
+    runtime.islandRevealed = false;
+    runtime.windowButtonsVisible = null;
+    runtime.stripHiddenSent = null;
+    runtime.lastPointer = null;
+    destroyIslandFloatViews(runtime);
+    destroyGlanceCardView(runtime);
     // The macOS primary runtime survives close for Dock reopen; the drag flag
     // must not outlive the window it was set in.
     resetOverlayDragState(runtime);
@@ -9280,6 +11728,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     // case too, where no view exists), then destroy the capsule view.
     fillStatusSurface?.invalidatePending(runtime.id);
     liveViewContents(runtime.fillStatusView)?.close();
+    liveViewContents(runtime.tooltipView)?.close();
+    for (const entry of runtime.splitCornerViews.values()) liveViewContents(entry.view)?.close();
+    runtime.splitCornerViews.clear();
     if (pendingTabHandoff?.runtimeId === runtime.id) pendingTabHandoff = null;
     flushPermissionPrompts(runtime);
     const clearPersistedWindowState = shouldClearPersistedWindowState({
@@ -9353,6 +11804,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     () => {
       runtime.chromeReady = true;
       dockReopenLifecycle.onChromeReady();
+      syncStripHidden(runtime);
     }
   ));
   return runtime;
@@ -9518,26 +11970,34 @@ function openNewWindow(options = {}) {
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
     let tabId = null;
-    if (options.adoptTabId != null && tabs.has(options.adoptTabId)) {
-      // Adopt an existing tab (Move Tab to New Window) instead of seeding a
-      // fresh one — the caller has already detached it from its old window.
-      tabId = options.adoptTabId;
-      const tab = tabs.get(tabId);
-      tab.runtimeId = runtime.id;
-      windowRuntimes.attachTab(runtime, tabId);
-      runtime.tabOrder = [tabId];
-      // Re-home the per-tab listener set: wireTabView binds its owner runtime
-      // once at attach time, so without this every media/find/beforeunload/
-      // window.open handler would keep acting on the OLD window. A retained-
-      // storage quiet tab keeps a live, still-wired WebContents in its sleep
-      // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-      // that view needs the same treatment as an awake one.
-      const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tabId)?.view ?? null);
-      const wiredWc = wiredView?.webContents;
-      if (wiredWc && !wiredWc.isDestroyed()) {
-        unwireTabView(wiredWc);
-        wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+    const adoptIds = (options.adoptTabIds ?? (options.adoptTabId != null ? [options.adoptTabId] : []))
+      .filter((id) => tabs.has(id));
+    if (adoptIds.length) {
+      // Adopt existing tabs (Move Tab / Move Group to New Window) instead of
+      // seeding a fresh one — the caller has already detached them from
+      // their old window, in order.
+      runtime.tabOrder = [...adoptIds];
+      // A moved group arrives whole: the same record (name, color, fold).
+      if (options.group) runtime.groups = [groupRecord(options.group)];
+      for (const id of adoptIds) {
+        const tab = tabs.get(id);
+        tab.runtimeId = runtime.id;
+        if (options.group) tab.groupId = options.group.id;
+        windowRuntimes.attachTab(runtime, id);
+        // Re-home the per-tab listener set: wireTabView binds its owner runtime
+        // once at attach time, so without this every media/find/beforeunload/
+        // window.open handler would keep acting on the OLD window. A retained-
+        // storage quiet tab keeps a live, still-wired WebContents in its sleep
+        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
+        // that view needs the same treatment as an awake one.
+        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
+        const wiredWc = wiredView?.webContents;
+        if (wiredWc && !wiredWc.isDestroyed()) {
+          unwireTabView(wiredWc);
+          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+        }
       }
+      tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
     } else {
       tabId = options.private
@@ -9555,33 +12015,22 @@ function openNewWindow(options = {}) {
   });
 }
 
-/** "Move Tab to New Window": detach the tab from its window and adopt it into
- * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
- * guards and bring-up sequencing). Ungrouped on move — a group spanning two
- * windows isn't a modeled concept (context-menus design §6). Pin and mute
- * state travel with the tab. */
-function moveTabToNewWindow(id) {
+/** Detach a tab from `source` before it moves to a new window: cancel its
+ * permission prompts, hand off Glance and the selection, drop it from the
+ * order and ungroup it (a group spanning two windows isn't modeled). Shared
+ * by Move Tab and Move Group to New Window. */
+function detachTabForMove(source, id) {
   const tab = tabs.get(id);
-  if (!tab) return;
-  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
-  // sleepTab's revalidation now also refuses a tab that changed runtimes.
-  if (tab.sleeping || tab.waking) return;
-  const source = windowRuntimes.runtimeForTab(id);
-  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
-  // Checked BEFORE the source surgery: openNewWindow throws on a pending
-  // profile deletion, which would otherwise strand a detached tab.
-  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
-
-  // 1. Detach from the source window. A pending permission prompt belongs to
-  //    this window's runtime and would float over unrelated content (and its
-  //    per-tab cancel path could never find it again post-move) — cancel it,
-  //    same as closeTab; the page re-requests in the new window. If the tab
-  //    is the Glance pane, close that; if active with a reference beside it,
-  //    promote the reference (closeTab's rule); otherwise hand focus to the
-  //    MRU survivor with the right-neighbour as fallback. The view is hidden
-  //    at that point (active → survivor selection, Glance → closeGlance). On
-  //    Linux a view shown here before stays a child of this window until the
-  //    new one attaches it (tab-view-lifecycle.js).
+  // Detach from the source window. A pending permission prompt belongs to
+  // this window's runtime and would float over unrelated content (and its
+  // per-tab cancel path could never find it again post-move) — cancel it,
+  // same as closeTab; the page re-requests in the new window. If the tab
+  // is the Glance pane, close that; if active with a reference beside it,
+  // promote the reference (closeTab's rule); otherwise hand focus to the
+  // MRU survivor with the right-neighbour as fallback. The view is hidden
+  // at that point (active → survivor selection, Glance → closeGlance). On
+  // Linux a view shown here before stays a child of this window until the
+  // new one attaches it (tab-view-lifecycle.js).
   withWindowRuntime(source, () => {
     cancelPermissionPromptsForTab(id);
     if (rt().glanceTabId === id) closeGlance({ focusContent: false });
@@ -9592,7 +12041,7 @@ function moveTabToNewWindow(id) {
       // takes its ordinary path — its promote branch would otherwise keep the
       // departing tab as the reference of a window it no longer belongs to.
       const referenceId = rt().glanceTabId && tabs.has(rt().glanceTabId) ? rt().glanceTabId : null;
-      if (referenceId) rt().glanceTabId = null;
+      if (referenceId) endGlance();
       const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
@@ -9605,11 +12054,76 @@ function moveTabToNewWindow(id) {
     pruneEmptyGroups();
     broadcastTabs(); // persists the session as part of the broadcast
   });
+}
+
+/** "Move Tab to New Window": detach the tab from its window and adopt it into
+ * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
+ * guards and bring-up sequencing). Ungrouped on move — a group spanning two
+ * windows isn't a modeled concept (context-menus design §6). Pin and mute
+ * state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  if (tab.splitId) removeTabFromSplit(id);
+  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
+  // sleepTab's revalidation now also refuses a tab that changed runtimes.
+  if (tab.sleeping || tab.waking) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+  // Checked BEFORE the source surgery: openNewWindow throws on a pending
+  // profile deletion, which would otherwise strand a detached tab.
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
+
+  // 1. Detach from the source window (detachTabForMove).
+  detachTabForMove(source, id);
 
   // 2. Shared window bring-up + adoption (runtimeId, attachTab, listener
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** "New Tab in Group" (group menu): a new tab at the end of the group,
+ * selected with the address field focused. */
+function newTabInGroup(groupId) {
+  const runtime = rt();
+  if (!runtime.groups.some((group) => group.id === groupId)) return null;
+  const id = createTab(newTabUrl(), { groupId });
+  if (!id) return null;
+  runtime.tabOrder = placeInGroup(runtime.tabOrder, tabLayoutList(runtime), id, groupId);
+  setActiveTab(id, { focusContent: false, focusAddress: true });
+  broadcastTabs();
+  return id;
+}
+
+/** "Move Group to New Window" (group menu): every member, in order, into a
+ * fresh window with the same group record. Refused while a member is mid
+ * sleep transition, when the group holds every tab in its window, or while
+ * the profile is being deleted. */
+function moveGroupToNewWindow(groupId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  if (!group) return false;
+  const ids = source.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!ids.length || ids.length >= source.tabOrder.length) return false;
+  if (ids.some((id) => tabs.get(id)?.sleeping || tabs.get(id)?.waking)) return false;
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return false;
+  const record = groupRecord(group);
+  const activeTabId = ids.includes(source.activeTabId) ? source.activeTabId : null;
+  // Select a tab that stays first, so detaching never selects (and wakes)
+  // a member that is about to leave too.
+  if (activeTabId) {
+    withWindowRuntime(source, () => {
+      if (rt().glanceTabId && ids.includes(rt().glanceTabId)) closeGlance({ focusContent: false });
+      const stays = (tid) => !ids.includes(tid) && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === source;
+      const survivor = previousSurvivor(source.activationHistory, stays)
+        ?? source.tabOrder.find(stays);
+      if (survivor) setActiveTab(survivor, { focusContent: false });
+    });
+  }
+  for (const id of ids) detachTabForMove(source, id);
+  openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
 }
 
 function openNewProfileWindow(name) {
@@ -9926,7 +12440,7 @@ function windowRuntimeSnapshots() {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
     }).filter(Boolean),
-    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),
   }));
 }
@@ -10325,6 +12839,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
+  watchIconStyle();
   // Unpackaged Electron can restore Electron.app's bundle icon when the first
   // native window is realized. Reapply Blanc's selected flat icon afterward
   // so the development Dock tile matches Settings from the first launch.
@@ -10423,11 +12938,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   };
   displayCapturePicker = createDisplayCapturePicker({
     platform: process.platform, desktopCapturer, ownerForRequest: pickerOwner,
-    portalSelection: process.platform === 'linux' && (
-      app.commandLine.getSwitchValue('ozone-platform') === 'wayland'
-      || (!app.commandLine.getSwitchValue('ozone-platform')
-        && (process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY))
-    ),
+    portalSelection: process.platform === 'linux' && linuxWaylandOzone(),
     isOwnerSender: pickerSender,
     present: (owner, model) => withWindowRuntime(owner, () => {
       if (!hasLiveWindow() || !rt().overlayView) {
@@ -10690,6 +13201,50 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     windowCount: 0,
     error: null,
   };
+  // The color of the Space a tab's window is in, or null. Only the hex
+  // reaches the page, never the Space's name or id.
+  const spaceColorForTab = (tab) => {
+    if (!tab || tab.private) return null;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    if (!runtime?.workspaceId) return null;
+    return withWindowRuntime(runtime, () => namedWorkspaces.get(runtime.workspaceId)?.color ?? null);
+  };
+  // F49: what a Start Page draws. A private tab never receives the custom
+  // image or a color; `hasImage` lets the page offer Change/Remove.
+  const wallpaperState = (isPrivate, spaceColor = null) => {
+    const current = settings.getSettings();
+    const hasImage = wallpaper.current() !== null;
+    const source = effectiveSource({
+      dynamic: current.newtabDynamicWallpaper,
+      custom: current.newtabCustomWallpaper,
+      color: current.newtabColorWallpaper,
+      hasImage,
+      isPrivate,
+    });
+    return {
+      source,
+      hasImage,
+      // Also while Sunrise shows, for the Your image card's preview.
+      image: hasImage && !isPrivate ? wallpaper.imageUrl() : null,
+      wash: current.newtabWallpaperWash,
+      style: current.newtabWallpaperStyle,
+      // The Color wallpaper: the chosen preset and fill, whether a window in a
+      // Space takes its color, and the finished paint (also while another
+      // wallpaper shows, for the Color pane's preview).
+      color: isPrivate ? null : {
+        preset: current.newtabWallpaperColor,
+        followSpace: current.newtabFollowSpaceColor,
+        inSpace: spaceColor !== null,
+        paint: colorWallpaper({
+          preset: current.newtabWallpaperColor,
+          fill: current.newtabWallpaperFill,
+          followSpace: current.newtabFollowSpaceColor,
+          spaceColor,
+        }),
+        presets: SpaceIdentity.PRESETS.map(({ id, hex }) => ({ id, hex })),
+      },
+    };
+  };
   const startPageStatus = () => {
     const current = settings.getSettings();
     return {
@@ -10712,6 +13267,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // The What's new pill after an update: { version, url } or null.
       whatsNew: whatsNewState(current, { version: app.getVersion(), now: Date.now() }),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
+      wallpaper: wallpaperState(false),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
       migrationChecklist: migrationChecklistState({
@@ -10731,6 +13287,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://settings/')) {
         liveUtilitySheet(runtime)?.wc.send('pages:settings:appearance', {
           newtabDynamicWallpaper: settings.getSettings().newtabDynamicWallpaper,
+          wallpaper: status.wallpaper,
         });
       }
     }
@@ -10738,6 +13295,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!tab.url?.startsWith('blanc://newtab')) continue;
       liveContents(tab)?.send('pages:start:status', {
         ...status,
+        wallpaper: tab.private ? wallpaperState(true) : wallpaperState(false, spaceColorForTab(tab)),
         migrationChecklist: migrationChecklistForTab(
           status.migrationChecklist,
           tab,
@@ -10749,6 +13307,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // A layout picked in Settings (or arriving from Profile Sync) must reach
   // every open start page, not just the one that made the change.
   settings.onSettingsChanged(() => broadcastStartPageStatus());
+  onSpacesChangedForStartPage = () => broadcastStartPageStatus();
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
@@ -10781,12 +13340,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // using the same manual updater flow as the native menu.
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
+    restoreArchived: (id) => restoreArchivedEntry(id),
     onHistoryCleared: () => {
       clearSessionMeta();
-      settings.clearRecentBangs();
+      archive.clearArchive();
+      clearRecentBangsAndIcons();
     },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: () => (hasLiveWindow() ? rt().window : undefined),
+    wallpaperTestFile: () => (acceptanceTestMode ? wallpaperTestChosenFile : null),
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
@@ -10850,6 +13412,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .map(({ group, tabIds }) => ({
           id: group.id,
           name: group.name,
+          color: group.color ?? null,
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
@@ -10889,6 +13452,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       remoteDevices: () => knownRemoteDevices(),
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
+      // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
+      wallpaperFor: (wc) => {
+        const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+        return wallpaperState(tab?.private === true, spaceColorForTab(tab));
+      },
+      wallpaperChanged: () => broadcastStartPageStatus(),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,
         tabs.get(tabIdByWebContentsId.get(wc.id)),
@@ -10940,6 +13509,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return { adblockEnabled: current.adblockEnabled, theme: current.theme };
       },
       applySettings: (clean) => settings.setSettings(clean),
+      // Spec D5: the walkthrough's Tab Archive offer may write only while
+      // first run is still pending, so a replayed tour never changes it.
+      offerTabArchive: (value) => {
+        if (!firstRunPending()) return false;
+        settings.setSettings({ tabArchive: value });
+        return true;
+      },
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
@@ -11041,6 +13617,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
       continueUnsafeForSender,
+      bangIcons,
+      clearRecentBangsAndIcons,
       forgetActiveCertificateException,
       certificateExceptions,
       blockingStatus: () => blockingProviders.status(rt().profileId),
@@ -11064,9 +13642,25 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         activeViewVisible: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getVisible() : false,
         addressFocusGeneration: rt().addressFocusGeneration,
       }),
-      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, clusterSlots,
+      navigateTabToAddress, liveContents, tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getSplits: () => rt().splits ?? [], getActiveTabId: () => rt().activeTabId, getIslandRect: () => rt().islandRect, getIslandHoverRect: () => rt().islandHoverRect, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
-      setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
+      goBack: (id) => {
+        const tab = tabs.get(id);
+        if (!tab) return false;
+        if (tab.asleep) {
+          const snapshot = sleepSnapshots.get(id);
+          wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null }).catch(() => {});
+          return true;
+        }
+        const navigation = liveContents(tab)?.navigationHistory;
+        if (!navigation?.canGoBack()) return false;
+        navigation.goBack();
+        return true;
+      },
+      pinnedHomeActions: () => menuContextActions(rt()),
+      chooseSessionRecovery: (choice) => chooseSessionRecovery(choice),
+      getSessionRecoveryState: () => ({ ...sessionRecoveryState }),
+      setGlanceTab, closeGlance, openGlanceAsTab, resetGlanceCardFrame,
       getGlanceTabId: () => rt().glanceTabId,
       getFocusedPaneTabId: () => rt().focusedPaneTabId,
       getFindTargetTabId: () => findTargetTabId(rt()),
@@ -11078,19 +13672,36 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!view || !hasLiveWindow()) return false;
         return rt().window.contentView.children.includes(view) && (process.platform !== 'linux' || view.getVisible());
       },
-      getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      // The divider's stops as main will use them: measured, else the last measured.
-      getGlanceMinimums: () => ({ primary: glanceMinPrimaryWidth(), reference: glanceMinReferenceWidth() }),
+      getGlanceCard: () => {
+        const card = hasLiveWindow() ? glanceCardGeometry() : null;
+        if (!card) return null;
+        const cardView = liveGlanceCardView();
+        const children = rt().window.contentView.children;
+        const glanceView = activeGlanceTab()?.view ?? null;
+        const mainView = tabs.get(rt().activeTabId)?.view ?? null;
+        return {
+          frame: glanceCardFrame(),
+          pageArea: glancePageArea(),
+          pageBounds: currentChromeLayout().pageBounds,
+          mainViewBounds: mainView?.getBounds() ?? null,
+          ...card,
+          viewBounds: glanceView?.getBounds() ?? null,
+          cardViewBounds: cardView?.getBounds() ?? null,
+          cardViewVisible: cardView?.getVisible?.() ?? false,
+          stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
+        };
+      },
       openLinkInGlance: (tabId, url) => {
         const opener = tabs.get(tabId);
         return opener ? withWindowRuntime(windowRuntimes.runtimeForTab(opener) ?? rt(), () => openLinkInGlance(opener, url)) : false;
       },
-      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
+      groupTabByName, renameTab, beginRenameTab, beginRenameGroup, beginRenameDevice, ungroupGroup, setGroupColor, newTabBelow, closeTabsBeside, toggleSiteMute, toggleGroupCollapsed, moveTabTo, reorderGroupBefore, reopenClosedTab,
       closeGroup, newTabUrl,
       getOverlayDragging: () => overlayDragActive(rt()),
       selectTabAtIndex,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       runInWindowRuntime,
+      chooseWallpaperFileForTest: (file) => { wallpaperTestChosenFile = file ? String(file) : null; return true; },
       arcImportTest(action, args = []) {
         if (action === 'platform') { arcTestPlatform = String(args[0]); return true; }
         if (action === 'choose-file') { arcTestChosenFile = args[0] ? String(args[0]) : null; return true; }
@@ -11202,6 +13813,121 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      getIslandHoverState: () => ({ ...islandHoverRecord(rt()).state }),
+      setIslandHoverOpen: (on) => settings.setSettings({ islandHoverOpen: !!on }).islandHoverOpen,
+      setIslandAutoHide,
+      setIslandAutoHideStyle,
+      getFloatViewState: (role) => {
+        const record = liveFloatRecord(rt(), role);
+        if (!record || !hasLiveWindow()) return null;
+        const children = rt().window.contentView.children;
+        const index = children.indexOf(record.view);
+        const below = [...tabs.values()].filter((tab) => tab.view && children.includes(tab.view)).map((tab) => children.indexOf(tab.view));
+        const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+        if (sheet && children.includes(sheet.view)) below.push(children.indexOf(sheet.view));
+        return {
+          attached: index >= 0,
+          shown: record.shown,
+          visible: typeof record.view.getVisible === 'function' ? record.view.getVisible() : record.shown,
+          bounds: record.view.getBounds(),
+          aboveTabsAndSheet: index >= 0 && below.every((other) => other < index),
+        };
+      },
+      getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
+      getGlanceCardWebContents: () => liveGlanceCardView()?.webContents ?? null,
+      getGlanceCardViewVisible: () => liveGlanceCardView()?.getVisible?.() ?? false,
+      getGlancePageViewVisible: () => activeGlanceTab()?.view?.getVisible?.() ?? false,
+      destroyGlanceCardViewForTest: () => destroyGlanceCardView(rt()),
+      // The remembered frame as written to settings, in window coordinates.
+      getSavedGlanceFrame: () => {
+        const saved = settings.getSettings().glanceFrame;
+        return saved && hasLiveWindow() ? fractionsToFrame(saved, glancePageArea()) : null;
+      },
+      getTooltipViewState: () => ({ attached: rt().tooltipViewAttached === true, bounds: rt().tooltipView?.getBounds() ?? null }),
+      getFloatWebContentsIds: (runtimeId) => {
+        const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
+        return runtime ? FLOAT_ROLES.map((role) => liveFloatRecord(runtime, role)?.view.webContents.id).filter((id) => id != null) : [];
+      },
+      isChromeSurfaceRegistered: (id) => !!windowRuntimes.runtimeForChromeWebContentsId(id),
+      getChromeButtonRects: () => ({ windowControlsRect: rt().windowControlsRect, menuButtonRect: rt().menuButtonRect }),
+      getMainWindowState: () => (hasLiveWindow()
+        ? { maximized: rt().window.isMaximized(), minimized: rt().window.isMinimized() } : null),
+      restoreMainWindow: () => {
+        if (!hasLiveWindow()) return false;
+        if (rt().window.isMinimized()) rt().window.restore();
+        if (rt().window.isMaximized()) rt().window.unmaximize();
+        return true;
+      },
+      getMainMenuRequests: () => testMainMenuRequests.map((request) => ({ ...request })),
+      holdIslandInWindow: (runtimeId, on) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        if (!runtime?.window || runtime.window.isDestroyed()) return false;
+        runtime.testHoldIsland = on === true;
+        if (on === true) withWindowRuntime(runtime, () => revealIsland(runtime));
+        else withWindowRuntime(runtime, () => resizeActiveView());
+        return true;
+      },
+      // The drawing check: front a window, and say why its pill may not draw.
+      focusWindowRuntime: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        if (!runtime?.window || runtime.window.isDestroyed()) return false;
+        runtime.window.show();
+        runtime.window.focus();
+        return runtime.window.isFocused();
+      },
+      floatPillDiagnostics: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        const record = liveFloatRecord(runtime, 'pill');
+        if (!runtime?.window || runtime.window.isDestroyed()) return null;
+        return {
+          focused: runtime.window.isFocused(),
+          visible: runtime.window.isVisible(),
+          islandRect: runtime.islandRect ?? null,
+          floating: withWindowRuntime(runtime, () => islandFloating(runtime)),
+          stripHidden: withWindowRuntime(runtime, () => islandStripHidden(runtime)),
+          shown: record?.shown ?? null,
+          viewVisible: record && typeof record.view.getVisible === 'function' ? record.view.getVisible() : null,
+          bounds: record?.view.getBounds() ?? null,
+        };
+      },
+      floatPillWebContentsId: (runtimeId) => {
+        const runtime = windowRuntimes.all().find((item) => String(item.id) === String(runtimeId));
+        return liveFloatRecord(runtime, 'pill')?.view.webContents.id ?? null;
+      },
+      getIslandAutoHideState: () => ({
+        enabled: islandAutoHide,
+        style: islandAutoHideStyle,
+        revealed: rt().islandRevealed === true,
+        introducing: !!rt().islandAutoHideIntroTimer,
+        sliding: !!rt().islandSlide,
+        introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
+          && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
+        stripHidden: islandStripHidden(),
+        floating: islandFloating(),
+        windowButtonsVisible: rt().windowButtonsVisible,
+        pageY: currentChromeLayout().pageBounds.y,
+        chromeHeight: rt().chromeHeight,
+        coveredStripPx: islandAutoHideModule.coveredStripHeight(process.platform),
+        // The active view's real native bounds, not the computed layout.
+        activeBounds: liveContents(tabs.get(rt().activeTabId)) ? tabs.get(rt().activeTabId).view.getBounds() : null,
+      }),
+      getOverlayShowCount: () => rt().testOverlayShowCount ?? 0,
+      resetOverlayShowCount: () => { rt().testOverlayShowCount = 0; },
+      setTestCursorSamplingUnavailable: (on) => {
+        if (!acceptanceTestMode) return false;
+        testCursorSamplingUnavailable = on === true;
+        return true;
+      },
+      setTestCursorPoint: (point) => {
+        if (!acceptanceTestMode) return false;
+        if (point == null) {
+          testCursorPoint = null;
+          return true;
+        }
+        if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+        testCursorPoint = { x: point.x, y: point.y };
+        return true;
+      },
       // The spaces set aside after a switch (D22), oldest first, and whether
       // each of their tabs is loaded or quiet.
       getResidentSpaces: () => windowRuntimes.all().filter((r) => r.resident && !r.closing)
@@ -11278,6 +14004,78 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      // Split View (F53)
+      createSplitFromTabs,
+      keepGlanceAsSplit,
+      moveGroupToNewWindowForTest: (groupId) => moveGroupToNewWindow(groupId),
+      /** Tab ids whose splitId names no split in their own window. */
+      straySplitIds: () => [...tabs.values()].filter((tab) => tab.splitId
+        && !(windowRuntimes.runtimeForTab(tab.id)?.splits ?? []).some((s) => s.id === tab.splitId)).map((tab) => tab.id),
+      windowChildViewCount: () => {
+        if (!hasLiveWindow()) return { tabViews: 0 };
+        const tabViews = new Set([...tabs.values()].map((tab) => tab.view).filter(Boolean));
+        const closedViews = new Set((rt().closedEntries ?? []).map((entry) => entry.view).filter(Boolean));
+        const children = rt().window.contentView.children;
+        return {
+          tabViews: children.filter((v) => tabViews.has(v)).length,
+          parkedViews: children.filter((v) => closedViews.has(v)).length,
+          total: children.length,
+        };
+      },
+      menuContextActionsForTest: () => menuContextActions(rt()),
+      closedEntrySummaries: () => projectEntries(rt().closedEntries ?? []),
+      splitLayoutForTest: () => currentSplitLayoutPayload(splitGeometry()),
+      // Each corner tab view as drawn: whether it sits above its pane, its
+      // bounds, and the site its document shows.
+      splitCornerTabsForTest: async () => {
+        if (!hasLiveWindow()) return [];
+        const children = rt().window.contentView.children;
+        return Promise.all([...rt().splitCornerViews.values()].map(async (entry) => {
+          const pane = tabs.get(entry.tabId);
+          const at = children.indexOf(entry.view);
+          const shown = at >= 0 && (entry.view.getVisible?.() ?? true)
+            && liveContents(pane) && at > children.indexOf(pane.view);
+          const drawn = entry.view.webContents.isDestroyed() ? null : await entry.view.webContents.executeJavaScript(
+            "({ site: document.getElementById('site').textContent, focused: document.body.classList.contains('focused') })",
+          ).catch(() => null);
+          const pill = rt().islandFloat ? liveFloatRecord(rt(), 'pill') : null;
+          const belowFloat = !pill || (at >= 0 && at < children.indexOf(pill.view));
+          return { tabId: entry.tabId, shown: !!shown, belowFloat, bounds: entry.view.getBounds(), width: entry.width, ...drawn };
+        }));
+      },
+      /** Re-add a tab's view on top of the window, as a stray attach would. */
+      raiseTabViewForTest: (tabId) => {
+        const tab = tabs.get(tabId);
+        if (!hasLiveWindow() || !liveContents(tab)) return false;
+        rt().window.contentView.addChildView(tab.view);
+        return true;
+      },
+      /** Click a corner tab's × ('close') or body ('tab') through its own
+       *  input events, as a real click arrives. */
+      clickSplitCornerForTest: (tabId, part) => {
+        const entry = rt().splitCornerViews.get(tabId);
+        if (!entry || entry.view.webContents.isDestroyed()) return false;
+        const at = entry.view.getBounds();
+        const x = part === 'close' ? at.width - 8 : 16;
+        for (const type of ['mouseDown', 'mouseUp']) {
+          entry.view.webContents.sendInputEvent({ type, x, y: at.height - 12, button: 'left', clickCount: 1 });
+        }
+        return true;
+      },
+      attachedTabViewIds: () => {
+        if (!hasLiveWindow()) return [];
+        const children = new Set(rt().window.contentView.children);
+        return rt().tabOrder.filter((id) => children.has(tabs.get(id)?.view));
+      },
+      runArchiveSweep, restoreArchivedEntry,
+      runArchiveSweepInEveryWindow: () => {
+        const runs = [];
+        forEachWindowRuntime(() => { runs.push(runArchiveSweep()); });
+        return Promise.all(runs);
+      },
+      setArchiveGraceUntil: (ms) => { archiveGraceUntil = Number(ms) || 0; },
+      setFirstRunPendingForTest: (on) => { firstRunPendingForTest = on === true; },
+      setArchiveProbeObserver: (fn) => { archiveProbeObserverForTest = typeof fn === 'function' ? fn : null; },
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       // The live array, mirroring getSleepSnapshots: reset() empties it in
@@ -11350,15 +14148,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
-        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
+        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message))
+        .then(() => runArchiveSweep())
+        .catch((err) => console.warn(`[tab-archive] sweep (${runtime.id}):`, err?.message));
     }));
   }, SLEEP_SWEEP_INTERVAL_MS);
+  resetArchiveGrace();
 
   powerMonitor.on('resume', () => {
     broadcastStartPageStatus();
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
     forEachWindowRuntime(restampBackgroundTabs);
+    resetArchiveGrace();
   });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
@@ -11380,7 +14182,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onRecentBangsChanged(() => broadcastBangsChanged());
+  let appliedTabArchive = settings.getSettings().tabArchive;
   settings.onSettingsChanged((s) => {
+    if (s.tabArchive !== appliedTabArchive) {
+      appliedTabArchive = s.tabArchive;
+      resetArchiveGrace();
+    }
+    islandHoverOpen = s.islandHoverOpen === true;
+    if (!islandHoverOpen) {
+      for (const runtime of windowRuntimes.all()) suppressIslandHover(runtime);
+    }
+    applyIslandAutoHide(s.islandAutoHide === true);
+    applyIslandAutoHideStyle(s.islandAutoHideStyle);
     const nextOnePasswordConfigurationKey = JSON.stringify([
       s.onePasswordEnabled,
       s.onePasswordAccount,
@@ -11538,27 +14351,32 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const { windows, activeWindowId, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
   const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
+  // Read the crash ledger once, before either recovery branch can resolve it.
+  // A clean launch returns pinned tabs home; recovery keeps their last pages.
+  const cleanStart = !diagnostics.sessionRecoveryPending();
   const savedWindows = windows
     .filter((saved) => !pendingProfileIds.has(saved.profileId))
     .map((saved) => {
+    const prepared = applyPinnedHomes(saved, { cleanStart });
     const cleaned = filterRestoredSession(
-      saved,
+      prepared,
       (url, _index, localFile) => isUtilityUrl(url)
         || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url)))
     );
     return {
-      ...saved,
+      ...prepared,
       profileId: localProfiles.getLocalProfile(saved.profileId)?.id ?? DEFAULT_PROFILE_ID,
       urls: cleaned.urls,
       groupIds: cleaned.groupIds,
       pinned: cleaned.pinned,
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
+      splitIds: cleaned.splitIds,
       activeIndex: cleaned.activeIndex,
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
         .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
-        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+        .map(groupRecord),
     };
   });
   if (!savedWindows.length) {
@@ -11569,7 +14387,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     : savedWindows[0].id;
   const recoverySummary = summarizeRecoveryWindows(savedWindows, { newTabUrl: NEW_TAB_URL });
   const recoveryRequired = !sessionReadOnly &&
-    diagnostics.sessionRecoveryPending() &&
+    !cleanStart &&
     recoverySummary.hasRecoverableContent;
   if (recoveryRequired) {
     sessionRecoveryState = {
@@ -11579,7 +14397,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       windowCount: recoverySummary.windowCount,
       error: null,
     };
-  } else if (diagnostics.sessionRecoveryPending()) {
+  } else if (!cleanStart) {
     // A single disposable blank tab has no meaningful recovery choice.
     diagnostics.resolveSessionRecovery();
   }
@@ -11790,10 +14608,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           title: saved.meta?.[index]?.title ?? '',
           favicon: saved.meta?.[index]?.favicon ?? null,
           customTitle: saved.meta?.[index]?.customTitle ?? null,
+          pinnedHomeUrl: saved.meta?.[index]?.pinnedHomeUrl ?? null,
+          lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
         }));
         pruneEmptyGroups();
+        applySavedLayout(runtime, saved, restoredIds);
+        applyRestoredSplits(runtime, saved, restoredIds);
         // This window's tabs now exist, so it's safe to check whether the
         // saved binding still points at a real workspace. namedWorkspaces.get
         // resolves through the ambient activeLocalProfileId(), which
@@ -11876,6 +14698,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     withWindowRuntime(focusedRuntime, flushTabHandoffs);
     maybeSendLaunchPing();
     scheduleDefaultBrowserReminder();
+    maybeOpenWhatsNew().catch(() => {});
 
     // Patron subscription revalidation — off the critical path, after the
     // navigation gate is released and session restore is done. The model's

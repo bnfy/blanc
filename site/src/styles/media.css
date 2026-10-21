@@ -234,6 +234,7 @@ a.media-path:hover .media-path-go { transform: translateY(3px); }
 
 /* ---------- sections ---------- */
 .media-section { padding-top: clamp(112px, 14vw, 176px); scroll-margin-top: 72px; }
+.media-memory .memchart-section { max-width: 920px; margin: 0 auto; padding-block: 0; }
 .media-section-head {
   max-width: 760px;
   margin: 0 auto clamp(48px, 6vw, 72px);

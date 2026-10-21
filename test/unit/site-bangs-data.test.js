@@ -72,20 +72,8 @@ test('engine-search tags cover exactly the site-limited engine searches', async 
   for (const e of d.entries) if (!(e[0] in d.via)) assert.equal(engineSearchVia(e[4], e[2]), null, e[0]);
 });
 
-test('the try-it labels are the app’s English copy at the same ref', () => {
+test('the Kagi license is a byte copy from the same ref', () => {
   const d = data();
-  const messages = JSON.parse(gitShow(d.ref, 'copy/messages/en.json'));
-  assert.deepEqual(d.labels, {
-    search: messages['bang.search'].message,
-    open: messages['bang.open'].message,
-    popular: messages['bang.section.popular'].message,
-    all: messages['bang.section.all'].message,
-  });
-});
-
-test('the try-it module and the Kagi license are byte copies from the same ref', () => {
-  const d = data();
-  assert.ok(read('site/src/scripts/bangs.js').equals(gitShow(d.ref, 'src/renderer/pages/bangs.js')));
   assert.ok(read('site/public/licenses/kagi-bangs-MIT.txt').equals(gitShow(d.ref, 'bangs/sources/kagi-bangs-LICENSE.txt')));
 });
 
@@ -104,7 +92,25 @@ test('the byte-checked bangs page files keep LF line endings on every checkout',
   const attributes = read('.gitattributes').toString('utf8').split(/\r?\n/);
   for (const rule of [
     '/site/src/data/bangs.json text eol=lf',
-    '/site/src/scripts/bangs.js text eol=lf',
     '/site/public/licenses/kagi-bangs-MIT.txt text eol=lf',
+    '/site/public/bang-hosts.json text eol=lf',
   ]) assert.ok(attributes.includes(rule), `missing Git attribute: ${rule}`);
+});
+
+// The icon server (cloudflare/bang-icons-worker) answers only for these hosts.
+test('the bang host list is every host in the data, once, sorted', async () => {
+  const d = data();
+  const list = JSON.parse(read('site/public/bang-hosts.json'));
+  const hosts = [...new Set(d.entries.map((entry) => entry[3].toLowerCase()))].sort();
+  assert.deepEqual(list.hosts, hosts);
+  assert.equal(list.count, hosts.length);
+  assert.equal(list.ref, d.ref);
+  assert.equal(list.release, d.release);
+  // The featured cards' hosts, in the app's order, for the icon server's
+  // coverage check against the live site.
+  const byCode = (code) => d.entries.find((entry) => entry[0] === code || entry[1].includes(code));
+  assert.deepEqual(list.popular, d.popular.map((code) => byCode(code)[3].toLowerCase()));
+  for (const host of list.hosts) assert.match(host, /^[a-z0-9.-]+$/, host);
+  const { renderHosts } = await load();
+  assert.equal(read('site/public/bang-hosts.json').toString('utf8'), renderHosts(d));
 });
