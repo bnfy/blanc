@@ -1,0 +1,151 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "resize acknowledged with independent ratio intent",
+      "value": true
+    },
+    {
+      "name": "native Session flush EIO observed",
+      "value": {
+        "pid": 62426,
+        "path": "/private/tmp/blanc-ratio-automatic-encrypted-fixed/profile/Default/Sessions/Session_13437080653782692",
+        "mode": "flush",
+        "op": "fsync",
+        "errno": 5
+      }
+    },
+    {
+      "name": "intent retained after failed flush",
+      "value": [
+        "ca953724-5124-4925-b444-c9bb2435f2aa_600b15e5-3431-4f14-afdc-ec448b688300_d6116617-0c62-4956-bc3f-bd3707a2d189"
+      ]
+    },
+    {
+      "name": "automatic retirement after ten seconds without save requests",
+      "value": []
+    },
+    {
+      "name": "restored last session",
+      "value": {
+        "activeTabId": "705599908",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "705599909",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "705599908",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "ca953724-5124-4925-b444-c9bb2435f2aa",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "705599906",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.65,
+                0.35
+              ]
+            },
+            "tabIds": [
+              "705599906",
+              "705599907"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "705599906",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "705599907",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "705599908",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "exact source pair restored",
+      "value": true
+    },
+    {
+      "name": "retry ratio survives immediate crash",
+      "value": true
+    }
+  ],
+  "automaticRetired": true,
+  "pass": true
+}

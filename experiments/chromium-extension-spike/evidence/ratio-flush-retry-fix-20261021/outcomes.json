@@ -1,0 +1,32 @@
+[
+  {
+    "schedule": "automatic-clear-fixed",
+    "pass": true,
+    "checkpoints": 8
+  },
+  {
+    "schedule": "automatic-encrypted-fixed",
+    "pass": true,
+    "checkpoints": 8
+  },
+  {
+    "schedule": "abandoned-clear-fixed",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "abandoned-encrypted-fixed",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "retry-delete-clear",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "retry-delete-encrypted",
+    "pass": true,
+    "checkpoints": 11
+  }
+]

@@ -3389,3 +3389,29 @@ Two initial flush fixtures fail only their final assertion because they read a n
 No product code changes or native compile. Check-only guard schedules zero actions; prior upstream 55 files/129 hunks unchanged. No latency measurements. Abandoned-owner flush-failure retry, power loss, private runtime, crashes during shutdown, and wider concurrent lifecycle remain unqualified. Plan/evidence updated; raw ignored logs remain local. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Permanent profiles/tabs, retained preview and Google upgrade baseline untouched.
 
 Evidence: `evidence/ratio-flush-last-window-20261021/`.
+
+
+# Automatic and abandoned-owner ratio flush retries — October 21, 2026
+
+Four bounded clear/encrypted schedules fail the targeted automatic-retirement assertion, with 38 diagnostic checkpoints total (not 38 passes). Live-owner schedules inject native Session flush EIO after the independent ratio intent is acknowledged, remove the fault, and make no explicit save/resize requests for ten seconds. The record remains in both modes. Abrupt crash/restart nevertheless restores the acknowledged 65/35 source pair. This establishes bounded missing retirement, not loss of the acknowledged ratio or proof that no native background write ever occurs.
+
+Abandoned-owner schedules hold the ratio write, close both source panes while a decoy owner survives, switch to Session flush EIO and release the ratio write. The destroyed caller never acknowledges success. After observing actual native flush EIO, removing the fault and ten seconds without save requests, one abandoned record remains. Crash/restart preserves the decoy and does not resurrect either closed source URL, but the orphan record remains in both modes. The failure is orphan retry/cleanup; no closed-pane resurrection occurred in this schedule.
+
+Source inspection: RetireRatio returns immediately on saved=false without scheduling retry. RecoverRatios only visits matching restored live split identities, so it does not sweep an abandoned owner record. A repair must retry the required session flush with profile lifetime protection and retire the matching abandoned record only when safe; it must preserve identity validation and avoid recreating deleted profiles. No repair attempted in this check-only task.
+
+No product changes or compile; check-only guard zero actions, prior55/129 unchanged. Test shims affect only disposable profile paths. Ten seconds is a bounded lifecycle observation, not a latency benchmark or eventual-retry guarantee. Raw ignored logs retained locally. Plan/evidence updated and uncommitted. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Permanent profiles/tabs, retained preview and unrelated Google baseline untouched.
+
+Evidence: `evidence/ratio-automatic-abandoned-20261021/`.
+
+
+# Automatic ratio flush retry repair — October 21, 2026
+
+FlushRatioIntent now retains a profile-weak retry chain independently of the UI Handler. Each attempt asynchronously verifies the matching ratio intent, obtains only the existing SessionService, and flushes before compare-value retirement. Failed flushes reschedule with 500ms exponential backoff capped at five seconds. Destroyed profiles, absent services and replaced/missing intent records stop the chain. Live resizing, restored-ratio replay and abandoned-owner completion use the same path. The abandoned completion no longer deletes a record merely because the service is absent. No profile/service recreation or temporary native diagnostics.
+
+Six final isolated normal-binary schedules pass60checkpoints: clear/encrypted automatic live-owner recovery8each; abandoned-owner recovery11each; hot-profile deletion11each. Each retry fixture observes six injected native flush fault events across repeated attempts, then removes the fault without another save/resize request. Records retire within the bounded ten-second observation. Live-owner immediate crash restores65/35; abandoned-owner restart preserves the decoy, leaves closed panes absent, and has no orphan record. Deletion regressions remove Default while independent Profile1 remains usable and survives restart. The four original failing schedules remain archived separately.
+
+Seven capture tests pass, diff check passes, one36.17s incremental build/six steps and final zero-action guard. Only Blanc-owned source changed; prior upstream55files129hunks unchanged. This is bounded process-crash/retry evidence, not latency or power-loss qualification. Existing orphan records from previous executions are not swept by this repair. Retry chains are not persisted across process exit; matching live split recovery still handles restart. Full capped-backoff duration, shutdown after failed flush, concurrent same-value replacement and private runtime remain unqualified. No automatic retirement claim when session service is unavailable.
+
+Plan/evidence updated and uncommitted. Raw ignored logs retained locally. Disposable test profiles removed after process inspection. Permanent profiles/tabs, retained preview and unrelated Google baseline untouched. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
+
+Evidence: `evidence/ratio-flush-retry-fix-20261021/`.

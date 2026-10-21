@@ -1182,6 +1182,30 @@ void RetireRatio(base::FilePath path, std::string value, bool saved) {
     if (ReadRatio(path) == value) base::DeleteFile(path);
   }, path, value));
 }
+// Keep failed flush work independent of the UI owner. Never recreate a service
+// during profile shutdown, and stop when a newer intent replaces this record.
+void FlushRatioIntent(base::WeakPtr<Profile> profile, base::FilePath path,
+                      std::string value, int attempt = 0) {
+  if (!profile) return;
+  SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+      base::BindOnce(&ReadRatio, path),
+      base::BindOnce([](base::WeakPtr<Profile> profile, base::FilePath path,
+                        std::string value, int attempt, std::string current) {
+        if (!profile || current != value) return;
+        auto* session = SessionServiceFactory::GetForProfile(profile.get());
+        if (!session) return;
+        session->SaveAndFlushSession(base::BindOnce(
+            [](base::WeakPtr<Profile> profile, base::FilePath path,
+               std::string value, int attempt, bool saved) {
+              if (saved) { RetireRatio(path, value, true); return; }
+              if (!profile) return;
+              base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+                  FROM_HERE, base::BindOnce(&FlushRatioIntent, profile, path,
+                                           value, std::min(attempt + 1, 4)),
+                  base::Milliseconds(std::min(500 * (1 << attempt), 5000)));
+            }, profile, path, value, attempt));
+      }, profile, path, value, attempt));
+}
 void RestoreClosedSplitMetadata(BrowserWindowInterface* browser,
     std::optional<int> focus, const std::vector<sessions::LiveTab*>& restored) {
   if (!focus || restored.size() != 2) return;
@@ -2307,9 +2331,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     double ratio = 0;
     base::StringToDouble(value, &ratio);
     model->UpdateSplitRatio(*model->GetSplitForTab(first), ratio);
-    if (auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile()))
-      session->SaveAndFlushSession(base::BindOnce(&RetireRatio,
-          RatioPath(browser->GetProfile(), key), value));
+    FlushRatioIntent(browser->GetProfile()->GetWeakPtr(),
+                     RatioPath(browser->GetProfile(), key), value);
     Reply(id, true, base::Value(true));
   }
   void RecoverRatios(Owner* owner) {
@@ -2332,8 +2355,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             if (first + 1 >= model->count() || RatioIdentity(browser.get(), first, first + 1) != key ||
                 !model->GetSplitForTab(first) || model->GetSplitForTab(first) != model->GetSplitForTab(first + 1)) return;
             model->UpdateSplitRatio(*model->GetSplitForTab(first), ratio);
-            if (auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile()))
-              session->SaveAndFlushSession(base::BindOnce(&RetireRatio, RatioPath(browser->GetProfile(), key), value));
+            FlushRatioIntent(browser->GetProfile()->GetWeakPtr(),
+                             RatioPath(browser->GetProfile(), key), value);
           }, browser->GetWeakPtr(), i, key));
     }
   }
@@ -2849,12 +2872,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             }
             // Weak-binding the entire completion discarded orphan cleanup.
             // Flush native close commands before retiring the abandoned intent.
-            if (saved && profile)
-              if (auto* session = SessionServiceFactory::GetForProfile(profile.get())) {
-                session->SaveAndFlushSession(base::BindOnce(&RetireRatio, path, value));
-                return;
-              }
-            if (saved) RetireRatio(path, value, true);
+            if (saved && profile) FlushRatioIntent(profile, path, value);
           }, weak_factory_.GetWeakPtr(), owner->GetWeakPtr(), profile->GetWeakPtr(),
              id, browser->GetWeakPtr(), first, second, key, value, RatioPath(profile, key)));
       return;

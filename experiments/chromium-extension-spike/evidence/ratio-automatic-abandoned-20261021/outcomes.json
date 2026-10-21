@@ -1,0 +1,26 @@
+[
+  {
+    "schedule": "automatic-clear",
+    "pass": false,
+    "diagnosticCheckpoints": 8,
+    "error": "No automatic record retirement within ten seconds"
+  },
+  {
+    "schedule": "automatic-encrypted",
+    "pass": false,
+    "diagnosticCheckpoints": 8,
+    "error": "No automatic record retirement within ten seconds"
+  },
+  {
+    "schedule": "abandoned-clear",
+    "pass": false,
+    "diagnosticCheckpoints": 11,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-abandoned-clear/test.mjs:29:135"
+  },
+  {
+    "schedule": "abandoned-encrypted",
+    "pass": false,
+    "diagnosticCheckpoints": 11,
+    "error": "AssertionError [ERR_ASSERTION]: abandoned ratio record retained\n\n1 !== 0\n\n    at file:///private/tmp/blanc-ratio-abandoned-encrypted/test.mjs:29:135"
+  }
+]
