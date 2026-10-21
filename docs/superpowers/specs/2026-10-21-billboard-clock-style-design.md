@@ -102,10 +102,15 @@ with rounded edges. An earlier version took the shape from the figures'
 distance field, which creases down every stroke's middle and at every corner
 wherever a stroke is narrower than the bevel, and the lighting drew those
 creases as sharp ridges inside the figures; the owner flagged them. The page
-bends along the surface's slope, most at the edges, as through a lens's rim.
-The same surface is lit: a crisp highlight where it faces the key light
-(above, a little left), a softer one opposite, a Fresnel rim all round, and a
-faint body in the clock's color. Under `prefers-reduced-transparency: reduce`
+bends along the surface's slope, most at the edges, as through a lens's rim,
+by a few pixels sized from the clock's usual type size (Height keeps strokes
+as they are, so the glass keeps its edge too); a bend sized from the
+stretched type pulled distant page, and the glass's own shadow, into the
+figures as stray shapes. The shadow now lies above the lens so it is never
+bent in. The same surface is lit, on the bevel only so a wide stroke's flat
+stays clear: a crisp highlight where it faces the key light (above, a little
+left), a softer one opposite, a Fresnel rim all round, and a faint, slightly
+frosted body in the clock's color. Under `prefers-reduced-transparency: reduce`
 it draws as Solid in the same color.
 
 The glass is drawn on canvas from the typeset clock at its exact width and

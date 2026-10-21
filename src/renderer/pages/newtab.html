@@ -67,13 +67,13 @@
       <h1 class="page-sr-only" data-i18n="newtab.billboard.heading">Billboard start page</h1>
       <div class="bb-clock-row">
         <span id="bbClock" class="bb-clock"></span>
-        <!-- Glass (clock-art.js), drawn from the typeset clock: its shadow
-             around the figures, the lens that bends the page behind them, then
-             the glass's light. The text above stays for assistive
+        <!-- Glass (clock-art.js), drawn from the typeset clock: the lens that
+             bends the page behind the figures, its shadow around them (above
+             the lens, so the lens never bends it in), then the glass's light. The text above stays for assistive
              technology. -->
         <div id="bbClockArt" class="bb-clock-art" aria-hidden="true" hidden>
-          <canvas id="bbClockShadow" class="bb-clock-shadow"></canvas>
           <div id="bbClockLens" class="bb-clock-lens"></div>
+          <canvas id="bbClockShadow" class="bb-clock-shadow"></canvas>
           <canvas id="bbClockFace" class="bb-clock-face"></canvas>
         </div>
         <svg class="bb-clock-defs" width="0" height="0" aria-hidden="true" focusable="false">

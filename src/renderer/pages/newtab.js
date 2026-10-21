@@ -881,9 +881,11 @@ const CLOCK_FACES = {
 // most half the window's height.
 const FIGURE_HEIGHT = 0.72;
 const MOST_OF_WINDOW = 0.5;
-// The glass's bevel and how far it bends the page, as shares of the type size.
-const GLASS_BEVEL = 0.06;
-const GLASS_BEND = 0.12;
+// The glass's bevel and how far it bends the page, as shares of the clock's
+// usual type size: Height keeps the strokes as they are, so the glass keeps
+// its edge too.
+const GLASS_BEVEL = 0.045;
+const GLASS_BEND = 0.035;
 // How far the glass's shadow may reach past the figures, as a share of the
 // type size.
 const GLASS_SHADOW_MARGIN = 0.3;
@@ -961,9 +963,9 @@ async function drawClockArt() {
   clockArt.style.width = `${drawn.width}px`;
   clockArt.style.height = `${drawn.height}px`;
   clockArt.style.marginInline = `${-drawn.left}px`;
-  const bend = typeSize * GLASS_BEND * scale;
+  const bend = size * GLASS_BEND * scale;
   const { map, face: light } = art.paintGlass(drawn.mask, {
-    bevel: typeSize * GLASS_BEVEL * scale, bend, scale: bend * 2, tint: rgbOf(computed.color),
+    bevel: size * GLASS_BEVEL * scale, bend, scale: bend * 2, tint: rgbOf(computed.color),
   });
   for (const element of [clockRefract, clockRefractMap]) {
     element.setAttribute('width', String(drawn.width));

@@ -4696,7 +4696,7 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
 /* No filter, opacity or transform may sit on the lens's ancestors: each one
    would cut the lens off from the page it bends. */
 .bb-clock-lens {
-  backdrop-filter: url(#bbClockRefract) blur(0.5px) saturate(170%) brightness(1.1);
+  backdrop-filter: url(#bbClockRefract) blur(1.5px) saturate(160%) brightness(1.08);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;

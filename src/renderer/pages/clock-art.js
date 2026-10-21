@@ -151,8 +151,10 @@
         const normal = normalize([-gx * lift, -gy * lift, 1]);
         map[o] = 128 + Math.max(-127, Math.min(127, normal[0] * reach));
         map[o + 1] = 128 + Math.max(-127, Math.min(127, normal[1] * reach));
-        const key = dot(normal, KEY_HALF) ** 48;
-        const fill = dot(normal, FILL_HALF) ** 24 * 0.45;
+        // Light gathers on the bevel only; the flat of a wide stroke stays clear.
+        const edge = Math.min(1, (1 - normal[2]) * 6);
+        const key = dot(normal, KEY_HALF) ** 48 * edge;
+        const fill = dot(normal, FILL_HALF) ** 24 * 0.45 * edge;
         const rim = (1 - normal[2]) ** 1.6 * 0.55;
         const light = Math.min(1, key + fill + rim);
         const a = GLASS_BODY + light * (1 - GLASS_BODY);
