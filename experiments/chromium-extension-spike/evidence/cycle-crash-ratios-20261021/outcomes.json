@@ -1,0 +1,40 @@
+[
+  {
+    "mode": "clear",
+    "pass": true,
+    "checkpoints": 56,
+    "crash_restart_recoveries": [
+      {
+        "cycle": 1,
+        "ratio": 0.3
+      },
+      {
+        "cycle": 2,
+        "ratio": 0.65
+      },
+      {
+        "cycle": 3,
+        "ratio": 0.4
+      }
+    ]
+  },
+  {
+    "mode": "encrypted",
+    "pass": true,
+    "checkpoints": 56,
+    "crash_restart_recoveries": [
+      {
+        "cycle": 1,
+        "ratio": 0.3
+      },
+      {
+        "cycle": 2,
+        "ratio": 0.65
+      },
+      {
+        "cycle": 3,
+        "ratio": 0.4
+      }
+    ]
+  }
+]

@@ -3285,3 +3285,41 @@ The retained diagnostic schedule reproduced the pre-fix retry failure (13 diagno
 All owned test processes exited and disposable profiles removed after inspection. Retained preview, Google upgrade baseline and permanent profiles/tabs untouched. Wider cancellation ordering, app-window runtime parity, repeated simultaneous profile deletion, pre-ack crashes, real provider failure and powerloss remain unqualified. Native input pending; latency deferred; Electron diagnostic build pending approval and unstarted. Plan/evidence updated; owner requested publication to PR #920 and resumed CI monitoring.
 
 Evidence: evidence/profile-delete-cancel-fix-20261021.
+
+
+# Repeated profile-deletion cancellation — October 21, 2026
+
+Two bounded schedules on normal binary from 0e8e51f5 pass 60 checkpoints (30 clear, 30 encrypted). Each performs three successive native profile-deletion requests and beforeunload cancellations during the same held cross-owner Session write. Each cancellation preserves the profile registry, sentinel, source split and decoy. Releasing the write acknowledges successfully; a fresh cross-owner save also succeeds. Immediate process crash and restart restore source panes exactly once at 35/65 and the decoy once, and fresh history saving remains usable. The independent regular profile remains alive during cancellations.
+
+Fixture failures retained separately: the first repeated-save attempt incorrectly expected a Session repair to remain pending after successful completion (17 diagnostic checkpoints, not a pass). Two subsequent fixtures omitted getProfileStatistics before the second removeProfile request and triggered the native profile_statistics_keep_alive_ DCHECK (14 checkpoints each, not passes). Native source confirms removeProfile consumes this keepalive; final fixtures refresh statistics before every request, matching that prerequisite. No product repair was needed. This does not qualify repeated independent save cycles or physical profile-picker UI interaction.
+
+No native compilation or product changes. Build guard schedules zero actions; prior approved footprint 55 files/129 hunks unchanged. Test scripts, outcomes and logs retained; log files may remain local under repository ignore rules. Disposable test profiles removed after process inspection; retained preview, permanent profiles/tabs and Google baseline untouched. Latency deferred; native input and Electron diagnostic build pending approval/unstarted. Wider cancellation ordering, independent multi-cycle save stress, app-window parity and power-loss behavior remain unqualified. No commit or push in this check-only turn.
+
+Evidence: evidence/repeated-profile-cancel-20261021.
+
+
+# Independent save-cycle cancellation recovery — October 21, 2026
+
+Two bounded unchanged-normal-binary schedules pass 92 checkpoints (46 clear, 46 encrypted), with three independent save-repair cycles per schedule. Every cycle creates a new partial-close Session write error and verifies refusal, reconciles the source split, sets its ratio to 35/65, holds a new cross-owner Session write, requests native profile deletion and cancels beforeunload. The profile-picker statistics prerequisite is refreshed before each removal request. Each cancellation preserves the registry, sentinel, source split and decoy; releasing the hold successfully acknowledges that cycle and a separate fresh cross-owner close/save succeeds. Thus later cycles establish new repair obligations rather than assuming an earlier completed repair remains pending.
+
+After the third acknowledged cycle, immediate SIGKILL/restart restores both source panes exactly once at 35/65 and the decoy once; the cancelled profile retains its registry/sentinel and accepts fresh history saving. Independent Profile1 stays usable during the cycles. No attempt failed in these final schedules. These are three same-process cycles followed by one crash/restart per storage mode, not a restart after each cycle, arbitrary stress duration, or varying-ratio qualification.
+
+No product edits or native compilation; guard zero actions, prior footprint 55 files/129 hunks unchanged. Disposable profiles removed after verifying no matching live process. Permanent profiles/tabs, retained preview and Google upgrade baseline untouched. Plan and evidence updated; scripts/results and hash manifest archived, raw ignored logs retained locally. Native physical input pending; latency deferred; Electron diagnostic build pending approval and unstarted. Wider cancellation ordering, app-window parity, pre-ack crashes and power-loss guarantees remain unqualified. No commit/push requested for this check-only turn.
+
+Evidence: evidence/independent-profile-cancel-20261021.
+
+
+# Crash/restart after each cancellation/save cycle — October 21, 2026
+
+Two bounded schedules on unchanged normal binary from 0e8e51f5 pass112 checkpoints (56 clear, 56 encrypted). Each schedule runs three independent partial-close write-error/repair cycles. In each cycle a new cross-owner Session write is held, profile deletion is requested through the native picker handler, beforeunload is cancelled, the write is released and acknowledged, and a separate fresh cross-owner save succeeds. Ratios vary by cycle:30/70,65/35,40/60.
+
+Each cycle immediately SIGKILLs the browser after the acknowledged save and restarts the same disposable user-data directory. All six restarts restore both source URLs exactly once in one split with that cycle's expected ratio and the decoy URL exactly once. The Default registry and sentinel survive, and fresh history saving succeeds after every restart. No failed attempt in these final schedules. Profile1 is explicitly reopened with a cycle-specific fixture tab to host the picker; this is not a claim of automatic Profile1 session recovery. Crash-bubble bypass remains confined to this disposable automated fixture; physical Restore UI remains unqualified.
+
+No product edits or native compilation; guard zero actions, prior55files/129hunks unchanged. This qualifies bounded post-ack process-crash recovery, not pre-ack crash safety, power-loss durability, arbitrary stress duration, or physical native-input acceptance. Temporary barrier applies only to isolated Default session writes. Both disposable profiles removed after process inspection. Retained preview, permanent profiles/tabs and Google baseline untouched. Plan/evidence updated; raw browser logs retained locally under normal ignore rules. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Evidence remains uncommitted.
+
+Evidence: evidence/cycle-crash-ratios-20261021.
+
+
+## Repeated cancellation evidence publication — October 21
+
+Owner requested publication of the three preceding evidence sets to PR #920: six final schedules, 264 passing checkpoints, including six per-cycle crash/restarts with varying ratios. Earlier fixture failures remain separate. Evidence-only publication; no product/build changes, prior55/129 unchanged. Raw ignored logs remain local; all63 archived member hashes verified. CI monitoring resumes on the published head. Native input pending, latency deferred, Electron diagnostic build pending approval.
