@@ -12,17 +12,21 @@ let browser;
 before(async () => { browser = await chromium.launch(); });
 after(async () => { await browser?.close(); });
 
-async function openHome({ width = 1440, height = 900, reducedMotion = 'reduce', javaScriptEnabled = true, blockNoteFont = false } = {}) {
+async function openHome({ width = 1440, height = 900, reducedMotion = 'reduce', javaScriptEnabled = true, blockNoteFont = false, blockSiteFont = false, wideNote = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion, javaScriptEnabled });
   const page = await context.newPage();
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== new URL(baseURL).origin) return route.abort();
     if (blockNoteFont && url.pathname.startsWith('/fonts/reenie-beanie/')) return route.abort();
+    // CI has no Blubird (its license keeps it out of the repository), so the headline falls back to Inter.
+    if (blockSiteFont && url.pathname.startsWith('/fonts/blubird/')) return route.abort();
     return route.continue();
   });
   await page.addInitScript(() => localStorage.setItem('measurement-consent-v2', 'denied'));
   await page.goto(`${baseURL}/`);
+  // A wide stand-in for the note, as a system without Reenie Beanie or a handwriting face may draw it.
+  if (wideNote) await page.addStyleTag({ content: '.opening-aside { font-family: Verdana, "DejaVu Sans", sans-serif !important; letter-spacing: 0.06em; }' });
   await page.evaluate(() => document.fonts.ready);
   return { page, close: () => context.close() };
 }
@@ -49,9 +53,9 @@ test('the first screen ends on the headline and Download, with the window’s to
 });
 
 test('the note sits above the headline’s end, clear of its letters, with or without its font', async () => {
-  for (const blockNoteFont of [false, true]) {
+  for (const [blockNoteFont, blockSiteFont, wideNote] of [[false, false, false], [true, false, false], [false, true, false], [true, true, false], [true, true, true]]) {
     for (const width of [1440, 1024, 768, 390]) {
-      const { page, close } = await openHome({ width, blockNoteFont });
+      const { page, close } = await openHome({ width, blockNoteFont, blockSiteFont, wideNote });
       try {
         const result = await page.evaluate(() => {
           const h1 = document.getElementById('opening-title');
@@ -67,10 +71,10 @@ test('the note sits above the headline’s end, clear of its letters, with or wi
           const overlaps = letters.some(r => note.left < r.right && note.right > r.left && note.top < r.bottom && note.bottom > r.top);
           return { overlaps, above: note.bottom <= letters[0].top + 4, nearEnd: Math.abs(note.right - Math.max(...letters.map(r => r.right))) < h1.getBoundingClientRect().width * 0.25, family: getComputedStyle(document.querySelector('.opening-note')).fontFamily };
         });
-        assert.equal(result.overlaps, false, `${width}, font blocked ${blockNoteFont}: note overlaps the headline`);
-        assert.ok(result.above, `${width}, font blocked ${blockNoteFont}: note sits above the headline`);
-        assert.ok(result.nearEnd, `${width}, font blocked ${blockNoteFont}: note sits at the headline’s end`);
-        assert.match(result.family, /Reenie Beanie/);
+        assert.equal(result.overlaps, false, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note overlaps the headline`);
+        assert.ok(result.above, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note sits above the headline`);
+        assert.ok(result.nearEnd, `${width}, note font blocked ${blockNoteFont}, headline font blocked ${blockSiteFont}, wide stand-in ${wideNote}: note sits at the headline’s end`);
+        if (!wideNote) assert.match(result.family, /Reenie Beanie/);
       } finally { await close(); }
     }
   }
