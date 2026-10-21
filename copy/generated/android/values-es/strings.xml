@@ -1450,6 +1450,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_clock_font_inter">Inter</string>
     <string name="newtab_clock_font_mono">JetBrains Mono</string>
     <string name="newtab_clock_weight">Grosor</string>
+    <string name="newtab_clock_height">Altura</string>
     <string name="newtab_clock_color">Color</string>
     <string name="newtab_clock_auto">Automático</string>
     <string name="newtab_clock_tone">Tono</string>

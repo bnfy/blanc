@@ -27,6 +27,7 @@ test('the choices match the settings schema', () => {
   assert.equal(schema.defaults.newtabClockColor, DEFAULTS.color);
   assert.equal(schema.defaults.newtabClockTone, DEFAULTS.tone);
   assert.equal(schema.defaults.newtabClockStyle, DEFAULTS.style);
+  assert.equal(schema.defaults.newtabClockHeight, DEFAULTS.height);
 });
 
 test('the defaults draw the clock as it was: Instrument Sans 500, the page ink, solid', () => {
@@ -37,6 +38,7 @@ test('the defaults draw the clock as it was: Instrument Sans 500, the page ink, 
   assert.equal(clock.ink, null);
   assert.equal(clock.base, null);
   assert.equal(clock.style, 'solid');
+  assert.equal(clock.height, 100);
   assert.deepEqual(clock.range, { min: 400, max: 700 });
   assert.deepEqual(clock.presets, Identity.PRESETS.map(({ id, hex }) => ({ id, hex })));
 });
@@ -94,22 +96,28 @@ test('the page previews the tone with the same mix main makes', () => {
 });
 
 test('unknown values read as the defaults', () => {
-  const clock = clockStyle({ font: 'comic', weight: 'bold', color: '#ff0000', tone: 101, style: 'chrome' });
+  const clock = clockStyle({ font: 'comic', weight: 'bold', color: '#ff0000', tone: 101, style: 'chrome', height: 301 });
   assert.equal(clock.font, DEFAULTS.font);
   assert.equal(clock.weight, DEFAULTS.weight);
   assert.equal(clock.color, DEFAULTS.color);
   assert.equal(clock.tone, DEFAULTS.tone);
   assert.equal(clock.style, DEFAULTS.style);
+  assert.equal(clock.height, DEFAULTS.height);
+  assert.equal(clockStyle({ height: 99 }).height, 100);
+  assert.equal(clockStyle({ height: 250.5 }).height, 100);
+  assert.equal(clockStyleFromSettings({ newtabClockHeight: 300 }).height, 300);
 });
 
 test('a Font & Color change writes only valid fields, by settings key', () => {
-  assert.deepEqual(settingsForClock({ font: 'mono', weight: 640, color: 'iris', tone: 0, style: 'glass' }), {
+  assert.deepEqual(settingsForClock({ font: 'mono', weight: 640, color: 'iris', tone: 0, style: 'glass', height: 240 }), {
     newtabClockFont: 'mono',
     newtabClockWeight: 640,
     newtabClockColor: 'iris',
     newtabClockTone: 0,
     newtabClockStyle: 'glass',
+    newtabClockHeight: 240,
   });
+  assert.deepEqual(settingsForClock({ height: 50 }), {});
   assert.deepEqual(settingsForClock({ font: 'comic', weight: 1000, color: 'teal', tone: -1, style: 'chrome', theme: 'dark' }), {});
   assert.deepEqual(settingsForClock({ weight: 99 }), {});
   assert.deepEqual(settingsForClock({ weight: 100, tone: 100 }), { newtabClockWeight: 100, newtabClockTone: 100 });

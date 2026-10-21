@@ -67,6 +67,22 @@
       <h1 class="page-sr-only" data-i18n="newtab.billboard.heading">Billboard start page</h1>
       <div class="bb-clock-row">
         <span id="bbClock" class="bb-clock"></span>
+        <!-- The clock drawn instead of typeset when it is stretched taller or
+             glass (clock-art.js): the glass's shadow around the figures, the
+             lens that bends the page behind them, then the face, the figures'
+             ink or the glass's light. The text above stays for assistive
+             technology. -->
+        <div id="bbClockArt" class="bb-clock-art" aria-hidden="true" hidden>
+          <canvas id="bbClockShadow" class="bb-clock-shadow"></canvas>
+          <div id="bbClockLens" class="bb-clock-lens"></div>
+          <canvas id="bbClockFace" class="bb-clock-face"></canvas>
+        </div>
+        <svg class="bb-clock-defs" width="0" height="0" aria-hidden="true" focusable="false">
+          <filter id="bbClockRefract" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">
+            <feImage id="bbClockRefractMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map" />
+            <feDisplacementMap id="bbClockRefractBend" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
       </div>
       <div id="bbBlocked" class="bb-blocked"></div>
       <div id="bbFavorites" class="bb-favs"></div>
@@ -274,6 +290,10 @@
           <label class="wallpaper-line-label" for="clockWeight" data-i18n="newtab.clock.weight">Weight</label>
           <input id="clockWeight" class="wallpaper-fade" type="range" min="400" max="700" step="10" value="500" />
         </div>
+        <div class="wallpaper-line clock-line">
+          <label class="wallpaper-line-label" for="clockHeight" data-i18n="newtab.clock.height">Height</label>
+          <input id="clockHeight" class="wallpaper-fade" type="range" min="100" max="300" step="5" value="100" />
+        </div>
         <hr class="customize-divider" />
         <div id="clockColors" class="clock-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.clock.color"></div>
         <div id="clockToneLine" class="wallpaper-line clock-line">
@@ -405,6 +425,7 @@
   <script src="onboarding.js"></script>
   <script src="newtab-wallpaper.js"></script>
   <script src="start-site-name.js"></script>
+  <script src="clock-art.js"></script>
   <script src="newtab.js"></script>
 </body>
 </html>

@@ -5155,6 +5155,10 @@
     "message": "Stärke",
     "source": "sha256:37234f84770d4794a6954002728906ad5cc8142080afb0cce635e11616926fa0"
   },
+  "newtab.clock.height": {
+    "message": "Höhe",
+    "source": "sha256:152d7cf9d0dc3047583b5104c56b624520d3823183b217c341a668cacb5be3d6"
+  },
   "newtab.clock.color": {
     "message": "Farbe",
     "source": "sha256:ca00ae4913e0162319257952f2b0b9ee148c7295384b0eff0cea88d58f455f7a"

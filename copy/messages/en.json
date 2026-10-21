@@ -5313,6 +5313,11 @@
     "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
     "maxLength": 10
   },
+  "newtab.clock.height": {
+    "message": "Height",
+    "note": "Start page → clock Font & color popover: label of the slider that stretches the clock’s figures taller (as on the iOS Lock Screen), from their usual height to three times it.",
+    "maxLength": 10
+  },
   "newtab.clock.color": {
     "message": "Color",
     "note": "Start page → clock Font & color popover: accessible name of the row of color swatches for the clock."

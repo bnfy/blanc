@@ -1450,6 +1450,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_clock_font_inter">Inter</string>
     <string name="newtab_clock_font_mono">JetBrains Mono</string>
     <string name="newtab_clock_weight">Peso</string>
+    <string name="newtab_clock_height">Altura</string>
     <string name="newtab_clock_color">Cor</string>
     <string name="newtab_clock_auto">Automática</string>
     <string name="newtab_clock_tone">Tom</string>

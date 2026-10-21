@@ -57619,6 +57619,48 @@
         }
       }
     },
+    "newtab.clock.height": {
+      "comment": "Start page → clock Font & color popover: label of the slider that stretches the clock’s figures taller (as on the iOS Lock Screen), from their usual height to three times it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Height"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höhe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauteur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altezza"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altura"
+          }
+        }
+      }
+    },
     "newtab.clock.color": {
       "comment": "Start page → clock Font & color popover: accessible name of the row of color swatches for the clock.",
       "extractionState": "manual",

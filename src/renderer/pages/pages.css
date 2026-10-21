@@ -3106,7 +3106,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
   font-size: clamp(80px, 12vw, 148px);
   font-weight: 500;
   font-variant-numeric: proportional-nums;
-  text-shadow: 0 2px 24px rgba(255, 252, 247, 0.34);
+  /* newtab.js sets a shadow opposite to the clock's ink, so the figures keep
+     an edge over any wallpaper in any color. */
+  text-shadow: var(--clock-shadow, none);
 }
 .bb-blocked { margin-top: 10px; font-family: var(--font-text); font-size: 11.5px; }
 .bb-favs { gap: 16px; margin-top: 34px; }
@@ -3738,13 +3740,6 @@ body:not([data-layout="ledger"]) .ledger-footer { border-top: 0; }
   transition: opacity 160ms var(--start-ease);
 }
 body.has-underflow .ledger-footer::before { opacity: 1; }
-
-/* The clock's glow helps it over the light landscape; in dark and private it
-   reads as a halo. */
-@media (prefers-color-scheme: dark) {
-  .bb-clock { text-shadow: none; }
-}
-:root[data-theme="private"] .bb-clock { text-shadow: none; }
 
 @media (prefers-reduced-transparency: reduce) {
   .ledger-body,
@@ -4568,8 +4563,6 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   --start-card-highlight: inset 0 0 0 transparent;
   --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(18, 15, 12, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 19, 15, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(18, 15, 12, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
 }
-/* The clock's glow is a light halo; on a dark wash it would smear. */
-.ledger-body[data-wallpaper-style="dark"] .bb-clock { text-shadow: none; }
 
 /* Color wallpaper (spec 2026-10-18-start-page-color-and-space-wallpaper-design):
    main sends the finished stops (start-page-paint.js), so every ink here was
@@ -4593,8 +4586,6 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
     linear-gradient(160deg, var(--start-color-glow), var(--start-color-base) 48%, var(--start-color-deep));
 }
 .ledger-body[data-wallpaper-fill="gradient"] { background-attachment: fixed; }
-.ledger-body[data-wallpaper-fill="solid"] .bb-clock,
-.ledger-body[data-wallpaper-fill="gradient"] .bb-clock { text-shadow: none; }
 @media (prefers-color-scheme: dark) {
   .ledger-body[data-wallpaper-fill="soft"] { background-color: var(--start-color-soft-dark); }
 }
@@ -4674,7 +4665,7 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
    newtab.js sets data-font, data-style and --clock-weight on the clock, and
    data-ink with --clock-ink when a color is chosen; without them the clock
    is drawn as before. Each face's preview in the popover uses the same rule. */
-.bb-clock { anchor-name: --bb-clock; }
+.bb-clock-row { position: relative; anchor-name: --bb-clock; }
 .bb-clock[data-font] { font-weight: var(--clock-weight, 500); }
 /* The universal wdth pin is !important, so the condensed cut must be too. */
 .bb-clock[data-font="condensed"],
@@ -4684,30 +4675,39 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
 .bb-clock[data-font="mono"],
 .clock-font[data-clock-font-pick="mono"] > span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: -0.06em; }
 .bb-clock[data-ink] { color: var(--clock-ink); }
-/* Glass: a translucent numeral lit from above, with a bright rim and a soft
-   shadow under it, in the clock's own color. Text can't blur what is behind
-   it, so the glass is drawn rather than sampled. */
-.bb-clock[data-style="glass"] {
-  --clock-glass: var(--clock-ink, var(--text));
-  color: transparent;
-  background-image: linear-gradient(172deg,
-    color-mix(in oklab, var(--clock-glass) 24%, rgb(255 255 255 / 0.94)) 0%,
-    color-mix(in oklab, var(--clock-glass) 52%, transparent) 36%,
-    color-mix(in oklab, var(--clock-glass) 30%, transparent) 64%,
-    color-mix(in oklab, var(--clock-glass) 64%, rgb(255 255 255 / 0.5)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-stroke: 1px color-mix(in oklab, var(--clock-glass) 24%, rgb(255 255 255 / 0.6));
-  text-shadow: none;
-  filter: drop-shadow(0 1px 0.5px rgb(255 255 255 / 0.4)) drop-shadow(0 12px 28px rgb(0 0 0 / 0.16));
+/* Drawn (stretched or glass): the typeset clock keeps its size and voice for
+   the drawing to measure and for screen readers, out of sight. */
+.bb-clock-row[data-drawn] .bb-clock { position: absolute; opacity: 0; pointer-events: none; }
+.bb-clock-art { position: relative; flex: none; }
+.bb-clock-art > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* No filter, opacity or transform may sit on the lens's ancestors: each one
+   would cut the lens off from the page it bends. */
+.bb-clock-lens {
+  backdrop-filter: url(#bbClockRefract) blur(0.5px) saturate(170%) brightness(1.1);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
-@media (prefers-reduced-transparency: reduce) {
-  .bb-clock[data-style="glass"] {
-    color: var(--clock-glass);
-    background-image: none;
-    -webkit-text-stroke: 0;
-    filter: none;
-  }
+/* The glass's shadow is drawn outside the figures only, so the glass stays
+   clear; it overhangs the drawing by its own margin. */
+.bb-clock-art > .bb-clock-shadow { inset: auto; }
+.bb-clock-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+/* Canvas fonts can't take font-variation-settings, so the clock's two
+   Instrument Sans widths are pinned as faces of their own for its drawing. */
+@font-face {
+  font-family: "Blanc Clock Instrument";
+  src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 98%;
+  font-display: block;
+}
+@font-face {
+  font-family: "Blanc Clock Condensed";
+  src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75%;
+  font-display: block;
 }
 
 /* The Customize popover's way in: shown only while Billboard is the layout. */

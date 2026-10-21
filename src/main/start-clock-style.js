@@ -22,9 +22,13 @@ const PRESET_IDS = Object.freeze(Identity.PRESETS.map((p) => p.id));
 // the wallpaper's text set as it always has.
 const COLORS = Object.freeze(['auto', ...PRESET_IDS]);
 // The clock as it was before these choices existed.
-const DEFAULTS = Object.freeze({ font: 'instrument', weight: 500, color: 'auto', tone: 50, style: 'solid' });
+const DEFAULTS = Object.freeze({ font: 'instrument', weight: 500, color: 'auto', tone: 50, style: 'solid', height: 100 });
 const WEIGHT_MIN = 100;
 const WEIGHT_MAX = 900;
+// How tall the figures stand, in percent of their typeset height: the Lock
+// Screen's stretch, which lengthens stems rather than scaling strokes.
+const HEIGHT_MIN = 100;
+const HEIGHT_MAX = 300;
 // Tone 50 is the preset exactly. Below it the color deepens toward black,
 // above it it lightens toward white, short of either so it stays a color.
 const TONE_DARKEN = 0.7;
@@ -35,6 +39,7 @@ const normalizeStyle = (value) => (STYLES.includes(value) ? value : null);
 const normalizeColor = (value) => (COLORS.includes(value) ? value : null);
 const normalizeWeight = (value) => (Number.isInteger(value) && value >= WEIGHT_MIN && value <= WEIGHT_MAX ? value : null);
 const normalizeTone = (value) => (Number.isInteger(value) && value >= 0 && value <= 100 ? value : null);
+const normalizeHeight = (value) => (Number.isInteger(value) && value >= HEIGHT_MIN && value <= HEIGHT_MAX ? value : null);
 
 const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 const toHex = (rgb) => `#${rgb.map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('')}`;
@@ -66,7 +71,7 @@ function weightIn(font, weight) {
  * values read as the defaults. The saved weight is kept as chosen, so moving
  * to a narrower font and back restores it; `weight` is what is drawn.
  */
-function clockStyle({ font, weight, color, tone, style } = {}) {
+function clockStyle({ font, weight, color, tone, style, height } = {}) {
   const f = normalizeFont(font) ?? DEFAULTS.font;
   const c = normalizeColor(color) ?? DEFAULTS.color;
   const t = normalizeTone(tone) ?? DEFAULTS.tone;
@@ -82,6 +87,7 @@ function clockStyle({ font, weight, color, tone, style } = {}) {
     base: Identity.PRESETS.find((p) => p.id === c)?.hex ?? null,
     toneMix: { darken: TONE_DARKEN, lighten: TONE_LIGHTEN },
     style: normalizeStyle(style) ?? DEFAULTS.style,
+    height: normalizeHeight(height) ?? DEFAULTS.height,
     presets: Identity.PRESETS.map(({ id, hex }) => ({ id, hex })),
   };
 }
@@ -94,6 +100,7 @@ function clockStyleFromSettings(current = {}) {
     color: current.newtabClockColor,
     tone: current.newtabClockTone,
     style: current.newtabClockStyle,
+    height: current.newtabClockHeight,
   });
 }
 
@@ -106,6 +113,7 @@ function settingsForClock(partial) {
   if (normalizeColor(partial.color) !== null) write.newtabClockColor = partial.color;
   if (normalizeTone(partial.tone) !== null) write.newtabClockTone = partial.tone;
   if (normalizeStyle(partial.style) !== null) write.newtabClockStyle = partial.style;
+  if (normalizeHeight(partial.height) !== null) write.newtabClockHeight = partial.height;
   return write;
 }
 
@@ -120,6 +128,7 @@ module.exports = {
   normalizeColor,
   normalizeWeight,
   normalizeTone,
+  normalizeHeight,
   inkFor,
   weightIn,
   clockStyle,

@@ -102,7 +102,7 @@ const CHECKLIST_FLAGS = [
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'bangsEnabled', 'customBangs', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'newtabClockHeight', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -209,12 +209,14 @@ const DEFAULTS = {
   newtabFollowSpaceColor: false,
   // The Billboard clock's Font & Color (start-clock-style.js): a bundled face,
   // its weight, the page's ink or a Spaces preset at a tone, and Solid or
-  // Glass. The defaults draw the clock as it was. Synced like the layout.
+  // Glass, and how tall the figures stand (percent; the Lock Screen's
+  // stretch). The defaults draw the clock as it was. Synced like the layout.
   newtabClockFont: 'instrument',
   newtabClockWeight: 500,
   newtabClockColor: 'auto',
   newtabClockTone: 50,
   newtabClockStyle: 'solid',
+  newtabClockHeight: 100,
   // Show this device's own image on the Start Page when one is stored
   // (wallpaper.js). Device-local like the image itself, so not Profile Synced.
   newtabCustomWallpaper: false,
@@ -518,6 +520,7 @@ function getSettings() {
   if (clockRules.normalizeColor(data.newtabClockColor) === null) data.newtabClockColor = DEFAULTS.newtabClockColor;
   if (clockRules.normalizeTone(data.newtabClockTone) === null) data.newtabClockTone = DEFAULTS.newtabClockTone;
   if (clockRules.normalizeStyle(data.newtabClockStyle) === null) data.newtabClockStyle = DEFAULTS.newtabClockStyle;
+  if (clockRules.normalizeHeight(data.newtabClockHeight) === null) data.newtabClockHeight = DEFAULTS.newtabClockHeight;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
@@ -614,6 +617,7 @@ function sanitize(partial) {
     color: partial.newtabClockColor,
     tone: partial.newtabClockTone,
     style: partial.newtabClockStyle,
+    height: partial.newtabClockHeight,
   }));
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;

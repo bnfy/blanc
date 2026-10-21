@@ -1,5 +1,5 @@
 // The Billboard clock's Font & color, end to end in the real app: open it from
-// Customize, change the face, weight, color, tone and style, see each drawn
+// Customize, change the face, weight, height, color, tone and style, see each drawn
 // on the clock, and find every choice saved (and stamped for Profile Sync).
 // BLANC_CLOCK_CAPTURES=<dir> also saves screenshots for review.
 import assert from 'node:assert/strict';
@@ -43,8 +43,6 @@ try {
       family: style.fontFamily,
       weight: style.fontWeight,
       color: style.color,
-      fill: style.webkitTextFillColor,
-      clip: style.backgroundClip,
     };
   });
 
@@ -99,21 +97,58 @@ try {
   assert.notEqual(toned, 'rgb(55, 102, 148)');
   await capture(page, '4-sky-light');
 
-  // Glass.
+  // Height: the figures stand taller, drawn; the typeset text stays for
+  // screen readers.
+  const art = () => page.evaluate(() => {
+    const row = document.querySelector('.bb-clock-row');
+    const element = document.getElementById('bbClockArt');
+    const lens = getComputedStyle(document.getElementById('bbClockLens'));
+    return {
+      drawn: row.hasAttribute('data-drawn'),
+      hidden: element.hidden,
+      style: element.dataset.style,
+      height: element.getBoundingClientRect().height,
+      fontSize: parseFloat(getComputedStyle(document.getElementById('bbClock')).fontSize),
+      text: document.getElementById('bbClock').textContent,
+      lensHidden: document.getElementById('bbClockLens').hidden,
+      backdrop: lens.backdropFilter,
+      mask: lens.maskImage,
+      map: document.getElementById('bbClockRefractMap').getAttribute('href') ?? '',
+    };
+  });
+  assert.equal((await art()).drawn, false, 'Solid at full height stays typeset');
+  await page.locator('#clockHeight').fill('220');
+  await waitForValue(async () => settingsFile(), (s) => s.newtabClockHeight === 220, 'saved height');
+  await page.waitForFunction(() => document.querySelector('.bb-clock-row').hasAttribute('data-drawn'));
+  const tall = await art();
+  assert.equal(tall.hidden, false);
+  assert.equal(tall.style, 'solid');
+  assert.equal(tall.lensHidden, true);
+  assert.ok(tall.height > tall.fontSize * 1.6, `the clock stands taller (${tall.height} for ${tall.fontSize}px type)`);
+  assert.match(tall.text, /^\d{1,2}:\d{2}$/);
+  await capture(page, '5-tall');
+
+  // Glass bends the page behind the figures through the refraction filter.
   await page.getByRole('button', { name: 'Glass', exact: true }).click();
-  await page.waitForFunction(() => document.getElementById('bbClock').dataset.style === 'glass');
-  const glass = await clock();
-  assert.equal(glass.clip, 'text');
-  assert.equal(glass.color, 'rgba(0, 0, 0, 0)');
-  await capture(page, '5-glass');
+  await page.waitForFunction(() => document.getElementById('bbClockArt').dataset.style === 'glass');
+  const glass = await art();
+  assert.equal(glass.lensHidden, false);
+  assert.match(glass.backdrop, /url\("?#bbClockRefract"?\)/);
+  assert.match(glass.mask, /^url\("data:image\/png/);
+  assert.match(glass.map, /^data:image\/png/);
+  await capture(page, '6-glass-tall-sky');
+  await page.locator('#clockHeight').fill('100');
+  await waitForValue(async () => settingsFile(), (s) => s.newtabClockHeight === 100, 'saved height back');
   await page.getByRole('button', { name: 'Automatic', exact: true }).click();
   await page.getByRole('button', { name: 'Inter', exact: true }).click();
   await page.waitForFunction(() => !document.getElementById('bbClock').hasAttribute('data-ink')
     && document.getElementById('bbClock').dataset.font === 'inter');
-  await capture(page, '6-glass-auto-inter');
+  // Glass at full height is still drawn.
+  assert.equal((await art()).drawn, true);
+  await capture(page, '7-glass-auto-inter');
 
   // Every choice is stamped for Profile Sync, and unknown values are refused.
-  const keys = ['newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle'];
+  const keys = ['newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'newtabClockHeight'];
   await waitForValue(async () => settingsFile(),
     (saved) => saved.newtabClockStyle === 'glass' && saved.newtabClockColor === 'auto' && saved.newtabClockFont === 'inter'
       && keys.every((key) => saved._syncMeta?.[key] > 0),

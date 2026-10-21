@@ -800,6 +800,7 @@ function updateClock() {
     .map((part) => part.value)
     .join('')
     .trim();
+  scheduleClockArt();
 }
 function startClock() {
   updateClock();
@@ -827,10 +828,23 @@ const clockWeight = document.getElementById('clockWeight');
 const clockTone = document.getElementById('clockTone');
 const clockToneLine = document.getElementById('clockToneLine');
 const clockColors = document.getElementById('clockColors');
+const clockHeight = document.getElementById('clockHeight');
+const clockRow = clockElement.parentElement;
+const clockArt = document.getElementById('bbClockArt');
+const clockLens = document.getElementById('bbClockLens');
+const clockFace = document.getElementById('bbClockFace');
+const clockShadow = document.getElementById('bbClockShadow');
+const clockRefract = document.getElementById('bbClockRefract');
+const clockRefractMap = document.getElementById('bbClockRefractMap');
+const clockRefractBend = document.getElementById('bbClockRefractBend');
+const reducedTransparency = matchMedia('(prefers-reduced-transparency: reduce)');
 let clockState = null;
 let clockDragging = false;
+// The Height thumb's value while it is dragged, drawn before it is saved.
+let clockHeightPreview = null;
 function paintClockWeight(weight) {
   for (const element of [clockElement, clockPopover]) element.style.setProperty('--clock-weight', String(weight));
+  scheduleClockArt();
 }
 function paintClockInk(ink) {
   if (ink) {
@@ -840,7 +854,112 @@ function paintClockInk(ink) {
     delete clockElement.dataset.ink;
     clockElement.style.removeProperty('--clock-ink');
   }
+  scheduleClockArt();
 }
+
+// Stretched or glass, the clock is drawn (clock-art.js) from the typeset
+// clock's own computed font, size, spacing and color, so it always matches
+// what Solid at full height would show. Canvas fonts can't take
+// font-variation-settings, so Instrument Sans is drawn from faces pinned to
+// the clock's widths (pages.css).
+const CLOCK_CANVAS_FAMILIES = {
+  instrument: '"Blanc Clock Instrument"',
+  condensed: '"Blanc Clock Condensed"',
+  inter: 'Inter',
+  mono: '"JetBrains Mono"',
+};
+// The glass bends the page by up to this share of the type size, across a
+// bevel this share of it wide.
+const GLASS_BEND = 0.3;
+const GLASS_BEVEL = 0.05;
+// How far the glass's shadow may reach past the figures, as a share of the
+// type size.
+const GLASS_SHADOW_MARGIN = 0.3;
+let clockArtFrame = 0;
+function scheduleClockArt() {
+  if (clockArtFrame) return;
+  clockArtFrame = requestAnimationFrame(() => {
+    clockArtFrame = 0;
+    drawClockArt();
+  });
+}
+const rgbOf = (color) => (color.match(/[\d.]+/g) ?? ['0', '0', '0']).slice(0, 3).map(Number);
+function drawClockArt() {
+  if (!clockState || state.layout !== 'billboard') return;
+  // Every clock carries a shadow opposite to its ink (clock-art.js), so it
+  // reads over any wallpaper in any color.
+  clockElement.style.removeProperty('--clock-shadow');
+  const ink = rgbOf(getComputedStyle(clockElement).color);
+  const shadow = globalThis.blancClockArt.shadowFor(ink);
+  clockElement.style.setProperty('--clock-shadow', shadow);
+  const height = clockHeightPreview ?? clockState.height ?? 100;
+  const glass = clockState.style === 'glass' && !reducedTransparency.matches;
+  const drawn = height > 100 || glass;
+  clockRow.toggleAttribute('data-drawn', drawn);
+  clockArt.hidden = !drawn;
+  if (!drawn) return;
+  const computed = getComputedStyle(clockElement);
+  const size = parseFloat(computed.fontSize);
+  const weight = Number(computed.fontWeight) || 500;
+  const family = CLOCK_CANVAS_FAMILIES[clockState.font] ?? CLOCK_CANVAS_FAMILIES.instrument;
+  // Draw only once the face is ready; its load draws again.
+  const spec = `${weight} ${size}px ${family}`;
+  if (!document.fonts.check(spec)) {
+    document.fonts.load(spec).then(scheduleClockArt, () => {});
+    return;
+  }
+  // At most half the window tall: the figures are about 0.7 of the type size.
+  const fits = 1 + Math.max(0, innerHeight * 0.5 - size) / (size * 0.7);
+  const factor = Math.max(1, Math.min(height / 100, fits));
+  const scale = devicePixelRatio || 1;
+  const art = globalThis.blancClockArt.drawClock(clockElement.textContent, {
+    family, weight, size, stretch: 'normal', letterSpacing: parseFloat(computed.letterSpacing) || 0,
+  }, factor, scale);
+  clockArt.style.width = `${art.width}px`;
+  clockArt.style.height = `${art.height}px`;
+  clockArt.style.marginInline = `${-art.left}px`;
+  clockArt.dataset.style = glass ? 'glass' : 'solid';
+  let face;
+  if (glass) {
+    const { map, face: light } = globalThis.blancClockArt.paintGlass(art.mask, rgbOf(computed.color), size * GLASS_BEVEL * scale, 0.9);
+    for (const element of [clockRefract, clockRefractMap]) {
+      element.setAttribute('width', String(art.width));
+      element.setAttribute('height', String(art.height));
+    }
+    clockRefractMap.setAttribute('href', map.toDataURL());
+    clockRefractBend.setAttribute('scale', String(size * GLASS_BEND));
+    const mask = `url(${art.mask.toDataURL()})`;
+    clockLens.style.maskImage = mask;
+    clockLens.style.webkitMaskImage = mask;
+    clockLens.hidden = false;
+    clockFace.style.removeProperty('filter');
+    // A contact shadow and a wide soft one, outside the figures.
+    const margin = Math.ceil(size * GLASS_SHADOW_MARGIN * scale);
+    const cast = globalThis.blancClockArt.paintShadow(art.mask, [
+      { blur: size * 0.012 * scale, y: size * 0.008 * scale, alpha: 0.42 },
+      { blur: size * 0.09 * scale, y: size * 0.05 * scale, alpha: 0.3 },
+    ], margin);
+    clockShadow.width = cast.width;
+    clockShadow.height = cast.height;
+    clockShadow.getContext('2d').drawImage(cast, 0, 0);
+    clockShadow.style.left = clockShadow.style.top = `${-margin / scale}px`;
+    clockShadow.style.width = `${cast.width / scale}px`;
+    clockShadow.style.height = `${cast.height / scale}px`;
+    clockShadow.hidden = false;
+    face = light;
+  } else {
+    clockLens.hidden = true;
+    clockShadow.hidden = true;
+    face = globalThis.blancClockArt.paintSolid(art.mask, computed.color);
+    clockFace.style.filter = globalThis.blancClockArt.shadowFilter(shadow);
+  }
+  clockFace.width = face.width;
+  clockFace.height = face.height;
+  clockFace.getContext('2d').drawImage(face, 0, 0);
+}
+addEventListener('resize', scheduleClockArt);
+reducedTransparency.addEventListener('change', scheduleClockArt);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleClockArt);
 // The same mix main makes, as CSS, so the clock follows the tone thumb.
 function previewClockTone(tone) {
   const base = clockState?.base;
@@ -883,12 +1002,14 @@ function applyClock(clock) {
   for (const button of clockColors.children) button.setAttribute('aria-pressed', String(button.dataset.clockColorPick === clock.color));
   clockToneLine.hidden = !clock.base;
   if (clock.base) clockTone.style.setProperty('--clock-tone-mid', clock.base);
+  scheduleClockArt();
   // A status broadcast must not yank a thumb out from under a drag.
   if (clockDragging) return;
   clockWeight.min = String(clock.range?.min ?? 400);
   clockWeight.max = String(clock.range?.max ?? 700);
   clockWeight.value = String(clock.weight);
   clockTone.value = String(clock.tone);
+  clockHeight.value = String(clock.height ?? 100);
   paintClockWeight(clock.weight);
   paintClockInk(clock.ink);
 }
@@ -906,11 +1027,17 @@ clockTone.addEventListener('input', () => {
   clockDragging = true;
   previewClockTone(Number(clockTone.value));
 });
-for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone']]) {
+clockHeight.addEventListener('input', () => {
+  clockDragging = true;
+  clockHeightPreview = Number(clockHeight.value);
+  scheduleClockArt();
+});
+for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [clockHeight, 'height']]) {
   slider.addEventListener('change', async () => {
     const value = Number(slider.value);
     clockDragging = false;
     await setClock({ [key]: value });
+    clockHeightPreview = null;
   });
 }
 // Customize closes and the clock's own popover opens under the clock, so the
@@ -1131,6 +1258,8 @@ function applyWallpaper(state) {
   if (state && typeof state === 'object') wallpaperState = state;
   wallpaper.setSource(wallpaperState);
   renderWallpaperControls();
+  // The wallpaper can change the page's ink, and so an Automatic clock's.
+  scheduleClockArt();
 }
 function applyDynamicWallpaper(enabled) {
   dynamicWallpaperEnabled = enabled === true;

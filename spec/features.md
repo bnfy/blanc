@@ -1534,19 +1534,29 @@ made.
   400–700, Inter 100–900, JetBrains Mono 400–800). The weight is saved as
   chosen and drawn inside the face's range, so moving to a narrower face and
   back restores it.
+- **Height.** 100–300%, the Lock Screen's stretch: stems lengthen while
+  strokes, curves, bars and the colon's dots keep their size (no vertical
+  scaling). Held to half the window's height.
 - **Color.** **Automatic** (the page's own text color, following the theme
   and wallpaper) or one of the eight Spaces presets, with a **Tone** slider
   from deeper to lighter. The color is the person's choice; there is no
   contrast guard.
-- **Style.** **Solid** (flat ink) or **Glass** (a translucent numeral lit from
-  above with a bright rim). Glass draws as Solid under reduced transparency.
-- **Defaults** draw the clock as it was: Instrument Sans 500, Automatic, Solid.
+- **Style.** **Solid** (flat ink) or **Glass**: the figures are a lens that
+  bends the page behind them, lit with a bright rim. It is drawn in the page,
+  on every platform (not macOS's native Liquid Glass, which Electron does not
+  expose). Glass draws as Solid under reduced transparency.
+- **Shadow.** Every clock carries a shadow so it reads over any background in
+  any color: a dark one under light ink, a light halo around dark ink, and an
+  outside-only shadow for Glass.
+- **Defaults** draw the clock as it was (Instrument Sans 500, Automatic,
+  Solid, 100%), with the shadow.
 - **Sync.** All five choices are synced like the layout (`newtabClockFont`,
   `newtabClockWeight`, `newtabClockColor`, `newtabClockTone`,
-  `newtabClockStyle`). Older builds ignore them. Private tabs draw the same
+  `newtabClockStyle`, `newtabClockHeight`). Older builds ignore them. Private tabs draw the same
   clock.
 - **Portability.** `src/main/start-clock-style.js` (validation, weight ranges
   and the toned ink, with no Electron dependency) finishes every value; the
-  page applies them.
-- **Acceptance:** `test/desktop/billboard-clock-smoke.mjs` and
-  `test/unit/start-clock-style.test.js`.
+  page applies them. The stretch, glass and shadow rules in
+  `src/renderer/pages/clock-art.js` are pure pixel functions.
+- **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
+  `test/unit/start-clock-style.test.js` and `test/unit/clock-art.test.js`.

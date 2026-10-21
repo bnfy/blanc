@@ -1412,6 +1412,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_clock_font_inter">Inter</string>
     <string name="newtab_clock_font_mono">JetBrains Mono</string>
     <string name="newtab_clock_weight">Weight</string>
+    <string name="newtab_clock_height">Height</string>
     <string name="newtab_clock_color">Color</string>
     <string name="newtab_clock_auto">Automatic</string>
     <string name="newtab_clock_tone">Tone</string>
