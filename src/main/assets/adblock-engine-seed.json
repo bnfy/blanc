@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "seedId": "194ddc2d204c13b9",
-  "byteLength": 5404689,
-  "sha256": "194ddc2d204c13b9ccbd853240fa75e5f2014b88d7fdd864a4b9471cb74a67d4",
+  "seedId": "b2873ed6ff04941e",
+  "byteLength": 5404713,
+  "sha256": "b2873ed6ff04941eadfa5617ec309d7579d5889a8a3de681634e9deaebb07f9c",
   "engine": {
     "package": "@ghostery/adblocker-electron",
-    "packageVersion": "2.18.2",
-    "formatVersion": 895
+    "packageVersion": "2.20.1",
+    "formatVersion": 899
   },
   "filters": {
     "sourceDate": "2026-07-09",
@@ -24,9 +24,9 @@
   },
   "resources": {
     "file": "ghostery-resources.json",
-    "packageVersion": "2.18.2",
-    "upstreamCommit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
-    "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5",
-    "source": "https://github.com/ghostery/adblocker/tree/c4c20aa63e3a72113f66777cf35a3f58877a36ee/packages/adblocker/assets/ublock-origin"
+    "packageVersion": "2.20.1",
+    "upstreamCommit": "c18718adc33e82a086d996d0b0f75deb3d01745a",
+    "sha256": "5ce0ce483f0e5514308ccb0240960a9dd7bfeab417debeef96960dce2c95f690",
+    "source": "https://github.com/ghostery/adblocker/tree/c18718adc33e82a086d996d0b0f75deb3d01745a/packages/adblocker/assets/ublock-origin"
   }
 }
