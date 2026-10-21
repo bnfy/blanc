@@ -1,0 +1,65 @@
+TAP version 13
+# Subtest: a known bang with words gives the hint row and the address
+ok 1 - a known bang with words gives the hint row and the address
+  ---
+  duration_ms: 7.360167
+  ...
+# Subtest: the hint shows the primary code, as the app does, and a trailing bang works
+ok 2 - the hint shows the primary code, as the app does, and a trailing bang works
+  ---
+  duration_ms: 0.234667
+  ...
+# Subtest: a bare known code opens the site and lists the longer codes
+ok 3 - a bare known code opens the site and lists the longer codes
+  ---
+  duration_ms: 5.464542
+  ...
+# Subtest: ! alone lists every popular bang; a known prefix keeps its hint
+ok 4 - ! alone lists every popular bang; a known prefix keeps its hint
+  ---
+  duration_ms: 5.557334
+  ...
+# Subtest: unknown codes, and text that is not a bang, are told apart
+ok 5 - unknown codes, and text that is not a bang, are told apart
+  ---
+  duration_ms: 4.20775
+  ...
+# Subtest: the hint and section labels are the pinned app copy, filled in literally
+ok 6 - the hint and section labels are the pinned app copy, filled in literally
+  ---
+  duration_ms: 7.225542
+  ...
+# Subtest: pasted whitespace collapses and long input is capped at 200 characters
+ok 7 - pasted whitespace collapses and long input is capped at 200 characters
+  ---
+  duration_ms: 0.815125
+  ...
+# Subtest: directoryRows derives the opened host and the engine tag
+ok 8 - directoryRows derives the opened host and the engine tag
+  ---
+  duration_ms: 48.305958
+  ...
+# Subtest: directoryRows reuses one collator and sorts the complete directory
+ok 9 - directoryRows reuses one collator and sorts the complete directory
+  ---
+  duration_ms: 43.3795
+  ...
+# Subtest: filterBangs finds a bang by site or by code, literally
+ok 10 - filterBangs finds a bang by site or by code, literally
+  ---
+  duration_ms: 29.752
+  ...
+# Subtest: directory order ignores leading punctuation in site names
+ok 11 - directory order ignores leading punctuation in site names
+  ---
+  duration_ms: 12.181333
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 215.332042

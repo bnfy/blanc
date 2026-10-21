@@ -92,13 +92,39 @@ test('directoryRows derives the opened host and the engine tag', async () => {
   assert.equal(rows.find((row) => row.code === 'yt').via, null);
 });
 
-test('directoryRows sorts the whole list without stalling the page', async () => {
-  // A collator per comparison took ~290 ms on a fast Mac; one shared takes ~15.
-  const { directoryRows } = await directory();
-  const started = performance.now();
-  directoryRows(data);
-  const took = performance.now() - started;
-  assert.ok(took < 150, `directoryRows took ${Math.round(took)} ms`);
+test('directoryRows reuses one collator and sorts the complete directory', () => {
+  // Guard the expensive per-comparison construction regression directly.
+  // Shared CI CPU contention is not a reliable wall-clock performance oracle.
+  let constructions = 0;
+  let comparisons = 0;
+  const context = {
+    URL,
+    Intl: {
+      Collator: function (...args) {
+        constructions++;
+        const collator = new Intl.Collator(...args);
+        return { compare(a, b) { comparisons++; return collator.compare(a, b); } };
+      },
+    },
+  };
+  const source = fs.readFileSync(path.join(ROOT, 'site/src/scripts/bangs-directory.mjs'), 'utf8');
+  vm.runInNewContext(source.replace(/^export /gm, ''), context);
+  const expected = new Intl.Collator('en', { sensitivity: 'base', ignorePunctuation: true });
+  for (let pass = 0; pass < 2; pass++) {
+    comparisons = 0;
+    const rows = context.directoryRows(data);
+    assert.equal(rows.length, data.entries.length);
+    assert.deepEqual(rows.map((row) => row.code).sort(), data.entries.map(([code]) => code).sort());
+    for (let i = 1; i < rows.length; i++) {
+      const before = rows[i - 1], after = rows[i];
+      const order = expected.compare(before.name, after.name);
+      assert.ok(order < 0 || (order === 0 && before.code <= after.code));
+    }
+    assert.ok(comparisons > 0, 'the shared collator actually compares names');
+    assert.ok(comparisons < 4 * rows.length * Math.ceil(Math.log2(rows.length)),
+      'comparison work stays within a generous n log n bound');
+    assert.equal(constructions, 1, 'reuse the collator across comparisons and calls');
+  }
 });
 
 test('filterBangs finds a bang by site or by code, literally', async () => {

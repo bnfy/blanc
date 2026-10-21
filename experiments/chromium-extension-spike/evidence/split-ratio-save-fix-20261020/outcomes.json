@@ -1,0 +1,22 @@
+[
+  {
+    "schedule": "encrypted",
+    "pass": true,
+    "checkpoints": 12
+  },
+  {
+    "schedule": "clear",
+    "pass": true,
+    "checkpoints": 12
+  },
+  {
+    "schedule": "navigation",
+    "pass": true,
+    "checkpoints": 12
+  },
+  {
+    "schedule": "repeated-eio",
+    "pass": true,
+    "checkpoints": 11
+  }
+]

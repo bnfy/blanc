@@ -2156,3 +2156,31 @@ Two incremental builds44.67/38.97seconds, scoped lint clean, final dry-run guard
 Owner-approved branded Extensions dev restart completed: PID83203, retained profile/CDP9248. All three tabs restored natively in original order (two New Tabs, Extensions), with Extensions selected and Shaded Purple unchanged. Verified sunrise image decoded, Instrument Sans/Inter loaded, Inter heading. Evidence /private/tmp/blanc-branded-extensions-dev-before.json, -after.json, -restart.log. No build, latency or Electron diagnostic run.
 
 Extensions branding/theme controls commit checkpoint: stale Island visual test now expects the approved no-top-highlight shadow and14px radius.15focused tests, token consistency, audit inventory and scoped lint pass. Broad unit run3575tests:3571pass; two failures were missing local v1.36.0 tag and two were sandbox-denied loopback listeners. After fetching the tag, all8tests in the two affected release-data files pass; workspace-test-coverage file passes with loopback access. Original failures retained. No further native build or latency/Electron diagnostic run. Evidence: evidence/extensions-branding-commit-20261020.
+
+
+### Pending-save Split View ratio repair — 2026-10-20
+
+The retry-save state comparison now includes split membership bounds, layout and ratio for each tab. A ratio change while session/history writes are pending triggers a new session rebuild and both-store flush before acknowledgement, under the existing ten-second timeout. Previously the comparison covered tab identity/navigation/pinning/selection only, so a live 35/65 ratio could return as 50/50 after an immediate post-ack crash.
+
+Four isolated schedules pass 47 checkpoints on the final normal binary:
+- Encrypted session storage: injected initial Session write EIO, reconcile partial cancellation, hold retry Session write, resize to 35/65, release, await acknowledgement and immediately SIGKILL. Restart restores one 35/65 split with each pane exactly once; fresh history close remains usable (12).
+- Clear session storage: the same held-write/immediate-crash sequence passes (12).
+- Pending-navigation regression: the changed URL survives the immediate post-ack crash with the split (12).
+- Repeated write EIO: failures remain errors; removal of the fault permits acknowledged recovery (11).
+
+Seven capture tests pass. Incremental build succeeds in 37.72 seconds/six steps; final dry-run guard schedules zero actions. Two initial dictionary API compile failures are retained as build.log and build2.log. No upstream hooks changed; prior 54 files/128 hunks unchanged, so no patch-budget increase needed. Native test launch uses the existing disposable crash-bubble bypass and syscall interposition; production code contains no fault injection.
+
+These checks qualify the reported ratio race and bounded regressions, not pre-ack crash durability, power loss, same-signature page-state changes, continuous-mutation timeout, arbitrary split/group lifecycle or physical native input. Retained dev instance and tabs untouched. Latency deferred; Electron diagnostic build pending approval. Changes are local and uncommitted at this checkpoint.
+
+Evidence: `experiments/chromium-extension-spike/evidence/split-ratio-save-fix-20261020/`.
+
+
+# Intel directory test repair
+
+Current-head Intel CI failed the directoryRows wall-clock assertion at 190ms versus 150ms during the full unit prerequisite. Replace that machine-dependent assertion with isolated instrumentation of the real module: one Intl.Collator reused across two full-directory sorts, exact code membership, complete locale/tie ordering, and a generous n log n comparison bound. Production sorting code is unchanged. This is a deterministic algorithm regression check, not a latency qualification.
+
+All 11 tests in site-bangs-logic pass; scoped ESLint passes. An injected per-comparison collator regression fails the new assertion (87397 constructions versus one). Temporary negative-test file removed. No native rebuild needed for this test change. The adjacent Split ratio fix already passed four schedules/47 checkpoints, seven capture tests and its incremental build/zero-action guard.
+
+Latency deferred; Electron diagnostic build pending approval. Intel CI confirmation remains pending push.
+
+Evidence: evidence/intel-directory-test-20261020.

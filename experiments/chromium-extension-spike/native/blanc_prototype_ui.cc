@@ -1949,11 +1949,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       base::ListValue tabs;
       for (int i = 0; i < model->count(); ++i) {
         auto* contents = model->GetWebContentsAt(i);
-        tabs.Append(base::DictValue()
-            .Set("id", sessions::SessionTabHelper::IdForTab(contents).id())
-            .Set("url", contents->GetLastCommittedURL().spec())
-            .Set("loading", contents->IsLoading())
-            .Set("pinned", model->IsTabPinned(i)));
+        base::DictValue tab;
+        tab.Set("id", sessions::SessionTabHelper::IdForTab(contents).id());
+        tab.Set("url", contents->GetLastCommittedURL().spec());
+        tab.Set("loading", contents->IsLoading());
+        tab.Set("pinned", model->IsTabPinned(i));
+        // Layout changes can race the backend write without changing tab IDs,
+        // URLs or selection. Rebuild again before acknowledging those changes.
+        if (const auto split = model->GetSplitForTab(i)) {
+          const auto* data = model->GetSplitData(*split);
+          tab.Set("splitStart", static_cast<int>(data->GetIndexRange().start()));
+          tab.Set("splitEnd", static_cast<int>(data->GetIndexRange().end()));
+          tab.Set("splitLayout", static_cast<int>(data->visual_data()->split_layout()));
+          tab.Set("splitRatio", data->visual_data()->split_ratio());
+        }
+        tabs.Append(std::move(tab));
       }
       windows.Append(base::DictValue().Set("selected", model->active_index())
           .Set("tabs", std::move(tabs)));
