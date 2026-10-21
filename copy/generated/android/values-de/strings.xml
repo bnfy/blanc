@@ -500,6 +500,8 @@
     <string name="tab_menu_unmute_site">Website-Ton einschalten</string>
     <string name="tab_menu_save_favorite">Zu Favoriten hinzufügen</string>
     <string name="tab_menu_remove_favorite">Aus Favoriten entfernen</string>
+    <string name="tab_menu_pin_start_page">An Startseite anheften</string>
+    <string name="tab_menu_unpin_start_page">Von Startseite lösen</string>
     <string name="tab_menu_move_to_group">In Gruppe verschieben</string>
     <string name="tab_menu_split_with">Teilen mit</string>
     <string name="tab_menu_split_pinned_refused">Angeheftete Tabs können nicht geteilt werden</string>
@@ -1440,6 +1442,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_private_footer">kein Verlauf · getrennt von normalen Tabs · endet beim Beenden, auch hier erstellte Passkeys</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Markiere eine Seite mit ♥ als Favorit, um sie hier anzuheften</string>
+    <string name="newtab_pin_title">%1$s anheften</string>
+    <string name="newtab_pin_label">%1$s an die Startseite anheften</string>
+    <string name="newtab_unpin_title">%1$s lösen</string>
+    <string name="newtab_unpin_label">%1$s von der Startseite lösen</string>
+    <string name="newtab_pin_done">%1$s an die Startseite angeheftet.</string>
+    <string name="newtab_unpin_done">%1$s von der Startseite gelöst.</string>
+    <string name="newtab_pin_full">Die Startseite fasst %1$s angeheftete Seiten. Löse zuerst eine.</string>
     <string name="onboarding_skip">überspringen</string>
     <string name="onboarding_step_label">%1$s / %2$s – %3$s</string>
     <string name="onboarding_step_default">Standardbrowser</string>
@@ -1564,6 +1573,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="favorites_row_move">verschieben ▸</string>
     <string name="favorites_row_move_from_folder">In %1$s – in einen anderen Ordner verschieben</string>
     <string name="favorites_row_move_to_folder">In einen Ordner verschieben</string>
+    <string name="favorites_row_pin">anheften</string>
+    <string name="favorites_row_unpin">lösen</string>
+    <string name="favorites_row_pin_label">%1$s an die Startseite anheften</string>
+    <string name="favorites_row_unpin_label">%1$s von der Startseite lösen</string>
+    <string name="favorites_row_pin_full">Die Startseite fasst %1$s angeheftete Seiten. Löse eine, um diese anzuheften.</string>
+    <string name="favorites_row_pinned">An die Startseite angeheftet</string>
     <string name="favorites_row_remove">entfernen</string>
     <string name="favorites_row_remove_label">%1$s aus den Favoriten entfernen</string>
     <string name="favorites_picker_label">%1$s in einen Ordner verschieben</string>

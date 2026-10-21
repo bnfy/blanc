@@ -31,7 +31,7 @@ test('core items present, in order, for a row on a non-active tab', () => {
   const m = build({ activeTabId: 2, surface: 'row' });
   assert.deepEqual(ids(m), [
     'copy-link', 'copy-clean-link', 'reload', 'duplicate', 'rename',
-    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'group', 'split-with',
+    'toggle-pin', 'toggle-mute', 'toggle-site-mute', 'toggle-favorite', 'toggle-start-pin', 'group', 'split-with',
     'glance', 'quiet', 'new-tab-below', 'new-tab', 'new-private-tab',
     'close-others', 'close-above', 'close-below', 'move-new-window', 'reopen-closed', 'close',
   ]);
@@ -78,6 +78,23 @@ test('save-to-favorites disabled for private and non-http tabs', () => {
   assert.equal(byId(build(), 'toggle-favorite').enabled, true);
   assert.equal(byId(build({ tab: { private: true } }), 'toggle-favorite').enabled, false);
   assert.equal(byId(build({ tab: { url: 'blanc://newtab/' } }), 'toggle-favorite').enabled, false);
+});
+
+test('pin to Start Page follows Favorites, says its state, and stops at the cap', () => {
+  const item = (tab) => byId(build({ tab }), 'toggle-start-pin');
+  assert.equal(item({}).label, 'Pin to Start Page');
+  assert.equal(item({}).enabled, true);
+  assert.equal(item({ startPinned: true }).label, 'Unpin from Start Page');
+  // The same pages Favorites take: never private, only web pages.
+  assert.equal(item({ private: true }).enabled, false);
+  assert.equal(item({ url: 'blanc://newtab/' }).enabled, false);
+  assert.equal(item({ url: 'file:///tmp/a.html' }).enabled, false);
+  // Every pin taken: a new pin waits, but a pinned page can still be unpinned.
+  assert.equal(item({ startPinsFull: true }).enabled, false);
+  assert.equal(item({ startPinsFull: true, startPinned: true }).enabled, true);
+  // It sits with the other page commands, right after Favorites.
+  const order = ids(build());
+  assert.equal(order.indexOf('toggle-start-pin'), order.indexOf('toggle-favorite') + 1);
 });
 
 test('copy-clean-link appears only when cleaning would change the url', () => {

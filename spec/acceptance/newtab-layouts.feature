@@ -55,6 +55,74 @@ Feature: Start page layouts
     And the Billboard dismissal stays in local page storage without deleting history
 
   @F35-5 @desktop
+  Scenario: Billboard keeps a pinned site at the front of its row
+    Given local history contains repeated visits for the Billboard
+    And the Start Page has no pins
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    And I pin "cnet.com" to the Billboard
+    Then the Billboard lists "cnet.com" first, pinned
+    And the Start Page keeps the page last visited on "cnet.com" pinned
+    When I unpin "cnet.com" from the Billboard
+    Then the Billboard lists "youtube.com" before "cnet.com"
+    And the Billboard keeps no pins
+
+  @F35-5 @desktop
+  Scenario: A pinned Billboard site outlasts history
+    Given local history contains repeated visits for the Billboard
+    And the Start Page has no pins
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    And I pin "cnet.com" to the Billboard
+    And I clear browsing history
+    And I open a new tab
+    Then the Billboard shows only "cnet.com", pinned, opening the page last visited
+    When I unpin "cnet.com" from the Billboard
+    Then "cnet.com" is absent from the Billboard
+    And the Billboard keeps no pins
+
+  @F35-5 @desktop
+  Scenario: A pinned favorite leads every favorites layout
+    Given eight favorites fill the Start Page
+    And the Start Page has no pins
+    And a profile whose start page layout is "shelf"
+    When I open a new tab
+    And I pin "Favorite 8" on the Start Page
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    When I choose the "ledger" start page layout from its footer
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    When I choose the "tally" start page layout from its footer
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+    And the Start Page keeps "Favorite 8" pinned
+    When I unpin "Favorite 8" on the Start Page
+    Then the Start Page's favorites are back in their saved order
+
+  @F35-5 @desktop
+  Scenario: A tab's menu pins its page to the front of an open Start Page
+    Given eight favorites fill the Start Page
+    And the Start Page has no pins
+    And a profile whose start page layout is "tally"
+    When I open a new tab
+    And I open "Pinned Article" in another tab
+    And I choose "Pin to Start Page" from that tab's menu
+    Then that tab's menu offers "Unpin from Start Page"
+    And the Start Page keeps "Pinned Article" pinned
+    When I go back to the Start Page tab
+    Then "Pinned Article" leads the Start Page's favorites, pinned
+
+  @F35-5 @desktop
+  Scenario: The Favorites page pins a favorite to the Start Page
+    Given eight favorites fill the Start Page
+    And the Start Page has no pins
+    And a profile whose start page layout is "ledger"
+    And the favorites page is open in the utility sheet
+    When I pin "Favorite 8" from the Favorites page
+    Then the Favorites page marks "Favorite 8" as pinned to the Start Page
+    And the Start Page keeps "Favorite 8" pinned
+    When I open a new tab
+    Then "Favorite 8" leads the Start Page's favorites, pinned
+
+  @F35-5 @desktop
   Scenario: Billboard continues past its initial candidate page
     Given local history contains sixty ranked sites for the Billboard
     And the first forty-eight Billboard sites are hidden locally
