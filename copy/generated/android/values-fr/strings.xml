@@ -1441,6 +1441,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_customize_button">Personnaliser</string>
     <string name="newtab_customize_label">Personnaliser la page d’accueil</string>
     <string name="newtab_customize_layout">Disposition</string>
+    <string name="newtab_customize_clock_heading">Horloge</string>
     <string name="newtab_customize_wallpaper_heading">Fond d’écran</string>
     <string name="newtab_clock_open">Police et couleur de l’horloge…</string>
     <string name="newtab_clock_title">Police et couleur</string>

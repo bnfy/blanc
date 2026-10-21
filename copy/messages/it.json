@@ -5119,17 +5119,21 @@
     "message": "Layout",
     "source": "sha256:4ef13ebe9f4450cd3bb26a58b7f2d4509f288dd9603bb6c469bb25da5eb2cd39"
   },
+  "newtab.customize.clockHeading": {
+    "message": "Orologio",
+    "source": "sha256:ea624a956604281ebced03c6cc13fb922cb4acb73032f59e4c788d88d961e96c"
+  },
   "newtab.customize.wallpaperHeading": {
     "message": "Sfondo",
     "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
   },
   "newtab.clock.open": {
     "message": "Carattere e colore dell’orologio…",
-    "source": "sha256:3101ec02fa39d03c97bdaf8ddd75841ce2448f24bb6a547627d64e09d02b2de2"
+    "source": "sha256:099a95a12c72f3b97f074c0c2cc1ecee83bf4ae979b654316ffaf46c694701b5"
   },
   "newtab.clock.title": {
     "message": "Carattere e colore",
-    "source": "sha256:15ced05b529d677392e5e8591e1565f86cbee773269aa6c094996d0e8564d716"
+    "source": "sha256:eaa8ddde892810344eecb2cb43ddf137460efbdfeedccdb5d586004824493bd5"
   },
   "newtab.clock.font": {
     "message": "Carattere",

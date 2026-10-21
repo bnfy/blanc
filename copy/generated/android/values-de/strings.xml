@@ -1403,6 +1403,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_customize_button">Anpassen</string>
     <string name="newtab_customize_label">Startseite anpassen</string>
     <string name="newtab_customize_layout">Layout</string>
+    <string name="newtab_customize_clock_heading">Uhr</string>
     <string name="newtab_customize_wallpaper_heading">Hintergrund</string>
     <string name="newtab_clock_open">Uhr: Schrift &amp; Farbe…</string>
     <string name="newtab_clock_title">Schrift &amp; Farbe</string>

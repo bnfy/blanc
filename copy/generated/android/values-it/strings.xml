@@ -1441,6 +1441,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_customize_button">Personalizza</string>
     <string name="newtab_customize_label">Personalizza la pagina iniziale</string>
     <string name="newtab_customize_layout">Layout</string>
+    <string name="newtab_customize_clock_heading">Orologio</string>
     <string name="newtab_customize_wallpaper_heading">Sfondo</string>
     <string name="newtab_clock_open">Carattere e colore dell’orologio…</string>
     <string name="newtab_clock_title">Carattere e colore</string>

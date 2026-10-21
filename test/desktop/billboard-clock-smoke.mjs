@@ -59,14 +59,31 @@ try {
   const open = page.getByRole('button', { name: 'Clock font & color…', exact: true });
   await open.waitFor();
   await page.locator('[data-layout-pick="ledger"]').click();
-  await page.waitForFunction(() => getComputedStyle(document.getElementById('clockStyleOpen')).display === 'none');
+  await page.waitForFunction(() => !document.getElementById('clockStyleOpen').checkVisibility());
   await page.locator('[data-layout-pick="billboard"]').click();
+  // Customize's Clock row samples the clock and says what it is set to.
+  assert.equal(await page.locator('#clockStyleSummary').textContent(), 'Instrument Sans · Solid');
+  assert.equal(await page.locator('#clockStyleSample').getAttribute('data-font'), 'instrument');
+  await capture(page, '2a-customize');
   await open.click();
   await page.waitForFunction(() => document.getElementById('clockPopover').matches(':popover-open')
     && !document.getElementById('customizePopover').matches(':popover-open'));
-  // The popover hangs below the clock, never over it.
+  // The sheet hangs below the clock, or beside it where there is no room
+  // below or above: never over it. Measured once it has settled.
+  await page.waitForTimeout(400);
   const [clockBox, popoverBox] = await Promise.all([page.locator('#bbClock').boundingBox(), page.locator('#clockPopover').boundingBox()]);
-  assert.ok(popoverBox.y >= clockBox.y + clockBox.height, 'the popover sits under the clock');
+  const apart = popoverBox.y >= clockBox.y + clockBox.height || popoverBox.y + popoverBox.height <= clockBox.y
+    || popoverBox.x >= clockBox.x + clockBox.width || popoverBox.x + popoverBox.width <= clockBox.x;
+  assert.ok(apart, `the sheet never covers the clock (${JSON.stringify({ clockBox, popoverBox })})`);
+  // Opened with the pointer, focus rests on the sheet itself (no ring shows);
+  // opened from the keyboard, it lands on the chosen font.
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'clockPopover');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !document.getElementById('clockPopover').matches(':popover-open'));
+  await page.getByRole('button', { name: 'Customize', exact: true }).click();
+  await open.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.getElementById('clockPopover').matches(':popover-open'));
   assert.equal(await page.evaluate(() => document.activeElement?.dataset.clockFontPick), 'instrument');
   await capture(page, '2-popover');
 

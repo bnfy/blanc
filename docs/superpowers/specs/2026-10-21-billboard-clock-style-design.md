@@ -25,14 +25,33 @@ public release (`docs/marketing-claims.md`).
 
 ### Way in
 
-Customize gains one line under the layout thumbnails, **Clock font & color…**,
-shown only while Billboard is the layout. It closes Customize and opens the
-clock's own popover, anchored under the clock (`position-anchor: --bb-clock`,
-flipping above it when there is no room), so the clock stays in view and every
-change shows on it as it is made, as on iOS. Escape or a click elsewhere closes
-it; keyboard focus returns to Customize. Changing away from Billboard closes it.
+While Billboard is the layout, Customize gains a **Clock** section between
+Layout and Wallpaper, with their heading style and dividers (owner request,
+October 21, 2026: the first version's lone text link was too easy to miss).
+It holds one settings-list row: a live sample of the clock ("12" in its face,
+weight, color and style), **Font & color** with a summary under it (the face,
+the height when above 100%, and Solid or Glass, as in "Roboto Flex · 200% ·
+Glass"), and a chevron. Its accessible name is "Clock font & color…". It
+closes Customize and opens the clock's own sheet, anchored to the clock, so
+the clock stays in view and every change shows on it as it is made, as on
+iOS. Escape or a click elsewhere closes it; keyboard focus returns to
+Customize. Changing away from Billboard closes it.
 
 ### The popover (iOS order)
+
+Drawn after the Lock Screen's Font & Color sheet (owner request, October 21,
+2026): a 380 px card with 28 px corners and generous padding; large "12"
+samples, the chosen one marked by a thin outline only; full-width sliders
+with thin capsule tracks filled to a white pill thumb and no word labels, a
+glyph at each end saying what the slider changes (a thin and a heavy ring
+for weight, a short and a tall bar for height, the color's deepest and
+lightest tones for tone, whose track is the color itself); 28 px swatches,
+the chosen one ringed with a gap; and a full-size Glass | Solid control. The
+labels stay for screen readers. It grows out of the clock and settles
+without overshoot (a fade only under reduced motion), and presses answer on
+pointer-down. Opened with the pointer, focus rests on the sheet; opened from
+the keyboard, on the chosen font. It hangs below the clock, flips above it
+when there is no room below, and otherwise sits beside it, never over it.
 
 1. **Font & color** heading.
 2. **Font**: five buttons, each the numerals "12" drawn in its face —

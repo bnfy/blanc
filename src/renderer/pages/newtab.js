@@ -822,6 +822,13 @@ function stopClock() {
 const clockElement = document.getElementById('bbClock');
 const clockPopover = document.getElementById('clockPopover');
 const clockStyleOpen = document.getElementById('clockStyleOpen');
+const clockStyleSample = document.getElementById('clockStyleSample');
+const clockStyleSummary = document.getElementById('clockStyleSummary');
+const CLOCK_FONT_NAMES = {
+  instrument: 'newtab.clock.font.instrument', condensed: 'newtab.clock.font.condensed',
+  inter: 'newtab.clock.font.inter', mono: 'newtab.clock.font.mono', flex: 'newtab.clock.font.flex',
+};
+const clockPercent = new Intl.NumberFormat(blancI18n.formatLocale(), { style: 'percent' });
 const clockFontPicks = [...document.querySelectorAll('[data-clock-font-pick]')];
 const clockStylePicks = [...document.querySelectorAll('[data-clock-style-pick]')];
 const clockWeight = document.getElementById('clockWeight');
@@ -844,16 +851,18 @@ let clockDragging = false;
 // The Height thumb's value while it is dragged, drawn before it is saved.
 let clockHeightPreview = null;
 function paintClockWeight(weight) {
-  for (const element of [clockElement, clockPopover]) element.style.setProperty('--clock-weight', String(weight));
+  for (const element of [clockElement, clockPopover, clockStyleSample]) element.style.setProperty('--clock-weight', String(weight));
   scheduleClockArt();
 }
 function paintClockInk(ink) {
   if (ink) {
     clockElement.dataset.ink = '';
     clockElement.style.setProperty('--clock-ink', ink);
+    clockStyleSample.style.setProperty('--clock-ink', ink);
   } else {
     delete clockElement.dataset.ink;
     clockElement.style.removeProperty('--clock-ink');
+    clockStyleSample.style.removeProperty('--clock-ink');
   }
   scheduleClockArt();
 }
@@ -1045,6 +1054,14 @@ function applyClock(clock) {
   clockState = clock;
   clockElement.dataset.font = clock.font;
   clockElement.dataset.style = clock.style;
+  // Customize's Clock row: a live sample, and the face, height and style in words.
+  clockStyleSample.dataset.font = clock.font;
+  clockStyleSample.dataset.style = clock.style;
+  const styleName = clock.style === 'glass' ? t('newtab.clock.glass') : t('newtab.clock.solid');
+  const summary = [t(CLOCK_FONT_NAMES[clock.font] ?? CLOCK_FONT_NAMES.instrument)];
+  if ((clock.height ?? 100) > 100) summary.push(clockPercent.format(clock.height / 100));
+  summary.push(styleName);
+  clockStyleSummary.textContent = summary.join(' · ');
   renderClockSwatches(clock.presets ?? []);
   for (const button of clockFontPicks) button.setAttribute('aria-pressed', String(button.dataset.clockFontPick === clock.font));
   for (const button of clockStylePicks) button.setAttribute('aria-pressed', String(button.dataset.clockStylePick === clock.style));
@@ -1053,7 +1070,13 @@ function applyClock(clock) {
   // Only a face with room on its width axis can stand taller.
   const tallest = clock.heightRange?.max ?? 100;
   clockHeightLine.hidden = tallest <= 100;
-  if (clock.base) clockTone.style.setProperty('--clock-tone-mid', clock.base);
+  // Tone's track and end glyphs show the color from its deepest to its lightest.
+  if (clock.base && clock.toneMix) {
+    const { mixHex } = globalThis.blancClockArt;
+    clockToneLine.style.setProperty('--clock-tone-deep', mixHex(clock.base, '#000000', clock.toneMix.darken));
+    clockToneLine.style.setProperty('--clock-tone-mid', clock.base);
+    clockToneLine.style.setProperty('--clock-tone-light', mixHex(clock.base, '#ffffff', clock.toneMix.lighten));
+  }
   scheduleClockArt();
   // A status broadcast must not yank a thumb out from under a drag.
   if (clockDragging) return;
@@ -1063,14 +1086,24 @@ function applyClock(clock) {
   clockTone.value = String(clock.tone);
   clockHeight.max = String(tallest);
   clockHeight.value = String(clock.height ?? 100);
+  for (const slider of [clockWeight, clockHeight, clockTone]) paintSliderFill(slider);
   paintClockWeight(clock.weight);
   paintClockInk(clock.ink);
+}
+// A slider's track is filled up to its thumb (pages.css reads --fill, 0–1).
+function paintSliderFill(slider) {
+  const min = Number(slider.min), max = Number(slider.max);
+  const fill = max > min ? (Number(slider.value) - min) / (max - min) : 0;
+  slider.style.setProperty('--fill', String(Math.max(0, Math.min(1, fill))));
 }
 for (const button of clockFontPicks) {
   button.addEventListener('click', () => setClock({ font: button.dataset.clockFontPick }));
 }
 for (const button of clockStylePicks) {
   button.addEventListener('click', () => setClock({ style: button.dataset.clockStylePick }));
+}
+for (const slider of [clockWeight, clockHeight, clockTone]) {
+  slider.addEventListener('input', () => paintSliderFill(slider));
 }
 clockWeight.addEventListener('input', () => {
   clockDragging = true;
@@ -1117,10 +1150,14 @@ for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [cloc
 }
 // Customize closes and the clock's own popover opens under the clock, so the
 // clock stays in view while it changes.
-clockStyleOpen.addEventListener('click', () => {
+// Opened from the keyboard (a click with no pointer behind it), focus lands
+// on the chosen font, ringed; opened with the pointer, it lands on the sheet
+// itself, so no ring shows until Tab moves into it.
+clockStyleOpen.addEventListener('click', (event) => {
   document.getElementById('customizePopover').hidePopover();
   clockPopover.showPopover();
-  clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
+  if (event.detail === 0) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
+  else clockPopover.focus();
 });
 clockPopover.addEventListener('toggle', (event) => {
   if (event.newState !== 'closed') return;

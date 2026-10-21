@@ -5274,18 +5274,23 @@
     "message": "Layout",
     "note": "Start page → Customize popover: label above the layout choices."
   },
+  "newtab.customize.clockHeading": {
+    "message": "Clock",
+    "note": "Start page → Customize popover: label above the row that opens the Billboard clock’s Font & color sheet; shown only while the Billboard layout is chosen.",
+    "maxLength": 16
+  },
   "newtab.customize.wallpaperHeading": {
     "message": "Wallpaper",
     "note": "Start page → Customize popover: label above the wallpaper choices."
   },
   "newtab.clock.open": {
     "message": "Clock font & color…",
-    "note": "Start page → Customize popover, shown only while the Billboard layout is chosen: button that closes Customize and opens the clock’s Font & color popover under the clock.",
+    "note": "Start page → Customize popover, Clock section (Billboard layout only): accessible name of the row that closes Customize and opens the clock’s Font & color sheet under the clock. The row itself shows a sample, “Font & color” and a summary.",
     "maxLength": 34
   },
   "newtab.clock.title": {
     "message": "Font & color",
-    "note": "Start page → the Billboard clock’s popover: its heading, after the iOS Lock Screen’s Font & Color sheet.",
+    "note": "Start page → the Billboard clock’s Font & color sheet: its heading, after the iOS Lock Screen’s Font & Color sheet; also the title of the row in Customize’s Clock section that opens it.",
     "maxLength": 24
   },
   "newtab.clock.font": {
