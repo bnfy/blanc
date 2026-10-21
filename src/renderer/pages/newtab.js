@@ -826,7 +826,7 @@ const clockStyleSample = document.getElementById('clockStyleSample');
 const clockStyleSummary = document.getElementById('clockStyleSummary');
 const CLOCK_FONT_NAMES = {
   instrument: 'newtab.clock.font.instrument', condensed: 'newtab.clock.font.condensed',
-  inter: 'newtab.clock.font.inter', mono: 'newtab.clock.font.mono', flex: 'newtab.clock.font.flex',
+  inter: 'newtab.clock.font.inter', flex: 'newtab.clock.font.flex',
 };
 const clockPercent = new Intl.NumberFormat(blancI18n.formatLocale(), { style: 'percent' });
 const clockFontPicks = [...document.querySelectorAll('[data-clock-font-pick]')];
@@ -880,7 +880,6 @@ const CLOCK_FACES = {
   },
   condensed: { url: 'instrument-sans-latin-wdth-normal.woff2', stretch: 75 },
   inter: { url: 'inter-latin.woff2', stretch: 100 },
-  mono: { url: 'jetbrains-mono-latin.woff2', stretch: 100 },
   flex: {
     url: 'roboto-flex-clock.woff2', stretch: 100,
     stretches: [25, 37.5, 50, 62.5, 75, 87.5, 100], weights: [100, 250, 400, 550, 700, 850, 1000],

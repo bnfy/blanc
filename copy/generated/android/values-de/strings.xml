@@ -1412,7 +1412,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_clock_font_instrument">Instrument Sans</string>
     <string name="newtab_clock_font_condensed">Instrument Sans schmal</string>
     <string name="newtab_clock_font_inter">Inter</string>
-    <string name="newtab_clock_font_mono">JetBrains Mono</string>
     <string name="newtab_clock_font_flex">Roboto Flex</string>
     <string name="newtab_clock_weight">Stärke</string>
     <string name="newtab_clock_height">Höhe</string>

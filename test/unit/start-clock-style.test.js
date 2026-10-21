@@ -54,14 +54,14 @@ test('each face has the weight range its bundled file carries', () => {
     assert.deepEqual({ min: FONTS[face].min, max: FONTS[face].max }, declared('Instrument Sans'));
   }
   assert.deepEqual({ min: FONTS.inter.min, max: FONTS.inter.max }, declared('Inter'));
-  assert.deepEqual({ min: FONTS.mono.min, max: FONTS.mono.max }, declared('JetBrains Mono'));
   assert.deepEqual({ min: FONTS.flex.min, max: FONTS.flex.max }, declared('Blanc Clock Flex'));
 });
 
 test('only a face with room on its width axis stands taller, and the choice is kept', () => {
   assert.equal(FONTS.flex.height, 300);
   assert.equal(FONTS.instrument.height, 130);
-  for (const face of ['condensed', 'inter', 'mono']) assert.equal(FONTS[face].height, 100);
+  for (const face of ['condensed', 'inter']) assert.equal(FONTS[face].height, 100);
+  assert.equal(FONTS.mono, undefined, 'JetBrains Mono is not a clock face');
   assert.equal(heightIn('flex', 240), 240);
   assert.equal(heightIn('instrument', 240), 130);
   assert.equal(heightIn('inter', 240), 100);
@@ -76,7 +76,7 @@ test('the saved weight is drawn inside the face and kept as chosen', () => {
   assert.equal(weightIn('inter', 1000), 900);
   assert.equal(weightIn('inter', 200), 200);
   assert.equal(weightIn('instrument', 200), 400);
-  assert.equal(weightIn('mono', 900), 800);
+  assert.equal(weightIn('mono', 650), 650, 'an unknown face reads as Instrument Sans');
   assert.equal(weightIn('nope', 650), 650);
   assert.equal(weightIn('instrument', 12.5), 500);
   const settings = { newtabClockFont: 'instrument', newtabClockWeight: 200 };
@@ -126,8 +126,8 @@ test('unknown values read as the defaults', () => {
 });
 
 test('a Font & Color change writes only valid fields, by settings key', () => {
-  assert.deepEqual(settingsForClock({ font: 'mono', weight: 640, color: 'iris', tone: 0, style: 'glass', height: 240 }), {
-    newtabClockFont: 'mono',
+  assert.deepEqual(settingsForClock({ font: 'inter', weight: 640, color: 'iris', tone: 0, style: 'glass', height: 240 }), {
+    newtabClockFont: 'inter',
     newtabClockWeight: 640,
     newtabClockColor: 'iris',
     newtabClockTone: 0,

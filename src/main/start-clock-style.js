@@ -15,12 +15,11 @@ const { mix, presetHex } = require('./start-page-paint');
 // lighter so the clock keeps its width and stroke, with no distortion.
 // Instrument Sans narrows from the interface's 98% to 75%, about 1.3 times;
 // Roboto Flex (25–151%) reaches about twice and then grows a little wider up
-// to three times; the condensed cut, Inter and JetBrains Mono have no room.
+// to three times; the condensed cut and Inter have no room.
 const FONTS = Object.freeze({
   instrument: Object.freeze({ min: 400, max: 700, height: 130 }),
   condensed: Object.freeze({ min: 400, max: 700, height: 100 }),
   inter: Object.freeze({ min: 100, max: 900, height: 100 }),
-  mono: Object.freeze({ min: 400, max: 800, height: 100 }),
   flex: Object.freeze({ min: 100, max: 1000, height: 300 }),
 });
 const FONT_IDS = Object.freeze(Object.keys(FONTS));

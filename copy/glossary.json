@@ -221,7 +221,6 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono",
       "newtab.clock.font.flex"
     ],
     "es": [
@@ -267,7 +266,6 @@
       "newtab.wallpaper.color",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono",
       "newtab.clock.color",
       "newtab.clock.font.flex"
     ],
@@ -321,7 +319,6 @@
       "newtab.wallpaper.imageLabel",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono",
       "newtab.clock.style",
       "newtab.clock.font.flex"
     ],
@@ -368,7 +365,6 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono",
       "newtab.clock.font.flex"
     ],
     "it": [
@@ -425,7 +421,6 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono",
       "newtab.clock.font.flex"
     ]
   }

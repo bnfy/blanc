@@ -60,10 +60,11 @@ the keyboard, on the chosen font. It hangs below the clock, flips above it
 when there is no room below, and otherwise sits beside it, never over it.
 
 1. **Font & color** heading.
-2. **Font**: five buttons, each the numerals "12" drawn in its face —
-   Instrument Sans, Instrument Sans Condensed (`wdth` 75), Inter, JetBrains
-   Mono, Roboto Flex — named for screen readers and on hover. Caveat was left
-   out: its numerals do not read at clock size.
+2. **Font**: four buttons, each the numerals "12" drawn in its face —
+   Instrument Sans, Instrument Sans Condensed (`wdth` 75), Inter, Roboto Flex —
+   named for screen readers and on hover. Caveat was left out: its numerals do
+   not read at clock size; JetBrains Mono was offered and the owner removed it
+   on October 21, 2026.
 3. **Weight** slider across the chosen face's own range. The previews follow
    it.
 4. **Height** slider, the Lock Screen's stretch (see below), shown only for a
@@ -107,7 +108,7 @@ Only faces with room on their width axis can stand taller:
   the pinned source, and `test/unit/clock-font.test.js` pins its hash.
 - **Instrument Sans**: from the interface's 98% width to its narrowest 75%,
   about 1.3 times.
-- The condensed cut, Inter and JetBrains Mono have no room, so they offer no
+- The condensed cut and Inter have no room, so they offer no
   Height. The saved height is kept as chosen and drawn no taller than the face
   allows, like the weight.
 
@@ -175,7 +176,7 @@ browser you want, not the device you are on:
 
 | Key | Values | Default |
 |---|---|---|
-| `newtabClockFont` | `instrument`, `condensed`, `inter`, `mono`, `flex` | `instrument` |
+| `newtabClockFont` | `instrument`, `condensed`, `inter`, `flex` | `instrument` |
 | `newtabClockWeight` | integer 100–1000, drawn inside the face's range | `500` |
 | `newtabClockColor` | `auto` or a Spaces preset id | `auto` |
 | `newtabClockTone` | integer 0–100 | `50` |

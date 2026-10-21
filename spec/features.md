@@ -1527,11 +1527,11 @@ Customize shows **Clock font & color…** while Billboard is the layout; it
 opens a popover under the clock, so every change shows on the clock as it is
 made.
 
-- **Font.** Five bundled OFL faces, each shown as the numerals "12":
-  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter,
-  JetBrains Mono and Roboto Flex (a clock-only 11 KB subset).
+- **Font.** Four bundled OFL faces, each shown as the numerals "12":
+  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter and
+  Roboto Flex (a clock-only 11 KB subset).
 - **Weight.** A slider across the chosen face's own range (Instrument Sans
-  400–700, Inter 100–900, JetBrains Mono 400–800). The weight is saved as
+  400–700, Inter 100–900, Roboto Flex 100–1000). The weight is saved as
   chosen and drawn inside the face's range, so moving to a narrower face and
   back restores it.
 - **Height.** The Lock Screen's stretch, as type: the figures are set larger

@@ -5155,10 +5155,6 @@
     "message": "Inter",
     "source": "sha256:d581678f176219a554459ca4eeab2e19902b2e3e994e4ef1f2b9eb84bb3d9290"
   },
-  "newtab.clock.font.mono": {
-    "message": "JetBrains Mono",
-    "source": "sha256:0b7df83126a8fd23fd4e3e3999a289e9a4df4d01266a9ce7d31dc1f312b052bb"
-  },
   "newtab.clock.font.flex": {
     "message": "Roboto Flex",
     "source": "sha256:511be9c6e1a7882f5417d071663e058632d4bba5f7125361ee4b2309df36358c"

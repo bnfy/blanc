@@ -57619,48 +57619,6 @@
         }
       }
     },
-    "newtab.clock.font.mono": {
-      "comment": "Start page → clock Font & color popover: name of a monospaced typeface (a proper name, kept in every language), read out and shown on hover.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JetBrains Mono"
-          }
-        }
-      }
-    },
     "newtab.clock.font.flex": {
       "comment": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language) that can stand taller with the Height slider, read out and shown on hover.",
       "extractionState": "manual",

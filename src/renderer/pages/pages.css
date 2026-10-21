@@ -4681,8 +4681,6 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
 .clock-font[data-clock-font-pick="condensed"] > span { font-variation-settings: "wdth" 75 !important; }
 .bb-clock[data-font="inter"],
 .clock-font[data-clock-font-pick="inter"] > span { font-family: "Inter", var(--font-text); letter-spacing: -0.035em; }
-.bb-clock[data-font="mono"],
-.clock-font[data-clock-font-pick="mono"] > span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: -0.06em; }
 .bb-clock[data-font="flex"],
 .clock-font[data-clock-font-pick="flex"] > span { font-family: "Blanc Clock Flex", var(--font-text); letter-spacing: -0.01em; }
 .bb-clock[data-font="flex"] { --clock-wdth: 100; }
@@ -4758,7 +4756,6 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
 }
 .customize-clock-sample[data-font="condensed"] > span { font-variation-settings: "wdth" 75 !important; }
 .customize-clock-sample[data-font="inter"] > span { font-family: "Inter", var(--font-text); }
-.customize-clock-sample[data-font="mono"] > span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: -0.06em; }
 .customize-clock-sample[data-font="flex"] > span { font-family: "Blanc Clock Flex", var(--font-text); font-variation-settings: "wdth" 100 !important; }
 /* Glass, in miniature: a lit, translucent figure. */
 .customize-clock-sample[data-style="glass"] > span {
@@ -4841,7 +4838,7 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
 .clock-popover-back:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .clock-fonts {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 /* A sample is chosen by a thin outline alone, as on the Lock Screen. */

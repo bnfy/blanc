@@ -5313,10 +5313,6 @@
     "message": "Inter",
     "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language), read out and shown on hover."
   },
-  "newtab.clock.font.mono": {
-    "message": "JetBrains Mono",
-    "note": "Start page → clock Font & color popover: name of a monospaced typeface (a proper name, kept in every language), read out and shown on hover."
-  },
   "newtab.clock.font.flex": {
     "message": "Roboto Flex",
     "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language) that can stand taller with the Height slider, read out and shown on hover."
