@@ -3,11 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import GuideTopics from "../components/GuideTopics.astro";
 import questions from "../data/support-questions.json";
 import "../styles/reference.css";
+import { CRISP_WEBSITE_ID } from "../lib/crisp.mjs";
 
 const supportEmail = "support@blanc.day";
-// Crisp website ID (Crisp → Settings → Workspace Settings → Setup &
-// Integrations). The Live chat card stays hidden while this is empty.
-const crispWebsiteId = "564456ef-d242-4d04-af66-65e881e31fe2";
+const crispWebsiteId = CRISP_WEBSITE_ID;
 const mailto = (subject, body) =>
   `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 const supportMail = mailto("Blanc support", "Blanc version:\nOperating system:\nWhat happened:\n");
@@ -206,5 +205,4 @@ const contactGroups = [
     </p>
   </main>
   <script src="../scripts/answers.js"></script>
-  <script src="../scripts/support-chat.js"></script>
 </BaseLayout>

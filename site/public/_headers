@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com https://client.crisp.chat; style-src 'self' 'unsafe-inline' https://*.crisp.chat; font-src 'self' https://*.crisp.chat; img-src 'self' data: https://www.google-analytics.com https://*.crisp.chat; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com https://*.crisp.chat wss://*.relay.crisp.chat wss://*.relay.rescue.crisp.chat; frame-src https://*.crisp.chat; worker-src blob: https://*.crisp.chat; media-src https://*.crisp.chat; manifest-src 'self'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=31536000
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
@@ -9,12 +9,30 @@
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
 
-# Support loads Crisp live chat, but only after a visitor clicks Live chat
-# (site/src/scripts/support-chat.js). Hosts follow Crisp's documented CSP:
+# Live chat loads Crisp only after a visitor clicks the chat bubble or the
+# Support page's Live chat row (site/src/scripts/live-chat.js); the hosts in
+# the site-wide policy above follow Crisp's documented CSP:
 # https://docs.crisp.chat/guides/others/whitelisting-our-systems/crisp-domain-names/
-/support
+# Pages with the legal header show no chat and keep the strict policy.
+/privacy
   ! Content-Security-Policy
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com https://client.crisp.chat; style-src 'self' 'unsafe-inline' https://*.crisp.chat; font-src 'self' https://*.crisp.chat; img-src 'self' data: https://www.google-analytics.com https://*.crisp.chat; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com https://*.crisp.chat wss://*.relay.crisp.chat wss://*.relay.rescue.crisp.chat; frame-src https://*.crisp.chat; worker-src blob: https://*.crisp.chat; media-src https://*.crisp.chat; manifest-src 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+
+/terms
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+
+/media
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+
+/mail/privacy
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
+
+/mail/terms
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
@@ -24,6 +42,8 @@
   Cache-Control: public, max-age=3600
 
 /import-tabs*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://blanc-newsletter.bnfy-441.workers.dev; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://api.github.com https://blanc-newsletter.bnfy-441.workers.dev https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://cloudflareinsights.com; frame-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests
   Cache-Control: no-store
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow

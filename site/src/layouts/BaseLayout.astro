@@ -7,6 +7,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Consent from '../components/Consent.astro';
 import NewsletterPrompt from '../components/NewsletterPrompt.astro';
+import ChatBubble from '../components/ChatBubble.astro';
 import { SITE_ORIGIN } from '../lib/site-origin.mjs';
 // Drawings of the app's own UI (the .demo-island replica) use its face, from
 // the app's own file; a page that draws none never downloads it.
@@ -33,6 +34,9 @@ const {
 // or a purchase: the Mail waitlist, ambassador applications and Patron.
 const promptExcluded = ['/mail', '/ambassadors', '/patron'].some(prefix => path === prefix || path?.startsWith(`${prefix}/`));
 const { newsletterPrompt = analytics && header !== 'legal' && !promptExcluded } = Astro.props;
+// Live chat waits behind a click on every page but the legal ones (privacy,
+// terms, press kit, tab-import landing), which load no third-party code.
+const { chat = header !== 'legal' } = Astro.props;
 const appName = path?.startsWith('/mail') ? 'Blanc Mail' : 'Blanc Browser';
 const canonical = SITE + path;
 const ogImageUrl = SITE + ogImage;
@@ -92,6 +96,7 @@ const ogImageUrl = SITE + ogImage;
   <slot name="footnotes" slot="notes" />
 </Footer>
 {newsletterPrompt && <NewsletterPrompt />}
+{chat && <ChatBubble />}
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>
