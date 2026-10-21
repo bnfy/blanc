@@ -10,7 +10,7 @@ const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/st
 const sandbox = { URL };
 sandbox.globalThis = sandbox;
 vm.runInNewContext(source, sandbox);
-const { siteKey, billboardSites, favoriteTiles, samePins } = sandbox.blancStartPins;
+const { siteKey, canonicalUrl, glyph, billboardSites, favoriteTiles, samePins } = sandbox.blancStartPins;
 // Results come from the vm's realm; compare them as plain data.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -97,4 +97,33 @@ test('a change notice that brings nothing new is recognized', () => {
   assert.equal(samePins(a, [a[0]]), false);
   assert.equal(samePins(a, [a[0], { ...a[1], favicon: null }]), false);
   assert.equal(samePins([], []), true);
+});
+
+test('a Favorite saved without its slash still matches its pin', () => {
+  assert.equal(canonicalUrl('https://example.com'), 'https://example.com/');
+  assert.equal(canonicalUrl('HTTPS://Example.com/a'), 'https://example.com/a');
+  assert.equal(canonicalUrl('not a url'), 'not a url');
+  const favorites = [
+    { id: 'raw', url: 'https://example.com', title: 'Imported', favicon: 'data:image/png;base64,i' },
+    { id: 'other', url: 'https://other.example/', title: 'Other', favicon: null },
+  ];
+  const tiles = plain(favoriteTiles([pin('https://example.com/', 'Imported')], favorites, 6));
+  // Drawn once, as that Favorite, not again among the unpinned ones.
+  assert.deepEqual(tiles.map((tile) => [tile.id, tile.pinned]), [['raw', true], ['other', false]]);
+});
+
+test('the pin and close glyphs are drawn from one place', () => {
+  const made = [];
+  const doc = {
+    createElementNS: (ns, tag) => {
+      const node = { tag, ns, attrs: {}, children: [], setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); } };
+      made.push(node);
+      return node;
+    },
+  };
+  const pinSvg = glyph(doc, 'pin');
+  assert.equal(pinSvg.tag, 'svg');
+  assert.equal(pinSvg.attrs['aria-hidden'], 'true');
+  assert.deepEqual(pinSvg.children.map((path) => path.attrs.d), ['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']);
+  assert.equal(glyph(doc, 'close').children.length, 1);
 });

@@ -54,30 +54,51 @@ function sanitizePins(saved) {
   return pins;
 }
 
-const pinsOf = () => sanitizePins(ensureStore().data.pins);
+// Each profile's saved list is sanitized once, when first read; every write
+// and merge stores an already-sanitized list.
+const sanitized = new WeakSet();
+function pinsOf() {
+  const d = ensureStore().data;
+  if (!sanitized.has(d)) {
+    d.pins = sanitizePins(d.pins);
+    sanitized.add(d);
+  }
+  return d.pins;
+}
 
 function listPins() {
   return pinsOf().map((pin) => ({ ...pin }));
 }
 
+/** Whether a page is pinned and whether a new pin would fit, in one read
+ * (the tab menu asks both on every right-click). */
+function pinState(url) {
+  const pins = pinsOf();
+  const target = sanitizePin({ url });
+  return {
+    pinned: !!target && pins.some((existing) => existing.url === target.url),
+    full: pins.length >= MAX_PINS,
+  };
+}
+
 function isPinned(url) {
-  const pin = sanitizePin({ url });
-  return !!pin && pinsOf().some((existing) => existing.url === pin.url);
+  return pinState(url).pinned;
 }
 
 function isFull() {
-  return pinsOf().length >= MAX_PINS;
+  return pinState('').full;
 }
 
-/** Pin a page last. Pinning a page that is already pinned changes nothing.
- * Returns { ok, reason? } with reason 'invalid' or 'full'. */
+/** Pin a page first, so it shows on every layout, however few tiles it has.
+ * Pinning a page that is already pinned changes nothing. Returns
+ * { ok, reason? } with reason 'invalid' or 'full'. */
 function pin(value) {
   const next = sanitizePin(value);
   if (!next) return { ok: false, reason: 'invalid' };
   const pins = pinsOf();
   if (pins.some((existing) => existing.url === next.url)) return { ok: true };
   if (pins.length >= MAX_PINS) return { ok: false, reason: 'full' };
-  write([...pins, next]);
+  write([next, ...pins]);
   return { ok: true };
 }
 
@@ -150,6 +171,7 @@ module.exports = {
   unpin,
   flushPins,
   onChanged,
+  pinState,
   exportForSync,
   mergeFromSync,
 };

@@ -9811,13 +9811,23 @@ function toggleStartPagePinForTab(id) {
 }
 
 /** Start Page pins as the pages draw them, each with an icon already held
- * locally: its Favorite's, else its site's from history. Never fetched. */
+ * locally: its Favorite's, else its site's from history. Never fetched. Pins
+ * are stored in URL's standard form; an imported Favorite may not be, so it is
+ * matched in that form too. Also says how many pins fit, so pages don't
+ * hard-code it. */
 function listStartPagePins() {
-  const favoriteIcons = new Map(bookmarks.listBookmarks().map((b) => [b.url, b.favicon]));
-  return startPagePins.listPins().map((pin) => ({
-    ...pin,
-    favicon: favoriteIcons.get(pin.url) ?? history.siteIcon(topSiteKey(pin.url)) ?? null,
-  }));
+  const favoriteIcons = new Map();
+  for (const b of bookmarks.listBookmarks()) {
+    const url = startPagePins.sanitizePin({ url: b.url })?.url;
+    if (url && !favoriteIcons.has(url)) favoriteIcons.set(url, b.favicon);
+  }
+  return {
+    max: startPagePins.MAX_PINS,
+    pins: startPagePins.listPins().map((pin) => ({
+      ...pin,
+      favicon: favoriteIcons.get(pin.url) ?? history.siteIcon(topSiteKey(pin.url)) ?? null,
+    })),
+  };
 }
 
 function startPageSenderIsPrivate(wc) {
@@ -11467,10 +11477,7 @@ function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
   const home = tab.pinnedHomeUrl;
   const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
-  const startPin = withLocalProfile(tab.profileId ?? DEFAULT_PROFILE_ID, () => ({
-    pinned: startPagePins.isPinned(tab.url),
-    full: startPagePins.isFull(),
-  }));
+  const startPin = withLocalProfile(tab.profileId ?? DEFAULT_PROFILE_ID, () => startPagePins.pinState(tab.url));
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,

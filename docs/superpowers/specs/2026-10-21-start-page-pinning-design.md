@@ -26,9 +26,11 @@ Because pins can come from a tab or the Favorites page, they must reach whicheve
 
 ## 3. How each layout draws them
 
-- **Billboard:** pins first, in pin order, then the ranked sites minus hidden sites and any site a pin already covers (by hostname). A pinned tile can be unpinned but not hidden; only ranked tiles keep the ×. A pin shows even when history no longer holds the site, or the site is hidden.
-- **Ledger, Shelf, Tally:** pins first, in pin order, then the Favorites that aren't pinned, in Favorites order. A pinned page that is a Favorite draws as that Favorite. A pinned page that isn't one (from a tab or a Billboard tile) draws from the pin's URL, name and icon.
-- Each layout shows as many as it has room for: Billboard and Ledger six, Shelf eight, Tally five.
+- **Billboard:** pins first, newest first, then the ranked sites minus hidden sites and any site a pin already covers (by hostname). A pinned tile can be unpinned but not hidden; only ranked tiles keep the ×. A pin shows even when history no longer holds the site, or the site is hidden.
+- **Ledger, Shelf, Tally:** pins first, newest first, then the Favorites that aren't pinned, in Favorites order. A pinned page that is a Favorite draws as that Favorite. A pinned page that isn't one (from a tab or a Billboard tile) draws from the pin's URL, name and icon.
+- Each layout shows as many as it has room for: Billboard and Ledger six, Shelf eight, Tally five. A new pin goes to the **front** (owner decision after review, 2026-10-21), so pinning on Tally with five pins already set still shows the new pin there; the oldest pins are the ones a small layout leaves off.
+- Billboard tells tiles apart by their page, not their site, so two pins on one site (two GitHub pages pinned from tabs) keep focus and identity straight.
+- An imported Favorite can keep a URL that isn't in standard form (`https://example.com` without its slash). Pins are stored in standard form, and the Start Page, the Favorites page and main's icon lookup all compare in that form, so such a Favorite still matches its pin.
 - A pinned tile's pin stays on show and is filled. An unpinned tile's pin shows on hover and focus, and always on touch screens.
 - Focus follows the item: after pinning, focus lands on the pin of the item now at the front; after unpinning, on the item's new place, or the slot it left. A polite live region announces "{title} pinned to the Start Page." and the matching unpinned message.
 - The Favorites page shows a small pin mark beside a pinned favorite's date at rest. Its **pin** button is disabled, with an explaining tooltip, when all eight pins are taken.
@@ -47,7 +49,7 @@ Because pins can come from a tab or the Favorites page, they must reach whicheve
 - Each pin is `{ url, title }`. The URL must be http(s) and at most 4,096 characters; the name is trimmed to 200, falling back to the host. Saved pins are re-sanitized on read, and repeats and anything past eight are dropped.
 - When listed, each pin gets an icon already held locally: its Favorite's, else its site's from the history icon cache. The page never fetches a site or a favicon service.
 - Channels (guarded, in `browser-api/bridges.json`, hosts `newtab` and `bookmarks` only):
-  - `pages:pins:list`
+  - `pages:pins:list` → `{ max, pins }`, so pages never hard-code the limit
   - `pages:pins:pin` (url, title) → `{ ok, reason? }`
   - `pages:pins:unpin` (url)
   - main → page `pages:pins:changed`. It carries no data, so each page re-reads its own profile's list.
@@ -66,7 +68,7 @@ Decided on 2026-10-21:
 - The limit stays at eight for now.
 
 Still open:
-1. **Pins lead**, rather than holding the slot where they were pinned (Firefox's model). Leading matches how pinned tabs lead their group in Blanc.
+1. **Pins lead, newest first**, rather than holding the slot where they were pinned (Firefox's model). Leading matches how pinned tabs lead their group in Blanc.
 2. **One list across all four layouts.** A layout with fewer tiles shows the first pins that fit.
 3. **The newest change to the list wins whole** in Sync, rather than merging pin by pin.
 4. **Pins outlive clearing history.**

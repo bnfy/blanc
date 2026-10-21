@@ -935,7 +935,7 @@ From the desktop `DEFAULTS`:
   tab right-click menu's **Pin to Start Page**/**Unpin from Start Page** (web
   pages in non-private tabs only, like **Save to Favorites**, and unavailable
   for a new pin once all eight are taken). Every layout draws the pins first,
-  in the order they were pinned, as far as it has room (Billboard and Ledger
+  newest first, so a fresh pin always shows, as far as it has room (Billboard and Ledger
   six, Shelf eight, Tally five); Billboard follows them with the ranked sites
   whose site isn't already pinned and Ledger, Shelf and Tally with the
   Favorites that aren't pinned, in Favorites order. A pin's button stays on

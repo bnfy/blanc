@@ -10,19 +10,22 @@
   const browserFindBtn = document.getElementById('browserFindBtn');
 
   // Start Page pins (start-page-pins.js in main): a favorite can be pinned to
-  // the front of every Start Page layout from here. Main holds at most
-  // MAX_START_PINS and tells this page when they change elsewhere.
-  const MAX_START_PINS = 8;
+  // the front of every Start Page layout from here. Main says how many fit and
+  // tells this page when they change elsewhere. Pins are stored in URL's
+  // standard form, so a favorite is matched in that form (start-pins.js).
+  const startPins = globalThis.blancStartPins;
   let pinnedUrls = [];
+  let pinsMax = 0;
   let ownPinChange = false;
 
   /** Re-read the pins; resolves to whether they changed. */
   async function loadPins() {
-    const pins = await window.bowserPages.pins.list().catch(() => null);
-    if (!Array.isArray(pins)) return false;
-    const urls = pins.map((pin) => pin.url);
-    const changed = urls.join('\n') !== pinnedUrls.join('\n');
+    const listed = await window.bowserPages.pins.list().catch(() => null);
+    if (!Array.isArray(listed?.pins)) return false;
+    const urls = listed.pins.map((pin) => pin.url);
+    const changed = urls.join('\n') !== pinnedUrls.join('\n') || listed.max !== pinsMax;
     pinnedUrls = urls;
+    pinsMax = listed.max;
     return changed;
   }
 
@@ -34,21 +37,8 @@
     }).catch(() => {});
   });
 
-  /** The pin glyph the Start Page and the ⌘L panel draw. */
-  function pinGlyph() {
-    const SVG_NS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 16 16');
-    svg.setAttribute('aria-hidden', 'true');
-    for (const d of ['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']) {
-      const path = document.createElementNS(SVG_NS, 'path');
-      path.setAttribute('d', d);
-      svg.appendChild(path);
-    }
-    return svg;
-  }
-
-  const isWebPage = (url) => /^https?:\/\//.test(url);
+  // The same test the Start Page uses: any http(s) URL, in any letter case.
+  const isWebPage = (url) => startPins.siteKey(url) !== null;
 
   // This stays inside the existing utility sheet. Main's will-navigate guard
   // permits only allowlisted blanc:// utility pages and updates the sheet's
@@ -293,7 +283,7 @@
     const el = document.createElement('div');
     el.className = 'row';
     el.dataset.url = b.url;
-    const pinned = pinnedUrls.includes(b.url);
+    const pinned = pinnedUrls.includes(startPins.canonicalUrl(b.url));
     el.classList.toggle('start-pinned', pinned);
 
     const main = document.createElement('div');
@@ -318,7 +308,7 @@
       mark.setAttribute('role', 'img');
       mark.setAttribute('aria-label', t('favorites.row.pinned'));
       mark.title = t('favorites.row.pinned');
-      mark.appendChild(pinGlyph());
+      mark.appendChild(startPins.glyph(document, 'pin'));
       meta.prepend(mark);
     }
 
@@ -354,9 +344,9 @@
         ? t('favorites.row.unpinLabel', { title: b.title })
         : t('favorites.row.pinLabel', { title: b.title }));
       // Every pin taken: say so rather than fail on click.
-      if (!pinned && pinnedUrls.length >= MAX_START_PINS) {
+      if (!pinned && pinsMax > 0 && pinnedUrls.length >= pinsMax) {
         pinBtn.disabled = true;
-        pinBtn.title = t('favorites.row.pinFull', { count: MAX_START_PINS });
+        pinBtn.title = t('favorites.row.pinFull', { count: pinsMax });
       }
       pinBtn.addEventListener('click', async () => {
         ownPinChange = true;

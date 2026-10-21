@@ -63,7 +63,7 @@ test('saved pins are re-sanitized, without repeats, up to the cap', () => {
   assert.deepEqual(pins.sanitizePins({}), []);
 });
 
-test('pinning adds a page last, once, and stops at the cap', () => {
+test('pinning adds a page first, once, and stops at the cap', () => {
   clear();
   let changes = 0;
   pins.onChanged(() => { changes += 1; });
@@ -72,7 +72,8 @@ test('pinning adds a page last, once, and stops at the cap', () => {
   // Pinning a pinned page changes nothing and says nothing.
   assert.deepEqual(pins.pin({ url: 'https://b.test/', title: 'B again' }), { ok: true });
   assert.equal(changes, 2);
-  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['B', 'A']);
+  // Newest first, so a fresh pin shows even on a layout with few tiles.
+  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['A', 'B']);
   assert.equal(pins.isPinned('https://a.test/x'), true);
   assert.equal(pins.isPinned('https://a.test/'), false);
   assert.equal(pins.isPinned('blanc://newtab/'), false);
@@ -80,13 +81,19 @@ test('pinning adds a page last, once, and stops at the cap', () => {
 
   for (let i = 0; i < 6; i++) pins.pin({ url: `https://fill-${i}.test/`, title: `Fill ${i}` });
   assert.equal(pins.isFull(), true);
+  assert.deepEqual(pins.pinState('https://a.test/x'), { pinned: true, full: true });
+  assert.deepEqual(pins.pinState('https://elsewhere.test/'), { pinned: false, full: true });
+  assert.deepEqual(pins.pinState('blanc://newtab/'), { pinned: false, full: true });
   assert.deepEqual(pins.pin({ url: 'https://late.test/', title: 'Late' }), { ok: false, reason: 'full' });
   assert.equal(pins.listPins().length, pins.MAX_PINS);
 
   assert.equal(pins.unpin('https://b.test/'), true);
   assert.equal(pins.unpin('https://b.test/'), false);
   assert.equal(pins.isFull(), false);
-  assert.equal(pins.listPins()[0].title, 'A');
+  assert.equal(pins.listPins()[0].title, 'Fill 5');
+  // An address not in standard form still finds its pin.
+  assert.equal(pins.isPinned('https://fill-5.test'), true);
+  assert.equal(pins.unpin('https://fill-5.test'), true);
 });
 
 test('the Personal profile writes start-page-pins.json; a named profile its own', async () => {
