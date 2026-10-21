@@ -27,7 +27,7 @@ test('switching to any other tab, the Glance tab included, ends the Glance first
 
 test('Open as tab ends the Glance and makes its page the current tab', () => {
   const open = between(main, 'function openGlanceAsTab() {', '\n}\n');
-  assert.match(open, /closeGlance\(\{ focusContent: false \}\);[\s\S]*setActiveTab\(id, \{ focusContent: true \}\)/);
+  assert.match(open, /closeGlance\(\{ focusContent: false, announce: false \}\);[\s\S]*setActiveTab\(id, \{ focusContent: true \}\)/);
   assert.doesNotMatch(main, /function promoteGlance\(/);
   const preload = read('src/main/preload.js');
   assert.match(preload, /openGlanceAsTab: \(\) => ipcRenderer\.invoke\('tabs:open-glance-as-tab'\)/);
@@ -48,9 +48,16 @@ test('Keep as split opens a fresh 50/50 split with the main page first', () => {
 
 test('a closing card is hidden before anything else runs', () => {
   const close = between(main, 'function closeGlance(', '\n}\n');
-  const hide = close.indexOf('liveGlanceCardView()?.setVisible(false);');
+  const hide = close.indexOf('endGlance();');
   assert.ok(hide > 0 && hide < close.indexOf('detachTabView('), 'the card hides before the page detaches');
   assert.ok(hide < close.indexOf('resizeActiveView();'));
+  const end = between(main, 'function endGlance(', '\n}\n');
+  assert.match(end, /glanceCards\.flush\(\);[\s\S]*liveGlanceCardView\(runtime\)\?\.setVisible\(false\);/);
+});
+
+test('every way a Glance ends saves the card and hides it through endGlance', () => {
+  assert.equal((main.match(/glanceTabId = null/g) ?? []).length, 1, 'only endGlance clears glanceTabId');
+  assert.match(between(main, "app.on('before-quit', () => {", '\n});\n'), /glanceCards\.flush\(\);/);
 });
 
 test('a fill message for the Glance page sits at the bottom of the card', () => {

@@ -79,6 +79,9 @@ function install(refs) {
     getFloatWebContents,
     getGlanceCardWebContents,
     getGlanceCardViewVisible,
+    getSavedGlanceFrame,
+    getGlancePageViewVisible,
+    destroyGlanceCardViewForTest,
     getTooltipViewState,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
@@ -2404,6 +2407,20 @@ function install(refs) {
       const closed = closeGlanceAction({ focusContent: false });
       const wc = getGlanceCardWebContents();
       return { closed, cardViewVisible: wc && !wc.isDestroyed() ? getGlanceCardViewVisible() : false };
+    },
+    // Close a tab and, in the same turn, read whether a Glance is still open,
+    // whether the card view is visible and the frame settings hold for it.
+    // A window's first Glance: the card view goes first, so this open makes
+    // it again (as a new window would), and in the same turn read what shows.
+    async openFirstGlanceAndRead(id) {
+      destroyGlanceCardViewForTest();
+      const opened = await setGlanceTab(String(id));
+      return { opened, cardViewVisible: getGlanceCardViewVisible(), glancePageVisible: getGlancePageViewVisible() };
+    },
+    glancePageViewVisible() { return getGlancePageViewVisible(); },
+    closeTabAndReadGlance(id) {
+      closeTab(String(id));
+      return { glanceTabId: getGlanceTabId(), cardViewVisible: getGlanceCardViewVisible(), savedFrame: getSavedGlanceFrame() };
     },
     // The Glance header's identity cross-fade (in the card's document) and
     // the overlay's picker motion.

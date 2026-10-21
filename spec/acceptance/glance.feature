@@ -501,3 +501,42 @@ Feature: Glance reference pane
     Then the Glance card fades in at its full size
     When I close Glance and look at the card in the same moment
     Then the Glance card was already gone
+
+  @F34-16 @F34 @D11
+  Scenario Outline: Closing <which> just after moving the card keeps the move and takes the card at once
+    Given three ordinary tabs with one open in Glance
+    And the window's page is 1440 by 860
+    When I move the Glance card by -120, -16
+    And I close <which> and look at the card in the same moment
+    Then the card's move was already saved and its view was already gone
+
+    Examples:
+      | which          |
+      | the Glance tab |
+      | the main page  |
+
+  @F34-17 @F34 @D11
+  Scenario: A window's first Glance shows nothing until its card has drawn
+    Given two ordinary tabs in one workspace for Glance
+    When I open the window's first Glance and look in the same moment
+    Then neither the card nor the Glance page was showing yet
+    And the card and the Glance page then show together
+
+  @F34-18 @F34 @D11
+  Scenario Outline: <action> on the Glance card is announced once, not as a close first
+    Given three ordinary tabs with one open in Glance
+    And I listen to the strip's announcements
+    When I choose <action> on the Glance card
+    Then the strip announced only "<announcement>"
+
+    Examples:
+      | action        | announcement                                         |
+      | Open as tab   | glance-reference is now the current tab              |
+      | Keep as split | glance-main and glance-reference are now side by side |
+
+  @F34-19 @F34 @D11 @island-autohide
+  Scenario: The card stays put while a pushed Island slides in
+    Given three ordinary tabs with one open in Glance
+    And the Island auto-hides
+    When I watch the Glance card while I point at the top edge of the window
+    Then the Glance card never moved while the Island slid in

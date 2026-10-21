@@ -1727,3 +1727,89 @@ Then('hovering the compact Change button shows its tooltip under it', async func
   assert.ok(tip.bounds.x + tip.bounds.width > card.header.x && tip.bounds.x < card.header.x + card.header.width,
     'the tip sits over the card, not at the window origin');
 });
+
+When('I close the Glance tab and look at the card in the same moment', async function () {
+  this.glanceCloseRead = await this.call('closeTabAndReadGlance', this.glanceReferenceId);
+});
+
+When('I close the main page and look at the card in the same moment', async function () {
+  this.glanceCloseRead = await this.call('closeTabAndReadGlance', this.glanceMainId);
+});
+
+// Read in the same turn as the close, well inside the 250 ms save debounce:
+// a move still waiting there would be lost if Blanc quit now.
+Then("the card's move was already saved and its view was already gone", async function () {
+  const { savedFrame, cardViewVisible, glanceTabId } = this.glanceCloseRead;
+  assert.equal(glanceTabId, null, 'the Glance ended');
+  assert.equal(cardViewVisible, false, 'the card view was hidden in the same turn');
+  const start = this.glanceCardStart;
+  assert.deepEqual(savedFrame && { x: savedFrame.x, y: savedFrame.y }, { x: start.x - 120, y: start.y - 16 }, 'the moved frame was saved');
+});
+
+When("I open the window's first Glance and look in the same moment", async function () {
+  this.glanceFirstOpenRead = await this.call('openFirstGlanceAndRead', this.glanceReferenceId);
+});
+
+// Before the card's document has drawn, its view would show as a transparent
+// hole with the Glance page floating chromeless inside it.
+Then('neither the card nor the Glance page was showing yet', async function () {
+  assert.deepEqual(this.glanceFirstOpenRead, { opened: true, cardViewVisible: false, glancePageVisible: false });
+});
+
+Then('the card and the Glance page then show together', async function () {
+  const card = await waitForValue(() => glanceCard(this), (value) => value?.cardViewVisible === true, 'the card to show');
+  assert.equal(await this.call('glancePageViewVisible'), true);
+  assert.deepEqual(card.viewBounds, card.page);
+});
+
+// Every text the strip's live region is given, in order, so a message that is
+// replaced before the next frame still counts.
+Given("I listen to the strip's announcements", async function () {
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    window.__glanceAnnouncementObserver?.disconnect();
+    window.__glanceAnnouncements = [];
+    const region = document.getElementById('glanceStatus');
+    window.__glanceAnnouncementObserver = new MutationObserver(() => window.__glanceAnnouncements.push(region.textContent));
+    window.__glanceAnnouncementObserver.observe(region, { childList: true, characterData: true, subtree: true });
+  });
+});
+
+When('I choose Keep as split on the Glance card', async function () {
+  const card = await glanceCardPage();
+  await card.locator('#glanceKeepSplit').click();
+});
+
+Then('the strip announced only {string}', async function (announcement) {
+  const chrome = await mainChromePage();
+  await waitForValue(() => chrome.evaluate(() => window.__glanceAnnouncements.length > 0),
+    Boolean, 'an announcement');
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  const heard = await chrome.evaluate(() => window.__glanceAnnouncements.filter((text) => text.trim() !== ''));
+  assert.deepEqual(heard, [announcement]);
+});
+
+// The card is fixed to the window (spec: the page area starts below the
+// Island's resting band whatever the Auto-hide setting), so a pushed Island
+// sliding in moves the main page, never the card or the page inside it.
+When('I watch the Glance card while I point at the top edge of the window', async function () {
+  const read = async () => {
+    const card = await glanceCard(this);
+    return JSON.stringify({ card: card?.cardViewBounds, page: card?.viewBounds });
+  };
+  this.glanceCardSeen = new Set([await read()]);
+  const state = await this.state();
+  assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
+  const until = Date.now() + 1200;
+  let slid = false;
+  while (Date.now() < until) {
+    this.glanceCardSeen.add(await read());
+    if ((await this.call('islandAutoHideState'))?.sliding) slid = true;
+  }
+  this.glanceIslandSlid = slid;
+});
+
+Then('the Glance card never moved while the Island slid in', async function () {
+  assert.equal(this.glanceIslandSlid, true, 'the Island slid in while the card was watched');
+  assert.deepEqual([...this.glanceCardSeen].map((value) => JSON.parse(value)), [JSON.parse([...this.glanceCardSeen][0])]);
+});
