@@ -8,7 +8,7 @@ const test = require('node:test');
 const root = path.join(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('Billboard top sites stay local, private-safe, and independently dismissible and pinnable', () => {
+test('Billboard top sites stay local and private-safe; hiding stays in the page, pins go through main', () => {
   const main = read('src/main/main.js');
   const pages = read('src/main/pages.js');
   const preload = read('src/main/tab-preload.js');
@@ -21,13 +21,9 @@ test('Billboard top sites stay local, private-safe, and independently dismissibl
   assert.match(main, /return history\.listTopSites\(options\)\.map/);
   assert.match(main, /history\.cacheSiteIcon\(tab\.url, sanitized\)/);
   assert.match(renderer, /const sites = isPrivate \? \[\] : visibleBillboardSites\(\);/);
-  assert.match(renderer, /startPins\.billboardSites\(pinnedTopSites, state\.topSites, hiddenTopSites, 6\)/);
+  assert.match(renderer, /startPins\.billboardSites\(state\.pins, state\.topSites, hiddenTopSites, 6\)/);
   assert.match(renderer, /start\.topSites\(\{[\s\S]*?offset,[\s\S]*?limit: TOP_SITES_PAGE_SIZE/);
   assert.match(renderer, /localStorage\.setItem\(TOP_SITES_HIDDEN_KEY/);
-  assert.match(renderer, /localStorage\.setItem\(TOP_SITES_PINNED_KEY, JSON\.stringify\(pinnedTopSites\)\)/);
-  assert.match(renderer, /function readPinnedTopSites\(\) \{\s*if \(isPrivate\) return \[\];/);
-  assert.match(renderer, /localStorage\.setItem\(FAVORITES_PINNED_KEY, JSON\.stringify\(pinnedFavorites\)\)/);
-  assert.match(renderer, /function readPinnedFavorites\(\) \{\s*if \(isPrivate\) return \[\];/);
   assert.match(renderer, /key\.length > 0 && key\.length <= 255/);
   assert.match(renderer, /const fullTitle = \(site\.title \|\| hostOf\(site\.url\) \|\| t\('newtab\.billboard\.untitled'\)\)\.trim\(\);/);
   assert.match(renderer, /label\.textContent = globalThis\.blancStartSiteName\.shortSiteName\(fullTitle, site\.url\);/);
@@ -38,6 +34,17 @@ test('Billboard top sites stay local, private-safe, and independently dismissibl
     'Billboard labels stay on one line');
   assert.match(renderer, /t\('newtab\.billboard\.hide', \{ title: fullTitle \}\)/);
   assert.match(preload, /topSites: \(options\) => invoke\('pages:start:top-sites', options\)/);
-  assert.doesNotMatch(preload, /hideTopSite|dismissTopSite|pinTopSite|pinFavorite/);
-  assert.doesNotMatch(pages, /pages:start:(?:hide|dismiss|pin|unpin)-top-site/);
+  // Hiding stays in this page's storage; no channel reaches main for it.
+  assert.doesNotMatch(preload, /hideTopSite|dismissTopSite/);
+  assert.doesNotMatch(pages, /pages:start:(?:hide|dismiss)-top-site/);
+  // Pins are the one Start Page list main holds (start-page-pins.js), so the
+  // tab menu and the Favorites page can pin too. Only the Start Page and the
+  // Favorites page reach it, and a private start page can't change it.
+  assert.match(pages, /handle\('pages:pins:list', \['bookmarks', 'newtab'\]/);
+  assert.match(pages, /handleEvent\('pages:pins:pin', \['bookmarks', 'newtab'\]/);
+  assert.match(pages, /handleEvent\('pages:pins:unpin', \['bookmarks', 'newtab'\]/);
+  assert.match(main, /pin: \(wc, page\) => \(startPageSenderIsPrivate\(wc\)\s*\? \{ ok: false, reason: 'private' \}/);
+  assert.match(main, /unpin: \(wc, url\) => !startPageSenderIsPrivate\(wc\) && startPagePins\.unpin\(url\)/);
+  assert.match(renderer, /async function togglePin\(page, pinned, statusId\) \{\s*if \(isPrivate\) return false;/);
+  assert.doesNotMatch(renderer, /localStorage\.setItem\([A-Z_]*PIN/);
 });

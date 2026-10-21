@@ -213,6 +213,7 @@ const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-d
 const history = require('./history');
 const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
+const startPagePins = require('./start-page-pins');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
@@ -9800,6 +9801,44 @@ function toggleBookmarkForTab(id) {
   if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
 }
 
+/** The tab menu's Pin to Start Page, with the page's name as the tab shows
+ * it. The same guards as Favorites: never a private tab, only web pages. */
+function toggleStartPagePinForTab(id) {
+  const tab = tabs.get(id);
+  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
+  if (startPagePins.isPinned(tab.url)) startPagePins.unpin(tab.url);
+  else startPagePins.pin({ url: tab.url, title: tab.customTitle || tab.title });
+}
+
+/** Start Page pins as the pages draw them, each with an icon already held
+ * locally: its Favorite's, else its site's from history. Never fetched. */
+function listStartPagePins() {
+  const favoriteIcons = new Map(bookmarks.listBookmarks().map((b) => [b.url, b.favicon]));
+  return startPagePins.listPins().map((pin) => ({
+    ...pin,
+    favicon: favoriteIcons.get(pin.url) ?? history.siteIcon(topSiteKey(pin.url)) ?? null,
+  }));
+}
+
+function startPageSenderIsPrivate(wc) {
+  return !!tabs.get(tabIdByWebContentsId.get(wc.id))?.private;
+}
+
+/** Every open Start Page and Favorites page re-reads its pins. The notice
+ * carries nothing, so a page only ever sees its own profile's list. */
+function notifyStartPagePinsChanged() {
+  for (const tab of tabs.values()) {
+    if (!tab.url?.startsWith('blanc://newtab')) continue;
+    liveContents(tab)?.send('pages:pins:changed');
+  }
+  for (const runtime of windowRuntimes.all()) {
+    if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://bookmarks/')) {
+      liveUtilitySheet(runtime)?.wc.send('pages:pins:changed');
+    }
+  }
+}
+startPagePins.onChanged(() => notifyStartPagePinsChanged());
+
 /** The `/save [folder]` command: add-only favorite of the active tab, into an
  * optional folder. Same guards as toggleBookmarkForActiveTab; re-derives
  * bookmarked from the store so add / move / rejected-folder all report right. */
@@ -11428,6 +11467,10 @@ function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
   const home = tab.pinnedHomeUrl;
   const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+  const startPin = withLocalProfile(tab.profileId ?? DEFAULT_PROFILE_ID, () => ({
+    pinned: startPagePins.isPinned(tab.url),
+    full: startPagePins.isFull(),
+  }));
   return {
     tab: {
       id: tab.id, url: tab.url, title: tab.title, customTitle: tab.customTitle ?? null,
@@ -11435,6 +11478,8 @@ function tabContextData(tab, owner) {
       asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
       groupId: tab.groupId ?? null, capturing: !!tab.capturing,
       splitId: tab.splitId ?? null,
+      startPinned: startPin.pinned,
+      startPinsFull: startPin.full,
       pinnedHome: {
         // A file grant belongs only to the live tab while it is on that file.
         // Returning from a website must not invent a fresh local-file grant.
@@ -11489,6 +11534,7 @@ function menuContextActions(owner) {
     }),
     toggleMute: b((id) => toggleTabMuted(id)),
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
+    toggleStartPagePin: b((id) => toggleStartPagePinForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
     rename: b((id) => beginRenameTab(id)),
@@ -13312,6 +13358,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     checkForUpdates: checkForUpdatesManually,
     onDataChanged: refreshBookmarkFlags,
     restoreArchived: (id) => restoreArchivedEntry(id),
+    // Start Page pins for the Start Page and the Favorites page. A private
+    // start page reads them, as it reads Favorites, but never changes them.
+    startPins: {
+      list: () => listStartPagePins(),
+      pin: (wc, page) => (startPageSenderIsPrivate(wc)
+        ? { ok: false, reason: 'private' }
+        : startPagePins.pin(page)),
+      unpin: (wc, url) => !startPageSenderIsPrivate(wc) && startPagePins.unpin(url),
+    },
     onHistoryCleared: () => {
       clearSessionMeta();
       archive.clearArchive();
@@ -13994,6 +14049,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         };
       },
       menuContextActionsForTest: () => menuContextActions(rt()),
+      // The tab menu's items for one tab, as a right-click on its row builds them.
+      tabMenuItemsForTest: (id) => {
+        const ctx = tabContextData(tabs.get(id), rt());
+        return ctx ? buildTabContextMenu({ ...ctx, surface: 'row', t: mainI18n.t }) : null;
+      },
       closedEntrySummaries: () => projectEntries(rt().closedEntries ?? []),
       splitLayoutForTest: () => currentSplitLayoutPayload(splitGeometry()),
       // Each corner tab view as drawn: whether it sits above its pane, its

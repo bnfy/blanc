@@ -82,6 +82,14 @@ if (window.location.protocol === 'blanc:') {
         importBrowser: (id) => invoke('pages:bookmarks:import-browser', id),
         import: () => invoke('pages:bookmarks:import'),
       },
+      pins: {
+        list: () => invoke('pages:pins:list'),
+        pin: (url, title) => invoke('pages:pins:pin', url, title),
+        unpin: (url) => invoke('pages:pins:unpin', url),
+        onChanged: (callback) => {
+          ipcRenderer.on('pages:pins:changed', () => callback());
+        },
+      },
       start: {
         data: () => invoke('pages:start:data'),
         topSites: (options) => invoke('pages:start:top-sites', options),
@@ -158,6 +166,14 @@ if (window.location.protocol === 'blanc:') {
         setFolder: (id, folder) => invoke('pages:bookmarks:set-folder', id, folder),
         renameFolder: (oldName, newName) => invoke('pages:bookmarks:rename-folder', oldName, newName),
         removeFolder: (name) => invoke('pages:bookmarks:remove-folder', name),
+      },
+      pins: {
+        list: () => invoke('pages:pins:list'),
+        pin: (url, title) => invoke('pages:pins:pin', url, title),
+        unpin: (url) => invoke('pages:pins:unpin', url),
+        onChanged: (callback) => {
+          ipcRenderer.on('pages:pins:changed', () => callback());
+        },
       },
     };
   } else if (host === 'history') {

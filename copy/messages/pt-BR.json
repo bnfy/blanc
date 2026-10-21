@@ -1834,6 +1834,14 @@
     "message": "Remover dos favoritos",
     "source": "sha256:11f30e93f20f0577e0e069e894d71fb2e12a78d131a79c8fa85530776ddfbf60"
   },
+  "tabMenu.pinStartPage": {
+    "message": "Fixar na página inicial",
+    "source": "sha256:44d380d29074c2a9d7cc6d92792c921b8981c67c3d03d67043abf642bf47ede2"
+  },
+  "tabMenu.unpinStartPage": {
+    "message": "Desafixar da página inicial",
+    "source": "sha256:aae2fce160e354f25eccd17cae0397d8cbc6a24f0f498e125ca9b1d17165407f"
+  },
   "tabMenu.moveToGroup": {
     "message": "Mover para o grupo",
     "source": "sha256:a9cb65ecce0b3e63ce684799e3574b7f13ed662d025c1b214fcf8d4baab9ef54"
@@ -5047,30 +5055,6 @@
     "message": "{title} foi ocultado do Billboard.",
     "source": "sha256:33aa9d1c17e809017336617c6bfadbfc7792b624ba24936a86702bf0df84073e"
   },
-  "newtab.billboard.pinTitle": {
-    "message": "Fixar {title}",
-    "source": "sha256:c2ec2566dfd178851850a70ce2d40eafb6214b2a82a7983a082c19b7bf0debe2"
-  },
-  "newtab.billboard.pin": {
-    "message": "Fixar {title} no Billboard",
-    "source": "sha256:a3563f01575e19e73c4033507f61e215a57ed7eb3f4f58202fd3a935feb4ace1"
-  },
-  "newtab.billboard.unpinTitle": {
-    "message": "Desafixar {title}",
-    "source": "sha256:072204e710eaa6ee53d7bc9332cd77233fda83fa1faaf330d4f073574f4ac996"
-  },
-  "newtab.billboard.unpin": {
-    "message": "Desafixar {title} do Billboard",
-    "source": "sha256:159fba9332c0358dae84eb99b90895601f90e7c01476b897ea2479b1f2e218a6"
-  },
-  "newtab.billboard.pinned": {
-    "message": "{title} foi fixado no Billboard.",
-    "source": "sha256:f615ac4a5f66281912dfc7dda3821f17e58a2b772b14b30cd46bd18d1e7fdf94"
-  },
-  "newtab.billboard.unpinned": {
-    "message": "{title} foi desafixado do Billboard.",
-    "source": "sha256:98301fca2b2280b15ec9fc23fb2d99b1398ee822fbb073f10e772a2da14f10ed"
-  },
   "newtab.checklist.label": {
     "message": "Concluir ajustes",
     "source": "sha256:81dd62c5821fb06654ae53de8b302a78a501f43c1cc0c56b8d059192a530a36d"
@@ -5291,29 +5275,33 @@
     "message": "Marque uma página como favorita com ♥ para fixá-la aqui",
     "source": "sha256:a8c5bc39f2ff768a828feb602b5653e437c279ff00061ada1b503b684a4f4e32"
   },
-  "newtab.favorites.pinTitle": {
+  "newtab.pin.title": {
     "message": "Fixar {title}",
-    "source": "sha256:9a6733d0db239f4e2eac589b2fb8d7c7c3a8e7862a6112657c7f97ec67b99cdf"
+    "source": "sha256:172aac0fc7898e41b80b4794b6dfee9691a9ff87dad169256725f601a7ba75a6"
   },
-  "newtab.favorites.pin": {
+  "newtab.pin.label": {
     "message": "Fixar {title} na página inicial",
-    "source": "sha256:1f63871790cb2ef9b0bddacd0f5e89e7303f3b45d68fafbc95082b8dd9ee03eb"
+    "source": "sha256:f24d8ef2b15a52f38caa4fc5f1925bd443cebd7f7f5c928af6decef0a20caab9"
   },
-  "newtab.favorites.unpinTitle": {
+  "newtab.unpin.title": {
     "message": "Desafixar {title}",
-    "source": "sha256:5ad805cef80f60890db76a5c309f13920b46ffcd320a198733bb2cabec69e1fc"
+    "source": "sha256:7c6b552989a45ea0befdae5a9c9f284d97befab75aa524780beb4f7ddee7b66f"
   },
-  "newtab.favorites.unpin": {
+  "newtab.unpin.label": {
     "message": "Desafixar {title} da página inicial",
-    "source": "sha256:dc17a21e1f88c2aa55071e9d021eecc863d63e715b3d039599de7ea48b34f9bc"
+    "source": "sha256:53ab7a89d4afd3637497a6899dd57c5d0090f4291c01d5404e4412df40bfb886"
   },
-  "newtab.favorites.pinned": {
+  "newtab.pin.done": {
     "message": "{title} foi fixado na página inicial.",
-    "source": "sha256:37789009fa3c61e598dd2fe66764a04b2280ca6838760e07ac0f7df2538ba0c4"
+    "source": "sha256:5066b04d96d253df73ed7e73d66f8c3c17ee46697b92d19b5293a0b90187f0df"
   },
-  "newtab.favorites.unpinned": {
+  "newtab.unpin.done": {
     "message": "{title} foi desafixado da página inicial.",
-    "source": "sha256:ebed547d581d633e91a8b679efad9e50590637dfcbedfbcf67143419d1650a71"
+    "source": "sha256:7e8315008580dd6f3a94962c23b06400037a1e482a723b70dc3faac173ae2717"
+  },
+  "newtab.pin.full": {
+    "message": "A página inicial comporta {count} fixados. Desafixe um primeiro.",
+    "source": "sha256:6fbb93e65570389bfea1c052fe00d3e09a248ed7f91bdcb42ab7dae32cba352d"
   },
   "onboarding.skip": {
     "message": "pular etapas",
@@ -5726,6 +5714,30 @@
   "favorites.row.moveToFolder": {
     "message": "Mover para uma pasta",
     "source": "sha256:42d2f770438dc24948f2ba42f8b57b819bb1fab0a2c7fe05a03b9a5948d3c087"
+  },
+  "favorites.row.pin": {
+    "message": "fixar",
+    "source": "sha256:7b4e653b134e7c5f274fcd604f1c8ceaf56b643e1ae1cabb99f0e2f41376978f"
+  },
+  "favorites.row.unpin": {
+    "message": "desafixar",
+    "source": "sha256:b0a40a562e88b30b6b1330212cca9acd9ffd150cc79b790ae92e3c8f1866bc87"
+  },
+  "favorites.row.pinLabel": {
+    "message": "Fixar {title} na página inicial",
+    "source": "sha256:26cd7867972e42ae87b43c08eca5503569bbe82fa73899f2f9ff0923241f8959"
+  },
+  "favorites.row.unpinLabel": {
+    "message": "Desafixar {title} da página inicial",
+    "source": "sha256:7a91d17f6aec839d1bdfcc929e9bb337ad5741d7e4472f04cac8a97ffa6c0734"
+  },
+  "favorites.row.pinFull": {
+    "message": "A página inicial comporta {count} fixados. Desafixe um para fixar este.",
+    "source": "sha256:7c3b02892c5ff103bf5f6e579401f9d335057cc555ef3f3493557b22ae9cb064"
+  },
+  "favorites.row.pinned": {
+    "message": "Fixado na página inicial",
+    "source": "sha256:280c4608a07b38d18f7d59e171756120b6ec5e8c68acdc291c2a913360ac530a"
   },
   "favorites.row.remove": {
     "message": "remover",

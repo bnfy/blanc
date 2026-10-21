@@ -151,16 +151,19 @@ Then('the Billboard lists {string} first, pinned', async function (key) {
     `${key} to lead the Billboard, pinned`,
   );
   assert.equal(dom.sites.filter((site) => site.pinned).length, 1);
-  assert.equal(dom.sites[0].pinLabel, `Unpin ${dom.sites[0].title} from Billboard`);
-  assert.ok(dom.sites.slice(1).every((site) => site.pinLabel === `Pin ${site.title} to Billboard`));
-  assert.equal(dom.status, `${dom.sites[0].title} pinned to Billboard.`);
+  assert.equal(dom.sites[0].pinLabel, `Unpin ${dom.sites[0].title} from the Start Page`);
+  // A pin can't be hidden, only unpinned; ranked tiles keep both.
+  assert.equal(dom.sites[0].dismissLabel, null);
+  assert.ok(dom.sites.slice(1).every((site) => site.pinLabel === `Pin ${site.title} to the Start Page`));
+  assert.ok(dom.sites.slice(1).every((site) => site.dismissLabel === `Hide ${site.title} from Billboard`));
+  assert.equal(dom.status, `${dom.sites[0].title} pinned to the Start Page.`);
   // Focus follows the site to the front of the row.
   assert.equal(dom.focusedPinOf, key);
 });
 
-Then('the Billboard pin stays in local page storage as a hostname and origin only', async function () {
+Then('the Start Page keeps {string} pinned as its site, under its short name', async function (key) {
+  assert.deepEqual(await this.call('startPagePins'), [{ url: `https://${key}/`, title: 'CNET' }]);
   const dom = await this.call('readBillboardSites');
-  assert.deepEqual(dom.pins, [{ key: 'cnet.com', url: 'https://cnet.com/' }]);
   assert.deepEqual(dom.hidden, []);
   assert.equal(await this.call('historyCount'), this.billboardHistoryCount);
 });
@@ -168,10 +171,11 @@ Then('the Billboard pin stays in local page storage as a hostname and origin onl
 Then('the Billboard keeps no pins', async function () {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),
-    (value) => Array.isArray(value?.pins) && value.pins.length === 0,
-    'the Billboard pin list to empty',
+    (value) => value?.sites?.every((site) => !site.pinned),
+    'the Billboard to show no pins',
   );
-  assert.ok(dom.sites.every((site) => !site.pinned));
+  assert.ok(dom);
+  assert.deepEqual(await this.call('startPagePins'), []);
 });
 
 Then('the Billboard shows only {string}, pinned, opening its origin', async function (key) {
@@ -183,11 +187,64 @@ Then('the Billboard shows only {string}, pinned, opening its origin', async func
   assert.equal(dom.sites[0].key, key);
   assert.equal(dom.sites[0].pinned, true);
   assert.equal(dom.sites[0].href, `https://${key}/`);
-  assert.equal(dom.sites[0].label, key);
+  // The name it was pinned under, though history no longer knows the site.
+  assert.equal(dom.sites[0].label, 'CNET');
 });
 
 Given('the Start Page has no pins', async function () {
   assert.equal(await this.call('clearStartPagePins'), true);
+  this.pinnedFavoriteUrl = null;
+});
+
+When('I open {string} in another tab', async function (name) {
+  this.startPageTabId = (await this.state()).activeTabId;
+  const id = await this.call('openTab', this.fixtureUrl(name));
+  await this.waitForState((s) => s.tabs.some((tab) => tab.id === id && tab.title === name && !tab.isLoading));
+  this.menuTabId = id;
+});
+
+When("I choose {string} from that tab's menu", async function (label) {
+  const item = await this.call('tabMenuItem', this.menuTabId, 'toggle-start-pin');
+  assert.deepEqual(item, { label, enabled: true });
+  await this.call('runTabMenuItem', this.menuTabId, 'toggle-start-pin');
+});
+
+Then("that tab's menu offers {string}", async function (label) {
+  const item = await waitForValue(
+    () => this.call('tabMenuItem', this.menuTabId, 'toggle-start-pin'),
+    (value) => value?.label === label,
+    `the tab menu to offer ${label}`,
+  );
+  assert.equal(item.enabled, true);
+});
+
+When('I go back to the Start Page tab', async function () {
+  await this.call('activateTab', this.startPageTabId);
+  await this.waitForState((s) => s.activeTabId === this.startPageTabId);
+});
+
+When('I pin {string} from the Favorites page', async function (title) {
+  await waitForValue(
+    () => this.call('readFavoritesSheetPins'),
+    (rows) => rows?.some((row) => row.title === title && row.button === 'pin'),
+    `${title} to offer a pin on the Favorites page`,
+  );
+  assert.equal(await this.call('toggleFavoritesSheetPin', title), true);
+});
+
+Then('the Favorites page marks {string} as pinned to the Start Page', async function (title) {
+  const rows = await waitForValue(
+    () => this.call('readFavoritesSheetPins'),
+    (value) => value?.some((row) => row.title === title && row.pinned),
+    `the Favorites page to mark ${title} as pinned`,
+  );
+  const row = rows.find((candidate) => candidate.title === title);
+  assert.equal(row.mark, 'Pinned to the Start Page');
+  assert.equal(row.button, 'unpin');
+  assert.equal(row.buttonLabel, `Unpin ${title} from the Start Page`);
+  assert.equal(row.focused, true, 'focus stays on the row’s pin');
+  assert.ok(rows.filter((candidate) => candidate.title !== title)
+    .every((candidate) => !candidate.pinned && candidate.button === 'pin' && candidate.mark === null));
 });
 
 When('I pin {string} on the Start Page', async function (title) {
@@ -232,17 +289,23 @@ Then("{string} leads the Start Page's favorites, pinned", async function (title)
   }
 });
 
-Then("the favorites pin stays in local page storage as that favorite's address", async function () {
-  const dom = await this.call('readStartFavorites');
-  assert.deepEqual(dom.pins, [this.pinnedFavoriteUrl]);
+Then('the Start Page keeps {string} pinned', async function (title) {
+  const pins = await waitForValue(
+    () => this.call('startPagePins'),
+    (value) => value?.length === 1,
+    `${title} to be the one Start Page pin`,
+  );
+  assert.equal(pins[0].title, title);
+  if (this.pinnedFavoriteUrl) assert.equal(pins[0].url, this.pinnedFavoriteUrl);
 });
 
 Then("the Start Page's favorites are back in their saved order", async function () {
   const dom = await waitForValue(
     () => this.call('readStartFavorites'),
-    (value) => Array.isArray(value?.pins) && value.pins.length === 0 && value.favorites.every((favorite) => !favorite.pinned),
+    (value) => value?.favorites?.every((favorite) => !favorite.pinned),
     'the Start Page favorites to unpin',
   );
+  assert.deepEqual(await this.call('startPagePins'), []);
   assert.deepEqual(
     dom.favorites.map((favorite) => favorite.title),
     ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5'],

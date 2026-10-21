@@ -9,6 +9,47 @@
   const browserImportBtn = document.getElementById('browserImportBtn');
   const browserFindBtn = document.getElementById('browserFindBtn');
 
+  // Start Page pins (start-page-pins.js in main): a favorite can be pinned to
+  // the front of every Start Page layout from here. Main holds at most
+  // MAX_START_PINS and tells this page when they change elsewhere.
+  const MAX_START_PINS = 8;
+  let pinnedUrls = [];
+  let ownPinChange = false;
+
+  /** Re-read the pins; resolves to whether they changed. */
+  async function loadPins() {
+    const pins = await window.bowserPages.pins.list().catch(() => null);
+    if (!Array.isArray(pins)) return false;
+    const urls = pins.map((pin) => pin.url);
+    const changed = urls.join('\n') !== pinnedUrls.join('\n');
+    pinnedUrls = urls;
+    return changed;
+  }
+
+  window.bowserPages.pins.onChanged(() => {
+    // This page's own pin redraws when its request returns.
+    if (ownPinChange) return;
+    loadPins().then((changed) => {
+      if (changed) refresh();
+    }).catch(() => {});
+  });
+
+  /** The pin glyph the Start Page and the ⌘L panel draw. */
+  function pinGlyph() {
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('aria-hidden', 'true');
+    for (const d of ['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']) {
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+    }
+    return svg;
+  }
+
+  const isWebPage = (url) => /^https?:\/\//.test(url);
+
   // This stays inside the existing utility sheet. Main's will-navigate guard
   // permits only allowlisted blanc:// utility pages and updates the sheet's
   // owned URL before this document is replaced.
@@ -144,7 +185,7 @@
   }
 
   async function refresh() {
-    const items = await window.bowserPages.bookmarks.list();
+    const [items] = await Promise.all([window.bowserPages.bookmarks.list(), loadPins()]);
     closeMenu();
     list.replaceChildren();
     if (items.length === 0) {
@@ -251,6 +292,9 @@
   function row(b, allNames) {
     const el = document.createElement('div');
     el.className = 'row';
+    el.dataset.url = b.url;
+    const pinned = pinnedUrls.includes(b.url);
+    el.classList.toggle('start-pinned', pinned);
 
     const main = document.createElement('div');
     main.className = 'main';
@@ -268,6 +312,15 @@
     meta.className = 'meta';
     meta.textContent = new Date(b.addedAt).toLocaleDateString(blancI18n.formatLocale());
     meta.dataset.i18nIgnore = ''; // the locale's own date format
+    if (pinned) {
+      const mark = document.createElement('span');
+      mark.className = 'row-pin-mark';
+      mark.setAttribute('role', 'img');
+      mark.setAttribute('aria-label', t('favorites.row.pinned'));
+      mark.title = t('favorites.row.pinned');
+      mark.appendChild(pinGlyph());
+      meta.prepend(mark);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'actions bookmark-actions';
@@ -291,7 +344,38 @@
       await window.bowserPages.bookmarks.remove(b.id);
       refresh();
     });
-    actions.append(folderBtn, remove);
+    actions.append(folderBtn);
+    if (isWebPage(b.url)) {
+      const pinBtn = document.createElement('button');
+      pinBtn.type = 'button';
+      pinBtn.className = 'pin-toggle';
+      pinBtn.textContent = pinned ? t('favorites.row.unpin') : t('favorites.row.pin');
+      pinBtn.setAttribute('aria-label', pinned
+        ? t('favorites.row.unpinLabel', { title: b.title })
+        : t('favorites.row.pinLabel', { title: b.title }));
+      // Every pin taken: say so rather than fail on click.
+      if (!pinned && pinnedUrls.length >= MAX_START_PINS) {
+        pinBtn.disabled = true;
+        pinBtn.title = t('favorites.row.pinFull', { count: MAX_START_PINS });
+      }
+      pinBtn.addEventListener('click', async () => {
+        ownPinChange = true;
+        try {
+          if (pinned) await window.bowserPages.pins.unpin(b.url);
+          else await window.bowserPages.pins.pin(b.url, b.title);
+          await refresh();
+        } finally {
+          ownPinChange = false;
+        }
+        // The rebuilt row keeps focus on its pin, now saying the opposite.
+        [...list.querySelectorAll('.row')]
+          .find((candidate) => candidate.dataset.url === b.url)
+          ?.querySelector('.pin-toggle')
+          ?.focus();
+      });
+      actions.append(pinBtn);
+    }
+    actions.append(remove);
 
     el.append(window.blancRowIcon.rowIcon(document, b.url, b.favicon), main, meta, actions);
     return el;

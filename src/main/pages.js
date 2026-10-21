@@ -198,6 +198,14 @@ function setupPages(hooks = {}) {
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
+  // Start Page pins (start-page-pins.js): one device-local list that the
+  // Start Page and the Favorites page read and change; main tells both when it
+  // moves (pages:pins:changed).
+  handle('pages:pins:list', ['bookmarks', 'newtab'], () => hooks.startPins?.list?.() ?? []);
+  handleEvent('pages:pins:pin', ['bookmarks', 'newtab'], (event, url, title) =>
+    hooks.startPins?.pin?.(event.sender, { url, title }) ?? { ok: false, reason: 'unavailable' });
+  handleEvent('pages:pins:unpin', ['bookmarks', 'newtab'], (event, url) =>
+    hooks.startPins?.unpin?.(event.sender, url) ?? false);
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
     hooks.onDataChanged?.();

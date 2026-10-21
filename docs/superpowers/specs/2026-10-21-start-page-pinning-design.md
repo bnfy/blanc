@@ -1,7 +1,7 @@
-# Pinning on every Start Page layout
+# Start Page pins
 
 **Date:** 2026-10-21
-**Status:** draft for owner review. On 2026-10-21 the owner asked for pinning on all four layouts, not only Billboard. The owner checks in §5 are open.
+**Status:** draft for owner review. On 2026-10-21 the owner asked for pinning on all four layouts, then for "Pin to Start Page" on the Favorites page and in the tab right-click menu. The owner checks in §6 are open.
 **Builds on:** [2026-10-05 start page layouts polish](2026-10-05-start-page-layouts-polish-design.md) (Billboard's one row of six, short site names, the hover ×), F35 in `spec/features.md`.
 
 ## 1. Why
@@ -9,50 +9,72 @@
 A support email on 2026-10-21 asked for "an option to pin the shortcuts that are saved on the home screen. Other browsers have this feature." Firefox and Edge let people pin a shortcut so it stays put.
 
 - **Billboard**, the default layout, fills its six tiles from local history ranked by visit count. They move as browsing changes, and the only thing a person could do to a tile was hide it.
-- **Ledger, Shelf and Tally** show Favorites, but only the first 6, 8 and 5 in Favorites order, which is oldest first. Once someone has more favorites than a layout shows, the newer ones never reach the Start Page, and nothing lets them choose which do.
+- **Ledger, Shelf and Tally** show only their first 6, 8 and 5 Favorites in Favorites order, which is oldest first. Once someone has more Favorites than a layout shows, the newer ones never reach the Start Page, and nothing let them choose which do.
 
-## 2. Billboard: pinned sites
+## 2. One list, four ways in
 
-- Each tile gets a pin button on its top-left corner, mirroring the × on the top-right. Like the ×, it appears on hover and focus, and always on touch screens.
-- Pinning a site moves it to the front of the row. Pinned sites lead in the order they were pinned. The rest of the row follows the ranking as before, minus hidden and pinned sites.
-- A pinned tile's pin stays on show and is filled, so the row says which sites hold their place. Clicking it unpins the site, which goes back to its ranked place (or off the row if it no longer ranks in the top six).
-- At most six sites can be pinned: one row's worth. With six pinned, no ranked sites show. On windows under 640px wide only the first four tiles show, as today.
-- Hiding a pinned site (its ×) unpins it and hides it. Pinning a hidden site unhides it. A site is never both.
-- While a pinned site still ranks in history, its tile draws exactly as an unpinned one would: the most recently visited page, its title, its cached icon. When history no longer holds the site (cleared, or aged out of the 5,000-entry cap), the tile stays, shows the domain's letter and name, and opens the site's origin.
-- Private Billboard tabs show no sites and no pins, as today.
+There is one list of **Start Page pins**: up to eight pages, each an http(s) URL and a name. Every layout draws the pins first. Pins can be added from four places:
 
-## 3. Ledger, Shelf and Tally: pinned favorites
+| Where | What it pins |
+|---|---|
+| A Billboard tile's pin (top-left, opposite the ×) | The tile's **site**: its http(s) origin, under the short name the tile shows. It doesn't pin the page visited last. |
+| A favorite's pin on Ledger, Shelf or Tally (end of a row; a Shelf card's top-right corner) | That favorite's URL and title. |
+| The Favorites page: **pin** / **unpin** beside **move ▸** and **remove** | That favorite's URL and title. |
+| The tab right-click menu: **Pin to Start Page** / **Unpin from Start Page**, right after **Save to Favorites** | The tab's URL and the name it shows (its custom name if renamed). The same pages Favorites take: never a private tab, only http(s). Disabled for a new pin when all eight are taken, but always available to unpin. |
 
-- Each favorite gets a pin beside its link (a button can't sit inside a link): at the end of a Ledger or Tally row, and in a Shelf card's top-right corner, which is otherwise empty. It shows on hover and focus, and stays on show, filled, once pinned. It is the same round badge as Billboard's.
-- The three layouts share **one** list of pinned favorites. Pinned favorites come first, in the order they were pinned; the rest keep their Favorites order. So a favorite pinned on Shelf (eight tiles) also leads Tally (five) and Ledger (six), which is how a newer favorite gets onto a smaller layout.
-- At most eight favorites can be pinned, Shelf's tile count. A layout that shows fewer draws the first pins that fit.
-- Deleting a favorite drops its pin the next time a Start Page loads.
-- Hovering a Shelf card's pin keeps the card lifted and outlined, as hovering the card does.
-- Private start pages draw favorites in their Favorites order, without pins (see §4).
+Because pins can come from a tab or the Favorites page, they must reach whichever layout someone uses (Billboard is the default). That rules out separate Billboard and favorites lists.
 
-## 4. Shared behavior, data and privacy
+## 3. How each layout draws them
 
-- Focus follows the item: after pinning, focus lands on the pin of the item now at the front; after unpinning, on the item's new place, or the slot it left if it dropped off the layout. A polite live region announces "{title} pinned to Billboard." / "{title} pinned to the Start Page." and the matching unpinned messages.
-- All pins are kept in the profile's `blanc://newtab` localStorage, beside the existing hidden list (`blanc.billboard.hidden-top-sites.v1`). Named profiles get their own lists, because their start pages run in their own sessions.
-  - Site pins: `blanc.billboard.pinned-top-sites.v1`, entries `{ key, url }`, the hostname key that main's `top-sites.js` uses and the http(s) **origin**. No path, query, title or icon, so a site pin keeps no more browsing detail than the hidden list does. Each entry is re-derived from its URL on read. An entry whose key doesn't match its own origin, a non-http(s) URL, a repeat, or anything past six is dropped.
-  - Favorite pins: `blanc.start.pinned-favorites.v1`, an array of the favorites' own URLs, bounded and de-duplicated. Each one is only a lookup key into the Favorites main already serves, never a link target.
-- Nothing new crosses IPC. There is no new `pages:*` channel, no main-process store, no Sync and no telemetry. The page never contacts a site or a favicon service to draw a pinned tile.
-- Pins survive clearing history, the same way the hidden list does. They are a deliberate choice, like a Favorite.
-- **Limit of page storage:** a private start page runs in the private session, whose storage is separate and ephemeral, so it can't see the pins. Billboard shows nothing there anyway. Ledger, Shelf and Tally show favorites there in plain Favorites order, with no pin buttons, so nothing pinned in a private tab can silently vanish.
+- **Billboard:** pins first, in pin order, then the ranked sites minus hidden sites and any site a pin already covers (by hostname). A pinned tile can be unpinned but not hidden; only ranked tiles keep the ×. A pin shows even when history no longer holds the site, or the site is hidden.
+- **Ledger, Shelf, Tally:** pins first, in pin order, then the Favorites that aren't pinned, in Favorites order. A pinned page that is a Favorite draws as that Favorite. A pinned page that isn't one (from a tab or a Billboard tile) draws from the pin's URL, name and icon.
+- Each layout shows as many as it has room for: Billboard and Ledger six, Shelf eight, Tally five.
+- A pinned tile's pin stays on show and is filled. An unpinned tile's pin shows on hover and focus, and always on touch screens.
+- Focus follows the item: after pinning, focus lands on the pin of the item now at the front; after unpinning, on the item's new place, or the slot it left. A polite live region announces "{title} pinned to the Start Page." and the matching unpinned message.
+- The Favorites page shows a small pin mark beside a pinned favorite's date at rest. Its **pin** button is disabled, with an explaining tooltip, when all eight pins are taken.
+- Open Start Pages and an open Favorites page redraw when the list changes anywhere. A notice that brings nothing new leaves the page and its focus alone.
+- **Private start pages** draw the pins, the way they draw Favorites, but show no pin buttons and can't change the list. Main refuses `pin`/`unpin` from a private tab's start page. Private Billboard still shows no tiles at all.
 
-The pure rules live in `src/renderer/pages/start-pins.js` (`pinFor`, `readPins`, `addPin`, `removePin`, `billboardSites`, `readFavoritePins`, `addFavoritePin`, `removeFavoritePin`, `livingFavoritePins`, `favoriteTiles`), served flat and tested in a vm (`test/unit/start-pins.test.js`), the same pattern as `start-site-name.js`.
+## 4. Data and privacy
 
-## 5. Owner checks
+- Main keeps the list in a `scope: 'profile'` `JsonStore`, `start-page-pins.json` (`src/main/start-page-pins.js`). Personal's is at the userData root; a named profile's is under `profiles/<id>/` and is removed with that profile.
+- It is device-local: not in Profile Sync, not in telemetry. It is kept when history is cleared, like Favorites.
+- Each pin is `{ url, title }`. The URL must be http(s) and at most 4,096 characters; the name is trimmed to 200, falling back to the host. Saved pins are re-sanitized on read, and repeats and anything past eight are dropped.
+- When listed, each pin gets an icon already held locally: its Favorite's, else its site's from the history icon cache. The page never fetches a site or a favicon service.
+- Channels (guarded, in `browser-api/bridges.json`, hosts `newtab` and `bookmarks` only):
+  - `pages:pins:list`
+  - `pages:pins:pin` (url, title) → `{ ok, reason? }`
+  - `pages:pins:unpin` (url)
+  - main → page `pages:pins:changed`. It carries no data, so each page re-reads its own profile's list.
+- The tab menu reads and writes the store in main. It needs no channel.
+- The Billboard's hidden-site list is unchanged: hostnames only, in the profile's `blanc://newtab` localStorage.
 
-1. **Pins lead**, rather than holding the slot where they were pinned (Firefox's model). Leading matches how pinned tabs lead their group in Blanc, and it is predictable with five to eight tiles.
-2. **The pinned marker stays on show.** Without it, nothing explains why a tile no longer moves.
-3. **Pins outlive clearing history.** The alternative is to clear pins with history. That would make pinning useless to anyone who clears history often.
-4. **One favorites pin list across Ledger, Shelf and Tally**, capped at eight.
-5. **Only favorites a layout already shows can be pinned from it.** A favorite beyond Shelf's eight can't be reached from any Start Page. Pinning it from the Favorites page (and showing pins on private start pages) needs a small device-local store in main with a new guarded `pages:*` channel, because the Favorites page is a different origin from the Start Page. This change leaves that out.
-6. **No drag to reorder pins.** Unpinning and re-pinning changes the order.
+## 5. What changed from the first draft
 
-## 6. Tests
+The first two commits of this PR kept pins in the Start Page's own localStorage, as separate Billboard and favorites lists. That couldn't serve the tab menu (main) or the Favorites page (another origin), and private start pages couldn't see it. Nothing had shipped, so it was replaced outright; there is nothing to migrate.
 
-- `test/unit/start-pins.test.js`: origin-only site pins, read-time sanitizing, the six- and eight-pin caps, row and tile order, a site pin history no longer holds, a deleted favorite's pin.
-- `test/unit/newtab-top-sites.test.js`: the Billboard row comes from `billboardSites`, both pin lists are written only to page storage and read nothing in private tabs, and no pin channel exists in the preload or `pages.js`.
-- `spec/acceptance/newtab-layouts.feature` (`@F35-5`): Billboard pin and unpin; a site pin that outlasts clearing history until it is hidden; a favorite pinned on Shelf that leads Shelf, Ledger and Tally, is stored as its URL, and returns to Favorites order when unpinned.
+## 6. Owner checks
+
+1. **Pins lead**, rather than holding the slot where they were pinned (Firefox's model). Leading matches how pinned tabs lead their group in Blanc.
+2. **One list across all four layouts**, capped at eight (Shelf's tile count). A layout with fewer tiles shows the first pins that fit.
+3. **A Billboard tile pins its site's origin** under its short name, not the page visited last.
+4. **Pins outlive clearing history** and **don't sync**. Syncing them would add a new synced store, which is a separate decision.
+5. **A pinned Billboard tile can't be hidden**, only unpinned.
+6. **Private start pages show the pins read-only.**
+7. **No drag to reorder pins.** Unpinning and re-pinning changes the order.
+
+## 7. Tests
+
+- `test/unit/start-page-pins-store.test.js`: sanitizing, the cap, idempotent pinning, change notices, and the Personal and named-profile files.
+- `test/unit/start-pins.test.js`: Billboard and favorites-layout order, site keys and origins, and change detection.
+- `test/unit/tab-context-menu-model.test.js` and `tab-context-menu-runner.test.js`: the menu item's label, place, enabled rules and dispatch.
+- `test/unit/newtab-top-sites.test.js`:
+  - hiding stays in page storage;
+  - pins only go through `pages:pins:*` for the two pages;
+  - private start pages can't change pins.
+- `spec/acceptance/newtab-layouts.feature` (`@F35-5`):
+  - Billboard pin and unpin;
+  - a site pin that outlasts clearing history;
+  - a favorite pinned on Shelf leading Shelf, Ledger and Tally;
+  - the tab menu pinning a page that an already-open Start Page then leads with;
+  - the Favorites page pinning a favorite that a new Start Page leads with.

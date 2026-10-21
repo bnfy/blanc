@@ -524,6 +524,23 @@ body.sheet .row .actions button {
 /* A stalled download's way forward stays in view instead of waiting for hover. */
 .row[data-state="interrupted"] .actions { opacity: 1; }
 .row .actions button { padding: 3px 9px; font-size: 11px; }
+/* Favorites page: a pinned favorite keeps a small pin before its date, on
+   show without hovering, so the list says what the Start Page leads with. */
+.row-pin-mark {
+  display: inline-flex;
+  vertical-align: -1px;
+  margin-right: 6px;
+  color: var(--text-dim);
+}
+.row-pin-mark svg {
+  width: 10px;
+  height: 10px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 body.sheet .row-list:not(:empty),
 body.sheet .shortcut-list {
   padding: 6px;

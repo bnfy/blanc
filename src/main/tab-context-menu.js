@@ -30,6 +30,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actio
     case 'toggle-mute': return actions.toggleMute(tab.id);
     case 'toggle-site-mute': return actions.toggleSiteMute(tab.id);
     case 'toggle-favorite': return actions.toggleFavorite(tab.id);
+    case 'toggle-start-pin': return actions.toggleStartPagePin(tab.id);
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
