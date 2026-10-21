@@ -3415,3 +3415,19 @@ Seven capture tests pass, diff check passes, one36.17s incremental build/six ste
 Plan/evidence updated and uncommitted. Raw ignored logs retained locally. Disposable test profiles removed after process inspection. Permanent profiles/tabs, retained preview and unrelated Google baseline untouched. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
 
 Evidence: `evidence/ratio-flush-retry-fix-20261021/`.
+
+
+# Capped ratio retry and shutdown after flush failure — October 21, 2026
+
+Four final clear/encrypted schedules pass32checkpoints. Capped-backoff fixtures retain Session flush EIO for17seconds after the first observed fault, collecting12native F_BARRIERFSYNC/fsync fault events each (six paired attempts). Together with the implemented500ms/1s/2s/4s/5s capped schedule, this exercises retries into the capped phase. It does not measure exact scheduler intervals or constitute a latency benchmark. Removing the fault without another save request allows retirement; immediate crash restores65/35.
+
+Shutdown fixtures acknowledge the independent65/35intent while native Session flush repeatedly fails, then issue Browser.close with the fault still active. Both exit cleanly. Restart without the fault restores the source pair and65/35; all four final profiles have zero recovery records after their final clean exit. This covers native Browser.close via CDP, not physical window-close input, SIGKILL during shutdown, power loss, or abandoned-owner shutdown under persistent fault.
+
+No code changes/build. Check-only guard zero actions, prior55/129 unchanged. Plan/evidence updated and uncommitted; raw ignored logs local. Disposable profiles removed after process inspection. Permanent profiles/tabs, retained preview and Google baseline untouched. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
+
+Evidence: `evidence/ratio-cap-shutdown-20261021/`.
+
+
+## Mac side-by-side preview release planning — October 21, 2026
+
+Created `mac-preview-release-checklist.md`: proposed Apple Silicon fresh-profile preview, twelve prioritized launch gates, follow-up hardening, explicit acceptance/evidence requirements and final artifact approval. This does not waive Decision 2, existing beta/cutover or Google upgrade gates. Latency remains deferred pending an explicit prelaunch decision; Electron diagnostic build remains pending approval/unstarted. Native physical input remains a launch gate. No build, runtime testing, publishing or profile changes performed for this planning task.
