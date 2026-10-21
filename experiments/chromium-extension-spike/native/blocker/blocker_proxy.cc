@@ -146,23 +146,34 @@ class SocketDecision {
         headers_(std::move(headers)), client_(std::move(client)),
         auth_(std::move(auth)), trusted_(std::move(trusted)) {}
   void Begin() {
+    Lifecycle("websocket-pending");
     client_.set_disconnect_handler(base::BindOnce(&SocketDecision::Abandon,
                                                  weak_.GetWeakPtr()));
     timeout_.Start(FROM_HERE, base::Seconds(35),
-        base::BindOnce(&SocketDecision::Done, weak_.GetWeakPtr(), -1));
+        base::BindOnce(&SocketDecision::TimedOut, weak_.GetWeakPtr()));
     // WebSocket has an initiator Origin rather than an HTTP referrer. Keep this
     // contract explicit; do not claim HTTP-referrer parity from this adapter.
     Engine::Get().Decide(url_.spec(), "webSocket", origin_,
         base::BindOnce(&SocketDecision::Done, weak_.GetWeakPtr()));
   }
  private:
-  void Abandon() { delete this; }
+  void Lifecycle(const char* stage) {
+    base::DictValue event;
+    event.Set("event", stage);
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    Record(std::move(event));
+  }
+  void Abandon() { Lifecycle("websocket-abandoned"); delete this; }
+  void TimedOut() { Lifecycle("websocket-timeout"); Done(-1); }
   void Done(int result) {
     if (!context_ || (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
       result = -1;
     timeout_.Stop();
     base::DictValue event;
     event.Set("event", "websocket-decision");
+    event.Set("request_id", request_id_);
     event.Set("url", url_.spec());
     event.Set("initiator_origin", origin_);
     event.Set("source_contract", "websocket-initiator-origin");
@@ -180,6 +191,7 @@ class SocketDecision {
     }
     delete this;
   }
+  const std::string request_id_ = base::UnguessableToken::Create().ToString();
   base::WeakPtr<content::BrowserContext> context_;
   content::WeakDocumentPtr document_;
   bool document_scoped_;

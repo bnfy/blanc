@@ -2501,3 +2501,7 @@ Recovered authenticated native engine archive (13members verified, current sourc
 ## WebSocket budget and consolidation — October 21, 2026
 
 Owner approved58upstreamfiles/133hunks for shared document/worker WebSocket enforcement, then authorized subsequent patch-budget increases without further approval requests, with consolidation later where possible. Record fresh totals and deltas; do not treat this as permission to bypass build guards, change toolchains, run latency, or start the Electron diagnostic build. Historical counts remain evidence of their checkpoints.
+
+## Pending WebSocket lifecycle — October 21, 2026
+
+Ten native regular/private pending teardown/timeout/utility-loss schedules pass with independent server records and opt-in correlated lifecycle observations. No policy repair required. Incremental31.42s/six steps; guard0; fresh56/133. Evidence: evidence/f12-websocket-lifecycle-20261021/. Broader lifecycle/provider and WebTransport/speculation gates remain open. Google baseline separate; latency deferred; Electron diagnostic build unstarted.
