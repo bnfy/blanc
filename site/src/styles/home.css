@@ -138,12 +138,12 @@
   background: var(--paper);
 }
 .sun-stage {
-  --w: 160px;
+  --w: 120px;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 96px 22px 88px;
+  padding: 40px 22px 72px;
   text-align: center;
 }
 .sun-sky {
@@ -186,15 +186,61 @@
 .sun-mark .sun-disc {
   clip-path: circle(20.6% at 49.9% 64.2%);
 }
+/* The headline sits in the middle column, as wide as its words, so the
+   handwritten note can sit above its end; everything else spans the copy. */
 .sun-copy {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  width: 100%;
+  max-width: 1120px;
+}
+.sun-copy > * {
+  grid-column: 1 / -1;
 }
 .sunrise h1 {
-  max-width: 11ch;
-  margin: 0 auto;
-  font-size: clamp(56px, 8.5vw, 120px);
+  grid-area: 1 / 2;
+  margin: 0;
+  font-size: clamp(44px, 6.6vw, 96px);
   line-height: 0.96;
+}
+/* "now, none at all", handwritten above the headline's end (owner, October 21,
+   2026). Real text; the underline flick is drawn. */
+.opening-aside {
+  grid-area: 1 / 2;
+  justify-self: end;
+  align-self: start;
+  position: relative;
+  margin: 0;
+  transform: translate(0.3em, calc(-100% - 0.65em)) rotate(-6deg);
+  transform-origin: 100% 100%;
+  color: var(--gold);
+  font-family: "Reenie Beanie", "Bradley Hand", "Segoe Print", cursive;
+  font-size: clamp(26px, 2.9vw, 42px);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.opening-note {
+  display: block;
+  padding-bottom: 0.12em;
+}
+.opening-flick {
+  position: absolute;
+  left: -2%;
+  bottom: -0.02em;
+  width: 104%;
+  height: 0.3em;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+/* The window: its top half on the first screen, the rest after a scroll. */
+.opening-window {
+  margin-top: clamp(36px, 5vh, 56px);
 }
 .sunrise .lead {
   max-width: 31em;
@@ -2107,14 +2153,10 @@ details[open] .faq-sign::after {
    no reduced-motion preference; otherwise the finished scene shows at once. */
 @media (prefers-reduced-motion: no-preference) {
   .sun-stage {
-    --w: min(56vmin, 540px);
-    min-height: calc(100vh - var(--site-header-h));
-    min-height: calc(100svh - var(--site-header-h));
-    box-sizing: border-box;
-    justify-content: center;
+    --w: min(34vmin, 300px);
     overflow: hidden;
-    padding-top: 32px;
-    padding-bottom: 48px;
+    padding-top: 28px;
+    padding-bottom: 72px;
   }
   .sun-sky,
   .sun-mark,

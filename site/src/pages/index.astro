@@ -4,7 +4,9 @@ import GestureDemo from "../components/GestureDemo.astro";
 import GlanceDemo from "../components/GlanceDemo.astro";
 import HorizonShield from "../components/HorizonShield.astro";
 import SpacesDemo from "../components/SpacesDemo.astro";
+import FloatingIslandWindow from "../components/FloatingIslandWindow.astro";
 import "../styles/home.css";
+import "../styles/reenie-beanie.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
@@ -170,10 +172,12 @@ const faqs = [
         </div>
         <div class="sun-copy">
           <h1 id="opening-title">A little less browser.</h1>
+          <p class="opening-aside"><span class="opening-note" lang="en">now, none at all</span><svg class="opening-flick" viewBox="0 0 120 14" aria-hidden="true"><path d="M3 9.5c22-4.6 51-6.4 79-4.9 11 .6 22 2 33 4.1" /></svg></p>
           <p class="lead">
-            Tabs, search and commands live in one compact Island, in a slim
-            band above the page. Free for macOS, Windows and Linux, with ad and
-            tracker blocking on from the first launch.
+            Tabs, search and commands live in one compact Island. Turn on
+            Auto-hide and it slips out of sight; point at the top edge and it
+            floats back. Free for macOS, Windows and Linux, with ad and tracker
+            blocking on from the first launch.
           </p>
           <div class="actions">
             <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc Browser</a><a
@@ -184,6 +188,9 @@ const faqs = [
             Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
+          <div class="opening-window">
+            <FloatingIslandWindow />
+          </div>
         </div>
       </div>
     </section>
