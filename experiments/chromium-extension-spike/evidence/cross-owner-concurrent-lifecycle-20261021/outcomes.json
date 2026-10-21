@@ -1,0 +1,22 @@
+[
+  {
+    "schedule": "cancel-clear",
+    "pass": true,
+    "checkpoints": 15
+  },
+  {
+    "schedule": "cancel-encrypted",
+    "pass": true,
+    "checkpoints": 15
+  },
+  {
+    "schedule": "shutdown-clear",
+    "pass": true,
+    "checkpoints": 13
+  },
+  {
+    "schedule": "shutdown-encrypted",
+    "pass": true,
+    "checkpoints": 13
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "schedule": "clear",
+    "pass": false,
+    "checkpoints": 7,
+    "error": "Error: wait timeout\n    at wait (file:///private/tmp/blanc-hot-delete-clear/test.mjs:5:130)\n    at async file:///private/tmp/blanc-hot-delete-clear/test.mjs:31:89"
+  },
+  {
+    "schedule": "clear2",
+    "pass": true,
+    "checkpoints": 15,
+    "error": null
+  },
+  {
+    "schedule": "encrypted2",
+    "pass": true,
+    "checkpoints": 15,
+    "error": null
+  }
+]
