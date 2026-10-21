@@ -124,6 +124,13 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     label: t(tab.bookmarked ? 'tabMenu.removeFavorite' : 'tabMenu.saveFavorite'),
     enabled: isFavoritable(tab),
   });
+  // Start Page pins take the same pages Favorites do, up to the store's cap;
+  // a pinned page can always be unpinned.
+  items.push({
+    id: 'toggle-start-pin',
+    label: t(tab.startPinned ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
+    enabled: isFavoritable(tab) && (!!tab.startPinned || !tab.startPinsFull),
+  });
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Split View (F53): a split tab can leave or close its split; any other tab
   // can make one with an eligible tab (main passes the candidates with their

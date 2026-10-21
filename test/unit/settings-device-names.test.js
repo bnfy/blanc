@@ -172,7 +172,9 @@ test('device names stay out of the Settings page and the mobile schema', () => {
 
 test('the sync engine skips the settings PUT on a true no-op', () => {
   const sync = fs.readFileSync(path.join(__dirname, '../../src/main/sync.js'), 'utf8');
-  assert.match(sync, /name: 'settings', export: settings\.exportForSync, merge: settings\.mergeFromSync, equals: settings\.syncPayloadEquals/);
+  // The settings store also carries Start Page pins (withStartPagePins), and
+  // still skips the PUT when the remote already says everything.
+  assert.match(sync, /name: 'settings',\s*export: \(\) => withStartPagePins\(settings\.exportForSync\(\)\),[\s\S]*?settings\.mergeFromSync\(remote\);[\s\S]*?equals: settings\.syncPayloadEquals,/);
 });
 
 // One sync pass as sync.js runs it: pull and merge, export, and PUT unless

@@ -500,6 +500,8 @@
     <string name="tab_menu_unmute_site">Unmute Site</string>
     <string name="tab_menu_save_favorite">Save to Favorites</string>
     <string name="tab_menu_remove_favorite">Remove from Favorites</string>
+    <string name="tab_menu_pin_start_page">Pin to Start Page</string>
+    <string name="tab_menu_unpin_start_page">Unpin from Start Page</string>
     <string name="tab_menu_move_to_group">Move to Group</string>
     <string name="tab_menu_split_with">Split with</string>
     <string name="tab_menu_split_pinned_refused">Pinned tabs can\'t join a split</string>
@@ -1440,6 +1442,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_private_footer">no history · separate from regular tabs · ends at quit, passkeys made here too</string>
     <string name="newtab_version">v%1$s</string>
     <string name="newtab_favorites_empty">Favorite a page with ♥ to pin it here</string>
+    <string name="newtab_pin_title">Pin %1$s</string>
+    <string name="newtab_pin_label">Pin %1$s to the Start Page</string>
+    <string name="newtab_unpin_title">Unpin %1$s</string>
+    <string name="newtab_unpin_label">Unpin %1$s from the Start Page</string>
+    <string name="newtab_pin_done">%1$s pinned to the Start Page.</string>
+    <string name="newtab_unpin_done">%1$s unpinned from the Start Page.</string>
+    <string name="newtab_pin_full">The Start Page holds %1$s pins. Unpin one first.</string>
     <string name="onboarding_skip">skip setup</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
     <string name="onboarding_step_default">default browser</string>
@@ -1564,6 +1573,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_row_move">move ▸</string>
     <string name="favorites_row_move_from_folder">In %1$s — move to another folder</string>
     <string name="favorites_row_move_to_folder">Move to a folder</string>
+    <string name="favorites_row_pin">pin</string>
+    <string name="favorites_row_unpin">unpin</string>
+    <string name="favorites_row_pin_label">Pin %1$s to the Start Page</string>
+    <string name="favorites_row_unpin_label">Unpin %1$s from the Start Page</string>
+    <string name="favorites_row_pin_full">The Start Page holds %1$s pins. Unpin one to pin this.</string>
+    <string name="favorites_row_pinned">Pinned to the Start Page</string>
     <string name="favorites_row_remove">remove</string>
     <string name="favorites_row_remove_label">Remove %1$s from Favorites</string>
     <string name="favorites_picker_label">Move %1$s to a folder</string>

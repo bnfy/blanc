@@ -1892,6 +1892,14 @@
     "message": "Remove from Favorites",
     "note": "Tab context menu command that removes the page from Favorites."
   },
+  "tabMenu.pinStartPage": {
+    "message": "Pin to Start Page",
+    "note": "Tab context menu command that pins the page to the front of every Start Page layout."
+  },
+  "tabMenu.unpinStartPage": {
+    "message": "Unpin from Start Page",
+    "note": "Tab context menu command that unpins the page from the Start Page."
+  },
   "tabMenu.moveToGroup": {
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
@@ -5439,6 +5447,34 @@
     "message": "Favorite a page with ♥ to pin it here",
     "note": "Start page: shown when there are no Favorites; ♥ is the Favorite button."
   },
+  "newtab.pin.title": {
+    "message": "Pin {title}",
+    "note": "Start page: tooltip of the pin on a tile; {title} is the page’s title. A pinned page comes first on every Start Page layout."
+  },
+  "newtab.pin.label": {
+    "message": "Pin {title} to the Start Page",
+    "note": "Start page: accessible name of the pin on a tile; {title} is the page’s title."
+  },
+  "newtab.unpin.title": {
+    "message": "Unpin {title}",
+    "note": "Start page: tooltip of the pin on a pinned tile; {title} is the page’s title."
+  },
+  "newtab.unpin.label": {
+    "message": "Unpin {title} from the Start Page",
+    "note": "Start page: accessible name of the pin on a pinned tile; {title} is the page’s title."
+  },
+  "newtab.pin.done": {
+    "message": "{title} pinned to the Start Page.",
+    "note": "Start page: announced after pinning a page; {title} is its title."
+  },
+  "newtab.unpin.done": {
+    "message": "{title} unpinned from the Start Page.",
+    "note": "Start page: announced after unpinning a page; {title} is its title."
+  },
+  "newtab.pin.full": {
+    "message": "The Start Page holds {count} pins. Unpin one first.",
+    "note": "Start page: announced when pinning is refused because every pin is taken; {count} is the most pins it holds."
+  },
   "onboarding.skip": {
     "message": "skip setup",
     "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
@@ -5870,6 +5906,32 @@
   "favorites.row.moveToFolder": {
     "message": "Move to a folder",
     "note": "Favorites page: tooltip of the move button on a favorite in no folder."
+  },
+  "favorites.row.pin": {
+    "message": "pin",
+    "note": "Favorites page: button on a favorite that pins it to the front of the Start Page, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.row.unpin": {
+    "message": "unpin",
+    "note": "Favorites page: button on a pinned favorite that unpins it from the Start Page, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.row.pinLabel": {
+    "message": "Pin {title} to the Start Page",
+    "note": "Favorites page: accessible name of the pin button; {title} is the page’s title."
+  },
+  "favorites.row.unpinLabel": {
+    "message": "Unpin {title} from the Start Page",
+    "note": "Favorites page: accessible name of the unpin button; {title} is the page’s title."
+  },
+  "favorites.row.pinFull": {
+    "message": "The Start Page holds {count} pins. Unpin one to pin this.",
+    "note": "Favorites page: tooltip of the pin button when every pin is taken; {count} is the most pins the Start Page holds."
+  },
+  "favorites.row.pinned": {
+    "message": "Pinned to the Start Page",
+    "note": "Favorites page: accessible name of the mark beside a pinned favorite."
   },
   "favorites.row.remove": {
     "message": "remove",
