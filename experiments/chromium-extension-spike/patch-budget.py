@@ -118,8 +118,8 @@ def inventory(src, upstream):
         'binary_detection': 'NUL in the first 8000 bytes of either upstream or working-tree content; --text for text diffs',
         'policy': 'Existing upstream paths only; untracked/new Blanc files excluded; '
                   'binary change = one hunk; mode-only = zero hunks; renames disabled.',
-        'budget': {'upstream_files': 54, 'hunks': 128},
-        'within_budget': len(files) <= 54 and sum(f['hunks'] for f in files) <= 128,
+        'budget': {'upstream_files': 55, 'hunks': 129},
+        'within_budget': len(files) <= 55 and sum(f['hunks'] for f in files) <= 129,
     }
 
 

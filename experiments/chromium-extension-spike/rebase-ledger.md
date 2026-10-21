@@ -3254,6 +3254,34 @@ Evidence: evidence/hot-profile-delete-20261021.
 Concurrent-cancellation/profile-shutdown evidence (56 checkpoints) and hot-profile deletion evidence (30 checkpoints) prepared for publication to PR #920. Parent ec90a8e6 completed CI with 28 successful checks, two skips and no new CodeQL alerts. This evidence-only commit changes no native code or upstream patch footprint; no build or runtime rerun. CI monitoring resumes on the published head. Latency deferred; native input and Electron diagnostic build remain pending.
 
 
+# Profile-deletion cancellation during pending cross-owner saves — October 21
+
+Unchanged normal binary from ec90a8e6. Native profile-picker removeProfile is invoked for an isolated Default profile while Profile1 remains alive and an actual cross-owner Session write is held. A real beforeunload handler on the source pane receives CDP Cancel. Chromium's deletion helper explicitly routes this cancellation to CancelProfileDeletion.
+
+Runtime gap reproduced: Cancel preserves the Default registry entry, sentinel, two-pane source Split View and decoy window. The held save refuses acknowledgement after release. A fresh cross-owner close/save, with the fault arm removed, also rejects with "Tab closed, but history persistence failed or timed out." This occurs in both clear and encrypted session schedules. The initial refusal arrives in less than one second after the held boundary in the timestamped schedules, so the generic message is not evidence of the ten-second deadline. Root cause is not established; no repair made.
+
+The two final schedules each reach 13 diagnostic checkpoints then fail at fresh retry. These are not persistence passes. Planned immediate post-ack crash/restart assertions were not reached. Two earlier clear attempts also failed at the original save-success expectation (11/12 checkpoints); retained separately. An initial Node runtime lacking WebSocket failed before any checkpoint and was corrected using Node20 experimental WebSocket support. No failed attempt is counted as a passing recovery schedule.
+
+Seven capture tests pass; no-compilation build guard schedules zero actions. No product code, native binary, or interposer changes. Existing bounded barrier dylib reused; source retained. Raw browser logs remain in /private/tmp/blanc-delete-cancel-* and fixture source/results are archived here. Owned test processes exited and disposable profiles removed after inspection. Retained dev, Google baseline and permanent profiles/tabs untouched. Native input pending; latency deferred; Electron diagnostic build pending approval and unstarted. Patch footprint remains prior54files/128hunks.
+
+Exact destructor/late-callback behavior, successful retry after cancellation, restart persistence after this refusal, physical UI cancellation and wider lifecycle remain unqualified. Green CI on unrelated parent evidence does not close this runtime failure.
+
+Evidence: evidence/profile-delete-cancel-20261021.
+
+
 ## uBO Intel inspector readiness correction — October 21
 
 Evidence-only parent b741855e failed the macOS Intel original DOM inspector check despite successful injection. The first-open harness now waits for this reloaded document’s fixture scriptlet and procedural filtering before opening the inspector. Timeout and separate delayed-bootstrap reconnect race remain unchanged. Baseline and patched local full desktop suites pass; syntax/lint pass. Exact Intel cause remains inferred because original diagnostics lack internal early-return state; new-head CI confirmation is required. No native or Electron build, no latency qualification. Evidence: evidence/ubo-inspector-readiness-20261021. Independent profile-deletion cancellation gap remains open.
+
+
+# Save recovery after cancelled profile deletion — October 21, 2026
+
+Fixed the confirmed lifecycle cause: CloseAllBrowsersWithProfile shuts SessionService and AppSessionService down before beforeunload. Cancel previously reset close handlers but left the factory services shut down; GetForProfile returned null and every subsequent save retry refused. The prepare hook now recreates both services through their existing session-restore factory entry points only after confirmed cancellation and close-handler reset, for a regular original-profile close. Actual deletion and incognito-only close paths do not take this branch. Factory creation rebuilds current browser state. No authentication or persistence failure is converted into success.
+
+Six isolated normal repaired-binary schedules pass100 checkpoints: clear/encrypted Cancel followed by fresh cross-owner retry and immediate crash (18 each); immediate crash directly after the originally held save acknowledges without a second save (17 each); actual hot-profile deletion with independent Profile1 retained and restart cleanup (15 each). Cancel preserves Default and source/decoy windows; original held saves now succeed, fresh retries succeed, and crash restart restores both source panes exactly once at35/65 plus decoy once. Confirmed deletion still disconnects the pending caller without success, removes Default, preserves Profile1 and cleans the deleted directory at restart. This is CDP-driven native beforeunload cancellation, not physical native-input acceptance.
+
+The retained diagnostic schedule reproduced the pre-fix retry failure (13 diagnostic checkpoints, not a pass). Temporary backend flush logging removed byte-for-byte. Incremental diagnostic build28.17s, normal restoration27.36s and repaired build30.37s, six steps each. No Electron diagnostic build or latency benchmark. Seven capture tests and eleven patch-counter tests pass; syntax/diff checks pass; final guard zero. Fresh count55files/129hunks matches the owner's new approval. First counter execution retained its old-policy failure at54/128; updated policy passes with identical counts.
+
+All owned test processes exited and disposable profiles removed after inspection. Retained preview, Google upgrade baseline and permanent profiles/tabs untouched. Wider cancellation ordering, app-window runtime parity, repeated simultaneous profile deletion, pre-ack crashes, real provider failure and powerloss remain unqualified. Native input pending; latency deferred; Electron diagnostic build pending approval and unstarted. Plan/evidence updated; owner requested publication to PR #920 and resumed CI monitoring.
+
+Evidence: evidence/profile-delete-cancel-fix-20261021.

@@ -500,6 +500,22 @@ edit('chrome/browser/ui/browser_command_controller.cc', [{
   replacement: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);',
   present: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);'
 }]);
+// Profile-wide closure shuts session recording down before beforeunload.
+// Restore it only on confirmed cancellation, after all close handlers reset.
+edit('chrome/browser/lifetime/application_lifetime_desktop.cc', [{
+  anchor: '    if (on_close_aborted) {\n      on_close_aborted.Run(profile_path);\n    }',
+  replacement: `    // CloseAllBrowsersWithProfile shuts these down before beforeunload.
+    // A cancelled close keeps the profile alive; resume recording its windows.
+    if (match_original_profile && !original_profile->IsOffTheRecord()) {
+      SessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+      AppSessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+    }
+    if (on_close_aborted) {
+      on_close_aborted.Run(profile_path);
+    }`,
+  present: '    // A cancelled close keeps the profile alive; resume recording its windows.'
+}]);
+
 edit('chrome/browser/ui/browser_tab_restorer.cc', [{
   anchor: '#include "base/memory/ptr_util.h"',
   replacement: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n#include "base/memory/ptr_util.h"',

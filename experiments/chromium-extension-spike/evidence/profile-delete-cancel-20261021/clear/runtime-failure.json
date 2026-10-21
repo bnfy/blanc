@@ -1,0 +1,5 @@
+{
+  "checks": [],
+  "pass": false,
+  "error": "ReferenceError: WebSocket is not defined\n    at connect (file:///private/tmp/blanc-delete-cancel-clear/cdp.mjs:2:48)\n    at attach (file:///private/tmp/blanc-delete-cancel-clear/test.mjs:7:38)\n    at launch (file:///private/tmp/blanc-delete-cancel-clear/test.mjs:11:845)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async file:///private/tmp/blanc-delete-cancel-clear/test.mjs:15:1"
+}
