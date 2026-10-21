@@ -189,14 +189,30 @@ original reports:
   Sync shares open tabs. History and Favorites keep the page's own title, and
   a private tab's name is kept only in memory. Blanc never names tabs itself:
   do not describe automatic, suggested or AI-generated tab names.
-- **Glance:** Glance shows one other tab the user picks, the reference,
-  beside or below the main page. Since v1.35.0 Reload, Close Tab, Find, zoom,
-  Print, Back, Forward, mouse gestures and the 1Password fill act on the pane
-  that has keyboard focus, while ⌘L, ⌘T, ⌘1–9, the shield and slash commands
-  stay on the main page. A link the reference opens in a new tab opens in
-  Glance, a link's right-click menu offers Open Link in Glance, and `/glance`
-  opens the picker. Glance holds one reference at a time; do not describe
-  more panes, tiling of several tabs, or automatic pairing of related pages.
+- **Glance:** Glance shows one other tab the user picks, the reference.
+  Since v1.40.0 it is a card floating over the current page (not beside or
+  below it): the page behind stays usable, the card moves by its header,
+  resizes from its edges, resets with a double-click on the header, and keeps
+  its place on this device. Switching tabs closes it; Open as tab makes the
+  Glance page the current tab, Keep as split turns the two into a Split View,
+  and Escape closes it from the card's header, never from inside the page.
+  Since v1.35.0 Reload, Close Tab, Find, zoom, Print, Back, Forward, mouse
+  gestures and the 1Password fill act on the pane that has keyboard focus,
+  while ⌘L, ⌘T, ⌘1–9, the shield and slash commands stay on the main page. A
+  link the reference opens in a new tab opens in Glance, a link's right-click
+  menu offers Open Link in Glance, and `/glance` opens the picker. Glance
+  holds one reference at a time; do not describe more panes, tiling of
+  several tabs, or automatic pairing of related pages. Material about v1.39.0
+  or earlier describes the side-by-side Glance of those releases.
+- **Split View:** Since v1.40.0 two tabs can show side by side in one window,
+  made from a tab's Split with menu or Glance's Keep as split. The divider
+  resizes the panes, the pane you click is the current tab, and a split stays
+  together in the ⌘L panel, after a relaunch and in Blanc Spaces. Remove from
+  Split takes one tab out; Close Split closes both, and Reopen Closed Tab
+  brings the split back. Two panes only: do not describe three or four panes,
+  a grid, or keyboard shortcuts for moving between panes. Pinned tabs can't
+  join a split, private tabs in a split aren't saved, and splits aren't
+  synced.
 - **Favorites import from signed-in Chrome profiles:** Since v1.35.0
   Favorites import from Chrome, Edge, Brave, Chromium and Vivaldi also reads a
   signed-in profile's separate account bookmarks file (`AccountBookmarks`)
@@ -394,8 +410,12 @@ original reports:
   strip so the page fills the window. Pointing at or just above the top edge,
   resting near the top, or any Island surface such as ⌘L brings it back. It is
   off by default. On native Wayland the band above a floating window can't
-  reveal it; don't claim it works identically there. The Island doesn't
-  overlay the page: revealing it moves the page down.
+  reveal it; don't claim it works identically there. In v1.39.0 revealing
+  it moved the page down. Since v1.40.0 the revealed Island floats over the
+  page by default (**When the Island comes back**: Float over the page, or
+  Push the page down); while it floats it comes back only from the top edge
+  or ⌘L and hides once the pointer moves into the page, and the window
+  buttons hide and come back with it.
 - **Tab Archive:** Since v1.39.0 Settings → General → Archive inactive tabs
   (Off by default; 12 hours, 1 day, 7 days or 30 days) closes idle loose tabs
   into a per-profile, device-local Archive kept 30 days (up to 500), restored

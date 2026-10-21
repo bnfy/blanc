@@ -1,5 +1,169 @@
 [
   {
+    "tag": "v1.40.0",
+    "version": "1.40.0",
+    "name": "1.40.0",
+    "publishedAt": "2026-10-21T03:27:16.000Z",
+    "humanDate": "October 20, 2026",
+    "machineDate": "2026-10-20",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.40.0",
+    "anchor": "v1-40-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Split View."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Show two tabs side by side in one window. Right-click a tab and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Split with"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a Glance card. Drag the divider between the panes to resize them. The pane you click is the current tab, so the Island, Back and Reload follow it, and each pane's corner shows its site. A split stays together in the ⌘L panel and comes back after a relaunch and in Blanc Spaces. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove from Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a tab's menu (or the × in its corner) takes one tab out; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " closes both, and Reopen Closed Tab brings the split back."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance floats over the page."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The tab you pick now opens as a large card over the current page instead of beside it, and the page behind stays usable. Drag the card's header to move it, drag an edge to resize it, and double-click the header to put it back; Blanc remembers where you left it. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open as tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " makes the Glance page the current tab, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " turns the two into a Split View. Switching tabs closes the Glance, and so does Escape on the card's header; Escape inside the page stays with the page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "With Auto-hide on, the Island floats over the page when it comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instead of pushing the page down. To keep the old behavior, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Push the page down"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "When the Island comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General. While it floats, the Island comes back only from the top edge of the window (or ⌘L, Ctrl+L on Windows and Linux) and hides as soon as the pointer moves into the page, and the window buttons hide and come back with it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After you close a window's last tab, the address field is ready to type into, as it is after ⌘T."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Dark and private tabs load on a dark background instead of flashing white."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.39.0",
     "version": "1.39.0",
     "name": "1.39.0",
