@@ -1,0 +1,154 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "resize acknowledged with independent ratio intent",
+      "value": true
+    },
+    {
+      "name": "native Session flush EIO observed",
+      "value": {
+        "pid": 56615,
+        "path": "/private/tmp/blanc-ratio-flush-encrypted-final/profile/Default/Sessions/Session_13437077504648928",
+        "mode": "flush",
+        "op": "fsync",
+        "errno": 5
+      }
+    },
+    {
+      "name": "intent retained after failed flush",
+      "value": [
+        "fcd642c2-5119-47ed-9d02-eba2079dc3e5_fe5dee4d-da64-4252-b46f-2232ee43b793_2b098d54-5c73-4050-8fa7-cf210d9ae365"
+      ]
+    },
+    {
+      "name": "explicit same ratio retry succeeds",
+      "value": true
+    },
+    {
+      "name": "successful retry retires intent",
+      "value": true
+    },
+    {
+      "name": "restored last session",
+      "value": {
+        "activeTabId": "643825014",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "643825015",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "643825014",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "fcd642c2-5119-47ed-9d02-eba2079dc3e5",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "643825012",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.65,
+                0.35
+              ]
+            },
+            "tabIds": [
+              "643825012",
+              "643825013"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "643825012",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "643825013",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "643825014",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 0
+      }
+    },
+    {
+      "name": "exact source pair restored",
+      "value": true
+    },
+    {
+      "name": "retry ratio survives immediate crash",
+      "value": true
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,151 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "resize acknowledged with independent ratio intent",
+      "value": true
+    },
+    {
+      "name": "native Session flush EIO observed",
+      "value": {
+        "pid": 56302,
+        "path": "/private/tmp/blanc-ratio-flush-clear/profile/Default/Sessions/Session_13437077436418951",
+        "mode": "flush",
+        "op": "fsync",
+        "errno": 5
+      }
+    },
+    {
+      "name": "intent retained after failed flush",
+      "value": [
+        "a2b33099-3e94-4b6e-ab37-859164bb4976_e5663a77-3da8-4309-9296-b9a7964b2394_19c59e9e-fc23-4f88-95d5-ff4e49ee4cbb"
+      ]
+    },
+    {
+      "name": "explicit same ratio retry succeeds",
+      "value": true
+    },
+    {
+      "name": "successful retry retires intent",
+      "value": true
+    },
+    {
+      "name": "restored last session",
+      "value": {
+        "activeTabId": "1435474255",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1435474256",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1435474255",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "a2b33099-3e94-4b6e-ab37-859164bb4976",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "1435474253",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.65,
+                0.35
+              ]
+            },
+            "tabIds": [
+              "1435474253",
+              "1435474254"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1435474253",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1435474254",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1435474255",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 0
+      }
+    },
+    {
+      "name": "exact source pair restored",
+      "value": true
+    }
+  ],
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(Math.abs(restored.splits[0].ratio-.65)<.01)\n\n    at file:///private/tmp/blanc-ratio-flush-clear/test.mjs:29:1"
+}
