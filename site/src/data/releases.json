@@ -1,5 +1,130 @@
 [
   {
+    "tag": "v1.41.0",
+    "version": "1.41.0",
+    "name": "1.41.0",
+    "publishedAt": "2026-10-21T23:21:58.000Z",
+    "humanDate": "October 21, 2026",
+    "machineDate": "2026-10-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.41.0",
+    "anchor": "v1-41-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Clock Font & color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose how the Billboard Start Page's clock looks, like the iOS Lock Screen: open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and pick "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clock"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or right-click the clock. Pick a font (Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex), its weight and its height, then a color: "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Automatic"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or one of eight colors with a tone. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Glass"
+                  },
+                  {
+                    "type": "text",
+                    "value": " bends the page behind the numerals like glass; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws them flat. Every clock now has a soft shadow so it stays readable on any background."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Start Page pins."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pin up to eight pages to the Start Page, and they come first on every layout, newest first. Pin a Billboard tile, a favorite on Ledger, Shelf or Tally, a favorite on the Favorites page, or the current page from a tab's right-click menu with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pin to Start Page"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Pins sync with Profile Sync."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After a site asks for a permission, the keyboard goes back to that page instead of to a tab you can't see."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On the Billboard Start Page in dark mode, a tile's × is visible again."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.40.0",
     "version": "1.40.0",
     "name": "1.40.0",

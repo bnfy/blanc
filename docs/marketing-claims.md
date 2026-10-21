@@ -405,6 +405,23 @@ original reports:
   still takes priority on that device, and private tabs never show a color.
   Hand-checked on Windows; the Linux check was waived as above. Don't describe a
   separate image per space; that isn't shipped.
+- **Clock Font & color:** Since v1.41.0 the Billboard Start Page's clock can
+  be styled from Customize → Clock or by right-clicking it: one of four
+  bundled faces (Instrument Sans, Instrument Sans Condensed, Inter, Roboto
+  Flex), a weight, a height set with the face's own width and weight axes
+  (only on faces that allow it), Automatic or one of the eight Spaces colors
+  with a tone, and Glass or Solid. Glass draws as Solid under reduced
+  transparency. Every clock has a shadow. The choices sync with Profile Sync.
+  It is the Billboard layout's clock only, and it isn't macOS's native Liquid
+  Glass. Not yet hand-checked on Windows or Linux.
+- **Start Page pins:** Since v1.41.0 up to eight pages can be pinned, and
+  they come first on every Start Page layout, newest first: from a Billboard
+  tile, a favorite on Ledger, Shelf or Tally, the Favorites page, or Pin to
+  Start Page in a tab's menu (web pages in non-private tabs only). Pins belong
+  to a local profile; Profile Sync carries only the Personal profile's, and
+  private Start Pages show them read-only. Icons come only from the profile's
+  own Favorites or history; nothing is fetched. Not yet hand-checked on
+  Windows or Linux.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
@@ -439,8 +456,9 @@ original reports:
 - **Billboard frequently visited sites:** Billboard ranks ordinary browsing
   history on the device and keeps its favicon artwork and hidden-tile choices
   local. Private tabs do not contribute or receive this row. Do not describe
-  the feature as synced, account-based, remotely retained, or semantically
-  organized.
+  the ranking as synced, account-based, remotely retained, or semantically
+  organized. Since v1.41.0 Start Page pins (above) lead the row and can sync;
+  the ranked tiles after them still don't.
 - **Screen and system-audio sharing:** A site request opens Blanc's centered
   confirmation before capture begins. The user chooses a surface, separately
   approves computer audio, and can stop each share from the Island while its
