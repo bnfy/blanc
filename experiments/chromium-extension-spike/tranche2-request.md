@@ -2184,3 +2184,84 @@ All 11 tests in site-bangs-logic pass; scoped ESLint passes. An injected per-com
 Latency deferred; Electron diagnostic build pending approval. Intel CI confirmation remains pending push.
 
 Evidence: evidence/intel-directory-test-20261020.
+
+
+# Continuous Split mutation during pending saves — October21
+
+Two bounded schedules on the unchanged normal binary pass26 checkpoints. Following an injected initial partial-close Session EIO, the fixture reconciles the pair and retries via Island closeTab. A test-only interposer delays each targeted Session write300ms while the fixture repeatedly changes the live split ratio at approximately40ms intervals. Clear and encrypted session modes both reject with the native history persistence timeout near the existing ten-second bound. Exact counts/times are in outcomes.json; these are functional deadlines, not latency measurements.
+
+After the timeout, the fixture removes the delay, waits for queued work, retains the failed result, selects35/65 and closes a fresh tab. The stable retry acknowledges; immediate SIGKILL/restart recovers exactly one35/65 split with each original pane once. Fresh close after restart remains usable. The earlier persistence failure marker therefore remains repairable after this bounded timeout.
+
+Limits: delayed writes contribute to deadline exhaustion; this does not isolate mutation-only starvation or count internal revalidation cycles. A settled JavaScript promise cannot prove absence of every redundant native reply; no native reply tracing was added. Native physical input, continuous mutation without injected delay, arbitrary owner/group/page-state combinations, pre-ack crashes and powerloss remain unqualified. Mock keychain and disposable crash-bubble bypass used. No production edits or native compile; only the test interposer compiled (macOS syscall deprecation warnings). Seven capture tests pass; final build guard zero. Prior54files/128hunks unchanged. Retained dev and upgrade baseline profiles untouched. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: evidence/split-continuous-timeout-20261021.
+
+
+# Mutation-only Split save checks — October21
+
+No write delays were armed during the retry phase. Initial Session EIO only establishes the partial-close retry marker, then the interposer is unarmed; the fixture asserts no new interception record during retry. Four corrected schedules (two clear/two encrypted) pass: focus the split, observe31/69 live before submitting the save, then issue successive ratio changes while awaiting acknowledgement. Each completes successfully after two mutation requests; mutation-only starvation/timeout was not reproduced. Exact functional observations are in outcomes.json, not latency qualification. Subsequent ordinary history close remains usable; these successful runs do not assert crash persistence of later ratio changes.
+
+Important fixture limits: two API mutations are not proof of sustained live layout updates across every internal save cycle. The renderer/native layout may coalesce updates. No general convergence or mutation-only deadline qualification is claimed. The prior delayed-write timeout checks remain separate evidence.
+
+Three attempts excluded from acceptance: the first submitted save before beginning mutations, succeeded after one change, then incorrectly expected a later35/65 change to persist through an ordinary history-only close; restart showed50/50. This is not a demonstrated pending-retry acknowledgement failure because the later mutation was outside that guarantee. The next attempted resizing an inactive split and failed readiness. A final extra clear run read the interposer JSON while it was being written and failed before the retry phase. Raw failures retained. Inherited raw checkpoint text mentioning a stable retry 'after timeout' is inaccurate for successful mutation-only runs; no timeout occurred.
+
+Seven capture tests pass, final build guard zero, no product changes/native compilation; prior54/128 unchanged. Dev and upgrade baseline untouched. Native input, latency and Electron diagnostic build remain pending. Mutation-only starvation remains unqualified rather than marked passed.
+
+Evidence: evidence/split-mutation-only-20261021.
+
+
+# Repeated mutation-only retry-save cycles — October21
+
+Four isolated runs pass188 checkpoints across18 retry-save cycles: six sequential cycles each in clear/encrypted storage, plus three burst cycles each. Each cycle establishes the partial-close repair marker with an initial EIO, reconciles the pair, removes the fault, focuses the split and observes31/69 before retry. No write delays or faults are armed during the retry phase; absence of new interception evidence is asserted. The per-cycle EIO is setup, not a mutation-only failure.
+
+Sequential loops issue1–2 accepted resize calls before save completion. Burst loops issue32–64 accepted calls per save (32 concurrent requests per batch), with live snapshot observations retained. All18 saves acknowledge successfully; subsequent closes and repeated cycles remain usable. No starvation or mutation-only timeout reproduced. This is repeated external save-request coverage, not proof of multiple internal revalidation iterations or a continuously unsatisfied signature: queued layout updates/snapshot publication may coalesce. The mutation-only timeout branch remains unqualified. These runs do not assert crash persistence for ratio changes made after an acknowledgement.
+
+Seven capture tests pass. Existing normal binary used; no production edits, native rebuild, or test dylib recompilation. Final build guard zero; prior54/128unchanged. Exact elapsed observations only establish bounded completion, not latency qualification. Temporary profiles removed after process-exit verification. Retained dev and upgrade profiles/tabs untouched. Native input pending; latency deferred; Electron diagnostic build pending approval.
+
+Evidence: evidence/split-sustained-mutation-20261021.
+
+
+# Deterministic internal-cycle mutation timeout — October21
+
+Two diagnostic schedules pass26 checkpoints: clear and encrypted retries complete8,817 and8,658 session/history save cycles respectively, with a synchronous ratio mutation after each completed cycle and before signature comparison. No write delays are injected. Initial Session EIO only establishes the partial-close repair marker; its arm is removed before retry and no new interception record exists. Both requests refuse acknowledgement at the existing ten-second deadline (10,039/10,024ms observed functional bounds, not latency qualification).
+
+A fresh stable retry after timeout acknowledges and immediate SIGKILL/restart restores exactly one35/65 split with each original pane once. Fresh history close remains usable. The temporary native hook targets only the first saved retry request; subsequent callbacks are gated by the normal pending-request guard. A settled JavaScript promise is not exhaustive native duplicate-reply tracing. This qualifies deterministic internal-cycle deadline refusal and recovery, not natural user-driven starvation or throughput. Mock keychain and disposable crash-bubble bypass used.
+
+Initial diagnostic attempt failed a UI-thread blocking DCHECK from marker-file access (zero completed cycles), and the first replacement failed compilation due to a static string exit-time destructor. Both retained and excluded from acceptance. Corrected diagnostic uses an in-memory request identifier; no production repair was needed. Diagnostic patch retained as evidence only. Native input, latency and Electron diagnostic build remain pending; pre-ack/powerloss and broader lifecycle remain open.
+
+Evidence: evidence/split-internal-cycle-timeout-20261021.
+
+Final verification: diagnostic removed byte-for-byte (native source equals saved normal source, no native git diff); normal incremental rebuild38.53s, six steps. Fresh normal-binary smoke passes12 checkpoints; seven capture tests pass; final guard zero scheduled actions. All disposable test processes exited and their profiles removed. Retained dev/upgrade baseline and permanent profiles/tabs untouched. Production patch footprint remains prior54/128; no upstream patch edits. Initial diagnostic build38.73s and corrected diagnostic build are retained in logs; all native builds incremental.
+
+
+# Owner destruction and cross-owner retry after mutation timeout — October21
+
+Six final schedules reach84 diagnostic checkpoints: four fail the immediate crash-recovery assertion and two controls pass. These are not84 persistence passes. Temporary native instrumentation forces a ratio change after each completed Session/Tabs save cycle before revalidation. Initial Session EIO establishes the repair marker; no write delay or fault remains armed during the timeout/retry phase. The diagnostic is the previously bounded, first-request-only hook, not a production change.
+
+- Cross-owner retry, clear and encrypted: an existing second window is settled before the initial EIO. The original request times out after8,427/7,325 completed cycles. Set source35/65, observe live state, then close a helper tab from the second owner. That history close succeeds, but immediate SIGKILL/restart restores30/70 rather than35/65. Both source panes and the decoy survive exactly once. Twelve diagnostic checkpoints per failing run.
+- Owner destruction, clear and encrypted: after timeout (8,034/9,240 cycles), close the two source panes and its New Tab placeholder. Verify the source host disappears and only the decoy host remains. A history close in the surviving owner acknowledges. Immediate crash/restart resurrects the explicitly closed source window/panes. Fourteen diagnostic checkpoints per failing run.
+- Same-owner clear control: after the other-owner history close, a further close from the original source owner acknowledges the session repair. Immediate crash restores35/65 and each pane once;15 checkpoints pass.
+- Settled destruction clear control:5.5seconds after the surviving owner's history acknowledgement, abrupt restart retains the decoy and leaves the source closed;17 checkpoints pass. This is a persistence-boundary control, not latency qualification.
+
+Code inspection: partial_close_save_failed is owner-local. SaveClosedHistory in another owner takes the ordinary history-only flush path; it neither consumes nor completes the original owner's session repair. Destroying that owner removes its marker. A successful history close from another window therefore does not establish current whole-profile Session durability. These tests establish this coverage gap, not loss of acknowledged closed-history data. A repair should preserve pending session-repair responsibility across owner lifetime and require a current session/history flush plus mutation revalidation before clearing it. No repair applied this checkpoint. Green CI cannot close this runtime gap.
+
+Two preliminary destruction fixtures are retained and excluded: both failed to destroy the owner because they omitted the retained New Tab placeholder (first selected only pane targets; second additionally handled about:blank but not chrome://newtab/). Final fixtures explicitly close that captured page and confirm one remaining host. No native crash was observed in the final destruction schedules; the persistence assertion fails after intentional SIGKILL/restart.
+
+Mock keychain, syscall EIO setup and disposable crash-bubble bypass are fixture-only. Physical input, profile destruction, arbitrary simultaneous owners/saves, pre-ack crashes and powerloss remain unqualified. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: evidence/timeout-owner-retry-20261021.
+
+Final verification: temporary diagnostic removed byte-for-byte; native source has no git diff. Diagnostic and normal builds both incremental (35.53/35.81seconds, six steps each), final guard zero scheduled actions. Restored normal-binary smoke passes12 checkpoints; seven capture tests pass. Disposable test processes exited; only this task's profiles removed. Retained dev/upgrade baseline/permanent profiles and tabs untouched. Prior upstream54files/128hunks unchanged; no upstream patch edit or product repair. Plan/evidence updated; not committed or pushed.
+
+
+# Cross-owner session repair fix — October21
+
+Pending partial-close session repair now belongs to the Profile rather than its originating Island owner. Cancellation marks a generation before asynchronous work; any owner history close rebuilds and flushes the session, flushes history, and revalidates structure/layout and generation before clearing the obligation. Timeouts/failures preserve it, and owner destruction no longer discards it. History-only callbacks also detect newly pending repair. A successfully saved cancellation conservatively retains the obligation until the next fully revalidated close.
+
+All four prior timeout failures now pass: clear/encrypted cross-owner retry restores35/65 after immediate crash; confirmed destroyed source stays absent and decoy survives once. Six diagnostic schedules92checkpoints plus six normal-binary schedules65checkpoints pass, including private/repeated-EIO controls. Seven capture tests pass.
+
+Final normal-binary verification passes six schedules/65 checkpoints: direct initial-EIO cross-owner recovery and confirmed owner destruction in clear/encrypted modes, private cancellation/full-close regression, and repeated Session EIO refusal followed by successful retry and crash recovery. Together with the diagnostic timeout schedules,12 schedules/157 checkpoints pass. Seven capture tests and git diff whitespace checks pass. This does not qualify arbitrary simultaneous cancellation generations, in-flight profile destruction, same-signature page-state changes, pre-ack crashes, physical native input, or power loss.
+
+Temporary diagnostic removed byte-for-byte from the repaired normal source. Two incremental builds35.85/37.09seconds, six steps each; final guard zero. No upstream hook edit: prior54files/128hunks unchanged. Test processes exited and disposable profiles removed; retained dev/upgrade baseline and permanent profiles/tabs untouched. Latency deferred; Electron diagnostic build pending approval and unstarted. Changes/evidence not committed or pushed.
+
+Evidence: evidence/profile-repair-owner-fix-20261021.

@@ -1,0 +1,62 @@
+[
+  {
+    "schedule": "normal-control-regression-private",
+    "pass": true,
+    "checkpoints": 2
+  },
+  {
+    "schedule": "normal-cross-clear",
+    "pass": true,
+    "checkpoints": 12
+  },
+  {
+    "schedule": "normal-cross-encrypted",
+    "pass": true,
+    "checkpoints": 12
+  },
+  {
+    "schedule": "normal-destroy-clear3",
+    "pass": true,
+    "checkpoints": 14
+  },
+  {
+    "schedule": "normal-destroy-encrypted3",
+    "pass": true,
+    "checkpoints": 14
+  },
+  {
+    "schedule": "normal-repeated",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "timeout-cross-clear",
+    "pass": true,
+    "checkpoints": 14
+  },
+  {
+    "schedule": "timeout-cross-encrypted",
+    "pass": true,
+    "checkpoints": 14
+  },
+  {
+    "schedule": "timeout-destroy-clear3",
+    "pass": true,
+    "checkpoints": 16
+  },
+  {
+    "schedule": "timeout-destroy-encrypted3",
+    "pass": true,
+    "checkpoints": 16
+  },
+  {
+    "schedule": "timeout-destroy-settled-control",
+    "pass": true,
+    "checkpoints": 17
+  },
+  {
+    "schedule": "timeout-sameowner-control",
+    "pass": true,
+    "checkpoints": 15
+  }
+]

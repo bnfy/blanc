@@ -528,6 +528,21 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
 
 void UpdatePersistentSplitFocus(BrowserWindowInterface* browser);
 
+// Session repair belongs to the profile, not the window that observed a
+// cancelled batch close. Generations prevent an older save clearing newer work.
+class ClosedSessionRepair : public base::SupportsUserData::Data {
+ public:
+  uint64_t generation = 0;
+  uint64_t saved_generation = 0;
+  bool pending() const { return generation != saved_generation; }
+};
+ClosedSessionRepair* SessionRepair(Profile* profile) {
+  static constexpr char key[] = "blanc-closed-session-repair";
+  if (!profile->GetUserData(key))
+    profile->SetUserData(key, std::make_unique<ClosedSessionRepair>());
+  return static_cast<ClosedSessionRepair*>(profile->GetUserData(key));
+}
+
 class Owner : public base::SupportsUserData::Data,
               public content::WebContentsObserver,
               public content::RenderWidgetHost::InputEventObserver,
@@ -546,7 +561,6 @@ class Owner : public base::SupportsUserData::Data,
   int initial_window_save_failures = 0;
   base::TimeTicks initial_window_retry_at;
   bool recovery_checked = false;
-  bool partial_close_save_failed = false;
   bool space_busy = false;
   std::string space_name;
   std::vector<int> space_pending_ids;
@@ -1881,12 +1895,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   std::map<std::string, PendingSplitClose> split_closes_;
   void SplitCloseCancelled(std::string id) {
     auto it = split_closes_.find(id);
-    if (it != split_closes_.end()) it->second.cancelled = true;
+    if (it == split_closes_.end()) return;
+    if (!it->second.cancelled && !it->second.single_tab && it->second.browser &&
+        !it->second.browser->GetProfile()->IsOffTheRecord())
+      ++SessionRepair(it->second.browser->GetProfile())->generation;
+    it->second.cancelled = true;
   }
   void SplitCloseSaved(std::string id, bool cancelled, bool saved) {
     if (!split_closes_.erase(id)) return;
-    if (cancelled && !saved)
-      if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->partial_close_save_failed = true;
     Reply(id, saved && !cancelled, saved ?
         (cancelled ? base::Value("Split closure cancelled; partial history and session saved.") : base::Value()) :
         base::Value("Split history/session persistence failed; recovery is not acknowledged."));
@@ -1936,8 +1952,6 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   void ClosedHistorySaved(std::string id, bool saved) {
     if (!history_saves_.erase(id)) return;
-    if (saved)
-      if (auto* owner = GetOwner(web_ui()->GetWebContents())) owner->partial_close_save_failed = false;
     Reply(id, saved, saved ? base::Value() :
         base::Value("Tab closed, but history persistence failed or timed out."));
   }
@@ -1975,6 +1989,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (!history_saves_.contains(id)) return;
     auto* session = profile ? SessionServiceFactory::GetForProfile(profile.get()) : nullptr;
     if (!session) { ClosedHistorySaved(id, false); return; }
+    history_saves_[id] = SessionRepair(profile.get())->generation;
     auto state = ClosedSessionState(profile.get());
     session->ResetFromCurrentBrowsers();
     session->SaveAndFlushSession(base::BindOnce(&Handler::ClosedSessionRetried,
@@ -1983,10 +1998,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   void ClosedRetrySaved(std::string id, base::WeakPtr<Profile> profile,
                         base::ListValue state, bool saved) {
     if (!history_saves_.contains(id)) return;
-    if (saved && profile && state != ClosedSessionState(profile.get())) {
+    if (saved && profile && (state != ClosedSessionState(profile.get()) ||
+        history_saves_.at(id) != SessionRepair(profile.get())->generation)) {
       RetryClosedSession(id, profile);
       return;
     }
+    if (saved && profile)
+      SessionRepair(profile.get())->saved_generation = history_saves_.at(id);
     ClosedHistorySaved(id, saved && profile);
   }
   void ClosedSessionRetried(std::string id, base::WeakPtr<Profile> profile,
@@ -1997,27 +2015,35 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     service->SaveAndFlush(base::BindOnce(&Handler::ClosedRetrySaved,
         weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
   }
+  void ClosedHistoryFlushed(std::string id, base::WeakPtr<Profile> profile, bool saved) {
+    if (!history_saves_.contains(id)) return;
+    // A cancellation in another owner may have arrived during a history-only save.
+    if (saved && profile && SessionRepair(profile.get())->pending()) {
+      RetryClosedSession(id, profile);
+      return;
+    }
+    ClosedHistorySaved(id, saved && profile);
+  }
   void SaveClosedHistory(std::string id, Profile* profile) {
     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
-    history_saves_.insert(id);
+    history_saves_.emplace(id, 0);
     auto* service = ClosedService(profile);
     if (!service) {
       ClosedHistorySaved(id, false);
       return;
     }
-    auto* owner = GetOwner(web_ui()->GetWebContents());
-    if (owner && owner->partial_close_save_failed) {
+    if (SessionRepair(profile)->pending()) {
       // Revalidate after both stores flush; mutations require a fresh snapshot.
       RetryClosedSession(id, profile->GetWeakPtr());
     } else {
       service->SaveAndFlush(base::BindOnce(
-          &Handler::ClosedHistorySaved, weak_factory_.GetWeakPtr(), id));
+          &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
     }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
         FROM_HERE, base::BindOnce(&Handler::ClosedHistorySaved,
           weak_factory_.GetWeakPtr(), id, false), base::Seconds(10));
   }
-  std::set<std::string> history_saves_;
+  std::map<std::string, uint64_t> history_saves_;
   void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;

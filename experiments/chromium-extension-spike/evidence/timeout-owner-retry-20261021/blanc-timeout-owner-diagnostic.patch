@@ -1,0 +1,27 @@
+diff --git a/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc b/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
+index d9c7cab4..460b9128 100644
+--- a/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
++++ b/experiments/chromium-extension-spike/native/blanc_prototype_ui.cc
+@@ -1983,6 +1983,22 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
+   void ClosedRetrySaved(std::string id, base::WeakPtr<Profile> profile,
+                         base::ListValue state, bool saved) {
+     if (!history_saves_.contains(id)) return;
++    // Temporary test-only mutation at a completed session/history cycle.
++    static auto* diagnostic_request = new std::string;
++    if (saved && diagnostic_request->empty()) *diagnostic_request = id;
++    if (saved && profile && id == *diagnostic_request &&
++        base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test-cycle-mutation")) {
++      GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
++        if (browser->GetProfile() != profile.get()) return true;
++        auto* model = browser->GetTabStripModel();
++        if (auto split = model->GetSplitForTab(model->active_index())) {
++          double ratio = model->GetSplitData(*split)->visual_data()->split_ratio();
++          model->UpdateSplitRatio(*split, ratio < 0.4 ? 0.6 : 0.3);
++          LOG(ERROR) << "BLANC_TEST_COMPLETED_CYCLE_MUTATION " << id;
++        }
++        return true;
++      });
++    }
+     if (saved && profile && state != ClosedSessionState(profile.get())) {
+       RetryClosedSession(id, profile);
+       return;

@@ -1,0 +1,5 @@
+[26699:1658713:1021/104312.986369:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[26699:1658671:1021/104313.262014:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9297/devtools/browser/552e22c4-8f59-4a60-a1a8-9678cdebc44e
+aperitif: Failed to initialize sandbox

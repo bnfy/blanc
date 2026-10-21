@@ -1,0 +1,7 @@
+{
+  pass: false,
+  checks: 2,
+  error: 'SyntaxError: Unexpected end of JSON input\n' +
+    '    at JSON.parse (<anonymous>)\n' +
+    '    at file:///private/tmp/blanc-mutation-only-clear-3/test.mjs:23:174'
+}

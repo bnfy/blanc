@@ -1,0 +1,15 @@
+{
+  pass: false,
+  checks: 12,
+  error: 'AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n' +
+    '+ actual - expected\n' +
+    '\n' +
+    '  [\n' +
+    '+   0.5,\n' +
+    '+   0.5\n' +
+    '-   0.35,\n' +
+    '-   0.65\n' +
+    '  ]\n' +
+    '\n' +
+    '    at file:///private/tmp/blanc-mutation-only-encrypted/test.mjs:37:30'
+}
