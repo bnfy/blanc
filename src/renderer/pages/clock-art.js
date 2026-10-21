@@ -201,12 +201,6 @@
     return [0, 1, 2].map((i) => numbers[i] ?? 0);
   }
 
-  /** `a` moved `t` (0–1) of the way to `b` in sRGB, as #rrggbb (main's mix). */
-  function mixHex(a, b, t) {
-    const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-    const x = channels(a), y = channels(b);
-    return `#${x.map((v, i) => Math.round(Math.min(255, Math.max(0, v + (y[i] - v) * t))).toString(16).padStart(2, '0')).join('')}`;
-  }
 
   // ---- measuring and drawing (needs a document) ----
 
@@ -218,29 +212,64 @@
   };
   const context = (element) => element.getContext('2d', { willReadFrequently: true });
 
-  // Canvas can't set font-variation-settings, so each width and weight the
-  // clock is measured or drawn at is a face of its own, made once from the
-  // face's file with those exact values as its only width and weight.
+  // Canvas can't set font-variation-settings or font-variant-numeric, so each
+  // width and weight the clock is measured or drawn at is a face of its own,
+  // made from the face's file with those exact values as its only width and
+  // weight, and with proportional figures, as the typeset clock sets them.
+  let faceCount = 0;
+  function makeFace(url, stretch, weight) {
+    const family = `Blanc Clock ${++faceCount}`;
+    const face = new FontFace(family, `url("${url}")`, {
+      stretch: `${stretch}%`, weight: String(weight), featureSettings: '"pnum" 1',
+    });
+    document.fonts.add(face);
+    return { face, family: `"${family}"` };
+  }
+  // The few drawing faces kept, most recent last. Each holds a decoded copy of
+  // the font, so older ones are let go.
+  const MOST_FACES = 8;
   const faces = new Map();
-  /** A loaded family name for `url` at exactly `stretch` (%) and `weight`. */
+  /**
+   * A loaded family name for `url` at exactly `stretch` (%) and `weight`. A
+   * face that fails to load is forgotten, so the next draw tries again.
+   */
   function instance(url, stretch, weight) {
-    const s = Math.round(stretch * 10) / 10;
-    const w = Math.round(weight);
-    const key = `${url}|${s}|${w}`;
-    if (!faces.has(key)) {
-      const family = `Blanc Clock ${faces.size + 1}`;
-      const face = new FontFace(family, `url("${url}")`, { stretch: `${s}%`, weight: String(w) });
-      document.fonts.add(face);
-      faces.set(key, face.load().then(() => `"${family}"`));
+    const key = `${url}|${stretch}|${weight}`;
+    const held = faces.get(key);
+    if (held) {
+      faces.delete(key);
+      faces.set(key, held);
+      return held.loaded;
     }
-    return faces.get(key);
+    const made = makeFace(url, stretch, weight);
+    made.loaded = made.face.load().then(() => made.family, (error) => {
+      if (faces.get(key) === made) faces.delete(key);
+      document.fonts.delete(made.face);
+      throw error;
+    });
+    faces.set(key, made);
+    while (faces.size > MOST_FACES) {
+      const [oldest, gone] = faces.entries().next().value;
+      faces.delete(oldest);
+      document.fonts.delete(gone.face);
+    }
+    return made.loaded;
   }
 
   // A text's width and the "1"'s stem at one size, for the fit's table.
   const SAMPLE = '0123456789:';
   const SAMPLE_SIZE = 200;
+  // Measured with a face of its own, let go once measured.
   async function measure(url, stretch, weight) {
-    const family = await instance(url, stretch, weight);
+    const { face, family } = makeFace(url, stretch, weight);
+    try {
+      await face.load();
+      return measureWith(family, weight);
+    } finally {
+      document.fonts.delete(face);
+    }
+  }
+  function measureWith(family, weight) {
     const sheet = canvas(SAMPLE_SIZE, SAMPLE_SIZE * 1.4);
     const ctx = context(sheet);
     ctx.font = `${Math.round(weight)} ${SAMPLE_SIZE}px ${family}`;
@@ -257,11 +286,14 @@
   }
 
   const tables = new Map();
-  /** The face's fit table over a grid of its widths and weights (cached). */
+  /**
+   * The face's fit table over a grid of its widths and weights (cached; a
+   * table that fails to measure is forgotten, so the next draw tries again).
+   */
   function measureFace(url, stretches, weights) {
     const key = `${url}|${stretches}|${weights}`;
     if (!tables.has(key)) {
-      tables.set(key, (async () => {
+      const table = (async () => {
         const width = [], stem = [];
         for (const s of stretches) {
           const measured = await Promise.all(weights.map((w) => measure(url, s, w)));
@@ -269,7 +301,9 @@
           stem.push(measured.map((m) => m.stem));
         }
         return { stretches, weights, width, stem };
-      })());
+      })();
+      table.catch(() => { if (tables.get(key) === table) tables.delete(key); });
+      tables.set(key, table);
     }
     return tables.get(key);
   }
@@ -335,7 +369,7 @@
   }
 
   globalThis.blancClockArt = Object.freeze({
-    lookup, fitHeight, soften, glassMaps, luminance, shadowFor, parseColor, mixHex,
+    lookup, fitHeight, soften, glassMaps, luminance, shadowFor, parseColor,
     instance, measureFace, drawClock, paintGlass, paintShadow,
   });
 })();

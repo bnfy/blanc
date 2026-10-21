@@ -125,8 +125,8 @@ test("computed colors parse in both of Chromium's forms", () => {
   assert.match(shadowFor(parseColor('color(srgb 0.95 0.95 0.95)')), /rgb\(0 0 0/, 'a pale toned ink still counts as light');
 });
 
-test("the page's tone preview mixes exactly as main does", () => {
-  const { mixHex } = sandbox.blancClockArt;
+test('the shared tone rule mixes exactly as the Start Page paint does', () => {
+  const { mixHex } = require('../../src/renderer/pages/clock-ink');
   const { mix } = require('../../src/main/start-page-paint');
   for (const [a, b, t] of [['#376694', '#ffffff', 0.44], ['#9b4761', '#000000', 0.7], ['#3a3a3a', '#ffffff', 0]]) {
     assert.equal(mixHex(a, b, t), mix(a, b, t));

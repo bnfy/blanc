@@ -104,12 +104,13 @@ test('tone 50 is the preset; lower deepens toward black, higher lightens toward 
   }
 });
 
-test('the page previews the tone with the same mix main makes', () => {
+test('the page previews the tone with the rule main uses', () => {
+  const { toneInk } = require('../../src/renderer/pages/clock-ink');
   const clock = clockStyle({ color: 'rose', tone: 80 });
   assert.equal(clock.base, Identity.PRESETS.find((p) => p.id === 'rose').hex);
-  assert.ok(clock.toneMix.darken > 0 && clock.toneMix.darken < 1);
-  assert.ok(clock.toneMix.lighten > 0 && clock.toneMix.lighten < 1);
   assert.equal(clock.ink, inkFor('rose', 80));
+  assert.equal(clock.ink, toneInk(clock.base, 80));
+  assert.equal(clock.toneMix, undefined, 'the page reads the rule from clock-ink.js, not the payload');
 });
 
 test('unknown values read as the defaults', () => {

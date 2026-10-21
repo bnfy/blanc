@@ -897,19 +897,31 @@ const GLASS_BEND = 0.035;
 // How far the glass's shadow may reach past the figures, as a share of the
 // type size.
 const GLASS_SHADOW_MARGIN = 0.3;
+// While a slider is dragged the glass is redrawn at most this often (ms); the
+// typeset figures follow every frame.
+const GLASS_DRAG_INTERVAL = 120;
 let clockArtFrame = 0;
 function scheduleClockArt() {
   if (clockArtFrame) return;
   clockArtFrame = requestAnimationFrame(() => {
     clockArtFrame = 0;
-    drawClockArt().catch(() => {});
+    drawClockArt().catch(dropClockArt);
   });
+}
+// A face that would not load leaves the clock typeset rather than frozen as
+// the last glass; the next change tries again.
+function dropClockArt() {
+  clockRow.removeAttribute('data-drawn');
+  clockArt.hidden = true;
+  clockArtKey = '';
 }
 const rgbOf = (color) => globalThis.blancClockArt.parseColor(color);
 // What the last glass was made from; an unchanged clock is not redrawn. A
 // newer draw makes an older one, still waiting on a face, give up.
 let clockArtKey = '';
 let clockDrawGeneration = 0;
+let clockGlassAt = 0;
+let clockGlassTrail = 0;
 // The Weight thumb's value while it is dragged.
 let clockWeightPreview = null;
 async function drawClockArt() {
@@ -933,10 +945,13 @@ async function drawClockArt() {
   if (factor > 1) {
     const table = await art.measureFace(face.url, face.stretches, face.weights);
     if (generation !== clockDrawGeneration) return;
-    type = art.fitHeight(table, { stretch: face.stretch, weight }, factor);
+    const fit = art.fitHeight(table, { stretch: face.stretch, weight }, factor);
+    // Snapped, so a drag reuses a handful of faces instead of making one for
+    // every fraction of a step.
+    type = { stretch: Math.round(fit.stretch * 2) / 2, weight: Math.round(fit.weight / 5) * 5 };
     clockElement.style.fontSize = `${size * factor}px`;
     clockElement.style.setProperty('--clock-wdth', type.stretch.toFixed(1));
-    clockElement.style.fontWeight = String(Math.round(type.weight));
+    clockElement.style.fontWeight = String(type.weight);
   } else {
     clockElement.style.removeProperty('font-size');
     clockElement.style.removeProperty('--clock-wdth');
@@ -951,9 +966,7 @@ async function drawClockArt() {
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
   if (!glass) {
-    clockRow.removeAttribute('data-drawn');
-    clockArt.hidden = true;
-    clockArtKey = '';
+    dropClockArt();
     return;
   }
   const typeSize = parseFloat(computed.fontSize);
@@ -962,6 +975,15 @@ async function drawClockArt() {
   const text = clockElement.textContent;
   const key = JSON.stringify([text, face.url, type.stretch, type.weight, typeSize, letterSpacing, scale, computed.color]);
   if (key === clockArtKey) return;
+  if (clockDragging) {
+    const wait = GLASS_DRAG_INTERVAL - (performance.now() - clockGlassAt);
+    if (wait > 0) {
+      clearTimeout(clockGlassTrail);
+      clockGlassTrail = setTimeout(scheduleClockArt, wait);
+      return;
+    }
+  }
+  clockGlassAt = performance.now();
   // Until the face for this width and weight has loaded, the clock stays as
   // it is (typeset, or the last glass).
   const family = await art.instance(face.url, type.stretch, type.weight);
@@ -1016,21 +1038,24 @@ function watchClockScale() {
 watchClockScale();
 reducedTransparency.addEventListener('change', scheduleClockArt);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleClockArt);
-// The same mix main makes, so the clock follows the tone thumb.
+// The rule main uses (clock-ink.js), so the clock follows the tone thumb.
 function previewClockTone(tone) {
   const base = clockState?.base;
-  const mix = clockState?.toneMix;
-  if (!base || !mix) return;
-  const { mixHex } = globalThis.blancClockArt;
-  if (tone === 50) paintClockInk(base);
-  else if (tone < 50) paintClockInk(mixHex(base, '#000000', ((50 - tone) / 50) * mix.darken));
-  else paintClockInk(mixHex(base, '#ffffff', ((tone - 50) / 50) * mix.lighten));
+  if (base) paintClockInk(globalThis.blancClockInk.toneInk(base, tone));
 }
 async function setClock(partial) {
   try {
     applyClock(await window.bowserPages.start.setClock(partial));
   } catch {
-    // The saved clock comes back with the next status.
+    // Not saved: back to the clock as last saved, dropping any preview.
+    clockDragging = false;
+    clockHeightPreview = null;
+    clockWeightPreview = null;
+    try {
+      applyClock((await window.bowserPages.start.data()).clock);
+    } catch {
+      applyClock(clockState);
+    }
   }
 }
 // Auto first, then one swatch per Spaces preset in main's order.
@@ -1070,11 +1095,11 @@ function applyClock(clock) {
   const tallest = clock.heightRange?.max ?? 100;
   clockHeightLine.hidden = tallest <= 100;
   // Tone's track shows the color from its deepest to its lightest.
-  if (clock.base && clock.toneMix) {
-    const { mixHex } = globalThis.blancClockArt;
-    clockToneLine.style.setProperty('--clock-tone-deep', mixHex(clock.base, '#000000', clock.toneMix.darken));
+  if (clock.base) {
+    const { toneInk } = globalThis.blancClockInk;
+    clockToneLine.style.setProperty('--clock-tone-deep', toneInk(clock.base, 0));
     clockToneLine.style.setProperty('--clock-tone-mid', clock.base);
-    clockToneLine.style.setProperty('--clock-tone-light', mixHex(clock.base, '#ffffff', clock.toneMix.lighten));
+    clockToneLine.style.setProperty('--clock-tone-light', toneInk(clock.base, 100));
   }
   scheduleClockArt();
   // A status broadcast must not yank a thumb out from under a drag.
@@ -1177,26 +1202,49 @@ clockStyleOpen.addEventListener('click', (event) => openClockSheet(event.detail 
 // Screen does, instead of the page's context menu. On macOS and Linux the
 // event comes on press, and the release that follows would count as a click
 // outside the new sheet and close it, so it opens once the button is up.
+// A press that never ends in a release here (the window loses focus, the
+// pointer is cancelled) opens nothing and leaves no listener behind.
+let clockMenuPress = null;
 clockRow.addEventListener('contextmenu', (event) => {
   if (state.layout !== 'billboard') return;
   event.preventDefault();
   if (clockPopover.matches(':popover-open')) return;
+  clockMenuPress?.abort();
+  clockMenuPress = null;
   const open = () => setTimeout(() => openClockSheet(false));
-  if (event.buttons) addEventListener('pointerup', open, { once: true });
-  else open();
+  if (!event.buttons) {
+    open();
+    return;
+  }
+  const press = new AbortController();
+  clockMenuPress = press;
+  const end = () => {
+    press.abort();
+    if (clockMenuPress === press) clockMenuPress = null;
+  };
+  // Any button: Control-click on a Mac is a primary press.
+  addEventListener('pointerup', () => {
+    end();
+    open();
+  }, { signal: press.signal });
+  for (const type of ['pointercancel', 'blur']) addEventListener(type, end, { signal: press.signal });
 });
 // Back returns to Customize, where the sheet was opened from. From the
 // keyboard, focus lands on the Clock row again.
 let clockGoingBack = false;
 document.getElementById('clockPopoverBack').addEventListener('click', (event) => {
+  // Cleared by the toggle event, which comes after this handler.
   clockGoingBack = true;
   clockPopover.hidePopover();
-  clockGoingBack = false;
   document.getElementById('customizePopover').showPopover();
   if (event.detail === 0) clockStyleOpen.focus();
 });
 clockPopover.addEventListener('toggle', (event) => {
-  if (event.newState !== 'closed' || clockGoingBack) return;
+  if (event.newState !== 'closed') return;
+  if (clockGoingBack) {
+    clockGoingBack = false;
+    return;
+  }
   // Closed any other way, keyboard focus returns to the Customize button.
   if (document.activeElement === document.body || clockPopover.contains(document.activeElement)) {
     document.getElementById('customizeButton').focus();

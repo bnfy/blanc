@@ -6,8 +6,10 @@
 // unit-tested in one place and the fork ports this file unchanged.
 
 const Identity = require('../renderer/space-identity');
-// The same sRGB mix and preset lookup the Color wallpaper paints with.
-const { mix, presetHex } = require('./start-page-paint');
+// The preset lookup the Color wallpaper paints with, and the tone rule the
+// Start Page previews with, shared so the two never disagree.
+const { presetHex } = require('./start-page-paint');
+const { toneInk } = require('../renderer/pages/clock-ink');
 
 // Each face is one the app bundles (OFL, src/renderer/pages/), with the weight
 // range its variable file carries and how tall it can stand (percent). Height
@@ -36,10 +38,6 @@ const WEIGHT_MAX = 1000;
 // Screen's stretch.
 const HEIGHT_MIN = 100;
 const HEIGHT_MAX = 300;
-// Tone 50 is the preset exactly. Below it the color deepens toward black,
-// above it it lightens toward white, short of either so it stays a color.
-const TONE_DARKEN = 0.7;
-const TONE_LIGHTEN = 0.88;
 
 const normalizeFont = (value) => (FONT_IDS.includes(value) ? value : null);
 const normalizeStyle = (value) => (STYLES.includes(value) ? value : null);
@@ -53,9 +51,7 @@ function inkFor(color, tone) {
   const hex = presetHex(color);
   if (!hex) return null;
   const t = normalizeTone(tone) ?? DEFAULTS.tone;
-  if (t < 50) return mix(hex, '#000000', ((50 - t) / 50) * TONE_DARKEN);
-  if (t > 50) return mix(hex, '#ffffff', ((t - 50) / 50) * TONE_LIGHTEN);
-  return hex;
+  return toneInk(hex, t);
 }
 
 /** The saved weight drawn in a font: held inside the range its file carries. */
@@ -88,10 +84,9 @@ function clockStyle({ font, weight, color, tone, style, height } = {}) {
     color: c,
     tone: t,
     ink: inkFor(c, t),
-    // The preset itself and how far the tone moves it, so the page can follow
-    // the tone slider while it is dragged with the same mix.
+    // The preset itself, so the page can follow the tone slider while it is
+    // dragged with the same rule (clock-ink.js).
     base: presetHex(c),
-    toneMix: { darken: TONE_DARKEN, lighten: TONE_LIGHTEN },
     style: normalizeStyle(style) ?? DEFAULTS.style,
     height: heightIn(f, height),
     heightRange: { min: HEIGHT_MIN, max: FONTS[f].height },

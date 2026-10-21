@@ -193,9 +193,12 @@ The page writes through one guarded call, `bowserPages.start.setClock(partial)`
 anything else is ignored. The reply, and every `pages:start:status`, carries
 the finished clock from the pure `src/main/start-clock-style.js`: the face, the
 drawn weight and height and their ranges, the color and tone, the ink as one hex (or null for
-Automatic), the preset and tone mix (so the page can follow the tone slider
-while it is dragged), the style and the presets. Sliders preview while dragged
-and save once on release.
+Automatic), the preset, the style and the presets. The tone rule itself lives
+in `src/renderer/pages/clock-ink.js`, which main requires and the Start Page
+loads, so the page follows the tone slider while it is dragged with exactly the
+ink main will save. Sliders preview while dragged (the glass redraws at most
+every 120 ms meanwhile) and save once on release; a save that fails puts the
+clock back as last saved.
 
 ### Decisions worth the owner's eye
 
