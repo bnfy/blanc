@@ -105,7 +105,7 @@ async function captureWindow(name) {
   const raw = path.join(scratch, `${name}-raw.png`);
   await run('/usr/sbin/screencapture', ['-o', '-x', `-l${id}`, raw]);
   const png = path.join(outputDirectory, `float-island-${name}-v${expectedVersion}.png`);
-  await sharp(raw).toColorspace('srgb').png({ compressionLevel: 9 }).toFile(png);
+  await sharp(raw).toColorspace('srgb').withIccProfile('srgb').png({ compressionLevel: 9 }).toFile(png);
   const { width, height } = await sharp(png).metadata();
   process.stdout.write(`Captured ${name}: ${width}×${height} ${png} (${sha256(png)})\n`);
   return { png, width, height };

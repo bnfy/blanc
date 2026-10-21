@@ -30,7 +30,7 @@
     "sync": "not configured",
     "patron": "not configured"
   },
-  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc npm run capture:float-island:installed: one tab, The Met’s page for Wheat Field with Cypresses (public domain), in the app’s default window (1280×800 CSS px). Hidden: the system pointer rests in the page; revealed: the app is brought to the front and the system pointer is moved to the window’s top edge (CGWarpMouseCursorPosition), so Blanc’s own dwell sampler floats the Island back. Each state is one native screencapture -o -x -l of the window (2560×1600, the window’s corners kept), converted to sRGB by sharp and not resized. measured comes from the strip document at the revealed moment (#islandPill’s rect and its sample state); trafficLightsRect is the bounding box of pixels that differ by more than 8 between the two captures in the window’s top-left 120×40 CSS px, padded by 2 px. Blanc Blocker ran as shipped, so the shield count is what the page loaded. Nothing is retouched.",
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc npm run capture:float-island:installed: one tab, The Met’s page for Wheat Field with Cypresses (public domain), in the app’s default window (1280×800 CSS px). Hidden: the system pointer rests in the page; revealed: the app is brought to the front and the system pointer is moved to the window’s top edge (CGWarpMouseCursorPosition), so Blanc’s own dwell sampler floats the Island back. Each state is one native screencapture -o -x -l of the window (2560×1600, the window’s corners kept), converted to sRGB and tagged with the sRGB profile by sharp, not resized. measured comes from the strip document at the revealed moment (#islandPill’s rect and its sample state); trafficLightsRect is the bounding box of pixels that differ by more than 8 between the two captures in the window’s top-left 120×40 CSS px, padded by 2 px. Blanc Blocker ran as shipped, so the shield count is what the page loaded. Nothing is retouched.",
   "measured": {
     "window": {
       "width": 1280,
@@ -63,7 +63,7 @@
       "file": "site/public/feature-captures/float-island-hidden-v1.40.0.png",
       "width": 2560,
       "height": 1600,
-      "sha256": "aebe5a3e28c62801228f24d0fb7a715b0c99b8da3c9e9f5e354b0682b936cc52",
+      "sha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
       "verdict": "verified",
       "evidence": [
         "docs/release-incidents/2026-10-20-v1.40.0.md",
@@ -76,7 +76,7 @@
       "file": "site/public/feature-captures/float-island-revealed-v1.40.0.png",
       "width": 2560,
       "height": 1600,
-      "sha256": "40db7242d821592c555dfed7cc07237423a94eb8409e167b35b9cdcaa6467f11",
+      "sha256": "28fee153ffb32a27270bdac18ec027685804f67171d6acfbae56d0d468a62e60",
       "verdict": "verified",
       "evidence": [
         "docs/release-incidents/2026-10-20-v1.40.0.md",

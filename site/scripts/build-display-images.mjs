@@ -58,13 +58,27 @@ const jobs = [
     output: `mail/screens/${name}-1100.webp`,
     width: 1100,
   })),
+  // The homepage's first screen: the floating Island from public v1.40.0
+  // (docs/website-captures-float-island-v1.40.0.json). The hidden capture is
+  // the window; the macOS buttons are cut from the revealed one at their
+  // measured place (the system draws them, not the app).
+  { source: 'feature-captures/float-island-hidden-v1.40.0.png', output: 'revamp/float-island-hidden-v1.40.0-display.webp' },
+  { source: 'feature-captures/float-island-hidden-v1.40.0.png', output: 'revamp/float-island-hidden-v1.40.0-800.webp', width: 800 },
+  { source: 'feature-captures/float-island-revealed-v1.40.0.png', output: 'revamp/float-island-lights-v1.40.0.webp', extract: floatIslandLights() },
 ];
+
+function floatIslandLights() {
+  const { measured } = JSON.parse(readFileSync(join(site, '../docs/website-captures-float-island-v1.40.0.json'), 'utf8'));
+  const { trafficLightsRect: rect, scale } = measured;
+  return { left: rect.x * scale, top: rect.y * scale, width: rect.width * scale, height: rect.height * scale };
+}
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const manifest = [];
 for (const job of jobs) {
   const input = readFileSync(pub(job.source));
   let image = sharp(input).keepIccProfile();
+  if (job.extract) image = image.extract(job.extract);
   if (job.width) image = image.resize({ width: job.width });
   const { data, info } = await image.webp({ quality: 88, alphaQuality: 100, effort: 6 }).toBuffer({ resolveWithObject: true });
   writeFileSync(pub(job.output), data);

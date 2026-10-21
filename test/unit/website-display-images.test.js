@@ -64,3 +64,17 @@ test('pages use the light copies while full-size links keep the pinned captures'
     assert.match(home, new RegExp(`src="${escape(`/feature-captures/${capture}.webp`)}"[^>]*loading="lazy"`), capture);
   }
 });
+
+// The homepage's floating Island window (docs/website-captures-float-island-v1.40.0.json):
+// the hidden capture whole and at phone width, and the macOS window buttons
+// cut from the revealed capture at exactly their measured place.
+test('the floating Island window has its display copies and the window buttons’ crop', () => {
+  const ledger = JSON.parse(fs.readFileSync(path.join(site, '../docs/website-captures-float-island-v1.40.0.json'), 'utf8'));
+  const { trafficLightsRect: lights, scale } = ledger.measured;
+  const entry = (output) => manifest.find((item) => item.output === output);
+  assert.deepEqual([entry('revamp/float-island-hidden-v1.40.0-display.webp')?.width, entry('revamp/float-island-hidden-v1.40.0-display.webp')?.height], [2560, 1600]);
+  assert.equal(entry('revamp/float-island-hidden-v1.40.0-800.webp')?.width, 800);
+  const crop = entry('revamp/float-island-lights-v1.40.0.webp');
+  assert.equal(crop?.source, 'feature-captures/float-island-revealed-v1.40.0.png');
+  assert.deepEqual([crop.width, crop.height], [lights.width * scale, lights.height * scale]);
+});

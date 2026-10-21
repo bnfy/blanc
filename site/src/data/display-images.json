@@ -236,5 +236,26 @@
     "output": "mail/screens/rules-1100.webp",
     "width": 1100,
     "height": 982
+  },
+  {
+    "source": "feature-captures/float-island-hidden-v1.40.0.png",
+    "sourceSha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
+    "output": "revamp/float-island-hidden-v1.40.0-display.webp",
+    "width": 2560,
+    "height": 1600
+  },
+  {
+    "source": "feature-captures/float-island-hidden-v1.40.0.png",
+    "sourceSha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
+    "output": "revamp/float-island-hidden-v1.40.0-800.webp",
+    "width": 800,
+    "height": 500
+  },
+  {
+    "source": "feature-captures/float-island-revealed-v1.40.0.png",
+    "sourceSha256": "28fee153ffb32a27270bdac18ec027685804f67171d6acfbae56d0d468a62e60",
+    "output": "revamp/float-island-lights-v1.40.0.webp",
+    "width": 132,
+    "height": 40
   }
 ]
