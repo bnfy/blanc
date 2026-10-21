@@ -170,7 +170,10 @@ Part-folded postures are interaction, not layout (Apple):
   stays iOS 18.4. Every iOS 27.1 API (`reservedRegions`, `onHingeChange`,
   `ArrangementView`) sits behind `if #available(iOS 27.1, *)`. CI must use
   Xcode 27.1 or later and run the XCTests on an iPhone Duo simulator as well
-  as an ordinary iPhone.
+  as an ordinary iPhone. **Blocker:** on 2026-10-21 GitHub's hosted macOS
+  images carry Xcode 26.6 at most, so until they add Xcode 27.1 the Duo work
+  is built and checked on the owner's Mac (or a self-hosted runner), and the
+  hosted `iOS` workflow keeps checking the shared code with Xcode 26.
 - **Layout switch.** `ContentView` reads `horizontalSizeClass` and chooses the
   compact or regular container. Both containers render the same `WebView`
   representables over the same `TabModel` web views, so switching re-parents
