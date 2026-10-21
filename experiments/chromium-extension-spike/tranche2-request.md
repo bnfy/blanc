@@ -2296,3 +2296,8 @@ Evidence: evidence/hot-profile-delete-20261021.
 ## Evidence publication — October 21, 2026
 
 Concurrent-cancellation/profile-shutdown evidence (56 checkpoints) and hot-profile deletion evidence (30 checkpoints) prepared for publication to PR #920. Parent ec90a8e6 completed CI with 28 successful checks, two skips and no new CodeQL alerts. This evidence-only commit changes no native code or upstream patch footprint; no build or runtime rerun. CI monitoring resumes on the published head. Latency deferred; native input and Electron diagnostic build remain pending.
+
+
+## uBO Intel inspector readiness correction — October 21
+
+Evidence-only parent b741855e failed the macOS Intel original DOM inspector check despite successful injection. The first-open harness now waits for this reloaded document’s fixture scriptlet and procedural filtering before opening the inspector. Timeout and separate delayed-bootstrap reconnect race remain unchanged. Baseline and patched local full desktop suites pass; syntax/lint pass. Exact Intel cause remains inferred because original diagnostics lack internal early-return state; new-head CI confirmation is required. No native or Electron build, no latency qualification. Evidence: evidence/ubo-inspector-readiness-20261021. Independent profile-deletion cancellation gap remains open.

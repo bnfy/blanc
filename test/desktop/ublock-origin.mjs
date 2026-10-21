@@ -325,6 +325,15 @@ try {
   }), Boolean, 'logger registered with background', 10000);
   await call('activateTab', regular);
   await page.reload();
+  // A loaded document and a logged network request do not establish that
+  // uBO's asynchronous cosmetic bootstrap has finished in this document.
+  // The inspector requires that engine. Prove it is active before opening
+  // the first inspector; the later reconnect case deliberately races it.
+  await page.waitForFunction(() => {
+    const procedure = document.querySelector('#procedure');
+    return window.fixturePinned === true && procedure !== null
+      && getComputedStyle(procedure).display === 'none';
+  }, undefined, { timeout: 10000 });
   // The detached logger view does not paint on every platform. Return to it
   // before expecting upstream's animation-frame DOM updates to appear.
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/logger-ui.html')).id);
