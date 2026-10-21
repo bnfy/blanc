@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "mode": "stage-first",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-one",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/"
+        ],
+        "point": "stage-first",
+        "source_count": 3,
+        "staged_count": 1
+      },
+      "automatic_source_restored": true,
+      "saved_records_unchanged": true,
+      "journal_cleared": true
+    },
+    {
+      "mode": "stage-all",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-one",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "stage-all",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "automatic_source_restored": true,
+      "saved_records_unchanged": true,
+      "journal_cleared": true
+    },
+    {
+      "mode": "remove-first",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "remove-first",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "automatic_source_restored": true,
+      "saved_records_unchanged": true,
+      "journal_cleared": true
+    },
+    {
+      "mode": "remove-all",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "remove-all",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "automatic_source_restored": true,
+      "saved_records_unchanged": true,
+      "journal_cleared": true
+    }
+  ],
+  "normal_source_sha256": "cf0b23a3a0664e384b64c46cb985fc83a57f8a663500abe4003736701f177ac5",
+  "repeat_recovery_crash_pass": true,
+  "malformed_and_unrelated_refusal_pass": true,
+  "scope": "sole empty non-session-restored startup window"
+}

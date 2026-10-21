@@ -1,0 +1,103 @@
+{
+  "kind": "pre-integration-negative-control",
+  "transportComplete": true,
+  "faults": [],
+  "counts": {
+    "candidates": 24,
+    "electronBlockedChromiumLoaded": 9,
+    "bothLoaded": 15,
+    "coverageControls": 4,
+    "forkOnlyChildren": 2
+  },
+  "differences": [
+    {
+      "id": "case-cigeialdmedaodlf",
+      "url": "https://00e2120672.com/blanc-fixture/resource.js",
+      "type": "script",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-oonlhkiiohimnfln",
+      "url": "https://015ea24446.com/blanc-fixture/resource.js",
+      "type": "script",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-bcbleakoohnafnnk",
+      "url": "https://00609c257b.com/blanc-fixture/resource.js",
+      "type": "xhr",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-kfcchjbkgcomiamc",
+      "url": "https://00a39e6dfd.com/blanc-fixture/resource.js",
+      "type": "xhr",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-nloocppdahlambdf",
+      "url": "https://00427011ae.com/blanc-fixture/resource.js",
+      "type": "image",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-hppckcgecbimhlmc",
+      "url": "https://02228640b9.com/blanc-fixture/resource.js",
+      "type": "image",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-aahcghbnedgofbfa",
+      "url": "https://amazon-adsystem.com/widgets/q?",
+      "type": "image",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-dehdhgbgioekanea",
+      "url": "https://000491b06a.com/blanc-fixture/resource.js",
+      "type": "stylesheet",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    },
+    {
+      "id": "case-kfmihkegnkmmlicd",
+      "url": "https://0019x.com/blanc-fixture/resource.js",
+      "type": "stylesheet",
+      "electron": "block",
+      "chromium": "loaded-authored-response",
+      "nativeContextMatched": false
+    }
+  ],
+  "descendants": [
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json",
+      "parent": "https://00e2120672.com/blanc-fixture/resource.js",
+      "observed": "executed-and-loaded"
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json",
+      "parent": "https://015ea24446.com/blanc-fixture/resource.js",
+      "observed": "executed-and-loaded"
+    }
+  ],
+  "acceptance": false,
+  "syntheticFixtureParity": null,
+  "nativeBlockerInstalled": false,
+  "nativeContextMatched": false,
+  "explanation": "Actual Chromium 157 loads compared with stable Electron decisions. No native blocker or request_initiator observer exists, so this validates the harness and exposes the integration gap; it is not a criterion-3 blocker trial."
+}

@@ -1,0 +1,490 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true,
+      "time": 1792599235804
+    },
+    {
+      "name": "existing other owner settled",
+      "value": {
+        "activeTabId": "1690397051",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1690397049",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1690397051",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "07eaf8d0-4c98-4c64-9420-38574e59e9d5",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1690397051",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#decoy"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      },
+      "time": 1792599241968
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true,
+      "time": 1792599242233
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 44194,
+        "path": "/private/tmp/blanc-repeat-delete-cancel-held-clear-valid/profile/Default/Sessions/Session_13437072842251240",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      },
+      "time": 1792599242337
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"86\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-485056531074852673.1.9\"}}"
+      },
+      "time": 1792599242337
+    },
+    {
+      "name": "normal binary keeps profile repair pending after initial EIO",
+      "value": true,
+      "time": 1792599242706
+    },
+    {
+      "name": "separate regular profile alive in same browser",
+      "value": {
+        "activeTabId": "1690397058",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1690397058",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": true,
+        "spaceName": "",
+        "spaceWindowIdentity": "86f5fc3d-de5d-43ee-b75c-f918d520f741",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1690397058",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#independent"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 0
+      },
+      "time": 1792599244649
+    },
+    {
+      "name": "cross-owner Session write blocked before acknowledgement",
+      "value": true,
+      "time": 1792599245646
+    },
+    {
+      "name": "begin repeated deletion cancellation",
+      "value": 1,
+      "time": 1792599245648
+    },
+    {
+      "name": "profile deletion waits on native beforeunload while save remains held",
+      "value": true,
+      "time": 1792599246288
+    },
+    {
+      "name": "native beforeunload Cancel accepted",
+      "value": true,
+      "time": 1792599246295
+    },
+    {
+      "name": "cancel preserves profile source split and cross-owner window before save release",
+      "value": true,
+      "time": 1792599246503
+    },
+    {
+      "name": "repeated deletion cancelled with save still held",
+      "value": 1,
+      "time": 1792599246503
+    },
+    {
+      "name": "begin repeated deletion cancellation",
+      "value": 2,
+      "time": 1792599246503
+    },
+    {
+      "name": "profile deletion waits on native beforeunload while save remains held",
+      "value": true,
+      "time": 1792599247146
+    },
+    {
+      "name": "native beforeunload Cancel accepted",
+      "value": true,
+      "time": 1792599247158
+    },
+    {
+      "name": "cancel preserves profile source split and cross-owner window before save release",
+      "value": true,
+      "time": 1792599247365
+    },
+    {
+      "name": "repeated deletion cancelled with save still held",
+      "value": 2,
+      "time": 1792599247365
+    },
+    {
+      "name": "begin repeated deletion cancellation",
+      "value": 3,
+      "time": 1792599247365
+    },
+    {
+      "name": "profile deletion waits on native beforeunload while save remains held",
+      "value": true,
+      "time": 1792599247993
+    },
+    {
+      "name": "native beforeunload Cancel accepted",
+      "value": true,
+      "time": 1792599247997
+    },
+    {
+      "name": "cancel preserves profile source split and cross-owner window before save release",
+      "value": true,
+      "time": 1792599248201
+    },
+    {
+      "name": "repeated deletion cancelled with save still held",
+      "value": 3,
+      "time": 1792599248201
+    },
+    {
+      "name": "cross-owner completion after cancellation",
+      "value": {
+        "success": true
+      },
+      "time": 1792599248220
+    },
+    {
+      "name": "pending save completion after service cancellation",
+      "value": {
+        "success": true
+      },
+      "time": 1792599248220
+    },
+    {
+      "name": "fresh cross-owner retry acknowledges after cancelled deletion",
+      "value": true,
+      "time": 1792599248511
+    },
+    {
+      "name": "independent profile remains usable",
+      "value": true,
+      "time": 1792599248513
+    },
+    {
+      "name": "immediate post-ack crash restart snapshots",
+      "value": [
+        {
+          "activeTabId": "1690397125",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "1690397126",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            },
+            {
+              "id": "1690397127",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cross-owner-retry"
+            },
+            {
+              "id": "1690397128",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#post-cancel-retry"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1690397125",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "07eaf8d0-4c98-4c64-9420-38574e59e9d5",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1690397124",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#decoy"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1690397125",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        },
+        {
+          "activeTabId": "1690397122",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "1690397126",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            },
+            {
+              "id": "1690397127",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cross-owner-retry"
+            },
+            {
+              "id": "1690397128",
+              "tabCount": 1,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#post-cancel-retry"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1690397122",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "6f1d3198-1776-4cd7-9ed4-9d13573c7d2b",
+          "splitGeometry": {
+            "divider": {
+              "height": 928,
+              "width": 12,
+              "x": 416,
+              "y": 68
+            },
+            "headers": [
+              {
+                "height": 30,
+                "width": 416,
+                "x": 0,
+                "y": 68
+              },
+              {
+                "height": 30,
+                "width": 772,
+                "x": 428,
+                "y": 68
+              }
+            ],
+            "mode": "columns",
+            "originX": 0,
+            "usableWidth": 1188
+          },
+          "splits": [
+            {
+              "focusedIndex": 1,
+              "focusedTabId": "1690397122",
+              "id": "split-0",
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  0.35,
+                  0.65
+                ]
+              },
+              "tabIds": [
+                "1690397121",
+                "1690397122"
+              ]
+            }
+          ],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1690397120",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "New Tab",
+              "url": "blanc://newtab/"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1690397121",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cancel-left"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1690397122",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#cancel-right"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      ],
+      "time": 1792599251358
+    },
+    {
+      "name": "cancelled deletion survives crash restart with exact panes and 35/65 split",
+      "value": true,
+      "time": 1792599251361
+    },
+    {
+      "name": "cancelled profile accepts fresh history save after restart",
+      "value": true,
+      "time": 1792599251596
+    }
+  ],
+  "pass": true
+}

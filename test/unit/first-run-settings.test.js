@@ -167,3 +167,16 @@ test('invalid first-run payloads cannot complete onboarding', () => {
 
   fs.rmSync(userData, { recursive: true, force: true });
 });
+
+test('Sunrise Gold is selectable and a saved retired gold monogram reads as Sunrise', () => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-settings-gold-'));
+  fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ appIcon: 'gold' }));
+  const settings = loadSettings(userData, true);
+  assert.deepEqual(Object.keys(settings.APP_ICON_LABELS), ['sunrise', 'sunrise-dark', 'sunrise-gold']);
+  assert.equal(settings.APP_ICON_LABELS['sunrise-gold'], 'Sunrise Gold');
+  assert.equal(settings.isAppIconAllowed('sunrise-gold'), true);
+  assert.equal(settings.isAppIconAllowed('gold'), false);
+  assert.equal(settings.getSettings().appIcon, 'sunrise');
+  settings.setSettings({ appIcon: 'sunrise-gold' });
+  assert.equal(settings.getSettings().appIcon, 'sunrise-gold');
+});

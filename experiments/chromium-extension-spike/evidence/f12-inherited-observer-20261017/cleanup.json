@@ -1,0 +1,10 @@
+{
+  "ownedBrowserProcesses": [],
+  "ephemeralRootsRemoved": {
+    "/private/tmp/blanc-nonhttp-run01": true,
+    "/private/tmp/blanc-nonhttp-safety01": true,
+    "/private/tmp/blanc-nonhttp-gate-safety01": true
+  },
+  "latencyMeasured": false,
+  "physicalInputClaimed": false
+}

@@ -1,0 +1,76 @@
+{
+  "verified": true,
+  "ownedBrowserProcesses": [],
+  "reports": [
+    {
+      "run": "blanc-static-integration-run01",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-integration-run02",
+      "completed": false,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-integration-run03",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-integration-run04",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-integration-run05",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-fallback-fixed-origin-run",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-fallback-fixed-origin-final",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-contexts",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-exceptions",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    },
+    {
+      "run": "blanc-static-safety",
+      "completed": true,
+      "cleanup": {
+        "removed": true
+      }
+    }
+  ]
+}

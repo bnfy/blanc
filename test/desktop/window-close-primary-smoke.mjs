@@ -117,10 +117,21 @@ try {
   const [primaryWindowId] = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
     .filter((w) => w.isVisible() && w.webContents.getURL() === 'blanc-chrome://index/')
     .map((w) => w.id).sort((a, b) => a - b));
-  await app.evaluate(({ BrowserWindow }, id) => BrowserWindow.fromId(id).close(), primaryWindowId);
+  await app.evaluate(({ BrowserWindow, webContents }, { id, urls }) => {
+    const owned = webContents.getAllWebContents().filter((wc) => urls.includes(wc.getURL()));
+    globalThis.__primaryCloseLivePages = null;
+    // Observe before Blanc's closed handler: cleaning up there is too late
+    // for native focus teardown. Both active and detached pages must be gone.
+    BrowserWindow.fromId(id).prependOnceListener('closed', () => {
+      globalThis.__primaryCloseLivePages = owned.filter((wc) => !wc.isDestroyed()).length;
+    });
+    BrowserWindow.fromId(id).close();
+  }, { id: primaryWindowId, urls: [pageA, pageB] });
   await waitForValue(() => runtimes(app), (rows) => !rows.find((row) => row.id === 'primary')?.attached,
     'primary window to close', 10_000);
   assert.equal(app.process().exitCode, null, 'Blanc keeps running with the secondary window open');
+  assert.equal(await app.evaluate(() => globalThis.__primaryCloseLivePages), 0,
+    'primary pages finish destruction before their native window closes');
 
   await waitForValue(() => livePages(app, [pageA, pageB]), (live) => live.length === 0,
     'the closed primary window\'s pages to be destroyed', 10_000);

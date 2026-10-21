@@ -1,0 +1,29 @@
+{
+  "seed-distinct": {
+    "pass": true
+  },
+  "crash-distinct": {
+    "pass": true
+  },
+  "recover-distinct": {
+    "pass": true
+  },
+  "recent-distinct": {
+    "pass": true
+  },
+  "seed": {
+    "pass": true
+  },
+  "crash": {
+    "pass": true
+  },
+  "recover": {
+    "pass": true
+  },
+  "private": {
+    "pass": true
+  },
+  "missing": {
+    "pass": true
+  }
+}

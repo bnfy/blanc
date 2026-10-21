@@ -1,0 +1,34 @@
+{
+  "kind": "chromium-no-blocker-negative-control",
+  "started": "2026-10-17T19:04:40.914Z",
+  "passed": false,
+  "nativeBlockerInstalled": false,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-01",
+  "bundleSha256": "b62f21ea298c8fd92111ef225e69f9bae8a9935d3d04c699255426f605569f6b",
+  "sourceHashes": {
+    "chromium-baseline.mjs": "388bcec6a44a8bd28dc44e7d8f8a6a72de1a9b47517bcf1a05a3d89f3df1ee4d",
+    "comparison.mjs": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee",
+    "transport.mjs": "220129a09f193dd70e89cd429695dedd1c5cd6d4f2aec8b487fd12fe58b106c0",
+    "certificate-set.mjs": "02aac7229046d1a324c218904afc6513cb64d3c5f9d1b85be4a56ee041acbf14"
+  },
+  "runs": [],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "5A:5F:5A:A1:80:00:C3:F2:F9:71:E4:8D:72:79:1B:C1:27:78:19:78:DF:6E:6B:24:D2:C7:50:2A:2F:B1:99:E8"
+    ]
+  },
+  "gaps": [
+    "Native Mojo engine and browser request hook absent",
+    "CDP does not expose request_initiator; no substituted frame origin",
+    "Native hook timing and startup/crash holds unmeasured"
+  ],
+  "error": "[\"incomplete-or-faulted-negative-control\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json\",\"response-or-type-mismatch:https://page.blanc-fixture.test/blanc-fixture/context/script-child\"]",
+  "finished": "2026-10-17T19:04:42.833Z"
+}

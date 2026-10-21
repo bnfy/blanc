@@ -1,0 +1,7 @@
+{
+  "manifest.json": "51e86362f03388dd5fec6ab8197d353538d45bb9a2acb0146a1e09d5da18f5e8",
+  "js/storage.js": "7f32e3428c5dc788af47d399318e796b28db39238671b6db507699efbecd75b9",
+  "js/start.js": "f15f62dc0151475898d6fc97e3daf40bbd49bdf1408eb5a6c68dcf75696cad58",
+  "js/blanc-reload-guard.js": "cc312bb4b83ccb738541dfbe2d74ac2df3c929c36e21cd66cdbf222efb9da2f8",
+  "LICENSE.txt": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+}

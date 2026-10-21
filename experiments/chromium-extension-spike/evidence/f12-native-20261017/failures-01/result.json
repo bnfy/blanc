@@ -1,0 +1,12 @@
+{
+  "passed": false,
+  "error": "Error: EEXIST: file already exists, mkdir '/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-failure-3XAdME/tampered'",
+  "results": [
+    {
+      "variant": "missing",
+      "blocked": true,
+      "requestReachedServer": false,
+      "error": "page.goto: net::ERR_BLOCKED_BY_CLIENT at http://127.0.0.1:63475/missing\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:63475/missing\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    }
+  ]
+}

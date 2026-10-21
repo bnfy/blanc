@@ -99,7 +99,7 @@
   const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
-  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture' | 'spaces' | 'group-menu'} */
   let mode = null;
   let glancePickerPurpose = null;
   /** The tab the find capsule searches (overlay:show purpose). */
@@ -154,6 +154,10 @@
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
   let historyEntries = [];
+  // F52: the profile's archived tabs (projected rows; never private).
+  let archivedEntries = [];
+  // Spec D6: the one-time first-archive notice ({count}), or null.
+  let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
@@ -167,6 +171,32 @@
   // bangs, recents) and which picker sections are unfolded, for this window.
   let bangsState = { enabled: true, custom: [], recent: [] };
   const bangSectionsOpen = { recent: true, popular: true, all: true };
+  // Site icons for bang rows, by lowercased host: what main answered or
+  // pushed (icons from the person's visits, or from Blanc's icon server).
+  // Main decides what may be fetched; this only draws.
+  const bangIconCache = new Map();
+  // Rows must stay on screen this long before their icons are asked for
+  // (BANG icons policy VISIBLE_DELAY_MS in src/main/bang-icons-policy.js).
+  const BANG_ICON_VISIBLE_MS = 300;
+  const bangIconRequester = createBangIconRequester({
+    delayMs: BANG_ICON_VISIBLE_MS,
+    setTimer: (fn, ms) => setTimeout(fn, ms),
+    clearTimer: (timer) => clearTimeout(timer),
+    send: (hosts) => {
+      window.browserAPI.bangIcons(hosts)
+        .then((answers) => { for (const answer of answers || []) applyBangIconChange(answer); })
+        .catch(() => {});
+    },
+  });
+  // Bang icon cells on screen, by host: several codes can share one site,
+  // and its wait ends only when none of its rows is on screen.
+  const bangIconVisibleCells = new Map();
+  // Whether the active tab was private when the rows last asked: main
+  // decides per ask, so a switch lets them ask again.
+  let bangIconsPrivate = false;
+  // The document's viewport, not the list: a row scrolled out of the panel is
+  // clipped by its scrolling ancestor and so counts as off screen.
+  const bangIconObserver = new IntersectionObserver((entries) => bangIconVisibility(entries));
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
@@ -276,7 +306,7 @@
     const row = event.target.closest?.('.island-row[data-tab-id]');
     const result = header
       ? dragApi.keyboardGroupMove(state, header.dataset.groupId, direction, { withClosed: true })
-      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction) : null;
+      : row ? dragApi.keyboardTabMove(state, row.dataset.tabId, direction, { withClosed: true }) : null;
     if (!result) return;
     event.preventDefault();
     event.stopPropagation();
@@ -294,7 +324,11 @@
     // every row in the list carries.
     stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    // The group header's ⋮ (tab group colors spec §6).
+    more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    // A split row's disclosure (F53): points right when closed, down when open.
+    caret: '<svg viewBox="0 0 16 16"><path d="M6.25 4.5 9.75 8l-3.5 3.5"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
     secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
@@ -303,9 +337,12 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
-    // Glance: a page with a narrower page beside it — not the footer's
-    // sidebar glyph, which is the tab-layout toggle.
-    glance: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3.25" width="7.5" height="9.5" rx="1.5"/><rect x="11.25" y="4.75" width="2.5" height="6.5" rx="1"/></svg>',
+    archive: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3" width="11.5" height="3" rx="0.75"/><path d="M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3"/></svg>',
+    // Glance: a window split down the middle with the far half filled, "this
+    // tab goes in the other half". The earlier page-and-sliver glyph read as a
+    // video camera. The filled half keeps it apart from the footer's sidebar
+    // glyph (the tab-layout toggle), whose divider sits off-centre.
+    glance: '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.75"/><path d="M8 3v10"/><rect class="glance-mark" x="9.6" y="4.6" width="2.8" height="6.8" rx="0.6"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -315,23 +352,104 @@
 
   const groupById = (id) => state.groups.find((g) => g.id === id) || null;
 
-  /** Cluster order: each non-empty group in group order, then ungrouped,
-   * unpinned tabs. Pins lead their named group; only ungrouped pins use the
-   * standalone shelf. (Keep in sync with main.js.) */
+  /** Cluster order: groups and runs of ungrouped tabs, in tab order
+   * (tab-sections.js, shared with main and the rail). Pins lead their named
+   * group; only ungrouped pins use the standalone shelf. */
   function clusterTabs() {
+    const byId = new Map(state.tabs.map((t) => [t.id, t]));
     const clusters = [];
-    for (const g of state.groups) {
-      const gtabs = state.tabs
-        .filter((t) => t.groupId === g.id)
-        .sort((a, b) => Number(b.pinned) - Number(a.pinned));
-      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
+    for (const section of TabSections.sectionsOf(state.tabs)) {
+      const group = section.groupId ? groupById(section.groupId) : null;
+      if (section.groupId && !group) continue;
+      clusters.push({ group, tabs: section.tabIds.map((id) => byId.get(id)) });
     }
-    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
-    if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
+
+  // ---- Split View (F53): one row per split ------------------------------
+  // A split's tabs collapse into one row (TabSections.rowsOf); its disclosure
+  // lists them as ordinary rows. Which splits are open is this document's.
+  const openSplitRows = new Set();
+
+  /** Row nodes for a run of tabs, a split drawn once. `inGroup` marks rows
+   *  indented under a group header. */
+  function tabRowsFor(tabs, { inGroup = false } = {}) {
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    return TabSections.rowsOf(tabs.map((t) => t.id), state.tabs).flatMap((row) => {
+      if (row.kind === 'tab') {
+        const node = tabRow(byId.get(row.id));
+        if (inGroup) node.classList.add('in-group');
+        return [node];
+      }
+      return splitRowNodes(row.splitId, row.tabIds.map((id) => byId.get(id)).filter(Boolean), { inGroup });
+    });
+  }
+
+  function splitRowNodes(splitId, tabs, { inGroup = false } = {}) {
+    const split = (state.splits ?? []).find((s) => s.id === splitId);
+    const titles = tabs.map((t) => t.title || blancI18n.t('tab.untitled'));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'island-row split-row'
+      + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
+      + (inGroup ? ' in-group' : '');
+    row.dataset.splitId = splitId;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label'; // page titles
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary split-row-primary';
+    const icons = document.createElement('span');
+    icons.className = 'split-row-icons';
+    for (const tab of tabs.slice(0, 4)) {
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      icons.append(favicon);
+    }
+    const title = document.createElement('span');
+    title.className = 'row-title split-row-title';
+    title.textContent = label;
+    title.dataset.i18nIgnore = '';
+    primary.append(icons, title);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
+    primary.addEventListener('click', () => {
+      if (focused) window.browserAPI.switchTab(focused.id);
+      window.browserAPI.closeOverlay();
+    });
+    const open = openSplitRows.has(splitId);
+    const disclosure = document.createElement('button');
+    disclosure.type = 'button';
+    disclosure.className = 'split-row-disclosure' + (open ? ' open' : '');
+    disclosure.dataset.noDrag = '';
+    disclosure.innerHTML = ICONS.caret;
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.setAttribute('aria-label', blancI18n.t('split.showTabs'));
+    disclosure.dataset.tooltip = blancI18n.t('split.showTabs');
+    disclosure.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (openSplitRows.has(splitId)) openSplitRows.delete(splitId);
+      else openSplitRows.add(splitId);
+      renderList();
+    });
+    row.append(primary, disclosure);
+    const nodes = [row];
+    if (open) {
+      for (const tab of tabs) {
+        const node = tabRow(tab);
+        node.classList.add('in-split');
+        if (inGroup) node.classList.add('in-group');
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
@@ -599,11 +717,13 @@
     if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
       reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
       reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
-      reloadBtn.title = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.dataset.tooltip = wantStop ? blancI18n.t('pill.stop') : blancI18n.t('pill.reload');
+      reloadBtn.setAttribute('aria-label', reloadBtn.dataset.tooltip);
     }
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
-    heartBtn.title = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.dataset.tooltip = tab?.bookmarked ? blancI18n.t('pill.unfavorite') : blancI18n.t('panel.favoriteShortcut');
+    heartBtn.setAttribute('aria-label', heartBtn.dataset.tooltip);
     const siteInfo = tab?.siteInfo;
     const visible = !!siteInfo && !tab?.isLoading && !['internal', 'neutral'].includes(siteInfo.state);
     panelSiteInfo.hidden = !visible;
@@ -611,13 +731,13 @@
     panelSiteInfo.innerHTML = ['insecure', 'certificate-error', 'certificate-exception'].includes(siteInfo?.state)
       ? ICONS.insecure
       : siteInfo?.state === 'local' ? ICONS.local : ICONS.secure;
-    panelSiteInfo.title = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
+    panelSiteInfo.dataset.tooltip = siteInfo?.title ?? blancI18n.t('panel.siteInfo');
     panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? blancI18n.t('panel.siteInfo'));
     panelSiteInfo.setAttribute('aria-expanded', String(visible && siteInfoOpen));
     if (!visible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
-    footerTabLayout.title = verticalTabsActive
+    footerTabLayout.dataset.tooltip = verticalTabsActive
       ? blancI18n.t('rail.islandLayout')
       : blancI18n.t('footer.tabLayoutOn');
     footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
@@ -692,8 +812,8 @@
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
     pin.dataset.noDrag = '';
-    pin.title = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
-    pin.setAttribute('aria-label', pin.title);
+    pin.dataset.tooltip = tab.pinned ? blancI18n.t('row.unpin') : blancI18n.t('row.pin');
+    pin.setAttribute('aria-label', pin.dataset.tooltip);
     pin.innerHTML = ICONS.pin;
     pin.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -705,8 +825,8 @@
       const mute = document.createElement('button');
       mute.className = 'row-mute' + (tab.muted ? ' on' : '');
       mute.dataset.noDrag = '';
-      mute.title = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
-      mute.setAttribute('aria-label', mute.title);
+      mute.dataset.tooltip = tab.muted ? blancI18n.t('row.unmute') : blancI18n.t('row.mute');
+      mute.setAttribute('aria-label', mute.dataset.tooltip);
       mute.innerHTML = ICONS.mute;
       mute.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -721,8 +841,8 @@
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
       glance.dataset.noDrag = '';
       glance.innerHTML = ICONS.glance;
-      glance.title = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
-      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.title, title: label }));
+      glance.dataset.tooltip = isGlance ? blancI18n.t('glance.close') : blancI18n.t('row.glanceOpen');
+      glance.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: glance.dataset.tooltip, title: label }));
       if (tab.title) glance.dataset.i18nIgnore = 'aria-label'; // carries the page title
       glance.setAttribute('aria-pressed', String(isGlance));
       glance.addEventListener('click', async (e) => {
@@ -748,8 +868,8 @@
     const close = document.createElement('button');
     close.className = 'row-close';
     close.dataset.noDrag = '';
-    close.title = blancI18n.t('pill.closeTab');
-    close.setAttribute('aria-label', close.title);
+    close.dataset.tooltip = blancI18n.t('pill.closeTab');
+    close.setAttribute('aria-label', close.dataset.tooltip);
     close.innerHTML = ICONS.close;
     close.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -786,11 +906,14 @@
 
   /** Named-group band: present --surface tint behind header + member tabs.
    * Only named groups get this — pinned / loose / furniture stay flat. */
-  function groupBand(group, nodes) {
+  function groupBand(group, nodes, firstTabId) {
     const band = document.createElement('div');
     band.className = 'island-group-band';
     band.dataset.dragSection = 'group';
     band.dataset.groupId = group.id;
+    // The gap above a group names its first tab (tab-drag.js).
+    band.dataset.firstTabId = firstTabId;
+    TabSections.paintGroup(band, group, 'group-colored');
     band.dataset.collapsed = String(!!group.collapsed);
     band.append(...nodes);
     return band;
@@ -835,6 +958,13 @@
     row.className = 'island-ghead';
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
+    if (group.color) {
+      // The color dot before the name; the band carries --group-color.
+      const dot = document.createElement('span');
+      dot.className = 'group-color-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      row.querySelector('.ghead-name').before(dot);
+    }
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelector('.ghead-name').dataset.i18nIgnore = ''; // a user-chosen group name
     row.querySelector('.ghead-n').textContent = String(count);
@@ -848,13 +978,205 @@
     row.setAttribute('aria-expanded', String(!group.collapsed));
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
     row.addEventListener('keydown', (event) => {
+      if (event.target !== row) return;
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         window.browserAPI.toggleGroupCollapsed(group.id);
       }
     });
+    // The group menu: this ⋮ or a right-click on the header (spec §6).
+    const more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'ghead-more';
+    more.dataset.noDrag = '';
+    more.innerHTML = ICONS.more;
+    more.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    more.setAttribute('aria-haspopup', 'dialog');
+    more.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleGroupMenu(group.id, row);
+    });
+    more.addEventListener('keydown', (event) => event.stopPropagation());
+    row.querySelector('.ghead-kbd').before(more);
+    if (groupMenu?.groupId === group.id) row.classList.add('menu-open');
     return row;
   }
+
+  // --- Group menu (tab group colors spec §6) ---
+  // One menu per group: its name, its color and its actions. In the panel it
+  // floats in this document beside the header; from the side list main opens
+  // the 'group-menu' mode, a transparent layer over the window, and this
+  // document shows only the menu at the header main passed.
+  const groupMenuEl = document.getElementById('groupMenu');
+  /** @type {null | { groupId: string, host: 'panel' | 'mode', cancelled: boolean }} */
+  let groupMenu = null;
+  const GROUP_MENU_GAP = 4;
+  const GROUP_MENU_MARGIN = 8;
+  const GROUP_MENU_KEBAB = 30; // the ⋮ button and its inset
+
+  function toggleGroupMenu(groupId, header) {
+    if (groupMenu?.groupId === groupId && groupMenu.host === 'panel') { closeGroupMenu(); return; }
+    const r = header.getBoundingClientRect();
+    openGroupMenu(groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+  }
+
+  function openGroupMenu(groupId, anchor, host) {
+    const group = groupById(groupId);
+    if (!group) return;
+    if (groupMenu) closeGroupMenu();
+    groupMenu = { groupId, host, cancelled: false };
+    // Escape reaches this document while the menu is open in the panel.
+    if (host === 'panel') window.browserAPI.setWorkspaceSwitcherOpen(true);
+    buildGroupMenu(group);
+    groupMenuEl.hidden = false;
+    placeGroupMenu(anchor, host);
+    document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"]`)?.classList.add('menu-open');
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    input.focus();
+    input.select();
+  }
+
+  /** Below the header (above it when there is no room). In the panel its
+   * right edge meets the header's; from the side list it starts at the ⋮
+   * and opens toward the page, as Helium's does. */
+  function placeGroupMenu(anchor, host) {
+    const width = groupMenuEl.offsetWidth;
+    const height = groupMenuEl.offsetHeight;
+    const wanted = host === 'mode' ? anchor.right - GROUP_MENU_KEBAB : anchor.right - width;
+    const left = Math.max(GROUP_MENU_MARGIN, Math.min(wanted, window.innerWidth - width - GROUP_MENU_MARGIN));
+    const below = anchor.bottom + GROUP_MENU_GAP;
+    const top = below + height <= window.innerHeight - GROUP_MENU_MARGIN
+      ? below
+      : Math.max(GROUP_MENU_MARGIN, anchor.top - GROUP_MENU_GAP - height);
+    groupMenuEl.style.setProperty('--group-menu-left', `${Math.round(left)}px`);
+    groupMenuEl.style.setProperty('--group-menu-top', `${Math.round(top)}px`);
+  }
+
+  function buildGroupMenu(group) {
+    groupMenuEl.replaceChildren();
+    groupMenuEl.setAttribute('aria-label', blancI18n.t('groupMenu.options'));
+    const name = document.createElement('input');
+    name.type = 'text';
+    name.className = 'group-menu-name';
+    name.value = group.name;
+    name.spellcheck = false;
+    name.setAttribute('aria-label', blancI18n.t('groupMenu.nameLabel'));
+    name.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        commitGroupName({ close: true });
+      }
+    });
+    const notice = document.createElement('div');
+    notice.className = 'group-menu-notice';
+    notice.setAttribute('role', 'status');
+    notice.hidden = true;
+
+    const colors = document.createElement('div');
+    colors.className = 'group-menu-colors';
+    colors.setAttribute('role', 'radiogroup');
+    colors.setAttribute('aria-label', blancI18n.t('groupMenu.colorLabel'));
+    const swatch = (hex, label) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = hex ? 'ws-swatch' : 'ws-swatch none';
+      button.dataset.color = hex ?? '';
+      button.setAttribute('role', 'radio');
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-checked', String((group.color ?? null) === hex));
+      if (hex) button.style.setProperty('--swatch', hex);
+      button.addEventListener('click', async () => {
+        for (const other of colors.children) other.setAttribute('aria-checked', String(other === button));
+        await window.browserAPI.setGroupColor(group.id, hex);
+      });
+      return button;
+    };
+    colors.append(swatch(null, blancI18n.t('groupMenu.colorNone')));
+    for (const preset of SpaceIdentity.PRESETS) colors.append(swatch(preset.hex, blancI18n.t(`spaces.color.${preset.id}`)));
+    colors.addEventListener('keydown', (event) => {
+      const items = [...colors.children];
+      const at = items.indexOf(document.activeElement);
+      const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+      if (!step || at === -1) return;
+      event.preventDefault();
+      items[(at + step + items.length) % items.length].focus();
+    });
+
+    const holdsEveryTab = state.tabs.length > 0 && state.tabs.every((tab) => tab.groupId === group.id);
+    const action = (label, run, { disabled = false } = {}) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ws-cmd group-menu-action';
+      button.textContent = label;
+      button.disabled = disabled;
+      button.addEventListener('click', async () => {
+        // A refused name keeps the menu open with its notice; nothing runs.
+        if (!(await commitGroupName({ close: false }))) return;
+        closeGroupMenu({ commit: false, closeOverlay: true });
+        run();
+      });
+      return button;
+    };
+    const actions = document.createElement('div');
+    actions.className = 'group-menu-actions';
+    actions.append(
+      action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
+      action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+      action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
+      action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
+    );
+    groupMenuEl.append(name, notice, colors, actions);
+  }
+
+  /** Save the typed name if it changed. A name another group has keeps the
+   * menu open with the refusal; resolves false then. */
+  async function commitGroupName({ close }) {
+    if (!groupMenu) return true;
+    const group = groupById(groupMenu.groupId);
+    const input = groupMenuEl.querySelector('.group-menu-name');
+    const value = input?.value ?? '';
+    if (group && value.trim() && value !== group.name) {
+      const result = await window.browserAPI.renameGroup(group.id, value);
+      if (result && result.ok === false && result.error === 'duplicate') {
+        const notice = groupMenuEl.querySelector('.group-menu-notice');
+        if (notice && groupMenu) {
+          notice.textContent = blancI18n.t('groupMenu.duplicate', { name: value.trim() });
+          notice.hidden = false;
+          input.focus();
+        }
+        return false;
+      }
+    }
+    // Enter is a keyboard close: focus goes back to the header's ⋮.
+    if (close) closeGroupMenu({ commit: false, closeOverlay: true, reason: 'cancel' });
+    return true;
+  }
+
+  /** `commit` saves a changed name first; Escape passes false. */
+  function closeGroupMenu({ commit = true, closeOverlay = false, reason = null } = {}) {
+    if (!groupMenu) return;
+    const { host, groupId } = groupMenu;
+    if (commit) commitGroupName({ close: false });
+    groupMenu = null;
+    groupMenuEl.hidden = true;
+    groupMenuEl.replaceChildren();
+    document.querySelectorAll('#islandList .island-ghead.menu-open').forEach((el) => el.classList.remove('menu-open'));
+    if (host === 'panel') {
+      if (!workspaceSwitcherOpen) window.browserAPI.setWorkspaceSwitcherOpen(false);
+      document.querySelector(`#islandList .island-ghead[data-group-id="${CSS.escape(groupId)}"] .ghead-more`)?.focus();
+    } else if (closeOverlay && mode === 'group-menu') {
+      window.browserAPI.closeOverlay(reason ?? undefined);
+    }
+  }
+
+  document.addEventListener('mousedown', (event) => {
+    if (!groupMenu || event.target.closest('#groupMenu')) return;
+    if (groupMenu.host === 'panel' && event.target.closest('.ghead-more')) return; // its own toggle
+    const fromMode = groupMenu.host === 'mode';
+    closeGroupMenu({ commit: true });
+    if (fromMode) window.browserAPI.closeOverlay('cancel');
+  }, true);
 
   // --- Workspaces (Blanc Spaces) ---
   //
@@ -1039,6 +1361,7 @@
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/archive', hint: blancI18n.t('slash.archive.hint'), run: () => window.browserAPI.openPage('history', 'archived') },
     { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
     { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
@@ -1219,8 +1542,8 @@
       clear.className = 'closed-clear';
       clear.dataset.noDrag = '';
       clear.textContent = blancI18n.t('closed.clear');
-      clear.title = blancI18n.t('closed.clearAll');
-      clear.setAttribute('aria-label', clear.title);
+      clear.dataset.tooltip = blancI18n.t('closed.clearAll');
+      clear.setAttribute('aria-label', clear.dataset.tooltip);
       clear.addEventListener('click', (e) => {
         e.stopPropagation();
         window.browserAPI.clearClosedEntries();
@@ -1252,8 +1575,8 @@
     const forget = document.createElement('button');
     forget.type = 'button';
     forget.className = 'row-close closed-forget';
-    forget.title = blancI18n.t('closed.forget');
-    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.title, title: title.textContent }));
+    forget.dataset.tooltip = blancI18n.t('closed.forget');
+    forget.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: forget.dataset.tooltip, title: title.textContent }));
     forget.dataset.i18nIgnore = 'aria-label'; // carries the closed page title
     forget.innerHTML = ICONS.close;
     forget.addEventListener('click', (event) => {
@@ -1272,6 +1595,47 @@
       reopen();
     });
     return row;
+  }
+
+  /** Spec D6: "Blanc archived N tabs · View Archive ×", once per profile, at
+   *  the top of the resting list where a missing tab would be looked for.
+   *  Shaped like the Recently closed band; both actions end it for good. */
+  function archiveNoticeBand(notice) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band archive-notice';
+    band.setAttribute('role', 'status');
+    const row = document.createElement('div');
+    row.className = 'island-row in-group';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = ICONS.archive;
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = blancI18n.t('archive.notice.title', { count: notice.count });
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'closed-clear archive-notice-view';
+    view.textContent = blancI18n.t('archive.notice.view');
+    view.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.archiveNoticeDone('view');
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close archive-notice-dismiss';
+    dismiss.setAttribute('aria-label', blancI18n.t('archive.notice.dismiss'));
+    dismiss.dataset.tooltip = blancI18n.t('archive.notice.dismiss');
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.archiveNoticeDone('dismiss');
+      archiveNotice = null;
+      renderList();
+    });
+    row.append(glyph, title, view, dismiss);
+    band.append(row);
+    return band;
   }
 
   function commandNoticeRow(text) {
@@ -1394,6 +1758,16 @@
         if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
+    // Archived tabs rank below remote tabs (+0.05) and above history (+0);
+    // the url-keyed dedup below keeps the archived row over a history row.
+    // A private tab's switcher never shows the Archive (F52).
+    const activePrivate = state.tabs.find((t) => t.id === state.activeTabId)?.private;
+    if (!activePrivate) {
+      for (const a of archivedEntries) {
+        const s = matchScore(query, matchableText(a.title, a.url));
+        if (s) results.push({ kind: 'archived', title: a.title || a.url, sub: `${stripUrl(a.url)} · ${blancI18n.t('result.archived')}`, url: a.url, tab: { url: a.url, favicon: a.favicon }, entryId: a.id, score: s + 0.02 });
+      }
+    }
     for (const h of historyEntries) {
       const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
@@ -1492,6 +1866,7 @@
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
+    else if (result.kind === 'archived') window.browserAPI.archiveRestore(result.entryId);
     else if (result.kind === 'search' && state.activeTabId) {
       window.browserAPI.search(state.activeTabId, result.query, result.providerId);
     }
@@ -1515,6 +1890,7 @@
       leading = document.createElement('span');
       leading.className = 'row-group-mark';
       leading.innerHTML = CARET;
+      TabSections.paintGroup(leading, result.group, 'group-colored-mark');
       leading.setAttribute('aria-hidden', 'true');
     } else if (result.kind === 'search') {
       leading = document.createElement('span');
@@ -1568,11 +1944,14 @@
     const parsed = Bangs.parseBang(text);
     if (!parsed && text !== '!') return null;
     const resolved = parsed ? Bangs.resolveBang(text, BangsCatalog, bangsState.custom) : null;
+    const record = resolved ? Bangs.findBang(resolved.code, BangsCatalog, bangsState.custom) : null;
     const hint = resolved
       ? {
         kind: 'bang',
         code: resolved.code,
         name: resolved.name,
+        domain: record?.domain ?? '',
+        custom: record?.custom === true,
         query: resolved.query,
         url: resolved.url,
         text,
@@ -1622,6 +2001,126 @@
     renderList();
   }
 
+  function bangIconHost(domain) {
+    return typeof domain === 'string' ? domain.toLowerCase() : '';
+  }
+
+  /** A bang row's leading site icon: the cached icon, else the site's letter
+   * (the same slot as Quick Switcher favicons). Decorative; the row's text
+   * names the site. */
+  function bangIconCell(domain) {
+    const host = bangIconHost(domain);
+    const cell = document.createElement('span');
+    cell.setAttribute('aria-hidden', 'true');
+    if (host) cell.dataset.bangHost = host;
+    setFavicon(cell, { url: `https://${host}/`, favicon: bangIconCache.get(host) || null });
+    return cell;
+  }
+
+  /** An icon arrived (or, with icon null, was withdrawn): repaint that host's
+   * rows in place, without redrawing the list. */
+  function applyBangIconChange(change) {
+    const host = bangIconHost(change?.host);
+    if (!host) return;
+    if (typeof change.icon === 'string' && change.icon) {
+      bangIconCache.set(host, change.icon);
+    } else {
+      bangIconCache.delete(host);
+      // Withdrawn (a history clear, or the server dropped it): a row on
+      // screen asks again, so an icon from Favorites or an open tab returns.
+      bangIconRequester.forget(host);
+      if (bangIconVisibleCells.has(host)) bangIconRequester.visible(host);
+    }
+    for (const cell of islandList.querySelectorAll(`[data-bang-host="${CSS.escape(host)}"]`)) {
+      setFavicon(cell, { url: `https://${host}/`, favicon: bangIconCache.get(host) || null });
+    }
+  }
+
+  /** Asks main for the icons of bang rows that stay on screen `delayMs`:
+   * rows typed or scrolled past sooner ask for nothing, and the rows that
+   * stayed go out as one batch. Each host is sent once per overlay open
+   * (main refreshes a stale copy on that ask). */
+  function createBangIconRequester({ delayMs, setTimer, clearTimer, send }) {
+    const waiting = new Map();
+    const sent = new Set();
+    let batch = [];
+    let flushTimer = null;
+    const flush = () => {
+      flushTimer = null;
+      const hosts = batch;
+      batch = [];
+      if (hosts.length) send(hosts);
+    };
+    return {
+      visible(host) {
+        if (!host || sent.has(host) || waiting.has(host)) return;
+        waiting.set(host, setTimer(() => {
+          waiting.delete(host);
+          sent.add(host);
+          batch.push(host);
+          if (flushTimer === null) flushTimer = setTimer(flush, 0);
+        }, delayMs));
+      },
+      hidden(host) {
+        if (!waiting.has(host)) return;
+        clearTimer(waiting.get(host));
+        waiting.delete(host);
+      },
+      /** The host may be asked for again this open. */
+      forget(host) {
+        sent.delete(host);
+      },
+      /** After a redraw: rows whose host is still listed keep their wait. */
+      retain(hosts) {
+        for (const host of [...waiting.keys()]) if (!hosts.has(host)) this.hidden(host);
+      },
+      reset() {
+        for (const timer of waiting.values()) clearTimer(timer);
+        waiting.clear();
+        sent.clear();
+        batch = [];
+      },
+    };
+  }
+
+  function bangIconVisibility(entries) {
+    for (const entry of entries) {
+      const host = entry.target.dataset.bangHost;
+      if (!host) continue;
+      const cells = bangIconVisibleCells.get(host) ?? new Set();
+      if (entry.isIntersecting) cells.add(entry.target);
+      else cells.delete(entry.target);
+      if (cells.size) {
+        bangIconVisibleCells.set(host, cells);
+        bangIconRequester.visible(host);
+      } else {
+        bangIconVisibleCells.delete(host);
+        bangIconRequester.hidden(host);
+      }
+    }
+  }
+
+  /** The active tab switched between private and normal: rows already asked
+   * for may ask again, and main answers by the new tab. */
+  function noteBangIconPrivacy() {
+    const isPrivate = activeTab()?.private === true;
+    if (isPrivate === bangIconsPrivate) return;
+    bangIconsPrivate = isPrivate;
+    bangIconRequester.reset();
+    observeBangIconRows();
+  }
+
+  /** After every list draw: watch the bang rows now listed. A host still
+   * listed keeps its wait; one that left cancels it. */
+  function observeBangIconRows() {
+    bangIconObserver.disconnect();
+    // The observer reports every watched cell afresh.
+    bangIconVisibleCells.clear();
+    const cells = [...islandList.querySelectorAll('[data-bang-host]')];
+    bangIconRequester.retain(new Set(cells.map((cell) => cell.dataset.bangHost)));
+    for (const cell of cells) bangIconObserver.observe(cell);
+  }
+
   /** The hint row, drawn like a slash command: the code in accent ink, then
    * a plain sentence. */
   function bangRow(result, isActive, isEnterTarget) {
@@ -1634,7 +2133,7 @@
     const hint = document.createElement('span');
     hint.className = 'row-hint';
     hint.textContent = result.title;
-    row.append(code, hint);
+    row.append(bangIconCell(result.domain), code, hint);
     if (isEnterTarget) row.append(enterGlyph());
     row.addEventListener('click', () => pickResult(result));
     return row;
@@ -1655,7 +2154,7 @@
     sub.className = 'row-sub';
     sub.textContent = result.custom ? blancI18n.t('bang.yours') : result.domain;
     if (!result.custom) sub.dataset.i18nIgnore = '';
-    row.append(code, name, sub);
+    row.append(bangIconCell(result.domain), code, name, sub);
     row.addEventListener('click', () => pickResult(result));
     return row;
   }
@@ -1811,6 +2310,80 @@
         : blancI18n.t('siteInfo.hint.chromium');
   }
 
+  // Tooltips for the Island's buttons: the panel's actions, its footer and the
+  // tab rows' icons (pin, mute, Glance, close). They carry data-tooltip rather
+  // than a native title: the panel is rebuilt on every tab broadcast (a page
+  // loading, a title changing), which restarts the OS hover timer, so a native
+  // tooltip here came late or never, and it couldn't match the Island's look. This one waits
+  // a short beat on hover, shows at once on keyboard focus, and follows the
+  // rebuilt button under a still pointer. It is visual only; each button's
+  // aria-label or aria-description already says the same thing.
+  const islandTip = document.createElement('div');
+  islandTip.className = 'island-tip';
+  islandTip.setAttribute('aria-hidden', 'true');
+  document.body.append(islandTip);
+  const ISLAND_TIP_DELAY_MS = 350;
+  let islandTipTarget = null;
+  let islandTipTimer = 0;
+  let islandTipPointer = null;
+
+  function placeIslandTip(el) {
+    islandTip.textContent = el.dataset.tooltip;
+    const box = el.getBoundingClientRect();
+    const tip = islandTip.getBoundingClientRect();
+    const gap = 6;
+    let top = box.top - tip.height - gap;
+    if (top < 4) top = box.bottom + gap;
+    const left = Math.max(4, Math.min(window.innerWidth - tip.width - 4,
+      box.left + box.width / 2 - tip.width / 2));
+    islandTip.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    islandTip.classList.add('show');
+  }
+
+  function hideIslandTip() {
+    clearTimeout(islandTipTimer);
+    islandTipTarget = null;
+    islandTip.classList.remove('show');
+  }
+
+  function aimIslandTip(el, delay) {
+    if (el === islandTipTarget) return;
+    hideIslandTip();
+    if (!el || !el.dataset.tooltip) return;
+    islandTipTarget = el;
+    if (delay) islandTipTimer = setTimeout(() => placeIslandTip(el), delay);
+    else placeIslandTip(el);
+  }
+
+  // After a rebuild the hovered button is a new element: carry the tip over
+  // to whatever button now sits under the pointer, or drop it.
+  function refreshIslandTip() {
+    if (!islandTipTarget || islandTipTarget.isConnected) return;
+    const shown = islandTip.classList.contains('show');
+    const under = islandTipPointer
+      && document.elementFromPoint(islandTipPointer.x, islandTipPointer.y)?.closest('[data-tooltip]');
+    hideIslandTip();
+    if (under) aimIslandTip(under, shown ? 0 : ISLAND_TIP_DELAY_MS);
+  }
+
+  document.addEventListener('pointermove', (e) => {
+    islandTipPointer = { x: e.clientX, y: e.clientY };
+    aimIslandTip(e.target.closest?.('[data-tooltip]') || null, ISLAND_TIP_DELAY_MS);
+  });
+  document.documentElement.addEventListener('pointerleave', () => {
+    islandTipPointer = null;
+    hideIslandTip();
+  });
+  document.addEventListener('pointerdown', hideIslandTip, true);
+  document.addEventListener('scroll', hideIslandTip, true);
+  document.addEventListener('focusin', (e) => {
+    const el = e.target.closest?.('[data-tooltip]');
+    if (el && el.matches(':focus-visible')) aimIslandTip(el, 0);
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target === islandTipTarget) hideIslandTip();
+  });
+
   function renderList() {
     if (pointerHeld || islandDrag.isActive()) {
       renderQueued = true;
@@ -1834,6 +2407,8 @@
       islandList.replaceChildren(row);
       renderDevicesDrawer(false);
       islandHint.textContent = '';
+      observeBangIconRows();
+      refreshIslandTip();
       return;
     }
 
@@ -1917,43 +2492,54 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
         ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
         : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();
       const shortcutOffset = pinned.length ? 1 : 0;
-      // Recently closed sits before the first group at or past its slot
-      // (main's closedSlot), else after the last group — never among the
-      // ungrouped tabs. Newest first; every entry Blanc keeps.
+      // Recently closed sits at its slot (main's closedSlot): the number of
+      // groups and ungrouped tabs above it, so it can split a run. Newest
+      // first; every entry Blanc keeps.
       const closed = (state.closed ?? []).slice().reverse();
       const closedSlot = dragApi.closedSlotIndex(state);
-      const groupIndex = new Map(state.groups.map((g, index) => [g.id, index]));
       let closedPlaced = !closed.length;
+      let itemIndex = 0;
       const placeClosed = () => {
         if (closedPlaced) return;
         rows.push(closedBand(closed));
         closedPlaced = true;
       };
+      const due = () => !closedPlaced && itemIndex >= closedSlot;
       for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
-        if (!group || groupIndex.get(group.id) >= closedSlot) placeClosed();
+        if (due()) placeClosed();
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) {
-            for (const t of gtabs) {
-              const row = tabRow(t);
-              row.classList.add('in-group');
-              bandNodes.push(row);
-            }
-          }
-          rows.push(groupBand(group, bandNodes));
+          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
+          rows.push(groupBand(group, bandNodes, gtabs[0].id));
+          itemIndex += 1;
         } else {
-          rows.push(dragSection('loose', gtabs.map(tabRow)));
+          let chunk = [];
+          // A split is drawn once; Recently closed never lands inside one.
+          for (const row of TabSections.rowsOf(gtabs.map((t) => t.id), state.tabs)) {
+            if (due()) {
+              if (chunk.length) rows.push(dragSection('loose', chunk));
+              chunk = [];
+              placeClosed();
+            }
+            const members = row.kind === 'tab' ? [row.id] : row.tabIds;
+            chunk.push(...tabRowsFor(members.map((id) => gtabs.find((t) => t.id === id)).filter(Boolean)));
+            itemIndex += members.length;
+          }
+          if (chunk.length) rows.push(dragSection('loose', chunk));
         }
       }
       placeClosed();
-      if (!clusters.some(({ group }) => !group)) rows.push(dragEmptyZone('loose'));
+      // Below a last group there is still a place for an ungrouped tab: the
+      // empty zone a drag reveals.
+      if (!clusters.length || clusters[clusters.length - 1].group) rows.push(dragEmptyZone('loose'));
 
       islandList.replaceChildren(...rows);
       // Only the resting tab list preserves row focus; the "/" command and
@@ -1973,6 +2559,8 @@
         ? blancI18n.t('hint.bang')
         : activeTab()?.private ? blancI18n.t('hint.private') : '';
     }
+    observeBangIconRows();
+    refreshIslandTip();
   }
 
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
@@ -2149,6 +2737,11 @@
     document.body.dataset.mode = next ?? '';
     document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     if (next !== 'panel' && next !== 'palette' && next !== 'spaces') closeWorkspaceSwitcher();
+    // A group menu belongs to the surface that opened it: the panel's goes
+    // when the panel does, the side list's when any other mode replaces it.
+    if (groupMenu && (groupMenu.host === 'mode' ? next !== 'group-menu' : next !== 'panel' && next !== 'palette')) {
+      closeGroupMenu({ commit: true });
+    }
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
@@ -2263,6 +2856,9 @@
       }
       renderGlancePicker({ announce: !reshow });
       glancePickerInput.focus();
+    } else if (next === 'group-menu') {
+      // The side list's group menu: the whole overlay is this one menu.
+      if (purpose?.groupId && purpose.anchor) openGroupMenu(purpose.groupId, purpose.anchor, 'mode');
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
@@ -2680,7 +3276,43 @@
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -2697,6 +3329,12 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (groupMenu) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('escape');
+      return;
+    }
     if (mode === 'shield') {
       if (shieldChoosing) cancelShieldChoice();
       else window.browserAPI.closeOverlay('escape');
@@ -2748,7 +3386,13 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
+    hideIslandTip();
+    // Closing the overlay any other way than Escape keeps a typed name.
+    closeGroupMenu({ commit: true });
+    // The next open may ask again (main refreshes stale copies on an ask).
+    bangIconRequester.reset();
     drawnGeneration += 1;
     const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
       && retractPanelIntoPill();
@@ -2841,7 +3485,9 @@
       e.stopPropagation();
       return;
     }
-    window.browserAPI.closeOverlay();
+    // An Escape, as main's own path reports it: a surface opened from a
+    // control (the Glance card's Change) hands focus back to it.
+    window.browserAPI.closeOverlay('escape');
   });
 
   /** Layered Esc for the footer workspace popover. Returns true if handled
@@ -2871,8 +3517,16 @@
   // These moved out of the scrollable list so they stay put while it shows
   // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
   document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
-  footerNewTab.title = blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` });
-  footerNewPrivate.title = blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` });
+  // These keep their visible words as their name; the tooltip's fuller text
+  // (with the shortcut) is also their accessible description.
+  for (const [button, text] of [
+    [footerNewTab, blancI18n.t('pill.newTab.title', { shortcut: `${modKey}T` })],
+    [footerNewPrivate, blancI18n.t('footer.newPrivate.title', { shortcut: `${modShiftKey}N` })],
+    [footerDevices, blancI18n.t('footer.devices.title')],
+  ]) {
+    button.dataset.tooltip = text;
+    button.setAttribute('aria-description', text);
+  }
 
   // focusAddress:false keeps the panel closed and lands the user on the fresh
   // tab, rather than main re-summoning the launchpad (its default for ⌘T).
@@ -2884,7 +3538,6 @@
     window.browserAPI.closeOverlay();
     window.browserAPI.createTab(null, { private: true, focusAddress: false });
   });
-  footerDevices.title = blancI18n.t('footer.devices.title');
   footerDevices.addEventListener('click', () => {
     devicesDrawerOpen = !devicesDrawerOpen;
     renderList();
@@ -3092,15 +3745,19 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
       window.browserAPI.bangs(),
+      window.browserAPI.archiveList(),
+      window.browserAPI.archiveNotice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
+    archivedEntries = Array.isArray(archivedList) ? archivedList : [];
+    archiveNotice = notice ?? null;
     remoteDevices = remoteList;
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;
@@ -3111,7 +3768,14 @@
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     state = payload;
+    noteBangIconPrivacy();
     islandDrag.notePayload(payload);
+    // A group that closed or dissolved under its open menu takes the menu along.
+    if (groupMenu && !groupById(groupMenu.groupId)) {
+      const fromMode = groupMenu.host === 'mode';
+      closeGroupMenu({ commit: false });
+      if (fromMode) window.browserAPI.closeOverlay('cancel');
+    }
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
@@ -3138,6 +3802,8 @@
     bangsState = payload;
     if (mode === 'panel' || mode === 'palette') renderList();
   });
+  // A bang site's icon arrived from Blanc's icon server, or was withdrawn.
+  window.browserAPI.onBangIconsChanged(applyBangIconChange);
   // Freshness for the workspaces section: a switch/rename/delete anywhere
   // (another window, or this one) must not leave a pull-once list showing a
   // stale "active" row or a name that no longer matches.
@@ -3180,12 +3846,18 @@
     const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
     window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
     window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
-    // A named group's header gets main's group menu (group-context-menu.js);
-    // the Recently closed band's header is not a group and has none.
-    const groupHeaderId = tabRowEl || workspaceRowEl
+    // A named group's header opens its group menu (tab group colors spec
+    // §6); the Recently closed band's header is not a group and has none.
+    const groupHeader = tabRowEl || workspaceRowEl
       ? null
-      : e.target.closest('#islandList [data-drag-header][data-group-id]')?.dataset.groupId ?? null;
-    window.__blancCtxGroupId = groupHeaderId === dragApi.constants.CLOSED_SECTION_ID ? null : groupHeaderId;
+      : e.target.closest('#islandList [data-drag-header][data-group-id]');
+    if (groupHeader && groupHeader.dataset.groupId !== dragApi.constants.CLOSED_SECTION_ID) {
+      e.preventDefault();
+      releasePointerHold();
+      const r = groupHeader.getBoundingClientRect();
+      openGroupMenu(groupHeader.dataset.groupId, { right: r.right, top: r.top, bottom: r.bottom }, 'panel');
+      return;
+    }
     // A device header in the Other devices drawer gets Rename Device…
     // (device-context-menu.js).
     window.__blancCtxDeviceId = tabRowEl || workspaceRowEl
@@ -3202,7 +3874,6 @@
       !e.target.closest('#addressInput')
       && window.__blancCtxRowTabId == null
       && window.__blancCtxWorkspaceId == null
-      && window.__blancCtxGroupId == null
       && window.__blancCtxDeviceId == null
     ) {
       e.preventDefault();

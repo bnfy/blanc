@@ -28,11 +28,14 @@ test('resting island tokens preserve the website material and canonical geometry
     dark: 'rgba(31,31,31,.94)',
     private: 'rgba(25,25,25,.94)',
   });
+  // Resting chrome has no top catch-light in any appearance.
   assert.deepEqual(token('shadow-island-resting'), {
-    common: 'inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    light: 'inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    dark: 'inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
+    private: 'inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24)',
   });
   assert.deepEqual(token('island-resting-height'), { common: '44px' });
-  assert.deepEqual(token('island-resting-radius'), { common: '17px' });
+  assert.deepEqual(token('island-resting-radius'), { common: '14px' });
   assert.deepEqual(token('strip-h'), { common: '68px' });
 });
 

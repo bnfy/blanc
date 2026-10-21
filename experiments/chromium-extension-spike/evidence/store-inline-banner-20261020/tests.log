@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: suppresses only the exact Chrome Store download campaign
+ok 1 - suppresses only the exact Chrome Store download campaign
+  ---
+  duration_ms: 1.03575
+  ...
+# Subtest: does not run on other origins or child frames
+ok 2 - does not run on other origins or child frames
+  ---
+  duration_ms: 0.7225
+  ...
+# Subtest: leaves ordinary download links and installation forms alone
+ok 3 - leaves ordinary download links and installation forms alone
+  ---
+  duration_ms: 0.796042
+  ...
+# Subtest: removes empty promotion shell without hiding mixed controls
+ok 4 - removes empty promotion shell without hiding mixed controls
+  ---
+  duration_ms: 0.54975
+  ...
+# Subtest: hides the complete exact inline banner
+ok 5 - hides the complete exact inline banner
+  ---
+  duration_ms: 0.593625
+  ...
+# Subtest: retains mixed installation/search/sign-in containers and changed copy
+ok 6 - retains mixed installation/search/sign-in containers and changed copy
+  ---
+  duration_ms: 0.345584
+  ...
+# Subtest: inline rule is limited to top-level Store origin
+ok 7 - inline rule is limited to top-level Store origin
+  ---
+  duration_ms: 0.383625
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 39.673833

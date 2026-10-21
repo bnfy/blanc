@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "name": "source session save acknowledged before cancellation",
+      "value": true
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 63589,
+        "path": "/private/tmp/blanc-partial-boundary-session-error-retry2/profile/Default/Sessions_Encrypted/Session_13437010273544072",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"67\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-4268622424045002520.1.12\"}}"
+      }
+    }
+  ],
+  "pass": false,
+  "error": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Save the complete current window before switching.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"79\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Save the complete current window before switching.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-4268622424045002520.1.21\"}}\n    at call (file:///private/tmp/blanc-partial-boundary-session-error-retry2/test.mjs:8:334)\n    at async file:///private/tmp/blanc-partial-boundary-session-error-retry2/test.mjs:23:598"
+}

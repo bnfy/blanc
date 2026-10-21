@@ -1,0 +1,17 @@
+{
+  "verified": true,
+  "diagnosticSchedules": 45,
+  "droppedBeforeDelivery": 36,
+  "staleDeliveryAttempts": 0,
+  "committedDeliveriesDrained": 9,
+  "duplicateBodies": 0,
+  "actualFilterReloadCases": 15,
+  "fullAcceptance": false,
+  "staticDeliveryResetOrdering": true,
+  "lostReceiverHeld": false,
+  "destroyedReceiverRecovered": true,
+  "liveReceiverTimeoutAndRetry": true,
+  "overlapAndStaleCompletionRefused": true,
+  "afterDispatchAtomicity": false,
+  "latencyMeasured": false
+}

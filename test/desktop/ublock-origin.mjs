@@ -325,6 +325,15 @@ try {
   }), Boolean, 'logger registered with background', 10000);
   await call('activateTab', regular);
   await page.reload();
+  // A loaded document and a logged network request do not establish that
+  // uBO's asynchronous cosmetic bootstrap has finished in this document.
+  // The inspector requires that engine. Prove it is active before opening
+  // the first inspector; the later reconnect case deliberately races it.
+  await page.waitForFunction(() => {
+    const procedure = document.querySelector('#procedure');
+    return window.fixturePinned === true && procedure !== null
+      && getComputedStyle(procedure).display === 'none';
+  }, undefined, { timeout: 10000 });
   // The detached logger view does not paint on every platform. Return to it
   // before expecting upstream's animation-frame DOM updates to appear.
   await call('activateTab', (await call('state')).tabs.find(tab => tab.url.includes('/logger-ui.html')).id);
@@ -963,9 +972,32 @@ try {
   const failedId = await call('openTab', fixture + 'failure-gated');
   await waitForValue(async () => (await call('state')).tabs.find(tab => tab.id === failedId)?.isLoading, value => value === false, 'failed navigation settled');
   assert(!hits.includes('/failure-gated'));
-  assert.equal((await call('allowAdsOnActive')).error, 'blocking-not-ready');
-  const recovery = await waitForValue(async () => (await electron.windows()).find(item => item.url().startsWith('blanc://settings/')), Boolean, '/allow-ads recovery');
-  await recovery.locator('#ublockRetry').waitFor({ state: 'visible' });
+  // Recovery must not depend on nested file requests through Electron's
+  // network stack. Reproduce the stalled asset path that otherwise leaves
+  // Retry hidden until the utility sheet's eight-second watchdog closes it.
+  await electron.evaluate(({ net }) => {
+    const original = net.fetch;
+    globalThis.uboRecoveryFileFetch = { original, calls: [] };
+    net.fetch = function (input, ...args) {
+      const url = typeof input === 'string' ? input : input?.url;
+      if (url?.startsWith('file:')) {
+        globalThis.uboRecoveryFileFetch.calls.push(url);
+        return new Promise(() => {});
+      }
+      return original.call(this, input, ...args);
+    };
+  });
+  try {
+    assert.equal((await call('allowAdsOnActive')).error, 'blocking-not-ready');
+    const recovery = await waitForValue(async () => (await electron.windows()).find(item => item.url().startsWith('blanc://settings/')), Boolean, '/allow-ads recovery');
+    await recovery.locator('#ublockRetry').waitFor({ state: 'visible' });
+    assert.deepEqual(await electron.evaluate(() => globalThis.uboRecoveryFileFetch.calls), [], 'recovery assets bypass network fetch');
+  } finally {
+    await electron.evaluate(({ net }) => {
+      net.fetch = globalThis.uboRecoveryFileFetch.original;
+      delete globalThis.uboRecoveryFileFetch;
+    });
+  }
   await call('toggleAdblock');
   assert.equal((await call('blockingStatus')).enabled, false, '/block-ads must disable a failed provider');
   await call('setAdblock', true);

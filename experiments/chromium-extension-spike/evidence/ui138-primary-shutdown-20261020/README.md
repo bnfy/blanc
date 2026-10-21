@@ -1,0 +1,7 @@
+## October 20 — Primary-window shutdown ordering repair
+
+Windows CI on `35f697d0` passed 39 workspace scenarios and close-to-quit, then failed primary-window Quit with exit `0xC0000005`. The exact native Windows fault site is not established. A new pre-closed-event regression proves the old teardown left both primary pages alive after their native window died; the fixed path drains owned page and utility WebContents while the native window remains alive, resumes close on the next event-loop turn, and preserves the original session checkpoint. Repeated close requests join the same drain. macOS Dock preservation is unchanged.
+
+The old-source ordering regression fails (2 live pages); fixed Windows/Linux routing simulations on this Mac pass, including clean Quit and secondary-only restoration. Close-to-quit simulation and native macOS Dock checks pass. All 88 focused unit tests, full first-party lint and the 55-entry audit inventory check pass. The original sandbox server refusal and initial stale source-wiring assertion are retained in evidence. Actual Windows acceptance remains pending CI; these Mac simulations do not prove the Windows access violation resolved.
+
+Evidence: `evidence/ui138-primary-shutdown-20261020/`. No Chromium compile or upstream patch changes; prior measured footprint remains 49 files/117 hunks. No latency tests, permanent-profile operations or Electron diagnostic build. Native Chromium input remains pending. This Electron shutdown repair is carried on #920 as explicitly requested and requires the hosted platform matrix.

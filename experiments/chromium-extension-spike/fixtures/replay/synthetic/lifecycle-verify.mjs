@@ -1,0 +1,12 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
+export function verifyLifecycle(r){
+ assert(r.completed&&!r.error&&r.cleanup.removed&&!r.latencyMeasured);assert.equal(r.launch.removedDefault,'--disable-back-forward-cache');assert.deepEqual(r.launch.forcedFeatures,[]);
+ const kinds=['bfcache','prerender','renderer-crash'];assert.equal(new Set(r.cases.map(c=>c.kind)).size,r.cases.length);assert(r.cases.every(c=>kinds.includes(c.kind)&&c.status==='pass'));
+ for(const kind of kinds)assert(r.cases.some(c=>c.kind===kind)||r.gaps.some(c=>c.kind===kind&&c.reason));
+ const b=r.cases.find(c=>c.kind==='bfcache');if(b){assert(b.a.documentId);assert.equal(b.restored.documentId,b.a.documentId);assert.equal(b.restoreState.life.instance,b.aState.life.instance);assert(b.restoreState.life.shows.some(s=>s.persisted===true));assert.equal(b.restoreState.marker,'1');assert(b.cachedReject.error&&b.wrong.error);assert.equal(b.accepted.result?.[0],true);assert.notEqual(b.b.documentId,b.a.documentId);}
+ const p=r.cases.find(c=>c.kind==='prerender');if(p){assert.equal(r.prerenderSetting.after.value,true);assert(r.prerenderTargets.some(t=>t.subtype==='prerender'));assert.equal(p.activationState.life.initialPrerendering,true);assert.equal(p.activationState.life.activations,1);assert(p.activationState.activationStart>0);assert(p.activated.documentId);assert.notEqual(p.activated.documentId,p.initiating.documentId);assert(p.stale.error);assert.equal(p.current.result?.[0],true);}
+ const c=r.cases.find(c=>c.kind==='renderer-crash');if(c){assert.equal(c.queuedBeforeCrash,true);assert(r.crashes.some(e=>e.event==='page-crash'));assert(c.beforeCrash.documentId&&c.recovered.documentId);assert.notEqual(c.beforeCrash.documentId,c.recovered.documentId);assert.equal(c.recoveredState.marker,'0');assert(c.crashStale.error);assert.equal(c.recoveryPositive.result?.[0],true);assert(c.queuedResult.error||(Array.isArray(c.queuedResult.result)&&c.queuedResult.result.every(x=>x===null)));}
+ assert(r.faults.every(f=>['plaintext-refused','connect-refused'].includes(f.code)&&['clients2.google.com','www.google.com:443','accounts.google.com:443'].includes(f.authority)));
+ return {verified:true,passed:r.cases.map(c=>c.kind),gaps:r.gaps.map(g=>({kind:g.kind,reason:g.reason})),fullLifecycleAcceptance:false,latencyMeasured:false};
+}
+if(process.argv[1]===fileURLToPath(import.meta.url))console.log(JSON.stringify(verifyLifecycle(JSON.parse(fs.readFileSync(process.argv[2]))),null,2));

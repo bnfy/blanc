@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "write-owner": true,
+    "pre-normal-write-owner": true,
+    "encryptor-release": true,
+    "encryptor-timeout": true,
+    "encryptor-owner": true
+  },
+  "build_wrapper_seconds": {
+    "diagnostic-build": 34.75,
+    "diagnostic-build2": 36.45,
+    "normal-build": 33.55,
+    "final-guard": 3.94
+  },
+  "normal_source_restored": true,
+  "normal_footprint": {
+    "files": 49,
+    "hunks": 114,
+    "basis": "prior measured inventory plus byte-identical source restoration"
+  },
+  "diagnostic_maximum": {
+    "files": 49,
+    "hunks": 116
+  },
+  "limitations": [
+    "delayed handoff to session manager, not actual OS provider failure",
+    "owner window destroyed, profile retained by decoy",
+    "source record may change through sequential tab closure before owner destruction",
+    "not arbitrary rebuild/rotation/power-loss qualification"
+  ],
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved"
+}

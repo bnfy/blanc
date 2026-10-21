@@ -70,7 +70,7 @@ function page(choice, { unavailable = false, writeFails = false, href = 'https:/
     failWrites: () => { storageWriteFails = true; },
     allow: () => allow.handlers.click(),
     deny: () => deny.handlers.click(),
-    click: (link = links[0]) => clickHandlers.forEach((handler) => handler({ target: link })),
+    click: (link = links[0], options = {}) => clickHandlers.forEach((handler) => handler({ target: link, ...options })),
     failStorage: () => { storageUnavailable = true; },
   };
 }
@@ -204,7 +204,7 @@ test('withdrawal in another tab disables this page and reloads', () => {
 });
 
 
-test('homepage CTA hooks dispatch the original events only with consent', () => {
+test('homepage navigation is not an installer conversion and remains consent gated', () => {
   const home = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/index.astro'), 'utf8');
   const anchors = [...home.matchAll(/<a\b[^>]*>/g)].map(([tag]) => {
     const attributes = Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(([, key, value]) => [key, value]));
@@ -218,9 +218,9 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
     };
   });
   for (const [position, event, feature] of [
-    ['hero', 'download_click', undefined],
-    ['home-close', 'download_click', undefined],
-    ['home-spaces', 'download_click', undefined],
+    ['hero', 'download_page_click', undefined],
+    ['home-close', 'download_page_click', undefined],
+    ['home-spaces', 'download_page_click', undefined],
     ['home-spaces-detail', 'feature_cta_click', 'named-workspaces'],
     ['home-patron', 'feature_cta_click', 'named-workspaces'],
     ['home-patron-close', 'supporter_click', 'patron'],
@@ -240,5 +240,35 @@ test('homepage CTA hooks dispatch the original events only with consent', () => 
         assert.equal(events[0][2].feature, feature);
       }
     }
+  }
+});
+
+test('only supported same-origin installer requests dispatch download_click', () => {
+  for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
+    const p = page('granted');
+    p.links[0].href = `https://blancbrowser.com/dl/${platform}?keep=yes`;
+    p.click();
+    const events = Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][1], 'download_click');
+    assert.equal(events[0][2].platform, platform);
+  }
+  for (const href of ['https://example.com/dl/win', '/dl/mac', '/dl/unknown', '/privacy', '/dl/win/extra']) {
+    const p = page('granted');
+    p.links[0].href = href;
+    p.click();
+    assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0, href);
+  }
+});
+
+test('direct Windows and Linux hero requests count, canceled navigation does not', () => {
+  for (const userAgent of ['Windows', 'Linux']) {
+    const p = page('granted', { userAgent });
+    p.click(p.ctas[0], { defaultPrevented: true });
+    assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0);
+    p.click(p.ctas[0]);
+    const events = Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event');
+    assert.equal(events.length, 1);
+    assert.equal(events[0][1], 'download_click');
   }
 });

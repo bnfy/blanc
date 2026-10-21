@@ -211,6 +211,48 @@
         }
       }
     },
+    "slash.archive.hint": {
+      "comment": "Slash command hint shown in the ⌘L palette for /archive (F52): opens History on its Archived tabs view.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See tabs Blanc archived for you"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs ansehen, die Blanc für dich archiviert hat"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver las pestañas que Blanc archivó por ti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir les onglets que Blanc a archivés pour vous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedi le schede che Blanc ha archiviato per te"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver as abas que o Blanc arquivou para você"
+          }
+        }
+      }
+    },
     "slash.downloads.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /downloads.",
       "extractionState": "manual",
@@ -1310,37 +1352,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep another open tab beside this page"
+            "value": "Look at another open tab without leaving this page"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einen anderen offenen Tab neben dieser Seite behalten"
+            "value": "Einen anderen offenen Tab ansehen, ohne diese Seite zu verlassen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantener otra pestaña abierta junto a esta página"
+            "value": "Ver otra pestaña abierta sin salir de esta página"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Garder un autre onglet ouvert à côté de cette page"
+            "value": "Regarder un autre onglet ouvert sans quitter cette page"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tieni un'altra scheda aperta accanto a questa pagina"
+            "value": "Guarda un'altra scheda aperta senza lasciare questa pagina"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Manter outra aba aberta ao lado desta página"
+            "value": "Ver outra aba aberta sem sair desta página"
           }
         }
       }
@@ -2144,43 +2186,43 @@
       }
     },
     "pill.private.chip": {
-      "comment": "Lowercase chip in the pill on a private tab; clicking it closes the tab.",
+      "comment": "Sentence-case chip in the pill on a private tab; clicking it closes the tab.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "private"
+            "value": "Private"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "privat"
+            "value": "Privat"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privado"
+            "value": "Privado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "privé"
+            "value": "Privé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privata"
+            "value": "Privata"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privada"
+            "value": "Privada"
           }
         }
       }
@@ -3049,6 +3091,48 @@
         }
       }
     },
+    "island.autoHide.intro": {
+      "comment": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point at the top edge, or press %1$@, to bring the Island back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeige auf den oberen Rand oder drücke %1$@, um die Island zurückzuholen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lleva el puntero al borde superior o pulsa %1$@ para que vuelva la Island."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pointez le bord supérieur ou appuyez sur %1$@ pour faire revenir l’Island."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta il puntatore al bordo superiore o premi %1$@ per far tornare l’Island."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aponte para a borda superior ou pressione %1$@ para trazer a Island de volta."
+          }
+        }
+      }
+    },
     "dot.switchTo": {
       "comment": "Accessible name of a tab dot or rail row; {title} is the tab's title.",
       "extractionState": "manual",
@@ -3859,90 +3943,6 @@
         }
       }
     },
-    "glance.promote": {
-      "comment": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Make main — swap with the main page"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite — mit der Hauptseite tauschen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal — intercambiar con la página principal"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale — échanger avec la page principale"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale — scambia con la pagina principale"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal — trocar com a página principal"
-          }
-        }
-      }
-    },
-    "glance.promoteShort": {
-      "comment": "Short visible label of that same button.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Make main"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principale"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Principal"
-          }
-        }
-      }
-    },
     "glance.change": {
       "comment": "Button that picks a different tab for Glance.",
       "extractionState": "manual",
@@ -3981,6 +3981,300 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trocar"
+          }
+        }
+      }
+    },
+    "glance.openAsTab": {
+      "comment": "Floating Glance card header button: end the Glance and make its page the current tab, full window. Visible label; icon-only when the card is narrow.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open as tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Tab öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans un onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri come scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como aba"
+          }
+        }
+      }
+    },
+    "glance.openAsTab.title": {
+      "comment": "Tooltip and accessible name of Open as tab. Begins with the visible label (glance.openAsTab) so speech-input users can say what they see.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open as tab — make this page the current tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Tab öffnen – diese Seite zum aktuellen Tab machen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como pestaña: convertir esta página en la pestaña actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans un onglet — faire de cette page l'onglet actuel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri come scheda: rendi questa pagina la scheda attuale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir como aba — tornar esta página a aba atual"
+          }
+        }
+      }
+    },
+    "glance.move": {
+      "comment": "Accessible name and tooltip of the floating Glance card's keyboard move/resize control.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move or resize Glance"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance verschieben oder Größe ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover o cambiar el tamaño de Glance"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer ou redimensionner Glance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta o ridimensiona Glance"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover ou redimensionar o Glance"
+          }
+        }
+      }
+    },
+    "glance.move.hint": {
+      "comment": "Screen-reader description of the Move or resize Glance control. Option is the macOS name of the Alt key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrow keys move it. Option or Alt with an arrow key resizes it. Enter resets it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfeiltasten verschieben es. Wahl- oder Alt-Taste mit einer Pfeiltaste ändert die Größe. Eingabetaste setzt es zurück."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las flechas lo mueven. Opción o Alt con una flecha cambia su tamaño. Intro lo restablece."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les flèches le déplacent. Option ou Alt avec une flèche le redimensionne. Entrée le réinitialise."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le frecce lo spostano. Opzione o Alt con una freccia lo ridimensiona. Invio lo ripristina."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As setas o movem. Option ou Alt com uma seta o redimensiona. Enter o redefine."
+          }
+        }
+      }
+    },
+    "glance.status.moved": {
+      "comment": "Screen reader announcement after the keyboard moves the floating Glance card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance moved"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance movido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance déplacé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance spostato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance movido"
+          }
+        }
+      }
+    },
+    "glance.status.resized": {
+      "comment": "Screen reader announcement after the keyboard resizes the floating Glance card; {width} and {height} are its size in pixels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance resized to %1$@ by %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance-Größe geändert auf %1$@ × %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance cambiado a %1$@ por %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redimensionné à %1$@ sur %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance ridimensionato a %1$@ per %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redimensionado para %1$@ por %2$@"
+          }
+        }
+      }
+    },
+    "glance.status.reset": {
+      "comment": "Screen reader announcement after the floating Glance card returns to its first-open size and place.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance reset"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance zurückgesetzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance restablecido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance réinitialisé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance ripristinato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance redefinido"
           }
         }
       }
@@ -4065,90 +4359,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fechar o Glance"
-          }
-        }
-      }
-    },
-    "glance.resize": {
-      "comment": "Accessible name of the divider between the main page and Glance.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resize Glance"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance-Größe ändern"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambiar el tamaño de Glance"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redimensionner Glance"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ridimensiona Glance"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redimensionar o Glance"
-          }
-        }
-      }
-    },
-    "glance.dividerValue": {
-      "comment": "Screen-reader value of the Glance divider; {percent} is the main page's share of the width.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Main page %1$@ percent"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hauptseite %1$@ Prozent"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Página principal %1$@ por ciento"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Page principale %1$@ pour cent"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagina principale %1$@ percento"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Página principal %1$@ por cento"
           }
         }
       }
@@ -6068,43 +6278,43 @@
       }
     },
     "rail.section.tabs": {
-      "comment": "Lowercase heading of the rail section holding ungrouped tabs.",
+      "comment": "Accessible name of each run of ungrouped tabs in the rail (not shown on screen).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tabs"
+            "value": "Tabs"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "pestañas"
+            "value": "Pestañas"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "onglets"
+            "value": "Onglets"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "schede"
+            "value": "Schede"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "abas"
+            "value": "Abas"
           }
         }
       }
@@ -15242,7 +15452,7 @@
       }
     },
     "slash.invite.copied": {
-      "comment": "Notice in the ⌘L palette after /invite when no mail app could open the email; the invite text is now on the clipboard.",
+      "comment": "Shown when no mail app could open the invite email and the invite text is now on the clipboard: a notice in the ⌘L palette after /invite, and a short dialog after Help → Invite a Friend….",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -17205,6 +17415,270 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "result.archived": {
+      "comment": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivada"
+          }
+        }
+      }
+    },
+    "archive.notice.title": {
+      "comment": "⌘L panel: one-time notice at the top of the tab list after Blanc first archives idle tabs (F52).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc archived %1$lld tab"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc archived %1$lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat %1$lld Tab archiviert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc hat %1$lld Tabs archiviert"
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc archivó %1$lld pestaña"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc archivó %1$lld pestañas"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc archivó %1$lld pestañas"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc a archivé %1$lld onglet"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc a archivé %1$lld onglets"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc a archivé %1$lld onglets"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc ha archiviato %1$lld scheda"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc ha archiviato %1$lld schede"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Blanc ha archiviato %1$lld schede"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "O Blanc arquivou %1$lld aba"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "O Blanc arquivou %1$lld abas"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "O Blanc arquivou %1$lld abas"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "archive.notice.view": {
+      "comment": "⌘L panel, first-archive notice: action that opens History on its Archived tabs view.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Archive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv ansehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver Archivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir les Archives"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedi Archivio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver Arquivo"
+          }
+        }
+      }
+    },
+    "archive.notice.dismiss": {
+      "comment": "⌘L panel, first-archive notice: accessible name and tooltip of the ✕ that hides the notice for good.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignora"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispensar"
           }
         }
       }
@@ -19183,44 +19657,254 @@
         }
       }
     },
-    "groupMenu.rename": {
-      "comment": "Item in a tab group header's right-click menu (⌘L panel and vertical tabs rail); opens the panel to rename the group. Menu items use title case, like Rename Tab….",
+    "groupMenu.options": {
+      "comment": "Accessible name of a tab group’s menu and of the ⋮ button on its header that opens it.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename Group…"
+            "value": "Group options"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gruppe umbenennen…"
+            "value": "Gruppenoptionen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar nombre del grupo…"
+            "value": "Opciones del grupo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renommer le groupe…"
+            "value": "Options du groupe"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rinomina gruppo…"
+            "value": "Opzioni del gruppo"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Renomear grupo…"
+            "value": "Opções do grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.nameLabel": {
+      "comment": "Accessible name of the name field at the top of a tab group’s menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Group name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppenname"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del grupo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom du groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome del gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome do grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.colorLabel": {
+      "comment": "Accessible name of the row of color swatches in a tab group’s menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couleur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor"
+          }
+        }
+      }
+    },
+    "groupMenu.colorNone": {
+      "comment": "Accessible name of the swatch that removes a tab group’s color.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Farbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune couleur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun colore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem cor"
+          }
+        }
+      }
+    },
+    "groupMenu.newTab": {
+      "comment": "Item in a tab group’s menu; opens a new tab at the end of the group. Title case, like other menu items.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab in Group"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab in Gruppe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña en el grupo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet dans le groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda nel gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba no grupo"
+          }
+        }
+      }
+    },
+    "groupMenu.moveToNewWindow": {
+      "comment": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Group to New Window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppe in neues Fenster verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover el grupo a una ventana nueva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer le groupe dans une nouvelle fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta il gruppo in una nuova finestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover o grupo para uma nova janela"
           }
         }
       }
@@ -19351,6 +20035,90 @@
         }
       }
     },
+    "tabMenu.returnPinnedHome": {
+      "comment": "Tab context menu command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to Pinned Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zur angehefteten Seite"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a la página fijada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revenir à la page épinglée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torna alla pagina fissata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar à página fixada"
+          }
+        }
+      }
+    },
+    "tabMenu.setPinnedHome": {
+      "comment": "Tab context menu command.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace Pinned Page with Current"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeheftete Seite durch aktuelle ersetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reemplazar la página fijada por la actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer la page épinglée par l’actuelle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostituisci la pagina fissata con quella attuale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Substituir a página fixada pela atual"
+          }
+        }
+      }
+    },
     "tabMenu.unpin": {
       "comment": "Tab context menu command.",
       "extractionState": "manual",
@@ -19477,6 +20245,216 @@
         }
       }
     },
+    "tabMenu.newTabBelow": {
+      "comment": "Tab context menu command; opens a new tab directly under this one (inside its group, if any).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab Below"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tab darunter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña debajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet en dessous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda sotto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba abaixo"
+          }
+        }
+      }
+    },
+    "tabMenu.closeAbove": {
+      "comment": "Tab context menu command; closes every unpinned tab listed above this one in the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Tabs Above"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs darüber schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar las pestañas de arriba"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer les onglets au-dessus"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi le schede sopra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar as abas acima"
+          }
+        }
+      }
+    },
+    "tabMenu.closeBelow": {
+      "comment": "Tab context menu command; closes every unpinned tab listed below this one in the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Tabs Below"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs darunter schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar las pestañas de abajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer les onglets en dessous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi le schede sotto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar as abas abaixo"
+          }
+        }
+      }
+    },
+    "tabMenu.muteSite": {
+      "comment": "Tab context menu command; mutes every tab on this website (exact host) until Blanc quits.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute Site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website stummschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar el sitio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couper le son du site"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattiva l’audio del sito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar o site"
+          }
+        }
+      }
+    },
+    "tabMenu.unmuteSite": {
+      "comment": "Tab context menu command; undoes Mute Site for this website.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmute Site"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website-Ton einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar el sonido del sitio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rétablir le son du site"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riattiva l’audio del sito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reativar o som do site"
+          }
+        }
+      }
+    },
     "tabMenu.saveFavorite": {
       "comment": "Tab context menu command that adds the page to Favorites.",
       "extractionState": "manual",
@@ -19599,6 +20577,762 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mover para o grupo"
+          }
+        }
+      }
+    },
+    "tabMenu.splitWith": {
+      "comment": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split with"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen mit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividir con"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager avec"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividi con"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dividir com"
+          }
+        }
+      }
+    },
+    "tabMenu.splitPinnedRefused": {
+      "comment": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinned tabs can't join a split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angeheftete Tabs können nicht geteilt werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas fijadas no pueden unirse a una vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les onglets épinglés ne peuvent pas rejoindre une vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le schede fissate non possono far parte di una vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abas fixadas não podem entrar em uma visualização dividida"
+          }
+        }
+      }
+    },
+    "tabMenu.removeFromSplit": {
+      "comment": "Tab context menu and pane header: take this tab out of its Split View.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus geteilter Ansicht entfernen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar de la vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer de la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi dalla vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover da visualização dividida"
+          }
+        }
+      }
+    },
+    "tabMenu.closeSplit": {
+      "comment": "Tab context menu and pane header: close every tab of this Split View.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht schließen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar visualização dividida"
+          }
+        }
+      }
+    },
+    "split.groupMoveInto": {
+      "comment": "Note beside a Split with choice: making the split moves that tab into the right-clicked tab's group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves %1$@ into %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschiebt %1$@ in %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mueve %1$@ a %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplace %1$@ dans %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta %1$@ in %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move %1$@ para %2$@"
+          }
+        }
+      }
+    },
+    "split.groupMoveOutOf": {
+      "comment": "Note beside a Split with choice: making the split takes that tab out of its group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves %1$@ out of %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nimmt %1$@ aus %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saca %1$@ de %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retire %1$@ de %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toglie %1$@ da %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tira %1$@ de %2$@"
+          }
+        }
+      }
+    },
+    "split.menuMovesInto": {
+      "comment": "Header atop a Split with group submenu: picking a tab there moves it into the right-clicked tab's group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves into %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird in %1$@ verschoben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasa a %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passe dans %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passa in %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vai para %1$@"
+          }
+        }
+      }
+    },
+    "split.menuMovesOutOf": {
+      "comment": "Header atop a Split with group submenu: picking a tab there takes it out of its group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves out of %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird aus %1$@ genommen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sale de %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort de %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esce da %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sai de %1$@"
+          }
+        }
+      }
+    },
+    "tabMenu.splitUngrouped": {
+      "comment": "Split with submenu that lists the ungrouped tabs, shown when the right-clicked tab is in a group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungrouped"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Gruppe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin grupo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans groupe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senza gruppo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem grupo"
+          }
+        }
+      }
+    },
+    "split.made": {
+      "comment": "Screen reader announcement after a Split View is made.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and %2$@ are now side by side"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ und %2$@ sind jetzt nebeneinander"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ y %2$@ están ahora lado a lado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ et %2$@ sont maintenant côte à côte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ e %2$@ sono ora affiancate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ e %2$@ agora estão lado a lado"
+          }
+        }
+      }
+    },
+    "split.dissolved": {
+      "comment": "Screen reader announcement when a Split View ends and its remaining tab fills the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split closed; %1$@ fills the window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht beendet; %1$@ füllt das Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista dividida cerrada; %1$@ ocupa la ventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vue partagée fermée ; %1$@ occupe la fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista divisa chiusa; %1$@ riempie la finestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualização dividida fechada; %1$@ ocupa a janela"
+          }
+        }
+      }
+    },
+    "split.keepAsSplit": {
+      "comment": "Glance header button that turns the current Glance into a Split View that stays open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep as split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als geteilte Ansicht behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener como vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder en vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni come vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter como visualização dividida"
+          }
+        }
+      }
+    },
+    "split.dividerLabel": {
+      "comment": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize panes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereichsgröße ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar el tamaño de los paneles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redimensionner les volets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ridimensiona i riquadri"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redimensionar painéis"
+          }
+        }
+      }
+    },
+    "split.cornerLabel": {
+      "comment": "Accessible name of a Split View pane's corner tab (the small tab on the pane's bottom-right corner): the pane's site or title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Split View pane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, Bereich der geteilten Ansicht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, panel de la vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, volet de la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, riquadro della vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, painel da visualização dividida"
+          }
+        }
+      }
+    },
+    "split.rowLabel": {
+      "comment": "A Split View's row in the tab panel and side list: its two tabs' titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@"
+          }
+        }
+      }
+    },
+    "split.rowLabelMore": {
+      "comment": "A Split View's row with three or four tabs: the first title and how many more.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@ more"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@ weitere"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@ más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + %2$@ autres"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + altre %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ + mais %2$@"
+          }
+        }
+      }
+    },
+    "split.rowName": {
+      "comment": "Accessible name of a Split View's row: 'Split:' and every tab title joined with ' + '.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split: %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht: %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista dividida: %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vue partagée : %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista divisa: %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualização dividida: %1$@"
+          }
+        }
+      }
+    },
+    "split.showTabs": {
+      "comment": "Tooltip and accessible name of a Split View row's disclosure, which lists its tabs.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this split's tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs dieser geteilten Ansicht anzeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar las pestañas de esta vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les onglets de cette vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra le schede di questa vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar as abas desta visualização dividida"
           }
         }
       }
@@ -28471,6 +30205,48 @@
         }
       }
     },
+    "menu.autoHideIsland": {
+      "comment": "View menu checkbox item.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-hide the Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island automatisch ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar la Island automáticamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer automatiquement l’Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nascondi automaticamente l’Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar a Island automaticamente"
+          }
+        }
+      }
+    },
     "menu.tabLayout": {
       "comment": "View menu submenu choosing how tabs are shown.",
       "extractionState": "manual",
@@ -29899,44 +31675,86 @@
         }
       }
     },
-    "glance.status.promoted": {
-      "comment": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance.",
+    "split.glanceUnavailable": {
+      "comment": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ is now the main page; %2$@ is in Glance"
+            "value": "Glance isn't available while a split is showing"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ ist jetzt die Hauptseite; %2$@ ist in Glance"
+            "value": "Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ es ahora la página principal; %2$@ está en Glance"
+            "value": "Glance no está disponible mientras se muestra una vista dividida"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ est maintenant la page principale ; %2$@ est dans Glance"
+            "value": "Glance n’est pas disponible pendant l’affichage d’une vue partagée"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ ora è la pagina principale; %2$@ è in Glance"
+            "value": "Glance non è disponibile mentre è visibile una vista divisa"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ agora é a página principal; %2$@ está no Glance"
+            "value": "O Glance não está disponível enquanto uma visualização dividida é exibida"
+          }
+        }
+      }
+    },
+    "glance.status.openedAsTab": {
+      "comment": "Screen reader announcement after Open as tab on the floating Glance card: the Glance page ({title}) became the current tab, full window, and the Glance ended.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is now the current tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist jetzt der aktuelle Tab"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ es ahora la pestaña actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ est maintenant l'onglet actuel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ è ora la scheda attuale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ agora é a aba atual"
           }
         }
       }
@@ -35437,8 +37255,50 @@
         }
       }
     },
-    "settings.general.theme.label": {
-      "comment": "Settings → General: setting name.",
+    "settings.general.cards.island": {
+      "comment": "Settings → General: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island"
+          }
+        }
+      }
+    },
+    "settings.general.cards.appearance": {
+      "comment": "Settings → General: card heading.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -35475,6 +37335,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aparência"
+          }
+        }
+      }
+    },
+    "settings.general.cards.startPage": {
+      "comment": "Settings → General: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startseite"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página inicial"
+          }
+        }
+      }
+    },
+    "settings.general.cards.search": {
+      "comment": "Settings → General: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Búsqueda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricerca"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisa"
+          }
+        }
+      }
+    },
+    "settings.general.cards.browsing": {
+      "comment": "Settings → General: card heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browsing"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surfen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navegación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigazione"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navegação"
+          }
+        }
+      }
+    },
+    "settings.general.theme.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Design"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thème"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema"
           }
         }
       }
@@ -35727,6 +37755,342 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema."
+          }
+        }
+      }
+    },
+    "settings.general.islandHoverOpen.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the Island on hover"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island beim Darüberfahren öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir la Island al pasar el cursor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir l’Island au survol"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri l’Island al passaggio del puntatore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir a Island ao passar o cursor"
+          }
+        }
+      }
+    },
+    "settings.general.islandHoverOpen.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest the pointer on the Island’s address to open it without clicking."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lass den Zeiger auf der Adresse in der Island ruhen, um sie ohne Klick zu öffnen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deja el puntero sobre la dirección de la Island para abrirla sin hacer clic."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar."
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHide.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-hide the Island"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island automatisch ausblenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar la Island automáticamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masquer automatiquement l’Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nascondi automaticamente l’Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar a Island automaticamente"
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHide.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seiten füllen das Fenster. Bewege den Zeiger an den oberen Rand oder öffne Suche und Befehle, um die Island zurückzuholen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las páginas ocupan toda la ventana. Lleva el puntero al borde superior o abre la búsqueda y los comandos para que vuelva la Island."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les pages occupent toute la fenêtre. Amenez le pointeur au bord supérieur ou ouvrez la recherche et les commandes pour faire revenir l’Island."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le pagine riempiono la finestra. Porta il puntatore al bordo superiore o apri ricerca e comandi per far tornare l’Island."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As páginas ocupam a janela inteira. Leve o ponteiro à borda superior ou abra a busca e os comandos para trazer a Island de volta."
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the Island comes back"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn die Island zurückkommt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando vuelve la Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quand l’Island revient"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando l’Island torna"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando a Island volta"
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Float it over the page, or move the page down to make room."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lass sie über der Seite schweben oder schiebe die Seite nach unten, um Platz zu machen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz que flote sobre la página o mueve la página hacia abajo para dejarle sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falla fluttuare sopra la pagina o sposta la pagina in basso per farle spazio."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faça-a flutuar sobre a página ou mova a página para baixo para abrir espaço."
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.float": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Float over the page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über der Seite schweben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flotar sobre la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flotter au-dessus de la page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fluttua sopra la pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flutuar sobre a página"
+          }
+        }
+      }
+    },
+    "settings.general.islandAutoHideStyle.push": {
+      "comment": "Settings → General: choice in a dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Push the page down"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite nach unten schieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bajar la página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Décaler la page vers le bas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta la pagina in basso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empurrar a página para baixo"
           }
         }
       }
@@ -36277,6 +38641,90 @@
         }
       }
     },
+    "settings.general.newtabCustomWallpaper.label": {
+      "comment": "Settings → General: label of the row for the person’s own Start Page wallpaper image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Page image"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild für die Startseite"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagen de la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image de la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagine della pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagem da página inicial"
+          }
+        }
+      }
+    },
+    "settings.general.newtabCustomWallpaper.hint": {
+      "comment": "Settings → General: hint under the Start Page image row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown on this device only, never in private tabs. Blanc keeps a smaller copy without location or camera details."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur auf diesem Gerät, nie in privaten Tabs. Blanc speichert eine kleinere Kopie ohne Standort- oder Kameradaten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo en este dispositivo, nunca en pestañas privadas. Blanc guarda una copia más pequeña sin datos de ubicación ni de la cámara."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur cet appareil uniquement, jamais dans les onglets privés. Blanc garde une copie réduite sans lieu ni données d’appareil photo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo su questo dispositivo, mai nelle schede private. Blanc conserva una copia più piccola senza posizione né dati della fotocamera."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Só neste dispositivo, nunca em abas privadas. O Blanc guarda uma cópia menor sem localização nem dados da câmera."
+          }
+        }
+      }
+    },
     "settings.general.tabLayout.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",
@@ -36693,6 +39141,300 @@
           "stringUnit": {
             "state": "translated",
             "value": "Depois de 6 horas"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.label": {
+      "comment": "Settings → General: label of the Tab Archive delay select.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive inactive tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktive Tabs archivieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivar las pestañas inactivas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiver les onglets inactifs"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivia le schede inattive"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivar abas inativas"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados."
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.off": {
+      "comment": "Settings → General: Tab Archive delay option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.12h": {
+      "comment": "Settings → General: Tab Archive delay option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 12 hours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 12 Stunden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después de 12 horas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après 12 heures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopo 12 ore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depois de 12 horas"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.1d": {
+      "comment": "Settings → General: Tab Archive delay option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 1 day"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 1 Tag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después de 1 día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après 1 jour"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopo 1 giorno"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depois de 1 dia"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.7d": {
+      "comment": "Settings → General: Tab Archive delay option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 7 days"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 7 Tagen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después de 7 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après 7 jours"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopo 7 giorni"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depois de 7 dias"
+          }
+        }
+      }
+    },
+    "settings.general.tabArchive.30d": {
+      "comment": "Settings → General: Tab Archive delay option.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After 30 days"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach 30 Tagen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Después de 30 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Après 30 jours"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopo 30 giorni"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depois de 30 dias"
           }
         }
       }
@@ -54499,6 +57241,132 @@
         }
       }
     },
+    "newtab.customize.wallpaperHeading": {
+      "comment": "Start page → Customize popover: label above the wallpaper choices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wallpaper"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fondo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fond d’écran"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sfondo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundo"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.sunrise": {
+      "comment": "Start page → Customize popover, under Wallpaper: choice for Blanc’s own Sunrise artwork (the artwork’s name, kept in every language), beside “Your image”.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.timeOfDay": {
+      "comment": "Start page → Customize popover, under Wallpaper: switch shown only while Sunrise is chosen; it makes Blanc’s Sunrise artwork follow the computer’s clock (dawn, day, dusk, night).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change with time of day"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit der Tageszeit wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar según la hora del día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre l’heure de la journée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia con l’ora del giorno"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mudar com a hora do dia"
+          }
+        }
+      }
+    },
     "newtab.layout.ledger": {
       "comment": "Start page → Customize popover: layout name (kept in every language, like the Settings choice).",
       "extractionState": "manual",
@@ -54667,44 +57535,1052 @@
         }
       }
     },
-    "newtab.customize.wallpaper": {
-      "comment": "Start page → Customize popover: switch for the time-of-day wallpaper.",
+    "newtab.wallpaper.custom": {
+      "comment": "Start page → Customize popover, under Wallpaper: choice that shows the person’s own image instead of Blanc’s Sunrise artwork.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dynamic wallpaper"
+            "value": "Your image"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dynamischer Hintergrund"
+            "value": "Eigenes Bild"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fondo dinámico"
+            "value": "Tu imagen"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fond dynamique"
+            "value": "Votre image"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sfondo dinamico"
+            "value": "La tua immagine"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fundo dinâmico"
+            "value": "Sua imagem"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.imageLabel": {
+      "comment": "Start page → Customize popover, under Your image: row label before the Change… and Remove buttons.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagine"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagem"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.choose": {
+      "comment": "Start page → Customize popover and Settings: button that opens a file picker for the wallpaper image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose image…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild wählen …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir imagen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir une image…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli immagine…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher imagem…"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.change": {
+      "comment": "Settings → General → Start Page image: button that replaces the stored wallpaper image with another picked file.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.chooseAnother": {
+      "comment": "Start page → Customize popover: link-style button under the wallpaper preview that opens a file picker to replace the person’s own image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes Bild wählen …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir otra imagen…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir une autre image…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli un’altra immagine…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher outra imagem…"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.remove": {
+      "comment": "Start page → Customize popover and Settings: button that deletes the stored wallpaper image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.wash": {
+      "comment": "Start page → Customize popover: label of the slider for how strongly a light or dark wash covers the person’s own wallpaper image, keeping text readable.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fade"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schleier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Véu"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.styleLabel": {
+      "comment": "Start page → Customize popover: label before the choices for the wash over the person’s own wallpaper image (it keeps text readable).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wash"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schleier-Stil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.styleAuto": {
+      "comment": "Wash choice: follow the app’s light or dark theme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.styleLight": {
+      "comment": "Wash choice: a light wash with dark text, whatever the theme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hell"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clair"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiaro"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claro"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.styleDark": {
+      "comment": "Wash choice: a dark wash with light text, whatever the theme.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oscuro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sombre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuro"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escuro"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.styleSpotlight": {
+      "comment": "Wash choice: wash only behind the clock and content, leaving the image’s edges clear.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotlight"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spotlight"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projecteur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riflettore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holofote"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.color": {
+      "comment": "Start page → Customize popover, under Wallpaper: choice that paints the Start Page with one of the Spaces colors, between “Sunrise” and “Your image”. Also the label of the row of color swatches.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couleur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colore"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cor"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.fillLabel": {
+      "comment": "Start page → Customize popover, under Color: short label before the Soft / Solid / Gradient choice, which sets how the color is drawn.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füllung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relleno"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplissage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riempimento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preenchimento"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.fillSoft": {
+      "comment": "Start page → Customize popover, under Color → Fill: a faint tint of the color over the usual light or dark background.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soft"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sanft"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suave"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doux"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenue"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suave"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.fillSolid": {
+      "comment": "Start page → Customize popover, under Color → Fill: the color exactly, edge to edge.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solid"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollton"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sólido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uni"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pieno"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sólido"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.fillGradient": {
+      "comment": "Start page → Customize popover, under Color → Fill: a gradient from a lighter to a deeper shade of the color.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gradient"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Degradado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégradé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sfumato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gradiente"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.followSpace": {
+      "comment": "Start page → Customize popover, under Color: switch; when on, a window that is in a Blanc space shows that space’s color instead of the color chosen above.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match each space’s color"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe des jeweiligen Space übernehmen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar el color de cada Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivre la couleur de chaque Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa il colore di ogni Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar a cor de cada Space"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.followSpaceHint": {
+      "comment": "Start page → Customize popover: hint under the “Match each space’s color” switch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In a space, the Start Page takes that space’s color."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In einem Space zeigt die Startseite dessen Farbe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En un Space, la página de inicio toma el color de ese Space."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans un Space, la page d’accueil prend la couleur de ce Space."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In uno Space, la pagina iniziale prende il colore di quello Space."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em um Space, a página inicial usa a cor desse Space."
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.followSpaceShowing": {
+      "comment": "Start page → Customize popover: hint under the “Match each space’s color” switch while it is on and this window is in a space, so the swatches above apply only outside spaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This window’s space color is showing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Farbe des Space dieses Fensters ist zu sehen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se muestra el color del Space de esta ventana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La couleur du Space de cette fenêtre est affichée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È visibile il colore dello Space di questa finestra."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cor do Space desta janela está aparecendo."
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.chooseTitle": {
+      "comment": "Title of the native file picker for the Start Page wallpaper image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a Start Page image"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild für die Startseite wählen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige una imagen para la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez une image pour la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli un’immagine per la pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha uma imagem para a página inicial"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.filter": {
+      "comment": "File picker filter name for JPEG and PNG wallpaper images.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imágenes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagini"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imagens"
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.error.tooLarge": {
+      "comment": "Start page → Customize popover: shown when the chosen wallpaper file is too big.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That image is larger than 25 MB."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Bild ist größer als 25 MB."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La imagen pesa más de 25 MB."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette image dépasse 25 Mo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’immagine supera i 25 MB."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A imagem tem mais de 25 MB."
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.error.unsupported": {
+      "comment": "Start page → Customize popover: shown when the chosen file is not a JPEG or PNG image.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a JPEG or PNG image."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein JPEG- oder PNG-Bild."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige una imagen JPEG o PNG."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez une image JPEG ou PNG."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli un’immagine JPEG o PNG."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha uma imagem JPEG ou PNG."
+          }
+        }
+      }
+    },
+    "newtab.wallpaper.error.unreadable": {
+      "comment": "Start page → Customize popover: shown when the chosen wallpaper file can’t be read or saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That image couldn’t be opened."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Bild konnte nicht geöffnet werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir la imagen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’ouvrir cette image."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile aprire l’immagine."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível abrir a imagem."
           }
         }
       }
@@ -54747,48 +58623,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mahjong"
-          }
-        }
-      }
-    },
-    "newtab.privateTab": {
-      "comment": "Start page: shown in place of the date in a private tab.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Private tab"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Privater Tab"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pestaña privada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Onglet privé"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scheda privata"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aba privada"
           }
         }
       }
@@ -56811,6 +60645,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Control L"
+          }
+        }
+      }
+    },
+    "onboarding.island.archive": {
+      "comment": "Onboarding → step 3 (the Island): Tab Archive switch name (F52), then (tag 0) its explanation in smaller type. Preset on for a fresh profile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive tabs after 7 days<0>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</0>"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs nach 7 Tagen archivieren<0>Lose Tabs, die du 7 Tage nicht geöffnet hast, werden geschlossen und 30 Tage in deinem Archiv aufbewahrt. Angeheftete Tabs und Gruppen bleiben.</0>"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivar pestañas tras 7 días<0>Las pestañas sueltas que no abres desde hace 7 días se cierran y se guardan en tu Archivo durante 30 días. Las pestañas fijadas y los grupos se quedan.</0>"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiver les onglets après 7 jours<0>Les onglets isolés que vous n’avez pas ouverts depuis 7 jours sont fermés et gardés 30 jours dans vos Archives. Les onglets épinglés et les groupes restent.</0>"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivia le schede dopo 7 giorni<0>Le schede sparse che non apri da 7 giorni vengono chiuse e conservate nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi restano.</0>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivar abas após 7 dias<0>As abas soltas que você não abre há 7 dias são fechadas e guardadas no seu Arquivo por 30 dias. Abas fixadas e grupos ficam.</0>"
+          }
+        }
+      }
+    },
+    "onboarding.island.archiveLabel": {
+      "comment": "Onboarding → step 3: accessible name of the Tab Archive switch (F52).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive tabs after 7 days"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs nach 7 Tagen archivieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivar pestañas tras 7 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiver les onglets après 7 jours"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivia le schede dopo 7 giorni"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivar abas após 7 dias"
           }
         }
       }
@@ -60333,6 +64251,342 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nenhum histórico ainda."
+          }
+        }
+      }
+    },
+    "history.view.visits": {
+      "comment": "History page: segmented choice showing the list of visits (F52).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visits"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Besuche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visites"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visite"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitas"
+          }
+        }
+      }
+    },
+    "history.view.archived": {
+      "comment": "History page: segmented choice showing tabs Blanc archived (F52).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archived tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivierte Tabs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pestañas archivadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onglets archivés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede archiviate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abas arquivadas"
+          }
+        }
+      }
+    },
+    "history.archived.search": {
+      "comment": "History page, Archived tabs view: placeholder and accessible name of the search field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search archived tabs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivierte Tabs durchsuchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar en las pestañas archivadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher dans les onglets archivés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca nelle schede archiviate"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisar abas arquivadas"
+          }
+        }
+      }
+    },
+    "history.archived.clear": {
+      "comment": "History page, Archived tabs view: button that empties the Archive.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Archive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiv leeren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaciar Archivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vider les Archives"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svuota Archivio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar Arquivo"
+          }
+        }
+      }
+    },
+    "history.archived.restore": {
+      "comment": "History page, Archived tabs view: button on an entry that reopens the tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar"
+          }
+        }
+      }
+    },
+    "history.archived.restoreLabel": {
+      "comment": "History page, Archived tabs view: accessible name of the restore button; {title} is the tab’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore %1$@ as a tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wieder als Tab öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar %1$@ como pestaña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer %1$@ dans un onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina %1$@ come scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar %1$@ como aba"
+          }
+        }
+      }
+    },
+    "history.archived.forgetLabel": {
+      "comment": "History page, Archived tabs view: accessible name of the remove button; {title} is the tab’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ from the Archive"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aus dem Archiv entfernen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar %1$@ del Archivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer %1$@ des Archives"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi %1$@ dall’Archivio"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover %1$@ do Arquivo"
+          }
+        }
+      }
+    },
+    "history.archived.empty": {
+      "comment": "History page, Archived tabs view: shown when nothing is archived.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No archived tabs. Turn on Archive inactive tabs in Settings → General."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine archivierten Tabs. Schalte „Inaktive Tabs archivieren“ unter Einstellungen → Allgemein ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay pestañas archivadas. Activa Archivar las pestañas inactivas en Configuración → General."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun onglet archivé. Activez Archiver les onglets inactifs dans Réglages → Général."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna scheda archiviata. Attiva Archivia le schede inattive in Impostazioni → Generali."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma aba arquivada. Ative Arquivar abas inativas em Configurações → Geral."
           }
         }
       }

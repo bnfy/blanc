@@ -92,3 +92,34 @@ test('initial load, reduced motion and hidden preference changes switch immediat
   f.visible(true); f.controller.visibilityChanged(); await tick();
   assert.equal(f.frames.at(-1).animate, false);
 });
+
+// F49: the person's own image.
+test('a custom image draws once, without a clock timer, and replaces the phases', async () => {
+  const loaded = [];
+  const f = fixture(async (file) => { loaded.push(file); });
+  f.controller.setSource({ source: 'time-of-day' }); await tick();
+  assert.equal(f.frames.at(-1).phase, 'dawn');
+  f.controller.setSource({ source: 'custom', image: 'blanc://newtab/user-wallpaper-x.jpg?v=1' }); await tick();
+  assert.deepEqual(f.frames.at(-1), { phase: 'custom', image: 'blanc://newtab/user-wallpaper-x.jpg?v=1', animate: true });
+  assert.equal(f.timers.size, 0);
+  const count = f.frames.length;
+  // A repeated status broadcast is not a change.
+  f.controller.setSource({ source: 'custom', image: 'blanc://newtab/user-wallpaper-x.jpg?v=1' }); await tick();
+  assert.equal(f.frames.length, count);
+  // A replaced image is a new frame.
+  f.controller.setSource({ source: 'custom', image: 'blanc://newtab/user-wallpaper-x.jpg?v=2' }); await tick();
+  assert.equal(f.frames.at(-1).image, 'blanc://newtab/user-wallpaper-x.jpg?v=2');
+  f.controller.setSource({ source: 'sunrise' }); await tick();
+  assert.equal(f.frames.at(-1), null);
+  assert.deepEqual(loaded.slice(-2), ['blanc://newtab/user-wallpaper-x.jpg?v=1', 'blanc://newtab/user-wallpaper-x.jpg?v=2']);
+});
+test('an unreadable custom image leaves the static Sunrise in place', async () => {
+  const f = fixture(async (file) => { if (file.startsWith('blanc:')) throw Error('gone'); });
+  f.controller.setSource({ source: 'custom', image: 'blanc://newtab/user-wallpaper-x.jpg?v=1' }); await tick();
+  assert.equal(f.frames.at(-1), null);
+});
+test('the first custom paint does not fade in', async () => {
+  const f = fixture();
+  f.controller.setSource({ source: 'custom', image: 'blanc://newtab/a.jpg' }); await tick();
+  assert.equal(f.frames.at(-1).animate, false);
+});

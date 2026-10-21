@@ -8,11 +8,15 @@ const { spans = [] } = Astro.props;
 const EMAIL_ADDRESS = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const containsEmail = (span) =>
   EMAIL_ADDRESS.test(String(span.value ?? '')) || String(span.url ?? '').startsWith('mailto:');
+// A bang to type (`!yt lofi`, `lofi !yt`, `!`) is the app's chip, as it is
+// everywhere else on the site; other code stays code.
+const BANG = /(?:^|\s)![a-z0-9_.-]*(?:\s|$)/i;
 ---
 {spans.map((span) => (
   <Fragment>
     {containsEmail(span) && <Fragment set:html={'<!--email_off-->'} />}
     {span.type === 'strong' ? <strong>{span.value}</strong>
+    : span.type === 'code' && BANG.test(span.value) ? <kbd class="bang-chip">{span.value}</kbd>
     : span.type === 'code' ? <code>{span.value}</code>
     : span.type === 'link' ? (
         span.url.startsWith('https:')

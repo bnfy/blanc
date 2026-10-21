@@ -1,0 +1,66 @@
+{
+  "kind": "synthetic-electron-resource-replay",
+  "selectionMode": "probe",
+  "referrerMode": "no-referrer",
+  "passed": true,
+  "started": "2026-10-17T19:02:37.372Z",
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "8bf78809-5496-4553-9a5c-32e0df108b38",
+      "requests": 34,
+      "faults": 0
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "1b4e983a-1904-480f-a0da-2ee0616cefcf",
+      "requests": 34,
+      "faults": 0,
+      "candidateDecisions": {
+        "block": 9,
+        "allow": 15
+      }
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "61effd78-cf3f-450c-9759-cd835c6e617c",
+      "requests": 34,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "810f3059-1bdf-446d-aee1-a1a7843d5a58",
+      "requests": 34,
+      "faults": 0,
+      "candidateDecisions": {
+        "block": 9,
+        "allow": 15
+      }
+    }
+  ],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "generate.mjs": "e27cbbe3051e35bd4fc1a66d32e4648952cd03ae996c7f0c17d438748aa965b5",
+    "transport.mjs": "bd5629e80f1e155e535453a576ef1a69f7d80ac7669a216786961d0d5b93e7ab",
+    "stability.mjs": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+    "run.mjs": "69062e6d4c5325f469b814fb581f331ab102bbbb6e7276d6350724b4a4aabd2a",
+    "coverage.json": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7",
+    "page.mjs": "a9681d7410d051fa01c507f8aeae91fb631025e001f75b614e0aa4a90e9fc518",
+    "certificate-set.mjs": "02aac7229046d1a324c218904afc6513cb64d3c5f9d1b85be4a56ee041acbf14",
+    "fixture-trust.cjs": "664cfb6e2b7d1299c45515bd0b3ea557b0daf4be23576b89542af0d86ff8d6bf"
+  },
+  "fixtureCandidates": 28,
+  "bundleSha256": "b62f21ea298c8fd92111ef225e69f9bae8a9935d3d04c699255426f605569f6b",
+  "finished": "2026-10-17T19:02:43.781Z"
+}

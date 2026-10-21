@@ -1,0 +1,6 @@
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -5,0 +6 @@
++#include "chrome/browser/ui/blanc_prototype_ui.h"
+@@ -557,0 +559 @@
++  blanc_prototype::AdjustSplitLayout(this, &layouts);

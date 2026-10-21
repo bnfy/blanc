@@ -1,0 +1,32 @@
+[
+  {
+    "schedule": "blanc-preack-ratio-fixed-clear-final",
+    "pass": true,
+    "checkpoints": 17,
+    "remaining_ratio_records": 0
+  },
+  {
+    "schedule": "blanc-preack-ratio-fixed-encrypted-final",
+    "pass": true,
+    "checkpoints": 17,
+    "remaining_ratio_records": 0
+  },
+  {
+    "schedule": "blanc-preack-ratio-writefail-final",
+    "pass": true,
+    "checkpoints": 18,
+    "remaining_ratio_records": 0
+  },
+  {
+    "schedule": "blanc-ratio-postack-clear-final",
+    "pass": true,
+    "checkpoints": 56,
+    "remaining_ratio_records": 0
+  },
+  {
+    "schedule": "blanc-ratio-postack-encrypted-final",
+    "pass": true,
+    "checkpoints": 56,
+    "remaining_ratio_records": 0
+  }
+]

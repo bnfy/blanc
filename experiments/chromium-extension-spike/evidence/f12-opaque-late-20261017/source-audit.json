@@ -1,0 +1,28 @@
+{
+  "chromium": "157.0.8103.6",
+  "observation": "webNavigation filters by IsValidUrl; blob is absent from accepted schemes. Runtime allFrames probe also omitted these leaves; its underlying cause remains unproved. Opaque srcdoc raw callback explicitly denies access. No permission bypass added.",
+  "files": [
+    {
+      "path": "chrome/browser/extensions/api/web_navigation/frame_navigation_state.cc",
+      "sha256": "e12def0180013a3774898430869dedebe0d6f28898cc4e904036b8abf0fbf896",
+      "excerpts": [
+        {
+          "startLine": 1,
+          "endLine": 56,
+          "text": "// Copyright 2012 The Chromium Authors\n// Use of this source code is governed by a BSD-style license that can be\n// found in the LICENSE file.\n\n#include \"chrome/browser/extensions/api/web_navigation/frame_navigation_state.h\"\n\n#include \"base/check.h\"\n#include \"base/containers/fixed_flat_set.h\"\n#include \"base/notreached.h\"\n#include \"chrome/common/url_constants.h\"\n#include \"content/public/browser/render_frame_host.h\"\n#include \"extensions/buildflags/buildflags.h\"\n#include \"extensions/common/constants.h\"\n\nstatic_assert(BUILDFLAG(ENABLE_EXTENSIONS_CORE));\n\nnamespace extensions {\n\n\n// static\nbool FrameNavigationState::allow_extension_scheme_ = false;\n\nDOCUMENT_USER_DATA_KEY_IMPL(FrameNavigationState);\n\nFrameNavigationState::FrameNavigationState(\n    content::RenderFrameHost* render_frame_host)\n    : content::DocumentUserData<FrameNavigationState>(render_frame_host) {}\nFrameNavigationState::~FrameNavigationState() = default;\n\n// static\nbool FrameNavigationState::IsValidUrl(const GURL& url) {\n  constexpr auto kValidSchemes = base::MakeFixedFlatSet<std::string_view>({\n      content::kChromeUIScheme,\n      url::kHttpScheme,\n      url::kHttpsScheme,\n      url::kFileScheme,\n      url::kFtpScheme,\n      url::kJavaScriptScheme,\n      url::kDataScheme,\n      url::kFileSystemScheme,\n  });\n\n  if (kValidSchemes.contains(url.scheme())) {\n    return true;\n  }\n\n  // Allow about:blank and about:srcdoc.\n  if (url.IsAboutBlank() || url.IsAboutSrcdoc()) {\n    return true;\n  }\n\n  return allow_extension_scheme_ && url.GetScheme() == kExtensionScheme;\n}\n\nbool FrameNavigationState::CanSendEvents() const {\n  return !error_occurred_ && IsValidUrl(url_);"
+        }
+      ]
+    },
+    {
+      "path": "chrome/browser/extensions/api/web_navigation/web_navigation_api.cc",
+      "sha256": "bd874f9542bac2a3b8f4c4314d82b4163a3338735d89ec7b288edf6a20038869",
+      "excerpts": [
+        {
+          "startLine": 175,
+          "endLine": 200,
+          "text": "\n#if BUILDFLAG(ENABLE_PDF)\n            if (chrome_pdf::features::IsOopifPdfEnabled()) {\n              // Don't expose any child frames of the PDF extension frame, such\n              // as the PDF content frame.\n              content::RenderFrameHost* parent = render_frame_host->GetParent();\n              if (parent &&\n                  IsPdfExtensionOrigin(parent->GetLastCommittedOrigin())) {\n                return content::RenderFrameHost::FrameIterationAction::\n                    kSkipChildren;\n              }\n            }\n#endif  // BUILDFLAG(ENABLE_PDF)\n\n            auto* navigation_state =\n                FrameNavigationState::GetForCurrentDocument(render_frame_host);\n\n            if (!navigation_state ||\n                !FrameNavigationState::IsValidUrl(navigation_state->GetUrl())) {\n              return content::RenderFrameHost::FrameIterationAction::kContinue;\n            }\n\n            // Skip back/forward cached frames.\n            if (render_frame_host->IsInLifecycleState(\n                    content::RenderFrameHost::LifecycleState::\n                        kInBackForwardCache)) {"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "membersVerified": 108,
+  "proofs": [
+    {
+      "script": "renderer-target-verify.mjs",
+      "result": {
+        "verified": true,
+        "cases": 8,
+        "transportMismatchDiagnostic": true,
+        "queuedReplacementUntouched": true,
+        "naturallyOccurringIPCRaceObserved": false,
+        "permissionPromptRaceTested": false,
+        "fullAcceptance": false,
+        "latencyMeasured": false
+      }
+    },
+    {
+      "script": "document-target-verify.mjs",
+      "result": {
+        "verified": true,
+        "cases": 11,
+        "staleBrowserDispatchRefused": true,
+        "rendererRaceCovered": false,
+        "asyncEffects": false,
+        "fullAcceptance": false,
+        "latencyMeasured": false
+      }
+    },
+    {
+      "script": "helper-channels-verify.mjs",
+      "result": {
+        "verified": true,
+        "cases": 6,
+        "postExecutionNavigationIdentity": false,
+        "preDispatchDocumentTargeting": false,
+        "asyncEffects": false,
+        "fullAcceptance": false,
+        "latencyMeasured": false
+      }
+    },
+    {
+      "script": "delivery-order-verify.mjs",
+      "result": {
+        "verified": true,
+        "nativeExecutionSchedules": 2,
+        "upstreamAcknowledgementSchedules": 2,
+        "combinedPendingObserved": true,
+        "timeoutAndRetry": true,
+        "duplicateBodies": 0,
+        "upstreamDocumentIdentity": false,
+        "asyncEffectsCovered": false,
+        "fullAcceptance": false,
+        "latencyMeasured": false
+      }
+    }
+  ]
+}

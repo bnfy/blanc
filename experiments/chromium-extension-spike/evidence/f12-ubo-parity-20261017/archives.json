@@ -1,0 +1,37 @@
+[
+  {
+    "archive": "blanc-ubo-parity-probe01.tar.gz",
+    "files": 1,
+    "bytes": 1913
+  },
+  {
+    "archive": "blanc-ubo-parity-probe02.tar.gz",
+    "files": 5,
+    "bytes": 200064
+  },
+  {
+    "archive": "blanc-ubo-parity-full01.tar.gz",
+    "files": 4,
+    "bytes": 34613028
+  },
+  {
+    "archive": "blanc-ubo-parity-full02.tar.gz",
+    "files": 109,
+    "bytes": 84238842
+  },
+  {
+    "archive": "blanc-service-unchanged01.tar.gz",
+    "files": 12,
+    "bytes": 323601
+  },
+  {
+    "archive": "blanc-service-changed-parity01.tar.gz",
+    "files": 12,
+    "bytes": 413937
+  },
+  {
+    "archive": "blanc-ubo-parity-audit.tar.gz",
+    "files": 2,
+    "bytes": 109571
+  }
+]

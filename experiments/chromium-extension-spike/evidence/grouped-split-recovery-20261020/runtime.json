@@ -1,0 +1,113 @@
+{
+  "checks": [
+    {
+      "name": "grouped split Spaces round trip",
+      "value": {
+        "groups": [
+          {
+            "name": "Source group",
+            "color": "#376694",
+            "collapsed": true,
+            "urls": [
+              "http://127.0.0.1:9278/source-a",
+              "http://127.0.0.1:9278/source-b"
+            ]
+          }
+        ],
+        "uuid": "efda924c-fa83-45f1-85a3-0075dbbf2736",
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9278/source-a",
+          "http://127.0.0.1:9278/source-b"
+        ],
+        "active": "blanc://newtab/",
+        "splits": [
+          {
+            "focus": 1,
+            "ids": [
+              "http://127.0.0.1:9278/source-a",
+              "http://127.0.0.1:9278/source-b"
+            ],
+            "widths": [
+              0.5,
+              0.5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "two regular window split identities",
+      "value": {
+        "source": {
+          "groups": [
+            {
+              "name": "Source group",
+              "color": "#376694",
+              "collapsed": true,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "efda924c-fa83-45f1-85a3-0075dbbf2736",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "blanc://newtab/",
+          "splits": [
+            {
+              "focus": 1,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        },
+        "decoy": {
+          "groups": [
+            {
+              "name": "Decoy group",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ]
+            }
+          ],
+          "uuid": "1133ca37-ec2b-4d09-9c47-d361f942dcf4",
+          "urls": [
+            "http://127.0.0.1:9278/decoy-a",
+            "http://127.0.0.1:9278/decoy-b"
+          ],
+          "active": "http://127.0.0.1:9278/decoy-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "pass": false,
+  "error": "Error: wait timeout",
+  "stack": "Error: wait timeout\n    at wait (file:///private/tmp/blanc-grouped-recovery/settled.mjs:6:128)\n    at async file:///private/tmp/blanc-grouped-recovery/settled.mjs:17:166"
+}

@@ -89,5 +89,5 @@ test('the Glance action is an icon, not a word', () => {
   assert.ok(glance, 'a background row offers Glance');
   assert.equal(glance.textContent, '');
   assert.match(glance.innerHTML, /<svg/);
-  assert.equal(glance.title, 'Open this tab in Glance');
+  assert.equal(glance.dataset.tooltip, 'Open this tab in Glance');
 });

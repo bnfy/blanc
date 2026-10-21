@@ -105,3 +105,41 @@ Then('the island opens with {string} already entered', async function (expected)
   );
   assert.strictEqual(value, expected);
 });
+
+Given('a single ordinary page is the only open tab', async function () {
+  // Mahjong is an ordinary managed tab served locally, so the scenario needs
+  // no network and the replacement is the only blank tab in the window.
+  this.onlyTabId = await this.call('openTab', 'blanc://mahjong/');
+  const state = await this.waitForState((s) => s.activeTabId === this.onlyTabId);
+  for (const tab of state.tabs) {
+    if (tab.id !== this.onlyTabId) await this.call('closeTab', tab.id);
+  }
+  await this.waitForState((s) => s.tabs.length === 1 && s.activeTabId === this.onlyTabId);
+  // Start from page focus with the island closed, as after ordinary browsing,
+  // so the assertion below cannot pass on focus left over from setup.
+  await this.call('closeOverlay');
+  await this.call('focusTabContents', this.onlyTabId);
+});
+
+When('I close the only tab', async function () {
+  await this.call('closeTab', this.onlyTabId);
+});
+
+Then('a blank tab replaces it with the island address field focused', async function () {
+  const state = await this.waitForState((s) => s.tabs.length === 1
+    && s.activeTabId && s.activeTabId !== this.onlyTabId);
+  const tab = state.tabs.find((t) => t.id === state.activeTabId);
+  assert.ok(String(tab.url || '').startsWith('blanc://newtab'),
+    `the replacement tab is not blank: ${tab.url}`);
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (m) => m === 'panel',
+    'the island to open on the replacement tab',
+  );
+  const focused = await waitForValue(
+    () => this.call('overlayFocusedId'),
+    (id) => id === 'addressInput',
+    'the island address field to take keyboard focus',
+  );
+  assert.strictEqual(focused, 'addressInput');
+});

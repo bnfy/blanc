@@ -8,7 +8,8 @@ function spyActions() {
   const rec = (name) => (...args) => calls.push([name, ...args]);
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
     'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
-    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance'];
+    'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance',
+    'returnPinnedHome', 'setPinnedHome'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -32,6 +33,7 @@ test('copy-link copies the tab url; copy-clean-link copies the descriptor value'
 test('simple items dispatch to their action with the tab id', () => {
   const cases = [
     ['reload', 'reload'], ['duplicate', 'duplicate'], ['toggle-pin', 'togglePin'],
+    ['return-pinned-home', 'returnPinnedHome'], ['set-pinned-home', 'setPinnedHome'],
     ['toggle-mute', 'toggleMute'], ['toggle-favorite', 'toggleFavorite'],
     ['glance', 'glance'], ['quiet', 'quiet'], ['close-others', 'closeOthers'],
     ['move-new-window', 'moveToNewWindow'], ['close', 'close'],

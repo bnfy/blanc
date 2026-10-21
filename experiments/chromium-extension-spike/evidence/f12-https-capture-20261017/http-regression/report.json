@@ -1,0 +1,219 @@
+{
+  "kind": "instrumented-electron-http-capture-pilot",
+  "passed": true,
+  "started": "2026-10-17T18:09:09.853Z",
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "appVersion": "1.36.0",
+  "instrumentationSha256": "599d03dadc33e5aae91e870a3c8e96e31aa35cae1cd9e485c4b45e341decb0e3",
+  "trustModuleSha256": "5519cf4c6baf9d0d996fb9caaa62c3ee144dc02ca68d33bcd9794e8dfcc3a963",
+  "tls": null,
+  "harnessSha256": "c2de0cabd9a27cd19d62fd9cee0b280639c892c2642a5cca9e5fed342c244f40",
+  "transportSha256": "9272583d77dd3d1c2a9b8cc842e0fa31e42a38c9c92354c8afa19169ad562285",
+  "certificateFactorySha256": "2f513f79268394d92a3db40c7afe109c4c3aa4de878d829a31c7759651abd598",
+  "sourceFiles": {
+    "src/main/adblock.js": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+    "src/main/blocking-coordinator.js": "bd67244c7e721a13ee107cda48a3a6567416ae0282730d0dce1aa5cafc1cb6b7",
+    "node_modules/@ghostery/adblocker-electron/dist/commonjs/index.js": "d5b2d32cd82724695a03320689926116bb590b7359ed2c863ad2f9efa92125b4",
+    "adblock/sources/pinned.json": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc"
+  },
+  "fixtures": [
+    {
+      "url": "http://page.blanc-fixture.test/pilot.html",
+      "contentType": "text/html",
+      "sha256": "ab531a97cd692c5748e1309ab56d7629ac5a80ba4bdf478ef0349f675a4a8815"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/control.js",
+      "contentType": "text/javascript",
+      "sha256": "eb166445a1ba0c1450efa1a738b53bded6a1a354249709929c5061aa286a23a7"
+    },
+    {
+      "url": "http://ad.doubleclick.net/advertisement.js",
+      "contentType": "text/javascript",
+      "sha256": "540f65d303ce256b68fcea73b1758bdeb15d3ab1c4512492f81d6cc111f75721"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/data.json",
+      "contentType": "application/json",
+      "sha256": "69fa5e6f7532946e1eb8d6b5651f75fa4857aefc75a3f59d9ea892188f9f5214"
+    },
+    {
+      "url": "http://asset.blanc-fixture.test/no-referrer.json",
+      "contentType": "application/json",
+      "sha256": "4039753a2aa3a4ada43910872201b07389b12c9d207f5c1eb9b16eb575c0b7a8"
+    },
+    {
+      "url": "http://doubleclick.net/pagead/ads?client=fixture",
+      "contentType": "application/json",
+      "sha256": "0d3e7634efbcbfb2d930025921f740617bc4fe5766685e7283aa43f0c04cb28c"
+    }
+  ],
+  "limits": [
+    "Instrumented extracted app source on stock Electron; not a signed-package acceptance run.",
+    "Fixture transport pilot; no workers, redirects, private teardown or 157 replay yet.",
+    "Authored fixture traffic, not the 4000-request acceptance corpus; no latency result."
+  ],
+  "profiles": {
+    "regular": {
+      "dom": {
+        "origin": "http://page.blanc-fixture.test",
+        "href": "http://page.blanc-fixture.test/pilot.html",
+        "pilot": {
+          "allowedScript": true,
+          "outcomes": {
+            "blockedData": "error",
+            "allowedScript": "loaded",
+            "data": "{\"fixture\":\"allowed\"}",
+            "noReferrerData": "{\"fixture\":\"no-referrer\"}",
+            "blockedScript": "error"
+          },
+          "done": true
+        }
+      },
+      "decisions": 6,
+      "allObservedDecisions": 48,
+      "arrivals": [
+        {
+          "method": "GET",
+          "url": "http://page.blanc-fixture.test/pilot.html",
+          "host": "page.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/control.js",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/data.json",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/no-referrer.json",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        }
+      ]
+    },
+    "private": {
+      "dom": {
+        "origin": "http://page.blanc-fixture.test",
+        "href": "http://page.blanc-fixture.test/pilot.html",
+        "pilot": {
+          "allowedScript": true,
+          "outcomes": {
+            "blockedData": "error",
+            "allowedScript": "loaded",
+            "data": "{\"fixture\":\"allowed\"}",
+            "noReferrerData": "{\"fixture\":\"no-referrer\"}",
+            "blockedScript": "error"
+          },
+          "done": true
+        }
+      },
+      "decisions": 6,
+      "allObservedDecisions": 6,
+      "arrivals": [
+        {
+          "method": "GET",
+          "url": "http://page.blanc-fixture.test/pilot.html",
+          "host": "page.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/control.js",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/data.json",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        },
+        {
+          "method": "GET",
+          "url": "http://asset.blanc-fixture.test/no-referrer.json",
+          "host": "asset.blanc-fixture.test",
+          "known": true,
+          "encrypted": false
+        }
+      ]
+    }
+  },
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "childExited": true,
+    "disposableTreeRemoved": true
+  },
+  "filterManifest": {
+    "version": 1,
+    "date": "2026-07-09",
+    "lists": [
+      {
+        "file": "easylist.txt",
+        "url": "https://easylist.to/easylist/easylist.txt",
+        "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+      },
+      {
+        "file": "easyprivacy.txt",
+        "url": "https://easylist.to/easylist/easyprivacy.txt",
+        "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+      }
+    ],
+    "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+    "ghosteryResources": {
+      "file": "ghostery-resources.json",
+      "packageVersion": "2.18.2",
+      "commit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+      "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+    }
+  },
+  "runtime": {
+    "node": "24.22.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.11",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2026d",
+    "undici": "7.29.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.43-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.8.0",
+    "chrome": "152.0.7977.167"
+  },
+  "startupGatesReleased": true,
+  "finished": "2026-10-17T18:09:11.253Z"
+}

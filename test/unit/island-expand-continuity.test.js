@@ -260,5 +260,7 @@ test('main forwards the drawn report only for the overlay\'s open panel, and re-
   const show = lift(main, 'function showOverlay(', '\n}\n', 'showOverlay');
   assert.match(show, /mode === 'panel' \|\| mode === 'palette'\) \{[\s\S]*?cancelPendingIslandProximity\(rt\(\)\);\s*\n\s*if \(rt\(\)\.islandProximity\.k !== 0\) sendIslandProximity\(rt\(\), \{ k: 0 \}\);/);
   const hide = lift(main, 'function hideOverlay(', '\n}\n', 'hideOverlay');
-  assert.match(hide, /if \(retracts\) \{[\s\S]*?screen\.getCursorScreenPoint\(\)[\s\S]*?updateIslandProximity\(/);
+  // The same sample auto-hide uses, which falls back to the last move a view
+  // saw where the cursor cannot be read (native Wayland).
+  assert.match(hide, /if \(retracts\) \{[\s\S]*?sampledWindowCursor\(rt\(\)\)[\s\S]*?updateIslandProximity\(/);
 });

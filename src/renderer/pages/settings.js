@@ -86,6 +86,46 @@
     document.getElementById('dynamicWallpaperSetting')?.remove();
   }
 
+  // F49: this device's own Start Page image. Main answers with the same
+  // { source, hasImage, image } projection the Start Page receives.
+  if (supports('newtabCustomWallpaper') && window.bowserPages.settings.wallpaper) {
+    const toggle = document.getElementById('newtabCustomWallpaper');
+    const choose = document.getElementById('customWallpaperChoose');
+    const remove = document.getElementById('customWallpaperRemove');
+    const hint = document.getElementById('customWallpaperHint');
+    const errors = {
+      'too-large': 'newtab.wallpaper.error.tooLarge',
+      unsupported: 'newtab.wallpaper.error.unsupported',
+      unreadable: 'newtab.wallpaper.error.unreadable',
+    };
+    let state = { source: 'sunrise', hasImage: false };
+    const render = (error) => {
+      toggle.checked = state.source === 'custom';
+      choose.textContent = state.hasImage ? t('newtab.wallpaper.change') : t('newtab.wallpaper.choose');
+      remove.hidden = !state.hasImage;
+      hint.textContent = errors[error] ? t(errors[error]) : t('settings.general.newtabCustomWallpaper.hint');
+    };
+    const apply = (next, error) => {
+      if (next && typeof next === 'object') state = next;
+      render(error);
+    };
+    const pick = async () => {
+      const reply = await window.bowserPages.settings.chooseWallpaper();
+      apply(reply?.wallpaper, reply?.error);
+    };
+    choose.addEventListener('click', pick);
+    remove.addEventListener('click', async () => apply(await window.bowserPages.settings.removeWallpaper()));
+    toggle.addEventListener('change', async () => {
+      if (toggle.checked && !state.hasImage) return pick();
+      const off = settings.newtabDynamicWallpaper === true ? 'time-of-day' : 'sunrise';
+      apply(await window.bowserPages.settings.setWallpaper(toggle.checked ? 'custom' : off));
+    });
+    window.bowserPages.settings.onAppearance?.((status) => apply(status.wallpaper));
+    window.bowserPages.settings.wallpaper().then((next) => apply(next));
+  } else {
+    document.getElementById('customWallpaperSetting')?.remove();
+  }
+
   // About is a read-only projection of the running desktop build. Other
   // platforms can omit it and the updater method without gaining a new call.
   if (appInfo) {
@@ -414,6 +454,47 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  if (supports('islandHoverOpen')) {
+    const islandHoverOpen = document.getElementById('islandHoverOpen');
+    islandHoverOpen.checked = settings.islandHoverOpen === true;
+    islandHoverOpen.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandHoverOpen: islandHoverOpen.checked });
+      islandHoverOpen.checked = saved.islandHoverOpen === true;
+    });
+  } else {
+    document.getElementById('islandHoverOpenSetting')?.remove();
+  }
+
+  // How a revealed Island makes room; only meaningful while auto-hide is on.
+  const islandAutoHideStyleSetting = document.getElementById('islandAutoHideStyleSetting');
+  const showIslandAutoHideStyle = (on) => {
+    if (islandAutoHideStyleSetting) islandAutoHideStyleSetting.hidden = !on;
+  };
+  if (supports('islandAutoHideStyle')) {
+    const islandAutoHideStyle = document.getElementById('islandAutoHideStyle');
+    islandAutoHideStyle.value = settings.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    islandAutoHideStyle.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHideStyle: islandAutoHideStyle.value });
+      islandAutoHideStyle.value = saved.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    });
+  } else {
+    islandAutoHideStyleSetting?.remove();
+  }
+
+  if (supports('islandAutoHide')) {
+    const islandAutoHide = document.getElementById('islandAutoHide');
+    islandAutoHide.checked = settings.islandAutoHide === true;
+    showIslandAutoHideStyle(islandAutoHide.checked);
+    islandAutoHide.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHide: islandAutoHide.checked });
+      islandAutoHide.checked = saved.islandAutoHide === true;
+      showIslandAutoHideStyle(islandAutoHide.checked);
+    });
+  } else {
+    document.getElementById('islandAutoHideSetting')?.remove();
+    islandAutoHideStyleSetting?.remove();
+  }
+
   // --- Quiet Tabs idle delay (device-local memory policy) ---
   // Device-local: the Island strip's site-color tint. Off leaves it on the
   // theme background (near-black in Dark).
@@ -516,6 +597,15 @@
       window.bowserPages.settings.set({ tabSleep: tabSleep.value }));
   } else {
     document.getElementById('tabSleepSetting')?.remove();
+  }
+
+  if (supports('tabArchive')) {
+    const tabArchive = document.getElementById('tabArchive');
+    tabArchive.value = settings.tabArchive ?? 'off';
+    tabArchive.addEventListener('change', () =>
+      window.bowserPages.settings.set({ tabArchive: tabArchive.value }));
+  } else {
+    document.getElementById('tabArchiveSetting')?.remove();
   }
 
   // Device-local right-button gestures. Drawing uses left pointer input in
@@ -1342,9 +1432,9 @@
     }
   }
 
-  // A Privacy card whose every control was removed above (unsupported on this
-  // platform) would otherwise leave a lone title behind.
-  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+  // A General or Privacy card whose every control was removed above
+  // (unsupported on this platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-general .settings-card, #group-privacy .settings-card')) {
     if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 

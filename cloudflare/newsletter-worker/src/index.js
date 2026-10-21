@@ -52,6 +52,15 @@ const LISTS = {
     confirmLabel: 'Confirm subscription',
     confirmed: ['Subscription confirmed', 'You will receive occasional Blanc release notes.'],
     left: ['Unsubscribe complete', 'No active subscription was found.', 'The address has been removed from Blanc release notes.'],
+    alert: {
+      subject: 'New Blanc newsletter subscriber',
+      heading: 'New newsletter subscriber',
+      what: 'a Blanc newsletter subscription',
+      verb: 'subscribed',
+      one: 'subscriber',
+      many: 'subscribers',
+      source: 'Blanc release notes',
+    },
   },
   mailWaitlist: {
     member: 'mailwait:',
@@ -69,6 +78,15 @@ const LISTS = {
     confirmLabel: 'Join the waitlist',
     confirmed: ['You are on the waitlist', 'We will email you when Blanc Mail for macOS is ready, then delete your address from the waitlist.'],
     left: ['Waitlist removal complete', 'No waitlist entry was found.', 'The address has been removed from the Blanc Mail waitlist.'],
+    alert: {
+      subject: 'New Blanc Mail waitlist signup',
+      heading: 'New Blanc Mail waitlist signup',
+      what: 'a place on the Blanc Mail waitlist',
+      verb: 'joined the waitlist',
+      one: 'person on the waitlist',
+      many: 'people on the waitlist',
+      source: 'the Blanc Mail waitlist',
+    },
   },
 };
 
@@ -179,43 +197,44 @@ async function sendConfirmation(env, list, email, confirmationUrl, idempotencyKe
   return response.ok;
 }
 
-// Tells Blanc's own inbox about a genuinely new newsletter subscriber. A
-// failure is logged and never undoes or delays the confirmation the
-// subscriber is looking at.
-async function sendSignupAlert(env, email, ts) {
+// Tells Blanc's own inbox about a genuinely new newsletter subscriber or
+// Blanc Mail waitlist signup. A failure is logged and never undoes or delays
+// the confirmation the person is looking at.
+async function sendSignupAlert(env, list, email, ts) {
+  const { alert } = list;
   try {
-    const count = (await keysWithPrefix(env, LISTS.newsletter.member)).length;
-    const total = `That makes ${count} ${count === 1 ? 'subscriber' : 'subscribers'}.`;
+    const count = (await keysWithPrefix(env, list.member)).length;
+    const total = `That makes ${count} ${count === 1 ? alert.one : alert.many}.`;
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
-        'Idempotency-Key': `blanc-signup-alert-${await sha256(`${email}\n${ts}`)}`,
+        'Idempotency-Key': `blanc-signup-alert-${await sha256(`${list.rateScope}\n${email}\n${ts}`)}`,
       },
       body: JSON.stringify({
         from: env.NEWSLETTER_FROM,
         to: [env.SIGNUP_ALERT_TO],
-        subject: `New Blanc newsletter subscriber: ${email}`,
-        text: `${email} confirmed a Blanc newsletter subscription at ${ts}.\n\n${total}`,
+        subject: `${alert.subject}: ${email}`,
+        text: `${email} confirmed ${alert.what} at ${ts}.\n\n${total}`,
         html: renderEmail({
-          preheader: `${email} just subscribed. ${total}`,
-          heading: 'New newsletter subscriber',
+          preheader: `${email} just ${alert.verb}. ${total}`,
+          heading: alert.heading,
           paragraphs: [
             { lead: 'Email:', text: email },
             { lead: 'Confirmed:', text: ts },
             total,
           ],
           finePrint: [
-            'You got this email because signup alerts for Blanc release notes go to this address.',
+            `You got this email because signup alerts for ${alert.source} go to this address.`,
             'Blanc is built by Bananify.',
           ],
         }),
       }),
     });
-    if (!response.ok) logFailure('signup-alert-not-sent', await resendFailure(response));
+    if (!response.ok) logFailure('signup-alert-not-sent', { list: list.rateScope, ...(await resendFailure(response)) });
   } catch (error) {
-    logFailure('signup-alert-not-sent', errorDetails(error));
+    logFailure('signup-alert-not-sent', { list: list.rateScope, ...errorDetails(error) });
   }
 }
 
@@ -481,11 +500,9 @@ async function handleConfirm(env, url, list = LISTS.newsletter) {
     env.SUBSCRIBERS.delete(`${list.quarantine}${pending.email}`),
   ]);
   if (list === LISTS.newsletter) await addToSegment(env, pending.email);
-  // Only a first subscription alerts: re-confirming an address already on the
-  // list, the Resend sync and the Mail waitlist never do.
-  if (list === LISTS.newsletter && !previous && env.SIGNUP_ALERT_TO) {
-    await sendSignupAlert(env, pending.email, ts);
-  }
+  // Only a first signup alerts: re-confirming an address already on the list
+  // and the Resend sync never do.
+  if (!previous && env.SIGNUP_ALERT_TO) await sendSignupAlert(env, list, pending.email, ts);
   return htmlResult(...list.confirmed);
 }
 

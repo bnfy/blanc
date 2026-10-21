@@ -84,6 +84,19 @@ notice and licence ship at
 [site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).
 Upstream: <https://github.com/productiontype/Newsreader>.
 
+## Reenie Beanie website source — SIL OFL 1.1
+
+The website's homepage uses Reenie Beanie (regular, Latin subset) for one short
+handwritten note, self-hosted from `@fontsource/reenie-beanie` 5.3.0 (npm
+integrity
+`sha512-PgEiqKdPCLlvdY2IMWMBdYyMdr1mo1zxVBRNFlo3gclnCz560iiyTTt0dU4/VIGnjhyAb3gSWIQL0qXnn5oaYw==`),
+with the file unmodified. It is not part of the desktop application.
+Copyright (c) 2010 Typeco (james@typeco.com). The font remains under the SIL
+Open Font License, Version 1.1; Blanc's MIT grant does not supersede it. The
+full notice and license ship at
+[site/public/fonts/reenie-beanie/OFL.txt](site/public/fonts/reenie-beanie/OFL.txt).
+Upstream: <https://fonts.google.com/specimen/Reenie+Beanie>.
+
 ## Lucide desktop icons — ISC
 
 `src/renderer/panel-left.svg` is adapted from Lucide's Panel Left icon.

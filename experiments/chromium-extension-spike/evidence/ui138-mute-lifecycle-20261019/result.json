@@ -1,0 +1,251 @@
+{
+  "checks": [
+    {
+      "label": "site enabled",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      }
+    },
+    {
+      "label": "per-tab exemption",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      }
+    },
+    {
+      "label": "same-host exemption retained",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": true,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a?same-host"
+      }
+    },
+    {
+      "label": "different host",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": true,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://localhost:9265/b"
+      }
+    },
+    {
+      "label": "return resets exemption",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": true,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      }
+    },
+    {
+      "label": "crash then navigation preserves site policy",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": true,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": true,
+        "muted": true,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a?recovered"
+      }
+    },
+    {
+      "label": "private fresh policy and disposal 0",
+      "before": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994423",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      },
+      "after": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994423",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      }
+    },
+    {
+      "label": "regular survives private disposal 0",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": true,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a?recovered"
+      }
+    },
+    {
+      "label": "private fresh policy and disposal 1",
+      "before": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994425",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      },
+      "after": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994425",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "",
+        "pinned": false,
+        "private": true,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a"
+      }
+    },
+    {
+      "label": "regular survives private disposal 1",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": true,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "203994421",
+        "isLoading": false,
+        "muted": true,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": true,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/a?recovered"
+      }
+    }
+  ],
+  "pass": true
+}

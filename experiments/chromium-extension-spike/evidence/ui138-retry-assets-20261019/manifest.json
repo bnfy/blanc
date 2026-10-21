@@ -1,0 +1,67 @@
+[
+  {
+    "path": "baseline.log",
+    "sha256": "251c0c7ae3f275c5105ed88370226019672457b5e6b99957e96cbbd7e4f76aeb",
+    "bytes": 975
+  },
+  {
+    "path": "baseline2.log",
+    "sha256": "6fa22453ff4e23c544c5fbad25037ecfd75a37ac9687edeef8600718282802c2",
+    "bytes": 597
+  },
+  {
+    "path": "baseline3.log",
+    "sha256": "4ae5ab968d0f03949b6618739576af25329d1e197a19449ce7fa069a26bb16b3",
+    "bytes": 1268
+  },
+  {
+    "path": "before-probe.log",
+    "sha256": "9a8b7554e07e93184364f8e19fd516b4b74e4efe72cf7a668d1548c3137ad425",
+    "bytes": 513
+  },
+  {
+    "path": "before.py",
+    "sha256": "8544902d0554b89bf408fedfe486ca8298cab188586c5a2f700839a2071a4dab",
+    "bytes": 434
+  },
+  {
+    "path": "checkpoint.md",
+    "sha256": "89341df9394cf4d739a88745ea37a3e515959426655931625013f5910ec7bd02",
+    "bytes": 1612
+  },
+  {
+    "path": "ci-excerpt.txt",
+    "sha256": "97d3f02b81976e23e7f138be19bd36e0d0e040e4b4b0f1310012ff0537ec9182",
+    "bytes": 3620
+  },
+  {
+    "path": "fixed-probe.log",
+    "sha256": "dbc670b7767a6436a6e5470ec0a5ce7fde3d9519661d73cd3288897bcf0d8876",
+    "bytes": 93
+  },
+  {
+    "path": "fixed-suite.log",
+    "sha256": "4f678c926b30ea0db6d339ecf031703cee3379b5285f0501f107b914f32938c0",
+    "bytes": 1238
+  },
+  {
+    "path": "initial-probe-hook-failure.log",
+    "sha256": "e2b93377c58ff95a79ffe115488579fa7fa9d6ad24f19d403c0038855548d9e1",
+    "bytes": 416
+  },
+  {
+    "path": "probe.mjs",
+    "sha256": "a7c0a63793eb39a77b12b4d3331ee26ce02cf7548652cfe83517922b744f6a57",
+    "bytes": 2308
+  },
+  {
+    "path": "provider-tests.log",
+    "sha256": "a42909c684ae672470e64a5a5bfd35e9c06027a5adfac261c1ad1941eb2cc97e",
+    "bytes": 7239
+  },
+  {
+    "path": "unit.log",
+    "sha256": "006ee5b97a20b678ddf479224725691ac83a9a49890831f88215421fce1c1060",
+    "bytes": 5110
+  }
+]

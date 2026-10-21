@@ -127,9 +127,11 @@ function fakeWebContents(id) {
   return wc;
 }
 
-/** Creates a brand-new prompt view while `focused` holds the keyboard. */
-function createPromptView(focused) {
-  const runtime = { permissionView: null, permissionPrompts: new Map() };
+/** Creates a brand-new prompt view while `focused` holds the keyboard.
+ * `window` is what is on screen; by default nothing on it reports focus, so
+ * the choice falls back to Electron's getFocusedWebContents(). */
+function createPromptView(focused, window = null) {
+  const runtime = { permissionView: null, permissionPrompts: new Map(), window };
   const sandbox = {
     rt: () => runtime,
     WebContentsView: class { constructor() { this.webContents = fakeWebContents(99); } setBackgroundColor() {} },
@@ -142,6 +144,7 @@ function createPromptView(focused) {
     lockPrivilegedNavigation() {},
     installChromeShortcuts() {},
     webContents: { getFocusedWebContents: () => focused },
+    onScreenFocusedContents: require('../../src/main/focused-contents').onScreenFocusedContents,
   };
   vm.createContext(sandbox);
   return vm.runInContext(`${ensureSource}; ensurePermissionView();`, sandbox);
@@ -162,6 +165,21 @@ test('once the prompt has loaded, clicking into it keeps the keyboard there', ()
   view.webContents.emit('did-finish-load');
   view.webContents.emit('focus'); // the person clicks Allow or Block
   assert.equal(page.focusCalls, 1, 'a deliberate click must not bounce focus back to the page');
+});
+
+test('a hidden tab still reporting focus never takes the keyboard back from the page', () => {
+  // On macOS a tab detached while focused can keep reporting it, and
+  // Electron's getFocusedWebContents() then names that tab first.
+  const stale = Object.assign(fakeWebContents(43), { isFocused: () => true });
+  const page = Object.assign(fakeWebContents(45), { isFocused: () => true });
+  const window = {
+    isDestroyed: () => false,
+    webContents: Object.assign(fakeWebContents(1), { isFocused: () => false }),
+    contentView: { children: [{ webContents: stale, getVisible: () => false }, { webContents: page, getVisible: () => true }] },
+  };
+  const view = createPromptView(stale, window);
+  view.webContents.emit('focus');
+  assert.deepEqual({ page: page.focusCalls, stale: stale.focusCalls }, { page: 1, stale: 0 });
 });
 
 test('nothing held the keyboard, so nothing is handed back', () => {

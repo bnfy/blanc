@@ -1,0 +1,12 @@
+[32059:338464:1020/165451.520186:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[32059:337542:1020/165451.821227:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9291/devtools/browser/04cc2764-1a67-44a7-a194-d83977fe8fe6
+[32059:337542:1020/165456.987622:ERROR:base/process/kill_posix.cc:33] waitpid(32129): No child processes (10)
+[32158:339251:1020/165457.269317:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[32158:339209:1020/165457.742869:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9291/devtools/browser/5b5a7ef4-eab0-4cdc-8f3a-5287992459a7
+[32158:339209:1020/165458.026440:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[32158:339209:1020/165501.725045:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[32158:339209:1020/165506.120260:ERROR:base/process/kill_posix.cc:33] waitpid(32165): No child processes (10)

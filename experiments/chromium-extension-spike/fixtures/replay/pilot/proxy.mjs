@@ -1,4 +1,5 @@
 import http from 'node:http';
+import tls from 'node:tls';
 
 export const urls = {
   page: 'http://page.blanc-fixture.test/pilot.html',
@@ -34,31 +35,55 @@ export const fixtures = new Map([
   [urls.blockedData, ['application/json', '{"fixture":"should-not-arrive"}']],
 ]);
 
+export function fixtureSet(scheme = 'http') {
+  if (!['http','https'].includes(scheme)) throw new Error('Unsupported fixture scheme');
+  const convert = value => value.replaceAll('http://', scheme+'://');
+  return {urls:Object.fromEntries(Object.entries(urls).map(([k,v])=>[k,convert(v)])),
+    fixtures:new Map([...fixtures].map(([url,[type,body]])=>[convert(url),[type,convert(body)]]))};
+}
+
 // Offline HTTP forward-proxy interface: preserves absolute browser URLs, does
-// not resolve or forward any request. HTTPS/CONNECT is deliberately unsupported.
-export async function startProxy() {
-  const requests = [];
-  const server = http.createServer((req, res) => {
-    const row = { method: req.method, url: req.url, host: req.headers.host,
-      known: fixtures.has(req.url) };
+// not resolve or forward any request. Optional CONNECT terminates fixture TLS locally.
+export async function startProxy({scheme='http', tlsMaterial} = {}) {
+  const {fixtures: served} = fixtureSet(scheme);
+  if (scheme === 'https' && !tlsMaterial) throw new Error('Fixture TLS material required');
+  const requests = [], sockets = new Set();
+  const authorities = new Set([...served.keys()].map(u=>new URL(u).hostname+':443'));
+  const respond = (req, res) => {
+    const encrypted = !!req.socket.encrypted;
+    const url = encrypted ? 'https://'+req.headers.host+req.url : req.url;
+    const authority = req.socket.fixtureAuthority;
+    const validTunnel = !encrypted || (authorities.has(authority) &&
+      req.headers.host === authority.slice(0,-4) && req.socket.servername === authority.slice(0,-4));
+    const known = (scheme !== 'https' || encrypted) && validTunnel && served.has(url) && new URL(url).host === req.headers.host;
+    const row = {method:req.method,url,host:req.headers.host,known,encrypted};
+    if (encrypted) row.connectAuthority=authority;
     requests.push(row);
-    const fixture = fixtures.get(req.url);
+    const fixture = known && served.get(url);
     if (!fixture || req.method !== 'GET') {
-      res.writeHead(502, { 'Cache-Control': 'no-store' });
-      res.end('No fixture; external forwarding is disabled');
-      return;
+      res.writeHead(502, {'Cache-Control':'no-store'});
+      res.end('No fixture; external forwarding is disabled'); return;
     }
-    res.writeHead(200, { 'Content-Type': fixture[0], 'Cache-Control': 'no-store',
-      'Access-Control-Allow-Origin': '*' });
-    res.end(fixture[1]);
+    res.writeHead(200, {'Content-Type':fixture[0],'Cache-Control':'no-store',
+      'Access-Control-Allow-Origin':'*'}); res.end(fixture[1]);
+  };
+  const server = http.createServer(respond);
+  const inside = http.createServer(respond);
+  server.on('connection', socket=>{sockets.add(socket);socket.on('close',()=>sockets.delete(socket));});
+  const context = tlsMaterial && tls.createSecureContext({key:tlsMaterial.key,cert:tlsMaterial.cert});
+  server.on('connect', (req, socket, head) => {
+    const allowed = scheme === 'https' && authorities.has(req.url) && head.length === 0;
+    requests.push({method:'CONNECT',url:req.url,known:allowed});
+    if (!allowed) {
+      socket.end('HTTP/1.1 502 Fixture TLS not implemented for this authority\r\nConnection: close\r\n\r\n'); return;
+    }
+    socket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+    const secure = new tls.TLSSocket(socket,{isServer:true,secureContext:context});
+    secure.fixtureAuthority = req.url;
+    secure.on('error',()=>secure.destroy());
+    inside.emit('connection',secure);
   });
-  server.on('connect', (req, socket) => {
-    requests.push({ method: 'CONNECT', url: req.url, known: false });
-    socket.end('HTTP/1.1 502 Fixture TLS not implemented\r\nConnection: close\r\n\r\n');
-  });
-  await new Promise((resolve, reject) => {
-    server.once('error', reject); server.listen(0, '127.0.0.1', resolve);
-  });
-  return { server, requests, port: server.address().port,
-    close: () => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }) };
+  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
+  return {server,requests,port:server.address().port,
+    close:()=>new Promise(resolve=>{server.close(resolve);for(const socket of sockets)socket.destroy();})};
 }

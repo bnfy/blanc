@@ -1,0 +1,9 @@
+{
+  "equal": true,
+  "sha256": "4c4a0a124ca376a573ef2df46109f4bf706985254029d00669179008edfc4df7",
+  "temporaryExtraHunks": 1,
+  "priorNormalFootprint": {
+    "files": 49,
+    "hunks": 117
+  }
+}

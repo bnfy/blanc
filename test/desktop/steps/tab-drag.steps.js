@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
 const {
-  surfaceFor, rowFor, headerFor, pointerDrag, gapBefore, middleOf, openNamedTab,
+  chromePage, surfaceFor, rowFor, headerFor, pointerDrag, gapBefore, middleOf, openNamedTab,
 } = require('../support/tab-drag');
 
 const ORDINALS = { first: 0, second: 1, third: 2, last: -1 };
@@ -334,4 +334,112 @@ Then('the island panel is still open', async function () {
 
 Then('the island drag flag is clear', async function () {
   assert.equal(await this.call('overlayDragging'), false);
+});
+
+// ---------- Ungrouped tabs anywhere (F3-14, F3-22..26; spec 2026-10-17) ----------
+
+/** Index of the section (group or run) holding `tabId`, in ⌘1–9 order. */
+const sectionOf = (state, tabId) => state.clusters.findIndex((cluster) => cluster.tabIds.includes(tabId));
+const sectionOfGroup = (state, groupId) => state.clusters.findIndex((cluster) => cluster.groupId === groupId);
+const tabTitled = (state, title) => state.tabs.find((tab) => tab.title === title)?.id ?? null;
+
+async function dragTabAboveHeader(world, sourceId, name, surface) {
+  world.dragSurface = await surfaceFor(world, surface);
+  const { page, list } = world.dragSurface;
+  world.movedId = sourceId;
+  const y = await gapBefore(headerFor(list, await groupIdOf(world, name)), `${name} header`);
+  await pointerDrag(world, page, rowFor(list, sourceId), { y });
+}
+
+When('I drag the first loose tab above the {string} header in the {word}', async function (name, surface) {
+  await dragTabAboveHeader(this, this.dragTabs.loose[0], name, surface);
+});
+
+When('I drag the first {string} tab above the {string} header in the {word}', async function (group, name, surface) {
+  await dragTabAboveHeader(this, namedTabs(this, group)[0], name, surface);
+});
+
+When('I press Alt+Shift+ArrowDown on that tab in the {word}', async function (surface) {
+  this.dragSurface = await surfaceFor(this, surface);
+  const { page, list } = this.dragSurface;
+  const control = surface === 'rail'
+    ? list.locator(`.vertical-tab-primary[data-tab-id="${this.movedId}"]`)
+    : rowFor(list, this.movedId).locator('.row-primary');
+  await control.focus();
+  await page.keyboard.press('Alt+Shift+ArrowDown');
+});
+
+When('I put that tab in a new group {string}', async function (name) {
+  await this.call('groupTabByName', this.movedId, name);
+});
+
+Given('a third loose tab is open', async function () {
+  this.dragTabs.loose.push(await openNamedTab(this, 'loose-3'));
+});
+
+Then('that tab is ungrouped between {string} and {string}', async function (a, b) {
+  const [ga, gb] = [await groupIdOf(this, a), await groupIdOf(this, b)];
+  await this.waitForState((s) => {
+    const tab = s.tabs.find((candidate) => candidate.id === this.movedId);
+    const at = sectionOf(s, this.movedId);
+    return tab && !tab.groupId && at > 0
+      && sectionOfGroup(s, ga) === at - 1 && sectionOfGroup(s, gb) === at + 1;
+  });
+});
+
+Then('that tab is ungrouped directly above {string}', async function (name) {
+  const gid = await groupIdOf(this, name);
+  await this.waitForState((s) => {
+    const tab = s.tabs.find((candidate) => candidate.id === this.movedId);
+    return tab && !tab.groupId && sectionOfGroup(s, gid) === sectionOf(s, this.movedId) + 1
+      && s.clusters[sectionOf(s, this.movedId)].tabIds.at(-1) === this.movedId;
+  });
+});
+
+Then('the cluster shortcut for {string} comes before the one for {string} and selects its first tab',
+  async function (a, b) {
+    const state = await this.state();
+    const [ia, ib] = [sectionOfGroup(state, await groupIdOf(this, a)), sectionOfGroup(state, await groupIdOf(this, b))];
+    assert.ok(ia !== -1 && ia < ib, `${a} (${ia}) before ${b} (${ib})`);
+    await this.call('selectTabAtIndex', ia);
+    await this.waitForState((s) => s.activeTabId === namedTabs(this, a)[0]);
+  });
+
+Then('the cluster shortcut for that tab\'s run selects that tab', async function () {
+  await this.waitForState((s) => s.clusters[sectionOf(s, this.movedId)]?.tabIds.length === 1);
+  const state = await this.state();
+  await this.call('selectTabAtIndex', sectionOf(state, this.movedId));
+  await this.waitForState((s) => s.activeTabId === this.movedId);
+});
+
+Then('the Island\'s dots show only that tab', async function () {
+  const page = await chromePage();
+  await waitForValue(
+    () => page.locator('#pillDots .island-dot[data-tab-id]').evaluateAll((dots) => dots.map((dot) => dot.dataset.tabId)),
+    (ids) => ids.length === 1 && ids[0] === this.movedId,
+    'the dots to show only the active run'
+  );
+});
+
+When('I drag Recently closed above the {string} tab in the island', async function (title) {
+  this.dragSurface = await surfaceFor(this, 'island');
+  const { page, list } = this.dragSurface;
+  const id = tabTitled(await this.state(), title);
+  assert.ok(id, `a tab titled ${title}`);
+  const y = await gapBefore(rowFor(list, id), `${title} row`);
+  await pointerDrag(this, page, headerFor(list, CLOSED), { y });
+  await settleDrag(this);
+});
+
+Then('in the island Recently closed sits directly above the {string} tab', async function (title) {
+  const { page } = await surfaceFor(this, 'island');
+  await waitForValue(async () => {
+    const id = tabTitled(await this.state(), title);
+    return page.locator('#islandList').evaluate((list, tabId) => {
+      const band = list.querySelector(':scope > [data-group-id="recently-closed"]');
+      const next = band?.nextElementSibling;
+      return !!next && next.dataset.dragSection === 'loose'
+        && next.querySelector('[data-drag-tab]')?.dataset.tabId === tabId;
+    }, id);
+  }, Boolean, `Recently closed directly above ${title}`);
 });

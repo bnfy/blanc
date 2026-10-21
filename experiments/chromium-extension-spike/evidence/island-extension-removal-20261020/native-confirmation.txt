@@ -1,0 +1,10 @@
+The following is a diff from the previous accessibility tree for Window: "Remove "Extensity"?" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 0-14, 42-65
++42 window Remove "Extensity"?, Secondary Actions: Raise
++	43 container Remove "Extensity"?
++		44 container
++			45 heading Remove "Extensity"?
++			46 checkbox Report abuse, Value: 0
++			47 container
++				48 button Cancel
++				49 button Remove

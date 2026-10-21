@@ -1,0 +1,38 @@
+[
+  {
+    "case": "session-hold",
+    "boundedAssertionsPassed": true,
+    "checkpoints": 8,
+    "leftCount": 1,
+    "rightCount": 1,
+    "splitCount": 0,
+    "fullSplitRecoveryPassed": false
+  },
+  {
+    "case": "history-hold",
+    "boundedAssertionsPassed": true,
+    "checkpoints": 8,
+    "leftCount": 0,
+    "rightCount": 1,
+    "splitCount": 0,
+    "fullSplitRecoveryPassed": false
+  },
+  {
+    "case": "session-error-final",
+    "boundedAssertionsPassed": true,
+    "checkpoints": 9,
+    "leftCount": 1,
+    "rightCount": 1,
+    "splitCount": 0,
+    "fullSplitRecoveryPassed": false
+  },
+  {
+    "case": "history-error-final",
+    "boundedAssertionsPassed": true,
+    "checkpoints": 9,
+    "leftCount": 0,
+    "rightCount": 1,
+    "splitCount": 0,
+    "fullSplitRecoveryPassed": false
+  }
+]

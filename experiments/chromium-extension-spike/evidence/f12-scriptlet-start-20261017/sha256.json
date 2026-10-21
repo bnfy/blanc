@@ -1,0 +1,77 @@
+[
+  {
+    "path": "NOTICE",
+    "sha256": "ff0b0c18c0c67e46f82285f4f61a19353a2a1c1661b054f862e9e624ae2c7449",
+    "bytes": 1767
+  },
+  {
+    "path": "README.md",
+    "sha256": "7cc9186e46ad63f73da73bcf48caa7508f69bf7101d03e694f068ca4a88783bb",
+    "bytes": 5495
+  },
+  {
+    "path": "blanc-scriptlet-timing01-verified.json",
+    "sha256": "eca72318f8f46a06b2d871a60a6039470738007a5f1f6d03e438d6bb89abb68d",
+    "bytes": 4532
+  },
+  {
+    "path": "blanc-scriptlet-timing01.log",
+    "sha256": "d6d2facef0f107f6657af97ab435155cd4932cc0eb4a7fc6f847997b8a83b702",
+    "bytes": 743
+  },
+  {
+    "path": "blanc-scriptlet-timing01.tar.gz",
+    "sha256": "7eb28a637c92a959835eecddb75693127596d85069b4dc7bee1ba316804c032e",
+    "bytes": 16727
+  },
+  {
+    "path": "blanc-scriptlet-timing02-verified.json",
+    "sha256": "eca72318f8f46a06b2d871a60a6039470738007a5f1f6d03e438d6bb89abb68d",
+    "bytes": 4532
+  },
+  {
+    "path": "blanc-scriptlet-timing02.log",
+    "sha256": "3d87cfb9b3c1f00e455c0b2b93f5baa282d2cb76822d7b2e08ad5c128ba11da2",
+    "bytes": 768
+  },
+  {
+    "path": "blanc-scriptlet-timing02.tar.gz",
+    "sha256": "02bc7eb6cafa12d324e8f136da83259159644f97dcd7b5b97a8235209b4aedb0",
+    "bytes": 13498
+  },
+  {
+    "path": "build-check.log",
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+    "bytes": 196
+  },
+  {
+    "path": "lint.log",
+    "sha256": "d28cccbe19d52ad8a39585127f903975ddf7dbe2aac23494ee541232d06d8516",
+    "bytes": 38
+  },
+  {
+    "path": "scriptlet-source.json",
+    "sha256": "de7a8522dc92132e54549550b0864066a958ac0546391c9dafedeccbab17f665",
+    "bytes": 1422
+  },
+  {
+    "path": "scriptlet-timing-test.mjs",
+    "sha256": "ae58574e9998fecc639015d6f0814d352c04db63964bf416a821d2c26ffd6017",
+    "bytes": 1338
+  },
+  {
+    "path": "scriptlet-timing-verify.mjs",
+    "sha256": "5a62c89b62c94ce14567c651e1ef64e0749737129b5fe961ac187f0c4a7eedc7",
+    "bytes": 2187
+  },
+  {
+    "path": "tests.log",
+    "sha256": "c956225d00409f5b9f4ee12c20af6ee43121d3994562558188b2f4470f5bc094",
+    "bytes": 26859
+  },
+  {
+    "path": "update-loader-source.json",
+    "sha256": "f754985d00d93560104253478222637ef28ce6edd27dd93122b004c150a0daa3",
+    "bytes": 8730
+  }
+]

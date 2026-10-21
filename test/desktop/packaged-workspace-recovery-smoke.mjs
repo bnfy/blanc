@@ -24,6 +24,10 @@ const list = () => chrome.evaluate(() => window.browserAPI.listWorkspaces());
 const ready = () => wait(state, value => value.tabs.length && value.tabs.every(tab => !tab.isLoading), 'settled packaged workspace tabs', 20_000);
 const urls = [fixture.base + '/ordinary-one', fixture.base + '/ordinary-two'];
 const privateUrl = fixture.base + '/private-never-persisted';
+// The capture after the pin swap: since #933 a window's tab order is its drawn
+// order, and a grouped pin leads its group, so the newly pinned second tab
+// comes first.
+const drawn = [urls[1], urls[0]];
 fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, usagePing: false, searchSuggestions: false,
   patron: { kind: 'founding', activatedAt: Date.now() },
@@ -65,8 +69,8 @@ async function quit() {
 function assertDiskCapture(id) {
   const workspace = read('workspaces.json').workspaces.find(item => item.id === id);
   assert.ok(workspace);
-  assert.deepEqual(workspace.urls, urls);
-  assert.deepEqual(workspace.pinned, [false, true]);
+  assert.deepEqual(workspace.urls, drawn);
+  assert.deepEqual(workspace.pinned, [true, false]);
   assert.equal(workspace.groups.length, 1);
   assert.equal(workspace.groups[0].name, 'restart group');
   assert.equal(workspace.groups[0].collapsed, true);
@@ -106,21 +110,21 @@ try {
   }, { first, second });
   await quit();
   const capture = assertDiskCapture(id);
-  assert.equal(capture.activeIndex, 1);
+  assert.equal(capture.activeIndex, 0);
   assert.ok(read('session.json').windows.some(window => window.workspaceId === id), 'quit must durably save the newly created binding');
 
   const firstLoads = fixture.requests.pages['/ordinary-one'];
   await launch();
   let restored = await state();
   assert.equal((await list()).items.find(workspace => workspace.id === id)?.active, true);
-  assert.deepEqual(restored.tabs.map(tab => tab.url), urls);
+  assert.deepEqual(restored.tabs.map(tab => tab.url), drawn);
   assert.equal(restored.tabs.find(tab => tab.id === restored.activeTabId).url, urls[1]);
-  assert.equal(restored.tabs[0].asleep, true, 'inactive restored tab stays quiet');
-  assert.deepEqual(restored.tabs.map(tab => tab.pinned), [false, true]);
+  assert.equal(restored.tabs[1].asleep, true, 'inactive restored tab stays quiet');
+  assert.deepEqual(restored.tabs.map(tab => tab.pinned), [true, false]);
   assert.equal(restored.groups[0].name, 'restart group');
   assert.equal(restored.groups[0].collapsed, true);
   assert.equal(fixture.requests.pages['/ordinary-one'], firstLoads, 'startup must not load the quiet restored page');
-  await chrome.evaluate(id => window.browserAPI.switchTab(id), restored.tabs[0].id);
+  await chrome.evaluate(id => window.browserAPI.switchTab(id), restored.tabs[1].id);
   await ready();
   await wait(() => Promise.resolve(fixture.requests.pages['/ordinary-one']), value => value === firstLoads + 1, 'quiet page wakes exactly once');
 
@@ -136,7 +140,7 @@ try {
   assert.equal((await chrome.evaluate(id => window.browserAPI.restoreWorkspace(id), id)).ok, true);
   assert.equal((await chrome.evaluate(id => window.browserAPI.openWorkspace(id), id)).ok, true);
   await ready();
-  assert.deepEqual((await state()).tabs.map(tab => tab.url), urls);
+  assert.deepEqual((await state()).tabs.map(tab => tab.url), drawn);
   await quit();
   assertDiskCapture(id);
   console.log(`Packaged Workspace recovery PASS: ${JSON.stringify(runtime)}; new binding, groups/pins, private exclusion, quiet restore/wake, durable deleted recovery; three graceful process exits.`);

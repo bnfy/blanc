@@ -1,0 +1,18 @@
+{
+  "pin": "157.0.8103.6",
+  "cause": "Diagnostic receiver used crypto.randomUUID, absent in insecure data and opaque-created blob realms; integrated receiver avoids it, corrected diagnostic uses getRandomValues. Runtime snapshots prove secureContext=false and randomUUID=undefined in these three cases. No new Chromium permission patch was needed.",
+  "sourceFiles": [
+    {
+      "path": "extensions/common/content_script_injection_url_getter.cc",
+      "sha256": "0e910f78e40853cf5b25c398fe25fc418456791c288338aa6ac889b17415838d"
+    },
+    {
+      "path": "extensions/renderer/user_script_set.cc",
+      "sha256": "5d62a01388f0378851007cbcacb448b10be9bd67eaf54c5a9549729bd35e99b2"
+    },
+    {
+      "path": "extensions/renderer/script_context.cc",
+      "sha256": "25c0c94c8e16b41c198e9a5877ae768573d22aacb2e96900b5c8b5cb1fd77380"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+Window: "", App: Blanc Prototype.
+0 window Secondary Actions: Raise
+	1 container
+		2 scroll area
+			3 HTML content Extensity, URL: chrome-extension://jjmflmamggggndanpgfnpelongoepncg/index.html
+				4 heading  Extensity       , Value: 1
+					5 link  Extensity, Value: chrome.google.com/webstore/detail/jjmflmamggggndanpgfnpelongoepncg
+					6 link , Value: chrome.google.com/webstore/detail/extensity/jjmflmamggggndanpgfnpelongoepncg/reviews
+					7 link , Value: facebook.com/sharer/sharer.php?u=https%3A//chrome.google.com/webstore/detail/extensity/jjmflmamggggndanpgfnpelongoepncg?hl=en
+					8 link , Value: twitter.com/share?url=https://chrome.google.com/webstore/detail/jjmflmamggggndanpgfnpelongoepncg&via=ExtensityChrome&text=Keep%20control%20of%20your%20Chrome%20extensions%20with%20Extensity.%20Quickly%20enable/disable%20any%20extension!
+					9 link , Value: chrome-extension://jjmflmamggggndanpgfnpelongoepncg/options.html
+					10 link , Value: chrome-extension://jjmflmamggggndanpgfnpelongoepncg/profiles.html
+					11 link , Value: chrome://extensions/
+					12 link , Value: chrome-extension://jjmflmamggggndanpgfnpelongoepncg/index.html#
+				13 container
+					14 text 
+					15 text field (settable)
+				16 container
+					17 container
+						18 text  No Extensions or Apps found.
+19 menu bar
+	20 Blanc Prototype
+	21 File
+	22 Edit
+	23 View
+	24 History
+	25 Bookmarks
+	26 Profiles
+	27 Tab
+	28 Window
+	29 Help
+
+The focused UI element is 15 text field (settable)

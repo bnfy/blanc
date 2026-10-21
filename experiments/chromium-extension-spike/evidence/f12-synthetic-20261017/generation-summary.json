@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "kind": "synthetic-candidates-not-oracle",
+  "licence": "CC-BY-SA-3.0-or-later",
+  "attribution": "The EasyList authors",
+  "generatorSha256": "e27cbbe3051e35bd4fc1a66d32e4648952cd03ae996c7f0c17d438748aa965b5",
+  "generation": {
+    "algorithm": "literal-domain-anchor-v1",
+    "order": "pinned-list-order-then-line",
+    "limitPerSeedKind": 2500,
+    "maxPerListAndSeedKind": 1250,
+    "unconstrainedResourceType": "sha256(rule) first byte modulo script/image/stylesheet/xhr",
+    "deduplication": "exact URL across all sources; reruns and profile variants do not add candidates"
+  },
+  "sources": [
+    {
+      "file": "easylist.txt",
+      "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+    },
+    {
+      "file": "easyprivacy.txt",
+      "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+    }
+  ],
+  "counts": {
+    "blocking-candidate": 2500,
+    "near-miss-candidate": 2500,
+    "exception-candidate": 905
+  },
+  "sourceCounts": {
+    "easylist.txt:blocking-candidate": 1250,
+    "easylist.txt:exception-candidate": 345,
+    "easyprivacy.txt:blocking-candidate": 1250,
+    "easyprivacy.txt:exception-candidate": 560
+  },
+  "refusals": {
+    "metadata": 1042,
+    "unsupported-pattern": 6020,
+    "cosmetic-or-fragment": 24350,
+    "public-url-policy": 82,
+    "per-kind-cap": 96257,
+    "unsupported-modifier": 3756,
+    "multiple-resource-types": 57,
+    "unsupported-domain-scope": 210,
+    "duplicate-url": 9,
+    "first-party-domain-scope": 1
+  },
+  "observedDecisions": 0,
+  "acceptedOracleUrls": 0,
+  "captureProvenanceVerified": false,
+  "resourceTypeCounts": {
+    "stylesheet": 857,
+    "image": 1013,
+    "xhr": 937,
+    "script": 3098
+  },
+  "sourceRuleCount": 3405,
+  "distinctCandidateUrls": 5905,
+  "probeResults": {
+    "regular": {
+      "allDecisions": {
+        "allow": 21,
+        "block": 8
+      },
+      "candidateDecisions": {
+        "block": 8,
+        "allow": 16
+      }
+    },
+    "private": {
+      "allDecisions": {
+        "allow": 21,
+        "block": 8
+      },
+      "candidateDecisions": {
+        "block": 8,
+        "allow": 16
+      }
+    }
+  }
+}

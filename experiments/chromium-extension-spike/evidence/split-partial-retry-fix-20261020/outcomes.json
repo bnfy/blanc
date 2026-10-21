@@ -1,0 +1,36 @@
+{
+  "schedules": [
+    {
+      "schedule": "session",
+      "passed": true,
+      "checkpoints": 10
+    },
+    {
+      "schedule": "history",
+      "passed": true,
+      "checkpoints": 10
+    },
+    {
+      "schedule": "repeated",
+      "passed": true,
+      "checkpoints": 11
+    },
+    {
+      "schedule": "control-right",
+      "passed": true,
+      "checkpoints": 8
+    },
+    {
+      "schedule": "control-regression-private",
+      "passed": true,
+      "checkpoints": 2
+    },
+    {
+      "schedule": "control-regression-immediate",
+      "passed": true,
+      "checkpoints": 11
+    }
+  ],
+  "totalCheckpoints": 52,
+  "scope": "Injected Session/Tabs EIO; explicit reconciliation then same-owner history save; no power-loss or pre-ack guarantee."
+}

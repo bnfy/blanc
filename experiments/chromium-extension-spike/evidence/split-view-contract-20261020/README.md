@@ -1,0 +1,26 @@
+# Split View migration baseline — PR #993
+
+Reviewed source commit `98ea48fc01d79759cfef40009b18cf69715eaed8` from bnfy/blanc#993 on October 20, 2026. PR 1 implements two panes; the pure model supports 2–4. PR 2 features must not be claimed from that fact. The spec says Glance itself remains temporary: Keep as split creates persistent equal panes.
+
+## Contract and native mapping
+
+| Electron #993 behavior | Chromium work required |
+| --- | --- |
+| Focused pane equals activeTabId for Split View | Add distinct persistent-split mode; do not reuse Glance MainIndex for persistent split identity. |
+| Keep as split / Split with; initiating group wins | Native ownership/group eligibility validation and explicit conversion; preserve current ratio. |
+| One split row; shortcut counts once | Panel and rail cluster adapters, selection/focus and grouped moves. |
+| 30px headers on every pane; centered Island | Native geometry and header hit regions, divider/fallback implementation and visual comparison. |
+| splits + splitIds parallel to URLs | Native snapshot, Spaces store/journal/session schema and recovery must preserve these columns. |
+| Close Split is one Recently Closed entry | Persist membership/layout/focus and whole-entry restore; preserve legacy compatibility. |
+| Pin removes pane, keeps it shown; removed pane follows row | Explicit order and group policy across native tab actions. |
+| No quiet/archive for visible panes; no Glance while split visible | Lifecycle and eligibility guards across all command entrypoints. |
+
+## This checkpoint
+
+Copied the three first-party pure model/layout modules byte-for-byte into `electron-split-reference/`; provenance records source commit and SHA256 digests. Existing MIT terms apply. The Spaces capture adapter now delegates split serialization to that exact model and emits parallel splitIds plus layout/focusedIndex records. Seven tests pass, including restoration with new tab IDs, temporary Glance exclusion, private refusal and incomplete capture when an unsupported member is omitted.
+
+This adapter is not the native persistence implementation. Native SpaceCapture/SpaceDisk still need a versioned split-aware schema and validated restore. No live Split View UI, native multi-pane persistence, resize, focus or crash acceptance is claimed. Three/four-pane runtime support is not implemented. Imported Electron restore limitations (including malformed pinned/mixed-group records identified in #993) are not silently considered resolved; validate at the native admission boundary before enabling the feature.
+
+A draft older-Glance promotion implementation was compiled before the owner supplied #993. It was removed before commit/UI exposure and the normal binary restored by a second guarded incremental build. Its standalone policy tests are not Split View evidence. Retained preview was not restarted or modified. No upstream patch-count change; last authoritative inventory 49/117 within49/120. Latency deferred; Electron diagnostic build unapproved.
+
+Next: add an explicit native persistent-split snapshot/schema, preserve focused identity, and exercise Spaces capture/restore before exposing Keep as split. Treat the remaining #993 review findings as a checklist rather than migrating them blindly.

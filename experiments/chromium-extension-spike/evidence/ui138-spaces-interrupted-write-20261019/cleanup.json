@@ -1,0 +1,18 @@
+{
+  "stopped": [
+    {
+      "n": "chromium",
+      "pid": 76662
+    },
+    {
+      "n": "server",
+      "pid": 76620
+    }
+  ],
+  "profilesRemoved": true,
+  "previewTabs": [
+    "blanc://newtab/",
+    "https://chromewebstore.google.com/category/extensions"
+  ],
+  "status": ""
+}

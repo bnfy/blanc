@@ -79,17 +79,17 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries describe public v1.36.0; its scope, publication evidence,
-pre-release hand checks and adjacent public-feed updater handoffs are recorded
-in [the release report](release-incidents/2026-10-17-v1.36.0.md). Installed
+These boundaries describe public v1.39.0; its scope, publication evidence,
+hand checks and adjacent public-feed updater handoffs are recorded in
+[the release report](release-incidents/2026-10-19-v1.39.0.md). Installed
 candidates keep their original source/artifact bindings; hosted verification
 does not establish physical-machine outcomes. The v1.27.0 uBO acceptance, the
 v1.28.0 duplicate macOS build number, the v1.29.0, v1.30.0, v1.30.1, v1.31.0,
-v1.32.0, v1.33.0, v1.34.0 and v1.35.0 updater confirmations, the v1.35.0 hand checks, the v1.30.0 drag-to-reorder hands-on coverage, historical
+v1.32.0, v1.33.0, v1.34.0, v1.35.0, v1.36.0, v1.37.0 and v1.38.0 updater confirmations, the v1.35.0, v1.36.0, v1.37.0 and v1.38.0 hand checks, the v1.30.0 drag-to-reorder hands-on coverage, historical
 wallpaper/Linux waivers and earlier updater confirmations remain in their
 original reports:
 
-- **Optional uBlock Origin:** Public v1.36.0 offers full uBO 1.75.0 on
+- **Optional uBlock Origin:** Public v1.39.0 offers full uBO 1.75.0 on
   Apple Silicon, native Intel Mac, Windows x64 and Linux x64, on official
   Electron 44.8.0, unchanged since v1.35.0. The move from 44.5.1 passed the real blocking and tools
   suite on all four in hosted CI; the installed-candidate acceptance dates
@@ -189,14 +189,30 @@ original reports:
   Sync shares open tabs. History and Favorites keep the page's own title, and
   a private tab's name is kept only in memory. Blanc never names tabs itself:
   do not describe automatic, suggested or AI-generated tab names.
-- **Glance:** Glance shows one other tab the user picks, the reference,
-  beside or below the main page. Since v1.35.0 Reload, Close Tab, Find, zoom,
-  Print, Back, Forward, mouse gestures and the 1Password fill act on the pane
-  that has keyboard focus, while ⌘L, ⌘T, ⌘1–9, the shield and slash commands
-  stay on the main page. A link the reference opens in a new tab opens in
-  Glance, a link's right-click menu offers Open Link in Glance, and `/glance`
-  opens the picker. Glance holds one reference at a time; do not describe
-  more panes, tiling of several tabs, or automatic pairing of related pages.
+- **Glance:** Glance shows one other tab the user picks, the reference.
+  Since v1.40.0 it is a card floating over the current page (not beside or
+  below it): the page behind stays usable, the card moves by its header,
+  resizes from its edges, resets with a double-click on the header, and keeps
+  its place on this device. Switching tabs closes it; Open as tab makes the
+  Glance page the current tab, Keep as split turns the two into a Split View,
+  and Escape closes it from the card's header, never from inside the page.
+  Since v1.35.0 Reload, Close Tab, Find, zoom, Print, Back, Forward, mouse
+  gestures and the 1Password fill act on the pane that has keyboard focus,
+  while ⌘L, ⌘T, ⌘1–9, the shield and slash commands stay on the main page. A
+  link the reference opens in a new tab opens in Glance, a link's right-click
+  menu offers Open Link in Glance, and `/glance` opens the picker. Glance
+  holds one reference at a time; do not describe more panes, tiling of
+  several tabs, or automatic pairing of related pages. Material about v1.39.0
+  or earlier describes the side-by-side Glance of those releases.
+- **Split View:** Since v1.40.0 two tabs can show side by side in one window,
+  made from a tab's Split with menu or Glance's Keep as split. The divider
+  resizes the panes, the pane you click is the current tab, and a split stays
+  together in the ⌘L panel, after a relaunch and in Blanc Spaces. Remove from
+  Split takes one tab out; Close Split closes both, and Reopen Closed Tab
+  brings the split back. Two panes only: do not describe three or four panes,
+  a grid, or keyboard shortcuts for moving between panes. Pinned tabs can't
+  join a split, private tabs in a split aren't saved, and splits aren't
+  synced.
 - **Favorites import from signed-in Chrome profiles:** Since v1.35.0
   Favorites import from Chrome, Edge, Brave, Chromium and Vivaldi also reads a
   signed-in profile's separate account bookmarks file (`AccountBookmarks`)
@@ -209,14 +225,21 @@ original reports:
   categorize tabs semantically, or organize them automatically. Since v1.36.0
   a group name keeps the capitals the user types (matching ignores case),
   names saved in lowercase before that were given a capital first letter
-  once, and a group header's right-click menu offers Rename Group…, Ungroup
-  and Close Group.
+  once. Since v1.37.0 a group can carry one of the eight Spaces colors (off
+  by default), drawn as a tint on its block, a dot before its name and its
+  tabs' Island dots. Right-clicking a group header, or its ⋮ button, opens a
+  group menu with the name, the color, New Tab in Group, Move Group to New
+  Window, Ungroup and Close Group. On Linux, Move Group to New Window was
+  checked after release in an ARM64 VM on an unpackaged build, not on the x64
+  AppImage or a physical machine. A link
+  opened in a new tab from a grouped tab opens ungrouped, like any new tab.
 - **Drag to reorder:** Since v1.30.0 the user can drag tabs and group headers
   in the expanded Island and in vertical tabs, or use Alt/Option+Shift+Up and
   Down on a focused row or header. A drag can move a tab within its group,
   into another group or out of it, and reorder whole groups; it never changes
-  pinned state, and releasing over a page does nothing. Ordering is entirely
-  user-directed. The owner hand-tested it on macOS and Windows; Linux is
+  pinned state, and releasing over a page does nothing. Since v1.37.0
+  ungrouped tabs can also sit above, between or below groups; new tabs still
+  land at the bottom. Ordering is entirely user-directed. The owner hand-tested it on macOS and Windows; Linux is
   covered by hosted automated pointer tests only, so do not claim hands-on
   verification there.
 - **Favorites folder picker:** v1.25.0 keeps the move picker above neighboring
@@ -273,20 +296,49 @@ original reports:
   link `https://blanc.day/?ref=invite`; the user chooses the recipient and
   sends it. Without a mail app, Windows asks which app to use. Blanc copies
   the text only when the system reports that no mail app opened. That fallback
-  wasn't hand-checked on macOS, and on Linux v1.36.0 it never runs: Electron
-  reports the hand-off as successful even when no mail app is set up, so
-  nothing happens. Don't claim the copy fallback on Linux until a release
-  fixes it.
+  wasn't hand-checked on macOS. On Linux it never ran in v1.36.0 (Electron
+  reported every hand-off as successful); since v1.37.0 Blanc runs xdg-open
+  itself and copies when it fails. That was checked in an Ubuntu VM on an
+  unpackaged build before release, not on the packaged AppImage.
   Blanc sends nothing and
   learns nothing about who was invited; the link is the same for everyone, so
   invite landings can only be counted in aggregate by the website's
   consent-gated analytics. Do not describe referral rewards, per-person
   invite codes or tracking of invitees.
+- **Tab menu additions:** Since v1.37.0 a tab's right-click menu offers New
+  Tab Below, Close Tabs Above and Close Tabs Below (unpinned tabs only, as one
+  Recently closed entry), and Mute Site, which mutes every tab on that exact
+  host, including tabs opened there later, until Blanc quits. Site mutes are
+  never saved or synced. Don't describe Mute Site as permanent or as covering
+  a whole domain.
+- **Pinned pages:** Since v1.37.0 a pinned tab remembers the page it was
+  pinned on and starts there again after a normal quit and relaunch; after a
+  crash it reopens on the last page. Back to Pinned Page and Replace Pinned
+  Page with Current are in the tab menu. The owner confirmed on Windows that
+  after a v1.36.0 → v1.37.0 Restart Now there was no recovery prompt and
+  pinned tabs reopened at their pinned pages; that's a single machine, so
+  don't present it as tested across Windows setups.
+- **Open the Island on hover:** Since v1.37.0 an opt-in setting (off by
+  default, Settings → General) opens the ⌘L panel when the pointer rests on
+  the Island's address for 300 ms. It never opens from the rest of the Island.
+- **Bang row icons:** Since v1.37.0 bang rows in the ⌘L panel show site icons.
+  Blanc first uses an icon already in the profile from the user's own visits,
+  then a device-level copy, and otherwise asks `blanc.day/bang-icons/<host>`
+  for that one catalog site, only for rows that stayed on screen. Private
+  tabs, custom bangs and profiles that haven't saved their privacy choices
+  never ask. Don't say bang icons make no network request.
 - **What's new after an update:** Since v1.36.0, after Blanc restarts into a
   newer release, the Start Page footer shows a What's new pill linking to that
   release on the changelog for seven days or until it is opened or closed. It
   is device-local, takes the Patron pill's place, and never shows on fresh
   installs, downgrades, pre-releases or private tabs.
+  Since v1.39.0, after an update that changes the major.minor version, Blanc
+  also opens that release's What's New page on blanc.day once, as an ordinary
+  tab, and only after a cookie-less HEAD request (at most once per launch, for
+  up to seven days) finds the page. It never opens after a bug-fix update, a
+  fresh install, a pre-release or a downgrade, or as a private tab. The pill
+  links to that page once it is found. Don't claim it opened on a real update
+  until the release report records the v1.38.0 → v1.39.0 handoff.
 - **Default browser prompts:** Since v1.36.0 Finish setup leads with Make
   Blanc your default on macOS and Windows and checks it off once Blanc is the
   default. On a new install that finished setup without switching, Blanc asks
@@ -337,6 +389,48 @@ original reports:
   and immediate changes for reduced motion. Optional Sync carries only the
   preference; each device computes its own phase. Physical Windows/Linux
   appearance and lifecycle acceptance was waived, not passed.
+- **Your own Start Page image:** Since v1.38.0 the Customize popover's
+  Wallpaper section (and Settings → General → Start Page image) can show a
+  JPEG or PNG of the user's own, up to 25 MB, with Wash (Auto, Light, Dark,
+  Spotlight) and Fade controls. Blanc stores a copy fitted inside 3840 px with
+  every metadata field except orientation removed, owner-only on this device.
+  The image and its controls are never synced, and private tabs never show
+  it. The owner hand-checked it on Windows; the Linux hand check (file
+  picker, phone photos staying upright) was waived, not passed, so don't
+  claim hands-on Linux verification.
+- **Start Page color:** Since v1.38.0 the Wallpaper section offers Color: one
+  of the eight Spaces presets as a Soft, Solid or Gradient fill, plus Match
+  each space's color, which paints a window that belongs to a space in that
+  space's color. These choices sync with Profile Sync; a device's own image
+  still takes priority on that device, and private tabs never show a color.
+  Hand-checked on Windows; the Linux check was waived as above. Don't describe a
+  separate image per space; that isn't shipped.
+- **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
+  (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
+  strip so the page fills the window. Pointing at or just above the top edge,
+  resting near the top, or any Island surface such as ⌘L brings it back. It is
+  off by default. On native Wayland the band above a floating window can't
+  reveal it; don't claim it works identically there. In v1.39.0 revealing
+  it moved the page down. Since v1.40.0 the revealed Island floats over the
+  page by default (**When the Island comes back**: Float over the page, or
+  Push the page down); while it floats it comes back only from the top edge
+  or ⌘L and hides once the pointer moves into the page, and the window
+  buttons hide and come back with it.
+- **Tab Archive:** Since v1.39.0 Settings → General → Archive inactive tabs
+  (Off by default; 12 hours, 1 day, 7 days or 30 days) closes idle loose tabs
+  into a per-profile, device-local Archive kept 30 days (up to 500), restored
+  from the ⌘L panel or History → Archived tabs. Pinned, grouped and private
+  tabs are never archived, nor a tab playing or capturing media, awaiting a
+  permission prompt or holding form input. An update never turns it on; a
+  new profile's onboarding offers it. The Archive keeps no page state or back
+  history and is never synced. The hand checks passed on October 20, 2026:
+  the installed Mac app (owner), the published Windows build, and on Linux
+  an ARM64 package of the release commit that exercised the sweep, not the
+  interface. Don't claim a hands-on check of the published x64 AppImage.
+- **Sunrise Gold:** Since v1.39.0 Settings → General → App icon offers Sunrise
+  Gold on macOS only, alongside Sunrise and Sunrise Dark. It isn't a Patron
+  perk, and Windows and Linux don't offer it. In the Clear and Tinted icon
+  styles macOS shows the styled bundle icon instead.
 - **Linux AppImage:** v1.24.0 removes the host FUSE 2 library dependency and
   fixes sandbox-disabling packaged desktop arguments. Existing integrated
   shortcuts need reintegration. The launcher can still disable Chromium's

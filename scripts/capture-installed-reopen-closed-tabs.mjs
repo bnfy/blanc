@@ -35,12 +35,15 @@ const groups = [
   { id: 'capture-painting', name: 'Painting class', collapsed: false },
   { id: 'capture-lisbon', name: 'Lisbon trip', collapsed: false },
 ];
-const met = 'https://www.metmuseum.org/art/collection/search/436535';
+// BLANC_CAPTURE_FRONT_URL and BLANC_CAPTURE_FRONT_TITLE replace the active
+// Painting class page (default The Met's Wheat Field with Cypresses).
+const met = process.env.BLANC_CAPTURE_FRONT_URL || 'https://www.metmuseum.org/art/collection/search/436535';
+const frontTitle = process.env.BLANC_CAPTURE_FRONT_TITLE || 'Wheat Field with Cypresses';
 const impasto = 'https://en.wikipedia.org/wiki/Impasto';
 const vanGogh = 'https://en.wikipedia.org/wiki/Vincent_van_Gogh';
 // [url, title, group]
 const tabs = [
-  [met, 'Wheat Field with Cypresses', 'capture-painting'],
+  [met, frontTitle, 'capture-painting'],
   [impasto, 'Impasto - Wikipedia', 'capture-painting'],
   [vanGogh, 'Vincent van Gogh - Wikipedia', null],
   ['https://en.wikipedia.org/wiki/Lisbon', 'Lisbon - Wikipedia', 'capture-lisbon'],

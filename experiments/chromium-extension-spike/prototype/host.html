@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="host.css">
   <link rel="stylesheet" href="extensions.css">
   <script src="extensions.js" defer></script>
+  <script src="installed-theme.js" defer></script>
   <script src="host.js" defer></script>
 </head>
 <body>
@@ -20,14 +21,15 @@
     <label class="extension-search"><img src="icons/search.svg" alt="">
       <input id="extensionSearch" type="search" placeholder="Find an extension…" aria-label="Find an extension" role="combobox" aria-expanded="true" aria-controls="extensionList" aria-autocomplete="list" autocomplete="off" spellcheck="false">
     </label>
-    <div id="extensionList" role="listbox" aria-label="Installed extensions"></div>
+    <div id="extensionList" role="listbox" aria-label="Installed extensions and Chrome Web Store results"></div>
     <p id="extensionMessage" role="status"></p>
     <footer class="extensions-footer">
       <button id="extensionsManage"><img src="icons/settings.svg" alt="">Manage extensions</button>
-      <button id="extensionsGet"><img src="icons/external-link.svg" alt="">Get extensions</button>
+      <button id="extensionsGet"><img src="icons/external-link.svg" alt="">Browse web store</button>
     </footer>
     <div class="extensions-keys">↑ ↓ to move &nbsp; Enter to open &nbsp; Esc to close</div>
   </section>
+  <section id="splitHeaders" aria-label="Split View panes" hidden></section>
   <div id="status" role="status" hidden></div>
 </body>
 </html>

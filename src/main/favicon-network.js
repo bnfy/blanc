@@ -113,7 +113,22 @@ function redirectSource(source, statusCode, location) {
   }
 }
 
-async function readIconBytesOnce(source, { signal, lookup } = {}) {
+/** What to do with a response: read its body ('read'), follow a redirect,
+ * report its status (only when the caller asked for one; bang icons tell a
+ * definite 404 from a failure) or give up (null). */
+function responseOutcome(statusCode, location, sourceHref, { statusResult = false } = {}) {
+  const redirect = redirectSource(sourceHref, statusCode, location);
+  if (redirect) return { redirect };
+  if (statusCode === 200) return 'read';
+  return statusResult && Number.isInteger(statusCode) ? { status: statusCode } : null;
+}
+
+async function readIconBytesOnce(source, {
+  signal,
+  lookup,
+  timeoutMs = TIMEOUT_MS,
+  statusResult = false,
+} = {}) {
   const target = await resolvePinnedTarget(source, lookup);
   if (!target || signal?.aborted) return null;
   return new Promise((resolve) => {
@@ -150,14 +165,15 @@ async function readIconBytesOnce(source, { signal, lookup } = {}) {
           response.resume();
           return done(null);
         }
-        const redirect = redirectSource(target.url.href, response.statusCode, response.headers.location);
-        if (redirect) {
+        const outcome = responseOutcome(
+          response.statusCode,
+          response.headers.location,
+          target.url.href,
+          { statusResult },
+        );
+        if (outcome !== 'read') {
           response.resume();
-          return done({ redirect });
-        }
-        if (response.statusCode !== 200) {
-          response.resume();
-          return done(null);
+          return done(outcome);
         }
         const declaredContentType = String(response.headers['content-type'] ?? '');
         if (!model.canReadFaviconResponse(declaredContentType, target.url.href)) {
@@ -190,22 +206,23 @@ async function readIconBytesOnce(source, { signal, lookup } = {}) {
     } catch {
       return done(null);
     }
-    request.setTimeout(TIMEOUT_MS, () => request.destroy(new Error('favicon timeout')));
+    request.setTimeout(timeoutMs, () => request.destroy(new Error('favicon timeout')));
     request.on('error', () => done(null));
     request.end();
   });
 }
 
 async function readIconBytes(source, options = {}) {
+  const { maxRedirects = MAX_REDIRECTS, ...once } = options;
   let current = source;
   const seen = new Set();
-  for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
+  for (let redirects = 0; redirects <= maxRedirects; redirects++) {
     if (seen.has(current)) return null;
     seen.add(current);
-    const result = await readIconBytesOnce(current, options);
+    const result = await readIconBytesOnce(current, once);
     if (!result) return null;
     if (!result.redirect) return result;
-    if (redirects === MAX_REDIRECTS) return null;
+    if (redirects === maxRedirects) return null;
     current = result.redirect;
   }
   return null;
@@ -219,4 +236,5 @@ module.exports = {
   resolvePinnedTarget,
   pinnedLookup,
   readIconBytes,
+  responseOutcome,
 };

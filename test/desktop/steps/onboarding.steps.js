@@ -139,3 +139,68 @@ Then('the browser lookup has not run', async function () {
   assert.equal(dom.findHidden, false);
   assert.equal(dom.options.some((label) => !/bookmarks file/.test(label)), false);
 });
+
+// ---- F52 spec D5: the Tab Archive offer in "Meet the island" ----
+
+When("I reach the walkthrough's island step", async function () {
+  await waitForValue(
+    () => this.call('readOnboardingDom'),
+    (dom) => dom?.shown === true,
+    'onboarding walkthrough to open'
+  );
+  assert.equal(await this.call('advanceOnboardingTo', 2), true);
+});
+
+Then('Tab Archive is offered on, after 7 days', async function () {
+  const offer = await this.call('readOnboardingArchiveOffer');
+  assert.equal(offer?.hidden, false);
+  assert.equal(offer.checked, true);
+  assert.match(offer.label, /7 days/);
+});
+
+Then('Tab Archive is not offered', async function () {
+  const offer = await this.call('readOnboardingArchiveOffer');
+  assert.equal(offer?.hidden, true);
+});
+
+When('I turn the Tab Archive offer off', async function () {
+  assert.equal(await this.call('clickOnboarding', '#obArchive'), true);
+  const offer = await this.call('readOnboardingArchiveOffer');
+  assert.equal(offer.checked, false);
+});
+
+When('I continue past the island step', async function () {
+  assert.equal(await this.call('clickOnboarding', '#obNext'), true);
+  await waitForValue(
+    () => this.call('readOnboardingDom'),
+    (dom) => dom?.step === '3',
+    'onboarding to move past the island step'
+  );
+});
+
+Then('tab archiving is set to 7 days', async function () {
+  await waitForValue(() => this.call('tabArchiveSetting'), (value) => value === '7d', 'tab archiving to be 7 days');
+});
+
+Then('tab archiving is off', async function () {
+  // Give a wrong write a beat to land before asserting nothing changed.
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  assert.equal(await this.call('tabArchiveSetting'), 'off');
+});
+
+When('I replay the welcome tour', async function () {
+  await this.call('openTab', 'blanc://newtab/?tour=1');
+  await waitForValue(
+    () => this.call('readOnboardingDom'),
+    (dom) => dom?.shown === true,
+    'the welcome tour to open'
+  );
+});
+
+Then('onboarding cannot turn tab archiving on', async function () {
+  // The page's own bridge, as a tampered tour page would call it: main still
+  // refuses because first run is complete.
+  await this.call('sendOnboardingSet', { tabArchive: '7d' });
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  assert.equal(await this.call('tabArchiveSetting'), 'off');
+});

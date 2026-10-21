@@ -1,0 +1,14 @@
+{
+  "README.md": "897de89eea92cb39253d33fa0d4915c1c46c0ad384b886c3b7a1e5ec143f960b",
+  "blanc-close-build.log": "55d6c597a3bce81e786eab87a01297be4ea82bf4fa4c433f4ae7f7acf938d83e",
+  "blanc-close-guard.log": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+  "blanc-close-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "blanc-close-regression.log": "7534d865a5f0b823b73507704d6efff3d33c1227e1c517e50a2433b4e47f57f0",
+  "check-test.browser.log": "2046b8cc15590b3f1ec58565bcafea58d9c88d3bf44e5c982f23a3c8cdd5acac",
+  "check-test.json": "e982344fddf28096f2c84c6e526f5de1dd1a6b859bdd69b5825dbbbe11b61339",
+  "check-test.mjs": "a532c58b98e7177735690a40576e7e323442ee1de3ee7bb87a284b3408a728a2",
+  "click-test.browser.log": "7b3dcb815c8edb49e58d6522475e30940555b9901b3e11576eabecb7f83ecb19",
+  "click-test.json": "e982344fddf28096f2c84c6e526f5de1dd1a6b859bdd69b5825dbbbe11b61339",
+  "click-test.mjs": "883efd1bdae1896ec2f4e4ef2a13a77514a0be36078fea476f1e57fb95116194",
+  "dev-restart.json": "ab518136f2e827520f02846fede4cdf0d1c33728e6a2a9715e228f269ce89783"
+}

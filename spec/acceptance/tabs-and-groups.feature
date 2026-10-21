@@ -1,6 +1,6 @@
 @tabs
 Feature: Tabs and tab groups
-  Tab lifecycle and the named-group model. Groups have names not colors, exist
+  Tab lifecycle and the named-group model. Groups have names (and an optional color), exist
   only while non-empty, and the pill shows standalone pins plus the active
   section while accounting for every other tab in its global remainder.
 
@@ -137,6 +137,14 @@ Feature: Tabs and tab groups
     Then the group "Work" no longer exists
     And the tabs on "rename-first" and "rename-other" are ungrouped
 
+  @F3-21 @F3 @desktop
+  Scenario: A link opened from a grouped tab opens ungrouped, where a new tab goes
+    Given a tab in a group named "Work" with a link that opens a new tab
+    When I click that link in the grouped tab
+    Then the linked page opens in a new tab with no group
+    And that tab comes after the other ungrouped tabs
+    And the group "Work" still holds only the opener
+
   @F46-1 @F46 @desktop
   Scenario: Rename Tab… names the right-clicked tab
     Given a tab open on "rename-first"
@@ -205,3 +213,144 @@ Feature: Tabs and tab groups
     Given a tab on "rename-first" named "Budget"
     When the page on "rename-first" starts loading
     Then the command panel row for "rename-first" reads "Budget"
+
+  @F48-1 @F48 @pinned-home @desktop
+  Scenario: Browsing a pinned tab keeps its session history
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I switch away from and back to the pinned tab
+    Then the pinned tab is still on "pinned-b"
+    When I go Back in the pinned tab
+    Then the pinned tab reaches its home "pinned-a"
+
+  @F48-2 @F48 @pinned-home @desktop
+  Scenario: A clean relaunch returns a pinned tab to its home
+    Given a pinned tab whose slow home is "pinned-slow-home"
+    And that pinned tab has gone to "pinned-last-page"
+    When I relaunch Blanc
+    Then the restored pinned tab starts loading "pinned-slow-home" with the saved title "pinned-last-page"
+
+  @F48-3 @F48 @pinned-home @desktop
+  Scenario: Pin controls deliberately change the home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I unpin and re-pin that tab
+    Then its pinned home is "pinned-b"
+    When that pinned tab goes to "pinned-c"
+    And I make the current page its pinned home
+    And I relaunch Blanc
+    Then the restored pinned tab is on "pinned-c"
+    When that pinned tab goes to "pinned-d"
+    And I return it to its pinned home
+    Then the pinned tab is on "pinned-c"
+
+  @F48-4 @F48 @pinned-home @desktop
+  Scenario: Quiet and private tabs keep the pinned-home privacy rules
+    Given a pinned background tab on "pinned-quiet"
+    When I quiet that pinned tab
+    Then its pinned home is "pinned-quiet"
+    When I pin a private tab on "pinned-secret"
+    Then session.json contains neither the private page nor its pinned home
+
+  @F48-5 @F48 @pinned-home @desktop
+  Scenario: Tab and Space transfers retain the pinned home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    Then duplicate, reopen, move-window, and Space copies retain its pinned home
+
+  @F48-6 @F48 @pinned-home @desktop
+  Scenario: Clearing history does not clear a pinned home
+    Given a pinned tab whose home is "pinned-a"
+    When that pinned tab goes to "pinned-b"
+    And I clear browsing history
+    And I relaunch Blanc
+    Then the restored pinned tab is on "pinned-a"
+
+  @F48-7 @F48 @pinned-home @desktop
+  Scenario: A local-file home follows the normal file-access policy
+    Given a pinned local HTML file
+    When that pinned tab goes to "pinned-web-page"
+    Then Back to Pinned Page follows the local-file access policy
+
+  @F3-27 @F3 @desktop
+  Scenario Outline: Color a group from its menu
+    Given a group "work" with 2 tabs
+    When I open the group menu for "work" in the <surface>
+    And I choose the color "sky" in the group menu
+    Then the group "work" has the color "sky"
+    And the "work" block in the <surface> is tinted "sky"
+    And the Island's dots are "sky"
+
+    Examples:
+      | surface |
+      | rail    |
+      | island  |
+
+  @F3-28 @F3 @desktop
+  Scenario: Clear a group's color
+    Given a group "work" with 2 tabs
+    And the group "work" is colored "rose"
+    When I open the group menu for "work" in the island
+    And I choose No color in the group menu
+    Then the group "work" has no color
+    And the "work" block in the island is not tinted
+
+  @F3-29 @F3 @desktop
+  Scenario: A group's color survives a relaunch
+    Given a group "work" with 2 tabs
+    And the group "work" is colored "sage"
+    When I relaunch Blanc
+    Then the group "work" has the color "sage"
+
+  @F3-30 @F3 @desktop
+  Scenario: A closed colored group reopens colored
+    Given a group "work" holding 2 tabs
+    And the group "work" is colored "iris"
+    When I close the group "work"
+    And I reopen the last closed tab
+    Then the group "work" has the color "iris"
+
+  @F3-31 @F3 @desktop
+  Scenario: New Tab in Group and Move Group to New Window
+    Given a tab open on "loose-stays"
+    And a group "work" with 2 tabs
+    And the group "work" is colored "clay"
+    When I choose "New Tab in Group" in the group menu for "work"
+    Then the group "work" holds 3 tabs with the new tab last and selected
+    When I choose "Move Group to New Window" in the group menu for "work"
+    Then a new window holds the group "work" with 3 tabs and the color "clay"
+    And the first window no longer has the group "work"
+
+  @F3-32 @F3 @desktop
+  Scenario: Opening the panel closes a side-list group menu
+    Given a group "work" with 2 tabs
+    When I open the group menu for "work" in the rail
+    And the island panel opens over it
+    Then no group menu is open
+    And no side-list group header is marked open
+    And a click in the island panel keeps it open
+  @F2-9 @F2 @desktop
+  Scenario: New Tab Below opens inside the group, directly below
+    Given a group "work" with 2 tabs
+    When I choose New Tab Below on the first "work" tab
+    Then a new tab is selected directly below the first "work" tab, in "work"
+
+  @F2-10 @F2 @desktop
+  Scenario: Close Tabs Below is one step to undo
+    Given a tab open on "keep-here"
+    And a tab open on "gone-one"
+    And a tab open on "gone-two"
+    When I choose Close Tabs Below on the tab on "keep-here"
+    Then the tabs on "gone-one" and "gone-two" are closed and "keep-here" is selected
+    When I reopen the last closed tab
+    Then the tabs on "gone-one" and "gone-two" are open again
+
+  @F2-11 @F2 @desktop
+  Scenario: Mute Site lasts until Blanc quits
+    Given tabs open on "site-a" and "site-b"
+    When I choose Mute Site on the tab on "site-a"
+    Then the tabs on "site-a" and "site-b" are muted
+    When I open a tab on "site-c"
+    Then the tab on "site-c" is muted
+    When I relaunch Blanc
+    Then the tab on "site-a" is not muted

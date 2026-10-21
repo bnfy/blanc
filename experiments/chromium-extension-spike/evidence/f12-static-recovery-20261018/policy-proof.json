@@ -1,0 +1,10 @@
+{
+  "verified": true,
+  "headerHttpControls": 5,
+  "inheritedStaticDeliveries": 10,
+  "pagePoliciesRemainEnforced": true,
+  "reportOnlyObserved": true,
+  "duplicateBodies": 0,
+  "fullContainment": false,
+  "latencyMeasured": false
+}

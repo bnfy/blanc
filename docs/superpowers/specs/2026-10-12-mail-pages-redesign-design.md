@@ -328,7 +328,10 @@ These supersede the earlier sections where they differ.
   no Download pill styling, so the Mail bar reads as the page's navigation.
 - **Bar breakpoints.** The six links fold into the page menu at 880px and
   narrower (not 640px). At 480px and narrower Join reads "Join" on screen
-  and keeps the accessible name "Join the waitlist".
+  and keeps the accessible name "Join the waitlist". At 340px and narrower
+  the bar's side margins are 12px and the page menu's padding 6px, so every
+  page name shows whole at 320px; in a wider font the page name shortens
+  with an ellipsis rather than push the page sideways (October 17, 2026).
 - **Screenshots large and unframed.** The hero, the Island, Inbox Zero and
   the light/dark compare are wider than the text column (up to 1360px, never
   wider than the viewport minus 32px) with no frame. On phones they crop to

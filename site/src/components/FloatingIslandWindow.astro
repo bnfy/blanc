@@ -1,0 +1,63 @@
+---
+// The homepage's first screen: a page filling a published v1.40.0 Blanc window
+// with Auto-hide on (float style), and the app's own Island floating back over
+// it. The page, the window's frame and its buttons are captures; the Island is
+// the app's markup and CSS. Spec: docs/superpowers/specs/2026-10-21-floating-island-homepage-hero-design.md
+import styles from '../../../src/renderer/styles.css?raw';
+import document from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import nativeFont from '../../../src/renderer/pages/inter-latin.woff2?url';
+import nativeTextFont from '../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2?url';
+import ledger from '../../../docs/website-captures-float-island-v1.40.0.json';
+import { nativeIslandArt, namespaceNativeArt } from '../lib/native-island-art.mjs';
+import { fitFloatIsland } from '../scripts/floating-island-hero.js';
+import '../styles/float-window.css';
+
+const { measured } = ledger;
+const art = nativeIslandArt({ styles, document, renderer });
+// The captured state: one tab on The Met, opened fresh (Back and Forward both
+// off), with the blocker count the app showed for it.
+const sampleHtml = art.html
+  .replace('<div id="pillNav" class="pill-btns"><button class="pill-btn" >', '<div id="pillNav" class="pill-btns"><button class="pill-btn" disabled>')
+  .replace('blanc.day', measured.pill.domain)
+  .replace('background-image:url(/favicon.svg)', 'background-image:url(/revamp/metmuseum-favicon.png)')
+  .replace(/<div id="pillDots">[\s\S]*?<\/div>/, `<div id="pillDots">${Array.from({ length: measured.pill.dots }, (_, i) => `<button class="island-dot${i === measured.pill.activeDot ? ' active' : ''}"></button>`).join('')}</div>`)
+  .replace('<span id="pillShieldCount">1</span>', `<span id="pillShieldCount">${measured.pill.shieldCount}</span>`);
+const presentation = `
+  :host {display:block; width:100%; height:100%; font:13px var(--font-text); letter-spacing:var(--text-tracking); word-spacing:var(--text-word-spacing); color:var(--text);}
+  .native-stage {display:grid; place-items:center; height:100%;}
+  [hidden] {display:none!important;}
+  #islandPill {margin:0; max-width:none; flex:none; width:max-content; zoom:calc(var(--pill-zoom) * var(--art-scale, 1)); box-shadow: var(--shadow-island-float);}
+`;
+const { html, css } = namespaceNativeArt({ html: sampleHtml, css: art.css + presentation }, 'float-hero-');
+// Every layer is placed in percent of the captured window, from the ledger.
+const pct = (value: number, total: number) => `${(value / total) * 100}%`;
+const { window: win, islandRect: island, trafficLightsRect: lights } = measured;
+const geometry = [
+  `--window-ratio:${win.width} / ${win.height}`,
+  `--island-x:${pct(island.x, win.width)}`, `--island-y:${pct(island.y, win.height)}`,
+  `--island-w:${pct(island.width, win.width)}`, `--island-h:${pct(island.height, win.height)}`,
+  `--lights-x:${pct(lights.x, win.width)}`, `--lights-y:${pct(lights.y, win.height)}`,
+  `--lights-w:${pct(lights.width, win.width)}`,
+].join(';');
+---
+<style is:inline set:html={`@font-face {font-family:Inter;src:url('${nativeFont}') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}@font-face {font-family:"Instrument Sans";src:url('${nativeTextFont}') format('woff2');font-style:normal;font-weight:400 700;font-stretch:75% 100%;font-display:swap;}`} />
+<figure class="float-window" data-float-window data-state="shown" tabindex="0" style={geometry}>
+  <picture class="float-window-page">
+    <source media="(max-width: 760px)" srcset="/revamp/float-island-hidden-v1.40.0-800.webp" width="800" height="500" />
+    <img src="/revamp/float-island-hidden-v1.40.0-display.webp" width="2560" height="1600" alt="" decoding="async" fetchpriority="high" draggable="false" />
+  </picture>
+  <img class="float-window-lights" src="/revamp/float-island-lights-v1.40.0.webp" width={lights.width * measured.scale} height={lights.height * measured.scale} alt="" decoding="async" draggable="false" />
+  <div class="float-window-island">
+    <blanc-native-island class="hero-native-model" data-appearance="light" aria-hidden="true" inert>
+      <template shadowrootmode="open">
+        <style is:inline set:html={css} />
+        <div class="native-stage" set:html={html}></div>
+      </template>
+    </blanc-native-island>
+  </div>
+  <script is:inline set:html={`(${fitFloatIsland.toString()})(document.currentScript.previousElementSibling, window);`} />
+  <svg class="float-window-pointer" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5v17.2l4.3-4.1 2.8 6.4 3-1.3-2.8-6.3h6Z" /></svg>
+  <figcaption class="sr-only">A web page filling a Blanc window to its top edge. With Auto-hide on, Blanc’s Island hides, then floats back over the page when the pointer reaches the top edge.</figcaption>
+</figure>
+<noscript><style>.float-window .hero-native-model {--art-visibility: visible;}</style></noscript>

@@ -1,0 +1,807 @@
+{
+  "runId": "63210d9c-7a97-4ead-b6cc-8667ebcb178a",
+  "bundleSha256": "5776d55101a0b982b9a5a223cefdc475f45cce64234fc127f501b16c911421e3",
+  "complete": true,
+  "faults": [
+    {
+      "fault": "decision-scrub-refused"
+    }
+  ],
+  "records": [
+    {
+      "requestId": "51",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "method": "GET",
+      "resourceType": "mainFrame",
+      "referrer": "",
+      "initiatorOrigin": null,
+      "initiatorOriginPresent": false,
+      "webContentsId": 4,
+      "frame": {
+        "url": "",
+        "origin": "null",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "",
+        "topOrigin": "null"
+      },
+      "tabUrl": "",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.440Z",
+      "result": {}
+    },
+    {
+      "requestId": "52",
+      "url": "https://00e2120672.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.498Z",
+      "result": {
+        "cancel": true
+      }
+    },
+    {
+      "requestId": "53",
+      "url": "https://015ea24446.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.501Z",
+      "result": {
+        "cancel": true
+      }
+    },
+    {
+      "requestId": "54",
+      "url": "https://01counter.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.501Z",
+      "result": {
+        "cancel": true
+      }
+    },
+    {
+      "requestId": "55",
+      "url": "https://029519cbdc.com/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.502Z",
+      "result": {
+        "cancel": true
+      }
+    },
+    {
+      "requestId": "56",
+      "url": "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.502Z",
+      "result": {}
+    },
+    {
+      "requestId": "57",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-aa633f858becb5b4.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.508Z",
+      "result": {}
+    },
+    {
+      "requestId": "58",
+      "url": "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.508Z",
+      "result": {}
+    },
+    {
+      "requestId": "59",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-96dabf2d57dfa9c7.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.516Z",
+      "result": {}
+    },
+    {
+      "requestId": "60",
+      "url": "https://01counter.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.516Z",
+      "result": {}
+    },
+    {
+      "requestId": "61",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-64c4b20543a5a4b8.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.520Z",
+      "result": {}
+    },
+    {
+      "requestId": "62",
+      "url": "https://029519cbdc.com.blanc-control.test/blanc-fixture/resource.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.520Z",
+      "result": {}
+    },
+    {
+      "requestId": "64",
+      "url": "https://accuweather.com/bundles/prebid.",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.523Z",
+      "result": {}
+    },
+    {
+      "requestId": "65",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-a808f336ec47f49a.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.526Z",
+      "result": {}
+    },
+    {
+      "requestId": "66",
+      "url": "https://adap.tv/redir/javascript/vpaid.js",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.527Z",
+      "result": {}
+    },
+    {
+      "requestId": "67",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-37ce10237691dc1c.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.530Z",
+      "result": {}
+    },
+    {
+      "requestId": "68",
+      "url": "https://apv-launcher.minute.ly/api/",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.530Z",
+      "result": {}
+    },
+    {
+      "requestId": "69",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-f7d0ee624862e889.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.533Z",
+      "result": {}
+    },
+    {
+      "requestId": "70",
+      "url": "https://basinnow.com/upload/settings/advertise-img.jpg",
+      "method": "GET",
+      "resourceType": "script",
+      "referrer": "https://page.blanc-fixture.test/",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.533Z",
+      "result": {}
+    },
+    {
+      "requestId": "71",
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-41e9d59d2580800f.json",
+      "method": "GET",
+      "resourceType": "xhr",
+      "referrer": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "initiatorOrigin": "https://page.blanc-fixture.test",
+      "initiatorOriginPresent": true,
+      "webContentsId": 4,
+      "frame": {
+        "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "origin": "https://page.blanc-fixture.test",
+        "routingId": 1,
+        "processId": 8,
+        "topUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+        "topOrigin": "https://page.blanc-fixture.test"
+      },
+      "tabUrl": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "profileKind": "regular",
+      "sessionPersistent": true,
+      "provider": "blanc",
+      "status": {
+        "id": "blanc",
+        "phase": "ready",
+        "error": null
+      },
+      "timestamp": "2026-10-17T18:54:25.536Z",
+      "result": {}
+    }
+  ],
+  "arrivals": [
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/index.html",
+      "sha256": "c27acaabc46c59fe02253d69ba971b85cbf3f7641ceeae13277209029e8d79a2",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "d10d20a9fe3089fa19e2a6c28942968f7b1e497ac997ded1d9704aa863ff36fe",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-aa633f858becb5b4.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "7db905001eabd5dc8539b6f5f27845beb7c4acaaf9f42dbd4b9b90744b55808e",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-96dabf2d57dfa9c7.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://01counter.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "dcb907d01f20b5b29a0fa8f57ec1825172a5a9cd7fc8964d5910a788018902e6",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-64c4b20543a5a4b8.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://029519cbdc.com.blanc-control.test/blanc-fixture/resource.js",
+      "sha256": "e22f1d786ee073343e579ad6c60d07b2dcb63782eb81b53775d5b0df62a4120b",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-ad176970065255f5.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://accuweather.com/bundles/prebid.",
+      "sha256": "5c8191fe0528da1a8e90e089dc4b1acd97828ac2d22170731e8033c92c7db730",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-a808f336ec47f49a.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://adap.tv/redir/javascript/vpaid.js",
+      "sha256": "089476613554f26008b8403536d04b92f939cba6fc0d330710254fd61aa90c42",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-37ce10237691dc1c.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://apv-launcher.minute.ly/api/",
+      "sha256": "6a96dda5e1d051faffae8ed1d9e7b6404339cfc61de1a85caf5d14a488f46f45",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-f7d0ee624862e889.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://basinnow.com/upload/settings/advertise-img.jpg",
+      "sha256": "e64a10c9649d976c10d48aa42d52348ff2f9632ffbb53b9497f26fbb7564c2db",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    },
+    {
+      "url": "https://page.blanc-fixture.test/blanc-fixture/child/case-41e9d59d2580800f.json",
+      "sha256": "f56432bd8bdaa4334f38c831e6c8ab1f1cbbf7b9b1286aaeec7c566610d1e382",
+      "protocol": {
+        "browserToProxy": {
+          "httpVersion": "1.1",
+          "alpn": null
+        },
+        "upstream": null
+      }
+    }
+  ],
+  "excludedInternal": 43,
+  "stderrBytes": 0,
+  "environment": {
+    "engineArtifactSha": "d5b2d32cd82724695a03320689926116bb590b7359ed2c863ad2f9efa92125b4",
+    "engineResourcesSha": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5",
+    "blockerSettings": {
+      "provider": "blanc",
+      "enabled": true,
+      "BLANC_TEST": "0"
+    },
+    "appSha": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+    "bootstrapSha": "c8dcc09d5798416cd9db9015dbfa1b4f0d50d3d4baa517fc4a8a1016806045ed",
+    "engineSha": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+    "filtersSha": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc",
+    "policySha": "6c5cf6f101a470d0ae931fe8c787a96aa754bb7d45edba89af1ac8aa54889d0b",
+    "electron": "44.8.0",
+    "chromium": "152.0.7977.167"
+  }
+}

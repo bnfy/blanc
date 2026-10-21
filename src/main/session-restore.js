@@ -25,8 +25,10 @@ function hostTitle(url) {
   }
 }
 
-function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, activeIndex = 0 } = {}, shouldDrop) {
+function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, splitIds, activeIndex = 0 } = {}, shouldDrop) {
   const hasLocalFiles = Array.isArray(localFiles) && localFiles.length === urls.length;
+  // Split View (F53): zipped like the others, so a dropped tab takes its id along.
+  const hasSplitIds = Array.isArray(splitIds) && splitIds.length === urls.length;
   const survivors = [];
   for (const [i, url] of urls.entries()) {
     const localFile = hasLocalFiles && localFiles[i] === true;
@@ -39,6 +41,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
       groupId: groupIds[i] ?? null,
       pinned: !!pinned[i],
       localFile,
+      splitId: hasSplitIds ? splitIds[i] ?? null : null,
       meta: saved.title ? saved : { ...saved, title: hostTitle(url) },
       originalIndex: i,
     });
@@ -55,6 +58,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
     pinned: survivors.map((s) => s.pinned),
     meta: survivors.map((s) => s.meta),
     ...(hasLocalFiles ? { localFiles: survivors.map((s) => s.localFile) } : {}),
+    ...(hasSplitIds ? { splitIds: survivors.map((s) => s.splitId) } : {}),
     activeIndex: next,
   };
 }
@@ -75,4 +79,12 @@ function restoreTargetId(restoredIds, activeIndex) {
   return null;
 }
 
-module.exports = { filterRestoredSession, restoreTargetId };
+/** A restored tab's Tab Archive clock (F52): the saved value when it is a
+ * real past time, else now, so an update or a clock that moved backwards never
+ * makes a tab look long idle. */
+function restoredLastViewedAt(meta, now) {
+  const saved = meta?.lastViewedAt;
+  return Number.isFinite(saved) && saved > 0 && saved <= now ? saved : now;
+}
+
+module.exports = { filterRestoredSession, restoreTargetId, restoredLastViewedAt };

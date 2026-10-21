@@ -79,7 +79,7 @@ require.cache[networkId] = {
   },
 };
 
-const { sanitizeFavicon } = require('../../src/main/favicon-sanitizer');
+const { sanitizeFavicon, sanitizeIconBytes } = require('../../src/main/favicon-sanitizer');
 
 test('a transient favicon failure is not cached for the process lifetime', async () => {
   const source = 'https://icons.example/favicon.png';
@@ -190,4 +190,9 @@ test('main supplies only the current tab session to the same-origin fallback', (
   assert.ok(setter, 'setTabFavicon not found in main.js');
   assert.match(setter, /browsingSession:/);
   assert.match(setter, /pageUrl: tab\.url/);
+});
+
+test('sanitizeIconBytes converts PNG bytes to the stored 32px data URL', async () => {
+  assert.equal(await sanitizeIconBytes('image/x-icon', pngBytes), PNG_DATA);
+  assert.equal(await sanitizeIconBytes('image/png', null), null);
 });

@@ -1,0 +1,30 @@
+{
+  "ordinary_settled_state": {
+    "form": true,
+    "scroll": true
+  },
+  "old_rollback": {
+    "form": false,
+    "scroll": false
+  },
+  "fixed_rollback": {
+    "form": true,
+    "scroll": true
+  },
+  "immediate_crash": "structure recovers, recent edits absent in both ordinary and Spaces cases; prior timeout not reproduced/cause unresolved",
+  "negative_regressions": 8,
+  "unit_tests": 5,
+  "incremental_wrapper_seconds": 42.84,
+  "siso_seconds": 36.46,
+  "guard_seconds": 3.49,
+  "upstream_footprint": "prior49/114 unchanged; only Blanc-owned source changed",
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved",
+  "remaining": [
+    "partial source reconstruction has only saved structural state",
+    "edits not yet persisted by Chromium cannot be recovered",
+    "original immediate timeout remains unresolved",
+    "broader lifecycle and power loss"
+  ]
+}

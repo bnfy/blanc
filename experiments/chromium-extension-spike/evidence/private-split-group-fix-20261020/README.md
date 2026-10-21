@@ -1,0 +1,9 @@
+# Split group and unpin-order repairs — October 20, 2026
+
+The native group-by-name and set-group paths now pass the full split index range to Chromium's group operations. Creating a group, joining an existing group and removing a group preserve split membership instead of dissolving it. After unpinning an ungrouped tab, the native handler moves it to the end. These match the pinned Electron #993 implementation at98ea48fc (groupTabByName/alignSplitGroup and toggleTabPinned).
+
+Nine bounded runtime checkpoints pass in a disposable private context: two inactive splits retain independent focus; selecting a pane changes only its split; new-group membership covers both panes; ungrouping preserves both splits; moving into an existing group moves both members; pinning dissolves only the affected split and keeps all five tabs; unpinning puts that tab last; private capture/save/open/recovery still refuse and the regular Spaces store is byte-identical; private context disposal leaves the regular window. Archived snapshots also retain the same focused member IDs through group changes. Browser shutdown exits zero.
+
+Eight focused capture/identity tests pass. One guarded incremental build succeeds in35.93seconds/sixsteps; final guard schedules zero actions. No upstream hooks added or changed; prior footprint49files/117hunks within49/120 remains unchanged. Only experiment-owned native handler code changed. Disposable profile removed, retained preview untouched.
+
+This closes the two observed private mutation differences from231ee003. It does not qualify arbitrary group merges, whole-group moves, reordered members, grouped persistence/recovery, Recently Closed, larger splits, multiple private windows or physical/visual input. Public Split controls remain incomplete. Latency deferred; native input pending; Electron diagnostic build unapproved. Fixture content is authored loopback HTML; profiles are excluded. Raw logs retained verbatim.

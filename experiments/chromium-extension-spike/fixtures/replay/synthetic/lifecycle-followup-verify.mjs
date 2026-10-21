@@ -1,0 +1,13 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
+const clean=r=>{assert(r.completed&&!r.error&&r.cleanup.removed&&r.latencyMeasured===false);assert(r.faults.every(f=>['plaintext-refused','connect-refused'].includes(f.code)&&['clients2.google.com','www.google.com:443','accounts.google.com:443'].includes(f.authority)));};
+export function verifyLeases(r){
+ clean(r);assert.deepEqual(r.checks.map(c=>c.kind),['subframe-detach','renderer-crash']);
+ for(const c of r.checks){assert(c.before.documentId&&c.recovered.documentId);assert.notEqual(c.before.documentId,c.recovered.documentId);assert.equal(c.held.size,1);assert.equal(c.held.guard.ready,false);assert.equal(c.held.result.settled,false);assert.equal(c.held.reload.settled,false);assert.equal(c.after.size,0);assert.equal(c.after.guard.ready,true);assert.equal(c.after.result.settled,true);assert.equal(c.after.reload.settled,true);assert(!c.after.reload.error);assert(Array.isArray(c.after.result.result)&&c.after.result.result.every(v=>v===null));assert.equal(c.control.result?.[0],'clean');if(c.kind==='renderer-crash')assert.equal(c.crashed,true);else{assert.equal(c.before.parentFrameId,0);assert.equal(c.recovered.documentId,c.before.parentDocumentId);}}
+ return {verified:true,checks:r.checks.map(c=>c.kind),scope:'queued upstream API leases only',nativeExecutionCrashQualified:false,fullLifecycleAcceptance:false};
+}
+export function verifyPrerenderFallback(r){
+ clean(r);assert.equal(r.cleanup.browserExited,true);assert.deepEqual(r.forcedFeatures,[]);assert.equal(r.setting.after.value,true);assert.equal(r.checks.length,1);const c=r.checks[0];assert.equal(c.kind,'prerender-cancel-protected-fallback');assert.equal(c.state.life.initialPrerendering,false);assert.equal(c.state.life.activations,0);assert.equal(c.state.life.activationStart,0);assert.equal(c.state.life.earlyGate,true);assert.equal(c.state.marker,'0');assert(c.before.documentId&&c.after.documentId);assert.notEqual(c.before.documentId,c.after.documentId);assert(c.stale.error);assert.equal(c.unchanged.result?.[0],'0');assert.equal(c.accepted.result?.[0],true);
+ assert(r.histograms.histograms.some(h=>h.name.startsWith('Prerender.Experimental.PrerenderHostFinalStatus.SpeculationRule')&&h.buckets.some(b=>b.low===11&&b.count>0)));
+ return {verified:true,protectedFallback:true,prerenderActivationQualified:false,fullLifecycleAcceptance:false};
+}
+if(process.argv[1]===fileURLToPath(import.meta.url)){assert(['leases','fallback'].includes(process.argv[2]));console.log(JSON.stringify((process.argv[2]==='leases'?verifyLeases:verifyPrerenderFallback)(JSON.parse(fs.readFileSync(process.argv[3]))),null,2));}

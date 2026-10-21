@@ -1,27 +1,177 @@
-# Spike A replay contract — capture pending
+# Spike A replay contract and measured synthetic subset
 
-This directory currently contains a **dataset validator and its synthetic unit
-tests**, not the acceptance corpus. Captured real Electron requests: **0**.
-No browser interception, transport, block-rate, cosmetic or latency pass is claimed.
-The validator's success is necessary but insufficient for Spike A acceptance.
+This directory contains the dataset validator, authored transport pilots,
+recording/replay tools and the approved synthetic corpus. The latest
+[native checkpoint](../../evidence/f12-native-20261017/README.md) observes
+5,123 distinct candidate URLs (2,503 blocked / 2,620 allowed) with no native
+Chromium decision or context differences in two fresh runs per profile.
+This is synthetic fixture parity for four resource types in one main frame,
+not full Spike A acceptance or a real-web block rate. The historical public
+recording track still has zero admitted real-page corpus requests.
 
-## Capture and replay requirements
+## Approved synthetic acceptance track
 
-Capture at least 2,000 blocked and 2,000 allowed requests from real Electron
-Blanc page loads, with the blocker's actual decisions as the oracle. Mock unit
+The owner approved `tranche2-request.md` §2.1 at `68892cc1` (recorded in
+§8.1). Acceptance provenance now comes from rule-derived authored pages and
+two stable offline Electron replays, with independent context observations;
+see [synthetic/README.md](synthetic/README.md) and its committed coverage matrix.
+Rule predictions and generated counts are not oracle decisions. The 2,000
+blocked / 2,000 allowed floor counts distinct URLs, excluding repeated runs.
+Every candidate, including blocked ones, has authored response bytes; these
+are explicitly not recordings of the original site. Full acceptance remains
+pending, including uncovered request classes, cosmetics and latency.
+
+Option C iterations are stopped. A separate bounded private real-browser
+sample is authorized under §2.1 B, but is not implemented here and never
+contributes to acceptance thresholds. Its raw data must remain local under
+`~/Library/Caches/me.bnfy.blanc-f12-private-sanity/` with the specified expiry
+and permissions. Public recording scrub rules below are unchanged; private
+sample policy must be implemented separately, not by weakening those rules.
+
+## Historical public recording track and unchanged persistence gates
+
+The original real-page acceptance definition below is superseded by §2.1
+for the synthetic track. It is retained as the public recorder design record,
+not a requirement to restart option C. Actual offline decisions remain the oracle. Mock unit
 fixtures are URL seeds only. Record the exact Electron build/source, engine and
 EasyList/EasyPrivacy hashes, capture timestamps, disposable-profile configuration,
 page entrypoints, response payload hashes and capture instrumentation. Do not use
 `BLANC_TEST=1`: that mode disables the real blocker. Do not capture personal
-browsing, authenticated traffic or the permanent profile. Review captured content
-before committing it; exclude credentials and personal data.
+browsing, authenticated traffic or the permanent profile. A scripted persistence
+gate must exclude credentials and personal data before any evidence is written;
+human review is an additional check, not the first scrub.
 
 Replay must retain each original scheme, host, port and path, using isolated
 transport (local proxy or resolver override and a fixture CA trusted only by the
 disposable browsers). Do not rewrite requests to localhost URLs. Both browsers
 must receive identical responses. Record server observations as well as blocker
 observations; an absent network request alone does not prove a blocking decision.
-The transport and capture adapters are **not implemented** in this checkpoint.
+The authored pilot and [controlled recorder/scrubber/stability pipeline](pipeline/README.md)
+exist. Real-page acquisition/admission remains unmeasured. The synthetic native adapter
+is measured separately; this controlled probe does not establish its coverage.
+
+## Acquisition, stability and oracle order
+
+The live acquisition run is **not the oracle**. Its decisions may be saved as
+sanitized diagnostics, but never count toward the 2,000/2,000 acceptance totals.
+A distinct recording tool may connect upstream using normal server certificate
+and hostname verification; the offline replay tool must contain no upstream
+forwarding or fallback. The current pilot is offline; the separate pipeline
+recorder has only been exercised against a controlled local upstream.
+
+1. Record a public, unauthenticated page load in a fresh disposable profile.
+   Capture response bytes and metadata with the per-field persistence gate below.
+   Keep the recording policy (including blocker state) explicit. A response
+   prevented by the acquisition blocker is **not recorded**; never synthesize
+   an allow response for it or describe an empty placeholder as acquired content.
+2. Freeze a sanitized bundle with an inventory, transformation manifest and
+   digest. Replay that exact bundle offline into Electron **twice**, using
+   independent fresh profiles with identical configuration, pinned lists and
+   defined entrypoints/actions/completion conditions. Repeat for each claimed
+   profile kind. Both runs keep the real blocker enabled.
+3. Compare the **complete in-scope request/hop graphs**, including repeated URL
+   multiplicity, observed context, actual decisions and body/response selection.
+   Do not take an intersection, deduplicate repeated URLs or drop unmatched
+   observations to meet the count. Internal/background exclusions must be fixed
+   and recorded before the runs, not chosen from their differences. Extra,
+   missing or ambiguous requests reject the page/load; report rejected loads
+   and reasons. Equal raw request IDs or event order are not required: retain
+   independent causal correlation evidence and reject ambiguous matching.
+4. Only a stable page/load contributes its actual **offline Electron** decisions
+   to the frozen oracle. Retain both replays and their comparison. The thresholds
+   apply after admission, not to the recording or discarded/duplicated traffic.
+5. Replay the identical admitted bundle and conditions into the fork. Compare
+   its independently observed context and decisions with the frozen oracle.
+   A fork mismatch is reported, never used to prune the corpus retroactively.
+
+An offline request with no recorded response is a harness fault if the browser
+allows it to reach transport. Return a deterministic refusal, record the miss,
+and fail admission/comparison; never fetch it live. A request actually cancelled
+by the blocker does not need a fabricated response and must not be called a
+transport miss merely because it never reached the proxy. If the fork allows
+that same request, preserve **both** the observed blocking difference and the
+missing-response limitation; do not conceal either or fabricate its descendants.
+Do not treat a 502 page as a successful replay. Real recordings may require a
+separately declared response-acquisition policy to cover requests blocked by the
+recording run; that policy has not been implemented or measured yet.
+
+### Electron stability versus the paired comparison
+
+`pipeline/stability.mjs` admits two Electron replays into the oracle. It stays
+strict: a transport fault there means the oracle is not stable. Never run the
+fork through that oracle-admission function or discard the fork's decision log
+because its transport failed.
+
+`validate.py` compares independent oracle/fork decisions and optionally accepts
+`--transport EVENTS.json`. Each event is `{ "code": "unrecorded-request",
+"request_id": "causally-joined-request-hop-id" }`. The adapter must establish
+that join from actual request/hop evidence, not guess from a matching URL. The
+157 adapter and this join have not been implemented or exercised yet.
+
+If the same valid context was blocked by the oracle but allowed by the fork,
+the validator retains the **block→allow difference**. Its joined missing
+response is a `response_limitations` entry (`blocked-response-not-acquired`),
+not a reason to erase or invalidate that observed regression. Downstream
+behavior is untested; it must not be fabricated. In particular, a missed script
+receives a replay refusal instead of executing, so the requests it would cause
+are never issued. Any reported fork false-negative count/rate in this mode is a
+**lower bound**, not a complete estimate of downstream blocking regressions.
+Carry that qualification next to every blocking-rate report, even when no
+missing descendant appears in the observed log. Unknown/unjoined misses,
+misses on an oracle-allowed response, mismatched contexts, duplicates and other
+transport errors remain harness faults. Missing/extra descendants remain named
+faults too, alongside the proven blocking difference. Consumers must inspect
+both lists rather than convert a faulted run into "no result". The comparison
+never passes when a blocking difference exists.
+
+### Protocol and timing metadata
+
+Record browser-to-proxy HTTP version and TLS ALPN, and recording-proxy-to-origin
+HTTP version/ALPN **separately for every request** (with connection/stream mapping
+where needed). Distinguish absent ALPN with HTTP/1.1 fallback from an explicitly
+negotiated protocol. In offline replay there is no upstream leg: record it as
+not applicable, never copy the recording's upstream protocol as a replay fact.
+The current pilot parser is HTTP/1.1; it does not prove HTTP/2 or HTTP/3 behavior.
+Any acquisition/replay protocol difference belongs in the bundle manifest and
+stability evidence because it can change scheduling and the resulting request
+set. Do not claim ordering or coalescing equivalence from matching body hashes.
+
+### Scripted persistence gate (required before live acquisition)
+
+The recording tool must sanitize **before writing** response bundles, request
+observations, diagnostics, stdout/stderr evidence or crash artifacts. Do not
+first write an unsanitized HAR and scrub it later. Raw acquisition values may
+exist transiently in memory only. Use disposable unauthenticated sessions and a
+bounded public-site allowlist; no personal profile, login flow or credentials.
+
+- Strip `Cookie`, `Set-Cookie`, `Authorization`, `Proxy-Authorization` and other
+  authentication/session headers, case-insensitively, including duplicate header
+  forms. Use an explicit header allowlist for persisted metadata. Never forward
+  user credentials. Record removal counts/reasons, not removed values.
+- Parse URLs and inspect userinfo, path/query/fragment, redirect locations,
+  referrers and embedded URLs. Flag likely session/tracking identifiers, tokens,
+  signed URLs, email addresses and other personal values. **Do not delete or
+  rewrite query parameters in an admitted URL**: rules may match them, and doing
+  so would change the blocking question. Reject the affected page/load when a
+  sensitive value is needed for its faithful request graph. Log only a neutral
+  rejection ID/reason, not the rejected URL or a reversible substitute.
+- Inspect decoded bodies as well as headers and URLs; compressed responses,
+  HTML/JS-embedded identifiers and storage initialization can carry the same
+  values. Unsupported encodings or uncertain sensitive content fail admission.
+  No heuristic alone is a privacy guarantee. Human review follows the scripted
+  gate before committing eligible bundles.
+- Record approved non-URL transformations (such as removal of `Set-Cookie`)
+  without retaining removed values. Both offline browsers receive the **same
+  sanitized bundle**, and the stability runs occur **after** sanitization.
+  Its payload hashes describe sanitized bytes, not unmodified origin responses.
+  If a transformation changes page behavior so the load is unstable or context
+  cannot be correlated, reject it rather than fill gaps with expected values.
+
+The pipeline now exercises a narrow scrubber, per-leg protocol recorder and
+single-frame stability matcher with unit/network tests and actual Electron
+replays. General causal correlation, public-page completion, broader content
+admission and request-path coverage still need implementation and runtime proof
+before real-page acquisition. This section remains the full contract.
 
 ## Decision records
 
@@ -99,6 +249,31 @@ results until its observation/correlation is demonstrated on both browsers.
 | Raw `referrer` / effective engine source URL | `details.referrer`; Ghostery's `fromElectronDetails` uses this as `sourceUrl` | Request referrer and the source URL actually passed to the chosen engine | Record separately; never rename either to initiator. Not compared by the current dataset validator. The future adapter must report and review engine-input differences before interpreting block-rate parity; raw logging alone does not validate those inputs. |
 | Raw frame origin, top origin, tab URL, request/frame/process IDs | Snapshot at provider entry | Snapshot at interception | Record only; retain lifecycle mapping evidence. These can describe precommit/obsolete frames and cannot repair a missing initiator. |
 
+### Approved explicit worker-context branch — October 17, 2026
+
+The owner approved **“Yes—use explicit worker contexts with strict evidence”**
+in response to: “If runtime observations prove a shared/service-worker request
+has no unique document frame, may I represent its context explicitly as a worker
+identity plus observed client set, while keeping ambiguous or uncorrelated
+requests as gaps? This changes the comparison contract; it would not substitute
+a visible-tab or storage-partition origin.”
+
+For these frameless requests, the typed alternative to a document context is
+`{kind, scriptUrl, executionOrigin, profileKind, documentFrame: not-associated,
+clients}`. Both runtimes must independently prove the worker request identity,
+realm and observed client set. Raw hook fields remain unchanged. Client kind is
+explicit: service-worker **controlled documents** are not shared-worker connected
+documents, all message senders, or a synthetic top frame. An unobserved set is
+never an empty set. Other request fields, including actual initiator, method,
+resource type, profile, hop, referrer and decision, still compare exactly.
+
+The implementation is currently only the bounded `synthetic/paths-compare.mjs`
+adapter with its archived browser observations. It does not relax the generic
+dataset validator, rewrite engine inputs, or admit untested worker classes into
+the 2,000/2,000 corpus. See [the worker protocol](synthetic/PATHS-AND-LATENCY.md)
+for exact joins, observation limits and remaining gaps. A counterpart without
+independent evidence remains a gap even if the other runtime resolves it.
+
 Canonical resource names use Electron's vocabulary: `main_frame` → `mainFrame`,
 `sub_frame` → `subFrame`, `xmlhttprequest` → `xhr`, `csp_report` → `cspReport`,
 `websocket` → `webSocket`; stylesheet/script/image/font/object/ping/media/other
@@ -151,3 +326,38 @@ PYTHONDONTWRITEBYTECODE=1 python3 experiments/chromium-extension-spike/fixtures/
 
 The generated records in those tests are synthetic and must never be installed
 as the acceptance corpus or cited as browser coverage.
+
+## Public feasibility result (owner-selected C)
+
+[Ten-entrypoint probe](../../evidence/f12-public-feasibility-20261017/README.md):
+0/10 initial documents passed the existing policy (7 Vary refusals, 3 unsupported
+statuses). No public bundle/oracle was persisted; this measures an admission
+barrier, not tracker distribution. General real-page capture is still pending.
+
+Repeat C after supported Vary, entrypoint preflight and empty-body handling:
+[category-first report](../../evidence/f12-public-feasibility-repeat-20261017/README.md).
+Still 0/10 documents admitted: 3 uncontrolled Vary, 4 encoded/opaque bodies,
+1 HTTP 401 and 2 HTTP 403. No redirects observed; script/xhr/image refusal rates
+remain unmeasurable, not zero. No body/identifier gate was relaxed.
+
+### Worker ownership checkpoint (October 17)
+
+[Evidence](../../evidence/f12-worker-ownership-20261017/README.md): shared-worker clients now correlate through actual
+MessagePort challenges and independently observed document/worker realms; the
+initial service script joins the new worker's DevTools token and lifecycle.
+All ten authored path cases match in three variants, regular/private, twice per
+runtime. This closes the two bounded gaps, not the broad worker matrix.
+Multiple clients, teardown, updates and fetch/cache behavior remain untested.
+122 focused tests pass. No native build or engine-input change; latency deferred.
+The earlier debugger-barrier claim is corrected in PATHS-AND-LATENCY.md: requesting
+a breakpoint did not establish a pause; the authored readiness gate now provides
+explicit observed readiness and is excluded from latency.
+
+### Shared lifecycle checkpoint (October 17)
+
+[Evidence](../../evidence/f12-shared-lifecycle-20261017/README.md): two observed
+document clients and navigation-driven destruction of one exact owner now pass
+in regular/private profiles, twice per runtime. The prior authored path suite
+also remains green. The evidence does not generalize to more owners, embedded
+clients, explicit port transfer/close, target-close continuation, or teardown
+races. No native build was needed; latency remains deferred.

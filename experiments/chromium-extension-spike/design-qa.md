@@ -102,3 +102,150 @@ Sunrise Dark Dock icon: passed. The actual native Dock capture
 on the dark tile. Verified after relaunch with the existing permanent profile;
 tabs and extension popup behavior were preserved. The runtime icon refresh
 replaces the stale Chromium tile while reusing the shipping icon artwork.
+
+## Island extension removal — October 20, 2026
+
+Right-click installed Island rows now opens the native extension menu with **Remove from Blanc**. Native Store installation, confirmation Cancel preserving the extension, and confirmed removal updating the picker pass in a disposable profile; eight focused tests and scoped lint pass. Existing native policy and active-tab/user-activation guards are retained. Final zero-action guard passes after two successful incremental builds and one retained include failure. No upstream hooks added: prior measured 50 files/118 hunks remains within 50/120. Evidence: [island-extension-removal-20261020](evidence/island-extension-removal-20261020/README.md). Retained preview untouched; private/managed/localized/platform matrices remain open. Latency deferred; Electron diagnostic build unapproved; all unrelated recovery and migration gaps unchanged.
+
+## October 20 — Public Split View controls and pane headers
+
+PR993-based Split with choices are available in the Island tab menu; initiating group wins. Reserved30px persistent-pane headers provide live title/favicon, focus, Back and Remove from Split. Removal retains both tabs and puts the removed pane after its survivor. Final21 automated regular/private checkpoints and seven capture tests pass, including public menu activation, header focus/title, order and Spaces save/reopen. Initial const compile failure retained; incremental repair48.76s/11steps, guardzero. Fresh50files/116zero-context hunks within50/120. Evidence: `evidence/split-public-controls-20261020/README.md`.
+
+Still open: public Glance Keep as split, full pane menu/divider, exact unequal-width alignment, rail clustering/shortcut semantics, whole-split Recently Closed, Back history scenario, physical input/full visual and broader lifecycle. Menu choices are currently a scrollable list rather than nested submenu. Latency deferred; Electron diagnostic build unapproved; retained preview untouched.
+
+## October 20 — Split View divider and pane menus
+
+PR993-based persistent divider drag, keyboard sizing/reset and accessible values now control the native ratio, with ordered visible-pair validation. Pane menus provide reload, per-tab mute, pin, remove and close; Escape returns focus. Final 37 automated regular/private checkpoints and seven capture tests pass, including saved 55/45 ratio recovery and destructive pane actions. Initial compiler shadowing failure and inactive-private-fixture timeout retained; repaired incremental build 35.17s/six steps, final guard zero. Fresh footprint 50 files/118 hunks within approved50/120. Evidence: `evidence/split-divider-menus-20261020/README.md`.
+
+Remaining: full-height/narrow-window alignment, complete group/move/whole-split menu parity, public Glance conversion, rail/shortcut/Recently Closed integration and broader lifecycle/physical-input/accessibility checks. Header handle only; no full visual parity claim. Retained preview untouched; latency deferred and Electron diagnostic build unapproved.
+
+## October 20 — Full-height divider / narrow geometry checks
+
+Thirty actual regular/private window cases captured at1200/900/700/600/500px and20/50/80 percent. Four width500 extreme-ratio header-overflow failures remain; no repair yet. Pinned PR993 pure layout expects stacked rows in12 width600/500 cases, whereas native stays side-by-side. Full-height source audit also finds double-click swap versus #993 reset and50px versus percentage keyboard steps. These native-input behaviors remain unverified: CUA selected retained preview, so no input was sent. Evidence: `evidence/split-narrow-geometry-20261020/README.md`.
+
+No compile/product changes; zero-action guard, prior50/118 unchanged. Next: coordinate narrow fallback/native/header geometry and divider semantics, then test native full-height hit regions. Green CI does not close these runtime parity failures. Latency deferred; Electron diagnostic build unapproved; retained preview untouched.
+
+## October 20 — Narrow layout and full-height divider repair
+
+Owner approved51 files/120 hunks. The native layout hook now shares page/header/gutter geometry: minimum300px columns, stacked rows below612px, focused-pane fallback for short windows. Fallback preserves saved column ratios. Full-height Island gutter double-click resets widths without swapping; transient fallback resize is refused. Former500px header overflow is repaired in all four cases.
+
+Final context-matched regular/private matrix:30 geometry cases plus wide-return ratio/full-height CDP reset/short-focus/Spaces observations (71 records including30 pre-resize snapshots). Existing37 pane/menu regression checkpoints, seven capture tests and eleven counter tests pass. Compiler failures and zero-size probe runtime failure retained; probe publication fixed. Incremental successes48.98s and36.01s; final guardzero. Fresh51 files/120 hunks is at the approved ceiling. Evidence: `evidence/split-narrow-fix-20261020/README.md`.
+
+Physical native hit-testing, broad accessibility, rail/fullscreen/drag-drop and display-scale/lifecycle matrices remain open. No full acceptance claim. Retained preview untouched; latency deferred; Electron diagnostic build unapproved.
+
+
+## 2026-10-20 — Split View rail, numbered commands and Recently Closed
+
+Implemented against PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8: persistent pairs appear as one rail row with both icons/titles and last-focused-pane activation. Explicit Close Split View uses native batch closure, creating one Recently Closed Split entry. Island reopening restores persistent markers, ratio and last focus, including explicit-entry reopening after restart. Native numbered commands count splits once (and group/pinned/loose clusters in grouped windows); cyclic navigation still visits each pane. Private closure creates no history.
+
+Validation: 31 regular/private acceptance checks, 37 pane regressions, seven capture tests and eleven counter tests pass. Initial missing restore metadata was repaired. A later most-recent restart timeout was a fixture assumption: shutdown added a newer Window entry; known-latest split and explicit-entry restart semantics are now tested separately. Pane drag fixture failures were overlay interception and pass after dismissal. Failed attempts retained in [evidence](evidence/split-rail-shortcuts-20261020/README.md).
+
+Five guarded incremental builds (37.83/61.85/37.77/37.56/37.95 seconds), final guard zero. Fresh upstream inventory: 51 files/122 hunks, exactly the owner-approved ceiling. No latency measurements or Electron diagnostic build. Retained preview untouched. Physical shortcuts, browser-menu/accelerator Restore Tab metadata, whole-split drag/reorder, group/window-contained history, partial beforeunload cancellation and wider platform/accessibility parity remain open; this is bounded migration acceptance, not full PR993 parity.
+
+
+## 2026-10-20 — Native Restore Tab and whole-split reorder
+
+Based on PR993 at 98ea48fc01d79759cfef40009b18cf69715eaed8. Rail pointer and Alt+Shift+Arrow reordering now move persistent pairs as one native collection, including group changes and destination-split boundary normalization. The shared chrome::RestoreTab entry point restores loaded persistent-split history with metadata, ratio and focused pane. Ordinary tab restoration retains native behavior; private restoration remains inert.
+
+Final 48 regular/private runtime checkpoints pass, plus seven capture and eleven counter tests. Earlier 47-check drag control passed. Initial synthetic click-sequence failure and real action-path bypass are archived; the command-switch hook was replaced with the shared entry-point hook. [Evidence](evidence/split-native-restore-drag-20261020/README.md) includes failed attempts and final results.
+
+Owner approved 52 files/124 hunks after runtime proved the initial 51/123 hook was bypassed. Fresh inventory is exactly52/124. Three incremental builds38.93/70.23/41.68s; final guard zero. Disposable profiles removed, retained preview untouched. Latency deferred; Electron diagnostic build unapproved. Physical native input, unloaded-history async restoration, group/window-contained history, cross-window dragging, partial beforeunload cancellation and broader accessibility/platform/lifecycle acceptance remain pending.
+
+
+## 2026-10-20 — Unloaded history and cross-window split boundaries
+
+Seven isolated fixture checkpoints pass: Restore Tab is accepted while an actual Tabs_* read is held; release restores the persistent pair, 35/65 ratio and right focus. Open-session records were removed from both disposable clear/encrypted Session_* stores to isolate closed history, with Tabs_* retained. Combined-session attempts selected newer recovered Window entries; these are retained and not claimed as split restoration passes.
+
+Cross-window move intents reject foreign source/destination identities and preserve both windows. Actual cross-window dragging remains unsupported: the rail API lacks a destination-window field. Negative boundary tests are not transfer acceptance. [Evidence](evidence/split-unloaded-crosswindow-20261020/README.md) records all attempts and the corrected fixture.
+
+No product changes/native compile; guard zero, prior52/124 unchanged. Only the small diagnostic read-hold helper was compiled. Profiles removed; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending. Combined-session ordering, async owner destruction/repeated requests and physical cross-window transfer remain open.
+
+
+## Unloaded-history owner destruction and repeated requests — October 20
+
+On the unchanged native binary, five Restore Tab requests while an actual Tabs read is held coalesce into exactly one split restoration, preserving 35/65 ratio and right focus (six checkpoints). Closing the requesting window through Target.closeTarget before release leaves the surviving window unchanged and the browser exits cleanly (seven checkpoints). These are automated disposable-profile checks, not physical native input.
+
+The owner-close first attempt used Island closeTab and timed out because that path retained the last tab/window; it does not establish an owner-destruction failure. A Node WebSocket runtime mismatch and stale release-marker timeout also preceded the fresh successful fixture. Failed results are retained. Closed history was isolated by removing only disposable open-session records from both clear/encrypted stores while stopped, retaining Tabs records. Combined session priority, post-load repeated requests, replacement-owner requests and full profile destruction remain unqualified.
+
+No product changes or native compile. Read-only build guard schedules zero actions; sandbox ps denial retained before successful escalated guard. Prior upstream footprint 52 files/124 hunks unchanged. Retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
+
+Evidence: `evidence/split-history-owner-repeat-20261020/README.md`.
+
+
+## Replacement-owner Restore Tab and combined-session recovery — October 20
+
+Combined-session check passes (11 checkpoints): actual Tabs read held with both clear/encrypted open-session records retained. Native Restore Tab restores two newer recovered Window entries before the older Split. The final state contains each fixture URL exactly once, one split, 35/65 ratio and right-pane focus. This uses a disposable restart with crash-bubble bypass, not physical Restore UI acceptance.
+
+**Open runtime failure:** replacement-window requests accepted while history is held restore nothing after the original requesting window closes. This repeats after waiting for the old host target to disappear plus 300ms. A fresh post-load request successfully restores the split with ratio/focus and the survivor tab retained. The final 11-checkpoint diagnostic passes its reproduction/control assertions; it does not mean pending replacement requests pass. The precise cancellation/ownership cause is not proven; no product repair was applied. Source inspection shows a profile-wide pending-restorer slot and owner-close cleanup, but does not establish the timing of that cleanup. Earlier assumptions that a newer closed owner entry explained the result were disproven by recorded snapshots.
+
+Three failed assertions and final reproduction/control are retained. Requests use native ExecuteCommand through the diagnostic bridge; physical input, complete window destructor instrumentation, multi-profile and broader lifecycle remain unqualified. No native compile; zero-action guard. Prior footprint52/124 unchanged. Browser/guard logs stay local, outside the published manifest. Disposable profiles removed after process-exit verification; retained preview untouched. Latency deferred; native input and Electron diagnostic build pending.
+
+Evidence: `evidence/split-replacement-combined-20261020/README.md`.
+
+
+## Replacement-owner correction and recovery rerun — October 20
+
+The previously reported replacement-owner product gap was a fixture false positive. Closing the requesting window creates a newer Window history entry. The replacement request restores that entry into a separate window, not the requesting window. The old assertion observed only the requester and incorrectly concluded nothing restored. This supersedes the open-runtime-failure claims in the preceding replacement/combined checkpoint.
+
+Corrected all-window checks pass twice on the original implementation: three pending replacement requests restore exactly one newer blank owner window; the subsequent request restores the older split into the replacement window with 35/65 ratio and right focus, retaining its survivor tab. Two ten-checkpoint runs plus six coalescing, seven owner-cancellation and eleven combined-session checkpoints pass (44 total). The combined test retains both clear/encrypted open-session records and restores each fixture URL once. Seven capture tests and eleven patch-counter tests also pass.
+
+A speculative pending-owner class did not change the faulty assertion's outcome. Temporary lifecycle tracing showed completion dispatch, prompting the all-window inspection. Both the proposal and diagnostics were removed byte-for-byte before final tests; the native product file matches the prior committed source. Discarded proposal and failed assertions retained as diagnostic history, not shipping code. Browser/pointer/guard logs stay local. No current replacement-owner failure is established by these tests.
+
+Three guarded incremental builds:40.27s proposal,38.30s diagnostics,38.61s original normal build restored. Final zero-action guard; no new upstream hooks, prior52/124 unchanged. Disposable profiles removed after exit verification, retained preview untouched. Physical native input, arbitrary multi-owner concurrent requests, encrypted-only closed history and wider lifecycle remain unqualified. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-replacement-correction-20261020/README.md`.
+
+
+## Multi-owner requests and encrypted-only closed history — October 20
+
+Two bounded runs pass19 checkpoints on the unchanged normal binary. Three windows issue six interleaved native Restore Tab requests while the actual history read is held. Exactly one split restores in the first requesting window with35/65 ratio and right focus; the other windows retain their exact tab IDs and no split. This qualifies first-request ownership/coalescing for the tested sequence, not latest-request-wins or independent queued restoration per window.
+
+The encrypted run explicitly enables EncryptSessionStorage stage write_encrypted_read_prefer_encrypted, removes only disposable plaintext Tabs records and both open-session record sets while the process is stopped, and retains encrypted Tabs. The interposer confirms the held read targets Sessions_Encrypted/Tabs_*. Successful pair restoration therefore does not depend on the removed plaintext history. Mock keychain used; real OS provider failure, corruption/key rotation and platform encryption are not qualified. Open-session history is intentionally isolated; combined encrypted-only session restoration remains open.
+
+No product edits or native compile; only small test read-hold dylibs compiled. Zero-action build guard. Prior52files/124hunks unchanged. Published source/results hashed; runtime logs remain local. Owned profiles removed after process-exit verification; retained preview untouched. Physical native input, arbitrary ownership order/cancellation/private/profile combinations and broader lifecycle remain open. Latency deferred; Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-multiowner-encrypted-20261020/README.md`.
+
+
+## Combined encrypted-only session recovery — October 20
+
+Eleven bounded checkpoints pass on the unchanged normal binary. After seeding two open windows and a closed persistent split, the stopped disposable profile's plaintext Session_* and Tabs_* files are removed while encrypted open/closed records are retained. EncryptSessionStorage explicitly uses write_encrypted_read_prefer_encrypted with mock keychain. The actual encrypted Tabs read is held; Restore Tab accepted during loading restores newer Window entries first, then the older split. All four fixture URLs appear exactly once across all windows, with one35/65 split and right-pane focus. Assertions inspect all windows to avoid the prior requester-only fixture error.
+
+This extends earlier isolated encrypted closed-history coverage to combined encrypted-only open-session and closed-history recovery through native Restore Tab. It uses diagnostic crash-bubble bypass and explicit Restore commands; it is not physical crash-bubble acceptance, automatic startup restoration, key rotation, corrupt ciphertext, real OS provider failure or power-loss qualification.
+
+No product changes/native compile; small test interposer compiled only, final guard schedules zero actions. Prior52files/124hunks unchanged. Published sources/results hashed; browser/guard logs retained locally. Disposable profile removed after exit verification; retained preview untouched. Plan and evidence updated. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-combined-encrypted-20261020/README.md`.
+
+
+## Corrupted encrypted session/history records — October 20
+
+Four disposable-profile schedules pass28 bounded safety/recovery checkpoints on the normal binary. Plaintext open/closed history was removed before restart; encryption is explicitly enabled with mock keychain. All encrypted Tabs headers overwritten: open keep/decoy windows recover, closed split is lost. All encrypted Session headers overwritten: closed split tabs recover, open keep/decoy windows are lost. Both stores truncated to three bytes: usable blank window, old session lost. These are usable fallbacks and unaffected-store recovery, not restoration of corrupted data.
+
+A fourth case flips one bit at the midpoint of each encrypted Tabs file, leaving its header intact. All fixture URLs remain recoverable without duplicates in this bounded case; it does not prove ciphertext authentication rejection, arbitrary corruption tolerance or complete metadata preservation. Offsets and sizes are recorded. Each run then creates, closes and restores a fresh tab successfully and exits zero. Fresh history persistence across another restart is not tested here.
+
+No product edits/native compile; zero-action build guard, prior52files/124hunks unchanged. Sources/results published with hashes; runtime logs remain local. Test profiles removed after exit verification; retained preview untouched. Real OS provider errors/key rotation, exhaustive ciphertext corruption, automatic startup/crash-bubble physical input and power-loss remain unqualified. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-encrypted-corruption-20261020/README.md`.
+
+
+## Fresh encrypted history persistence after corruption — October 20
+
+Four final schedules pass36 checkpoints: encrypted Tabs invalid header, Session invalid header, both stores truncated, and Tabs midpoint bit flip. After each bounded corruption/fallback, a new fixture tab is created, closed/restored, closed again, and allowed five seconds to persist. A clean browser close exits zero; plaintext Session/ Tabs records are removed from the stopped disposable profile before restarting. Native Restore Tab traverses newer Window entries and restores the fresh closed tab exactly once across all windows. This proves bounded fresh closed-history persistence after the tested corruption cases, using mock keychain and encrypted records.
+
+The first both-store run hit a harness readiness error (BlancPrototypeHost undefined in a newly restored host). That failed attempt is retained; an explicit bridge-readiness wait fixes the fixture. No product failure or product repair is claimed. Final both-store and payload cases use that wait.
+
+No native compile or product change; zero-action guard; prior52files/124hunks unchanged. Sources/results hashed; runtime logs local. Disposable profiles removed after exit verification; retained preview untouched. Abrupt crash during the new write, immediate/no-settle persistence, fresh open-session autosave, real key provider/key rotation and physical crash UI remain unqualified. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+Evidence: `evidence/split-encrypted-resave-20261020/README.md`.
+
+
+## Abrupt crash after fresh history following corruption — October 20
+
+Two bounded schedules complete20 diagnostic checkpoints after both encrypted stores were truncated and the browser fell back to a usable blank window. Fresh tab creation/close/restore works; it is then closed again. Immediate SIGKILL after the close reply loses the fresh closed tab across encrypted-only restart (freshRecovered:false). A five-second settled control followed by SIGKILL recovers it exactly once (freshRecovered:true). Plaintext records are removed while stopped before restart; all windows are inspected.
+
+IMPORTANT: the immediate harness pass means its observation/no-duplicates/usability assertions passed, not that persistence succeeded. Immediate fresh-history persistence remains a gap; no product repair is applied. The close reply is not demonstrated to acknowledge durable storage. This compares application-level schedules, not an instrumented interruption inside a write syscall, minimum durability delay, power-loss guarantee or general corruption matrix. Only the both-stores-truncated precursor is exercised here; mock keychain and diagnostic crash-bubble bypass remain in use.
+
+No native compile/product edits; guard zero; prior52files/124hunks unchanged. Published source/results hashed, runtime logs local. Disposable profiles removed after exit verification; retained preview untouched. Native input pending, latency deferred, Electron diagnostic build pending approval. Plan/evidence retain the immediate-loss boundary regardless of green CI.
+
+Evidence: `evidence/split-encrypted-postcorruption-crash-20261020/README.md`.

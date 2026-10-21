@@ -61,11 +61,15 @@ test('every consolidated destination exists and every old route has a direct 301
  }
 });
 test('primary navigation and footer keep supporting pages and trust one click away',async()=>{
- const {directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
- assert.deepEqual(directLinks.map(link=>link.label),['Features','Privacy & Security','Patron','About','Support','Mail']);
+ const {browserMenu,directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
+ assert.deepEqual([browserMenu,...directLinks].map(link=>link.label),['Browser','Privacy & Security','Patron','About','Support','Mail']);
+ // The Browser menu keeps Download and the main feature pages one click away.
+ assert.deepEqual(browserMenu.downloads.map(link=>link.label),['macOS','Windows','Linux']);
+ for(const link of browserMenu.features){const id=link.href.replace('/features/','');assert.ok(topics.some(topic=>topic.id===id),link.href);}
+ assert.equal(browserMenu.more[0].href,'/features');
  const footer=read('site/src/components/Footer.astro');
  for(const route of ['/patron','/mail','/features','/support','/trust','/about','/media','/ambassadors','/download','/changelog','/roadmap','/privacy','/terms'])assert.ok(footer.includes(`href="${route}"`),route);
- assert.equal(directLinks.find(link=>link.key==='features').href,'/features');
+ assert.equal(browserMenu.key,'features');assert.equal(browserMenu.href,'/features');
  assert.equal(directLinks.find(link=>link.key==='privacy').href,'/trust');
  assert.equal(directLinks.find(link=>link.key==='patron').href,'/patron');
  assert.ok(footer.includes('href="/features/security"'));

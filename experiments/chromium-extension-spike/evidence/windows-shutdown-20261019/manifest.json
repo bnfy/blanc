@@ -1,0 +1,8 @@
+{
+  "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "README.md": "ec0a7c0f16afd0878b42a5c9c5f01a396287ea91dc8a78ceb8d8dcfb1d3d6e06",
+  "unit.log": "b982e9ad806477d0abbde3f795f5a1b720613c43249a774763c247df05ccdefd",
+  "regression-before.log": "564e9926e98f5ad99e6e041d48aaa2aa8498b6473572eb42eb15ad8ddac68df0",
+  "before.log": "564e9926e98f5ad99e6e041d48aaa2aa8498b6473572eb42eb15ad8ddac68df0",
+  "after.log": "564e9926e98f5ad99e6e041d48aaa2aa8498b6473572eb42eb15ad8ddac68df0"
+}

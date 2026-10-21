@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "New Tab".
+The focused UI element is 71 text (selected) Help: Extensity, Value: Extensity Quickly enable/disable Google Chrome extensions

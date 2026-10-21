@@ -144,6 +144,8 @@ jobs:
         run: xvfb-run -a npm run test:favorites-picker:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
+      - name: Custom Start Page wallpaper (F49)
+        run: xvfb-run -a npm run test:custom-wallpaper:desktop
 
   modified-link-clicks:
     needs: changes
@@ -324,6 +326,12 @@ jobs:
       - name: Tab views keep drawing (Windows)
         if: ${{ !cancelled() && runner.os != 'Linux' }}
         run: npm run test:tab-view-drawing:desktop
+      - name: Pinned-home crash recovery (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: xvfb-run -a npm run test:pinned-home-recovery:desktop
+      - name: Pinned-home crash recovery (Windows)
+        if: ${{ !cancelled() && runner.os != 'Linux' }}
+        run: npm run test:pinned-home-recovery:desktop
 
   browser-shortcuts:
     needs: changes

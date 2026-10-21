@@ -8,6 +8,7 @@ const SLASH_COMMANDS = [
   ['/bring-tabs', 'slash.bringTabs.hint'],
   ['/save [folder]', 'slash.save.doc'],
   ['/history', 'slash.history.hint'],
+  ['/archive', 'slash.archive.hint'],
   ['/downloads', 'slash.downloads.hint'],
   ['/settings', 'slash.settings.hint'],
   ['/sync', 'slash.sync.hint'],

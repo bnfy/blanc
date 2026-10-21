@@ -1,0 +1,421 @@
+{
+  "profiles": {
+    "regular": {
+      "valid": true,
+      "faults": [],
+      "results": [
+        {
+          "phase": "multi",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-redirect-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "phase": "teardown",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-redirect-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "regular",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "fullAcceptance": false,
+      "scope": "two observed same-origin document clients, then one observed owner teardown; authored shared-worker requests only"
+    },
+    "private": {
+      "valid": true,
+      "faults": [],
+      "results": [
+        {
+          "phase": "multi",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-allow",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/multi-redirect",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/multi-redirect-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "documents": 2,
+                      "ports": 2
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "phase": "teardown",
+          "status": "passed",
+          "differences": [],
+          "gaps": [],
+          "observed": [
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-allow",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/teardown-redirect",
+              "decision": "allow",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            },
+            {
+              "url": "https://000491b06a.com/blanc-fixture/shared-lifecycle/teardown-redirect-block",
+              "decision": "block",
+              "workerContext": {
+                "kind": "shared_worker",
+                "scriptUrl": "https://page.blanc-fixture.test/blanc-fixture/shared-lifecycle/worker.js",
+                "executionOrigin": "https://page.blanc-fixture.test",
+                "profileKind": "private",
+                "documentFrame": "not-associated",
+                "clients": {
+                  "kind": "connected-documents",
+                  "status": "observed-port-handshake",
+                  "members": [
+                    {
+                      "role": "observed-page-target",
+                      "origin": "https://page.blanc-fixture.test",
+                      "ports": 1
+                    }
+                  ],
+                  "endedDocuments": 1
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "fullAcceptance": false,
+      "scope": "two observed same-origin document clients, then one observed owner teardown; authored shared-worker requests only"
+    }
+  },
+  "fullAcceptance": false
+}

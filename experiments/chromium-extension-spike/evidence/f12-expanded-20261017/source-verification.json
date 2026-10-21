@@ -1,0 +1,149 @@
+{
+  "checks": [
+    {
+      "run": "electron-09",
+      "source": "generate.mjs",
+      "sha256": "16ac0367e84a8ae583e21abe4f2c58fa351c4dd6bab3eb61a25481220eae1b42",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "transport.mjs",
+      "sha256": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "stability.mjs",
+      "sha256": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "run.mjs",
+      "sha256": "06c4e6e6a3b48ab0d0bbf41ace5dc02f43e041b2be01dafa4154dc3fa2f0a874",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "coverage.json",
+      "sha256": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "page.mjs",
+      "sha256": "a9681d7410d051fa01c507f8aeae91fb631025e001f75b614e0aa4a90e9fc518",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "certificate-set.mjs",
+      "sha256": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "fixture-trust.cjs",
+      "sha256": "f147cd3a6b29ba656242b5e7f6d9de69a877c5151899fc842c9ae430d4077bf6",
+      "exactExecutedSnapshot": true
+    },
+    {
+      "run": "electron-09",
+      "source": "../pipeline/transport.mjs",
+      "sha256": "c57b469ddf99848e6eb8389d2621fb03577977a5bd2ef274df0e29544b47a6eb",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-09",
+      "source": "../pilot/fixture-trust.cjs",
+      "sha256": "5519cf4c6baf9d0d996fb9caaa62c3ee144dc02ca68d33bcd9794e8dfcc3a963",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "generate.mjs",
+      "sha256": "16ac0367e84a8ae583e21abe4f2c58fa351c4dd6bab3eb61a25481220eae1b42",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "transport.mjs",
+      "sha256": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "stability.mjs",
+      "sha256": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "run.mjs",
+      "sha256": "06c4e6e6a3b48ab0d0bbf41ace5dc02f43e041b2be01dafa4154dc3fa2f0a874",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "coverage.json",
+      "sha256": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "page.mjs",
+      "sha256": "a9681d7410d051fa01c507f8aeae91fb631025e001f75b614e0aa4a90e9fc518",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "certificate-set.mjs",
+      "sha256": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "fixture-trust.cjs",
+      "sha256": "f147cd3a6b29ba656242b5e7f6d9de69a877c5151899fc842c9ae430d4077bf6",
+      "exactExecutedSnapshot": true
+    },
+    {
+      "run": "electron-10",
+      "source": "../pipeline/transport.mjs",
+      "sha256": "c57b469ddf99848e6eb8389d2621fb03577977a5bd2ef274df0e29544b47a6eb",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "electron-10",
+      "source": "../pilot/fixture-trust.cjs",
+      "sha256": "5519cf4c6baf9d0d996fb9caaa62c3ee144dc02ca68d33bcd9794e8dfcc3a963",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "chromium-05",
+      "source": "chromium-baseline.mjs",
+      "sha256": "f26d9eb6317239b57026bff16932ad281a39a511aac2d18124d2b06188a36b2f",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "chromium-05",
+      "source": "comparison.mjs",
+      "sha256": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "chromium-05",
+      "source": "transport.mjs",
+      "sha256": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+      "exactExecutedSnapshot": false
+    },
+    {
+      "run": "chromium-05",
+      "source": "certificate-set.mjs",
+      "sha256": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78",
+      "exactExecutedSnapshot": false
+    }
+  ],
+  "archivedPayloadHashesVerified": true
+}

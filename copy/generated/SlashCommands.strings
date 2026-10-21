@@ -3,6 +3,7 @@
 "slash_bring_tabs" = "Bring open tabs from another browser";
 "slash_save" = "Save this page to favorites — name a folder to file it";
 "slash_history" = "Open browsing history";
+"slash_archive" = "See tabs Blanc archived for you";
 "slash_downloads" = "Open downloads";
 "slash_settings" = "Open settings";
 "slash_sync" = "Set up or manage sync";
@@ -24,5 +25,5 @@
 "slash_theme" = "Cycle appearance, or choose system / light / dark";
 "slash_patron" = "Support Blanc with a Patron subscription";
 "slash_space" = "Switch to a space, or type a new name to save this window";
-"slash_glance" = "Keep another open tab beside this page";
+"slash_glance" = "Look at another open tab without leaving this page";
 "slash_invite" = "Email a friend a link to download Blanc";

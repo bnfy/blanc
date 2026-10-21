@@ -1,0 +1,9 @@
+{
+  pass: false,
+  checks: 0,
+  error: 'AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n' +
+    '\n' +
+    'false !== true\n' +
+    '\n' +
+    '    at file:///private/tmp/blanc-split-layout-fix/test.mjs:30:9'
+}

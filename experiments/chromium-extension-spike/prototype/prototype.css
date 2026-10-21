@@ -5,7 +5,7 @@
 #pillShield, #pillInsecure, #pillFillHint, #pillCapture, #pillDisplayShare,
 #pillSpace, #pillSlash, #glanceHeader, #panelSiteInfo,
 #footerNewPrivate, #footerWorkspace,
-#footerTabLayout, #footerSettings, .row-glance {
+#footerSettings, .row-glance {
   display: none !important;
 }
 /* Private windows have no Favorites (Electron: private tabs never populate
@@ -40,3 +40,46 @@
   background: var(--accent-dim) !important;
   color: var(--accent) !important;
 }
+
+.prototype-tab-menu {position:fixed; z-index:2000; min-width:180px; padding:5px;
+ background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 32px #0003;}
+.prototype-tab-menu button {display:block; width:100%; border:0; border-radius:5px; padding:7px 10px;
+ background:transparent; color:inherit; text-align:left; font:12px system-ui;}
+.prototype-tab-menu button:hover,.prototype-tab-menu button:focus-visible {background:var(--accent-dim); outline:none;}
+
+/* The reviewed rail already reserves the header in its own top padding.
+   Keep its original top:0; offsetting it again doubles that reservation. */
+
+/* The embedded strip extends to the window bottom in rail mode. Its root
+   must stay transparent so only the rail and header cover native page content. */
+html, body { background: transparent; }
+
+.prototype-tab-menu { max-height:calc(100vh - 16px); overflow-y:auto; }
+
+/* PR993 clustered Split View rail row. */
+.vertical-split-icons { display: flex; flex: none; gap: 3px; }
+.vertical-split-icons .vertical-tab-favicon { width: 14px; height: 14px; }
+.vertical-split-row .vertical-tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Image-based Store themes paint their toolbar artwork on the resting Island. */
+:root[data-store-toolbar] #islandPill {
+  --text: var(--theme-toolbar-text);
+  --text-dim: var(--theme-toolbar-text);
+  --accent: var(--theme-toolbar-text);
+  --border: color-mix(in srgb, var(--theme-toolbar-text) 35%, transparent);
+  color: var(--theme-toolbar-text);
+}
+:root[data-store-toolbar] #islandPill::after {
+  background-image: var(--theme-toolbar-image);
+  background-position: center;
+  background-size: cover;
+}
+
+/* Preserve the approved native Island radius and shadow over the pinned renderer. */
+#islandPill {
+  --island-resting-radius: 14px;
+  --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+}
+
+:root[data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-icon-filter, brightness(0)); }
+:root[data-store-toolbar][data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-toolbar-icon-filter); }

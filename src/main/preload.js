@@ -7,6 +7,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Keep this list in step with SUPPORTED_PLATFORMS in onepassword-availability.js
 // (test/unit/onepassword-availability.test.js compares them).
 const ONE_PASSWORD_AVAILABLE = ['darwin', 'win32', 'linux'].includes(process.platform);
+// Acceptance only: main passes --blanc-test-platform (never outside its test
+// mode) so the chrome draws for Windows or Linux on any machine.
+const TEST_PLATFORM_ARG = '--blanc-test-platform=';
+const testPlatformArg = (process.argv ?? []).find((arg) => typeof arg === 'string' && arg.startsWith(TEST_PLATFORM_ARG));
+const testPlatform = testPlatformArg?.slice(TEST_PLATFORM_ARG.length);
+const CHROME_PLATFORM = testPlatform === 'win32' || testPlatform === 'linux' ? testPlatform : process.platform;
 
 // This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:
@@ -15,11 +21,13 @@ const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://index/',
   'blanc-chrome://overlay/',
   'blanc-chrome://permission/',
+  'blanc-chrome://float/',
+  'blanc-chrome://glance/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   contextBridge.exposeInMainWorld('browserAPI', {
-    platform: process.platform,
+    platform: CHROME_PLATFORM,
 
   createTab: (url, opts) => ipcRenderer.invoke('tabs:create', url, opts),
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
@@ -38,12 +46,15 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   reorderGroup: (id, beforeGroupId) => ipcRenderer.invoke('groups:reorder', id, beforeGroupId),
   moveClosedSection: (beforeGroupId) => ipcRenderer.invoke('groups:move-closed', beforeGroupId),
   renameGroup: (groupId, name) => ipcRenderer.invoke('groups:rename', groupId, name),
+  setGroupColor: (groupId, color) => ipcRenderer.invoke('groups:set-color', groupId, color),
+  newTabInGroup: (groupId) => ipcRenderer.invoke('groups:new-tab', groupId),
+  moveGroupToNewWindow: (groupId) => ipcRenderer.invoke('groups:move-to-new-window', groupId),
   ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
   openGlancePicker: (query) => ipcRenderer.invoke('tabs:open-glance-picker', query),
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
-  promoteGlance: () => ipcRenderer.invoke('tabs:promote-glance'),
+  openGlanceAsTab: () => ipcRenderer.invoke('tabs:open-glance-as-tab'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
   groupTabByName: (id, name) => ipcRenderer.invoke('tabs:group-by-name', id, name),
   toggleGroupCollapsed: (groupId) => ipcRenderer.invoke('tabs:toggle-group-collapsed', groupId),
@@ -69,6 +80,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  showTooltip: (tip) => ipcRenderer.send('chrome:tooltip-show', tip),
+  hideTooltip: () => ipcRenderer.send('chrome:tooltip-hide'),
   onShieldAnchor: (callback) => {
     const listener = (_event, anchor) => callback(anchor);
     ipcRenderer.on('overlay:shield-anchor', listener);
@@ -89,12 +102,23 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:vertical-tabs-width', listener);
     return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
   },
-  resizeGlance: (point) => ipcRenderer.send('chrome:resize-glance', point),
-  resetGlance: () => ipcRenderer.invoke('chrome:reset-glance'),
   onGlanceLayout: (callback) => {
     const listener = (_event, layout) => callback(layout);
     ipcRenderer.on('chrome:glance-layout', listener);
     return () => ipcRenderer.removeListener('chrome:glance-layout', listener);
+  },
+  moveGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-move', input),
+  resizeGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-resize', input),
+  resetGlanceCard: (input) => ipcRenderer.invoke('chrome:glance-card-reset', input),
+  keepGlanceAsSplit: () => ipcRenderer.invoke('chrome:split-keep-glance'),
+  removeFromSplit: (tabId) => ipcRenderer.invoke('chrome:split-remove', tabId),
+  closeSplit: (tabId) => ipcRenderer.invoke('chrome:split-close', tabId),
+  resizeSplit: (splitId, index, axis, point) => ipcRenderer.send('chrome:resize-split', splitId, index, axis, point),
+  resetSplit: (splitId) => ipcRenderer.invoke('chrome:reset-split', splitId),
+  onSplitLayout: (callback) => {
+    const listener = (_event, layout) => callback(layout);
+    ipcRenderer.on('chrome:split-layout', listener);
+    return () => ipcRenderer.removeListener('chrome:split-layout', listener);
   },
   onGlanceStatus: (callback) => {
     const listener = (_event, message) => callback(message);
@@ -111,6 +135,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openBlockingPopup: () => ipcRenderer.invoke('chrome:blocking-popup'),
   openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
   openSpacesMenu: (anchor) => ipcRenderer.send('chrome:open-spaces', anchor),
+  openGroupMenu: (groupId, anchor) => ipcRenderer.send('chrome:open-group-menu', groupId, anchor),
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   stopDisplayShare: (shareId) => ipcRenderer.send('display-capture:stop', { shareId }),
@@ -129,6 +154,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   },
 
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
+  // F52 Tab Archive: projected rows only; restore takes an entry id.
+  archiveList: () => ipcRenderer.invoke('chrome:archive-list'),
+  archiveRestore: (id) => ipcRenderer.invoke('chrome:archive-restore', id),
+  // Spec D6: the one-time first-archive notice ({count} or null) and its end.
+  archiveNotice: () => ipcRenderer.invoke('chrome:archive-notice'),
+  archiveNoticeDone: (action) => ipcRenderer.invoke('chrome:archive-notice-done', action),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
@@ -152,6 +183,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on('bangs:changed', listener);
     return () => ipcRenderer.removeListener('bangs:changed', listener);
+  },
+  bangIcons: (hosts) => ipcRenderer.invoke('chrome:bang-icons', hosts),
+  onBangIconsChanged: (callback) => {
+    const listener = (_event, change) => callback(change);
+    ipcRenderer.on('bang-icons:changed', listener);
+    return () => ipcRenderer.removeListener('bang-icons:changed', listener);
   },
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
@@ -229,6 +266,21 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = () => callback();
     ipcRenderer.on('chrome:island-covered', listener);
     return () => ipcRenderer.removeListener('chrome:island-covered', listener);
+  },
+  onFloatFrame: (callback) => {
+    const listener = (_e, frame) => callback(frame);
+    ipcRenderer.on('chrome:float-frame', listener);
+    return () => ipcRenderer.removeListener('chrome:float-frame', listener);
+  },
+  onFloatShown: (callback) => {
+    const listener = (_e, shown) => callback(shown);
+    ipcRenderer.on('chrome:float-shown', listener);
+    return () => ipcRenderer.removeListener('chrome:float-shown', listener);
+  },
+  onStripHidden: (callback) => {
+    const listener = (_e, hidden) => callback(hidden);
+    ipcRenderer.on('chrome:strip-hidden', listener);
+    return () => ipcRenderer.removeListener('chrome:strip-hidden', listener);
   },
   onFindResult: (callback) => {
     const listener = (_e, payload) => callback(payload);

@@ -1,0 +1,720 @@
+{
+  "kind": "ten-public-page-feasibility",
+  "started": "2026-10-17T18:35:57.340Z",
+  "pages": [
+    {
+      "index": 0,
+      "entrypoint": "https://en.wikipedia.org/wiki/Web_browser",
+      "recordingEntrypoint": "https://en.wikipedia.org/wiki/Web_browser",
+      "resolution": {
+        "original": "https://en.wikipedia.org/wiki/Web_browser",
+        "final": "https://en.wikipedia.org/wiki/Web_browser",
+        "hops": [
+          {
+            "url": "https://en.wikipedia.org/wiki/Web_browser",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:35:57.340Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:36:13.882Z"
+    },
+    {
+      "index": 1,
+      "entrypoint": "https://developer.mozilla.org/en-US/docs/Web",
+      "recordingEntrypoint": "https://developer.mozilla.org/en-US/docs/Web",
+      "resolution": {
+        "original": "https://developer.mozilla.org/en-US/docs/Web",
+        "final": "https://developer.mozilla.org/en-US/docs/Web",
+        "hops": [
+          {
+            "url": "https://developer.mozilla.org/en-US/docs/Web",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:36:13.882Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "encoded-or-opaque-body"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "encoded-or-opaque-body"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:36:30.464Z"
+    },
+    {
+      "index": 2,
+      "entrypoint": "https://www.bbc.com/",
+      "recordingEntrypoint": "https://www.bbc.com/",
+      "resolution": {
+        "original": "https://www.bbc.com/",
+        "final": "https://www.bbc.com/",
+        "hops": [
+          {
+            "url": "https://www.bbc.com/",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:36:30.464Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:36:46.697Z"
+    },
+    {
+      "index": 3,
+      "entrypoint": "https://www.theguardian.com/international",
+      "recordingEntrypoint": "https://www.theguardian.com/international",
+      "resolution": {
+        "original": "https://www.theguardian.com/international",
+        "final": "https://www.theguardian.com/international",
+        "hops": [
+          {
+            "url": "https://www.theguardian.com/international",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:36:46.697Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "encoded-or-opaque-body"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "encoded-or-opaque-body"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:37:02.944Z"
+    },
+    {
+      "index": 4,
+      "entrypoint": "https://www.reuters.com/",
+      "recordingEntrypoint": "https://www.reuters.com/",
+      "resolution": {
+        "original": "https://www.reuters.com/",
+        "final": "https://www.reuters.com/",
+        "hops": [
+          {
+            "url": "https://www.reuters.com/",
+            "status": 401
+          }
+        ],
+        "status": 401
+      },
+      "started": "2026-10-17T18:37:02.944Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 401,
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:37:19.180Z"
+    },
+    {
+      "index": 5,
+      "entrypoint": "https://apnews.com/",
+      "recordingEntrypoint": "https://apnews.com/",
+      "resolution": {
+        "original": "https://apnews.com/",
+        "final": "https://apnews.com/",
+        "hops": [
+          {
+            "url": "https://apnews.com/",
+            "status": 403
+          }
+        ],
+        "status": 403
+      },
+      "started": "2026-10-17T18:37:19.180Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 403,
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:37:35.511Z"
+    },
+    {
+      "index": 6,
+      "entrypoint": "https://www.nytimes.com/",
+      "recordingEntrypoint": "https://www.nytimes.com/",
+      "resolution": {
+        "original": "https://www.nytimes.com/",
+        "final": "https://www.nytimes.com/",
+        "hops": [
+          {
+            "url": "https://www.nytimes.com/",
+            "status": 403
+          }
+        ],
+        "status": 403
+      },
+      "started": "2026-10-17T18:37:35.511Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 403,
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:37:51.834Z"
+    },
+    {
+      "index": 7,
+      "entrypoint": "https://www.theverge.com/",
+      "recordingEntrypoint": "https://www.theverge.com/",
+      "resolution": {
+        "original": "https://www.theverge.com/",
+        "final": "https://www.theverge.com/",
+        "hops": [
+          {
+            "url": "https://www.theverge.com/",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:37:51.834Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:38:08.150Z"
+    },
+    {
+      "index": 8,
+      "entrypoint": "https://arstechnica.com/",
+      "recordingEntrypoint": "https://arstechnica.com/",
+      "resolution": {
+        "original": "https://arstechnica.com/",
+        "final": "https://arstechnica.com/",
+        "hops": [
+          {
+            "url": "https://arstechnica.com/",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:38:08.151Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "encoded-or-opaque-body"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "encoded-or-opaque-body"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:38:24.364Z"
+    },
+    {
+      "index": 9,
+      "entrypoint": "https://www.nasa.gov/",
+      "recordingEntrypoint": "https://www.nasa.gov/",
+      "resolution": {
+        "original": "https://www.nasa.gov/",
+        "final": "https://www.nasa.gov/",
+        "hops": [
+          {
+            "url": "https://www.nasa.gov/",
+            "status": 200
+          }
+        ],
+        "status": 200
+      },
+      "started": "2026-10-17T18:38:24.364Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|first-party|allow|admitted": 1,
+          "other|unknown|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "resourceType": "mainFrame",
+            "party": "first-party",
+            "status": 200,
+            "reason": "encoded-or-opaque-body"
+          },
+          {
+            "outcome": "refused",
+            "destination": "empty",
+            "resourceType": "other",
+            "party": "unknown",
+            "status": 200,
+            "reason": "body-type-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "encoded-or-opaque-body"
+          },
+          {
+            "id": "fault-2",
+            "code": "body-type-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:38:40.730Z"
+    }
+  ],
+  "preflightStarted": "2026-10-17T18:35:54.418Z",
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "sourceHashes": {
+    "feasibility.mjs": "2c68e7df0c9278bf4c6138d1764583b7552253780c981cc9950b651d161f4e5a",
+    "bootstrap.cjs": "c8dcc09d5798416cd9db9015dbfa1b4f0d50d3d4baa517fc4a8a1016806045ed",
+    "recorder.mjs": "d09afb99ea055e03f44db32487c3d22f8c5d3f899786cb0e956abbf919903bc2",
+    "scrub.cjs": "6c5cf6f101a470d0ae931fe8c787a96aa754bb7d45edba89af1ac8aa54889d0b",
+    "transport.mjs": "bd149705aafe7c65a25113f2a4eb0715533926010876162bb34968d08117aa14"
+  },
+  "hosts": [
+    "en.wikipedia.org",
+    "developer.mozilla.org",
+    "www.bbc.com",
+    "www.theguardian.com",
+    "www.reuters.com",
+    "apnews.com",
+    "www.nytimes.com",
+    "www.theverge.com",
+    "arstechnica.com",
+    "www.nasa.gov"
+  ],
+  "mappings": [
+    {
+      "original": "https://en.wikipedia.org/wiki/Web_browser",
+      "final": "https://en.wikipedia.org/wiki/Web_browser",
+      "hops": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Web_browser",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://developer.mozilla.org/en-US/docs/Web",
+      "final": "https://developer.mozilla.org/en-US/docs/Web",
+      "hops": [
+        {
+          "url": "https://developer.mozilla.org/en-US/docs/Web",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://www.bbc.com/",
+      "final": "https://www.bbc.com/",
+      "hops": [
+        {
+          "url": "https://www.bbc.com/",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://www.theguardian.com/international",
+      "final": "https://www.theguardian.com/international",
+      "hops": [
+        {
+          "url": "https://www.theguardian.com/international",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://www.reuters.com/",
+      "final": "https://www.reuters.com/",
+      "hops": [
+        {
+          "url": "https://www.reuters.com/",
+          "status": 401
+        }
+      ],
+      "status": 401
+    },
+    {
+      "original": "https://apnews.com/",
+      "final": "https://apnews.com/",
+      "hops": [
+        {
+          "url": "https://apnews.com/",
+          "status": 403
+        }
+      ],
+      "status": 403
+    },
+    {
+      "original": "https://www.nytimes.com/",
+      "final": "https://www.nytimes.com/",
+      "hops": [
+        {
+          "url": "https://www.nytimes.com/",
+          "status": 403
+        }
+      ],
+      "status": 403
+    },
+    {
+      "original": "https://www.theverge.com/",
+      "final": "https://www.theverge.com/",
+      "hops": [
+        {
+          "url": "https://www.theverge.com/",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://arstechnica.com/",
+      "final": "https://arstechnica.com/",
+      "hops": [
+        {
+          "url": "https://arstechnica.com/",
+          "status": 200
+        }
+      ],
+      "status": 200
+    },
+    {
+      "original": "https://www.nasa.gov/",
+      "final": "https://www.nasa.gov/",
+      "hops": [
+        {
+          "url": "https://www.nasa.gov/",
+          "status": 200
+        }
+      ],
+      "status": 200
+    }
+  ],
+  "preflightHeaders": {
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "accept": "text/html",
+    "accept-language": "en-US"
+  },
+  "partyPolicy": "registrable-domain comparison with tldts-experimental and private suffixes; unknown without top frame",
+  "policy": "supported Vary and empty responses; explicit entry/final-host allowlist; pre-resolved roots; no runtime redirects; aggregate-only; real blocker enabled",
+  "observation": "15 seconds after starting each navigation; no claim of page completeness",
+  "profileKind": "regular",
+  "acceptanceCorpusRequests": 0,
+  "bundlesWritten": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "ownedChildrenExited": true,
+    "sourceAsarUnchanged": true,
+    "disposableTreeRemoved": true
+  },
+  "finished": "2026-10-17T18:38:40.787Z"
+}

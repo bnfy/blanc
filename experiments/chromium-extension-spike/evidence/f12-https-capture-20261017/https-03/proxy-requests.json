@@ -1,0 +1,119 @@
+[
+  {
+    "method": "CONNECT",
+    "url": "page.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "https://page.blanc-fixture.test/pilot.html",
+    "host": "page.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "page.blanc-fixture.test:443"
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/control.js",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/no-referrer.json",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/data.json",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  },
+  {
+    "method": "CONNECT",
+    "url": "page.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "https://page.blanc-fixture.test/favicon.ico",
+    "host": "page.blanc-fixture.test",
+    "known": false,
+    "encrypted": true,
+    "connectAuthority": "page.blanc-fixture.test:443"
+  },
+  {
+    "method": "CONNECT",
+    "url": "page.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "https://page.blanc-fixture.test/pilot.html",
+    "host": "page.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "page.blanc-fixture.test:443"
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "CONNECT",
+    "url": "asset.blanc-fixture.test:443",
+    "known": true
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/control.js",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/no-referrer.json",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  },
+  {
+    "method": "GET",
+    "url": "https://asset.blanc-fixture.test/data.json",
+    "host": "asset.blanc-fixture.test",
+    "known": true,
+    "encrypted": true,
+    "connectAuthority": "asset.blanc-fixture.test:443"
+  }
+]

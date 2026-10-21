@@ -1,0 +1,1320 @@
+[
+  {
+    "file": "runtime.tar.gz",
+    "bytes": 80956,
+    "sha256": "75727ca6e497c5f7c3690826186a0ac126c0f4089dcd3b24ab51198869246b38",
+    "members": [
+      {
+        "path": "blanc-fallback-fixed-origin-final/70401156ee57e1a13c53a94cbc71ebb4c398743baf1d58df21af23386ecf9b68.main-world.js",
+        "bytes": 33670,
+        "sha256": "70401156ee57e1a13c53a94cbc71ebb4c398743baf1d58df21af23386ecf9b68"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-final/e3f891ed1640c6bf4a0d200630fe55d29a19eb9dc3d88685fc53efa08ea1e88c.main-world.js",
+        "bytes": 33668,
+        "sha256": "e3f891ed1640c6bf4a0d200630fe55d29a19eb9dc3d88685fc53efa08ea1e88c"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-final/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-final/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-final/report.json",
+        "bytes": 106537,
+        "sha256": "4c303fc166acbe5e20c41b80672fc13e51ba05df1407c97cfc922fe9d483aeb6"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-run/8bc8215f95494725046cc348848014a453067241054c050c0dd068d60ebe901a.main-world.js",
+        "bytes": 33668,
+        "sha256": "8bc8215f95494725046cc348848014a453067241054c050c0dd068d60ebe901a"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-run/d6f24fb86381a27e619fb6c303849a713d6c43a8d8f4931ca9ace31870d9efd6.main-world.js",
+        "bytes": 33670,
+        "sha256": "d6f24fb86381a27e619fb6c303849a713d6c43a8d8f4931ca9ace31870d9efd6"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-run/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-run/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-fallback-fixed-origin-run/report.json",
+        "bytes": 106576,
+        "sha256": "c0b169a3cb94ca12ed15d342d232cf20befa948948378a4b8d04e46ac3d40ccb"
+      },
+      {
+        "path": "blanc-static-contexts/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-contexts/fixtures.json",
+        "bytes": 4026,
+        "sha256": "51756b9d3c9611bb5ad1049e6bd20d8c51487cb305913db4ebd5fadf9db05911"
+      },
+      {
+        "path": "blanc-static-contexts/private-a-normal.json",
+        "bytes": 42204,
+        "sha256": "02fbe39bac77556aea8ed2c0c5e3a1cd5ecaba44004505cd6af9463e7196751a"
+      },
+      {
+        "path": "blanc-static-contexts/private-b-normal.json",
+        "bytes": 42201,
+        "sha256": "6bad63febf08f362f18f677bfcd36c2fdcb5e6ffc0c43668fb2ced29b9a24906"
+      },
+      {
+        "path": "blanc-static-contexts/regular-a-normal.json",
+        "bytes": 13172,
+        "sha256": "0403a3d16c539248c8edeb7daf50888c274f3e1537416266ca1de5120dd9b277"
+      },
+      {
+        "path": "blanc-static-contexts/regular-b-normal.json",
+        "bytes": 13344,
+        "sha256": "34d8b68dc9b42b09af3a0307849cdc5060ce1b6bdce1718122756e41e49a8cb7"
+      },
+      {
+        "path": "blanc-static-contexts/report.json",
+        "bytes": 676,
+        "sha256": "2cabd64f1c18a3d4fe731401e4285bccb72b04d308e35b7938b5a6f27f98251a"
+      },
+      {
+        "path": "blanc-static-exceptions/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-exceptions/fixtures.json",
+        "bytes": 4026,
+        "sha256": "51756b9d3c9611bb5ad1049e6bd20d8c51487cb305913db4ebd5fadf9db05911"
+      },
+      {
+        "path": "blanc-static-exceptions/regular-a-exception.json",
+        "bytes": 15921,
+        "sha256": "4db494b397566361a5dc4a018cec80fb617016b1447af0bf94dde7c368d1e13b"
+      },
+      {
+        "path": "blanc-static-exceptions/regular-a-restored.json",
+        "bytes": 13348,
+        "sha256": "6541a4a927e67ff1464b88544ad5859ec40a490855c801327d1838ccdefea1cb"
+      },
+      {
+        "path": "blanc-static-exceptions/report.json",
+        "bytes": 551,
+        "sha256": "325f2dd766463f166f9748492bc77786e5b707f92306d6d2dc50243c2e3e8504"
+      },
+      {
+        "path": "blanc-static-integration-run01/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-integration-run01/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-static-integration-run01/report.json",
+        "bytes": 41595,
+        "sha256": "c0d9a54d5afda24d0e5a32fd21b7928bc6c9bff92cf83e7a3a657011572c0234"
+      },
+      {
+        "path": "blanc-static-integration-run02/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-integration-run02/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-static-integration-run02/report.json",
+        "bytes": 12353,
+        "sha256": "914e7037cc287a601a3f928b4dab59522305e5994c3a22b69bc5a0cf66bbcd94"
+      },
+      {
+        "path": "blanc-static-integration-run03/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-integration-run03/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-static-integration-run03/report.json",
+        "bytes": 113229,
+        "sha256": "a09477231c2759d5a85d888df62a302ac5ef6e7ea67879ca5954fb19146fca30"
+      },
+      {
+        "path": "blanc-static-integration-run04/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-integration-run04/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-static-integration-run04/report.json",
+        "bytes": 110852,
+        "sha256": "be13d1d7619bd07a11a7f9938a2a77ed1aa9771191cc2dca78d49df089135480"
+      },
+      {
+        "path": "blanc-static-integration-run05/filters.txt",
+        "bytes": 364,
+        "sha256": "9571728f7f5deaa7521b778bb9d03fdfed39d09a075ba9ea7118dafcb014e6ef"
+      },
+      {
+        "path": "blanc-static-integration-run05/fixtures.json",
+        "bytes": 6309,
+        "sha256": "0e72ba0d25407c7ead0455d2bebe6b2fd73b8b1353251d6458e39dd77006db13"
+      },
+      {
+        "path": "blanc-static-integration-run05/report.json",
+        "bytes": 110938,
+        "sha256": "35632c5849b60bab9a35fe69cbbd49e04b64b67eec3cc143901d019482afd7e8"
+      },
+      {
+        "path": "blanc-static-safety/filters.txt",
+        "bytes": 235,
+        "sha256": "107b83c33f0aaadd0c9252e3f5fc365f4a256374639fde9f075068bb20e916bf"
+      },
+      {
+        "path": "blanc-static-safety/fixtures.json",
+        "bytes": 1363,
+        "sha256": "63b97c4f1a245332adc7fd9b8777cf5487491924c9c1ddde6a1f54508b66dfa8"
+      },
+      {
+        "path": "blanc-static-safety/report.json",
+        "bytes": 13562,
+        "sha256": "8eafdbc7171dc3602240ccf6f3f4406838b8fa8b30878b351b168f16152cec13"
+      }
+    ]
+  },
+  {
+    "file": "sources.tar.gz",
+    "bytes": 202097,
+    "sha256": "0e7a362298da484fb02e243372a0160afc41976216efc1bf753eb08f4aa4ca75",
+    "members": [
+      {
+        "path": "experiments/chromium-extension-spike/build.mjs",
+        "bytes": 8414,
+        "sha256": "ed6f4c139f1228e47133edd7d9c48b47808ac95b39bbb3865821ec30df1455f4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/build.test.mjs",
+        "bytes": 3891,
+        "sha256": "8f8a6e2aa4ec0c660376ffcc998304fab92a648c2d56b3ded2303774f1ae9688"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/bootstrap.cjs",
+        "bytes": 4457,
+        "sha256": "599d03dadc33e5aae91e870a3c8e96e31aa35cae1cd9e485c4b45e341decb0e3"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/certificates.mjs",
+        "bytes": 1788,
+        "sha256": "2f513f79268394d92a3db40c7afe109c4c3aa4de878d829a31c7759651abd598"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/fixture-trust.cjs",
+        "bytes": 929,
+        "sha256": "5519cf4c6baf9d0d996fb9caaa62c3ee144dc02ca68d33bcd9794e8dfcc3a963"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/proxy-test.mjs",
+        "bytes": 1950,
+        "sha256": "232cc8efaab20dd5e52468b5f4784b2689725c4165f706d97fb677fb718a5f08"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/proxy.mjs",
+        "bytes": 5182,
+        "sha256": "389b384892d6c89e3aacba6c7fda30e2d40d70a9f7d2238275ee6473328a0da7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/run.mjs",
+        "bytes": 10379,
+        "sha256": "c2de0cabd9a27cd19d62fd9cee0b280639c892c2642a5cca9e5fed342c244f40"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pilot/tls-test.mjs",
+        "bytes": 3486,
+        "sha256": "966c1a981c27c02cc6afd89810a5067a21aac8c04ea611c6873cf67e57b5d77f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/bootstrap.cjs",
+        "bytes": 6777,
+        "sha256": "054b50cdc659ece103a8a7bd515523a68ebefd7afcc300ce8035515af02ac31a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/feasibility.mjs",
+        "bytes": 8416,
+        "sha256": "2c68e7df0c9278bf4c6138d1764583b7552253780c981cc9950b651d161f4e5a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/network-test.mjs",
+        "bytes": 7352,
+        "sha256": "de91ccc8f809016cf0d8e5a70d54b42c38f3607c257aea9168809011baa54bd0"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/offline.mjs",
+        "bytes": 2290,
+        "sha256": "cbfd1392df807f94a6829269ae81d886b79941f2a55292c676c931a319727a60"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/pipeline-test.mjs",
+        "bytes": 10419,
+        "sha256": "2e8a06069f906a85ee3f74f37819a120f1e61d816ad229c1509a8ea3f5ea5646"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/recorder.mjs",
+        "bytes": 6917,
+        "sha256": "0f3eebcda98e9567dfec0860a7ac33e48f3494d9dbb1f6ac6ba606d7587dd510"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/roundtrip.mjs",
+        "bytes": 10188,
+        "sha256": "0c481755ac793016fece440b6060daffe5db110d209f91d7eda85e096d547f03"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/scrub.cjs",
+        "bytes": 6171,
+        "sha256": "c1a4769f218008f7379543d80ea371491716343fe579af1e41db810d671ccfb8"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/stability.mjs",
+        "bytes": 4073,
+        "sha256": "1ae223651ad384cfe50ad5c83dc71b190ba4033cd4ecdbe84747240adfeb4820"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/pipeline/transport.mjs",
+        "bytes": 2497,
+        "sha256": "c57b469ddf99848e6eb8389d2621fb03577977a5bd2ef274df0e29544b47a6eb"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/certificate-set.mjs",
+        "bytes": 871,
+        "sha256": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "bytes": 7961,
+        "sha256": "f26d9eb6317239b57026bff16932ad281a39a511aac2d18124d2b06188a36b2f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-native.mjs",
+        "bytes": 9862,
+        "sha256": "4a52c738b44b78902f48848d26d6a41b7ae2eeea38f380d80751b934056be1b1"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/comparison-test.mjs",
+        "bytes": 2662,
+        "sha256": "dbffae9ef275d4faf9c824e702c84bcc2706e2b137327e35414cb6f08fa229e7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/comparison.mjs",
+        "bytes": 3833,
+        "sha256": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/document-start-safety-run.mjs",
+        "bytes": 5366,
+        "sha256": "5e8283a9138d8bea43e87ef2094dee4b4eec4a3c1d7ee6e21d3a44c290a9d7ae"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/document-start-verify.mjs",
+        "bytes": 2723,
+        "sha256": "7c43804586612ca4b655d75ce6e7eff83541a03a3f73922a66a363dfbd89c731"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/fixture-trust.cjs",
+        "bytes": 1039,
+        "sha256": "eab217bbd0d0fcde8f380d515465e2a8a3130961e893ff7b3144145426339d10"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/frame-observer-scrub-test.mjs",
+        "bytes": 1668,
+        "sha256": "4936ee34d86957b8e5742cfdc41db14a9c8e55b3aced523ec36b3b6226549770"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/frame-observer-scrub.cjs",
+        "bytes": 1051,
+        "sha256": "c7a8a4008b3b3ef3d953151ea03ffa9e1c96a4a831bd575354cd88ae66bd1fc9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/generate-test.mjs",
+        "bytes": 2972,
+        "sha256": "1bdef990b17f0a8398a4c73683f25336503a2b46f3a573bc482699915349703e"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/generate.mjs",
+        "bytes": 7893,
+        "sha256": "a35a3853c7bbf516a451dc11763fdd4b3a275357165e952f5d3b4514b06cf3f9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/inherited-frame-safety-run.mjs",
+        "bytes": 2971,
+        "sha256": "39e07a9a1c2d139cf1dbf0abeb703c913f117c92e8e894352376bc3268070feb"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-run.mjs",
+        "bytes": 8631,
+        "sha256": "2419ef7bb4808eec533310cb1fb7a1a240d0655a9670ec15370abe0280553d59"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-validate-test.mjs",
+        "bytes": 2285,
+        "sha256": "e6ab47862e8c76383f8f09673235f3be90efed9b66e9ebcfbed2df82be7c4c20"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-validate.mjs",
+        "bytes": 3347,
+        "sha256": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/native-comparison-test.mjs",
+        "bytes": 3218,
+        "sha256": "9ac8063ae00854eb68136c70048b8fa47c3d9d78000f872956a466a0ce3eb17f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/native-comparison.mjs",
+        "bytes": 6227,
+        "sha256": "9a4f087155cf0bf402c8c28d95093377487f10f5011fbfbb1bc7c7a0e7acc1db"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-fixtures.mjs",
+        "bytes": 1748,
+        "sha256": "d0607cf623d86518924ce5633565d45650081f8ea11c9161cbf7351d8cc88c1a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-run.mjs",
+        "bytes": 5168,
+        "sha256": "e83e286c31552fccf87bd00b7930c0cb15f4d9e34a4c57133febb83e1c0963db"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-test.mjs",
+        "bytes": 2815,
+        "sha256": "2650cf51be7d7e03a9266edded8a7606d41c96a69e821e993dee963114fbee19"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-verify.mjs",
+        "bytes": 3617,
+        "sha256": "76669b806e4b23236399561379b9b9aa469506e1414f2194c640c8c7549a7433"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-boundary-run.mjs",
+        "bytes": 3390,
+        "sha256": "15e80be24273522b79367bd3390046276371c9364b541c4334ce079c63367801"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-fixtures.mjs",
+        "bytes": 2182,
+        "sha256": "cde56b88afe4202732b7844a229ac93fed2e0ff27ca16bce5ec6bfce069a86d4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-run.mjs",
+        "bytes": 3966,
+        "sha256": "c18b2969731af5ca218b784afdd5a5e6976a8ffe5111a10998a184bef221a85f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-test.mjs",
+        "bytes": 5671,
+        "sha256": "307f38105a34cca4dc2733dedd76cfd2a8ed04916855cdd8de4c432487b91e4c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-verify.mjs",
+        "bytes": 4717,
+        "sha256": "9cee589c16570230ac6c9e28614c09fd03ef921ed981e227f39ed72d73276076"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-run.mjs",
+        "bytes": 9131,
+        "sha256": "7c4f0dee7fe54dba1c5eba24a7351ca78d3b06755507a935d2a7360c34d528dd"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-test.mjs",
+        "bytes": 3533,
+        "sha256": "8b01938b20007204dcc7ee50c0e85529e5b9bf2266c0c15e769de3f1a57d8ab4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-verify.mjs",
+        "bytes": 4476,
+        "sha256": "9733dfb84b2faba79b652439d389ff587cc44391e95a32c56912f84d581569ae"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-content.js",
+        "bytes": 1230,
+        "sha256": "16a9e48f381f2f35aee5197e81379e3a58aefafd817a9fa9e35144282f7ff2e1"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-payload.mjs",
+        "bytes": 1716,
+        "sha256": "231f9684c4f6d97f71acbd58100512153cb90b71ab614e8528e1ebc044dc182b"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-run.mjs",
+        "bytes": 9723,
+        "sha256": "fcce9563e31ceab7c935aafd4a729138a68384339472a9124b2edad6568db0a9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-test.mjs",
+        "bytes": 4675,
+        "sha256": "23c51422e497a821d0e0f8da0c687f9d3ba2bef520f1212cb7bd940705ad3fee"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-verify.mjs",
+        "bytes": 4531,
+        "sha256": "5513d63921675de8417de9b3758fb1eb930fee4f68f1744af83983048c3f0417"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/page.mjs",
+        "bytes": 2474,
+        "sha256": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-compare-test.mjs",
+        "bytes": 5952,
+        "sha256": "262a028a29d5ab09c46680e511bc8453517de56d072bca9666124d99cb6734fa"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-compare.mjs",
+        "bytes": 7579,
+        "sha256": "48f2ced9104aecacab531be667011b18642700da1708fc4e62befa37287616a2"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-fixtures.mjs",
+        "bytes": 6902,
+        "sha256": "229b55fedd5a6f9f802e6828b5489d3845fa1835986b324811e88ba69f87ef2d"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-run.mjs",
+        "bytes": 4510,
+        "sha256": "236383e7ee5716973d4d25740bb5aab644d99b5af7fa9cc036df5ef2297eb9cf"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "bytes": 13248,
+        "sha256": "06c4e6e6a3b48ab0d0bbf41ace5dc02f43e041b2be01dafa4154dc3fa2f0a874"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-run.mjs",
+        "bytes": 4596,
+        "sha256": "05ab765540a2b1060f92056e2d717e3eb597c9a388ea09640490e1916b67089c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-test.mjs",
+        "bytes": 1480,
+        "sha256": "39b415252d754f5ee031be288d9b35496c828af9930cb680d550b4af4976fb84"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-verify.mjs",
+        "bytes": 1797,
+        "sha256": "1d5a42f57d0d340b2e673013c665586a891fc8907a75216142041181a5a06890"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-observer.mjs",
+        "bytes": 821,
+        "sha256": "76d043eb72683d51926134150c6030fd43af5a12c9b5ba6da64faf359828d155"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-run.mjs",
+        "bytes": 4084,
+        "sha256": "32d66f77ccb32342620d69008231d2d4f9ddbea1b215f05e2dd46eb4c2fcf44c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-test.mjs",
+        "bytes": 1338,
+        "sha256": "ae58574e9998fecc639015d6f0814d352c04db63964bf416a821d2c26ffd6017"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-verify.mjs",
+        "bytes": 2187,
+        "sha256": "5a62c89b62c94ce14567c651e1ef64e0749737129b5fe961ac187f0c4a7eedc7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-lifecycle-run.mjs",
+        "bytes": 8142,
+        "sha256": "0bd1eb544e41bb49f1246c2ed0b65929f0554d94c90082cead9847689fe4c481"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-lifecycle-verify.mjs",
+        "bytes": 4543,
+        "sha256": "51845b5d7d5bb3103e075f4bea7429d7efeb0c977f2d34c52ed3b28869e55af4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-script-context-test.mjs",
+        "bytes": 4259,
+        "sha256": "d26d7545825ae86963b327f3a729e0f5143cf570432cfdec80310d8fdebaa034"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-script-context.mjs",
+        "bytes": 4822,
+        "sha256": "73eb182f0475fa7fc747674fa72a0572d88b2e3aac9bc9cc11351b88851dafc4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-update-collision-run.mjs",
+        "bytes": 6343,
+        "sha256": "b47d2ac5cdaf9212a44d85a9239268f3f1d2e41485801ae77e920021c1f1a1d8"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/service-update-collision-verify.mjs",
+        "bytes": 2754,
+        "sha256": "a3e1ca03b18e46c5fa7a2477986279aa2bd3734df468c612c07fa791912e2c26"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/session.mjs",
+        "bytes": 11844,
+        "sha256": "7119effe6aa1fd19e434b658f708692bb12bdcbf31e53ca532506de01b99e0ff"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-context-test.mjs",
+        "bytes": 6686,
+        "sha256": "151e916ba112b7e93b332ba63dee5e62f72766f4a1891bd40748d619956614f9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-context.mjs",
+        "bytes": 6762,
+        "sha256": "ac628dfeccfb3903e85ce69f9cd55783b41a98f9a8d841b0066faf0ebecf0134"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-observer.mjs",
+        "bytes": 2626,
+        "sha256": "ccc7128bffa85310af813ea309987392e8c061181bfd2b19e560eff4a8940fd9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-compare.mjs",
+        "bytes": 3123,
+        "sha256": "31f5a6d91c13a166b88e5860b6583f9a925ea0f326c07d7a3cf4a2c224e502e7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-fixtures.mjs",
+        "bytes": 2792,
+        "sha256": "f42286e88a5d8278eee1dfbc18a3f64020a59325f07bde7eb491dafb404f5fc6"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-run.mjs",
+        "bytes": 4789,
+        "sha256": "5b3e87be0ae935dd9e47202e7a156b33f8ed04c723f0edb7905d26380d5def53"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/stability-test.mjs",
+        "bytes": 3361,
+        "sha256": "33f765290202941000e9235d326b78ace7c33f26e572c141ed73ec036621499f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/stability.mjs",
+        "bytes": 4247,
+        "sha256": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-run.mjs",
+        "bytes": 10522,
+        "sha256": "8723814c6b38719a7e33f7b8554ff8a3df152498390fdf5ab85eb6c73529c376"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-test.mjs",
+        "bytes": 3720,
+        "sha256": "224a759cdf0e4fc324055bb8f37a79fcc2c667e6353b27667a42d9c5cd28b506"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-verify.mjs",
+        "bytes": 3852,
+        "sha256": "36b14410051693e0b5bf454dd2c168bb9e450974936227b4630fc2bdef761e54"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-run.mjs",
+        "bytes": 5644,
+        "sha256": "0dd3256ac42e5abb419b5f4bbb9e0fae34413f8aa8881b579b20a35c8ffd8f6c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-test.mjs",
+        "bytes": 1496,
+        "sha256": "1adb6d99a1025a9c7b7ebe25f89896892f12bae44e0f960b782a07dfa99c5800"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-verify.mjs",
+        "bytes": 2014,
+        "sha256": "fd993c13258704a2676bb51f7eb73fe237216eee7e2c21aa4331af15addffc67"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/summarize.mjs",
+        "bytes": 5043,
+        "sha256": "69ae7cb5a0b931eda82fc5d1cab3917db82551b5c4898795bed3b98d7ff9e471"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/transport-test.mjs",
+        "bytes": 4310,
+        "sha256": "36e035e794b4333d4acaee986030bb66c2d53b6312b771184c730ca4c6864d5c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/transport.mjs",
+        "bytes": 2059,
+        "sha256": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-probe.mjs",
+        "bytes": 4582,
+        "sha256": "aaa353d21baa686022b0bbeea1a53738328bf64e8539ca03729592f00894a4ed"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-test.mjs",
+        "bytes": 1528,
+        "sha256": "c03c7ff2e0e6c2c05529b19cbe89c6449f7c1d4cfb41accedbab0c0cb8c6e7a7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-fixtures.mjs",
+        "bytes": 1184,
+        "sha256": "493031b4369355b72fe80bd4494db0a8f1b5efd9b5e9e40c4c6e347a25636688"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-run.mjs",
+        "bytes": 4752,
+        "sha256": "5135864452f53ca6ad7c7e3a04049e70ed0a6335585f8fdce59cd5e15ebf3fba"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-test.mjs",
+        "bytes": 2382,
+        "sha256": "614127718db69514b507b5304eb6c88a7017f774c5da6ecb842c4be2e213cc95"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-verify.mjs",
+        "bytes": 3094,
+        "sha256": "3d90c365b93582e1ede1c82bec2df812dfc8a569c25ee3784b3b53f57c381a81"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-parity-run.mjs",
+        "bytes": 7254,
+        "sha256": "041ce35c025d3ca9d0b96b31c4dd5868e0b35d0e6b1ddb03b0fcbd703590fbc5"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-parity-verify.mjs",
+        "bytes": 3287,
+        "sha256": "8176f1c95d50c6c7ed1acc9e20ba16524f171e227c71c9a86ec7ba897b4fb916"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-identity-test.mjs",
+        "bytes": 1749,
+        "sha256": "41d823139467061df89924f94ed7c6ddaaed35a216f43ba9868cc76b19632de8"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-identity.mjs",
+        "bytes": 1870,
+        "sha256": "46d9187cc634c9d7109fe3ab60b38cf612a61b84fc99214c9b1801fc62b8daaf"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-verify.mjs",
+        "bytes": 1166,
+        "sha256": "e3a6497a7953d136e1dd55cc0b267aae14a96aed717e6beee607745681559be5"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/update-trace-test.mjs",
+        "bytes": 1086,
+        "sha256": "9eba5849f1d90f89bacea03525d8db4a10aac39fe436251f357ad7419ad175cd"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/update-trace-verify.mjs",
+        "bytes": 2380,
+        "sha256": "67d5d22ef181ec3f6fea6b3a0cfaaa72a7cb30aceca9455673c50192531e7fe7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-context-test.mjs",
+        "bytes": 6336,
+        "sha256": "1ed782136270b786d3b16f809f0da2ef7d4b20726f43099c0fed52c48e9baa1a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-context.mjs",
+        "bytes": 6505,
+        "sha256": "96c545b22c593ad81d40e9f6e74c3a312d7dcf11964c3f180f37c4ac27a23fba"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-observer-test.mjs",
+        "bytes": 869,
+        "sha256": "ecb2301431411c1931c0fa91829dc438a39271c0608912b6827e1c86b561e275"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-observer.mjs",
+        "bytes": 7866,
+        "sha256": "111db0031ed3e714c2f91999d995bb57246f7732c6c99890575673e6a841017b"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/validate-test.py",
+        "bytes": 6458,
+        "sha256": "51ccf575cd5553fcfa662055f9039ccda3e907167b8c9c33485653215e4fbc15"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/fixtures/replay/validate.py",
+        "bytes": 6373,
+        "sha256": "537a6bb1f3371d67673c1cc4cd54578a9b4afdb72a05302f6791ffb3af56b735"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/mac-icon.mjs",
+        "bytes": 5271,
+        "sha256": "5ba89711ce076133a8921d6c739b2e39857fe056fc4bdb979148715c85493280"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blanc_prototype_ui.cc",
+        "bytes": 64346,
+        "sha256": "eb64238c650a0b4d4ab285c3b67b30d29aef8aeb17481746bf4e3e35001da075"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blanc_prototype_ui.h",
+        "bytes": 1669,
+        "sha256": "c569961f5f1685b9b60511deca0e6f5ec3a7cca643cc4a81ba819704b972e44d"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/BUILD.gn",
+        "bytes": 763,
+        "sha256": "a672411fad445cb1aa1252a247af5b29bf1318dc94e78b7aa76d1658aa00782a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/blocker.mojom",
+        "bytes": 591,
+        "sha256": "8b2890166458e1f3c248dafd5a525892a8737b4133cbea20bfae46dc74332d59"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc",
+        "bytes": 26534,
+        "sha256": "a79f1ed935ab4473911c342dfaa46e199047f3ff5c8e8a471230ad403c8620cb"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/blocker_proxy.h",
+        "bytes": 751,
+        "sha256": "26946be53a1557bc8a4643f6193eb4dccead1da61e6d5f1cd4f18d0b077a9651"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/blocker_service.cc",
+        "bytes": 4681,
+        "sha256": "2cda73f30d45bd825aae56aa4deaafba52d99579ea67989267084dc9e5118387"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/blocker_service.h",
+        "bytes": 885,
+        "sha256": "bb1fb778032102f90c8ac97c8dc445ddf537f6f0744de45102e47ecafc678aee"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/bundle.mjs",
+        "bytes": 6379,
+        "sha256": "bc859b4e7f74cc2845f65a2bb0333677d5a4cd2091523637ad4d5ec09b4b1e30"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/document_start.inc",
+        "bytes": 6703,
+        "sha256": "022f180df436066e7a10feebed85c2e1ec983532c09646d533aa862e966ca1b1"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/document_start_renderer.inc",
+        "bytes": 1253,
+        "sha256": "a23609e11b833bd2fef0ce38f82249e486f282fb2190b43d20fb193447e021da"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/failure-probe.mjs",
+        "bytes": 4195,
+        "sha256": "53c9d0327ed3cd6c75d046bc01f7df41e4805812fadc6ec1de54eb11d04bb33a"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/prepare.mjs",
+        "bytes": 7165,
+        "sha256": "74779042e30459dafe9f3ca24a04ab4517ac05f83124cbce3a07f26745f264b6"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/update_identity.inc",
+        "bytes": 4771,
+        "sha256": "5035eecd378d8692f07e386f70237c6dfa48f339855e7e19e4a087c3ac8a3788"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/write-file-test.mjs",
+        "bytes": 1635,
+        "sha256": "929ee4c3abfc1c9ccb3660a8aa2d0be782bbf7fc5143e708eb959a1add227a03"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/native/blocker/write-file.mjs",
+        "bytes": 1161,
+        "sha256": "f6acbc0b186dc9eed499a444e818183fe3672e8bb1599168e2eb286f7c2fe8ad"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/patch-budget-test.py",
+        "bytes": 6927,
+        "sha256": "69c66d6f54dd3da2c69b7a3ac7585327ab9046fcccba66760394e7352a95f1ed"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/patch-budget.py",
+        "bytes": 6917,
+        "sha256": "2166d5fed1bfdd9e1cb220fb82327f4e6e72b15264b85b281007f66f00eb452c"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/prepare.mjs",
+        "bytes": 34114,
+        "sha256": "07fa401ee99df8632f5cd57d3fdefba42579b69bc0cd56cfe0e4fd6144df8b0f"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/prototype/adapter.js",
+        "bytes": 918,
+        "sha256": "072a664004dd33d8a93fd6b8c1ba327b94256dd6d59223067d8ab522bb2735ac"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/prototype/extensions.js",
+        "bytes": 6431,
+        "sha256": "a177ccb2a08b16e4d55a2daf8379a4bc53f25f1041c401336234ff1b95e7a7e4"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/prototype/host.js",
+        "bytes": 13187,
+        "sha256": "1590f52aa7c29f071ee200e821dfc5b70bdcf0f6b163348e9ff9dcc2cc5bcdc7"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/prototype/newtab-adapter.js",
+        "bytes": 4632,
+        "sha256": "630fffc2ab1e3d038efbc8f2dab3ee70488c634fb9f63df52a38c5e9e6f27b11"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/script-literal-test.mjs",
+        "bytes": 1483,
+        "sha256": "1d8827150d1a8785e5bb138118523aeea856dca73518d7c3c886290bea657991"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/script-literal.mjs",
+        "bytes": 492,
+        "sha256": "79d1b4a8e37f0f077a4bbcea9f96c7a5afa09ab161825fbb7bd9454ec031aa58"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/scriptlet-once-test.mjs",
+        "bytes": 1380,
+        "sha256": "0fe7a405b29b11f8742d74b53b1ee7c94ef3a4cd2295af22c45793349c4dac8d"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/scriptlet-once.mjs",
+        "bytes": 670,
+        "sha256": "31a7b03722f7aa94b3976f25a233b4b18ffcfb5dc55a7eda7301de8830c7171b"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-component-probe.mjs",
+        "bytes": 2926,
+        "sha256": "c5d14ac3d79767bcc1b4ee3250f0962b1bc74b14ba9ed821cb9fc9bb7487f5b6"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-component-test.mjs",
+        "bytes": 4544,
+        "sha256": "3e73c71b48014d93a80b3b9d88b0a16d5f26c85cdc69090bd574c97b3daf19b3"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-component.mjs",
+        "bytes": 9138,
+        "sha256": "47466228929525ab475262acbc98f884f0d50fdb40cf46528366e9462edfc290"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-document-start-test.mjs",
+        "bytes": 2726,
+        "sha256": "baa17538997850d1e33fc77b350444133a50428ec341964084aafb8b2ec779f9"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-document-start.js",
+        "bytes": 5800,
+        "sha256": "582d399da5aeaecc05586a1de28d72f2057181e0082164489916ba5536c7e5c1"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-readiness-probe.mjs",
+        "bytes": 9724,
+        "sha256": "8c94ccc6d14dd16e7a231e03a7ace12e404aca3e6c75c72e064b9003d3a7eb23"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-readiness-verify.mjs",
+        "bytes": 2028,
+        "sha256": "d25406157f2359a8f0a372df52716a34dfca46353c93906edf6bf127b1c6f3cf"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-reload-guard.js",
+        "bytes": 1064,
+        "sha256": "31215eb415169c4b9c27c4af35ea34f628bb557d61d170066570a5c5f60e39cc"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-reload-test.mjs",
+        "bytes": 2040,
+        "sha256": "dcf20e6b4137806e3ca71dedcbb3bbc3f78427748a3d2ee451a89e25053f37a3"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-static-content.js",
+        "bytes": 813,
+        "sha256": "bebafc31565121c260fea80331b5e354b424b8397dd3664ecf7016c3ae418890"
+      },
+      {
+        "path": "experiments/chromium-extension-spike/ubo-static-test.mjs",
+        "bytes": 2571,
+        "sha256": "bc8418f8c182a455bd140f94e22cc7e583787bfb2d14dadcc397a64eb1c38a22"
+      }
+    ]
+  },
+  {
+    "file": "payload-delta.tar.gz",
+    "bytes": 264531,
+    "sha256": "ce2a9ecae585ed11a7f5efb9c36f1a8aeb4e4164423b0cdc325f801c70143af9",
+    "members": [
+      {
+        "path": "diagnostic/LICENSE.txt",
+        "bytes": 35126,
+        "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+      },
+      {
+        "path": "diagnostic/js/blanc-document-start.js",
+        "bytes": 2391,
+        "sha256": "e37ea175b01ac47008c1bb365a884906e04a1ee8e0835d57600582a7193a3dc4"
+      },
+      {
+        "path": "diagnostic/js/blanc-fallback-diagnostic.js",
+        "bytes": 1230,
+        "sha256": "16a9e48f381f2f35aee5197e81379e3a58aefafd817a9fa9e35144282f7ff2e1"
+      },
+      {
+        "path": "diagnostic/js/blanc-reload-guard.js",
+        "bytes": 1064,
+        "sha256": "31215eb415169c4b9c27c4af35ea34f628bb557d61d170066570a5c5f60e39cc"
+      },
+      {
+        "path": "diagnostic/js/scriptlet-filtering.js",
+        "bytes": 14755,
+        "sha256": "05748dfc20cfe7f872fa70ae90cb2985082a9094470c30cb9bf9a8ae74d156d9"
+      },
+      {
+        "path": "diagnostic/js/start.js",
+        "bytes": 19619,
+        "sha256": "0b29d7648d776f38a9cfca6bfb8fdbaf50be278acabbaf7d49c49bda16d05b68"
+      },
+      {
+        "path": "diagnostic/js/storage.js",
+        "bytes": 62240,
+        "sha256": "7f32e3428c5dc788af47d399318e796b28db39238671b6db507699efbecd75b9"
+      },
+      {
+        "path": "diagnostic/js/traffic.js",
+        "bytes": 47491,
+        "sha256": "27fd8bb3e1f1331c140e4ed7de69e7eefd82d3eacfcf5b2e365e6807ecb0f75c"
+      },
+      {
+        "path": "diagnostic/manifest.json",
+        "bytes": 3464,
+        "sha256": "c32db56f27763e91b1988bc226daa17f9c863bc0735fa4e3770342882bb20e5d"
+      },
+      {
+        "path": "integrated/LICENSE.txt",
+        "bytes": 35126,
+        "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+      },
+      {
+        "path": "integrated/js/blanc-document-start.js",
+        "bytes": 5800,
+        "sha256": "582d399da5aeaecc05586a1de28d72f2057181e0082164489916ba5536c7e5c1"
+      },
+      {
+        "path": "integrated/js/blanc-reload-guard.js",
+        "bytes": 1064,
+        "sha256": "31215eb415169c4b9c27c4af35ea34f628bb557d61d170066570a5c5f60e39cc"
+      },
+      {
+        "path": "integrated/js/blanc-static-content.js",
+        "bytes": 813,
+        "sha256": "bebafc31565121c260fea80331b5e354b424b8397dd3664ecf7016c3ae418890"
+      },
+      {
+        "path": "integrated/js/scriptlet-filtering.js",
+        "bytes": 14755,
+        "sha256": "c65fddc6f2b3338869895448b4b24171c96fc3eee4ca1310833e71b955c385db"
+      },
+      {
+        "path": "integrated/js/start.js",
+        "bytes": 19623,
+        "sha256": "a9f7caf44aa0bfa6d9efc65eca1f7497bc633a72fb4cde7e2fdb6a2b274cd380"
+      },
+      {
+        "path": "integrated/js/storage.js",
+        "bytes": 62240,
+        "sha256": "7f32e3428c5dc788af47d399318e796b28db39238671b6db507699efbecd75b9"
+      },
+      {
+        "path": "integrated/js/traffic.js",
+        "bytes": 47491,
+        "sha256": "27fd8bb3e1f1331c140e4ed7de69e7eefd82d3eacfcf5b2e365e6807ecb0f75c"
+      },
+      {
+        "path": "integrated/manifest.json",
+        "bytes": 3413,
+        "sha256": "d6cf4cf768e18f4c7a6742978d5ee1d5a38ac87154e1b76002a0113b7b723836"
+      },
+      {
+        "path": "observed/LICENSE.txt",
+        "bytes": 35126,
+        "sha256": "e73d33841f942fa73aa5a63d4a6399cc39a29564db1dbca0915485842fcb236d"
+      },
+      {
+        "path": "observed/js/blanc-document-start.js",
+        "bytes": 2391,
+        "sha256": "e37ea175b01ac47008c1bb365a884906e04a1ee8e0835d57600582a7193a3dc4"
+      },
+      {
+        "path": "observed/js/blanc-reload-guard.js",
+        "bytes": 1064,
+        "sha256": "31215eb415169c4b9c27c4af35ea34f628bb557d61d170066570a5c5f60e39cc"
+      },
+      {
+        "path": "observed/js/scriptlet-filtering.js",
+        "bytes": 14755,
+        "sha256": "05748dfc20cfe7f872fa70ae90cb2985082a9094470c30cb9bf9a8ae74d156d9"
+      },
+      {
+        "path": "observed/js/start.js",
+        "bytes": 19619,
+        "sha256": "0b29d7648d776f38a9cfca6bfb8fdbaf50be278acabbaf7d49c49bda16d05b68"
+      },
+      {
+        "path": "observed/js/storage.js",
+        "bytes": 62240,
+        "sha256": "7f32e3428c5dc788af47d399318e796b28db39238671b6db507699efbecd75b9"
+      },
+      {
+        "path": "observed/js/traffic.js",
+        "bytes": 47491,
+        "sha256": "27fd8bb3e1f1331c140e4ed7de69e7eefd82d3eacfcf5b2e365e6807ecb0f75c"
+      },
+      {
+        "path": "observed/manifest.json",
+        "bytes": 3170,
+        "sha256": "51e86362f03388dd5fec6ab8197d353538d45bb9a2acb0146a1e09d5da18f5e8"
+      },
+      {
+        "path": "payload-inventory.json",
+        "bytes": 337608,
+        "sha256": "1c433d05ab73c70f1dff33a278f9c324b52b94a8eb9c1be3a0f27f0207b4e367"
+      },
+      {
+        "path": "pinned.json",
+        "bytes": 108525,
+        "sha256": "efe5fa22eba2a0c4978b0c17420f73836dac298433f4d29ae4bb4a097071ec3d"
+      }
+    ]
+  },
+  {
+    "file": "build-and-checks.tar.gz",
+    "bytes": 125435,
+    "sha256": "91e248ee64bda54b73aa9cdc729fe79dc55c69efe361069e300c4046222e1306",
+    "members": [
+      {
+        "path": "binary-hashes.json",
+        "bytes": 532,
+        "sha256": "2afe8c435709c135b972147a29e60d4b553100a839c11d2fda27bfb3b55ea267"
+      },
+      {
+        "path": "blocker-plan.log",
+        "bytes": 196,
+        "sha256": "93e2200e549bdfea106aeb9fe71fc8d5967c0a2e472156b4fb8d833f2b2996ed"
+      },
+      {
+        "path": "blocker-prepare.log",
+        "bytes": 83,
+        "sha256": "eacdfbf62e21d158a4dc6ba5a263a05bfe79c5e55693033c5e00f4a0e9143b54"
+      },
+      {
+        "path": "build.log",
+        "bytes": 2588,
+        "sha256": "2e297f35c509ac8b4e65fafea18f52dbde7e4ff01a0acd0d290d22b21c1192a6"
+      },
+      {
+        "path": "cleanup.json",
+        "bytes": 1411,
+        "sha256": "69c071af261bc3cdd996b67bdaf9d059a87b00f8e5703a00a908547ced102e57"
+      },
+      {
+        "path": "config.json",
+        "bytes": 684,
+        "sha256": "97f218ad3d35ae22a861191c51051f8820f104b04722a835d4790a222c212c71"
+      },
+      {
+        "path": "contexts-proof.json",
+        "bytes": 5405,
+        "sha256": "0bf870a0fe8d71ab8372c315b31b18f2fb4cd3017803763a6e7bc370c8a76694"
+      },
+      {
+        "path": "contexts.log",
+        "bytes": 623,
+        "sha256": "b3a3f879f3b32a62da136810902cd607cd275b6fb61468d27ecc9a1f2e1dbedf"
+      },
+      {
+        "path": "diagnostic-config.json",
+        "bytes": 712,
+        "sha256": "c252ca92c01ef8c35e068d12049ba8c1d27b5c4c3b88dd285dcf1652585dd7bc"
+      },
+      {
+        "path": "diagnostic-final.log",
+        "bytes": 47,
+        "sha256": "505b04430132c4252bb7b264809d327a684facfccda9965a3fbd7fbd2bfc36c5"
+      },
+      {
+        "path": "diagnostic-generate.log",
+        "bytes": 420,
+        "sha256": "efbebe96cf36701180979512136e5ee029f44f6fd79adcaa2bc181423932dee7"
+      },
+      {
+        "path": "diagnostic-proof.json",
+        "bytes": 229,
+        "sha256": "10a47be45f692c52a6563b7d8ce51527c1bbe131d63494904436b1bd86dcecee"
+      },
+      {
+        "path": "diagnostic-runtime.log",
+        "bytes": 47,
+        "sha256": "505b04430132c4252bb7b264809d327a684facfccda9965a3fbd7fbd2bfc36c5"
+      },
+      {
+        "path": "exceptions-proof.json",
+        "bytes": 2713,
+        "sha256": "e60f9cdcf888abd5bbf4c26f2828fd5bc84cae83cb147c4cb1647a474260e1b0"
+      },
+      {
+        "path": "exceptions.log",
+        "bytes": 503,
+        "sha256": "5ee32466aae0586ff143fb7f9bed0f693a26c9ba8f139fade694a16cfb678b1c"
+      },
+      {
+        "path": "final-plan.log",
+        "bytes": 196,
+        "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+      },
+      {
+        "path": "generate.log",
+        "bytes": 852,
+        "sha256": "e3f0ad03f1908a02466b8700f273ff904dd7f126069c6afbd1375ef6660475ce"
+      },
+      {
+        "path": "invocations.jsonl",
+        "bytes": 9912,
+        "sha256": "dab88faa894bc33a7729108a65ad8613390936a8d574992a1cd3a5f1e6af845f"
+      },
+      {
+        "path": "invoke.py",
+        "bytes": 616,
+        "sha256": "274a5a75e55f1618139c22397f1dff86e625b813857b91e1436cfacf02eda5d3"
+      },
+      {
+        "path": "lint-final.log",
+        "bytes": 39,
+        "sha256": "7b61d3ba5869765ed03d2d16b09fadbeee04736f6cbbc399d81e4fae2fc97af1"
+      },
+      {
+        "path": "lint.log",
+        "bytes": 316,
+        "sha256": "121c89a081d275d7716dcd56220ea59ad034312aa1c8ed7131c8b5607f8df947"
+      },
+      {
+        "path": "lint.mjs",
+        "bytes": 1632,
+        "sha256": "fa34fcd3aa008f29afd895e0678a64b23824cf6478ca1c64cda65eca9365b8c3"
+      },
+      {
+        "path": "patch-budget.json",
+        "bytes": 39972,
+        "sha256": "57af0a1b6e3ee865e583d26432f0b2b56fbc3278e88d66e19ec6020641404ac9"
+      },
+      {
+        "path": "patch-budget.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "payload-inventory.json",
+        "bytes": 337608,
+        "sha256": "1c433d05ab73c70f1dff33a278f9c324b52b94a8eb9c1be3a0f27f0207b4e367"
+      },
+      {
+        "path": "payload-scope.json",
+        "bytes": 175,
+        "sha256": "38d18b41064ecbc1d9fe5720fa7b9ac56c653da4855ba6de6985e2f622ca8d34"
+      },
+      {
+        "path": "plan.log",
+        "bytes": 196,
+        "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4"
+      },
+      {
+        "path": "prepare.log",
+        "bytes": 196,
+        "sha256": "205d7f9159711340eb4e2f9ab88d3228c2118f9b61eae32e46d6499d6aab1358"
+      },
+      {
+        "path": "proof04.json",
+        "bytes": 249,
+        "sha256": "50f387bdb5849e1cbee1f3d8ffb916d14d2f51b992c2cd2744c5d0a65addf907"
+      },
+      {
+        "path": "proof05.json",
+        "bytes": 249,
+        "sha256": "50f387bdb5849e1cbee1f3d8ffb916d14d2f51b992c2cd2744c5d0a65addf907"
+      },
+      {
+        "path": "receiver-cause.json",
+        "bytes": 848,
+        "sha256": "b61c64b4be721d7dc43417b8b847f71ab92353bb3e4ec22ad3936302c089c744"
+      },
+      {
+        "path": "runtime01.log",
+        "bytes": 51,
+        "sha256": "1324c27491e8c45d6f0acfe8ac55f9f05c0e3470f2a8fce6067dbbec444c1b39"
+      },
+      {
+        "path": "runtime02.log",
+        "bytes": 458,
+        "sha256": "acab32d4967dab6f4f0ab20a47b2e86b2fa179bc0fb4b788f880cbe6e8f6eb37"
+      },
+      {
+        "path": "runtime03.log",
+        "bytes": 51,
+        "sha256": "1324c27491e8c45d6f0acfe8ac55f9f05c0e3470f2a8fce6067dbbec444c1b39"
+      },
+      {
+        "path": "runtime04.log",
+        "bytes": 51,
+        "sha256": "1324c27491e8c45d6f0acfe8ac55f9f05c0e3470f2a8fce6067dbbec444c1b39"
+      },
+      {
+        "path": "runtime05.log",
+        "bytes": 51,
+        "sha256": "1324c27491e8c45d6f0acfe8ac55f9f05c0e3470f2a8fce6067dbbec444c1b39"
+      },
+      {
+        "path": "safety-proof.json",
+        "bytes": 412,
+        "sha256": "280808e3af32229547e2d647e46a52a8e231a6dafdc0547e8f7558f81e4a5c02"
+      },
+      {
+        "path": "safety.log",
+        "bytes": 8802,
+        "sha256": "0efd65668b7269d464566cd97c5a1b4d9073841a5d7f8d4192aecc5e3c9e9bfe"
+      },
+      {
+        "path": "static-run04-source.mjs",
+        "bytes": 10528,
+        "sha256": "ce70e9027793f952a7a14091b19c08ac0576499ecfbc11a6e2c26bc612adbd75"
+      },
+      {
+        "path": "tests.log",
+        "bytes": 41397,
+        "sha256": "6374adc60c3e73b5550ec32827532e5f0d8d840e58c1343c8963d926952ed387"
+      },
+      {
+        "path": "verify04.log",
+        "bytes": 249,
+        "sha256": "50f387bdb5849e1cbee1f3d8ffb916d14d2f51b992c2cd2744c5d0a65addf907"
+      }
+    ]
+  }
+]

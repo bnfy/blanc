@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "New Tab".
+The focused UI element is 65 text (selected) Help: Dashlane — Password Manager, Value: Dashlane — Password Manager Dashlane makes the internet easier. Save all your passwords, fill forms fast, and keep your data accessible and safe.

@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "Extensity - Chrome Web Store".
+The focused UI element is 212 text (selected) Help: Extensity, Value: Extensity Open extension

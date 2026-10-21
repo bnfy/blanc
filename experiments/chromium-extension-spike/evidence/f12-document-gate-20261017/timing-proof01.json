@@ -1,0 +1,202 @@
+{
+  "verified": true,
+  "pages": 24,
+  "earlyConstantPasses": 12,
+  "earlyFetchPasses": 12,
+  "documentStartPassed": false,
+  "latencyQualified": false,
+  "observations": [
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-a",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "electron-b",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": false,
+      "earlyGetter": false,
+      "earlyFetchPrevented": false
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-a",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-a",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "cold",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "reload",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "normal",
+      "stage": "fresh",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "cold",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "reload",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    },
+    {
+      "label": "chromium-b",
+      "mode": "csp",
+      "stage": "fresh",
+      "earlyConstant": true,
+      "earlyGetter": true,
+      "earlyFetchPrevented": true
+    }
+  ]
+}

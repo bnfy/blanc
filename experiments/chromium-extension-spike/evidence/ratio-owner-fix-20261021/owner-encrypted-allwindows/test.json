@@ -1,0 +1,177 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "existing other owner settled",
+      "value": {
+        "activeTabId": "776082720",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "776082718",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "776082720",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "7508b7da-4bcf-437a-a9d2-3af54927c877",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "776082720",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#decoy"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      }
+    },
+    {
+      "name": "actual ratio recovery write held",
+      "value": {
+        "pid": 53418,
+        "path": "/private/tmp/blanc-ratio-owner-fix-owner-encrypted-allwindows/profile/Default/BlancSplitRatios/.day.blanc.prototype.5039d97b-e3cf-43c0-9d5c-04a9d010e226_682159f7-cf5a-4877-b030-b5a420fbaadb_36d1aba7-bc90-46f8-81d3-82d7a2d49cc0.kmooMX",
+        "mode": "write-hold",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "source owner destroyed before ratio write release",
+      "value": true
+    },
+    {
+      "name": "destroyed owner cannot acknowledge",
+      "value": {
+        "error": "CDP target disconnected"
+      }
+    },
+    {
+      "name": "ratio records after owner destruction",
+      "value": []
+    },
+    {
+      "name": "all restart windows",
+      "value": [
+        {
+          "activeTabId": "1222040541",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "1222040542",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1222040541",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "7508b7da-4bcf-437a-a9d2-3af54927c877",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1222040540",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#decoy"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1222040541",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      ]
+    },
+    {
+      "name": "closed source URLs after restart",
+      "value": []
+    },
+    {
+      "name": "ratio records after restart",
+      "value": []
+    },
+    {
+      "name": "decoy restart without closed source resurrection",
+      "value": true
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,41 @@
+{
+  "reports": [
+    {
+      "run": "about01",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "run": "about02",
+      "completed": false,
+      "removed": true
+    },
+    {
+      "run": "about03",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "run": "origin01",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "run": "origin02",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "run": "origin03",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "run": "origin04",
+      "completed": true,
+      "removed": true
+    }
+  ],
+  "ownedRuntimeProcesses": [],
+  "inspection": "full executable prefix; native/base payload hashes unchanged"
+}

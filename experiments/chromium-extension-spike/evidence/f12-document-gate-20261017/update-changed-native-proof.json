@@ -1,0 +1,56 @@
+{
+  "verified": true,
+  "nativeLoaderJoins": 4,
+  "crossRuntimeAcceptance": false,
+  "latencyQualified": false,
+  "proofs": [
+    {
+      "label": "chromium-regular-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/5FA5EFB100D221606FD8A4F77070B90F",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/service-life/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-regular-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/C3127512E6557E79C114B870634139F4",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/service-life/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/3C1DC4D5A5381C5749145B3374520491",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/service-life/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/D544970BE512FA45F094FD534DF97AA6",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/service-life/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    }
+  ]
+}

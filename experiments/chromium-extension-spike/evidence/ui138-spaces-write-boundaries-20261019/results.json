@@ -1,0 +1,62 @@
+[
+  {
+    "mode": "backup-write",
+    "interruption_pass": true,
+    "restart_reopen_resave_pass": true,
+    "barrier": {
+      "pid": 77712,
+      "mode": "backup-write",
+      "path": "/private/tmp/blanc-spaces-boundaries/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.backup.AacS79",
+      "requested": 188,
+      "written": 94
+    }
+  },
+  {
+    "mode": "before-backup",
+    "interruption_pass": true,
+    "restart_reopen_resave_pass": true,
+    "barrier": {
+      "pid": 77795,
+      "mode": "before-backup",
+      "path": "/private/tmp/blanc-spaces-boundaries/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.backup.267kGV",
+      "requested": 0,
+      "written": 0
+    }
+  },
+  {
+    "mode": "after-backup",
+    "interruption_pass": true,
+    "restart_reopen_resave_pass": true,
+    "barrier": {
+      "pid": 77871,
+      "mode": "after-backup",
+      "path": "/private/tmp/blanc-spaces-boundaries/chromium-profile/Default/BlancPrototypeSpaces.json.backup",
+      "requested": 0,
+      "written": 0
+    }
+  },
+  {
+    "mode": "before-primary",
+    "interruption_pass": true,
+    "restart_reopen_resave_pass": true,
+    "barrier": {
+      "pid": 77945,
+      "mode": "before-primary",
+      "path": "/private/tmp/blanc-spaces-boundaries/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.e8ZTY7",
+      "requested": 0,
+      "written": 0
+    }
+  },
+  {
+    "mode": "after-primary",
+    "interruption_pass": true,
+    "restart_reopen_resave_pass": true,
+    "barrier": {
+      "pid": 78020,
+      "mode": "after-primary",
+      "path": "/private/tmp/blanc-spaces-boundaries/chromium-profile/Default/BlancPrototypeSpaces.json",
+      "requested": 0,
+      "written": 0
+    }
+  }
+]

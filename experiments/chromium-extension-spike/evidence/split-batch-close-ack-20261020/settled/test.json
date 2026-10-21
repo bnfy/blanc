@@ -1,0 +1,578 @@
+{
+  "checks": [
+    {
+      "name": "foreign-window move source and destination refused unchanged",
+      "value": {
+        "source": {
+          "activeTabId": "276072377",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "276072379",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "276072377",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": true,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "720605b0-e12f-42c9-a7cd-d194ba79147e",
+          "splitGeometry": {
+            "divider": {
+              "height": 928,
+              "width": 12,
+              "x": 416,
+              "y": 68
+            },
+            "headers": [
+              {
+                "height": 30,
+                "width": 416,
+                "x": 0,
+                "y": 68
+              },
+              {
+                "height": 30,
+                "width": 772,
+                "x": 428,
+                "y": 68
+              }
+            ],
+            "mode": "columns",
+            "originX": 0,
+            "usableWidth": 1188
+          },
+          "splits": [
+            {
+              "focusedIndex": 1,
+              "focusedTabId": "276072377",
+              "id": "split-0",
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  0.35,
+                  0.65
+                ]
+              },
+              "tabIds": [
+                "276072376",
+                "276072377"
+              ]
+            }
+          ],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "276072376",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#a"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "276072377",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "#ffffff",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#b"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "276072378",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#keep"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 3
+        },
+        "destination": {
+          "activeTabId": "276072381",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "276072379",
+              "tabCount": 1,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "276072381",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "5b1856a1-6543-492c-9c6f-41c2efc82589",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "276072381",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "#ffffff",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split rail fixture",
+              "url": "http://127.0.0.1:9298/#decoy"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      }
+    },
+    {
+      "name": "seed latest closed split",
+      "value": [
+        {
+          "id": "276072379",
+          "tabCount": 1,
+          "title": "about:blank",
+          "url": "about:blank"
+        },
+        {
+          "id": "276072382",
+          "tabCount": 2,
+          "title": "Split view",
+          "url": ""
+        }
+      ]
+    },
+    {
+      "name": "encrypted open and closed history retained; clear records removed",
+      "value": {
+        "removed": [],
+        "encrypted": [
+          "Session_13437007210884979",
+          "Session_13437007211602198",
+          "Tabs_13437007210877470"
+        ]
+      }
+    },
+    {
+      "name": "corrupted encrypted records with plaintext absent",
+      "value": [
+        {
+          "file": "Session_13437007210884979",
+          "before": 5596,
+          "after": 3
+        },
+        {
+          "file": "Session_13437007211602198",
+          "before": 8771,
+          "after": 3
+        },
+        {
+          "file": "Tabs_13437007210877470",
+          "before": 3057,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "name": "bounded restoration after corruption",
+      "value": [
+        {
+          "activeTabId": "125952022",
+          "adblockEnabled": false,
+          "closed": [],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "125952022",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "fd0cb5ac-8628-47e6-a14b-a6926cb3305c",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "125952022",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "about:blank",
+              "url": "about:blank"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 1
+        }
+      ]
+    },
+    {
+      "name": "unaffected store survives and damaged history is not claimed recovered",
+      "value": true
+    },
+    {
+      "name": "fresh split before batch close",
+      "value": {
+        "activeTabId": "125952024",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "125952024",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "fd0cb5ac-8628-47e6-a14b-a6926cb3305c",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "125952024",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.35,
+                0.65
+              ]
+            },
+            "tabIds": [
+              "125952023",
+              "125952024"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "125952022",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "about:blank",
+            "url": "about:blank"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "125952023",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#fresh"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "125952024",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#mate"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "abrupt crash after fresh close",
+      "value": true
+    },
+    {
+      "name": "plaintext records removed before fresh-history restart",
+      "value": true
+    },
+    {
+      "name": "fresh history after abrupt crash",
+      "value": {
+        "count": 1,
+        "windows": [
+          {
+            "activeTabId": "1163635906",
+            "adblockEnabled": false,
+            "closed": [],
+            "displayShares": [],
+            "extensionsWidth": 26,
+            "focusedTabId": "1163635906",
+            "glanceTabId": null,
+            "groups": [],
+            "initialWindowSaveFailed": false,
+            "initialWindowSaved": false,
+            "spaceAutosaveError": "",
+            "spaceBusy": false,
+            "spaceName": "",
+            "spaceWindowIdentity": "e8fc71f8-be95-4d45-8add-a25a550e2fdb",
+            "splitGeometry": {
+              "divider": {
+                "height": 928,
+                "width": 12,
+                "x": 416,
+                "y": 68
+              },
+              "headers": [
+                {
+                  "height": 30,
+                  "width": 416,
+                  "x": 0,
+                  "y": 68
+                },
+                {
+                  "height": 30,
+                  "width": 772,
+                  "x": 428,
+                  "y": 68
+                }
+              ],
+              "mode": "columns",
+              "originX": 0,
+              "usableWidth": 1188
+            },
+            "splits": [
+              {
+                "focusedIndex": 1,
+                "focusedTabId": "1163635906",
+                "id": "split-0",
+                "layout": {
+                  "kind": "columns",
+                  "widths": [
+                    0.35,
+                    0.65
+                  ]
+                },
+                "tabIds": [
+                  "1163635905",
+                  "1163635906"
+                ]
+              }
+            ],
+            "tabLayout": "island",
+            "tabs": [
+              {
+                "audible": false,
+                "blockedCount": 0,
+                "bookmarked": false,
+                "canGoBack": false,
+                "canGoForward": false,
+                "favicon": null,
+                "groupId": null,
+                "id": "1163635901",
+                "isLoading": false,
+                "muted": false,
+                "pageBg": "",
+                "pinned": false,
+                "private": false,
+                "siteMuted": null,
+                "title": "about:blank",
+                "url": "about:blank"
+              },
+              {
+                "audible": false,
+                "blockedCount": 0,
+                "bookmarked": false,
+                "canGoBack": false,
+                "canGoForward": false,
+                "favicon": null,
+                "groupId": null,
+                "id": "1163635905",
+                "isLoading": false,
+                "muted": false,
+                "pageBg": "",
+                "pinned": false,
+                "private": false,
+                "siteMuted": false,
+                "title": "Split rail fixture",
+                "url": "http://127.0.0.1:9298/#fresh"
+              },
+              {
+                "audible": false,
+                "blockedCount": 0,
+                "bookmarked": false,
+                "canGoBack": false,
+                "canGoForward": false,
+                "favicon": null,
+                "groupId": null,
+                "id": "1163635906",
+                "isLoading": false,
+                "muted": false,
+                "pageBg": "#ffffff",
+                "pinned": false,
+                "private": false,
+                "siteMuted": false,
+                "title": "Split rail fixture",
+                "url": "http://127.0.0.1:9298/#mate"
+              }
+            ],
+            "verticalTabsDefaultWidth": 248,
+            "verticalTabsMaxWidth": 360,
+            "verticalTabsMinWidth": 200,
+            "verticalTabsPreferredWidth": 248,
+            "verticalTabsWidth": 248,
+            "closedSlot": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "restored split ratio and focus",
+      "value": [
+        {
+          "focusedIndex": 1,
+          "focusedTabId": "1163635906",
+          "id": "split-0",
+          "layout": {
+            "kind": "columns",
+            "widths": [
+              0.35,
+              0.65
+            ]
+          },
+          "tabIds": [
+            "1163635905",
+            "1163635906"
+          ]
+        }
+      ]
+    }
+  ],
+  "freshRecovered": true,
+  "pass": true
+}

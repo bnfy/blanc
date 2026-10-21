@@ -4,7 +4,9 @@ import GestureDemo from "../components/GestureDemo.astro";
 import GlanceDemo from "../components/GlanceDemo.astro";
 import HorizonShield from "../components/HorizonShield.astro";
 import SpacesDemo from "../components/SpacesDemo.astro";
+import FloatingIslandWindow from "../components/FloatingIslandWindow.astro";
 import "../styles/home.css";
+import "../styles/reenie-beanie.css";
 import pkg from "../../../package.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
@@ -22,6 +24,7 @@ const structuredData = {
         "https://www.facebook.com/blancbrowser/",
         "https://www.threads.net/@blancbrowser",
         "https://www.instagram.com/blancbrowser/",
+        "https://www.reddit.com/r/blancbrowser/",
       ],
     },
     {
@@ -169,10 +172,12 @@ const faqs = [
         </div>
         <div class="sun-copy">
           <h1 id="opening-title">A little less browser.</h1>
+          <p class="opening-aside"><span class="opening-note" lang="en">now, none at all</span><svg class="opening-flick" viewBox="0 0 120 14" aria-hidden="true"><path d="M3 9.5c22-4.6 51-6.4 79-4.9 11 .6 22 2 33 4.1" /></svg></p>
           <p class="lead">
-            Tabs, search and commands live in one compact Island, in a slim
-            band above the page. Free for macOS, Windows and Linux, with ad and
-            tracker blocking on from the first launch.
+            Tabs, search and commands live in one compact Island. Turn on
+            Auto-hide and it slips out of sight; point at the top edge and it
+            floats back. Free for macOS, Windows and Linux, with ad and tracker
+            blocking on from the first launch.
           </p>
           <div class="actions">
             <a class="planned-action" href="/download" data-download-cta data-track="download_click" data-cta-position="hero" data-handheld-share="hero-share-status" data-handheld-label="Send to my computer" data-handheld-text="Blanc is a desktop browser for macOS, Windows and Linux.">Download Blanc Browser</a><a
@@ -183,6 +188,9 @@ const faqs = [
             Blanc is a desktop browser for macOS, Windows and Linux.
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
+          <div class="opening-window">
+            <FloatingIslandWindow />
+          </div>
         </div>
       </div>
     </section>
@@ -192,6 +200,7 @@ const faqs = [
         <div class="device-copy">
           <h2 id="wallpaper-title">Your Start Page, from dawn to night.</h2>
           <p class="lead">Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.</p>
+          <p class="lead">Or choose your own image or a color from Customize on the Start Page.</p>
         </div>
         <div class="device-frame">
           <img
@@ -207,7 +216,7 @@ const faqs = [
             aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
           >
             <img
-              src="/feature-captures/home-wallpaper-dawn-v1.35.0.webp"
+              src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp"
               width="1440"
               height="900"
               alt=""
@@ -215,7 +224,7 @@ const faqs = [
               ["day", "dusk", "night"].map((time) => (
                 <img
                   class={`wallpaper-${time}`}
-                  src={`/feature-captures/home-wallpaper-${time}-v1.35.0.webp`}
+                  src={`/feature-captures/home-wallpaper-${time}-v1.38.0.webp`}
                   width="1440"
                   height="900"
                   loading="lazy"
@@ -245,9 +254,9 @@ const faqs = [
             <p class="proof-limit">Blanc Blocker reduces known ads and tracking; no blocker catches everything. Prefer uBlock Origin? Choose it on supported builds.</p>
           </article>
           <article class="proof-card rise">
-            <p class="proof-figure">1.7 GB</p>
-            <p class="proof-claim">Under a third of Chrome’s 5.7 GB, with six ad-heavy sites open.</p>
-            <p class="proof-limit">Brave, which also blocks by default, used a little less: 1.5 GB. With its blocker off, Blanc used 5.4 GB, about the same as Chrome. <a href="#note-memory">How it was measured<sup>1</sup></a></p>
+            <p class="proof-figure">1.5 GB</p>
+            <p class="proof-claim">Under a third of Chrome’s 4.9 GB, with six ad-heavy sites open.</p>
+            <p class="proof-limit">Brave, which also blocks by default, used a little more: 1.7 GB. With its blocker off, Blanc used 5.2 GB, about the same as Chrome. <a href="#note-memory">How it was measured<sup>1</sup></a></p>
           </article>
           <article class="proof-card rise">
             <p class="proof-figure">Free</p>
@@ -264,29 +273,29 @@ const faqs = [
         <h2 id="island-title">Tabs, search and commands. One Island.</h2>
         <div class="pin-media">
           <figure class="pin-a">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-rest-v1.35.0-800.webp" width="800" height="571" /><img
-              src="/revamp/island-smithsonian-rest-v1.35.0-display.webp"
-              width="1400"
-              height="1000"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-rest-v1.36.0-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-rest-v1.36.0-display.webp"
+              width="1960"
+              height="1400"
               alt="Blanc’s resting Island above Albert Bierstadt’s Among the Sierra Nevada, California, on the Smithsonian American Art Museum’s site"
             /></picture>
             <figcaption><strong>At rest</strong> Back and forward, your tabs as dots, the site and the blocker count, in one slim band.</figcaption>
           </figure>
           <figure class="pin-b">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-tabs-v1.35.0-800.webp" width="800" height="571" /><img
-              src="/revamp/island-smithsonian-tabs-v1.35.0-display.webp"
-              width="1400"
-              height="1000"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-tabs-v1.36.0-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-tabs-v1.36.0-display.webp"
+              width="1960"
+              height="1400"
               loading="lazy"
               alt="Blanc’s open Island lists three Smithsonian tabs: Smithsonian Open Access, The Grand Canyon of the Yellowstone and Among the Sierra Nevada, California"
             /></picture>
             <figcaption><strong>Open it</strong> Every tab and group in one list. Choose a tab, or type to find a page.</figcaption>
           </figure>
           <figure class="pin-c">
-            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-command-v1.35.0-800.webp" width="800" height="571" /><img
-              src="/revamp/island-smithsonian-command-v1.35.0-display.webp"
-              width="1400"
-              height="1000"
+            <picture><source media="(max-width: 760px)" srcset="/revamp/island-smithsonian-command-v1.36.0-800.webp" width="800" height="571" /><img
+              src="/revamp/island-smithsonian-command-v1.36.0-display.webp"
+              width="1960"
+              height="1400"
               loading="lazy"
               alt="In Blanc’s Island, typing / reveals the slash-command list, starting with Favorites, Bring Your Tabs, Save, History, Downloads and Settings"
             /></picture>
@@ -294,6 +303,7 @@ const faqs = [
           </figure>
         </div>
         <div class="pin-dots" aria-hidden="true"><span><span class="pin-a"></span></span><span><span class="pin-b"></span></span><span><span class="pin-c"></span></span></div>
+        <a class="more-link pin-more" href="/features/island" data-track="feature_cta_click" data-feature="island" data-cta-position="home-island">How the Island works <span aria-hidden="true">›</span></a>
       </div>
     </section>
 
@@ -306,7 +316,8 @@ const faqs = [
           <p class="spaces-note">Tab groups and Blanc Spaces are free. Coming from Arc? <a href="#switch" data-switch-source="arc">Bring your Spaces with you.</a></p>
           <div class="actions">
             <a class="planned-action" href="/download" data-track="download_click" data-cta-position="home-spaces">Download Blanc Browser</a><a
-              class="more-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-spaces-detail">Explore Blanc Spaces <span aria-hidden="true">›</span></a>
+              class="more-link" href="/features/workspaces" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="home-spaces-detail">Explore Blanc Spaces <span aria-hidden="true">›</span></a><a
+              class="more-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="home-spaces-groups">Tab groups <span aria-hidden="true">›</span></a>
           </div>
         </div>
         <div class="spaces-demo">
@@ -348,6 +359,8 @@ const faqs = [
           </ul>
         </div>
         <p class="privacy-links">
+          <a href="/features/ad-blocking">How blocking works <span aria-hidden="true">›</span></a>
+          <a href="/features/private-tabs">Private tabs <span aria-hidden="true">›</span></a>
           <a href="/trust#ad-blocking">Blocking details <span aria-hidden="true">›</span></a>
           <a href="/trust#connections">Connections, defaults and security evidence <span aria-hidden="true">›</span></a>
           <a href="/ublock-origin-after-chrome">Using uBlock Origin after Chrome <span aria-hidden="true">›</span></a>
@@ -363,30 +376,36 @@ const faqs = [
             <div class="tool-media tool-demo"><GlanceDemo compact /></div>
             <div class="tool-copy">
               <h3>Glance</h3>
-              <p>Bring another open tab into view beside the page you’re on.</p>
-              <p class="tool-limit">Narrow windows stack it below the main page.</p>
+              <p>Bring another open tab into view over the page you’re on.</p>
+              <p class="tool-limit">Switching to another tab closes it.</p>
               <a class="more-link" href="/features/glance">How Glance works <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card tool-card-wide rise">
-            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-v1.35.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
+            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-v1.38.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
             <div class="tool-copy">
-              <h3>Start Page layouts</h3>
-              <p>Choose Ledger, Billboard, Shelf or Tally, and let the wallpaper follow your computer’s clock.</p>
-              <p class="tool-limit">Turn on Time-of-day wallpaper in Settings → General.</p>
-              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout" data-layouts hidden>
+              <h3>Start Page layouts and wallpaper</h3>
+              <p>Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.</p>
+              <p class="tool-limit">Your own image stays on this device and never shows in private tabs.</p>
+              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout or your own image" data-layouts hidden>
                 {
                   ["Ledger", "Billboard", "Shelf", "Tally"].map((name) => (
                     <button
                       type="button"
                       aria-pressed={String(name === "Billboard")}
-                      data-layout-src={`/feature-captures/${name.toLowerCase()}-v1.35.0.webp`}
+                      data-layout-src={`/feature-captures/${name.toLowerCase()}-v1.38.0.webp`}
                       data-layout-alt={`Blanc’s ${name} Start Page`}
                     >{name}</button>
                   ))
                 }
+                <button
+                  type="button"
+                  aria-pressed="false"
+                  data-layout-src="/feature-captures/billboard-image-v1.38.0.webp"
+                  data-layout-alt="Blanc’s Billboard Start Page over your own image, Van Gogh’s Wheat Field with Cypresses"
+                >Your image</button>
               </div>
-              <a class="more-link" href="/features/start-page">Start Page layouts <span aria-hidden="true">›</span></a>
+              <a class="more-link" href="/features/start-page">Start Page layouts and wallpaper <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card rise">
@@ -402,6 +421,7 @@ const faqs = [
               <h3>Quiet Tabs</h3>
               <p>Quiet Tabs can release memory from eligible inactive background pages while retaining their tabs.</p>
               <p class="tool-limit">Quiet pages reload when you return to them.</p>
+              <a class="more-link" href="/features/quiet-tabs">How Quiet Tabs work <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card rise">
@@ -428,6 +448,7 @@ const faqs = [
               <h3>1Password</h3>
               <p>The optional integration fills a matching login when you ask, on macOS, Windows and Linux.</p>
               <p class="tool-limit">Off by default. Needs the 1Password app and account. Not on Windows on Arm. <a href="/support#1password">Setup and shortcuts <span aria-hidden="true">›</span></a></p>
+              <a class="more-link" href="/features/1password">How 1Password fill works <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card tool-card-wide rise">
@@ -439,7 +460,7 @@ const faqs = [
             </div>
             <div class="tool-copy">
               <h3>Bangs</h3>
-              <p>Type a site’s code before your search, like <code>!yt lofi</code>, to go straight to its results.</p>
+              <p>Type a site’s code before your search, like <kbd class="bang-chip">!yt lofi</kbd>, to go straight to its results.</p>
               <p class="tool-limit">Works with any search engine.</p>
               <a class="more-link" href="/bangs">How bangs work <span aria-hidden="true">›</span></a>
             </div>
@@ -454,6 +475,7 @@ const faqs = [
             </div>
           </article>
         </div>
+        <p class="tools-more">Also in Blanc: <a href="/features/vertical-tabs">Vertical tabs</a> <span aria-hidden="true">·</span> <a href="/features/profiles">Profiles</a> <span aria-hidden="true">·</span> <a href="/features/reopen-closed-tabs">Reopen closed tabs</a> <span aria-hidden="true">·</span> <a href="/features/sync">Sync</a> <span aria-hidden="true">·</span> <a href="/features/security">Security</a> <span aria-hidden="true">·</span> <a href="/features">All features <span aria-hidden="true">›</span></a></p>
       </div>
     </section>
 
@@ -635,7 +657,7 @@ const faqs = [
     </section>
   </main>
   <ol class="page-notes" slot="footnotes">
-    <li id="note-memory">Measured October 15, 2026 on one Apple Silicon Mac with 8 GB of memory, with Blanc 1.34.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">the Blanc repository</a>.</li>
+    <li id="note-memory">Measured October 19, 2026 on one Apple Silicon Mac with 24 GB of memory, with Blanc 1.38.0 and Chrome 155.0.8059.80: six ad-heavy sites in each browser (five news sites and Speedtest), fresh profiles, no extensions, median of three runs. The figure is physical memory footprint summed across every process the browser starts. Method and raw data are in <a href="https://github.com/bnfy/blanc/tree/main/bench/memory">the Blanc repository</a>.</li>
     <li id="note-chrome">Chrome entries describe a default Chrome install, from Google’s own documentation, read October 15, 2026: <a href="https://support.google.com/chrome/answer/7632919">ad blocking</a>, <a href="https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline">the Manifest V2 timeline</a>, <a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh">uBlock Origin Lite</a>, <a href="https://support.google.com/chrome/answer/95346">downloads and system requirements</a>, <a href="https://support.google.com/chrome_webstore/answer/2664769">extensions</a>, <a href="https://support.google.com/chrome/answer/95606">passwords</a>, <a href="https://developer.chrome.com/docs/chromium">Chromium</a>, <a href="https://support.google.com/chrome/a/answer/16190511">terms</a> and <a href="https://support.google.com/chrome/answer/4410268">protected content</a>.</li>
   </ol>
   <script src="../scripts/home.js"></script>

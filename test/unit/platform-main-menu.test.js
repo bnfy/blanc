@@ -209,7 +209,8 @@ test('chrome markup and IPC keep one native menu definition', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
 
-  assert.match(html, /<div id="strip">\s*<button\s+id="mainMenuButton"[\s\S]*aria-haspopup="menu"[\s\S]*hidden/);
+  // The auto-hide drag band (island-autohide.test.js) may lead the strip.
+  assert.match(html, /<div id="strip">\s*(?:<div id="dragBand"[^>]*><\/div>\s*)?<button\s+id="mainMenuButton"[\s\S]*aria-haspopup="menu"[\s\S]*hidden/);
   assert.match(html, /<path d="M3 4\.5h10M3 8h10M3 11\.5h10"\/?>/);
   assert.doesNotMatch(html, /<circle cx="8"/);
   assert.match(html, /<div id="windowControls" class="no-drag"><\/div>/);

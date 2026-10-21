@@ -1,8 +1,16 @@
+import { prepareSaveAcknowledgement } from './save-ack.mjs';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { prepareMacIcon } from './mac-icon.mjs';
+import { prepareComponent } from './ubo-component.mjs';
+import { prepareDocumentTarget } from './ubo-document-target.mjs';
+import { prepareWindowIdentity } from './window-identity.mjs';
+import { prepareHistoryAcknowledgement } from './history-acknowledgement.mjs';
+import { prepareGroupPersistence } from './group-persistence.mjs';
+import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -42,8 +50,13 @@ function writeIfChanged(target, value) {
 const generated = path.join(here, 'generated');
 fs.mkdirSync(path.join(generated, 'pages'), { recursive: true });
 
+const reviewedAssets = JSON.parse(fs.readFileSync(path.join(here, 'renderer-1.38/manifest.json'), 'utf8'));
 const assets = new Map();
 const copies = [
+  ['src/main/start-page-paint.js', 'pages/start-page-paint.js'],
+  ['src/renderer/space-identity.js', 'pages/space-identity.js'],
+  ['src/renderer/pages/bangs.js', 'pages/bangs.js'],
+  ['src/renderer/pages/bangs-catalog.js', 'pages/bangs-catalog.js'],
   ['src/renderer/pages/newtab.html', 'pages/newtab.html'],
   ['src/renderer/pages/newtab.js', 'pages/newtab.js'],
   ['src/renderer/pages/close.svg', 'pages/close.svg'],
@@ -73,6 +86,8 @@ const copies = [
   ['prototype/host.html', 'host.html'],
   ['prototype/host.css', 'host.css'],
   ['prototype/host.js', 'host.js'],
+  ['prototype/installed-theme.js', 'installed-theme.js'],
+  ['prototype/installed-theme.js', 'pages/installed-theme.js'],
   ['prototype/adapter.js', 'adapter.js'],
   ['prototype/prototype.css', 'prototype.css'],
   ['src/renderer/index.html', 'index.html'],
@@ -81,6 +96,7 @@ const copies = [
   ['src/renderer/renderer.js', 'renderer.js'],
   ['src/renderer/overlay.js', 'overlay.js'],
   ['src/renderer/tab-drag.js', 'tab-drag.js'],
+  ['src/renderer/tab-sections.js', 'tab-sections.js'],
   ['src/renderer/vertical-tabs.js', 'vertical-tabs.js'],
   ['src/renderer/space-identity.js', 'space-identity.js'],
   ['src/renderer/space-picker.js', 'space-picker.js'],
@@ -99,13 +115,21 @@ const copies = [
 for (const [source, destination] of copies) {
   const sourcePath = source.startsWith('prototype/')
     ? path.join(here, source)
-    : path.join(repo, source);
+    : Object.hasOwn(reviewedAssets.files, source)
+      ? path.join(here, 'renderer-1.38', source === 'src/main/start-page-paint.js' ? 'start-page-paint.js' : source.slice('src/renderer/'.length))
+      : path.join(repo, source);
   const destinationPath = path.join(generated, destination);
-  if (!fs.existsSync(sourcePath)) fail(`missing reviewed asset ${sourcePath}`);
+  const bytes = fs.readFileSync(sourcePath);
+  if (Object.hasOwn(reviewedAssets.files, source) && createHash('sha256').update(bytes).digest('hex') !== reviewedAssets.files[source]) fail(`reviewed asset hash changed: ${source}`);
   fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
-  assets.set(destinationPath, fs.readFileSync(sourcePath));
+  assets.set(destinationPath, bytes);
 }
 
+// The reviewed pure paint module only needs CommonJS binding adaptation.
+const paintFile = path.join(generated, 'pages/start-page-paint.js');
+assets.set(paintFile, '(() => {\n' + assets.get(paintFile).toString('utf8')
+  .replace("const Identity = require('../renderer/space-identity');", 'const Identity = window.SpaceIdentity;')
+  .replace('module.exports = {', 'window.BlancStartPaint = {') + '\n})();\n');
 for (const name of ['index.html', 'overlay.html']) {
   const target = path.join(generated, name);
   let html = assets.get(target).toString('utf8');
@@ -124,15 +148,89 @@ for (const name of ['index.html', 'overlay.html']) {
   assets.set(target, html);
 }
 
+// PR993 rail semantics: one row per persistent split, selecting its last focus.
+// Keep the reviewed 1.38 source immutable; adapt only the prototype copy.
+const railFile = path.join(generated, 'vertical-tabs.js');
+let railSource = assets.get(railFile).toString('utf8');
+railSource = railSource.replace('activeTabId: payload.activeTabId,', 'activeTabId: payload.activeTabId, splits: payload.splits,');
+railSource = railSource.replace('  function tabRow(tab, activeTabId) {', `  let railSplits = [];
+  function rowsFor(tabs, activeTabId) {
+    const byId = new Map(tabs.map(tab => [tab.id, tab]));
+    const consumed = new Set();
+    const rows = [];
+    for (const tab of tabs) {
+      if (consumed.has(tab.id)) continue;
+      const split = railSplits.find(s => s.tabIds.includes(tab.id) && s.tabIds.every(id => byId.has(id)));
+      if (!split) { rows.push(tabRow(tab, activeTabId)); continue; }
+      const members = split.tabIds.map(id => byId.get(id));
+      members.forEach(t => consumed.add(t.id));
+      const focused = members[split.focusedIndex] || members[0];
+      const row = document.createElement('div');
+      row.className = 'vertical-tab-row vertical-split-row' + (split.tabIds.includes(activeTabId) ? ' active' : '');
+      row.setAttribute('role', 'listitem'); row.dataset.splitId = split.id;
+      row.dataset.tabId = members[0].id; row.dataset.dragTab = '';
+      row.dataset.bucket = bucketKey(members[0]); row.dataset.pinned = String(!!members[0].pinned);
+      row.dataset.groupId = members[0].groupId ?? ''; row.dataset.dragTitle = members.map(titleFor).join(' + ');
+      const label = members.map(titleFor).join(' + ');
+      row.setAttribute('aria-label', 'Split View: ' + label);
+      const primary = document.createElement('button'); primary.type = 'button';
+      primary.className = 'vertical-tab-primary'; primary.tabIndex = -1;
+      primary.dataset.tabId = focused.id; primary.dataset.focusKey = 'split:' + split.id;
+      primary.setAttribute('aria-label', 'Switch to Split View: ' + label);
+      const icons = document.createElement('span'); icons.className = 'vertical-split-icons';
+      for (const member of members) icons.appendChild(faviconFor(member));
+      const title = document.createElement('span'); title.className = 'vertical-tab-title'; title.textContent = label;
+      primary.append(icons, title); primary.addEventListener('click', () => activateTab(focused));
+      primary.addEventListener('keydown', event => {
+        if (event.altKey && event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
+          event.preventDefault(); keyboardMove('tab', members[0].id, event.key === 'ArrowUp' ? 'up' : 'down');
+        }
+      });
+      const close = document.createElement('button'); close.type = 'button'; close.className = 'vertical-tab-close';
+      close.textContent = '×'; close.setAttribute('aria-label', 'Close Split View: ' + label);
+      close.addEventListener('click', () => invoke('close split', () => api.closeSplit(focused.id)));
+      row.append(primary, close); rows.push(row);
+    }
+    return rows;
+  }
+  function tabRow(tab, activeTabId) {`);
+for (const bucket of ['tabs', 'pinned', 'regular']) {
+  railSource = railSource.replaceAll('for (const tab of ' + bucket + ') section.appendChild(tabRow(tab, activeTabId));',
+    'for (const row of rowsFor(' + bucket + ', activeTabId)) section.appendChild(row);');
+}
+railSource = railSource.replace('    const tabs = payload.tabs || [];', '    railSplits = payload.splits || [];\n    const tabs = payload.tabs || [];');
+railSource = railSource.replace('    const result = kind ===', `    const hiddenMembers = new Set((lastPayload.splits || []).flatMap(s => s.tabIds.slice(1)));
+    const movePayload = { ...lastPayload, tabs: lastPayload.tabs.filter(t => !hiddenMembers.has(t.id)) };
+    const memberSplit = (lastPayload.splits || []).find(s => s.tabIds.includes(id));
+    if (kind === 'tab' && memberSplit) id = memberSplit.tabIds[0];
+    const result = kind ===`);
+railSource = railSource.replace('dragApi.keyboardTabMove(lastPayload, id, direction)', 'dragApi.keyboardTabMove(movePayload, id, direction)');
+assets.set(railFile, railSource);
+
 // Reuse the shipping new-tab document with a narrowly scoped Chromium adapter.
 const newTabFile = path.join(generated, 'pages/newtab.html');
 let newTabHtml = assets.get(newTabFile).toString('utf8');
 newTabHtml = newTabHtml.replace('<script src="strings.js"></script>',
-  '<script src="newtab-adapter.js"></script>\n  <script src="strings.js"></script>');
+  '<script src="installed-theme.js"></script><script src="newtab-adapter.js"></script>\n  <script src="strings.js"></script>');
 newTabHtml = newTabHtml.replace('<link rel="stylesheet" href="pages.css" />',
   '<link rel="stylesheet" href="pages.css" />\n  <link rel="stylesheet" href="newtab-prototype.css" />');
 newTabHtml = newTabHtml.replace('  <script src="onboarding.js"></script>\n', '');
+newTabHtml = newTabHtml.replace('<script src="newtab-adapter.js"></script>', '<script src="space-identity.js"></script><script src="start-page-paint.js"></script><script src="newtab-adapter.js"></script>');
+newTabHtml = newTabHtml.replace('</div>\n        <div id="customWallpaperCover"', '<button id="storeThemeWallpaperPick" type="button" aria-label="Theme" aria-pressed="false" hidden>Theme</button>\n        </div>\n        <div id="customWallpaperCover"');
 assets.set(newTabFile, newTabHtml);
+const themePageFile = path.join(generated, 'pages/newtab.js');
+let themePageJs = assets.get(themePageFile).toString('utf8');
+themePageJs = themePageJs.replace("  const custom = wallpaperState.source === 'custom';", "  const storeTheme = wallpaperState.source === 'web-store';\n  const storeThemePick = document.getElementById('storeThemeWallpaperPick');\n  storeThemePick.hidden = !wallpaperState.themeAvailable || isPrivate;\n  storeThemePick.setAttribute('aria-pressed', String(storeTheme));\n  storeThemePick.disabled = wallpaperUpdatePending;\n  const custom = wallpaperState.source === 'custom';");
+themePageJs = themePageJs.replace('String(!custom && !color)', 'String(!custom && !color && !storeTheme)')
+  .replace('customWallpaperRow.hidden = !custom;', 'customWallpaperRow.hidden = !custom && !(storeTheme && wallpaperState.hasImage);')
+  .replace('if (custom) document.body.dataset.wallpaperStyle = style;', 'if (custom || storeTheme) document.body.dataset.wallpaperStyle = style;')
+  .replace('wallpaper.setSource(wallpaperState);', "wallpaper.setSource(wallpaperState.source === 'web-store' ? { ...wallpaperState, source: wallpaperState.hasImage ? 'custom' : 'sunrise' } : wallpaperState);")
+  .replace('wallpaperToggle.hidden = custom || color;', 'wallpaperToggle.hidden = custom || color || storeTheme;')
+  .replace("custom ? 'custom' : color ? 'color' : 'sunrise'", "custom || storeTheme ? 'custom' : color ? 'color' : 'sunrise'")
+  .replace("wallpaperState.source === 'custom' || wallpaperState.source === 'color'", "wallpaperState.source === 'custom' || wallpaperState.source === 'color' || wallpaperState.source === 'web-store'")
+  .replace("wallpaperState.source !== 'custom' && wallpaperState.source !== 'color'", "wallpaperState.source !== 'custom' && wallpaperState.source !== 'color' && wallpaperState.source !== 'web-store'");
+themePageJs += "\ndocument.getElementById('storeThemeWallpaperPick').addEventListener('click', () => updateWallpaper(async () => applyWallpaper(await window.bowserPages.start.setWallpaper('web-store'))));\n";
+assets.set(themePageFile, themePageJs);
 
 // Give the copied resting favorite button a stable prototype-only selector.
 const renderer = path.join(generated, 'renderer.js');
@@ -151,7 +249,7 @@ let overlaySource = assets.get(overlayScript).toString('utf8');
 const commandsAnchor = '  ];\n\n  function runCommand(command) {';
 if (overlaySource.split(commandsAnchor).length !== 2) fail('command list anchor changed');
 overlaySource = overlaySource.replace(commandsAnchor,
-  "  ].filter((command) => ['/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group'].includes(command.cmd));\n\n  function runCommand(command) {");
+  "  ].filter((command) => ['/find', '/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
 for (const [target, value] of assets) writeIfChanged(target, value);
@@ -166,6 +264,20 @@ for (const name of ['blanc_prototype_ui.h', 'blanc_prototype_ui.cc']) {
   writeIfChanged(path.join(chromium, 'chrome/browser/ui', name),
     fs.readFileSync(path.join(here, 'native', name), 'utf8'));
 }
+
+// Keep the reviewed compatibility script byte-for-byte in a Blanc-owned header.
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_webstore_promotion.h'),
+  'inline constexpr char16_t kBlancWebStorePromotion[] = uR"BLANC(' +
+  fs.readFileSync(path.join(here, 'native/webstore-promotion.js'), 'utf8') + ')BLANC";\n');
+
+
+let extensionsBranding = fs.readFileSync(path.join(here, 'native/extensions-branding.js'), 'utf8');
+extensionsBranding = extensionsBranding.replace('__BLANC_FONTS__', JSON.stringify([
+  ['Instrument Sans', fs.readFileSync(path.join(generated, 'pages/instrument-sans-latin-wdth-normal.woff2')).toString('base64'), '400 700'],
+  ['Inter', fs.readFileSync(path.join(generated, 'pages/inter-latin.woff2')).toString('base64'), '100 900'],
+])).replace('__BLANC_LOGO__', 'data:image/png;base64,' + fs.readFileSync(path.join(generated, 'pages/sunrise-mark.png')).toString('base64'));
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_extensions_branding.h'),
+  'inline constexpr char16_t kBlancExtensionsBranding[] = uR"BLANC(' + extensionsBranding + ')BLANC";\n');
 
 function edit(relative, edits) {
   const target = path.join(chromium, relative);
@@ -220,6 +332,11 @@ writeIfChanged(browserViewFile, fs.readFileSync(browserViewFile, 'utf8')
 
 edit('chrome/browser/ui/views/frame/browser_view.cc', [
   {
+    anchor: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return ToolbarButtonProvider::From(browser_);\n}',
+    replacement: 'ToolbarButtonProvider* BrowserView::toolbar_button_provider() {\n  return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));\n}',
+    present: 'return blanc_prototype::ToolbarProvider(browser_, ToolbarButtonProvider::From(browser_));',
+  },
+  {
     anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
     replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
     present: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
@@ -263,6 +380,12 @@ edit('chrome/browser/ui/views/frame/browser_view.cc', [
   },
 ]);
 edit('chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc', [
+  { anchor: 'params.visual_client_area.width(), 68);',
+    replacement: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));',
+    present: 'params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));' },
+  { anchor: '  // Lay out infobar container.\n',
+    replacement: '  params.InsetHorizontal(blanc_prototype::RailWidth(views().browser_view), /*leading=*/true);\n\n  // Lay out infobar container.\n',
+    present: 'params.InsetHorizontal(blanc_prototype::RailWidth' },
   {
     anchor: '  return info;\n}\n\nBrowserViewTabbedLayoutImpl::SidePanelContentAnimation',
     replacement: `  if (blanc_prototype::HasIsland(views().browser_view)) {
@@ -287,10 +410,10 @@ BrowserViewTabbedLayoutImpl::SidePanelContentAnimation`,
     for (views::View* child : views().top_container->children())
       layout.AddChild(child, gfx::Rect(), false);
     return gfx::Rect(params.visual_client_area.x(), original_top,
-                     params.visual_client_area.width(), 68);
+                     params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view));
   }
 `,
-    present: '  if (blanc_prototype::HasIsland(views().browser_view)) {',
+    present: '    for (views::View* child : views().top_container->children())',
   },
 ]);
 // The Island owns fullscreen chrome too; do not move hidden Chromium controls
@@ -371,6 +494,38 @@ edit('chrome/browser/ui/views/frame/browser_frame_view_mac.mm', [
 
 // Retire the first controller-switch hooks: Chromium's ActionItem path bypasses
 // that switch. The shared command functions below serve both dispatch paths.
+// Restore Tab actions and legacy commands converge on this entry point.
+edit('chrome/browser/ui/browser_command_controller.cc', [{
+  anchor: '    case IDC_RESTORE_TAB:\n      if (!blanc_prototype::RestoreClosedSplitFromCommand(browser_))\n        RestoreTab(browser_);',
+  replacement: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);',
+  present: '    case IDC_RESTORE_TAB:\n      RestoreTab(browser_);'
+}]);
+// Profile-wide closure shuts session recording down before beforeunload.
+// Restore it only on confirmed cancellation, after all close handlers reset.
+edit('chrome/browser/lifetime/application_lifetime_desktop.cc', [{
+  anchor: '    if (on_close_aborted) {\n      on_close_aborted.Run(profile_path);\n    }',
+  replacement: `    // CloseAllBrowsersWithProfile shuts these down before beforeunload.
+    // A cancelled close keeps the profile alive; resume recording its windows.
+    if (match_original_profile && !original_profile->IsOffTheRecord()) {
+      SessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+      AppSessionServiceFactory::GetForProfileForSessionRestore(original_profile);
+    }
+    if (on_close_aborted) {
+      on_close_aborted.Run(profile_path);
+    }`,
+  present: '    // A cancelled close keeps the profile alive; resume recording its windows.'
+}]);
+
+edit('chrome/browser/ui/browser_tab_restorer.cc', [{
+  anchor: '#include "base/memory/ptr_util.h"',
+  replacement: '#include "chrome/browser/ui/blanc_prototype_ui.h"\n#include "base/memory/ptr_util.h"',
+  present: '#include "chrome/browser/ui/blanc_prototype_ui.h"'
+}, {
+  anchor: 'void RestoreTab(BrowserWindowInterface* browser) {\n',
+  replacement: 'void RestoreTab(BrowserWindowInterface* browser) {\n  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;\n',
+  present: '  if (blanc_prototype::RestoreClosedSplitFromCommand(browser)) return;'
+}]);
+
 const controllerFile = path.join(chromium, 'chrome/browser/ui/browser_command_controller.cc');
 let controllerSource = fs.readFileSync(controllerFile, 'utf8');
 controllerSource = controllerSource
@@ -398,6 +553,9 @@ edit('chrome/browser/ui/views/frame/browser_view.cc', [{
 
 
 edit('chrome/browser/ui/browser_commands.cc', [
+  { anchor: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n", present: "void SelectNumberedTab(BrowserWindowInterface* browser,\n                       int index,\n                       TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, index)) return;\n" },
+  { anchor: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n", replacement: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n", present: "void SelectLastTab(BrowserWindowInterface* browser,\n                   TabStripUserGestureDetails gesture_detail) {\n  if (blanc_prototype::SelectIslandSlot(browser, 8)) return;\n" },
+
   {
     anchor: '#include "chrome/browser/ui/browser_commands.h"\n',
     replacement: '#include "chrome/browser/ui/browser_commands.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
@@ -414,6 +572,22 @@ edit('chrome/browser/ui/browser_commands.cc', [
     present: '  if (blanc_prototype::IsEnabled() && blanc_prototype::OpenIsland(browser))\n',
   },
 ]);
+
+// Native Find routes through the same command function as menu and Cmd-F.
+edit('chrome/browser/ui/browser_commands.cc', [
+{
+  anchor: 'void Find(BrowserWindowInterface* browser) {\n',
+  replacement: 'void Find(BrowserWindowInterface* browser) {\n  if (blanc_prototype::OpenFindIsland(browser)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser)) return;',
+}]);
+
+// Next/previous share this helper, including menu and native Cmd-G variants.
+edit('chrome/browser/ui/browser_commands.cc', [
+{
+  anchor: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n',
+  replacement: 'void FindInPage(BrowserWindowInterface* browser,\n                bool find_next,\n                bool forward_direction) {\n  if (blanc_prototype::OpenFindIsland(browser, find_next ? (forward_direction ? 1 : -1) : 0)) return;\n',
+  present: '  if (blanc_prototype::OpenFindIsland(browser, find_next ?',
+}]);
 
 // ⌘D (IDC_BOOKMARK_THIS_TAB) toggles the Island's Favorite instead of opening
 // Chromium's star bubble, which has no toolbar to anchor to in Island windows.
@@ -558,5 +732,22 @@ edit('chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc', [
     present: 'if (blanc_prototype::IsIslandWindow(browser_)) return GetExtensionsButtonAnchor();' },
 ]);
 
+prepareGroupPersistence(edit);
+prepareHistoryAcknowledgement(edit);
+prepareComponent(edit);
+prepareDocumentTarget(edit);
+prepareRendererTarget(edit, chromium);
 console.log(`Prepared Blanc Chromium prototype from ${expectedVersion}`);
 console.log(`Assets: ${generated}`);
+
+prepareWindowIdentity(edit);
+prepareSaveAcknowledgement(edit);
+
+edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
+  { anchor: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n',
+    replacement: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
+    present: '#include "chrome/browser/ui/blanc_prototype_ui.h"' },
+  { anchor: '  layouts.host_size = gfx::Size(width, height);\n  return layouts;',
+    replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
+    present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
+]);

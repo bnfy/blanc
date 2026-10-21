@@ -9,6 +9,8 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_FILL_STATUS_URL,
+  CHROME_TOOLTIP_URL,
+  CHROME_SPLIT_TAB_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
 } = require('../../src/main/chrome-protocol');
@@ -37,6 +39,17 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     chromeResourcePath('blanc-chrome://overlay/pages/sunrise-favicon-mark.png'),
     path.join(renderer, 'pages/sunrise-favicon-mark.png'),
   );
+});
+
+test('only the rail and island documents can load the shared tab sections', () => {
+  const asset = path.join(renderer, 'tab-sections.js');
+  assert.equal(chromeResourcePath('blanc-chrome://index/tab-sections.js'), asset);
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/tab-sections.js'), asset);
+  for (const url of [
+    'blanc-chrome://permission/tab-sections.js',
+    'blanc-chrome://fill-status/tab-sections.js',
+    'blanc-chrome://display-capture-helper/tab-sections.js',
+  ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
 test('only the rail and island documents can load the shared tab-drag controller', () => {
@@ -82,6 +95,16 @@ test('only the overlay can load the Spaces colour picker', () => {
     'blanc-chrome://permission/space-picker.js',
     'blanc-chrome://fill-status/space-picker.js',
     'blanc-chrome://overlay/space-picker.js#x',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
+test('only the overlay can load the hover-opened panel leave policy', () => {
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/hover-panel-leave.js'), path.join(renderer, 'hover-panel-leave.js'));
+  for (const url of [
+    'blanc-chrome://index/hover-panel-leave.js',
+    'blanc-chrome://permission/hover-panel-leave.js',
+    'blanc-chrome://fill-status/hover-panel-leave.js',
+    'blanc-chrome://overlay/hover-panel-leave.js?v=1',
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
@@ -166,4 +189,29 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
     'file:///etc/passwd',
     'not a url',
   ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
+test('split-tab host serves its scriptless document and shared styles only', () => {
+  assert.equal(CHROME_SPLIT_TAB_URL, 'blanc-chrome://split-tab/');
+  assert.equal(chromeResourcePath(CHROME_SPLIT_TAB_URL), path.join(renderer, 'split-tab.html'));
+  assert.equal(chromeResourcePath('blanc-chrome://split-tab/styles.css'), path.join(renderer, 'styles.css'));
+  for (const file of ['renderer.js', 'overlay.js', 'tooltip.html', '../preload.js']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://split-tab/${file}`), null, file);
+  }
+  const html = fs.readFileSync(path.join(renderer, 'split-tab.html'), 'utf8');
+  assert.doesNotMatch(html, /<script/i, 'main writes the site; the document runs no script');
+  assert.match(html, /default-src 'none'/);
+  assert.match(html, /img-src data:/, 'favicons arrive as PNG data URLs only');
+});
+
+test('tooltip host serves its scriptless document and shared styles only', () => {
+  assert.equal(CHROME_TOOLTIP_URL, 'blanc-chrome://tooltip/');
+  assert.equal(chromeResourcePath(CHROME_TOOLTIP_URL), path.join(renderer, 'tooltip.html'));
+  assert.equal(chromeResourcePath('blanc-chrome://tooltip/styles.css'), path.join(renderer, 'styles.css'));
+  for (const file of ['renderer.js', 'overlay.js', 'fill-status.js', 'permission.js', '../preload.js']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://tooltip/${file}`), null, file);
+  }
+  const html = fs.readFileSync(path.join(renderer, 'tooltip.html'), 'utf8');
+  assert.doesNotMatch(html, /<script/i, 'main writes the text; the document runs no script');
+  assert.match(html, /default-src 'none'/);
 });

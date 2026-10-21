@@ -57,6 +57,10 @@ function seedProfile(profile, theme) {
     newtabLayout: 'billboard',
     newtabDynamicWallpaper: true,
     presentationDefaultsResetVersion: 1,
+    // Already ran this version and dismissed the Patron callout, so the footer
+    // shows neither the What's new nor the Patron pill (both since v1.36.0).
+    lastRunVersion: expectedVersion,
+    patronCalloutDismissedAt: now,
   });
   writeJson('bookmarks', {
     items: favorites.map(([id, url, title], index) => ({

@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "encrypted",
+    "pass": true,
+    "checkpoints": 13,
+    "mutations": 220,
+    "elapsedMs": 10044
+  },
+  {
+    "mode": "clear",
+    "pass": true,
+    "checkpoints": 13,
+    "mutations": 220,
+    "elapsedMs": 10040
+  }
+]

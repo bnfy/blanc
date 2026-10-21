@@ -537,47 +537,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-113",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Give each page the room it needs",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-114",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage",
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-115",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Change, swap, or finish",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-116",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-117",
       "source": "site/src/components/guides/glance.astro",
       "exactWording": "A temporary view for the task in front of you.",
@@ -591,16 +550,6 @@
       "id": "website-115-118",
       "source": "site/src/components/guides/glance.astro",
       "exactWording": "Both visible pages stay available",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-119",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -625,16 +574,6 @@
       "evidenceGroups": [
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-122",
-      "source": "site/src/components/guides/glance.astro",
-      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -2160,7 +2099,7 @@
     {
       "id": "trust-125-340",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Cloudflare hosts the site and Blanc-owned Workers, including the encrypted tab-handoff relay, and receives cookieless page-view counts where described; GitHub hosts source code and releases; Resend delivers confirmation, newsletter, Blanc Mail waitlist, and ambassador-application messages; Polar handles Patron and supporter purchases; 1Password handles an account interaction only when its optional login-fill integration is enabled and invoked; OpenAI receives the limited ChatGPT-ad conversion event described above only after Allow and separately processes selected tab metadata on the user-invoked ChatGPT handoff path; and Google receives optional site analytics only after Allow or an existing saved grant, and app analytics only when the saved usage-ping setting is enabled and that mirror is configured. Google also receives searches and eligible suggestion prefixes when selected as the app’s search provider. These providers process data under their own terms and may process it in the United States or other countries using their applicable transfer safeguards.",
+      "exactWording": "Cloudflare hosts the site and Blanc-owned Workers, including the encrypted tab-handoff relay, and receives cookieless page-view counts where described; GitHub hosts source code and releases; Resend delivers confirmation, newsletter, Blanc Mail waitlist, and ambassador-application messages; Crisp provides the optional website live chat; Polar handles Patron and supporter purchases; 1Password handles an account interaction only when its optional login-fill integration is enabled and invoked; OpenAI receives the limited ChatGPT-ad conversion event described above only after Allow and separately processes selected tab metadata on the user-invoked ChatGPT handoff path; and Google receives optional site analytics only after Allow or an existing saved grant, and app analytics only when the saved usage-ping setting is enabled and that mirror is configured. Google also receives searches and eligible suggestion prefixes when selected as the app’s search provider. These providers process data under their own terms and may process it in the United States or other countries using their applicable transfer safeguards.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -3654,36 +3593,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-039",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "View two tabs with Glance.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-040",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "revamp-copy-046",
-      "source": "site/src/components/GlanceDemo.astro",
-      "exactWording": "Drag the divider to resize.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-047",
       "source": "site/src/components/GestureDemo.astro",
       "exactWording": "Navigate with mouse gestures.",
@@ -4298,16 +4207,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "revamp-copy-118",
-      "source": "site/src/components/guides/tab-groups.astro",
-      "exactWording": "Groups have names, not colors.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "revamp-copy-119",
       "source": "site/src/components/guides/tab-groups.astro",
       "exactWording": "Name the task, then keep moving.",
@@ -4638,26 +4537,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-071",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Four ways to begin. Mahjong when you want a break.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-072",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-073",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Billboard puts frequently visited sites within reach. Sample browsing data shown.",
@@ -4674,36 +4553,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-107",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Keep a reference beside the page you’re using.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-108",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-109",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "The main page and reference share one window. You choose the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -4731,16 +4580,6 @@
       "id": "website-115-150",
       "source": "site/src/pages/features/profiles.astro",
       "exactWording": "Separate browsing identities. Keep every window independent.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-151",
-      "source": "site/src/pages/features/profiles.astro",
-      "exactWording": "Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.",
       "subject": "Blanc",
       "evidenceGroups": [
         "profiles"
@@ -4819,27 +4658,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-244",
-      "source": "site/src/pages/features/sync.astro",
-      "exactWording": "Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "sync",
-        "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "website-115-259",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Standalone Mahjong — Bridge / Burst",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "messaging-125-003",
       "source": "site/src/pages/features/island.astro",
       "exactWording": "The resting island sits in a slim band above the page. Its expanded panel opens over the page.",
@@ -4860,16 +4678,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "reddit-451",
-      "source": "site/src/pages/features/security.astro",
-      "exactWording": "Blanc’s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-452",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "The shield shows blocking inside the browser. This illustration uses a sample count of two blocked requests.",
@@ -4883,16 +4691,6 @@
       "id": "reddit-498",
       "source": "site/src/pages/features/security.astro",
       "exactWording": "A quieter browser, with the quiet parts documented.",
-      "claimType": "qualified capability or maintainer process statement",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "reddit-500",
-      "source": "site/src/pages/features/ad-blocking.astro",
-      "exactWording": "Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc’s own mark — opens direct controls for the site you are visiting.",
       "claimType": "qualified capability or maintainer process statement",
       "evidenceGroups": [
         "trust"
@@ -5183,47 +4981,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-website-115-113",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Give each page the room it needs",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-114",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage",
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-115",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Change, swap, or finish",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-116",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-website-115-117",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "A temporary view for the task in front of you.",
@@ -5237,16 +4994,6 @@
       "id": "feature-retained-website-115-118",
       "source": "site/src/pages/features/glance.astro",
       "exactWording": "Both visible pages stay available",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-119",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
       "subject": "Blanc",
       "evidenceGroups": [
         "glance"
@@ -5271,16 +5018,6 @@
       "evidenceGroups": [
         "glance",
         "profiles"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "feature-retained-website-115-122",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -7113,16 +6850,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "feature-retained-revamp-copy-118",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Groups have names, not colors.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "feature-retained-revamp-copy-119",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Name the task, then keep moving.",
@@ -8097,16 +7824,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-tab-groups-01",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Named tab groups: keep the tabs you need. Tuck away the rest.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-tab-groups-03",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Group, jump, close, and bring it back.",
@@ -8140,36 +7857,6 @@
       "id": "seo-2026-10-05-tab-groups-06",
       "source": "site/src/pages/features/tab-groups.astro",
       "exactWording": "Jump straight to a group.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-07",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-08",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "Links join the group.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "seoGuideBehaviors"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-tab-groups-09",
-      "source": "site/src/pages/features/tab-groups.astro",
-      "exactWording": "A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.",
       "subject": "Blanc",
       "evidenceGroups": [
         "seoGuideBehaviors"
@@ -8262,17 +7949,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-03",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "In May 2025, The Browser Company wrote that it had stopped actively building new features for Arc, while continuing Chromium upgrades and security fixes. If you are deciding what to use next, this page sets out what Blanc offers today, and what it does not.",
-      "subject": "Blanc",
-      "evidenceGroups": [],
-      "verdict": "qualified",
-      "externalSources": [
-        "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
-      ]
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-05",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "A calm browser built around one small island.",
@@ -8310,26 +7986,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-10",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Two pages side by side.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-11",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Glance keeps a reference tab beside the page you are using. Resize the split, swap the pages or close the reference.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "glance"
       ],
       "verdict": "qualified"
     },
@@ -8421,26 +8077,6 @@
       "subject": "Blanc",
       "evidenceGroups": [
         "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-25",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Blanc is not a copy of Arc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "seo-2026-10-05-arc-alternative-28",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "See if one small island suits you.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
       ],
       "verdict": "qualified"
     },
@@ -8672,6 +8308,40 @@
   ],
   "completedReleaseEvidenceRevision": "7ca557b04dc723ca6158cce3ef4ea8aeb29f03da",
   "supersededClaims": [
+    {
+      "id": "seo-2026-10-05-arc-alternative-03",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "In May 2025, The Browser Company wrote that it had stopped actively building new features for Arc, while continuing Chromium upgrades and security fixes. If you are deciding what to use next, this page sets out what Blanc offers today, and what it does not.",
+      "subject": "Blanc",
+      "evidenceGroups": [],
+      "verdict": "qualified",
+      "externalSources": [
+        "https://browsercompany.substack.com/p/letter-to-arc-members-2025"
+      ],
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-25",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Blanc is not a copy of Arc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-28",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "See if one small island suits you.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
     {
       "id": "website-115-051",
       "historicalLedger": "docs/website-trust-claims-v1.25.json",
@@ -10339,6 +10009,339 @@
       ],
       "verdict": "qualified",
       "reason": "October 17, 2026: the privacy page now also names the website's discreet newsletter signup card, which submits to the same Worker as the footer form, and records the browser-local entry it keeps. The replacement wording is recorded in docs/website-v1.35-claims.json."
+    },
+    {
+      "id": "revamp-copy-118",
+      "source": "site/src/components/guides/tab-groups.astro",
+      "exactWording": "Groups have names, not colors.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "feature-retained-revamp-copy-118",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Groups have names, not colors.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-07",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-08",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Links join the group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-09",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color (#936), ⌘1–9 also numbers runs of ungrouped tabs (#933), and a link opened from a grouped tab opens ungrouped (#928). The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-tab-groups-01",
+      "source": "site/src/pages/features/tab-groups.astro",
+      "exactWording": "Named tab groups: keep the tabs you need. Tuck away the rest.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "seoGuideBehaviors"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for a more concise, less repetitive hero on the tab groups page. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-108",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-151",
+      "source": "site/src/pages/features/profiles.astro",
+      "exactWording": "Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-244",
+      "source": "site/src/pages/features/sync.astro",
+      "exactWording": "Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sync",
+        "profiles"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "reddit-451",
+      "source": "site/src/pages/features/security.astro",
+      "exactWording": "Blanc’s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "reddit-500",
+      "source": "site/src/pages/features/ad-blocking.astro",
+      "exactWording": "Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc’s own mark — opens direct controls for the site you are visiting.",
+      "claimType": "qualified capability or maintainer process statement",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    },
+    {
+      "id": "website-115-113",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Give each page the room it needs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-114",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-115",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Change, swap, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-116",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-119",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-122",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-039",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "View two tabs with Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-040",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Keep a city guide beside an exhibition page while you plan a trip. Resize the split, swap the tabs or close the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "revamp-copy-046",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Drag the divider to resize.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-107",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Keep a reference beside the page you’re using.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "website-115-109",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The main page and reference share one window. You choose the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-113",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Give each page the room it needs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-114",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage",
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-115",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Change, swap, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-116",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-119",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "feature-retained-website-115-122",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-10",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Two pages side by side.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "foundations"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "seo-2026-10-05-arc-alternative-11",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Glance keeps a reference tab beside the page you are using. Resize the split, swap the pages or close the reference.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "glance"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
     }
   ],
   "supersededCandidateClaims": [
@@ -12945,6 +12948,274 @@
           {
             "before": "<p class=\"pop-note\">Websites that follow the system theme change too.</p>",
             "after": "<p class=\"pop-note\">Websites that follow the system theme change too.</p>\n<h2 id=\"pop-reopen-closed-tabs-title\">Reopen a closed tab or a whole group, sometimes without a reload.</h2>\n<p>Press ⌘⇧T, type /reopen, or choose from Recently Closed in the Island. For about 30 seconds, one eligible tab you closed can come back without loading again, which can keep its scroll position and the text you were typing.</p>\n<p class=\"pop-note\">On Windows and Linux, press Ctrl+Shift+T. After that window the tab reloads from a saved snapshot or its address. Each window keeps up to 25 entries for an hour, and private tabs are never recorded.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/ad-blocking.astro",
+        "reason": "October 17, 2026 replica audit: the hand-drawn site-controls popover predated the app's Site protection popover and drew lines the app no longer shows. The figure now renders the shipped popover from the app's own overlay markup (NativeWindowFigure.astro), so its two old status lines leave the page's prose; the popover's current text is the app's, checked by test/unit/site-native-island.test.js.",
+        "replacements": [
+          {
+            "before": "<p>Uses HTTPS</p>\n          <p>3 requests blocked</p>",
+            "after": ""
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/tab-groups.astro",
+        "reason": "October 18, 2026, after public v1.37.0: groups can carry an optional color and have a group menu (#936), ungrouped tabs can sit above, between or below groups and ⌘1–9 numbers each run of them (#933), and a link opened from a grouped tab now opens ungrouped (#928). The hero is tightened at the owner's request, the section heading and the jump and link articles are corrected, and three articles are added; the replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"groups-title\"><h1 id=\"groups-title\">Named tab groups: keep the tabs you need. Tuck away the rest.</h1><p>Name a group for the task in front of you. Blanc keeps that group on the island and leaves the rest close, not constantly visible.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"groups-title\"><h1 id=\"groups-title\">Named tab groups for the task at hand.</h1><p>Blanc keeps the group you&rsquo;re working in on the Island and folds the rest away.</p></section>"
+          },
+          {
+            "before": "<div><h2 id=\"group-behavior-title\">Groups have names, not colors.</h2></div>",
+            "after": "<div><h2 id=\"group-behavior-title\">Groups have names, and colors if you want them.</h2></div>"
+          },
+          {
+            "before": "<article><h3>Name the task, then keep moving.</h3><p>Use <code>/group work</code> to create or join a named group from the active tab. A group exists only while it has tabs in it.</p></article>",
+            "after": "<article><h3>Name the task, then keep moving.</h3><p>Use <code>/group work</code> to create or join a named group from the active tab. A group exists only while it has tabs in it.</p></article>\n      <article><h3>Give a group a color.</h3><p>Right-click a group&rsquo;s header, or press its ⋮, and pick one of eight colors. The group&rsquo;s block takes a light tint, and its tabs&rsquo; dots in the Island take the color. Groups start without one.</p></article>"
+          },
+          {
+            "before": "<article><h3>Right-click any tab.</h3><p>Choose Move to Group to start a new group, move the tab into one you already have, or remove it from its group.</p></article>",
+            "after": "<article><h3>Right-click any tab.</h3><p>Choose Move to Group to start a new group, move the tab into one you already have, or remove it from its group.</p></article>\n      <article><h3>One menu for each group.</h3><p>The same menu holds the group&rsquo;s name and color, New Tab in Group, Move Group to New Window, Ungroup and Close Group.</p></article>"
+          },
+          {
+            "before": "<article><h3>Drag tabs and groups into order.</h3><p>In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group&rsquo;s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.</p></article>",
+            "after": "<article><h3>Drag tabs and groups into order.</h3><p>In the expanded Island or in vertical tabs, drag a tab to reorder it within its group, move it into another group, or take it out of its group. Drop a tab on a group&rsquo;s header to add it, even when the group is folded. Drag a header to move the whole group; ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, follow the new order.</p></article>\n      <article><h3>Place loose tabs anywhere.</h3><p>Tabs outside a group can sit above, between or below your groups. New tabs still start at the bottom.</p></article>"
+          },
+          {
+            "before": "<article><h3>Jump straight to a group.</h3><p>When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group in order.</p></article>",
+            "after": "<article><h3>Jump straight to a group.</h3><p>When you have groups, ⌘1 to ⌘9 on a Mac, or Ctrl+1 to Ctrl+9 on Windows and Linux, jump to each group, and each run of ungrouped tabs, in order.</p></article>"
+          },
+          {
+            "before": "<article><h3>Links join the group.</h3><p>A link you open in a new tab from a grouped tab joins the same group. A new tab you start yourself opens outside any group.</p></article>",
+            "after": "<article><h3>Links open outside the group.</h3><p>A link you open in a new tab from a grouped tab opens outside any group, at the bottom, like a new tab you start yourself.</p></article>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/1password.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Use the logins you already keep in 1Password. Blanc’s built-in integration fills a matching Login item from your installed desktop app when you ask.</p>",
+            "after": "<p>Blanc fills a matching login from your installed 1Password app when you ask.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/glance.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Checking a reference should not mean losing sight of your work. Glance keeps another open tab alongside your main page, with room to read both.</p>",
+            "after": "<p>Glance shows another open tab beside your main page, with room to read both.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/mouse-gestures.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Enable Mouse gestures, hold one button, draw a direction over the page, then release. Go back, open a tab, or run another assigned action while your pointer stays where you are.</p>",
+            "after": "<p>Turn on Mouse gestures, then hold one button and draw a direction over the page to go back, open a tab or run another assigned action.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/profiles.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Keep a work login separate from your personal browsing, and give each window its own tabs. Local profiles create distinct browsing identities without requiring an account.</p>",
+            "after": "<p>Keep work logins apart from your personal browsing, with no account needed.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/quiet-tabs.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"quiet-title\"><h1 id=\"quiet-title\">Tabs you are not using give their memory back.</h1><p>Leave a tab alone long enough and Blanc hands its page back to your computer. The tab stays exactly where it was in your session, and it reloads the moment you return to it.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"quiet-title\"><h1 id=\"quiet-title\">Tabs you are not using give their memory back.</h1><p>The tab keeps its place in your session and reloads when you return to it.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/security.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"security-title\"><h1 id=\"security-title\">Private by architecture.</h1><p>Blanc&rsquo;s privacy is structural: what the browser blocks, what it refuses to run, and how it handles the data you care about.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"security-title\"><h1 id=\"security-title\">Private by architecture.</h1><p>See what Blanc blocks, what it refuses to run, and how it handles your data.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/sync.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede and heading are shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"sync-title\"><h1 id=\"sync-title\">Your favorites and settings on your other devices, and, if you choose, your open tabs.</h1><p>Turn on sync once per device with a sync name and passphrase. Favorites and settings follow you. Flip one more switch and each machine also publishes what it has open, to browse from the island, the Quick Switcher, or the start page.</p></section>",
+            "after": "<section class=\"feature-hero feature-hero--detail feature-hero--text\" aria-labelledby=\"sync-title\"><h1 id=\"sync-title\">Your favorites and settings on your other devices.</h1><p>Turn it on once per device. One more switch shares your open tabs too.</p></section>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/ad-blocking.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the island — a shield cut by the diagonal from Blanc&rsquo;s own mark — opens direct controls for the site you are visiting.</p>",
+            "after": "<p>Blanc Blocker stops ads and known trackers with built-in lists. The shield on the Island opens its controls for the site you&rsquo;re on.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages; this page's hero lede is shortened. The replacement wording is recorded in docs/website-v1.37-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>When one window holds everything, tabs pile up and get in each other’s way. Give each part of your day its own space, then switch from the Island. Its tabs and groups come back, even after you restart.</p>",
+            "after": "<p>Switch spaces from the Island. Each space&rsquo;s tabs and groups come back, even after you restart.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026, after public v1.38.0: adds a wallpaper section for your own Start Page image (F49, #945) and the Start Page Color wallpaper with Match each space's color (F50, #952), plus one truth-note line on what syncs. No existing sentence changes; the new wording is recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">",
+            "after": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-wallpaper-title\">\n    <div><h2 id=\"start-page-wallpaper-title\">Your own image, or a color.</h2></div>\n    <div class=\"feature-copy-list\">\n      <article><h3>Use your own image</h3><p>Open Customize on the Start Page and choose Your image under Wallpaper to show a JPEG or PNG of your own, up to 25 MB. Settings → General → Start Page image offers the same choice.</p></article>\n      <article><h3>Keep the page readable</h3><p>Wash covers your image so the page stays easy to read: Auto follows your theme, Light and Dark pick one whatever your theme, and Spotlight washes only behind the content. Fade sets how strongly the wash covers the image, down to none.</p></article>\n      <article><h3>Your image stays on this device</h3><p>Blanc keeps a resized copy with location, camera and time details removed. It isn’t synced, and private tabs never show it.</p></article>\n      <article><h3>Or paint it a color</h3><p>Choose Color under Wallpaper for one of the eight colors Spaces use, as a Soft, Solid or Gradient fill.</p></article>\n      <article><h3>Match each space</h3><p>Turn on Match each space’s color, and a window that belongs to a space shows that space’s color on its Start Page.</p></article>\n    </div>\n  </section>\n  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">"
+          },
+          {
+            "before": "private-tab feature activity is excluded.</p>\n",
+            "after": "private-tab feature activity is excluded.</p>\n    <p>Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.</p>\n"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026: adds a four-capture gallery of the v1.38.0 wallpapers, taken from the public v1.38.0 app and recorded in docs/website-captures-v1.38.0.json, with captions recorded in docs/website-v1.38-claims.json. No existing sentence changes.",
+        "replacements": [
+          {
+            "before": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">",
+            "after": "  <section class=\"layout-gallery layout-gallery--pairs\" aria-label=\"Start Page wallpapers: your own image and a color\">\n    <figure><a href=\"/feature-captures/start-page-image-v1.38.0.png\" aria-label=\"View full capture of the Start Page with your own image\"><img src=\"/feature-captures/start-page-image-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"Blanc’s Billboard Start Page over Van Gogh’s Wheat Field with Cypresses, with the Spotlight wash behind the clock and favorites.\" /></a><figcaption>Your image with the Spotlight wash. Van Gogh, Wheat Field with Cypresses, The Met (public domain).</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-image-customize-v1.38.0.png\" aria-label=\"View full capture of Customize with Your image selected\"><img src=\"/feature-captures/start-page-image-customize-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"The Customize popover on the Start Page with Your image selected under Wallpaper, a preview of the painting, and the Wash and Fade controls.\" /></a><figcaption>Customize → Wallpaper → Your image</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-color-v1.38.0.png\" aria-label=\"View full capture of the Start Page in a color\"><img src=\"/feature-captures/start-page-color-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"Blanc’s Billboard Start Page painted in the Sky color with the Gradient fill.\" /></a><figcaption>Color: Sky with the Gradient fill</figcaption></figure>\n    <figure><a href=\"/feature-captures/start-page-color-customize-v1.38.0.png\" aria-label=\"View full capture of Customize with Color selected\"><img src=\"/feature-captures/start-page-color-customize-v1.38.0.webp\" width=\"1440\" height=\"900\" loading=\"lazy\" decoding=\"async\" alt=\"The Customize popover with Color selected under Wallpaper, the eight color swatches, the Fill choice and the Match each space’s color switch.\" /></a><figcaption>Customize → Wallpaper → Color</figcaption></figure>\n  </section>\n  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026: the Start Page captures were retaken from public v1.38.0 (docs/website-captures-v1.38.0.json). Mahjong now shows the Daily deal on Turtle, so its caption follows; and at the owner's request the headline is more direct. The replacement wording is recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<h1 id=\"start-page-title\">Four ways to begin. Mahjong when you want a break.</h1>",
+            "after": "<h1 id=\"start-page-title\">Choose your Start Page layout and wallpaper.</h1>"
+          },
+          {
+            "before": "<figcaption>Standalone Mahjong — Bridge / Burst</figcaption>",
+            "after": "<figcaption>Standalone Mahjong — Daily Turtle / Burst</figcaption>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 18, 2026, owner request: the line under the new headline no longer repeats “Choose”, and names the wallpapers that shipped in v1.38.0. Recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Choose a layout for familiar sites and groups. When you want a game, every footer opens Mahjong in its own managed tab and leaves your start page in place.</p>",
+            "after": "<p>Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color. Every footer also opens Mahjong in its own tab and leaves your Start Page in place.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 18, 2026, after public v1.38.0: the time-of-day wallpaper tile and pop-up become the Start Page wallpaper tile and pop-up, adding your own image and the Color wallpaper (F49, F50). Recorded in docs/website-v1.38-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>A Start Page that follows the time of day</h3>",
+            "after": "<h3>Choose your Start Page wallpaper</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-wallpaper-title\">A Start Page that follows the time of day.</h2>",
+            "after": "<h2 id=\"pop-wallpaper-title\">Choose your Start Page wallpaper.</h2>"
+          },
+          {
+            "before": "dawn, day, dusk and night with your computer’s clock.</p>\n",
+            "after": "dawn, day, dusk and night with your computer’s clock.</p>\n          <p>Or choose your own image or one of eight colors from Customize on the Start Page. Your own image stays on this device.</p>\n"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features.astro",
+        "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008), so its page and the /features tile and pop-up describe the card instead of the side-by-side pane, and point to Split View (F53) for side by side. Recorded in docs/website-v1.40-claims.json.",
+        "replacements": [
+          {
+            "before": "<h3>View two tabs side by side with Glance</h3>",
+            "after": "<h3>Look at another tab over your page with Glance</h3>"
+          },
+          {
+            "before": "<h2 id=\"pop-glance-title\">View two tabs side by side with Glance.</h2>",
+            "after": "<h2 id=\"pop-glance-title\">Look at another tab over your page with Glance.</h2>"
+          },
+          {
+            "before": "<p>Choose another tab from this window to open beside your page. Drag the divider to resize, swap the two sides, or close the reference when you are done.</p>",
+            "after": "<p>Choose another tab from this window to open as a card over your page. Move it, resize it, open it as a tab, or keep the two side by side in Split View.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/glance.astro",
+        "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008), so its page and the /features tile and pop-up describe the card instead of the side-by-side pane, and point to Split View (F53) for side by side. Recorded in docs/website-v1.40-claims.json.",
+        "replacements": [
+          {
+            "before": "title=\"Glance: Browse Two Pages Side by Side | Blanc Browser\"",
+            "after": "title=\"Glance: Look at Another Tab Over Your Page | Blanc Browser\""
+          },
+          {
+            "before": "description=\"Keep a reference tab beside your main page with Blanc Glance. Choose a local tab, resize the split, swap pages, or close the temporary view.\"",
+            "after": "description=\"Open another tab as a card over your page with Blanc Glance. Move and resize it, keep using the page behind, or open it as a tab or a split.\""
+          },
+          {
+            "before": "<h1 id=\"glance-title\">Keep a reference beside the page you’re using.</h1>",
+            "after": "<h1 id=\"glance-title\">Look at another tab without leaving your page.</h1>"
+          },
+          {
+            "before": "<p>Glance shows another open tab beside your main page, with room to read both.</p>",
+            "after": "<p>Glance opens another open tab as a card over the page you’re on, and the page behind stays usable.</p>"
+          },
+          {
+            "before": "<figcaption>The main page and reference share one window. You choose the reference.</figcaption>",
+            "after": "<figcaption>The card floats over your page. You choose the tab it shows.</figcaption>"
+          },
+          {
+            "before": "<h3>Give each page the room it needs</h3>",
+            "after": "<h3>Put it where you want it</h3>"
+          },
+          {
+            "before": "<p>Drag the divider or resize it with the keyboard. Wide windows put the pages side by side; narrow windows stack the reference below the main page.</p>",
+            "after": "<p>Drag the card’s header to move it, or an edge to resize it, or use the arrow keys on its Move or resize control. Double-click the header to put it back. Blanc remembers where you left it on this device.</p>"
+          },
+          {
+            "before": "<h3>Change, swap, or finish</h3>",
+            "after": "<h3>Change, open, or finish</h3>"
+          },
+          {
+            "before": "<p>Use Change to choose another reference, Make main to swap the two pages, or Close to dismiss Glance without closing either tab.</p>",
+            "after": "<p>Use Change to choose another tab, Open as tab to make it the current tab, or Keep as split to show the two side by side in Split View. Close Glance, or press Escape on its header, without closing either tab.</p>"
+          },
+          {
+            "before": "<p>Selecting a quiet tab for Glance reloads it. While it remains visible as your reference, Quiet Tabs leaves it alone.</p>",
+            "after": "<p>Selecting a quiet tab for Glance reloads it. While it is open in Glance, Quiet Tabs leaves it alone. The page behind the card stays usable, and switching to another tab closes Glance.</p>"
+          },
+          {
+            "before": "<p>The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.</p>",
+            "after": "<p>Glance is never written to session restore or sync. Only the card’s size and place are remembered, on this device. The underlying ordinary tabs keep their usual browsing behavior.</p>"
           }
         ]
       }

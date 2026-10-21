@@ -1,0 +1,4 @@
+{
+  "stage": "regular-b",
+  "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    'case-aafaijdmcggmpfja',\n    'case-aaficgjhibaflceg',\n    'case-abbmpmjankclcbcj',\n    'case-abcgbajaacdnbcei',\n...\n    'case-appkjhiibndofdjg',\n-   'case-baecphbelbbhhakd',\n    'case-bajmageaeonjocgh',\n    'case-bakjkhfbmlcknhno',\n    'case-bbajlkmooogfbofd',\n    'case-bbbmclajffljbnpd',\n    'case-bbkcofkmalmdeekh',\n"
+}

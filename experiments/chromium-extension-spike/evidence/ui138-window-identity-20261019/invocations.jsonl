@@ -1,0 +1,33 @@
+{"name": "prepare", "argv": ["node", "experiments/chromium-extension-spike/prepare.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-19T21:03:21.628339+00:00", "seconds": 1.782962667, "exit_code": 0}
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-window-identity/barrier.c", "-o", "/private/tmp/blanc-window-identity/barrier.dylib"], "started": "2026-10-19T21:03:38.818882+00:00", "seconds": 0.389520959, "exit_code": 0}
+{"name": "tests", "argv": ["node", "--test", "experiments/chromium-extension-spike/window-identity-test.mjs", "experiments/chromium-extension-spike/space-capture-test.mjs"], "started": "2026-10-19T21:03:53.543132+00:00", "seconds": 0.6420851670000001, "exit_code": 0}
+{"name": "build", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-19T21:03:23.442275+00:00", "seconds": 38.116131291, "exit_code": 1}
+{"name": "prepare2", "argv": ["node", "experiments/chromium-extension-spike/prepare.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-19T21:04:17.374369+00:00", "seconds": 0.112087041, "exit_code": 0}
+{"name": "budget", "argv": ["python3", "experiments/chromium-extension-spike/patch-budget.py", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--upstream", "41520584daa68d0040db7746ae562a0ff82187f6", "--output", "/private/tmp/blanc-window-identity/patch-budget.json"], "started": "2026-10-19T21:04:05.714063+00:00", "seconds": 47.748633125000005, "exit_code": 0}
+{"name": "build2", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-19T21:04:17.517632+00:00", "seconds": 56.993097000000006, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-window-identity/start.mjs"], "started": "2026-10-19T21:05:27.079029+00:00", "seconds": 0.051196874999999996, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "seed"], "started": "2026-10-19T21:05:27.158342+00:00", "seconds": 9.211615333000001, "exit_code": 0}
+{"name": "stop", "argv": ["node", "/private/tmp/blanc-window-identity/stop.mjs"], "started": "2026-10-19T21:05:36.411114+00:00", "seconds": 0.135603917, "exit_code": 0}
+{"name": "restore-injected", "argv": ["node", "/private/tmp/blanc-window-identity/launch-injected.mjs"], "started": "2026-10-19T21:05:36.576633+00:00", "seconds": 0.022865583000000002, "exit_code": 0}
+{"name": "crash", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "crash"], "started": "2026-10-19T21:05:36.625857+00:00", "seconds": 2.091639334, "exit_code": 0}
+{"name": "restore", "argv": ["node", "/private/tmp/blanc-window-identity/launch.mjs"], "started": "2026-10-19T21:05:38.768016+00:00", "seconds": 0.02689925, "exit_code": 0}
+{"name": "lint-aborted", "argv": ["npx", "eslint"], "exit_code": 130, "seconds": null, "reason": "No local node_modules; canceled package resolution; using existing scoped linter instead", "recorded": "2026-10-19T21:05:40.391882+00:00"}
+{"name": "recover", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "recover"], "started": "2026-10-19T21:05:38.829895+00:00", "seconds": 1.563778125, "exit_code": 0}
+{"name": "lint-existing", "argv": ["node", "/private/tmp/blanc-window-identity/lint.mjs"], "started": "2026-10-19T21:05:40.425545+00:00", "seconds": 0.21673945800000002, "exit_code": 0}
+{"name": "recent-stop", "argv": ["node", "/private/tmp/blanc-window-identity/stop.mjs"], "started": "2026-10-19T21:05:45.937997+00:00", "seconds": 0.13498749999999998, "exit_code": 0}
+{"name": "recent-start", "argv": ["node", "/private/tmp/blanc-window-identity/launch.mjs"], "started": "2026-10-19T21:05:46.108183+00:00", "seconds": 0.024465667, "exit_code": 0}
+{"name": "recent-check", "argv": ["node", "/private/tmp/blanc-window-identity/recent.mjs"], "started": "2026-10-19T21:05:46.166231+00:00", "seconds": 1.351857833, "exit_code": 0}
+{"name": "first-cleanup", "argv": ["node", "/private/tmp/blanc-window-identity/cleanup.mjs"], "started": "2026-10-19T21:05:54.515598+00:00", "seconds": 0.655302125, "exit_code": 0}
+{"name": "start", "argv": ["node", "/private/tmp/blanc-window-identity/start.mjs"], "started": "2026-10-19T21:05:55.260953+00:00", "seconds": 0.051771917, "exit_code": 0}
+{"name": "seed", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "seed"], "started": "2026-10-19T21:05:55.348952+00:00", "seconds": 5.374881459, "exit_code": 0}
+{"name": "stop", "argv": ["node", "/private/tmp/blanc-window-identity/stop.mjs"], "started": "2026-10-19T21:06:00.774891+00:00", "seconds": 0.139656333, "exit_code": 0}
+{"name": "restore-injected", "argv": ["node", "/private/tmp/blanc-window-identity/launch-injected.mjs"], "started": "2026-10-19T21:06:00.946925+00:00", "seconds": 0.026683375000000002, "exit_code": 0}
+{"name": "crash", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "crash"], "started": "2026-10-19T21:06:01.005490+00:00", "seconds": 1.788939125, "exit_code": 0}
+{"name": "restore", "argv": ["node", "/private/tmp/blanc-window-identity/launch.mjs"], "started": "2026-10-19T21:06:02.841501+00:00", "seconds": 0.027305582999999998, "exit_code": 0}
+{"name": "recover", "argv": ["node", "/private/tmp/blanc-window-identity/check.mjs", "recover"], "started": "2026-10-19T21:06:02.902894+00:00", "seconds": 1.633341416, "exit_code": 0}
+{"name": "private-check", "argv": ["node", "/private/tmp/blanc-window-identity/private.mjs"], "started": "2026-10-19T21:06:08.860377+00:00", "seconds": 0.678794541, "exit_code": 0}
+{"name": "missing-stop", "argv": ["node", "/private/tmp/blanc-window-identity/stop.mjs"], "started": "2026-10-19T21:06:09.576648+00:00", "seconds": 0.24308904099999998, "exit_code": 0}
+{"name": "missing-restart", "argv": ["node", "/private/tmp/blanc-window-identity/launch.mjs"], "started": "2026-10-19T21:06:09.879766+00:00", "seconds": 0.023342375000000002, "exit_code": 0}
+{"name": "missing-check", "argv": ["node", "/private/tmp/blanc-window-identity/missing.mjs"], "started": "2026-10-19T21:06:09.933584+00:00", "seconds": 2.263665792, "exit_code": 0}
+{"name": "final-cleanup", "argv": ["node", "/private/tmp/blanc-window-identity/cleanup.mjs"], "started": "2026-10-19T21:06:12.229048+00:00", "seconds": 0.6207808330000001, "exit_code": 0}
+{"name": "guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--check"], "started": "2026-10-19T21:06:12.890205+00:00", "seconds": 4.436891125, "exit_code": 0}

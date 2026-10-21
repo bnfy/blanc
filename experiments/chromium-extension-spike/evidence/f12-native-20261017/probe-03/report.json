@@ -1,0 +1,35 @@
+{
+  "kind": "chromium-native-blocker-comparison",
+  "started": "2026-10-17T19:30:18.280Z",
+  "passed": false,
+  "nativeBlockerInstalled": true,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-10",
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "sourceHashes": {
+    "chromium-native.mjs": "4a52c738b44b78902f48848d26d6a41b7ae2eeea38f380d80751b934056be1b1",
+    "native-comparison.mjs": "9a4f087155cf0bf402c8c28d95093377487f10f5011fbfbb1bc7c7a0e7acc1db",
+    "transport.mjs": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+    "certificate-set.mjs": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+  },
+  "runs": [],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "11:9D:4B:DB:82:4B:0A:B8:C0:DE:2E:D4:74:8B:91:E2:91:2F:71:A8:A7:E1:F8:6C:42:34:56:71:A6:CB:CF:0C"
+    ]
+  },
+  "gaps": [
+    "Request classes outside the current single-frame corpus unverified",
+    "Cosmetics, procedural rules and scriptlets unimplemented",
+    "Resource redirects refused; no public-web rate claimed",
+    "Latency acceptance protocol not yet run"
+  ],
+  "error": "page.waitForFunction: Target page, context or browser has been closed\nBrowser logs:\n\n<launching> /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --blanc-blocker-assets=/private/tmp/blanc-f12-native-assets --blanc-blocker-log=/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-chromium-R1nsDD/regular-a-native.jsonl --use-mock-keychain --no-first-run --no-default-browser-check --disable-component-update --disable-domain-reliability --disable-sync --blanc-prototype-assets=/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated --proxy-server=http://127.0.0.1:52633 --host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1 --ignore-certificate-errors-spki-list=tdc4GKPfl5/1NGLe05QxtOno+Gy0WezS8emaUEyFKXA= --user-data-dir=/private/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/blanc-f12-chromium-R1nsDD/regular-a --remote-debugging-pipe about:blank\n<launched> pid=45963\n[pid=45963][err] [45963:2398028:1017/153018.528190:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute \"/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/\"\n[pid=45963][err] [45963:2397970:1017/153018.627587:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). ",
+  "finished": "2026-10-17T19:31:41.833Z"
+}

@@ -25,6 +25,388 @@ Feature: Island chrome, command palette, and slash commands
     Then the command bar is shown over the page content
     And the list area shows the tab switcher
 
+  @F1-3 @F1 @desktop @island-hover
+  Scenario: Hover-open is off by default
+    Given Island hover-open is off
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the Island panel stays closed
+
+  @F1-4 @F1 @desktop @island-hover
+  Scenario: Hover-open waits for its dwell before opening
+    Given Island hover-open is on
+    When I rest the pointer over the Island for less than 300 milliseconds
+    Then the Island panel stays closed
+    When I keep the pointer there through the 300 millisecond dwell
+    Then the Island panel opens from hover
+
+  @F1-5 @F1 @desktop @island-hover
+  Scenario: Crossing the Island does not open it
+    Given Island hover-open is on
+    When I cross the Island in 150 milliseconds
+    Then the Island panel stays closed after 400 milliseconds
+
+  @F1-6 @F1 @desktop @island-hover
+  Scenario: Motion inside the Island does not postpone opening
+    Given Island hover-open is on
+    When I move within the Island every 50 milliseconds
+    Then the Island panel opened during continuous motion
+
+  @F1-7 @F1 @desktop @island-hover
+  Scenario: The proximity band does not count as hovering the Island
+    Given Island hover-open is on
+    When I rest the pointer 100 pixels below the Island for 400 milliseconds
+    Then the Island panel stays closed
+
+  @F1-8 @F1 @desktop @island-hover
+  Scenario: Closing under a resting pointer requires an exit before reopening
+    Given Island hover-open is on
+    And the Island panel opened normally with the pointer outside it
+    And the test cursor is resting over the Island
+    When I dismiss the panel without moving the pointer
+    Then the resting pointer is disarmed inside the Island
+    When I send another move inside the Island
+    Then the Island panel stays closed after 600 milliseconds
+    When I leave and re-enter the Island
+    Then the Island panel opens from hover
+
+  @F1-9 @F1 @desktop @island-hover
+  Scenario: An ordinary open during the dwell wins once
+    Given Island hover-open is on
+    When I open the Island normally during its hover dwell
+    Then exactly one Island panel is open
+
+  @F1-10 @F1 @desktop @island-hover
+  Scenario: An open shield popover blocks hover-open
+    Given a tab open on "hover-shield"
+    And Island hover-open is on
+    And the shield popover is open for hover testing
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the shield popover remains open without the Island panel
+
+  @F1-11 @F1 @desktop @island-hover
+  Scenario: Hover-open works with vertical tabs
+    Given Island hover-open is on with vertical tabs
+    When I rest the pointer over the Island through its dwell
+    Then the Island panel opens from hover
+
+  @F1-12 @F1 @desktop @island-hover
+  Scenario: Turning hover-open off cancels an active dwell
+    Given Island hover-open is on
+    When I turn Island hover-open off halfway through its dwell
+    Then the Island panel stays closed after 400 milliseconds
+
+  @F1-14 @F1 @desktop @island-hover
+  Scenario: Only the address area opens the Island on hover
+    Given Island hover-open is on
+    When I rest the pointer on the Island buttons beside the address for 400 milliseconds
+    Then the Island panel stays closed
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the Island panel opens from hover
+
+  @F1-13 @F1 @desktop @island-hover
+  Scenario: A pending permission prompt blocks hover-open
+    Given Island hover-open is on
+    When a site requests geolocation
+    Then the Blanc permission prompt for geolocation is shown
+    When I rest the pointer over the Island for 400 milliseconds
+    Then the permission prompt remains open without the Island panel
+
+  @F1-20 @F1 @desktop @island-hover
+  Scenario: A panel opened by hover closes once the pointer leaves it
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I move the pointer off the panel
+    Then the Island panel closes after its grace period
+    And the overlay is gone with the panel
+
+  @F1-21 @F1 @desktop @island-hover
+  Scenario: A hover-opened panel stays open once it is used
+    Given Island hover-open is on
+    And the Island panel has opened from hover
+    When I type in the panel
+    And I move the pointer off the panel
+    Then the Island panel stays open after 600 milliseconds
+
+  @F1-15 @F1 @desktop @island-autohide
+  Scenario: Auto-hide gives the page the whole window
+    Given a tab open on "autohide-page"
+    When I turn on auto-hide
+    Then the Island stays shown with a tip on bringing it back
+    And then the page starts at the top of the window
+    When auto-hide is turned off
+    Then the page starts below the Island
+
+  @F1-16 @F1 @desktop @island-autohide
+  Scenario: The top edge reveals the Island and leaving hides it
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    When I move the pointer well below the Island
+    Then the Island hides again
+
+  @F1-19 @F1 @desktop @island-autohide
+  Scenario: Resting the pointer at the top edge reveals the Island without any page movement
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests at the top edge without the page seeing it move
+    Then the Island is shown above the page
+
+  @F1-17 @F1 @desktop @island-autohide
+  Scenario: The palette keeps an auto-hidden Island shown
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When I open the command palette
+    Then the Island is shown above the page
+    And the Island stays shown while the palette is open
+    When the palette closes with the pointer well below the Island
+    Then the Island hides again
+
+  @F1-22 @F1 @desktop @island-autohide
+  Scenario: Resting just below the top edge reveals the Island after a moment
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer rests 30 pixels below the top edge
+    Then the Island is shown above the page
+
+  @F1-23 @F1 @desktop @island-autohide
+  Scenario: Passing just below the top edge does not reveal the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    When the pointer passes 30 pixels below the top edge for 150 milliseconds
+    Then the Island stays hidden after 600 milliseconds
+
+  @F1-24 @F1 @desktop @island-autohide
+  Scenario: Without a global pointer position the page's own moves reveal and hide the Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    And the window has no global pointer position, as on native Wayland
+    When the page sees the pointer at the top edge
+    Then the Island is shown above the page
+    When the page sees the pointer well below the Island
+    Then the Island hides again
+
+  @F1-25 @F1 @desktop @island-autohide
+  Scenario: A hidden strip drags the window only through its thin top band
+    Given a tab open on "autohide-page"
+    And the Island auto-hides
+    Then the strip has no window-drag region
+    And the thin top band drags the window
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+    And the strip drags the window again
+
+  @F1-26 @F1 @desktop @island-autohide @island-hover
+  Scenario: Resting where the hidden address will appear still lets hover open the Island
+    Given a tab open on "autohide-page"
+    And Island hover-open is on
+    And the Island auto-hides
+    When the pointer rests on the page where the hidden address will appear
+    Then hover-open is still armed
+    And the Island is shown above the page
+    When I move within the revealed address
+    Then the Island panel opens from hover
+
+  @F1-27 @F1 @desktop @island-autohide
+  Scenario: The vertical rail is never reveal territory
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    When the pointer rests at the top edge over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests 30 pixels down over the rail
+    Then the Island stays hidden after 600 milliseconds
+    When the pointer rests at the top edge over the page pane
+    Then the Island is shown above the page
+
+  @F1-28 @F1 @desktop @island-autohide
+  Scenario: A floating Island keeps a thin top band to drag the window
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the strip has no window-drag region
+    And the thin top band drags the window
+    And the window buttons are hidden with the Island
+    When I point at the top edge of the window
+    Then the Island is revealed while the page stays at the top of the window
+    And the window buttons are back with the Island
+    And the thin top band drags the window
+
+  @F1-29 @F1 @desktop @island-autohide
+  Scenario: A floating Island leaves the page where it is
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the pointer rests at the top edge without the page seeing it move
+    Then the Island is revealed while the page stays at the top of the window
+
+  @F1-30 @F1 @desktop @island-autohide
+  Scenario: The revealed Island floats over a page that stays still
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the floating pill waits above the window edge
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I move the pointer well below the Island
+    Then the floating pill slides away and stays attached
+
+  @F1-43 @F1 @desktop @island-autohide
+  Scenario: Resting just below the top edge does not reveal a floating Island
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the pointer rests 30 pixels below the top edge
+    Then the Island stays hidden after 600 milliseconds
+
+  @F1-44 @F1 @desktop @island-autohide
+  Scenario: A floating Island hides as soon as the pointer moves below the strip
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the Island is revealed while the page stays at the top of the window
+    When I move the pointer 10 pixels below the strip
+    Then the Island hides within 400 milliseconds
+
+  @F1-31 @F1 @desktop @island-autohide
+  Scenario: Find and the shield menu open under the floating pill
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open find
+    Then the find bar sits under the floating pill over a page that stays still
+    When I open the shield menu
+    Then the shield menu hangs under the floating pill over a page that stays still
+
+  @F1-32 @F1 @desktop @island-autohide @island-hover
+  Scenario: Hover-open works on the floating pill
+    Given a tab open on "autohide-page"
+    And Island hover-open is on
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I rest the pointer on the floating address
+    Then the Island panel opens from hover
+
+  @F1-33 @F1 @desktop @island-autohide
+  Scenario: A Glance floats over the page in float mode
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a Glance beside the page
+    Then the Glance card floats over a page at the top of the window
+    When I close the Glance
+    Then the page returns to the top of the window and the pill hides
+
+  @F1-34 @F1 @desktop @island-autohide
+  Scenario: The floating pill keeps up with tabs, sheets, styles and windows
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I open another tab
+    Then the floating pill follows the Island's place
+    And the floating pill stays above the pages
+    When I open Settings
+    Then the floating pill stays above the pages
+    When I close Settings
+    And I open a second window and close it
+    Then the closed window's floating views are gone
+    When I switch auto-hide to push
+    Then no floating views remain and the page sits below the strip
+
+  @F1-35 @F1 @desktop @island-autohide
+  Scenario: The floating pill takes the private theme
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a private tab
+    And I point at the top edge of the window
+    Then the floating pill shows the private theme
+
+  @F1-36 @F1 @desktop @island-autohide @test-platform-linux
+  Scenario: Window buttons come and go with the floating pill on Windows and Linux
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    Then the strip reports where its window buttons are
+    And the floating window controls wait above the window edge
+    And the floating menu button waits above the window edge
+    When I point at the top edge of the window
+    Then the floating menu button slides in with the pill
+    And the floating window controls slide in with three working buttons
+    When I click maximise on the floating window controls
+    Then the window is maximised
+    When I click maximise on the floating window controls
+    Then the window is not maximised
+    When I click minimise on the floating window controls
+    Then the window is minimised
+    When I click the floating menu button
+    Then the main menu opens from the floating menu button
+
+  @F1-37 @F1 @desktop @island-autohide
+  Scenario: Switching to push while the pill slides in leaves nothing behind
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window and switch auto-hide to push at once
+    Then no floating views remain and the page sits below the strip
+    When I move the pointer well below the Island
+    Then the Island hides again
+
+  @F1-38 @F1 @desktop @island-autohide
+  Scenario: Turning auto-hide off while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When auto-hide is turned off
+    Then no floating views remain and the page sits below the strip
+    And the strip drags the window again
+    And the window buttons are back with the Island
+
+  @F1-39 @F1 @desktop @island-autohide
+  Scenario: Changing the style while Glance is open
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I open a Glance beside the page
+    Then the Glance card floats over a page at the top of the window
+    When I switch auto-hide to push
+    Then the Glance card stays open over the page
+    When I switch auto-hide to float
+    Then the Glance card floats over a page at the top of the window
+    When I close the Glance
+    Then the page returns to the top of the window and the pill hides
+
+  @F1-40 @F1 @desktop @island-autohide
+  Scenario: Resizing the window while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I resize the window to 900 by 700
+    Then the floating pill follows the Island's place
+    When I resize the window to 1280 by 800
+    Then the floating pill follows the Island's place
+
+  @F1-41 @F1 @desktop @island-autohide
+  Scenario: Changing the theme while the pill floats
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When I point at the top edge of the window
+    Then the floating pill slides in over a page that stays still
+    When I set the appearance to "dark"
+    Then the floating pill matches the strip's theme
+    When I set the appearance to "light"
+    Then the floating pill matches the strip's theme
+
+  @F1-42 @F1 @desktop @island-autohide
+  Scenario: The floating pill is the strip's pill, in both tab layouts
+    Given a tab open on "autohide-page"
+    And the Island auto-hides and floats
+    When the Island is held up in this window
+    Then the floating pill matches the strip's pill
+    When I switch to vertical tabs
+    Then the floating pill matches the strip's pill
+
+  @F1-18 @F1 @desktop @island-autohide
+  Scenario: Auto-hide works with vertical tabs
+    Given a tab open on "autohide-page"
+    And the Island auto-hides with vertical tabs
+    Then the page starts at the top of the window beside the rail
+    When I point at the top edge of the window
+    Then the Island is shown above the page
+
   @F6-1 @F6 @all
   Scenario: The Quick Switcher matches open tabs and favorites
     Given a tab open on "news.example"
@@ -234,3 +616,46 @@ Feature: Island chrome, command palette, and slash commands
     When I press Arrow Down in the command bar
     Then the first picker row is highlighted
     And the highlighted picker row is scrolled into view
+
+  @F47-15 @F47 @desktop
+  Scenario: Picker rows show site icons from Blanc's icon server, each site asked once
+    Given Blanc's icon server has an icon for every popular bang
+    And a tab open on "bangs-start"
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked only for popular sites, once each
+    When I close the command bar and type "!" again
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked only for popular sites, once each
+
+  @F47-16 @F47 @desktop
+  Scenario: A private tab never asks Blanc's icon server
+    Given Blanc's icon server has an icon for every popular bang
+    And the active tab is private
+    When I type "!" in the command bar
+    Then the first picker row shows the site's letter
+    And Blanc's icon server has not been asked
+
+  @F47-17 @F47 @desktop
+  Scenario: A custom bang's site is never sent to Blanc's icon server
+    # github.com is in the bundled list too, so only the custom-bang rule
+    # keeps it from being asked for.
+    Given Blanc's icon server has an icon for every popular bang
+    And a custom bang "mine" named "Mine" for "https://github.com/search?q=%s"
+    And a tab open on "bangs-start"
+    When I type "!mine" in the command bar
+    Then the bang hint row reads "Open Mine"
+    And Blanc's icon server has not been asked for "github.com"
+
+  @F47-18 @F47 @desktop
+  Scenario: Clearing history clears the kept bang icons
+    Given Blanc's icon server has an icon for every popular bang
+    And a tab open on "bangs-start"
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And bang icons are kept on the device
+    When I run the slash command "/clear"
+    Then no bang icons are kept on the device
+    When I type "!" in the command bar
+    Then the first picker row shows a site icon
+    And Blanc's icon server was asked again for a site it answered before

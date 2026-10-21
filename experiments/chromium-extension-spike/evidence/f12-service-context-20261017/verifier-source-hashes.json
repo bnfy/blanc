@@ -1,0 +1,5 @@
+{
+  "worker-context.mjs": "96c545b22c593ad81d40e9f6e74c3a312d7dcf11964c3f180f37c4ac27a23fba",
+  "worker-context-test.mjs": "1ed782136270b786d3b16f809f0da2ef7d4b20726f43099c0fed52c48e9baa1a",
+  "service-lifecycle-verify.mjs": "5aeb024e188d945f72f0c1a30333b3e12dc7ad28c71f1490e619d2bde87aa4af"
+}

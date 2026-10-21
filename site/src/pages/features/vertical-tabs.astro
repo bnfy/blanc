@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import NativeWindowFigure from '../../components/NativeWindowFigure.astro';
 ---
 <BaseLayout
   title={"Optional Vertical Tabs | Blanc Browser"}
@@ -17,21 +18,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">vertical tabs</span></nav>
   <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="vtabs-title"><h1 id="vtabs-title">A tab rail when you want one. The island either way.</h1><p>Move your tabs to a resizable left rail for a persistent overview — without reloading the page or adding a second browser interface.</p></section>
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure island-figure--rail" role="img" aria-label="Blanc's optional vertical tab rail: a slim left column listing open tabs beside the page, with the resting island above.">
-      <div class="demo-rail" aria-hidden="true">
-        <div class="rail-row"><span class="fav"></span><span class="ttl t1"></span></div>
-        <div class="rail-row cur"><span class="fav"></span><span class="ttl t2"></span></div>
-        <div class="rail-row"><span class="fav"></span><span class="ttl t3"></span></div>
-        <div class="rail-row"><span class="fav"></span><span class="ttl t4"></span></div>
-        <div class="rail-row"><span class="fav"></span><span class="ttl t5"></span></div>
-      </div>
-      <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
-      <div class="demo-island" aria-hidden="true">
-        <div class="pill">
-          <div class="dots"><span></span><span class="cur"></span><span></span></div>
-        </div>
-      </div>
-    </div>
+    <NativeWindowFigure
+      class="island-figure--rail"
+      label="Blanc's optional vertical tab rail: a slim left column listing open tabs beside the page, with the resting island above."
+      tone="#030442" shot="/shots/desktop/github.jpg"
+      tab={{ url: 'https://github.com/', favicon: '/favicons/github.com.ico', shield: 'quiet' }}
+      dots={{ count: 5, active: 1 }}
+      rail={{ active: 1, tabs: [
+        { title: 'Notion', favicon: '/favicons/notion.so.ico' },
+        { title: 'GitHub', favicon: '/favicons/github.com.ico' },
+        { title: 'Gmail', favicon: '/favicons/gmail.com.ico' },
+        { title: 'The Verge', favicon: '/favicons/theverge.com.ico' },
+        { title: 'Netflix', favicon: '/favicons/netflix.com.ico' },
+      ] }}
+    />
     <figcaption>The rail lists every open tab by title while the island keeps navigation, search, and commands in one place.</figcaption>
   </figure>
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="vtabs-behavior-title">

@@ -1,0 +1,10 @@
+{
+  "componentId": "oddhmofgkplblkmckempfepikkophank",
+  "version": "1.75.0",
+  "verifiedFiles": 658,
+  "changes": [
+    "manifest.key",
+    "manifest.incognito=not_allowed"
+  ],
+  "scope": "offline component admission only; no reload hold or provider acceptance"
+}

@@ -1,0 +1,35 @@
+{
+  "kind": "chromium-native-blocker-comparison",
+  "started": "2026-10-17T19:28:42.461Z",
+  "passed": false,
+  "nativeBlockerInstalled": true,
+  "acceptance": false,
+  "oraclePath": "blanc-f12-expanded-10",
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "sourceHashes": {
+    "chromium-native.mjs": "6d8803c7e76c03dc1fe07112f1ef56a691be909bce9732d92b675efa462d8cc2",
+    "native-comparison.mjs": "9a4f087155cf0bf402c8c28d95093377487f10f5011fbfbb1bc7c7a0e7acc1db",
+    "transport.mjs": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+    "certificate-set.mjs": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+  },
+  "runs": [],
+  "cleanup": {
+    "disposableTreeRemoved": true
+  },
+  "nativeBuilds": 0,
+  "trust": {
+    "mechanism": "ephemeral leaf SPKI list plus exact CONNECT/SNI/Host/URL allowlist",
+    "systemTrustChanged": false,
+    "leafFingerprints": [
+      "F9:F8:C9:7D:E9:29:59:7E:81:66:AB:D7:20:DA:86:EE:B2:7C:A2:2C:B3:00:19:57:53:64:DF:35:CD:72:82:20"
+    ]
+  },
+  "gaps": [
+    "Request classes outside the current single-frame corpus unverified",
+    "Cosmetics, procedural rules and scriptlets unimplemented",
+    "Resource redirects refused; no public-web rate claimed",
+    "Latency acceptance protocol not yet run"
+  ],
+  "error": "page.goto: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://page.blanc-fixture.test/blanc-fixture/index.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+  "finished": "2026-10-17T19:29:47.805Z"
+}

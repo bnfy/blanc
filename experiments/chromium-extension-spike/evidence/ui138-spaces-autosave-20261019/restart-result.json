@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "acknowledged autosave survives owned browser crash; no inferred ownership",
+    "explicitly reopen persisted space after crash",
+    "missing primary with checkpoint refuses implicit recreation",
+    "explicit recovery recreates missing primary without binding",
+    "invalid checkpoint refuses recovery without modifying primary"
+  ],
+  "pass": true
+}

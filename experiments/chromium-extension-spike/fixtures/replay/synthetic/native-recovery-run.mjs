@@ -1,0 +1,33 @@
+/* global chrome */
+import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';
+import {openSession,until} from './session.mjs';import {startSynthetic} from './transport.mjs';import {createCertificateSet} from './certificate-set.mjs';
+const [cfg,payload,evidence]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(cfg));assert(!fs.existsSync(evidence));fs.mkdirSync(evidence);
+const host='https://page.blanc-fixture.test',filters='page.blanc-fixture.test##+js(set-constant, raceFlag, true)\n||page.blanc-fixture.test/blocked^';
+const body='<!doctype html><link rel="icon" href="data:,"><script>window.first=window.raceFlag===true;document.documentElement.dataset.early=String(window.first);</script><div id="marker">clean</div>';
+const fixtures=new Map(['/test','/blocked','/allowed'].map(p=>[host+p,{status:200,contentType:p==='/test'?'text/html':'text/plain',body:p==='/test'?body:'fixture'}]));
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'blanc-native-recovery-'))),certificates=createCertificateSet(path.join(root,'certificates'),[new URL(host).hostname]),replay=await startSynthetic({fixtures,tlsMaterial:certificates});
+fs.writeFileSync(path.join(evidence,'fixtures.json'),JSON.stringify({fixtures:[...fixtures],filters},null,2));
+const report={completed:false,checks:[],latencyMeasured:false,diagnosticScheduling:true};let session,cdp;
+const stage=name=>{report.stage=name;fs.writeFileSync(path.join(evidence,'progress.json'),JSON.stringify(report,null,2));};
+const bound=(p,ms=10000)=>Promise.race([p,new Promise((_,reject)=>{const t=setTimeout(()=>reject(Error('Bounded operation timed out at '+report.stage)),ms);t.unref();})]);
+try{
+ stage('launch');session=await openSession({config,browserKind:'chromium',kind:'regular',label:'native-recovery',root,transport:replay,certificates,provider:'ublock-origin',uboPayload:payload});stage('configure');await session.uboConfigure();await session.uboSetFilters(filters);
+ let popup=session.page.context().pages().find(p=>p.url().includes('/popup-fenix.html'));assert(popup);const page=session.page;
+ const snapshot=()=>popup.evaluate(async()=>{const b=chrome.extension.getBackgroundPage(),state=b.__blancDeliveryProbe.state(),r=await b.fetch('http://blanc-ubo-control.invalid/early-deliveries?'+state.generation);return {state,native:await r.json(),result:b.recoveryReload,events:b.__blancDeliveryProbe.events};});
+ cdp=await page.context().newCDPSession(page);await cdp.send('Debugger.enable');let paused,crashed=false;cdp.on('Debugger.paused',e=>{paused=e;});page.on('crash',()=>{crashed=true;});
+ await popup.evaluate(()=>{const b=chrome.extension.getBackgroundPage();b.__blancDeliveryProbe.armed='native';b.__blancDeliveryProbe.events.length=0;});
+ const navigation=page.goto(host+'/test').then(()=>({ok:true}),e=>({error:String(e)}));stage('wait-native-pause');await until(()=>paused);stage('paused-snapshot');const before=await bound(snapshot());report.before=before;stage('before-recorded');assert.equal(before.native.pending,1);assert.equal(before.events[0].path,'native');
+ await popup.evaluate(()=>{const b=chrome.extension.getBackgroundPage();b.recoveryReload={settled:false};b.µBlock.loadFilterLists().then(()=>{b.recoveryReload={settled:true};},e=>{b.recoveryReload={settled:true,error:String(e)};});});
+ stage('wait-held');await bound(until(async()=>!(await snapshot()).state.ready));const held=await snapshot();report.held=held;stage('held-recorded');assert.equal(held.native.pending,1);assert.equal(held.result.settled,false);
+ stage('crash-paused-renderer');void cdp.send('Page.crash').catch(()=>{});await until(()=>crashed,10000);report.crashed=crashed;stage('navigation-settlement');await bound(navigation);
+ report.postCrash=await bound(snapshot());stage('wait-reload-recovery');await until(async()=>{const s=await snapshot();report.lastRecovery=s;stage('wait-reload-recovery');return s.result?.settled&&s.state.ready;},10000);const after=await snapshot();report.after=after;stage('recover-page');await bound(cdp.detach(),1000).catch(()=>{});cdp=null;assert.equal(after.native.pending,0);assert(!after.result.error);
+ const tab=await popup.evaluate(async()=> (await chrome.tabs.query({})).find(t=>t.url==='https://page.blanc-fixture.test/test').id);
+ await popup.evaluate(({tab,url})=>chrome.tabs.update(tab,{url}),{tab,url:host+'/test'});let recovered;await until(async()=>{recovered=await popup.evaluate(async tab=>{const r=await chrome.tabs.executeScript(tab,{code:"({first:document.documentElement.dataset.early==='true',marker:document.querySelector('#marker')?.textContent})"});return r?.[0];},tab).catch(()=>null);return recovered?.first;});
+ report.checks.push({kind:'native-execution-crash',pauseBoundary:'inside-native-ExecuteScript',before,held,after,crashed,recovered});
+ // Reload the actual background document, preserving the installed component and profile.
+ stage('background-before');const old=await popup.evaluate(()=>{const b=chrome.extension.getBackgroundPage();b.recoveryIdentity=crypto.randomUUID();return {identity:b.recoveryIdentity,state:b.__blancDeliveryProbe.state()};});
+ stage('background-reload');await bound(popup.evaluate(()=>{chrome.extension.getBackgroundPage().location.reload();}));
+ stage('background-ready');const recreated=await bound(until(()=>popup.evaluate(()=>{const b=chrome.extension.getBackgroundPage();if(!b||b.recoveryIdentity!==undefined||!b.__blancDeliveryProbe?.state().ready)return false;return {oldIdentity:b.recoveryIdentity??null,state:b.__blancDeliveryProbe.state(),readyToFilter:b.µBlock.readyToFilter};}).catch(()=>false),30000),35000);assert.equal(recreated.oldIdentity,null);assert(recreated.readyToFilter);
+ const next=await page.context().newPage();await next.goto(host+'/test');const result=await next.evaluate(async()=>({first:window.first,allowed:await fetch('/allowed').then(r=>r.text()).catch(()=>null),blocked:await fetch('/blocked').then(()=>false).catch(()=>true)}));assert(result.first&&result.blocked);assert.equal(result.allowed,'fixture');
+ report.checks.push({kind:'background-document-recreation',old,recreated,result});report.completed=true;
+}catch(e){report.error=String(e);process.exitCode=1;}finally{stage('cleanup');if(cdp)await bound(cdp.send('Debugger.resume'),1000).catch(()=>{});if(session)await session.close();report.faults=replay.faults;report.arrivals=replay.arrivals;await replay.close();fs.rmSync(root,{recursive:true,force:true});report.cleanup={removed:!fs.existsSync(root)};fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({completed:report.completed,error:report.error}));}

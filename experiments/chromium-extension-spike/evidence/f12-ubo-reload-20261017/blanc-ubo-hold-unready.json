@@ -1,0 +1,18 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [
+    {
+      "name": "missing-startup-handshake-fails-closed",
+      "passed": true
+    }
+  ],
+  "hits": [],
+  "profileRemoved": true,
+  "passed": true,
+  "events": [
+    {
+      "event": "ubo-hold-cancel"
+    }
+  ],
+  "refusedHostCount": 1
+}

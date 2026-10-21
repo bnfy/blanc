@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 27840,
+        "path": "/private/tmp/blanc-internal-cycle-encrypted/profile/Default/Sessions_Encrypted/Session_13437067958689726",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"5\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"69\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-2460616868580193561.1.12\"}}"
+      }
+    },
+    {
+      "name": "continuous mutation result",
+      "value": {
+        "result": {
+          "error": "timeout Runtime.callFunctionOn"
+        },
+        "elapsed": 40004,
+        "mutations": 0
+      }
+    }
+  ],
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /persistence failed or timed out/. Input:\n\n'timeout Runtime.callFunctionOn'\n\n    at file:///private/tmp/blanc-internal-cycle-encrypted/test.mjs:25:105"
+}

@@ -97,12 +97,12 @@ Feature: Address input, search, and link handling
     Then the search submission goes to "https://searx.example.org/search?q=custom%20engine%20probe"
 
   @F19-1 @F19 @all @D4 @D7
-  Scenario: Open link in a background tab inherits the opener's group
+  Scenario: Open link in a background tab opens it ungrouped
     Given the active tab is in a group named "work"
     When I open the context menu on a link
     And I choose "Open link in background tab"
     Then a new tab opens on that link without switching to it
-    And the new tab is in the group "work"
+    And the new tab has no group
 
   @F19-2 @F19 @desktop @D20
   Scenario: Copy Clean Link strips tracking parameters, keeping the rest

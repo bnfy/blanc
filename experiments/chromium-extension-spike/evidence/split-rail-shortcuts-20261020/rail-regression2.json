@@ -1,0 +1,201 @@
+{
+  "label": "rail-regression2",
+  "checks": [
+    {
+      "name": "public Split with menu false",
+      "value": "Reload\nPin Tab\nMute Tab\nMute Site\nNew Tab Below\nClose Tabs Above\nClose Tabs Below\nClose Tab\nSplit with Split eligibility fixture (moves to this tab’s group)\nSplit with Split eligibility fixture (moves to this tab’s group)\nSplit with Split eligibility fixture (moves to this tab’s group)"
+    },
+    {
+      "name": "initiator group wins false",
+      "value": {
+        "activeTabId": "2117698411",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "2117698415",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2117698411",
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "color": "",
+            "id": "492B12B1A8E252D3A9151EDD0FFC0970",
+            "name": "Initiator"
+          }
+        ],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "43e6ae23-b751-4127-9be6-22b05eb7a37d",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "2117698411",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2117698411",
+              "2117698412"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "492B12B1A8E252D3A9151EDD0FFC0970",
+            "id": "2117698411",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split eligibility fixture",
+            "url": "http://127.0.0.1:9278/#a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "492B12B1A8E252D3A9151EDD0FFC0970",
+            "id": "2117698412",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split eligibility fixture",
+            "url": "http://127.0.0.1:9278/#b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2117698413",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split eligibility fixture",
+            "url": "http://127.0.0.1:9278/#c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2117698414",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split eligibility fixture",
+            "url": "http://127.0.0.1:9278/#d"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "two 30px pane headers false",
+      "value": "<section id=\"splitHeaders\" aria-label=\"Split View panes\" data-private=\"false\" style=\"left: 0px;\"><div class=\"split-pane-header\" data-active=\"true\" style=\"position: absolute; left: 0px; top: 68px; width: 594px; height: 30px;\"><button title=\"Back in Split eligibility fixture\" aria-label=\"Back in Split eligibility fixture\" disabled=\"\">←</button><button title=\"Focus Split eligibility fixture\" aria-label=\"Focus Split eligibility fixture\" class=\"split-pane-title\">Split eligibility fixture</button><button title=\"Reload Split eligibility fixture\" aria-label=\"Reload Split eligibility fixture\">↻</button><button title=\"Actions for Split eligibility fixture\" aria-label=\"Actions for Split eligibility fixture\" data-pane-menu=\"2117698411\" aria-haspopup=\"menu\">⋯</button><button title=\"Remove Split eligibility fixture from Split View\" aria-label=\"Remove Split eligibility fixture from Split View\">×</button></div><div class=\"split-pane-header\" data-active=\"false\" style=\"position: absolute; left: 606px; top: 68px; width: 594px; height: 30px;\"><button title=\"Back in Split eligibility fixture\" aria-label=\"Back in Split eligibility fixture\" disabled=\"\">←</button><button title=\"Focus Split eligibility fixture\" aria-label=\"Focus Split eligibility fixture\" class=\"split-pane-title\">Split eligibility fixture</button><button title=\"Reload Split eligibility fixture\" aria-label=\"Reload Split eligibility fixture\">↻</button><button title=\"Actions for Split eligibility fixture\" aria-label=\"Actions for Split eligibility fixture\" data-pane-menu=\"2117698412\" aria-haspopup=\"menu\">⋯</button><button title=\"Remove Split eligibility fixture from Split View\" aria-label=\"Remove Split eligibility fixture from Split View\">×</button></div></section>"
+    },
+    {
+      "name": "header geometry false",
+      "value": {
+        "viewport": 996,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1200,
+          "height": 996,
+          "top": 0,
+          "right": 1200,
+          "bottom": 996,
+          "left": 0
+        },
+        "private": "false"
+      }
+    },
+    {
+      "name": "header focus routes to second pane false",
+      "value": true
+    },
+    {
+      "name": "live header title update",
+      "value": true
+    },
+    {
+      "name": "keyboard resize, bounds and reset false",
+      "value": true
+    }
+  ],
+  "pass": false,
+  "error": "Error: wait timeout\n    at wait (file:///private/tmp/blanc-split-layout-fix/rail-regression.mjs:5:130)\n    at async file:///private/tmp/blanc-split-layout-fix/rail-regression.mjs:59:1"
+}

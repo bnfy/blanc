@@ -1,0 +1,53 @@
+{
+  "kind": "synthetic-electron-resource-probe",
+  "passed": true,
+  "started": "2026-10-17T18:56:54.087Z",
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "cc7312a3-ed75-4f8a-af01-8ca293ddde05",
+      "requests": 29,
+      "faults": 0
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "2b470538-1b3a-46f1-890c-e11211c91344",
+      "requests": 29,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "87747fb5-1ada-4c63-b891-b4f87776e6b8",
+      "requests": 29,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "b201fb7f-5be1-46af-a11f-5339a12dbc0a",
+      "requests": 29,
+      "faults": 0
+    }
+  ],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "generate.mjs": "e27cbbe3051e35bd4fc1a66d32e4648952cd03ae996c7f0c17d438748aa965b5",
+    "transport.mjs": "bd5629e80f1e155e535453a576ef1a69f7d80ac7669a216786961d0d5b93e7ab",
+    "stability.mjs": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+    "run.mjs": "847af1f99e1a977ea21b7a96abbf1b0576e949a44f9fa69b72bf858a2287bc6a",
+    "coverage.json": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7"
+  },
+  "fixtureCandidates": 24,
+  "bundleSha256": "74db22479a9924fedd58efa6541d7ff327fc5171ebb2e2505670aaeb4a06fe4a",
+  "finished": "2026-10-17T18:57:00.409Z"
+}

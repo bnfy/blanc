@@ -1,0 +1,38 @@
+[
+  {
+    "schedule": "flush-clear",
+    "pass": false,
+    "checkpoints": 8,
+    "fixture_failure": true
+  },
+  {
+    "schedule": "flush-encrypted",
+    "pass": false,
+    "checkpoints": 8,
+    "fixture_failure": true
+  },
+  {
+    "schedule": "flush-clear-final",
+    "pass": true,
+    "checkpoints": 9,
+    "fixture_failure": false
+  },
+  {
+    "schedule": "flush-encrypted-final",
+    "pass": true,
+    "checkpoints": 9,
+    "fixture_failure": false
+  },
+  {
+    "schedule": "last-clear",
+    "pass": true,
+    "checkpoints": 6,
+    "fixture_failure": false
+  },
+  {
+    "schedule": "last-encrypted",
+    "pass": true,
+    "checkpoints": 6,
+    "fixture_failure": false
+  }
+]
