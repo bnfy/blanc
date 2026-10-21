@@ -14,7 +14,7 @@ const history = require('./history');
 const archive = require('./archive');
 const bookmarks = require('./bookmarks');
 const path = require('node:path');
-const { app, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
+const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
@@ -853,7 +853,20 @@ function install(refs) {
       const tab = tabs.get(id);
       return tab?.view ? tab.view.getBounds() : null;
     },
-    focusedWebContentsId() { return webContents.getFocusedWebContents()?.id ?? null; },
+    // On macOS a tab view detached while it had focus (an inactive tab) can
+    // keep reporting isFocused(), and getFocusedWebContents() returns the
+    // first contents that does. Only contents on screen in the focused window
+    // can hold the keyboard, so those are asked first.
+    focusedWebContentsId() {
+      const window = BrowserWindow.getFocusedWindow();
+      const onScreen = window && !window.isDestroyed()
+        ? [window.webContents, ...window.contentView.children
+          .filter((view) => view.getVisible?.() !== false)
+          .map((view) => view.webContents)]
+        : [];
+      const focused = onScreen.find((contents) => contents && !contents.isDestroyed() && contents.isFocused());
+      return (focused ?? webContents.getFocusedWebContents())?.id ?? null;
+    },
     zoomLevel(tabId) { return liveContents(tabs.get(tabId))?.getZoomLevel() ?? null; },
     // A real mouse click on an element of a tab's page, so the page's own
     // target=_blank / modifier handling decides the window-open disposition.
