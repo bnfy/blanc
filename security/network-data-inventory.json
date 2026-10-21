@@ -181,6 +181,16 @@
       "code": ["site/src/scripts/site.js"]
     },
     {
+      "id": "website-support-chat",
+      "surface": "website",
+      "trigger": "visitor clicks Live chat on the Support page",
+      "default": "off",
+      "recipient": "Crisp",
+      "data": ["messages the visitor types", "email address if the visitor leaves one", "Crisp session cookies (crisp-client/* prefix)", "ordinary request metadata"],
+      "retentionByBlanc": "conversation kept in Bananify's Crisp workspace until deleted",
+      "code": ["site/src/pages/support.astro", "site/src/scripts/support-chat.js"]
+    },
+    {
       "id": "newsletter",
       "surface": "website",
       "trigger": "address submission followed by mailbox confirmation",

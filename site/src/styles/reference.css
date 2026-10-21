@@ -235,6 +235,72 @@
 .reference-contact a:hover {
   text-decoration: underline;
 }
+.contact-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0 24px;
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+}
+#contact {
+  max-width: none;
+  margin: 0 0 66px;
+  padding-top: 0;
+  border-top: 0;
+  scroll-margin-top: 74px;
+}
+.reference-contact .contact-options a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  margin: 0;
+  padding: 20px 0 24px;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  font-size: 14px;
+}
+.contact-icon {
+  box-sizing: content-box;
+  width: 24px;
+  height: 24px;
+  padding: 12px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  transition: background-color 0.2s;
+}
+.contact-options a:hover .contact-icon {
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+.contact-options strong {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-weight: 500;
+  font-size: 16px;
+}
+.contact-options a > span {
+  color: var(--dim);
+  line-height: 1.6;
+}
+.contact-options small {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 12px;
+  color: var(--gold);
+}
+.reference-contact .contact-options a:hover {
+  text-decoration: none;
+}
+.contact-options a:hover strong {
+  color: var(--gold);
+}
+.reference-contact .contact-more {
+  margin-top: 26px;
+}
 .search-empty {
   padding: 28px 0;
   font-size: 15px;
