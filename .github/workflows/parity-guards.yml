@@ -146,6 +146,8 @@ jobs:
         run: xvfb-run -a npm run test:wallpaper:desktop
       - name: Custom Start Page wallpaper (F49)
         run: xvfb-run -a npm run test:custom-wallpaper:desktop
+      - name: Billboard clock Font & color (F54)
+        run: xvfb-run -a npm run test:billboard-clock:desktop
 
   modified-link-clicks:
     needs: changes

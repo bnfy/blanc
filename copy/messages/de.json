@@ -5127,9 +5127,77 @@
     "message": "Layout",
     "source": "sha256:4ef13ebe9f4450cd3bb26a58b7f2d4509f288dd9603bb6c469bb25da5eb2cd39"
   },
+  "newtab.customize.clockHeading": {
+    "message": "Uhr",
+    "source": "sha256:ea624a956604281ebced03c6cc13fb922cb4acb73032f59e4c788d88d961e96c"
+  },
   "newtab.customize.wallpaperHeading": {
     "message": "Hintergrund",
     "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
+  },
+  "newtab.clock.open": {
+    "message": "Uhr: Schrift & Farbe…",
+    "source": "sha256:099a95a12c72f3b97f074c0c2cc1ecee83bf4ae979b654316ffaf46c694701b5"
+  },
+  "newtab.clock.title": {
+    "message": "Schrift & Farbe",
+    "source": "sha256:eaa8ddde892810344eecb2cb43ddf137460efbdfeedccdb5d586004824493bd5"
+  },
+  "newtab.clock.back": {
+    "message": "Zurück zu „Anpassen“",
+    "source": "sha256:6e9e39bdc9ae0b1acc9c96e6495536dda11a8fdfe2b2f8f8a17e10c5833ab636"
+  },
+  "newtab.clock.font": {
+    "message": "Schrift",
+    "source": "sha256:e33d20f9eed0e3c124073675ac01a4f14fb3bdb6b1b846ffec05fc091d5e1e7e"
+  },
+  "newtab.clock.font.instrument": {
+    "message": "Instrument Sans",
+    "source": "sha256:e2d184032945066ed9f875b834f67d04dcab10f396877c24c4326c59ef80469c"
+  },
+  "newtab.clock.font.condensed": {
+    "message": "Instrument Sans schmal",
+    "source": "sha256:bee4ba7921090acb2cbb158bb2c0cba980d7b13a41e74bf27feeab61a3ee3c76"
+  },
+  "newtab.clock.font.inter": {
+    "message": "Inter",
+    "source": "sha256:d581678f176219a554459ca4eeab2e19902b2e3e994e4ef1f2b9eb84bb3d9290"
+  },
+  "newtab.clock.font.flex": {
+    "message": "Roboto Flex",
+    "source": "sha256:511be9c6e1a7882f5417d071663e058632d4bba5f7125361ee4b2309df36358c"
+  },
+  "newtab.clock.weight": {
+    "message": "Stärke",
+    "source": "sha256:2e338358a18921b3fb57ef986c17b87064b60d4c6311af33247ed2d70712b59a"
+  },
+  "newtab.clock.height": {
+    "message": "Höhe",
+    "source": "sha256:029e171b6858cddf4a22745a84b32120d27a7aef8765dbc56c76a2326cc8d366"
+  },
+  "newtab.clock.color": {
+    "message": "Farbe",
+    "source": "sha256:ca00ae4913e0162319257952f2b0b9ee148c7295384b0eff0cea88d58f455f7a"
+  },
+  "newtab.clock.auto": {
+    "message": "Automatisch",
+    "source": "sha256:51cfef51c13b9db8c392011854ee4f783550f9c380893649914b84ee49588752"
+  },
+  "newtab.clock.tone": {
+    "message": "Ton",
+    "source": "sha256:c3e75899980b0f2932a04cb0b72a56cd00557e750c137747dec9b2a395912c9d"
+  },
+  "newtab.clock.style": {
+    "message": "Stil",
+    "source": "sha256:35da8a3ba5595a5d9ec4a085493d86354721a0199acdbe781966dfaa864c48d8"
+  },
+  "newtab.clock.glass": {
+    "message": "Glas",
+    "source": "sha256:1a2e9c95dc1bde38f563d97d2f69c1ff117805c0a6e930986eba65f44fa4b308"
+  },
+  "newtab.clock.solid": {
+    "message": "Vollton",
+    "source": "sha256:dd41ab13c9fac80c6a3d3de1d56656050bc4fcfd42b1d8a4eff7cecdc9604c37"
   },
   "newtab.wallpaper.sunrise": {
     "message": "Sunrise",

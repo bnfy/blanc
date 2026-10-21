@@ -43,7 +43,7 @@ update procedure.
 Copyright (c) 2024 1Password. Full licence text in
 [compliance/THIRD_PARTY_NOTICES.txt](compliance/THIRD_PARTY_NOTICES.txt).
 
-## Inter, Instrument Sans, JetBrains Mono, and Caveat fonts — SIL OFL 1.1
+## Inter, Instrument Sans, JetBrains Mono, Caveat, and Roboto Flex fonts — SIL OFL 1.1
 
 - `src/renderer/pages/inter-latin.woff2` — Copyright 2020 The Inter Project
   Authors. Full licence text:
@@ -58,8 +58,16 @@ Copyright (c) 2024 1Password. Full licence text in
   The Instrument Sans Project Authors; the unmodified Latin variable file from
   `@fontsource-variable/instrument-sans` 5.3.0. Full license text:
   [src/renderer/pages/instrument-sans-OFL.txt](src/renderer/pages/instrument-sans-OFL.txt).
+- `src/renderer/pages/roboto-flex-clock.woff2` — Copyright 2017 The Roboto
+  Flex Project Authors; a Modified Version of the Latin variable file from
+  `@fontsource-variable/roboto-flex` 5.3.0, subset by
+  `scripts/build-clock-font.py` to the characters a time contains, pinned
+  upright on its slant axis and at its display optical size (weight and width
+  stay variable).
+  Roboto Flex declares no Reserved Font Name. Full license text:
+  [src/renderer/pages/roboto-flex-OFL.txt](src/renderer/pages/roboto-flex-OFL.txt).
 
-All four font files remain under the SIL Open Font License, Version 1.1; Blanc's
+All five font files remain under the SIL Open Font License, Version 1.1; Blanc's
 MIT grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
