@@ -67,6 +67,21 @@
       <h1 class="page-sr-only" data-i18n="newtab.billboard.heading">Billboard start page</h1>
       <div class="bb-clock-row">
         <span id="bbClock" class="bb-clock"></span>
+        <!-- Glass (clock-art.js), drawn from the typeset clock: the lens that
+             bends the page behind the figures, its shadow around them (above
+             the lens, so the lens never bends it in), then the glass's light. The text above stays for assistive
+             technology. -->
+        <div id="bbClockArt" class="bb-clock-art" aria-hidden="true" hidden>
+          <div id="bbClockLens" class="bb-clock-lens"></div>
+          <canvas id="bbClockShadow" class="bb-clock-shadow"></canvas>
+          <canvas id="bbClockFace" class="bb-clock-face"></canvas>
+        </div>
+        <svg class="bb-clock-defs" width="0" height="0" aria-hidden="true" focusable="false">
+          <filter id="bbClockRefract" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">
+            <feImage id="bbClockRefractMap" x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="map" />
+            <feDisplacementMap id="bbClockRefractBend" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
       </div>
       <div id="bbBlocked" class="bb-blocked"></div>
       <div id="bbFavorites" class="bb-favs"></div>
@@ -195,6 +210,22 @@
             <span class="layout-name" data-i18n="newtab.layout.tally">Tally</span>
           </button>
         </div>
+        <!-- Billboard only: the clock's own section, a row in the style of a
+             settings list. A live sample of the clock's face, weight and
+             color, what it is set to, and a chevron to the Font & color sheet,
+             which hangs under the clock so every change shows as it is made. -->
+        <div class="customize-clock-section">
+          <hr class="customize-divider" />
+          <div class="customize-label" data-i18n="newtab.customize.clockHeading">Clock</div>
+          <button id="clockStyleOpen" class="customize-clock" type="button" aria-haspopup="dialog" aria-label="Clock font &amp; color…" data-i18n-aria-label="newtab.clock.open" aria-describedby="clockStyleSummary">
+            <span id="clockStyleSample" class="customize-clock-sample" aria-hidden="true"><span>12</span></span>
+            <span class="customize-clock-text">
+              <span class="customize-clock-title" data-i18n="newtab.clock.title">Font &amp; color</span>
+              <span id="clockStyleSummary" class="customize-clock-summary"></span>
+            </span>
+            <svg class="customize-clock-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M4.5 2.5 8 6l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+        </div>
         <hr class="customize-divider" />
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
         <!-- A cover preview of what the Start Page will show. Only the chosen
@@ -256,6 +287,49 @@
           </div>
         </div>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
+      </div>
+      <!-- The Billboard clock's Font & Color, after the iOS Lock Screen's:
+           four bundled faces with weight and height sliders, then the page's
+           own ink or a Spaces color with a tone slider, then Glass or Solid. -->
+      <div id="clockPopover" class="clock-popover" popover role="dialog" aria-labelledby="clockPopoverTitle" tabindex="-1">
+        <!-- Back to Customize, where the sheet was opened from: the chevron
+             mirrors the one on Customize's Clock row. -->
+        <div class="clock-popover-head">
+          <button id="clockPopoverBack" class="clock-popover-back" type="button" aria-label="Back to Customize" title="Back to Customize" data-i18n-aria-label="newtab.clock.back" data-i18n-title="newtab.clock.back">
+            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <h2 id="clockPopoverTitle" class="clock-popover-title" data-i18n="newtab.clock.title">Font &amp; color</h2>
+          <span aria-hidden="true"></span>
+        </div>
+        <div id="clockFonts" class="clock-fonts" role="group" aria-label="Font" data-i18n-aria-label="newtab.clock.font">
+          <button type="button" class="clock-font" data-clock-font-pick="instrument" aria-pressed="true" aria-label="Instrument Sans" title="Instrument Sans" data-i18n-aria-label="newtab.clock.font.instrument" data-i18n-title="newtab.clock.font.instrument"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="condensed" aria-pressed="false" aria-label="Instrument Sans Condensed" title="Instrument Sans Condensed" data-i18n-aria-label="newtab.clock.font.condensed" data-i18n-title="newtab.clock.font.condensed"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="inter" aria-pressed="false" aria-label="Inter" title="Inter" data-i18n-aria-label="newtab.clock.font.inter" data-i18n-title="newtab.clock.font.inter"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="flex" aria-pressed="false" aria-label="Roboto Flex" title="Roboto Flex" data-i18n-aria-label="newtab.clock.font.flex" data-i18n-title="newtab.clock.font.flex"><span aria-hidden="true">12</span></button>
+        </div>
+        <!-- Unlabelled sliders, as on the Lock Screen: each changes the clock
+             as it is dragged, so the clock itself says what it does. The
+             label stays for screen readers and as the hover tooltip. -->
+        <div class="clock-slider-row clock-weight-row">
+          <label class="page-sr-only" for="clockWeight" data-i18n="newtab.clock.weight">Weight</label>
+          <!-- Weight's rail tapers from thin to thick, as on the Lock Screen. -->
+          <span id="clockWeightRail" class="clock-rail" aria-hidden="true"></span>
+          <input id="clockWeight" class="clock-slider clock-slider-tapered" title="Weight" data-i18n-title="newtab.clock.weight" type="range" min="400" max="700" step="10" value="500" />
+        </div>
+        <div id="clockHeightLine" class="clock-slider-row">
+          <label class="page-sr-only" for="clockHeight" data-i18n="newtab.clock.height">Height</label>
+          <input id="clockHeight" class="clock-slider" title="Height" data-i18n-title="newtab.clock.height" type="range" min="100" max="300" step="5" value="100" />
+        </div>
+        <hr class="customize-divider clock-divider" />
+        <div id="clockColors" class="clock-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.clock.color"></div>
+        <div id="clockToneLine" class="clock-slider-row clock-tone-row">
+          <label class="page-sr-only" for="clockTone" data-i18n="newtab.clock.tone">Tone</label>
+          <input id="clockTone" class="clock-slider clock-tone" title="Tone" data-i18n-title="newtab.clock.tone" type="range" min="0" max="100" step="1" value="50" />
+        </div>
+        <div id="clockStyles" class="wallpaper-seg clock-styles" role="group" aria-label="Style" data-i18n-aria-label="newtab.clock.style">
+          <button type="button" data-clock-style-pick="glass" aria-pressed="false" data-i18n="newtab.clock.glass">Glass</button>
+          <button type="button" data-clock-style-pick="solid" aria-pressed="true" data-i18n="newtab.clock.solid">Solid</button>
+        </div>
       </div>
     </span>
     <span class="footer-right">
@@ -377,6 +451,8 @@
   <script src="onboarding.js"></script>
   <script src="newtab-wallpaper.js"></script>
   <script src="start-site-name.js"></script>
+  <script src="clock-ink.js"></script>
+  <script src="clock-art.js"></script>
   <script src="start-pins.js"></script>
   <script src="newtab.js"></script>
 </body>

@@ -84,6 +84,16 @@
       "homepage": "https://github.com/Instrument/instrument-sans"
     },
     {
+      "id": "roboto-flex-clock-font",
+      "name": "Roboto Flex clock subset (variable webfont)",
+      "version": "5.3.0",
+      "type": "file",
+      "file": "src/renderer/pages/roboto-flex-clock.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/roboto-flex-OFL.txt",
+      "homepage": "https://github.com/googlefonts/roboto-flex"
+    },
+    {
       "id": "easylist-data",
       "name": "EasyList",
       "type": "data",

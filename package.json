@@ -56,6 +56,7 @@
     "test:favorites-picker:desktop": "node test/desktop/favorites-folder-picker-smoke.mjs",
     "test:wallpaper:desktop": "node test/desktop/newtab-wallpaper-smoke.mjs",
     "test:custom-wallpaper:desktop": "node test/desktop/custom-wallpaper-smoke.mjs",
+    "test:billboard-clock:desktop": "node test/desktop/billboard-clock-smoke.mjs",
     "test:dark-websites:desktop": "node test/desktop/dark-websites-smoke.mjs",
     "test:trust-receipt": "node test/desktop/trust-receipt-smoke.mjs",
     "capture:start-page:installed": "node scripts/capture-installed-start-page.mjs",

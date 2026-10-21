@@ -1547,3 +1547,48 @@ step: **Keep as split** in its header turns the current Glance into a split.
   capability (D11); phones are N/A.
 - **Acceptance:** `spec/acceptance/split-view.feature`,
   `test/unit/split-model.test.js`, `test/unit/split-layout.test.js`.
+
+## F54 — Billboard clock Font & color (desktop)
+
+The Billboard layout's clock takes the iOS Lock Screen's Font & Color
+choices (`docs/superpowers/specs/2026-10-21-billboard-clock-style-design.md`).
+Customize shows **Clock font & color…** while Billboard is the layout; it
+opens a popover under the clock, so every change shows on the clock as it is
+made.
+
+- **Font.** Four bundled OFL faces, each shown as the numerals "12":
+  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter and
+  Roboto Flex (a clock-only 11 KB subset).
+- **Weight.** A slider across the chosen face's own range (Instrument Sans
+  400–700, Inter 100–900, Roboto Flex 100–1000). The weight is saved as
+  chosen and drawn inside the face's range, so moving to a narrower face and
+  back restores it.
+- **Height.** The Lock Screen's stretch, as type: the figures are set larger
+  and drawn narrower and lighter through the face's own width and weight
+  axes, so the clock keeps its width and stroke and nothing is distorted; it
+  stays real text. Roboto Flex reaches 300%, Instrument Sans 130%; the others
+  offer no Height. Held to half the window's height.
+- **Color.** **Automatic** (the page's own text color, following the theme
+  and wallpaper) or one of the eight Spaces presets, with a **Tone** slider
+  from deeper to lighter. The color is the person's choice; there is no
+  contrast guard.
+- **Style.** **Solid** (flat ink) or **Glass**: the figures are a lens that
+  bends the page behind them, lit with a bright rim. It is drawn in the page,
+  on every platform (not macOS's native Liquid Glass, which Electron does not
+  expose). Glass draws as Solid under reduced transparency.
+- **Shadow.** Every clock carries a shadow so it reads over any background in
+  any color: a dark one under light ink, a light halo around dark ink, and an
+  outside-only shadow for Glass.
+- **Defaults** draw the clock as it was (Instrument Sans 500, Automatic,
+  Solid, 100%), with the shadow.
+- **Sync.** All five choices are synced like the layout (`newtabClockFont`,
+  `newtabClockWeight`, `newtabClockColor`, `newtabClockTone`,
+  `newtabClockStyle`, `newtabClockHeight`). Older builds ignore them. Private tabs draw the same
+  clock.
+- **Portability.** `src/main/start-clock-style.js` (validation, weight ranges
+  and the toned ink, with no Electron dependency) finishes every value; the
+  page applies them. The Height fit and the glass and shadow rules in
+  `src/renderer/pages/clock-art.js` are pure functions.
+- **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
+  `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
+  `test/unit/clock-font.test.js`.

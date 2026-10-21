@@ -62,6 +62,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F51 | What's New page | PARTIAL | N/A | N/A | Desktop only. Opens blanc.day's page for a feature release once after the update, only when the page exists; the Start Page pill links to it. | — |
 | F52 | Tab Archive | PARTIAL | N/A | N/A | Desktop only. Off by default, device-local. Idle ungrouped, unpinned tabs close into a per-profile Archive kept 30 days, restorable from the Quick Switcher and History; never private tabs, never synced, cleared with history. | — |
 | F53 | Split View | PARTIAL | PLANNED | N/A | Desktop, and iOS regular width (two panes, D30). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane. | D11, D30 |
+| F54 | Billboard clock Font & color | PARTIAL | N/A | N/A | Desktop only. Four bundled faces (Roboto Flex added) with weight and a type-designed height from each face's width axis, Automatic or a Spaces preset at a tone, Solid or a refracting Glass, and a shadow that keeps it readable on any background; synced; values finished in a pure module. | — |
 
 ## Notes on the "mobile-only wins"
 
