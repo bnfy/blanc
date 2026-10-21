@@ -1,4 +1,5 @@
 #include "chrome/services/blanc_blocker/blocker_proxy.h"
+#include "chrome/browser/profiles/nuke_profile_directory_utils.h"
 #include <deque>
 #include <map>
 #include "base/json/json_reader.h"
@@ -240,7 +241,12 @@ class TransportDecision {
   void Abandon() { Lifecycle("webtransport-abandoned"); delete this; }
   void TimedOut() { Lifecycle("webtransport-timeout"); Done(-1); }
   void Done(int result) {
-    if (!context_ || (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
+    // A deleted profile may remain allocated while workers/proxies drain.
+    // WeakPtr validity alone does not authorize a new network connection.
+    const bool profile_unavailable = !context_ || context_->ShutdownStarted() ||
+        IsProfileDirectoryMarkedForDeletion(context_->GetPath());
+    if (profile_unavailable ||
+        (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
       result = -1;
     timeout_.Stop();
     base::DictValue event;
@@ -252,6 +258,7 @@ class TransportDecision {
     event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
     event.Set("private", context_ ? context_->IsOffTheRecord() : false);
     event.Set("context_alive", !!context_);
+    event.Set("profile_unavailable", profile_unavailable);
     event.Set("engine_result", result);
     event.Set("decision", result == 0 ? "allow" : "block");
     Record(std::move(event));

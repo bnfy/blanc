@@ -72,7 +72,7 @@ try {
     await until(()=>{const state=JSON.parse(fs.readFileSync(path.join(profile,'Local State')));return state.profile?.info_cache&&!Object.hasOwn(state.profile.info_cache,'Default');},15000);
     await until(()=>page.isClosed(),10000);assert(browser.isConnected());row.events.push('default-profile-removed-browser-survives');
     process.kill(owned.utilityPid,'SIGCONT');pausedPid=null;await pause(1500);
-    row.pendingArrivals=serverRows.slice(row.serverBoundary);if(row.pendingArrivals.length){row.failures=['pending transport reached server after native profile removal'];process.exitCode=1;}row.pendingRecords=records().filter(r=>r.request_id===held.request_id);
+    row.pendingArrivals=serverRows.slice(row.serverBoundary);assert.equal(row.pendingArrivals.length,0,'deleted profile must not connect');row.pendingRecords=records().filter(r=>r.request_id===held.request_id);const refusal=row.pendingRecords.find(r=>r.event==='webtransport-decision');assert(refusal);assert.equal(refusal.engine_result,-1);assert.equal(refusal.profile_unavailable,true);
     await survivor.goto(origin);row.recovery=await survivor.evaluate(a=>runTransport(a),args);assert.equal(row.recovery.echo,'blanc-http3-proof');
     await context.close();context=null;
    } else {
