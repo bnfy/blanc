@@ -5308,6 +5308,10 @@
     "message": "JetBrains Mono",
     "note": "Start page → clock Font & color popover: name of a monospaced typeface (a proper name, kept in every language), read out and shown on hover."
   },
+  "newtab.clock.font.flex": {
+    "message": "Roboto Flex",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language) that can stand taller with the Height slider, read out and shown on hover."
+  },
   "newtab.clock.weight": {
     "message": "Weight",
     "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
@@ -5315,7 +5319,7 @@
   },
   "newtab.clock.height": {
     "message": "Height",
-    "note": "Start page → clock Font & color popover: label of the slider that stretches the clock’s figures taller (as on the iOS Lock Screen), from their usual height to three times it.",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows.",
     "maxLength": 10
   },
   "newtab.clock.color": {

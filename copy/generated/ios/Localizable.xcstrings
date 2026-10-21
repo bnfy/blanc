@@ -57577,6 +57577,48 @@
         }
       }
     },
+    "newtab.clock.font.flex": {
+      "comment": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language) that can stand taller with the Height slider, read out and shown on hover.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roboto Flex"
+          }
+        }
+      }
+    },
     "newtab.clock.weight": {
       "comment": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
       "extractionState": "manual",
@@ -57620,7 +57662,7 @@
       }
     },
     "newtab.clock.height": {
-      "comment": "Start page → clock Font & color popover: label of the slider that stretches the clock’s figures taller (as on the iOS Lock Screen), from their usual height to three times it.",
+      "comment": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows.",
       "extractionState": "manual",
       "localizations": {
         "en": {

@@ -221,7 +221,8 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono"
+      "newtab.clock.font.mono",
+      "newtab.clock.font.flex"
     ],
     "es": [
       "about.chromium",
@@ -267,7 +268,8 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.font.mono",
-      "newtab.clock.color"
+      "newtab.clock.color",
+      "newtab.clock.font.flex"
     ],
     "fr": [
       "about.chromium",
@@ -320,7 +322,8 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.font.mono",
-      "newtab.clock.style"
+      "newtab.clock.style",
+      "newtab.clock.font.flex"
     ],
     "pt-BR": [
       "about.chromium",
@@ -365,7 +368,8 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono"
+      "newtab.clock.font.mono",
+      "newtab.clock.font.flex"
     ],
     "it": [
       "about.chromium",
@@ -421,7 +425,8 @@
       "newtab.wallpaper.sunrise",
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
-      "newtab.clock.font.mono"
+      "newtab.clock.font.mono",
+      "newtab.clock.font.flex"
     ]
   }
 }

@@ -4669,17 +4669,27 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
    data-ink with --clock-ink when a color is chosen; without them the clock
    is drawn as before. Each face's preview in the popover uses the same rule. */
 .bb-clock-row { position: relative; anchor-name: --bb-clock; }
-.bb-clock[data-font] { font-weight: var(--clock-weight, 500); }
-/* The universal wdth pin is !important, so the condensed cut must be too. */
-.bb-clock[data-font="condensed"],
+.bb-clock[data-font] {
+  font-weight: var(--clock-weight, 500);
+  /* The face's width: the interface's own for Instrument Sans, set wider or
+     narrower by the clock's Height (newtab.js). The universal wdth pin is
+     !important, so this must be too. */
+  --clock-wdth: var(--text-width);
+  font-variation-settings: "wdth" var(--clock-wdth) !important;
+}
+.bb-clock[data-font="condensed"] { --clock-wdth: 75; }
 .clock-font[data-clock-font-pick="condensed"] > span { font-variation-settings: "wdth" 75 !important; }
 .bb-clock[data-font="inter"],
 .clock-font[data-clock-font-pick="inter"] > span { font-family: "Inter", var(--font-text); letter-spacing: -0.035em; }
 .bb-clock[data-font="mono"],
 .clock-font[data-clock-font-pick="mono"] > span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: -0.06em; }
+.bb-clock[data-font="flex"],
+.clock-font[data-clock-font-pick="flex"] > span { font-family: "Blanc Clock Flex", var(--font-text); letter-spacing: -0.01em; }
+.bb-clock[data-font="flex"] { --clock-wdth: 100; }
+.clock-font[data-clock-font-pick="flex"] > span { font-variation-settings: "wdth" 100 !important; }
 .bb-clock[data-ink] { color: var(--clock-ink); }
-/* Drawn (stretched or glass): the typeset clock keeps its size and voice for
-   the drawing to measure and for screen readers, out of sight. */
+/* Glass: the typeset clock keeps its size and voice for the drawing to
+   measure and for screen readers, out of sight. */
 .bb-clock-row[data-drawn] .bb-clock { position: absolute; opacity: 0; pointer-events: none; }
 .bb-clock-art { position: relative; flex: none; }
 .bb-clock-art > * { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -4696,20 +4706,13 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
    clear; it overhangs the drawing by its own margin. */
 .bb-clock-art > .bb-clock-shadow { inset: auto; }
 .bb-clock-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-/* Canvas fonts can't take font-variation-settings, so the clock's two
-   Instrument Sans widths are pinned as faces of their own for its drawing. */
+/* Roboto Flex, for the clock only: a subset whose width axis lets the clock
+   stand taller (scripts/build-clock-font.py). */
 @font-face {
-  font-family: "Blanc Clock Instrument";
-  src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");
-  font-weight: 400 700;
-  font-stretch: 98%;
-  font-display: block;
-}
-@font-face {
-  font-family: "Blanc Clock Condensed";
-  src: url("instrument-sans-latin-wdth-normal.woff2") format("woff2");
-  font-weight: 400 700;
-  font-stretch: 75%;
+  font-family: "Blanc Clock Flex";
+  src: url("roboto-flex-clock.woff2") format("woff2");
+  font-weight: 100 1000;
+  font-stretch: 25% 151%;
   font-display: block;
 }
 
@@ -4756,7 +4759,7 @@ body:not([data-layout="billboard"]) .customize-clock { display: none; }
 }
 .clock-fonts {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
 }
 .clock-font {
@@ -4770,7 +4773,7 @@ body:not([data-layout="billboard"]) .customize-clock { display: none; }
 }
 .clock-font > span {
   font-family: var(--font-text);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: var(--clock-weight, 500);
   line-height: 1;
 }

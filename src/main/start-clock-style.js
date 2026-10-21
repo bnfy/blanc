@@ -9,13 +9,19 @@ const Identity = require('../renderer/space-identity');
 // The same sRGB mix and preset lookup the Color wallpaper paints with.
 const { mix, presetHex } = require('./start-page-paint');
 
-// Each face is one the app already bundles (OFL, src/renderer/pages/), with
-// the weight range its variable file carries.
+// Each face is one the app bundles (OFL, src/renderer/pages/), with the weight
+// range its variable file carries and how tall it can stand (percent). Height
+// comes from the face's own width axis: taller type, drawn narrower and
+// lighter so the clock keeps its width and stroke, with no distortion.
+// Instrument Sans narrows from the interface's 98% to 75%, about 1.3 times;
+// Roboto Flex (25–151%) reaches about twice and then grows a little wider up
+// to three times; the condensed cut, Inter and JetBrains Mono have no room.
 const FONTS = Object.freeze({
-  instrument: Object.freeze({ min: 400, max: 700 }),
-  condensed: Object.freeze({ min: 400, max: 700 }),
-  inter: Object.freeze({ min: 100, max: 900 }),
-  mono: Object.freeze({ min: 400, max: 800 }),
+  instrument: Object.freeze({ min: 400, max: 700, height: 130 }),
+  condensed: Object.freeze({ min: 400, max: 700, height: 100 }),
+  inter: Object.freeze({ min: 100, max: 900, height: 100 }),
+  mono: Object.freeze({ min: 400, max: 800, height: 100 }),
+  flex: Object.freeze({ min: 100, max: 1000, height: 300 }),
 });
 const FONT_IDS = Object.freeze(Object.keys(FONTS));
 const STYLES = Object.freeze(['solid', 'glass']);
@@ -26,9 +32,9 @@ const COLORS = Object.freeze(['auto', ...PRESET_IDS]);
 // The clock as it was before these choices existed.
 const DEFAULTS = Object.freeze({ font: 'instrument', weight: 500, color: 'auto', tone: 50, style: 'solid', height: 100 });
 const WEIGHT_MIN = 100;
-const WEIGHT_MAX = 900;
+const WEIGHT_MAX = 1000;
 // How tall the figures stand, in percent of their typeset height: the Lock
-// Screen's stretch, which lengthens stems rather than scaling strokes.
+// Screen's stretch.
 const HEIGHT_MIN = 100;
 const HEIGHT_MAX = 300;
 // Tone 50 is the preset exactly. Below it the color deepens toward black,
@@ -60,10 +66,17 @@ function weightIn(font, weight) {
   return Math.min(range.max, Math.max(range.min, w));
 }
 
+/** The saved height drawn in a font: no taller than the face can stand. */
+function heightIn(font, height) {
+  const most = FONTS[normalizeFont(font) ?? DEFAULTS.font].height;
+  return Math.min(most, normalizeHeight(height) ?? DEFAULTS.height);
+}
+
 /**
  * What the Start Page draws and offers, from the saved settings. Unknown
- * values read as the defaults. The saved weight is kept as chosen, so moving
- * to a narrower font and back restores it; `weight` is what is drawn.
+ * values read as the defaults. The saved weight and height are kept as
+ * chosen, so moving to a narrower face and back restores them; `weight` and
+ * `height` are what is drawn, `range` and `heightRange` what the face allows.
  */
 function clockStyle({ font, weight, color, tone, style, height } = {}) {
   const f = normalizeFont(font) ?? DEFAULTS.font;
@@ -81,7 +94,8 @@ function clockStyle({ font, weight, color, tone, style, height } = {}) {
     base: presetHex(c),
     toneMix: { darken: TONE_DARKEN, lighten: TONE_LIGHTEN },
     style: normalizeStyle(style) ?? DEFAULTS.style,
-    height: normalizeHeight(height) ?? DEFAULTS.height,
+    height: heightIn(f, height),
+    heightRange: { min: HEIGHT_MIN, max: FONTS[f].height },
     presets: Identity.PRESETS.map(({ id, hex }) => ({ id, hex })),
   };
 }
@@ -125,6 +139,7 @@ module.exports = {
   normalizeHeight,
   inkFor,
   weightIn,
+  heightIn,
   clockStyle,
   clockStyleFromSettings,
   settingsForClock,

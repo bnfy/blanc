@@ -829,6 +829,7 @@ const clockTone = document.getElementById('clockTone');
 const clockToneLine = document.getElementById('clockToneLine');
 const clockColors = document.getElementById('clockColors');
 const clockHeight = document.getElementById('clockHeight');
+const clockHeightLine = document.getElementById('clockHeightLine');
 const clockRow = clockElement.parentElement;
 const clockArt = document.getElementById('bbClockArt');
 const clockLens = document.getElementById('bbClockLens');
@@ -857,21 +858,32 @@ function paintClockInk(ink) {
   scheduleClockArt();
 }
 
-// Stretched or glass, the clock is drawn (clock-art.js) from the typeset
-// clock's own computed font, size, spacing and color, so it always matches
-// what Solid at full height would show. Canvas fonts can't take
-// font-variation-settings, so Instrument Sans is drawn from faces pinned to
-// the clock's widths (pages.css).
-const CLOCK_CANVAS_FAMILIES = {
-  instrument: '"Blanc Clock Instrument"',
-  condensed: '"Blanc Clock Condensed"',
-  inter: 'Inter',
-  mono: '"JetBrains Mono"',
+// Height and Glass (clock-art.js). Height is type: the clock is set larger,
+// then narrower and lighter through its face's own width and weight axes, so
+// it keeps its width and stroke and nothing is distorted; it stays real text.
+// Glass is drawn over the page from that same text: each width and weight is
+// loaded as a canvas face of its own, because canvas fonts can't take
+// font-variation-settings.
+const CLOCK_FACES = {
+  instrument: {
+    url: 'instrument-sans-latin-wdth-normal.woff2', stretch: 98,
+    stretches: [75, 86.5, 98], weights: [400, 550, 700],
+  },
+  condensed: { url: 'instrument-sans-latin-wdth-normal.woff2', stretch: 75 },
+  inter: { url: 'inter-latin.woff2', stretch: 100 },
+  mono: { url: 'jetbrains-mono-latin.woff2', stretch: 100 },
+  flex: {
+    url: 'roboto-flex-clock.woff2', stretch: 100,
+    stretches: [25, 37.5, 50, 62.5, 75, 87.5, 100], weights: [100, 250, 400, 550, 700, 850, 1000],
+  },
 };
-// The glass bends the page by up to this share of the type size, across a
-// bevel this share of it wide.
-const GLASS_BEND = 0.3;
-const GLASS_BEVEL = 0.05;
+// The figures stand about this much of the type size; the clock may take at
+// most half the window's height.
+const FIGURE_HEIGHT = 0.72;
+const MOST_OF_WINDOW = 0.5;
+// The glass's bevel and how far it bends the page, as shares of the type size.
+const GLASS_BEVEL = 0.06;
+const GLASS_BEND = 0.12;
 // How far the glass's shadow may reach past the figures, as a share of the
 // type size.
 const GLASS_SHADOW_MARGIN = 0.3;
@@ -880,91 +892,104 @@ function scheduleClockArt() {
   if (clockArtFrame) return;
   clockArtFrame = requestAnimationFrame(() => {
     clockArtFrame = 0;
-    drawClockArt();
+    drawClockArt().catch(() => {});
   });
 }
 const rgbOf = (color) => globalThis.blancClockArt.parseColor(color);
-// What the last drawing was made from; an unchanged clock is not redrawn.
+// What the last glass was made from; an unchanged clock is not redrawn. A
+// newer draw makes an older one, still waiting on a face, give up.
 let clockArtKey = '';
-function drawClockArt() {
+let clockDrawGeneration = 0;
+// The Weight thumb's value while it is dragged.
+let clockWeightPreview = null;
+async function drawClockArt() {
   if (!clockState || state.layout !== 'billboard') return;
-  // Every clock carries a shadow opposite to its ink (clock-art.js), so it
-  // reads over any wallpaper in any color.
-  clockElement.style.removeProperty('--clock-shadow');
-  const ink = rgbOf(getComputedStyle(clockElement).color);
-  const shadow = globalThis.blancClockArt.shadowFor(ink);
-  clockElement.style.setProperty('--clock-shadow', shadow);
+  const art = globalThis.blancClockArt;
+  const generation = ++clockDrawGeneration;
+  const face = CLOCK_FACES[clockState.font] ?? CLOCK_FACES.instrument;
+  const weight = clockWeightPreview ?? clockState.weight;
+
+  // Height: the type size the stylesheet gives, times the factor, at the
+  // fitted width and weight.
+  const inline = clockElement.style.fontSize;
+  clockElement.style.removeProperty('font-size');
+  const size = parseFloat(getComputedStyle(clockElement).fontSize);
+  clockElement.style.fontSize = inline;
   const height = clockHeightPreview ?? clockState.height ?? 100;
+  const most = (clockState.heightRange?.max ?? 100) / 100;
+  const fits = (innerHeight * MOST_OF_WINDOW) / (size * FIGURE_HEIGHT);
+  const factor = face.stretches ? Math.max(1, Math.min(height / 100, most, fits)) : 1;
+  let type = { stretch: face.stretch, weight };
+  if (factor > 1) {
+    const table = await art.measureFace(face.url, face.stretches, face.weights);
+    if (generation !== clockDrawGeneration) return;
+    type = art.fitHeight(table, { stretch: face.stretch, weight }, factor);
+    clockElement.style.fontSize = `${size * factor}px`;
+    clockElement.style.setProperty('--clock-wdth', type.stretch.toFixed(1));
+    clockElement.style.fontWeight = String(Math.round(type.weight));
+  } else {
+    clockElement.style.removeProperty('font-size');
+    clockElement.style.removeProperty('--clock-wdth');
+    clockElement.style.removeProperty('font-weight');
+  }
+
+  // Every clock carries a shadow opposite to its ink, so it reads over any
+  // wallpaper in any color.
+  const computed = getComputedStyle(clockElement);
+  const shadow = art.shadowFor(rgbOf(computed.color));
+  clockElement.style.setProperty('--clock-shadow', shadow);
+
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
-  if (height <= 100 && !glass) {
+  if (!glass) {
     clockRow.removeAttribute('data-drawn');
     clockArt.hidden = true;
     clockArtKey = '';
     return;
   }
-  const computed = getComputedStyle(clockElement);
-  const size = parseFloat(computed.fontSize);
-  const weight = Number(computed.fontWeight) || 500;
-  const family = CLOCK_CANVAS_FAMILIES[clockState.font] ?? CLOCK_CANVAS_FAMILIES.instrument;
-  // Draw only once the face is ready; its load draws again. Until then the
-  // clock stays as it is (typeset, or the last drawing).
-  const spec = `${weight} ${size}px ${family}`;
-  if (!document.fonts.check(spec)) {
-    document.fonts.load(spec).then(scheduleClockArt, () => {});
-    return;
-  }
-  // At most half the window tall: the figures are about 0.7 of the type size.
-  const fits = 1 + Math.max(0, innerHeight * 0.5 - size) / (size * 0.7);
-  const factor = Math.max(1, Math.min(height / 100, fits));
-  const scale = devicePixelRatio || 1;
+  const typeSize = parseFloat(computed.fontSize);
   const letterSpacing = parseFloat(computed.letterSpacing) || 0;
-  const key = JSON.stringify([clockElement.textContent, spec, letterSpacing, factor, scale, glass, computed.color, shadow]);
+  const scale = devicePixelRatio || 1;
+  const text = clockElement.textContent;
+  const key = JSON.stringify([text, face.url, type.stretch, type.weight, typeSize, letterSpacing, scale, computed.color]);
   if (key === clockArtKey) return;
+  // Until the face for this width and weight has loaded, the clock stays as
+  // it is (typeset, or the last glass).
+  const family = await art.instance(face.url, type.stretch, type.weight);
+  if (generation !== clockDrawGeneration) return;
   clockArtKey = key;
-  const art = globalThis.blancClockArt.drawClock(clockElement.textContent, {
-    family, weight, size, stretch: 'normal', letterSpacing,
-  }, factor, scale);
-  clockArt.style.width = `${art.width}px`;
-  clockArt.style.height = `${art.height}px`;
-  clockArt.style.marginInline = `${-art.left}px`;
-  clockArt.dataset.style = glass ? 'glass' : 'solid';
-  let face;
-  if (glass) {
-    const { map, face: light } = globalThis.blancClockArt.paintGlass(art.mask, rgbOf(computed.color), size * GLASS_BEVEL * scale, 0.9);
-    for (const element of [clockRefract, clockRefractMap]) {
-      element.setAttribute('width', String(art.width));
-      element.setAttribute('height', String(art.height));
-    }
-    clockRefractMap.setAttribute('href', map.toDataURL());
-    clockRefractBend.setAttribute('scale', String(size * GLASS_BEND));
-    const mask = `url(${art.mask.toDataURL()})`;
-    clockLens.style.maskImage = mask;
-    clockLens.style.webkitMaskImage = mask;
-    clockLens.hidden = false;
-    clockFace.style.removeProperty('filter');
-    // A contact shadow and a wide soft one, outside the figures.
-    const margin = Math.ceil(size * GLASS_SHADOW_MARGIN * scale);
-    const cast = globalThis.blancClockArt.paintShadow(art.mask, [
-      { blur: size * 0.012 * scale, y: size * 0.008 * scale, alpha: 0.42 },
-      { blur: size * 0.09 * scale, y: size * 0.05 * scale, alpha: 0.3 },
-    ], margin);
-    clockShadow.width = cast.width;
-    clockShadow.height = cast.height;
-    clockShadow.getContext('2d').drawImage(cast, 0, 0);
-    clockShadow.style.left = clockShadow.style.top = `${-margin / scale}px`;
-    clockShadow.style.width = `${cast.width / scale}px`;
-    clockShadow.style.height = `${cast.height / scale}px`;
-    clockShadow.hidden = false;
-    face = light;
-  } else {
-    clockLens.hidden = true;
-    clockShadow.hidden = true;
-    face = globalThis.blancClockArt.paintSolid(art.mask, computed.color);
-    clockFace.style.filter = globalThis.blancClockArt.shadowFilter(shadow);
+  const drawn = art.drawClock(text, { family, weight: type.weight, size: typeSize, letterSpacing }, scale);
+  clockArt.style.width = `${drawn.width}px`;
+  clockArt.style.height = `${drawn.height}px`;
+  clockArt.style.marginInline = `${-drawn.left}px`;
+  const bend = typeSize * GLASS_BEND * scale;
+  const { map, face: light } = art.paintGlass(drawn.mask, {
+    bevel: typeSize * GLASS_BEVEL * scale, bend, scale: bend * 2, tint: rgbOf(computed.color),
+  });
+  for (const element of [clockRefract, clockRefractMap]) {
+    element.setAttribute('width', String(drawn.width));
+    element.setAttribute('height', String(drawn.height));
   }
-  clockFace.width = face.width;
-  clockFace.height = face.height;
-  clockFace.getContext('2d').drawImage(face, 0, 0);
+  clockRefractMap.setAttribute('href', map.toDataURL());
+  // The map is in device pixels; the filter bends in CSS pixels.
+  clockRefractBend.setAttribute('scale', String((bend * 2) / scale));
+  const mask = `url(${drawn.mask.toDataURL()})`;
+  clockLens.style.maskImage = mask;
+  clockLens.style.webkitMaskImage = mask;
+  // A contact shadow and a wide soft one, outside the figures.
+  const margin = Math.ceil(typeSize * GLASS_SHADOW_MARGIN * scale);
+  const cast = art.paintShadow(drawn.mask, [
+    { blur: typeSize * 0.012 * scale, y: typeSize * 0.008 * scale, alpha: 0.42 },
+    { blur: typeSize * 0.09 * scale, y: typeSize * 0.05 * scale, alpha: 0.3 },
+  ], margin);
+  clockShadow.width = cast.width;
+  clockShadow.height = cast.height;
+  clockShadow.getContext('2d').drawImage(cast, 0, 0);
+  clockShadow.style.left = clockShadow.style.top = `${-margin / scale}px`;
+  clockShadow.style.width = `${cast.width / scale}px`;
+  clockShadow.style.height = `${cast.height / scale}px`;
+  clockFace.width = light.width;
+  clockFace.height = light.height;
+  clockFace.getContext('2d').drawImage(light, 0, 0);
   // Shown only once drawn, so the clock never blanks while a face loads.
   clockRow.setAttribute('data-drawn', '');
   clockArt.hidden = false;
@@ -1023,6 +1048,9 @@ function applyClock(clock) {
   for (const button of clockStylePicks) button.setAttribute('aria-pressed', String(button.dataset.clockStylePick === clock.style));
   for (const button of clockColors.children) button.setAttribute('aria-pressed', String(button.dataset.clockColorPick === clock.color));
   clockToneLine.hidden = !clock.base;
+  // Only a face with room on its width axis can stand taller.
+  const tallest = clock.heightRange?.max ?? 100;
+  clockHeightLine.hidden = tallest <= 100;
   if (clock.base) clockTone.style.setProperty('--clock-tone-mid', clock.base);
   scheduleClockArt();
   // A status broadcast must not yank a thumb out from under a drag.
@@ -1031,6 +1059,7 @@ function applyClock(clock) {
   clockWeight.max = String(clock.range?.max ?? 700);
   clockWeight.value = String(clock.weight);
   clockTone.value = String(clock.tone);
+  clockHeight.max = String(tallest);
   clockHeight.value = String(clock.height ?? 100);
   paintClockWeight(clock.weight);
   paintClockInk(clock.ink);
@@ -1043,7 +1072,8 @@ for (const button of clockStylePicks) {
 }
 clockWeight.addEventListener('input', () => {
   clockDragging = true;
-  paintClockWeight(Number(clockWeight.value));
+  clockWeightPreview = Number(clockWeight.value);
+  paintClockWeight(clockWeightPreview);
 });
 clockTone.addEventListener('input', () => {
   clockDragging = true;
@@ -1059,6 +1089,7 @@ clockHeight.addEventListener('input', () => {
 function endClockDrag() {
   clockDragging = false;
   clockHeightPreview = null;
+  clockWeightPreview = null;
   applyClock(clockState);
 }
 for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [clockHeight, 'height']]) {
@@ -1070,6 +1101,10 @@ for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [cloc
     if (key === 'height') {
       clockState = { ...clockState, height: value };
       clockHeightPreview = null;
+    }
+    if (key === 'weight') {
+      clockState = { ...clockState, weight: value };
+      clockWeightPreview = null;
     }
     await setClock({ [key]: value });
   });

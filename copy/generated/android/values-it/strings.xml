@@ -1449,6 +1449,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_clock_font_condensed">Instrument Sans condensato</string>
     <string name="newtab_clock_font_inter">Inter</string>
     <string name="newtab_clock_font_mono">JetBrains Mono</string>
+    <string name="newtab_clock_font_flex">Roboto Flex</string>
     <string name="newtab_clock_weight">Peso</string>
     <string name="newtab_clock_height">Altezza</string>
     <string name="newtab_clock_color">Colore</string>

@@ -5151,13 +5151,17 @@
     "message": "JetBrains Mono",
     "source": "sha256:0b7df83126a8fd23fd4e3e3999a289e9a4df4d01266a9ce7d31dc1f312b052bb"
   },
+  "newtab.clock.font.flex": {
+    "message": "Roboto Flex",
+    "source": "sha256:511be9c6e1a7882f5417d071663e058632d4bba5f7125361ee4b2309df36358c"
+  },
   "newtab.clock.weight": {
     "message": "Graisse",
     "source": "sha256:37234f84770d4794a6954002728906ad5cc8142080afb0cce635e11616926fa0"
   },
   "newtab.clock.height": {
     "message": "Hauteur",
-    "source": "sha256:152d7cf9d0dc3047583b5104c56b624520d3823183b217c341a668cacb5be3d6"
+    "source": "sha256:d34d10e202bc1116d92444195fb52fa854412b9ca1696c5c10db5944ea9418ae"
   },
   "newtab.clock.color": {
     "message": "Couleur",

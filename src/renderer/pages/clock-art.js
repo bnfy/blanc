@@ -1,33 +1,212 @@
-// The Billboard clock drawn on a canvas: stretched taller the way the iOS
-// Lock Screen clock stretches, and the masks and maps its glass is made from
-// (spec docs/superpowers/specs/2026-10-21-billboard-clock-style-design.md).
-// The pixel rules at the top are pure (no DOM), so test/unit runs them in a
-// vm; the drawing below them needs a document.
+// The Billboard clock's Height and Glass (spec
+// docs/superpowers/specs/2026-10-21-billboard-clock-style-design.md).
+//
+// Height is type, not a transform: the figures are set larger, then drawn
+// narrower and lighter through the face's own width and weight axes, so the
+// clock keeps its width and stroke and every curve stays as designed. The fit
+// is solved from a small table of measured widths and stems.
+//
+// Glass is a lens over the page: a rounded bevel built from the figures'
+// distance field bends what is behind them (most at the edges) and lights
+// them with a highlight and a rim, and a shadow outside keeps them readable.
+//
+// The rules at the top are pure (no DOM), so test/unit runs them in a vm; the
+// measuring and drawing below them need a document.
 (() => {
   'use strict';
 
-  // Rows nearest the cap height and the baseline never stretch, so the ends of
-  // strokes keep their shape.
-  const EDGE_GUARD = 0.06;
-  // How strongly the stretch prefers the most vertical rows. Smaller is
-  // stricter: a bowl's straight sides take nearly everything, its curves next
-  // to nothing; a glyph with no vertical row (7's diagonal) shares it evenly.
-  const SHARPNESS = 0.08;
-  // A row inside a horizontal bar also matches its neighbours, so it must be
-  // told apart by width: any ink run wider than this many stems is a bar (or
-  // the flat of a curve) and never stretches.
-  const BAR = 1.6;
-  // Coverage that counts as ink when measuring runs.
-  const INK = 128;
-  // A colon's share of the stretch between its dots; the rest goes above.
-  const GAP_SHARE = 0.75;
-  // Glyphs are stretched at this many times the output resolution.
-  const OVERSAMPLE = 2;
-  // The glass's own light: how much of its color the body carries, how bright
-  // the rim facing the light gets and how deep the edge facing away.
-  const GLASS_BODY = 0.22;
-  const GLASS_RIM = 1;
-  const GLASS_SHADE = 0.4;
+  // ---- Height ----
+
+  // Bilinear lookup in a measured grid: `values[i][j]` at stretches[i], weights[j].
+  function lookup(table, values, stretch, weight) {
+    const at = (axis, v) => {
+      let i = 0;
+      while (i < axis.length - 2 && v > axis[i + 1]) i++;
+      const t = Math.max(0, Math.min(1, (v - axis[i]) / (axis[i + 1] - axis[i])));
+      return [i, t];
+    };
+    const [i, s] = at(table.stretches, stretch);
+    const [j, w] = at(table.weights, weight);
+    const v = (a, b) => values[a][b];
+    return (v(i, j) * (1 - w) + v(i, j + 1) * w) * (1 - s) + (v(i + 1, j) * (1 - w) + v(i + 1, j + 1) * w) * s;
+  }
+
+  // The value in [lo, hi] where an increasing `f` meets `target`.
+  function solve(f, target, lo, hi) {
+    for (let k = 0; k < 40; k++) {
+      const mid = (lo + hi) / 2;
+      if (f(mid) < target) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  /**
+   * The width (CSS font-stretch percent) and weight that set the figures
+   * `factor` times taller while the clock keeps the width and stem it has at
+   * `base` ({ stretch, weight }). `table` holds the face's measured text width
+   * and stem width over a grid of stretches and weights, all at one size; both
+   * grow with each axis. Where the face can't narrow further it stays at its
+   * narrowest and grows wider; where it can't lighten further the stem
+   * thickens a little.
+   */
+  function fitHeight(table, base, factor) {
+    if (!(factor > 1)) return { stretch: base.stretch, weight: base.weight };
+    const sMin = table.stretches[0], sMax = table.stretches[table.stretches.length - 1];
+    const wMin = table.weights[0], wMax = table.weights[table.weights.length - 1];
+    const width = lookup(table, table.width, base.stretch, base.weight) / factor;
+    const stem = lookup(table, table.stem, base.stretch, base.weight) / factor;
+    const stretchFor = (weight) => {
+      if (lookup(table, table.width, sMin, weight) >= width) return sMin;
+      return solve((s) => lookup(table, table.width, s, weight), width, sMin, sMax);
+    };
+    const stemAt = (weight) => lookup(table, table.stem, stretchFor(weight), weight);
+    let weight;
+    if (stemAt(wMin) >= stem) weight = wMin;
+    else if (stemAt(wMax) <= stem) weight = wMax;
+    else weight = solve(stemAt, stem, wMin, wMax);
+    return { stretch: stretchFor(weight), weight };
+  }
+
+  // ---- Glass ----
+
+  /**
+   * How far each covered pixel lies inside the figures (pixels to the nearest
+   * uncovered one, or the canvas edge), by a two-pass chamfer; 0 outside.
+   */
+  function insideDistance(alpha, width, height) {
+    const d = new Float32Array(width * height);
+    for (let i = 0; i < d.length; i++) d[i] = alpha[i] >= 128 ? 1e9 : 0;
+    const diag = Math.SQRT2;
+    const pass = (forward) => {
+      const dx = forward ? -1 : 1;
+      for (let k = 0; k < height; k++) {
+        const y = forward ? k : height - 1 - k;
+        for (let m = 0; m < width; m++) {
+          const x = forward ? m : width - 1 - m;
+          const i = y * width + x;
+          if (!d[i]) continue;
+          const px = x + dx, py = y + dx;
+          let best = d[i];
+          best = Math.min(best, px < 0 || px >= width ? 1 : d[i + dx] + 1);
+          if (py < 0 || py >= height) best = Math.min(best, 1);
+          else {
+            const row = py * width;
+            best = Math.min(best, d[row + x] + 1);
+            if (x - 1 >= 0) best = Math.min(best, d[row + x - 1] + diag);
+            if (x + 1 < width) best = Math.min(best, d[row + x + 1] + diag);
+          }
+          d[i] = best;
+        }
+      }
+    };
+    pass(true);
+    pass(false);
+    return d;
+  }
+
+  /**
+   * The distance field softened by a box blur of `radius` pixels, twice
+   * (close to a Gaussian), so the bevels round into each other at corners
+   * instead of meeting in mitred ridges, and the chamfer's steps never light
+   * up as sparkles. Still 0 outside the figures.
+   */
+  function smoothInside(d, alpha, width, height, radius = 1) {
+    const r = Math.max(1, Math.round(radius));
+    let from = d;
+    const line = (src, dst, count, stride, offset) => {
+      let sum = 0;
+      for (let k = -r; k <= r; k++) sum += k >= 0 && k < count ? src[offset + k * stride] : 0;
+      for (let k = 0; k < count; k++) {
+        dst[offset + k * stride] = sum / (2 * r + 1);
+        const out = k - r, inn = k + r + 1;
+        if (out >= 0) sum -= src[offset + out * stride];
+        if (inn < count) sum += src[offset + inn * stride];
+      }
+    };
+    for (let pass = 0; pass < 2; pass++) {
+      const across = new Float32Array(width * height);
+      for (let y = 0; y < height; y++) line(from, across, width, 1, y * width);
+      const down = new Float32Array(width * height);
+      for (let x = 0; x < width; x++) line(across, down, height, width, x);
+      from = down;
+    }
+    for (let i = 0; i < from.length; i++) if (alpha[i] < 128) from[i] = 0;
+    return from;
+  }
+
+  const normalize = ([x, y, z]) => {
+    const n = Math.hypot(x, y, z) || 1;
+    return [x / n, y / n, z / n];
+  };
+  // Light from above and a little left; a weaker one from below right, the
+  // glass's second rim. Each is lit at its half-vector with the viewer.
+  const KEY = normalize([-0.45, -0.75, 0.5]);
+  const FILL = normalize([0.5, 0.8, 0.35]);
+  const halfway = (light) => normalize([light[0], light[1], light[2] + 1]);
+  const KEY_HALF = halfway(KEY);
+  const FILL_HALF = halfway(FILL);
+  // How much of its color the body of the glass carries.
+  const GLASS_BODY = 0.1;
+  // How far the bevel is softened, as a share of its width.
+  const SOFTEN = 0.3;
+
+  /**
+   * The glass from the figures' coverage (`alpha`, one byte a pixel):
+   * - `map`: RGBA for feDisplacementMap (128 = no bend). A rounded bevel up
+   *   to `bevel` pixels wide (never wider than the stroke's half) rises from
+   *   each edge, and the page behind bends along its slope by up to `bend`
+   *   pixels (less on a narrower bevel), most at the edge, as through a
+   *   lens's rim. `scale` is the displacement filter's scale.
+   * - `face`: RGBA light laid over the bent page: a crisp highlight where the
+   *   bevel faces the key light, a softer one opposite, a bright Fresnel rim
+   *   all round, and a faint body in `tint` ([r, g, b]).
+   */
+  function glassMaps(alpha, width, height, { bevel: wanted, bend, scale, tint }) {
+    const d = smoothInside(insideDistance(alpha, width, height), alpha, width, height, wanted * SOFTEN);
+    // A bevel never wider than the stroke's half: a thin figure is all bevel
+    // and bends the page less, so it never turns to noise.
+    let deepest = 0;
+    for (let i = 0; i < d.length; i++) if (d[i] > deepest) deepest = d[i];
+    const bevel = Math.max(1, Math.min(wanted, deepest * 0.95));
+    const map = new Uint8ClampedArray(width * height * 4);
+    const face = new Uint8ClampedArray(width * height * 4);
+    const at = (x, y) => d[Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))];
+    const dot = (a, b) => Math.max(0, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
+    const reach = (bend / scale) * 255 * (bevel / wanted);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x, o = i * 4;
+        map[o] = 128; map[o + 1] = 128; map[o + 2] = 128; map[o + 3] = 255;
+        const cover = alpha[i] / 255;
+        if (!cover) continue;
+        // Up the distance field is inward; the bevel rises that way.
+        let gx = (at(x + 1, y) - at(x - 1, y)) / 2;
+        let gy = (at(x, y + 1) - at(x, y - 1)) / 2;
+        const g = Math.hypot(gx, gy) || 1;
+        gx /= g; gy /= g;
+        // A quarter-circle profile: steep at the edge, flat on top.
+        const t = Math.min(1, d[i] / bevel);
+        const fall = 1 - t;
+        const slope = t < 1 ? fall / Math.sqrt(Math.max(1e-3, 1 - fall * fall)) : 0;
+        const normal = normalize([-gx * slope, -gy * slope, 1]);
+        map[o] = 128 + Math.max(-127, Math.min(127, normal[0] * reach));
+        map[o + 1] = 128 + Math.max(-127, Math.min(127, normal[1] * reach));
+        const key = dot(normal, KEY_HALF) ** 48;
+        const fill = dot(normal, FILL_HALF) ** 24 * 0.45;
+        const rim = (1 - normal[2]) ** 1.6 * 0.55;
+        const light = Math.min(1, key + fill + rim);
+        const a = GLASS_BODY + light * (1 - GLASS_BODY);
+        const lit = light / a;
+        for (let c = 0; c < 3; c++) face[o + c] = tint[c] * (1 - lit) + 255 * lit;
+        face[o + 3] = a * cover * 255;
+      }
+    }
+    return { map, face };
+  }
+
+  // ---- Shadow ----
+
   // Above this relative luminance an ink counts as light.
   const LIGHT_INK = 0.4;
   // The shadow that keeps the figures readable over any wallpaper: the
@@ -36,165 +215,6 @@
     light: '0 0 1px rgb(0 0 0 / 0.35), 0 1px 3px rgb(0 0 0 / 0.32), 0 4px 22px rgb(0 0 0 / 0.28)',
     dark: '0 0 1px rgb(255 255 255 / 0.6), 0 1px 3px rgb(255 255 255 / 0.5), 0 2px 24px rgb(255 252 247 / 0.45)',
   });
-
-  /** Every row's ink runs (lengths), and the glyph's typical stem width. */
-  function runsOf(alpha, width, height) {
-    const rows = [];
-    const all = [];
-    for (let r = 0; r < height; r++) {
-      const runs = [];
-      let run = 0;
-      for (let x = 0; x <= width; x++) {
-        if (x < width && alpha[r * width + x] >= INK) run++;
-        else if (run) { runs.push(run); all.push(run); run = 0; }
-      }
-      rows.push(runs);
-    }
-    all.sort((a, b) => a - b);
-    // The narrowest third of the runs are stem crossings in every digit.
-    const stem = all.length ? all[Math.floor(all.length / 3)] : 0;
-    return { rows, stem };
-  }
-
-  /**
-   * How much each row of one glyph grows. `alpha` is the glyph's coverage
-   * (one byte per pixel, `width` per row); rows `top` to `bottom` (cap height
-   * to baseline) share `extra` pixels. A row where only vertical strokes cross
-   * matches its neighbours and takes the stretch, so stems lengthen while
-   * curves, corners and horizontal bars keep their size and thickness; rows
-   * crossing a bar are told apart by run width and never stretch. A glyph
-   * with empty rows between its marks (the colon) stretches only there and
-   * above, so the dots spread apart and stay round. Returns each row's new
-   * height (1 + its share).
-   */
-  function stretchRows(alpha, width, height, top, bottom, extra) {
-    const heights = new Float64Array(height).fill(1);
-    if (!(extra > 0) || bottom - top < 3) return heights;
-    const guard = Math.max(1, Math.round((bottom - top) * EDGE_GUARD));
-    const from = Math.max(1, top + guard);
-    const to = Math.min(height - 2, bottom - guard);
-    const { rows, stem } = runsOf(alpha, width, height);
-    const isBar = (r) => rows[r].some((run) => run > stem * BAR + 1);
-    const cost = new Float64Array(height);
-    let lowest = Infinity;
-    for (let r = from; r <= to; r++) {
-      if (isBar(r)) { cost[r] = Infinity; continue; }
-      let change = 0, ink = 0;
-      for (let x = 0; x < width; x++) {
-        const here = alpha[r * width + x];
-        change += Math.abs(here - alpha[(r - 1) * width + x]) + Math.abs(here - alpha[(r + 1) * width + x]);
-        ink += here;
-      }
-      cost[r] = ink ? change / ink : 0;
-      lowest = Math.min(lowest, cost[r]);
-    }
-    const weights = new Float64Array(height);
-    let total = 0;
-    if (lowest === Infinity) return heights;
-    // A colon: its empty rows stretch alone, mostly between the dots (as on the
-    // Lock Screen, the dots end about a third and four fifths of the way down).
-    // Empty means no coverage at all: a dot's soft edge is still the dot.
-    const empty = (r) => {
-      for (let x = 0; x < width; x++) if (alpha[r * width + x]) return false;
-      return true;
-    };
-    const inked = [];
-    for (let r = from; r <= to; r++) if (!empty(r)) inked.push(r);
-    const isGap = (r) => inked.length && r > inked[0] && r < inked[inked.length - 1] && empty(r);
-    const gaps = [];
-    for (let r = from; r <= to; r++) if (isGap(r)) gaps.push(r);
-    if (gaps.length) {
-      const outer = [];
-      for (let r = from; r < inked[0]; r++) outer.push(r);
-      const toGap = outer.length ? GAP_SHARE : 1;
-      for (const r of gaps) heights[r] += (extra * toGap) / gaps.length;
-      for (const r of outer) heights[r] += (extra * (1 - toGap)) / outer.length;
-      return heights;
-    }
-    for (let r = from; r <= to; r++) {
-      weights[r] = cost[r] === Infinity ? 0 : Math.exp(-(cost[r] - lowest) / SHARPNESS);
-      total += weights[r];
-    }
-    for (let r = from; r <= to; r++) heights[r] += extra * (weights[r] / total);
-    return heights;
-  }
-
-  /**
-   * Redraw `alpha` with each row at its new height. Each output row repeats
-   * the source row it falls in, so nothing smears into a stretched gap; the
-   * caller draws oversampled and scales down, which smooths the steps a
-   * steepened diagonal gets. Returns { alpha, height }.
-   */
-  function resampleRows(alpha, width, height, heights) {
-    const starts = new Float64Array(height + 1);
-    for (let r = 0; r < height; r++) starts[r + 1] = starts[r] + heights[r];
-    const outHeight = Math.round(starts[height]);
-    const out = new Uint8ClampedArray(width * outHeight);
-    let r = 0;
-    for (let o = 0; o < outHeight; o++) {
-      while (r < height - 1 && starts[r + 1] <= o + 0.5) r++;
-      out.set(alpha.subarray(r * width, (r + 1) * width), o * width);
-    }
-    return { alpha: out, height: outHeight };
-  }
-
-  /**
-   * The glass's refraction map from a blurred copy of the numerals: red and
-   * green carry how far each point bends what is behind it (128 = not at all),
-   * pushing outward across the bevel at each edge, like a rounded lens.
-   * `rgba` is the blurred mask's pixels (coverage in alpha).
-   */
-  function refractionMap(rgba, width, height, strength) {
-    const out = new Uint8ClampedArray(width * height * 4);
-    const at = (x, y) => rgba[(Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))) * 4 + 3];
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const i = (y * width + x) * 4;
-        const gx = at(x + 1, y) - at(x - 1, y);
-        const gy = at(x, y + 1) - at(x, y - 1);
-        out[i] = 128 - gx * strength;
-        out[i + 1] = 128 - gy * strength;
-        out[i + 2] = 128;
-        out[i + 3] = 255;
-      }
-    }
-    return out;
-  }
-
-  /**
-   * The glass's own light, from the same blurred mask: a bright rim where the
-   * bevel faces the light (above, a little to the left), a faint shade where
-   * it faces away, and the clock's color through the body. Premultiplied-free
-   * RGBA; `mask` is the sharp coverage, `tint` an [r, g, b] the body takes.
-   */
-  function glassLight(blurred, mask, width, height, tint) {
-    const out = new Uint8ClampedArray(width * height * 4);
-    const at = (x, y) => blurred[(Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))) * 4 + 3];
-    const lx = -0.45, ly = -0.89;
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const i = (y * width + x) * 4;
-        const cover = mask[i + 3] / 255;
-        if (!cover) continue;
-        const gx = (at(x + 1, y) - at(x - 1, y)) / 510;
-        const gy = (at(x, y + 1) - at(x, y - 1)) / 510;
-        const slope = Math.min(1, Math.hypot(gx, gy) * 6);
-        // The bevel's normal points down the slope, out of the glyph.
-        const facing = slope ? -(gx * lx + gy * ly) / Math.hypot(gx, gy) : 0;
-        const rim = Math.max(0, facing) ** 2 * slope;
-        const shade = Math.max(0, -facing) * slope;
-        const alpha = Math.min(1, GLASS_BODY + rim * GLASS_RIM + shade * GLASS_SHADE);
-        const lit = rim * GLASS_RIM / alpha;
-        const dark = shade * GLASS_SHADE / alpha;
-        for (let c = 0; c < 3; c++) {
-          out[i + c] = (tint[c] * (1 - lit) + 255 * lit) * (1 - dark);
-        }
-        out[i + 3] = alpha * cover * 255;
-      }
-    }
-    return out;
-  }
-
   const linear = (c) => {
     const v = c / 255;
     return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
@@ -227,10 +247,7 @@
     return `#${x.map((v, i) => Math.round(Math.min(255, Math.max(0, v + (y[i] - v) * t))).toString(16).padStart(2, '0')).join('')}`;
   }
 
-  /** The same shadow as a CSS filter, for the drawn clock. */
-  const shadowFilter = (shadow) => shadow.split(/,(?![^(]*\))/).map((layer) => `drop-shadow(${layer.trim()})`).join(' ');
-
-  // ---- drawing (needs a document) ----
+  // ---- measuring and drawing (needs a document) ----
 
   const canvas = (width, height) => {
     const element = document.createElement('canvas');
@@ -239,107 +256,100 @@
     return element;
   };
   const context = (element) => element.getContext('2d', { willReadFrequently: true });
-  function setFont(ctx, style) {
-    ctx.font = `${style.weight} ${style.size}px ${style.family}`;
-    ctx.fontStretch = style.stretch;
-    ctx.letterSpacing = `${style.letterSpacing}px`;
-    ctx.fontKerning = 'normal';
+
+  // Canvas can't set font-variation-settings, so each width and weight the
+  // clock is measured or drawn at is a face of its own, made once from the
+  // face's file with those exact values as its only width and weight.
+  const faces = new Map();
+  /** A loaded family name for `url` at exactly `stretch` (%) and `weight`. */
+  function instance(url, stretch, weight) {
+    const s = Math.round(stretch * 10) / 10;
+    const w = Math.round(weight);
+    const key = `${url}|${s}|${w}`;
+    if (!faces.has(key)) {
+      const family = `Blanc Clock ${faces.size + 1}`;
+      const face = new FontFace(family, `url("${url}")`, { stretch: `${s}%`, weight: String(w) });
+      document.fonts.add(face);
+      faces.set(key, face.load().then(() => `"${family}"`));
+    }
+    return faces.get(key);
+  }
+
+  // A text's width and the "1"'s stem at one size, for the fit's table.
+  const SAMPLE = '0123456789:';
+  const SAMPLE_SIZE = 200;
+  async function measure(url, stretch, weight) {
+    const family = await instance(url, stretch, weight);
+    const sheet = canvas(SAMPLE_SIZE, SAMPLE_SIZE * 1.4);
+    const ctx = context(sheet);
+    ctx.font = `${Math.round(weight)} ${SAMPLE_SIZE}px ${family}`;
+    const width = ctx.measureText(SAMPLE).width;
+    const one = ctx.measureText('1');
+    ctx.fillStyle = '#000';
+    ctx.fillText('1', 0, SAMPLE_SIZE);
+    // Coverage across the stem a little below the middle of the figure.
+    const row = Math.round(SAMPLE_SIZE - one.actualBoundingBoxAscent * 0.4);
+    const pixels = ctx.getImageData(0, row, sheet.width, 1).data;
+    let stem = 0;
+    for (let x = 0; x < sheet.width; x++) stem += pixels[x * 4 + 3] / 255;
+    return { width, stem };
+  }
+
+  const tables = new Map();
+  /** The face's fit table over a grid of its widths and weights (cached). */
+  function measureFace(url, stretches, weights) {
+    const key = `${url}|${stretches}|${weights}`;
+    if (!tables.has(key)) {
+      tables.set(key, (async () => {
+        const width = [], stem = [];
+        for (const s of stretches) {
+          const measured = await Promise.all(weights.map((w) => measure(url, s, w)));
+          width.push(measured.map((m) => m.width));
+          stem.push(measured.map((m) => m.stem));
+        }
+        return { stretches, weights, width, stem };
+      })());
+    }
+    return tables.get(key);
   }
 
   /**
    * The clock's coverage as a canvas mask at `scale` device pixels per CSS
-   * pixel, padded left and right for the glass's bevel. `style`: { family,
-   * weight, size, stretch (CSS font-stretch keyword), letterSpacing (px) }.
-   * `factor` is how many times taller the figures stand (1 = as typeset).
-   * The box is laid out like a line-height: 1 line of text, grown by the
-   * stretch. Returns { mask, width, height, left } in CSS pixels.
+   * pixel, laid out like a line-height: 1 line of the text, padded left and
+   * right for the glass's bevel. `family` is a loaded canvas family. Returns
+   * { mask, width, height, left } in CSS pixels.
    */
-  function drawClock(text, style, factor, scale) {
-    // Glyphs are stretched at twice the output resolution, then scaled down.
-    const over = OVERSAMPLE;
-    const s = { ...style, size: style.size * scale * over, letterSpacing: style.letterSpacing * scale * over };
-    const probe = context(canvas(1, 1));
-    setFont(probe, s);
-    const line = probe.measureText(text);
-    const flat = probe.measureText('147').actualBoundingBoxAscent;
-    const lineAscent = line.fontBoundingBoxAscent;
-    const lineDescent = line.fontBoundingBoxDescent;
-    const extra = Math.max(0, Math.round(flat * (factor - 1)));
-    const pad = Math.ceil(s.size * 0.12);
-    const boxHeight = s.size + extra;
-    // Where text with line-height: 1 puts its baseline, moved down by the stretch.
-    const baseline = (s.size - (lineAscent + lineDescent)) / 2 + lineAscent + extra;
-    const width = Math.ceil(line.width);
-    const big = canvas(width + pad * 2, boxHeight);
-    const out = big.getContext('2d');
-    const glyphHeight = Math.ceil(lineAscent + lineDescent) + pad * 2;
-    const glyphBaseline = Math.ceil(lineAscent) + pad;
-    const characters = [...text];
-    let prefix = '';
-    for (const character of characters) {
-      const x = probe.measureText(prefix).width;
-      prefix += character;
-      const advance = Math.ceil(probe.measureText(character).width) + pad * 2;
-      const glyph = canvas(advance, glyphHeight);
-      const g = context(glyph);
-      setFont(g, s);
-      g.fillStyle = '#fff';
-      g.fillText(character, pad, glyphBaseline);
-      const pixels = g.getImageData(0, 0, glyph.width, glyph.height).data;
-      const alpha = new Uint8ClampedArray(glyph.width * glyph.height);
-      for (let i = 0; i < alpha.length; i++) alpha[i] = pixels[i * 4 + 3];
-      const heights = stretchRows(alpha, glyph.width, glyph.height, Math.round(glyphBaseline - flat), glyphBaseline, extra);
-      const drawn = resampleRows(alpha, glyph.width, glyph.height, heights);
-      const image = new ImageData(glyph.width, drawn.height);
-      for (let i = 0; i < drawn.alpha.length; i++) {
-        image.data[i * 4] = 255; image.data[i * 4 + 1] = 255; image.data[i * 4 + 2] = 255;
-        image.data[i * 4 + 3] = drawn.alpha[i];
-      }
-      const piece = canvas(glyph.width, drawn.height);
-      piece.getContext('2d').putImageData(image, 0, 0);
-      // The glyph's baseline lands on the line's, below the added rows.
-      out.drawImage(piece, Math.round(x), Math.round(baseline - glyphBaseline - extra));
-    }
-    const mask = canvas(big.width / over, big.height / over);
-    const small = mask.getContext('2d');
-    small.imageSmoothingQuality = 'high';
-    small.drawImage(big, 0, 0, mask.width, mask.height);
-    // CSS pixels; `left` is how far the drawing starts before the text would.
-    return { mask, width: mask.width / scale, height: mask.height / scale, left: pad / over / scale };
-  }
-
-  /** The mask filled with one color (any CSS color). */
-  function paintSolid(mask, color) {
-    const face = canvas(mask.width, mask.height);
-    const ctx = face.getContext('2d');
-    ctx.drawImage(mask, 0, 0);
-    ctx.globalCompositeOperation = 'source-in';
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, face.width, face.height);
-    return face;
-  }
-
-  /** A soft copy of the mask, the glass's bevel. */
-  function bevel(mask, radius) {
-    const soft = canvas(mask.width, mask.height);
-    const ctx = context(soft);
-    ctx.filter = `blur(${radius}px)`;
-    ctx.drawImage(mask, 0, 0);
-    return ctx.getImageData(0, 0, soft.width, soft.height).data;
+  function drawClock(text, { family, weight, size, letterSpacing }, scale) {
+    const px = size * scale;
+    const ctx0 = context(canvas(1, 1));
+    ctx0.font = `${Math.round(weight)} ${px}px ${family}`;
+    ctx0.letterSpacing = `${letterSpacing * scale}px`;
+    const line = ctx0.measureText(text);
+    const pad = Math.ceil(px * 0.1);
+    const baseline = (px - (line.fontBoundingBoxAscent + line.fontBoundingBoxDescent)) / 2 + line.fontBoundingBoxAscent;
+    const mask = canvas(Math.ceil(line.width) + pad * 2, px);
+    const ctx = mask.getContext('2d');
+    ctx.font = ctx0.font;
+    ctx.letterSpacing = ctx0.letterSpacing;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(text, pad, baseline);
+    return { mask, width: mask.width / scale, height: mask.height / scale, left: pad / scale };
   }
 
   /**
-   * The glass from the mask: the refraction map (a canvas sized like the
-   * mask) and the lit face to lay over the bent backdrop. `tint` is [r, g, b].
+   * The glass from a mask: the refraction map and the lit face, each a
+   * canvas the size of the mask. Lengths are in device pixels.
    */
-  function paintGlass(mask, tint, radius, strength) {
+  function paintGlass(mask, options) {
     const width = mask.width, height = mask.height;
-    const sharp = context(mask).getImageData(0, 0, width, height).data;
-    const blurred = bevel(mask, radius);
+    const rgba = context(mask).getImageData(0, 0, width, height).data;
+    const alpha = new Uint8ClampedArray(width * height);
+    for (let i = 0; i < alpha.length; i++) alpha[i] = rgba[i * 4 + 3];
+    const maps = glassMaps(alpha, width, height, options);
     const map = canvas(width, height);
-    map.getContext('2d').putImageData(new ImageData(refractionMap(blurred, width, height, strength), width, height), 0, 0);
+    map.getContext('2d').putImageData(new ImageData(maps.map, width, height), 0, 0);
     const face = canvas(width, height);
-    face.getContext('2d').putImageData(new ImageData(glassLight(blurred, sharp, width, height, tint), width, height), 0, 0);
+    face.getContext('2d').putImageData(new ImageData(maps.face, width, height), 0, 0);
     return { map, face };
   }
 
@@ -364,7 +374,7 @@
   }
 
   globalThis.blancClockArt = Object.freeze({
-    stretchRows, resampleRows, refractionMap, glassLight, luminance, shadowFor, shadowFilter, parseColor, mixHex,
-    drawClock, paintSolid, paintGlass, paintShadow,
+    lookup, fitHeight, insideDistance, smoothInside, glassMaps, luminance, shadowFor, parseColor, mixHex,
+    instance, measureFace, drawClock, paintGlass, paintShadow,
   });
 })();

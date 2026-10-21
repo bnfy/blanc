@@ -35,13 +35,14 @@ it; keyboard focus returns to Customize. Changing away from Billboard closes it.
 ### The popover (iOS order)
 
 1. **Font & color** heading.
-2. **Font**: four buttons, each the numerals "12" drawn in its face —
+2. **Font**: five buttons, each the numerals "12" drawn in its face —
    Instrument Sans, Instrument Sans Condensed (`wdth` 75), Inter, JetBrains
-   Mono — named for screen readers and on hover. Caveat was left out: its
-   numerals do not read at clock size.
+   Mono, Roboto Flex — named for screen readers and on hover. Caveat was left
+   out: its numerals do not read at clock size.
 3. **Weight** slider across the chosen face's own range. The previews follow
    it.
-4. **Height** slider, 100–300%: the Lock Screen's stretch (see below).
+4. **Height** slider, the Lock Screen's stretch (see below), shown only for a
+   face that can stand taller: Roboto Flex to 300%, Instrument Sans to 130%.
 5. **Color**: **Automatic** first (drawn as the page's text beside its
    background), then the eight Spaces presets, named as in the Spaces menu.
 6. **Tone** slider, shown for a preset only: 50 is the preset exactly; left
@@ -51,42 +52,65 @@ it; keyboard focus returns to Customize. Changing away from Billboard closes it.
 
 ### Height (the stretch)
 
-Apple's clock grows taller without its strokes thickening. Scaling type
-vertically (`scaleY`) would thicken every horizontal stroke and flatten every
-curve, so Blanc stretches the figures the way a type designer would draw a
-taller cut: each figure is rasterised (twice oversampled) from the clock's own
-face, size, weight and spacing, and the extra height goes only to rows that
-vertical strokes cross. Such a row matches its neighbours; rows inside a
-horizontal bar also match, so they are told apart by width (any ink run wider
-than 1.6 stems is a bar or the flat of a curve and never stretches). Among the
-eligible rows the stretch favours the most vertical, so a bowl's straight
-sides take it, curves keep their shape, and a figure with no vertical row (7's
-diagonal) shares it evenly and the diagonal simply steepens. The colon's dots
-keep their size and spread apart, three quarters of the stretch between them
-and the rest above, landing about a third and four fifths of the way down as on
-the Lock Screen. Rows are repeated, never blended, so nothing smears, and the
-result is scaled back down to device pixels.
+Apple's clock grows taller without its strokes thickening or its curves
+bending. Scaling type vertically (`scaleY`) thickens every horizontal stroke,
+and a first version that lengthened stems in the raster (repeating the rows
+only vertical strokes cross) kinked every place a curve met a stem: the flag of
+the 1, the top of the 4, the shoulders of the 5 and 6. The owner turned it down
+on October 21, 2026.
 
-At 100% the clock is the typeset text exactly. Above it the clock is drawn
-(`src/renderer/pages/clock-art.js`, pure pixel rules plus canvas drawing) and
-the typeset text stays in place, out of sight, for screen readers. The drawn
-clock is held to half the window's height. Canvas fonts can't take
-`font-variation-settings`, so Instrument Sans is drawn from two faces pinned
-to the clock's widths (`Blanc Clock Instrument` at 98%, `Blanc Clock
-Condensed` at 75%); measured against the typeset clock, the drawing matches it
-to a hundredth of a pixel.
+Height is type instead. The figures are set larger, then drawn narrower and
+lighter through the face's own width and weight axes, so the clock keeps its
+width and stem and every shape is one the type designers drew. The clock stays
+real, selectable, screen-readable text. To find the width and weight for a
+height, the page measures the face once over a small grid of widths and
+weights (the width of "0123456789:" and the stem of the "1"), and the pure
+`fitHeight` (`src/renderer/pages/clock-art.js`) solves for both by bilinear
+interpolation. Where a face can't narrow further it stays at its narrowest and
+grows a little wider; where it can't lighten further its stem thickens a
+little.
+
+Only faces with room on their width axis can stand taller:
+
+- **Roboto Flex** (OFL, Google's variable font, added for this on October 21,
+  2026): width 25–151%, so the clock keeps its width to about twice its height
+  and grows a little wider up to three times. Shipped as
+  `roboto-flex-clock.woff2`, an 11 KB subset of `@fontsource-variable/roboto-flex`
+  5.3.0 holding only the characters a time can contain, pinned upright and at
+  its display optical size (144) so it draws the same at every size in the page
+  and on canvas. `scripts/build-clock-font.py` rebuilds it byte for byte from
+  the pinned source, and `test/unit/clock-font.test.js` pins its hash.
+- **Instrument Sans**: from the interface's 98% width to its narrowest 75%,
+  about 1.3 times.
+- The condensed cut, Inter and JetBrains Mono have no room, so they offer no
+  Height. The saved height is kept as chosen and drawn no taller than the face
+  allows, like the weight.
+
+The clock is held to half the window's height.
 
 ### Glass
 
 Real refraction, in the page: the figures are a lens over the Start Page. A
 `backdrop-filter` runs an SVG `feDisplacementMap` over whatever is behind the
 figures (wallpaper, your image, a color), masked to the figures' shape, with a
-little saturation and brightness. The displacement map comes from a blurred
-copy of the figures, so the page bends outward across a rounded bevel at every
-edge, as through a lens. Over that sits the glass's own light from the same
-bevel: a bright rim where it faces the light (above, a little left), a darker
-edge facing away, and a faint body in the clock's color. Under
-`prefers-reduced-transparency: reduce` it draws as Solid in the same color.
+little saturation and brightness.
+
+The lens's shape comes from the figures' distance field: how far each point
+lies inside a stroke (a two-pass chamfer), softened by a box blur about a third
+of the bevel wide so neighbouring bevels round into each other at corners
+rather than meeting in mitred ridges. A quarter-circle bevel rises from every
+edge, steep at the edge and flat on top, never wider than the stroke's half,
+so a thin stroke becomes a glass rod and a heavy one a slab with rounded
+edges. The page bends along the bevel's slope, most at the edges, as through a
+lens's rim, and less on a narrower bevel. The same surface is lit: a crisp
+highlight where it faces the key light (above, a little left), a softer one
+opposite, a Fresnel rim all round, and a faint body in the clock's color.
+Under `prefers-reduced-transparency: reduce` it draws as Solid in the same
+color.
+
+The glass is drawn on canvas from the typeset clock at its exact width and
+weight: canvas fonts can't take `font-variation-settings`, so each width and
+weight is loaded as a face of its own with those values as its only ones.
 
 No filter, opacity or transform may sit on the lens's ancestors: each one makes
 a backdrop root and the lens would bend nothing. A diagnostic run over a
@@ -104,7 +128,7 @@ and stays inside the page's stacking.
 
 ### Shadow
 
-Every clock (typeset or drawn, Solid or Glass) carries a shadow so the
+Every clock (Solid or Glass, at any height) carries a shadow so the
 figures read over any wallpaper in any color. For Solid it is the opposite of
 the ink: light ink gets a dark hairline, a close soft shadow and a wide one;
 dark ink gets the same as a light halo. Every figure then has an edge of the
@@ -116,17 +140,17 @@ stripes, with Automatic, a deep preset and a pale toned preset.
 
 ### Settings
 
-Five synced keys, like the layout and the Color wallpaper — they describe the
+Six synced keys, like the layout and the Color wallpaper — they describe the
 browser you want, not the device you are on:
 
 | Key | Values | Default |
 |---|---|---|
-| `newtabClockFont` | `instrument`, `condensed`, `inter`, `mono` | `instrument` |
-| `newtabClockWeight` | integer 100–900, drawn inside the face's range | `500` |
+| `newtabClockFont` | `instrument`, `condensed`, `inter`, `mono`, `flex` | `instrument` |
+| `newtabClockWeight` | integer 100–1000, drawn inside the face's range | `500` |
 | `newtabClockColor` | `auto` or a Spaces preset id | `auto` |
 | `newtabClockTone` | integer 0–100 | `50` |
 | `newtabClockStyle` | `solid`, `glass` | `solid` |
-| `newtabClockHeight` | integer 100–300 (percent) | `100` |
+| `newtabClockHeight` | integer 100–300 (percent), drawn no taller than the face allows | `100` |
 
 The defaults draw the clock as before, now with the shadow. The weight is saved as chosen
 and drawn inside the face's range, so Inter at 200 shows as 400 in Instrument
@@ -137,7 +161,7 @@ The page writes through one guarded call, `bowserPages.start.setClock(partial)`
 (`pages:start:set-clock`, newtab only); each field is validated on its own and
 anything else is ignored. The reply, and every `pages:start:status`, carries
 the finished clock from the pure `src/main/start-clock-style.js`: the face, the
-drawn weight and its range, the color and tone, the ink as one hex (or null for
+drawn weight and height and their ranges, the color and tone, the ink as one hex (or null for
 Automatic), the preset and tone mix (so the page can follow the tone slider
 while it is dragged), the style and the presets. Sliders preview while dragged
 and save once on release.
@@ -151,6 +175,9 @@ and save once on release.
 - **Private tabs draw the same clock.** Like the layout, the choice says
   nothing about browsing.
 - **Billboard only.** No other layout has a clock.
+- **Roboto Flex is a clock-only face.** It is the one non-Instrument face added
+  for this feature, chosen by the owner because it can stand tall without
+  distortion; the interface stays Instrument Sans.
 
 ## Out of scope
 
@@ -167,11 +194,15 @@ rainbow/wallpaper-derived swatch. The
 - `src/main/pages.js`, `src/main/tab-preload.js`, `browser-api/bridges.json` —
   `start.setClock`.
 - `src/main/main.js` — `clock` in the Start Page status.
-- `src/renderer/pages/clock-art.js` — the stretch, the glass's refraction map
-  and light, and the shadows.
+- `src/renderer/pages/clock-art.js` — the Height fit, the glass's distance
+  field, refraction map and light, and the shadows.
+- `src/renderer/pages/roboto-flex-clock.woff2`, `roboto-flex-OFL.txt`,
+  `scripts/build-clock-font.py` — the clock's Roboto Flex; recorded in
+  `THIRD-PARTY-NOTICES.md` and `compliance/policy.json`.
 - `src/renderer/pages/newtab.html`, `newtab.js`, `pages.css` — the way in,
   the popover, the refraction filter and the clock's drawing.
 - `copy/messages/*.json` — `newtab.clock.*` in every language.
 - Tests: `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js`,
+  `test/unit/clock-font.test.js`,
   `test/desktop/billboard-clock-smoke.mjs` (`npm run
   test:billboard-clock:desktop`, in the parity-guards Electron job).

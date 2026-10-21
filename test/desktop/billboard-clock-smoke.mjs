@@ -106,41 +106,53 @@ try {
   assert.notEqual(toned, 'rgb(55, 102, 148)');
   await capture(page, '4-sky-light');
 
-  // Height: the figures stand taller, drawn; the typeset text stays for
-  // screen readers.
+  // Height: only a face with room on its width axis offers it. The clock
+  // stays typeset text, larger, narrower and lighter.
   const art = () => page.evaluate(() => {
     const row = document.querySelector('.bb-clock-row');
+    const clockText = document.getElementById('bbClock');
     const element = document.getElementById('bbClockArt');
     const lens = getComputedStyle(document.getElementById('bbClockLens'));
+    const style = getComputedStyle(clockText);
     return {
       drawn: row.hasAttribute('data-drawn'),
       hidden: element.hidden,
-      style: element.dataset.style,
-      height: element.getBoundingClientRect().height,
-      fontSize: parseFloat(getComputedStyle(document.getElementById('bbClock')).fontSize),
-      text: document.getElementById('bbClock').textContent,
+      textHeight: clockText.getBoundingClientRect().height,
+      textWidth: clockText.getBoundingClientRect().width,
+      fontSize: parseFloat(style.fontSize),
+      variation: style.fontVariationSettings,
+      weight: Number(style.fontWeight),
+      text: clockText.textContent,
       lensHidden: document.getElementById('bbClockLens').hidden,
       backdrop: lens.backdropFilter,
       mask: lens.maskImage,
       map: document.getElementById('bbClockRefractMap').getAttribute('href') ?? '',
     };
   });
-  assert.equal((await art()).drawn, false, 'Solid at full height stays typeset');
-  await page.locator('#clockHeight').fill('220');
-  await waitForValue(async () => settingsFile(), (s) => s.newtabClockHeight === 220, 'saved height');
-  await page.waitForFunction(() => document.querySelector('.bb-clock-row').hasAttribute('data-drawn'));
+  assert.equal(await page.locator('#clockHeightLine').isHidden(), true, 'the condensed cut cannot stand taller');
+  await page.getByRole('button', { name: 'Roboto Flex', exact: true }).click();
+  await page.waitForFunction(() => document.getElementById('bbClock').dataset.font === 'flex'
+    && !document.getElementById('clockHeightLine').hidden);
+  assert.equal(await page.locator('#clockHeight').getAttribute('max'), '300');
+  const flat = await art();
+  assert.equal(flat.drawn, false, 'Solid stays typeset');
+  await page.locator('#clockHeight').fill('200');
+  await waitForValue(async () => settingsFile(), (s) => s.newtabClockHeight === 200, 'saved height');
+  await page.waitForFunction((size) => parseFloat(getComputedStyle(document.getElementById('bbClock')).fontSize) > size * 1.9, flat.fontSize);
   const tall = await art();
-  assert.equal(tall.hidden, false);
-  assert.equal(tall.style, 'solid');
-  assert.equal(tall.lensHidden, true);
-  assert.ok(tall.height > tall.fontSize * 1.6, `the clock stands taller (${tall.height} for ${tall.fontSize}px type)`);
+  assert.equal(tall.drawn, false, 'a taller Solid clock is still text');
   assert.match(tall.text, /^\d{1,2}:\d{2}$/);
+  const wdth = Number(tall.variation.match(/"wdth" ([\d.]+)/)?.[1]);
+  assert.ok(wdth < 60, `drawn narrower (wdth ${tall.variation})`);
+  assert.ok(tall.weight < flat.weight, `and lighter (${tall.weight} after ${flat.weight})`);
+  assert.ok(Math.abs(tall.textWidth - flat.textWidth) < flat.textWidth * 0.12, `keeping its width (${tall.textWidth} vs ${flat.textWidth})`);
   await capture(page, '5-tall');
 
   // Glass bends the page behind the figures through the refraction filter.
   await page.getByRole('button', { name: 'Glass', exact: true }).click();
-  await page.waitForFunction(() => document.getElementById('bbClockArt').dataset.style === 'glass');
+  await page.waitForFunction(() => document.querySelector('.bb-clock-row').hasAttribute('data-drawn'));
   const glass = await art();
+  assert.equal(glass.hidden, false);
   assert.equal(glass.lensHidden, false);
   assert.match(glass.backdrop, /url\("?#bbClockRefract"?\)/);
   assert.match(glass.mask, /^url\("data:image\/png/);
@@ -148,6 +160,7 @@ try {
   await capture(page, '6-glass-tall-sky');
   await page.locator('#clockHeight').fill('100');
   await waitForValue(async () => settingsFile(), (s) => s.newtabClockHeight === 100, 'saved height back');
+  await page.waitForFunction(() => !document.getElementById('bbClock').style.fontSize);
   await page.getByRole('button', { name: 'Automatic', exact: true }).click();
   await page.getByRole('button', { name: 'Inter', exact: true }).click();
   await page.waitForFunction(() => !document.getElementById('bbClock').hasAttribute('data-ink')
@@ -162,7 +175,7 @@ try {
     (saved) => saved.newtabClockStyle === 'glass' && saved.newtabClockColor === 'auto' && saved.newtabClockFont === 'inter'
       && keys.every((key) => saved._syncMeta?.[key] > 0),
     'every choice saved and stamped for sync');
-  const refused = await page.evaluate(() => window.bowserPages.start.setClock({ font: 'comic', weight: 1000, color: '#ff0000', style: 'chrome' }));
+  const refused = await page.evaluate(() => window.bowserPages.start.setClock({ font: 'comic', weight: 1100, color: '#ff0000', style: 'chrome' }));
   assert.deepEqual({ font: refused.font, weight: refused.weight, color: refused.color, style: refused.style },
     { font: 'inter', weight: 200, color: 'auto', style: 'glass' });
 

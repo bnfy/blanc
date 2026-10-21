@@ -64,6 +64,9 @@ BUNDLED ASSETS AND DATA
 - Instrument Sans Latin variable webfont 5.3.0 — OFL-1.1
   Source: https://github.com/Instrument/instrument-sans
   Full text: ThirdPartyLicenses/instrument-sans-OFL.txt
+- Roboto Flex clock subset (variable webfont) 5.3.0 — OFL-1.1
+  Source: https://github.com/googlefonts/roboto-flex
+  Full text: ThirdPartyLicenses/roboto-flex-OFL.txt
 - EasyList 202607091627 — CC-BY-SA-3.0-or-later
   Attribution: The EasyList authors (https://easylist.to/)
   Source: https://easylist.to/

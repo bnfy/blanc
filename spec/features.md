@@ -1527,16 +1527,18 @@ Customize shows **Clock font & color…** while Billboard is the layout; it
 opens a popover under the clock, so every change shows on the clock as it is
 made.
 
-- **Font.** Four bundled OFL faces, each shown as the numerals "12":
-  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter and
-  JetBrains Mono. No new font file ships.
+- **Font.** Five bundled OFL faces, each shown as the numerals "12":
+  Instrument Sans, Instrument Sans Condensed (its 75% width), Inter,
+  JetBrains Mono and Roboto Flex (a clock-only 11 KB subset).
 - **Weight.** A slider across the chosen face's own range (Instrument Sans
   400–700, Inter 100–900, JetBrains Mono 400–800). The weight is saved as
   chosen and drawn inside the face's range, so moving to a narrower face and
   back restores it.
-- **Height.** 100–300%, the Lock Screen's stretch: stems lengthen while
-  strokes, curves, bars and the colon's dots keep their size (no vertical
-  scaling). Held to half the window's height.
+- **Height.** The Lock Screen's stretch, as type: the figures are set larger
+  and drawn narrower and lighter through the face's own width and weight
+  axes, so the clock keeps its width and stroke and nothing is distorted; it
+  stays real text. Roboto Flex reaches 300%, Instrument Sans 130%; the others
+  offer no Height. Held to half the window's height.
 - **Color.** **Automatic** (the page's own text color, following the theme
   and wallpaper) or one of the eight Spaces presets, with a **Tone** slider
   from deeper to lighter. The color is the person's choice; there is no
@@ -1556,7 +1558,8 @@ made.
   clock.
 - **Portability.** `src/main/start-clock-style.js` (validation, weight ranges
   and the toned ink, with no Electron dependency) finishes every value; the
-  page applies them. The stretch, glass and shadow rules in
-  `src/renderer/pages/clock-art.js` are pure pixel functions.
+  page applies them. The Height fit and the glass and shadow rules in
+  `src/renderer/pages/clock-art.js` are pure functions.
 - **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
-  `test/unit/start-clock-style.test.js` and `test/unit/clock-art.test.js`.
+  `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
+  `test/unit/clock-font.test.js`.

@@ -6,7 +6,7 @@ const path = require('path');
 const Identity = require('../../src/renderer/space-identity');
 const {
   FONTS, FONT_IDS, STYLES, COLORS, DEFAULTS,
-  inkFor, weightIn, clockStyle, clockStyleFromSettings, settingsForClock,
+  inkFor, weightIn, heightIn, clockStyle, clockStyleFromSettings, settingsForClock,
 } = require('../../src/main/start-clock-style');
 
 const ROOT = path.join(__dirname, '../..');
@@ -50,13 +50,30 @@ test('each face has the weight range its bundled file carries', () => {
     const [, min, max] = block.match(/font-weight:\s*(\d+)\s+(\d+)/) ?? [];
     return { min: Number(min), max: Number(max) };
   };
-  assert.deepEqual({ ...FONTS.instrument }, declared('Instrument Sans'));
-  assert.deepEqual({ ...FONTS.condensed }, declared('Instrument Sans'));
-  assert.deepEqual({ ...FONTS.inter }, declared('Inter'));
-  assert.deepEqual({ ...FONTS.mono }, declared('JetBrains Mono'));
+  for (const face of ['instrument', 'condensed']) {
+    assert.deepEqual({ min: FONTS[face].min, max: FONTS[face].max }, declared('Instrument Sans'));
+  }
+  assert.deepEqual({ min: FONTS.inter.min, max: FONTS.inter.max }, declared('Inter'));
+  assert.deepEqual({ min: FONTS.mono.min, max: FONTS.mono.max }, declared('JetBrains Mono'));
+  assert.deepEqual({ min: FONTS.flex.min, max: FONTS.flex.max }, declared('Blanc Clock Flex'));
+});
+
+test('only a face with room on its width axis stands taller, and the choice is kept', () => {
+  assert.equal(FONTS.flex.height, 300);
+  assert.equal(FONTS.instrument.height, 130);
+  for (const face of ['condensed', 'inter', 'mono']) assert.equal(FONTS[face].height, 100);
+  assert.equal(heightIn('flex', 240), 240);
+  assert.equal(heightIn('instrument', 240), 130);
+  assert.equal(heightIn('inter', 240), 100);
+  const settings = { newtabClockFont: 'inter', newtabClockHeight: 240 };
+  assert.deepEqual({ ...clockStyleFromSettings(settings).heightRange }, { min: 100, max: 100 });
+  assert.equal(clockStyleFromSettings({ ...settings, newtabClockFont: 'flex' }).height, 240);
+  assert.equal(clockStyleFromSettings({ ...settings, newtabClockFont: 'flex' }).heightRange.max, 300);
 });
 
 test('the saved weight is drawn inside the face and kept as chosen', () => {
+  assert.equal(weightIn('flex', 1000), 1000);
+  assert.equal(weightIn('inter', 1000), 900);
   assert.equal(weightIn('inter', 200), 200);
   assert.equal(weightIn('instrument', 200), 400);
   assert.equal(weightIn('mono', 900), 800);
@@ -105,7 +122,7 @@ test('unknown values read as the defaults', () => {
   assert.equal(clock.height, DEFAULTS.height);
   assert.equal(clockStyle({ height: 99 }).height, 100);
   assert.equal(clockStyle({ height: 250.5 }).height, 100);
-  assert.equal(clockStyleFromSettings({ newtabClockHeight: 300 }).height, 300);
+  assert.equal(clockStyleFromSettings({ newtabClockFont: 'flex', newtabClockHeight: 300 }).height, 300);
 });
 
 test('a Font & Color change writes only valid fields, by settings key', () => {
@@ -118,8 +135,10 @@ test('a Font & Color change writes only valid fields, by settings key', () => {
     newtabClockHeight: 240,
   });
   assert.deepEqual(settingsForClock({ height: 50 }), {});
-  assert.deepEqual(settingsForClock({ font: 'comic', weight: 1000, color: 'teal', tone: -1, style: 'chrome', theme: 'dark' }), {});
+  assert.deepEqual(settingsForClock({ font: 'comic', weight: 1100, color: 'teal', tone: -1, style: 'chrome', theme: 'dark' }), {});
   assert.deepEqual(settingsForClock({ weight: 99 }), {});
+  assert.deepEqual(settingsForClock({ font: 'flex', weight: 1000 }), { newtabClockFont: 'flex', newtabClockWeight: 1000 });
+  assert.deepEqual(settingsForClock({ weight: 1001 }), {});
   assert.deepEqual(settingsForClock({ weight: 100, tone: 100 }), { newtabClockWeight: 100, newtabClockTone: 100 });
   assert.deepEqual(settingsForClock(null), {});
   assert.deepEqual(settingsForClock('glass'), {});
