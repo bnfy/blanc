@@ -333,17 +333,6 @@
       "replaces": "v134-1p-011"
     },
     {
-      "id": "v137-021",
-      "source": "site/src/pages/features/glance.astro",
-      "exactWording": "Glance shows another open tab beside your main page, with room to read both.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "heroGlance"
-      ],
-      "verdict": "qualified",
-      "replaces": "website-115-108"
-    },
-    {
       "id": "v137-022",
       "source": "site/src/pages/features/mouse-gestures.astro",
       "exactWording": "Turn on Mouse gestures, then hold one button and draw a direction over the page to go back, open a tab or run another assigned action.",
@@ -428,6 +417,20 @@
       ],
       "verdict": "qualified",
       "replaces": "site-133-workspaces-10"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "v137-021",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance shows another open tab beside your main page, with room to read both.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "heroGlance"
+      ],
+      "verdict": "qualified",
+      "replaces": "website-115-108",
+      "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
     }
   ]
 }

@@ -1,0 +1,389 @@
+{
+  "publicRelease": "v1.40.0",
+  "sourceSha": "17ed22052bc0e1d0c0ce3920cbcb85c4792d306e",
+  "releaseEvidence": "docs/release-incidents/2026-10-20-v1.40.0.md",
+  "scope": "Site copy verified against public v1.40.0 on October 21, 2026: Glance as a card floating over the page (F34, #1007, #1008) on /features/glance, its Support guide, the /features tile and pop-up, the homepage Glance card and demo, and the Arc alternative page, which also point to Split View (F53, two panes) for side by side. The capture is docs/website-captures-v1.40.0.json. Glance was hand-checked in Windows and Linux VMs from source before #1008 (recorded on #1007); the copy makes no platform-specific claim.",
+  "prohibitedClaims": [
+    "Make main",
+    "Drag the divider",
+    "Resize the split",
+    "swap the pages",
+    "swap the two sides",
+    "narrow windows stack",
+    "Narrow windows stack",
+    "beside your main page",
+    "beside the page you’re on",
+    "divider position"
+  ],
+  "evidenceGroups": {
+    "floatingGlance": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/glance-card.js",
+        "src/main/glance-card-controller.js",
+        "src/renderer/index.html",
+        "src/renderer/renderer.js",
+        "spec/acceptance/glance.feature",
+        "copy/messages/en.json",
+        "docs/press/release-notes/v1.40.0.md"
+      ],
+      "qualification": "Since v1.40.0 the Glance tab opens as a card floating over the active page (default frame min(1100 px, 80%) of the page area, centered 16 px below the Island band). The header (GLANCE, Back, Reload, the site, Change, Open as tab, Keep as split, Move or resize, Close Glance) moves the card; an 8 px ring resizes it (360 × 280 minimum); a double-click on the header or Enter on Move or resize resets it; the arrow keys on Move or resize move it 16 px. Escape closes it only from the card’s chrome. A tab switch closes it. The page behind stays usable (F34-10)."
+    },
+    "splitView": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/split-model.js",
+        "spec/acceptance/split-view.feature",
+        "docs/press/release-notes/v1.40.0.md"
+      ],
+      "qualification": "Keep as split makes a fresh two-pane Split View (50/50, main page first). Split View shows two panes only in v1.40.0."
+    },
+    "glanceQuiet": {
+      "evidence": [
+        "src/main/tab-sleep.js",
+        "spec/acceptance/glance.feature"
+      ],
+      "qualification": "Choosing a quiet tab for Glance wakes (reloads) it; a visible Glance tab is never quieted (F34-1)."
+    },
+    "glanceFrame": {
+      "evidence": [
+        "src/main/settings.js",
+        "src/main/glance-card-controller.js",
+        "test/unit/glance-card.test.js"
+      ],
+      "qualification": "Only the card’s frame is remembered, as device-local fractions (glanceFrame); the open Glance itself is never written to session.json or synced."
+    },
+    "glancePicker": {
+      "evidence": [
+        "spec/acceptance/glance.feature",
+        "src/renderer/index.html"
+      ],
+      "qualification": "The picker lists tabs of the current window and local profile only (⌘⇧G or Ctrl+Shift+G, View → Open Glance…)."
+    }
+  },
+  "claims": [
+    {
+      "id": "v140-001",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Choose explicitly",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-002",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Put it where you want it",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-003",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Drag the card’s header to move it, or an edge to resize it, or use the arrow keys on its Move or resize control. Double-click the header to put it back. Blanc remembers where you left it on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceFrame"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-004",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Change, open, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-005",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Use Change to choose another tab, Open as tab to make it the current tab, or Keep as split to show the two side by side in Split View. Close Glance, or press Escape on its header, without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-006",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it is open in Glance, Quiet Tabs leaves it alone. The page behind the card stays usable, and switching to another tab closes Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceQuiet"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-007",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Glance is temporary.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-008",
+      "source": "site/src/components/guides/glance.astro",
+      "exactWording": "Glance is never written to session restore or sync. Only the card’s size and place are remembered, on this device. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceFrame"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-009",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Look at another tab without leaving your page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-010",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance opens another open tab as a card over the page you’re on, and the page behind stays usable.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-011",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "The card floats over your page. You choose the tab it shows.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-012",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Choose explicitly",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-013",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Put it where you want it",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-014",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Drag the card’s header to move it, or an edge to resize it, or use the arrow keys on its Move or resize control. Double-click the header to put it back. Blanc remembers where you left it on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceFrame"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-015",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Change, open, or finish",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-016",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Use Change to choose another tab, Open as tab to make it the current tab, or Keep as split to show the two side by side in Split View. Close Glance, or press Escape on its header, without closing either tab.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-017",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Selecting a quiet tab for Glance reloads it. While it is open in Glance, Quiet Tabs leaves it alone. The page behind the card stays usable, and switching to another tab closes Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceQuiet"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-018",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance is temporary.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-019",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance is never written to session restore or sync. Only the card’s size and place are remembered, on this device. The underlying ordinary tabs keep their usual browsing behavior.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "glanceFrame"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-020",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Look at another tab with Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-021",
+      "source": "site/src/components/GlanceDemo.astro",
+      "exactWording": "Drag the card’s header to move it. Arrow keys move it too, and Enter puts it back.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-022",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Two pages at once.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-023",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Glance opens another tab as a card over the page you are using. Move or resize it, open it as a tab, or keep the two side by side in Split View.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Look at another tab over your page with Glance",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Look at another tab over your page with Glance.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose another tab from this window to open as a card over your page. Move it, resize it, open it as a tab, or keep the two side by side in Split View.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView",
+        "glancePicker"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-027",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Bring another open tab into view over the page you’re on.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-028",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Switching to another tab closes it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-029",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Glance: Look at Another Tab Over Your Page | Blanc Browser",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-030",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "Open another tab as a card over your page with Blanc Glance. Move and resize it, keep using the page behind, or open it as a tab or a split.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v140-031",
+      "source": "site/src/pages/features/glance.astro",
+      "exactWording": "A Glance card floating over a page in the signed Blanc app, with its Change, Open as tab and Keep as split controls.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatingGlance",
+        "splitView"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

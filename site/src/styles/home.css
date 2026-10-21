@@ -689,8 +689,9 @@
   align-items: center;
 }
 
-/* Glance: the split drawn at 960 x 520 and scaled to its card, the divider
-   its one control (glance-demo.js). Site replicas keep Inter. */
+/* Glance: the window drawn at 960 x 520 and scaled to its card, with the
+   app's floating card (GlanceCard.astro) over the main page; moving the card
+   is its one control (glance-demo.js). */
 #glance {
   height: 100%;
 }
@@ -713,9 +714,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  display: grid;
-  grid-template-columns: minmax(0, var(--split)) 12px minmax(0, 1fr);
-  grid-template-rows: 1fr;
   width: 960px;
   height: 520px;
   overflow: hidden;
@@ -728,17 +726,13 @@
   color: var(--ink);
   font-family: var(--font-ui);
 }
-.glance-window.is-closed {
-  grid-template-columns: 1fr;
-}
-.glance-window.is-closed :is(.glance-divider, .glance-reference) {
-  display: none;
-}
 .glance-window.is-dragging {
   user-select: none;
 }
-/* The panes are sections; none of the page's section spacing. */
+/* The main page is a section; none of the page's section spacing. */
 .home-cinema .glance-pane {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -746,8 +740,7 @@
   padding: 0;
   overflow: hidden;
 }
-.glance-chrome,
-.glance-reference-chrome {
+.glance-chrome {
   display: flex;
   flex: none;
   align-items: center;
@@ -761,33 +754,6 @@
   display: block;
   width: 100%;
   height: 100%;
-}
-.glance-window[data-main-page="copenhagen"] .glance-native-island[data-page="louisiana"],
-.glance-window[data-main-page="louisiana"] .glance-native-island[data-page="copenhagen"] {
-  display: none;
-}
-.glance-reference-chrome {
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 0 12px;
-  background: #fff;
-  font-size: 11px;
-}
-.glance-reference-chrome > span:first-child {
-  color: var(--dim);
-  font-size: 9px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-.reference-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.glance-close-mark {
-  margin-left: auto;
-  color: var(--dim);
-  font: 22px/1 var(--font-ui);
 }
 .glance-document {
   flex: 1;
@@ -827,41 +793,35 @@
 .louisiana-title { position: absolute; z-index: 1; right: 24px; bottom: 36px; left: 24px; }
 .home-cinema .louisiana-title h4 { margin: 0 0 15px; color: #fff; font: 650 clamp(25px, 8.7cqi, 45px)/1.02 var(--font-ui); letter-spacing: -0.035em; text-transform: uppercase; overflow-wrap: anywhere; }
 .louisiana-title p { margin: 0; color: #fff; font: 400 12px/1.5 var(--font-ui); }
-.glance-divider {
-  position: relative;
+.glance-card-frame {
+  position: absolute;
   z-index: 2;
-  border-inline: 1px solid #e3ddd2;
-  background: #fff;
-  cursor: col-resize;
-  touch-action: pan-y;
+  left: var(--card-x, 96px);
+  top: var(--card-y, 68px);
+  width: var(--card-w, 768px);
+  height: var(--card-h, 420px);
+}
+.glance-native-card {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The card's header is its handle, as in the app: a 40px target over it.
+   The header itself is an inert illustration in the card's shadow root. */
+.glance-card-handle {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 40px;
+  border-radius: 8px 8px 0 0;
+  cursor: grab;
+  touch-action: none;
   user-select: none;
   outline-offset: -2px;
 }
-/* A 44px target at any scale. */
-.glance-divider::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 calc(50% - 22px / var(--glance-scale));
-  width: calc(44px / var(--glance-scale));
+.glance-window.is-dragging .glance-card-handle {
+  cursor: grabbing;
 }
-.glance-divider > span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 43px;
-  border-radius: 8px;
-  background: #c7b89f;
-  transform: translate(-50%, -50%);
-  transition: height 180ms, background 180ms;
-}
-.glance-divider:hover > span,
-.glance-divider:focus-visible > span,
-.glance-window.is-dragging .glance-divider > span {
-  height: 65px;
-  background: var(--gold);
-}
-.glance-divider:focus-visible {
+.glance-card-handle:focus-visible {
   outline: 2px solid var(--gold);
 }
 
@@ -989,8 +949,7 @@
 .gesture-controls button[aria-pressed="true"] { background: var(--night-text); color: var(--ink); }
 .gesture-controls button[aria-pressed="true"] span { color: #795b34; }
 @media (prefers-reduced-motion: reduce) {
-  .gesture-page,
-  .glance-divider > span {
+  .gesture-page {
     transition: none;
   }
 }

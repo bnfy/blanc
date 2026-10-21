@@ -77,6 +77,42 @@ function stripInterfaceKeys(html) {
 }
 
 // Rules the resting Island adds while its shield popover is open.
+// The floating Glance card (v1.40.0): the app's own card frame and header,
+// with Back disabled, Reload and the site filled in as the renderer fills
+// them. The Glance page itself is the caller's, slotted below the header.
+export function nativeGlanceCardArt({ styles, document, renderer, host, icon }) {
+  const { rules, take, tokens } = nativeRules(styles);
+  const surface = (selector) => {
+    const full = `html[data-surface="glance"] ${selector}`;
+    const rule = rules.find((candidate) => candidate.selector === full);
+    if (!rule) throw new Error(`Missing native Glance rule: ${full}`);
+    return `${selector} {${rule.body}}`;
+  };
+  const selectors = [
+    '*', '*, *::before, *::after', 'button, input, select, textarea', 'button', 'button svg',
+    '.favicon', '.favicon.has-icon', '.split-panes, .split-tab-surface, .glance-card',
+    '.glance-header', '.glance-copy', '.glance-eyebrow', '.glance-tab-identity',
+    '.glance-tab-identity .favicon', '#glanceTitle', '.glance-actions', '.glance-header button',
+    '.glance-action', '.glance-action svg, .glance-move svg', '.glance-close', '.glance-move',
+    '.glance-nav', '.glance-header .glance-nav-btn', '.glance-nav-btn svg', '.glance-header .glance-nav-btn:disabled',
+  ];
+  const css = [tokens, ...selectors.map(take), surface('.glance-card'), surface('.glance-header')].join('\n');
+  const start = document.indexOf('<header id="glanceHeader"');
+  const end = document.indexOf('</header>', start) + '</header>'.length;
+  if (start < 0 || end < start) throw new Error('Missing native Glance header markup');
+  let html = stripInterfaceKeys(document.slice(start, end));
+  const fill = (from, to, label) => {
+    if (!html.includes(from)) throw new Error(`Missing native Glance header markup: ${label}`);
+    html = html.replace(from, to);
+  };
+  fill('class="glance-header no-drag" role="group" aria-labelledby="glanceEyebrow" hidden', 'class="glance-header"', 'header');
+  fill('aria-label="Back" disabled></button>', `aria-label="Back" disabled>${rendererIcon(renderer, 'back')}</button>`, 'back');
+  fill('aria-label="Reload"></button>', `aria-label="Reload">${rendererIcon(renderer, 'reload')}</button>`, 'reload');
+  fill('<span id="glanceFavicon" class="favicon" aria-hidden="true"></span>', `<span id="glanceFavicon" class="favicon has-icon" aria-hidden="true" style="background-image:url(${icon})"></span>`, 'favicon');
+  fill('<span id="glanceTitle"></span>', `<span id="glanceTitle">${host}</span>`, 'title');
+  return { html: `<div class="glance-card">${html}<div class="glance-card-page"><slot></slot></div></div>`, css };
+}
+
 export const SHIELD_OPEN_SELECTORS = [
   '.shield:hover, .shield[aria-expanded="true"]', '#islandPill.shield-open',
   '#islandPill.shield-open .shield[aria-expanded="true"]::after',

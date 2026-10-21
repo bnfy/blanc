@@ -27,7 +27,12 @@ test('the homepage keeps the live demos in the redesign, each working without th
   // The compact demos drop their own headings, tool switch and Replay.
   const glance = read('site/src/components/GlanceDemo.astro');
   assert.match(glance, /\{!compact && <h3 id="glance-title">/);
-  assert.match(glance, /compact \? <p class="sr-only" id="glance-hint">Drag the divider to resize\.<\/p>/);
+  assert.match(glance, /<p class="sr-only" id="glance-hint">Drag the card’s header to move it\./);
+  // Since v1.40.0 Glance is a card over the page: the app's own card and
+  // header (GlanceCard.astro, from index.html and styles.css), no divider.
+  assert.match(glance, /<GlanceCard host="louisiana\.dk"/);
+  assert.doesNotMatch(glance, /glance-divider|glance-reference/);
+  assert.match(read('site/src/components/GlanceCard.astro'), /nativeGlanceCardArt\(\{ styles, document, renderer, host, icon \}\)/);
   // Every drawn Island and coded illustration uses the app's interface text
   // since #840: Instrument Sans at width 98 and +0.01em.
   assert.match(read('site/src/components/GlanceIsland.astro'), /:host \{[^}]*font-family:var\(--font-text\);[^}]*letter-spacing:var\(--text-tracking\);/);
@@ -83,7 +88,7 @@ test('the MacBook screen moves from dawn to night only with scroll-driven motion
   }
 });
 
-function glanceFixture({ compact = true } = {}) {
+function glanceFixture() {
   const element = (extra = {}) => ({
     attributes: {}, events: {}, hidden: false, style: { props: {}, setProperty(name, value) { this.props[name] = value; } },
     classList: { set: new Set(), add(n) { this.set.add(n); }, remove(n) { this.set.delete(n); }, toggle(n, on) { if (on) this.set.add(n); else this.set.delete(n); } },
@@ -95,12 +100,11 @@ function glanceFixture({ compact = true } = {}) {
   });
   const nodes = {
     '#glance-window': element(),
-    '#glance-divider': element(),
     '#glance-viewport': element(),
-    '#glance-hint': element(),
+    '#glance-card': element(),
+    '#glance-handle': element(),
     '#glance-status': element(),
   };
-  if (!compact) for (const id of ['#glance-swap', '#glance-reset', '#glance-close', '#glance-reopen']) nodes[id] = element();
   const demo = { querySelector: selector => nodes[selector] || null };
   const view = {
     matchMedia: () => ({ matches: false }),
@@ -109,41 +113,59 @@ function glanceFixture({ compact = true } = {}) {
   return { demo, view, nodes };
 }
 
-test('the compact Glance demo resizes from its divider alone, within the app’s limits', async () => {
+const cardAt = (nodes) => {
+  const props = nodes['#glance-card'].style.props;
+  return { x: parseFloat(props['--card-x']), y: parseFloat(props['--card-y']), width: parseFloat(props['--card-w']), height: parseFloat(props['--card-h']) };
+};
+
+test('the Glance demo opens the card where the app does and moves it by its header', async () => {
+  const { initGlanceDemo, START } = await import(pathToFileURL(path.join(root, 'site/src/scripts/glance-demo.js')));
+  const { demo, view, nodes } = glanceFixture();
+  initGlanceDemo(demo, { view });
+  // The app's first-open frame: 80% of the page area, centered, 16 px below the band.
+  assert.deepEqual(cardAt(nodes), { x: 96, y: 68, width: 768, height: 420 });
+  assert.deepEqual({ ...START }, cardAt(nodes));
+  assert.equal(nodes['#glance-viewport'].style.props['--glance-scale'], '1');
+  const handle = nodes['#glance-handle'];
+  handle.events.pointerdown({ button: 0, pointerId: 1, clientX: 400, clientY: 90, preventDefault() {} });
+  assert.ok(nodes['#glance-window'].classList.set.has('is-dragging'));
+  handle.events.pointermove({ pointerId: 1, clientX: 340, clientY: 110 });
+  assert.deepEqual(cardAt(nodes), { x: 36, y: 88, width: 768, height: 420 });
+  handle.events.pointerup({ pointerId: 1 });
+  assert.ok(!nodes['#glance-window'].classList.set.has('is-dragging'));
+  // A later move from another pointer is ignored.
+  handle.events.pointermove({ pointerId: 2, clientX: 0, clientY: 0 });
+  assert.deepEqual(cardAt(nodes), { x: 36, y: 88, width: 768, height: 420 });
+});
+
+test('the Glance demo keeps the card inside the page area, as the app does', async () => {
   const { initGlanceDemo } = await import(pathToFileURL(path.join(root, 'site/src/scripts/glance-demo.js')));
   const { demo, view, nodes } = glanceFixture();
   initGlanceDemo(demo, { view });
-  const divider = nodes['#glance-divider'];
-  assert.equal(divider.attributes['aria-valuenow'], '62');
-  assert.equal(nodes['#glance-viewport'].style.props['--glance-scale'], '1');
-  const key = (name, shiftKey = false) => divider.events.keydown({ key: name, shiftKey, preventDefault() {} });
-  key('End');
-  assert.equal(divider.attributes['aria-valuenow'], '78');
-  key('ArrowRight', true);
-  assert.equal(divider.attributes['aria-valuenow'], '78');
-  key('Home');
-  key('ArrowLeft');
-  assert.equal(divider.attributes['aria-valuenow'], '50');
-  assert.equal(divider.attributes['aria-valuetext'], 'Main page 50 percent, reference 50 percent');
-  // A drag follows the pointer across the 960px drawing.
-  divider.events.pointerdown({ button: 0, pointerId: 1, clientX: 600, preventDefault() {} });
-  assert.equal(divider.attributes['aria-valuenow'], '63');
-  assert.ok(nodes['#glance-window'].classList.set.has('is-dragging'));
-  divider.events.pointerup({ pointerId: 1 });
-  assert.ok(!nodes['#glance-window'].classList.set.has('is-dragging'));
+  const handle = nodes['#glance-handle'];
+  handle.events.pointerdown({ button: 0, pointerId: 1, clientX: 400, clientY: 90, preventDefault() {} });
+  handle.events.pointermove({ pointerId: 1, clientX: -2000, clientY: -2000 });
+  assert.deepEqual(cardAt(nodes), { x: 0, y: 52, width: 768, height: 420 }, 'never above the Island band or past the left edge');
+  handle.events.pointermove({ pointerId: 1, clientX: 4000, clientY: 4000 });
+  assert.deepEqual(cardAt(nodes), { x: 192, y: 100, width: 768, height: 420 }, 'never past the window’s right or bottom edge');
 });
 
-test('the full Glance demo still closes and reopens its reference', async () => {
+test('the Glance demo moves 16 px per arrow key (64 with Shift) and Enter or a double-click puts it back', async () => {
   const { initGlanceDemo } = await import(pathToFileURL(path.join(root, 'site/src/scripts/glance-demo.js')));
-  const { demo, view, nodes } = glanceFixture({ compact: false });
+  const { demo, view, nodes } = glanceFixture();
   initGlanceDemo(demo, { view });
-  nodes['#glance-close'].events.click();
-  assert.ok(nodes['#glance-window'].classList.set.has('is-closed'));
-  assert.equal(nodes['#glance-reopen'].hidden, false);
-  assert.equal(nodes['#glance-status'].textContent, 'Glance view closed.');
-  nodes['#glance-reopen'].events.click();
-  assert.ok(!nodes['#glance-window'].classList.set.has('is-closed'));
-  assert.equal(nodes['#glance-hint'].textContent, 'Drag the divider to resize.');
+  const key = (name, shiftKey = false) => nodes['#glance-handle'].events.keydown({ key: name, shiftKey, preventDefault() {} });
+  key('ArrowRight');
+  assert.equal(cardAt(nodes).x, 112);
+  key('ArrowLeft', true);
+  assert.equal(cardAt(nodes).x, 48);
+  assert.equal(nodes['#glance-status'].textContent, 'Glance card moved.');
+  key('Enter');
+  assert.deepEqual(cardAt(nodes), { x: 96, y: 68, width: 768, height: 420 });
+  key('ArrowDown');
+  nodes['#glance-handle'].events.dblclick();
+  assert.deepEqual(cardAt(nodes), { x: 96, y: 68, width: 768, height: 420 });
+  assert.equal(nodes['#glance-status'].textContent, 'Glance card put back.');
 });
 
 test('homepage titles are phrases without a closing period; section headlines keep theirs', () => {

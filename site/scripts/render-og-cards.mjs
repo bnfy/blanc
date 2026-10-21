@@ -59,11 +59,11 @@ const CARDS = [
   },
   {
     out: 'feature-glance.png',
-    capture: 'glance-v1.35.0.png',
+    capture: 'glance-v1.40.0.png',
     kicker: 'glance',
-    headline: 'Keep a reference beside the page you’re using.',
-    // The reference panel is the right-hand third of the window; running the
-    // window off the edge would cut away the very thing the card is about.
+    headline: 'Look at another tab without leaving your page.',
+    // The card floats over the middle of the window; running the window off
+    // the edge would cut away the very thing the card is about.
     whole: true,
   },
   {

@@ -1,0 +1,29 @@
+---
+import styles from '../../../src/renderer/styles.css?raw';
+import document from '../../../src/renderer/index.html?raw';
+import renderer from '../../../src/renderer/renderer.js?raw';
+import { nativeGlanceCardArt, namespaceNativeArt } from '../lib/native-island-art.mjs';
+
+// The floating Glance card drawn from the app's own markup and styles: its
+// frame and header in a shadow root, the Glance page slotted in below.
+interface Props { host: string; icon: string; }
+const { host, icon } = Astro.props;
+const art = nativeGlanceCardArt({ styles, document, renderer, host, icon });
+const presentation = `
+  :host {display:block; width:100%; height:100%; font-family:var(--font-text); font-size:13px; letter-spacing:var(--text-tracking); word-spacing:var(--text-word-spacing); color:var(--text);}
+  [hidden] {display:none!important;}
+  .glance-card {position:relative; left:0; top:0; width:100%; height:100%;}
+  .glance-card-page {position:absolute; left:0; right:0; top:39px; bottom:0; overflow:hidden; border-radius:0 0 calc(var(--split-pane-radius) - 1px) calc(var(--split-pane-radius) - 1px);}
+`;
+const { html, css } = namespaceNativeArt({ html: art.html, css: art.css + presentation }, 'glance-card-');
+---
+<blanc-glance-card class="glance-native-card" data-appearance="light" aria-hidden="true" inert>
+  <template shadowrootmode="open">
+    <style is:inline set:html={css} />
+    <Fragment set:html={html} />
+  </template>
+  <slot />
+</blanc-glance-card>
+<script is:inline>
+  document.currentScript.previousElementSibling.dataset.appearance = document.documentElement.dataset.homeAppearance === 'dark' ? 'dark' : 'light';
+</script>
