@@ -1,0 +1,10 @@
+/* Reenie Beanie by James Grieshaber (Typeco), SIL Open Font License 1.1: the
+   homepage's handwritten note, self-hosted from @fontsource/reenie-beanie 5.3.0
+   (THIRD-PARTY-NOTICES.md). Latin only; the note is English. */
+@font-face {
+  font-family: "Reenie Beanie";
+  src: url("/fonts/reenie-beanie/reenie-beanie-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

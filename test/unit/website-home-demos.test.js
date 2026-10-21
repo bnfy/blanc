@@ -177,4 +177,12 @@ test('homepage titles are phrases without a closing period; section headlines ke
   for (const [, lead] of pin.matchAll(/<strong>([^<]+)<\/strong>/g)) assert.doesNotMatch(lead, /\.$/, lead);
   assert.match(css, /\.pin-media figcaption strong \{\s*display: block;/);
   assert.match(home, /<h1 id="opening-title">A little less browser\.<\/h1>/);
+  // The first screen (v1.40.0): a handwritten note after the headline, and the
+  // floating Island window below Download, self-hosting the note's font.
+  assert.match(home, /<span class="opening-note"[^>]*>now, none at all<\/span>/);
+  assert.match(home, /<FloatingIslandWindow \/>/);
+  const note = read('site/src/styles/reenie-beanie.css');
+  assert.match(note, /url\("\/fonts\/reenie-beanie\/reenie-beanie-latin-400-normal\.woff2"\)/);
+  assert.doesNotMatch(note, /fonts\.(googleapis|gstatic)/);
+  assert.match(note, /font-display: swap;/);
 });

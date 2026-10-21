@@ -224,18 +224,6 @@
   },
   "claims": [
     {
-      "id": "cinema-hero-lead",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Tabs, search and commands live in one compact Island, in a slim band above the page. Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "island",
-        "platforms",
-        "blocking"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-wallpaper",
       "source": "site/src/pages/index.astro",
       "exactWording": "Your Start Page, from dawn to night. Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.",
@@ -1140,6 +1128,19 @@
       ],
       "verdict": "verified",
       "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "cinema-hero-lead",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands live in one compact Island, in a slim band above the page. Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "platforms",
+        "blocking"
+      ],
+      "verdict": "qualified",
+      "reason": "October 21, 2026, after public v1.40.0: the homepage’s first screen became the floating Island (Auto-hide, float style), and its lead now says so. The replacement wording is recorded in docs/website-v1.40-claims.json."
     }
   ]
 }
