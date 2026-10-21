@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (58 files, 133 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (58 files, 134 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1176,7 +1176,7 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 ## 7. Kill criteria that apply during this tranche
 
 **Patch budget, amended October 21:** **58 upstream files
-and 133 hunks**, counted as follows. A *file* is an existing upstream file
+and 134 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 58 files or 133 hunks and
+From plan §5: criterion 2 (the count above exceeds 58 files or 134 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -2505,3 +2505,7 @@ Owner approved58upstreamfiles/133hunks for shared document/worker WebSocket enfo
 ## Pending WebSocket lifecycle — October 21, 2026
 
 Ten native regular/private pending teardown/timeout/utility-loss schedules pass with independent server records and opt-in correlated lifecycle observations. No policy repair required. Incremental31.42s/six steps; guard0; fresh56/133. Evidence: evidence/f12-websocket-lifecycle-20261021/. Broader lifecycle/provider and WebTransport/speculation gates remain open. Google baseline separate; latency deferred; Electron diagnostic build unstarted.
+
+### Native WebTransport HTTP/3 enforcement — October 21, 2026
+
+Eight final regular/private controls pass: both endpoints work without the opt-in gate; protected allowed connections complete real HTTP/3 CONNECT plus datagram echo, while two blocked-host attempts receive native filter refusals with no server arrival. Chrome's existing extension rejection is preserved; weak owner/client-disconnect/35-second timeout guard an initiator-origin `other` decision before network creation. Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-enforcement-20261021/. Four WebSocket regression schedules and eleven counter tests pass. One40.71s/eight-step incremental build, finalguard0; fresh56files134hunks, threshold58/134 updated under standing owner authorization. Document runtime scope only; WebTransport workers/pending teardown/timeout/utility-loss/provider composition remain open. Next: those bounded transport controls, then speculation. Google baseline separate; native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision2 remain in progress.

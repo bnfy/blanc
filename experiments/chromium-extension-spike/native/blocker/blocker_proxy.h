@@ -9,6 +9,10 @@ namespace blanc {
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
     content::ContentBrowserClient::WebSocketFactory factory);
+content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCallback(
+    int process_id, int frame_routing_id, const GURL& url,
+    const url::Origin& initiator_origin,
+    content::ContentBrowserClient::WillCreateWebTransportCallback callback);
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map);
 void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver);
 // Opt-in experimental browser hook; no interception when the asset flag is absent.

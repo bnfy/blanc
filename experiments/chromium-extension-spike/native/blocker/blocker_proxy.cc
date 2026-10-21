@@ -28,6 +28,7 @@
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
 #include "services/network/public/mojom/websocket.mojom.h"
+#include "services/network/public/mojom/web_transport.mojom.h"
 #include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
@@ -204,6 +205,75 @@ class SocketDecision {
   mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted_;
   base::OneShotTimer timeout_;
   base::WeakPtrFactory<SocketDecision> weak_{this};
+};
+class TransportDecision {
+ public:
+  TransportDecision(base::WeakPtr<content::BrowserContext> context,
+      content::WeakDocumentPtr document, bool document_scoped,
+      std::string origin, GURL url,
+      content::ContentBrowserClient::WillCreateWebTransportCallback callback,
+      mojo::PendingRemote<network::mojom::WebTransportHandshakeClient> client)
+      : context_(std::move(context)), document_(std::move(document)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
+        url_(std::move(url)), callback_(std::move(callback)),
+        client_(std::move(client)) {}
+  void Begin() {
+    Lifecycle("webtransport-pending");
+    client_.set_disconnect_handler(base::BindOnce(&TransportDecision::Abandon,
+                                                 weak_.GetWeakPtr()));
+    timeout_.Start(FROM_HERE, base::Seconds(35),
+        base::BindOnce(&TransportDecision::TimedOut, weak_.GetWeakPtr()));
+    // WebTransport is classified as other, not WebSocket; its source is the
+    // initiator origin, never an invented HTTP referrer.
+    Engine::Get().Decide(url_.spec(), "other", origin_,
+        base::BindOnce(&TransportDecision::Done, weak_.GetWeakPtr()));
+  }
+ private:
+  void Lifecycle(const char* stage) {
+    base::DictValue event;
+    event.Set("event", stage);
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    Record(std::move(event));
+  }
+  void Abandon() { Lifecycle("webtransport-abandoned"); delete this; }
+  void TimedOut() { Lifecycle("webtransport-timeout"); Done(-1); }
+  void Done(int result) {
+    if (!context_ || (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
+      result = -1;
+    timeout_.Stop();
+    base::DictValue event;
+    event.Set("event", "webtransport-decision");
+    event.Set("request_id", request_id_);
+    event.Set("url", url_.spec());
+    event.Set("initiator_origin", origin_);
+    event.Set("source_contract", "webtransport-initiator-origin");
+    event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
+    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("context_alive", !!context_);
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    Record(std::move(event));
+    if (result == 0) {
+      std::move(callback_).Run(client_.Unbind(), std::nullopt);
+    } else {
+      std::move(callback_).Run(client_.Unbind(),
+          network::mojom::WebTransportError::New(
+              net::ERR_BLOCKED_BY_CLIENT, 0, "Blocked by Blanc Blocker", false));
+    }
+    delete this;
+  }
+  const std::string request_id_ = base::UnguessableToken::Create().ToString();
+  base::WeakPtr<content::BrowserContext> context_;
+  content::WeakDocumentPtr document_;
+  bool document_scoped_;
+  std::string origin_;
+  GURL url_;
+  content::ContentBrowserClient::WillCreateWebTransportCallback callback_;
+  mojo::Remote<network::mojom::WebTransportHandshakeClient> client_;
+  base::OneShotTimer timeout_;
+  base::WeakPtrFactory<TransportDecision> weak_{this};
 };
 std::string Type(const network::ResourceRequest& request) {
   if (request.is_fetch_like_api) return "xhr";
@@ -597,6 +667,38 @@ content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
              std::move(client), std::move(auth), std::move(trusted)))->Begin();
       }, std::move(context), std::move(document), document_scoped,
       initiator_origin.Serialize(), std::move(factory));
+}
+content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCallback(
+    int process_id, int frame_routing_id, const GURL& url,
+    const url::Origin& initiator_origin,
+    content::ContentBrowserClient::WillCreateWebTransportCallback callback) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+    return callback;
+  auto* process = content::RenderProcessHost::FromID(process_id);
+  if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
+    return callback;
+  auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
+  auto context = process ? process->GetBrowserContext()->GetWeakPtr()
+                         : base::WeakPtr<content::BrowserContext>();
+  auto document = frame ? frame->GetWeakDocumentPtr() : content::WeakDocumentPtr();
+  return base::BindOnce(
+      [](base::WeakPtr<content::BrowserContext> context,
+         content::WeakDocumentPtr document, bool document_scoped,
+         GURL url, std::string origin,
+         content::ContentBrowserClient::WillCreateWebTransportCallback callback,
+         mojo::PendingRemote<network::mojom::WebTransportHandshakeClient> client,
+         std::optional<network::mojom::WebTransportErrorPtr> error) {
+        // Preserve extension rejection and the connector's original callback.
+        if (error) {
+          std::move(callback).Run(std::move(client), std::move(error));
+          return;
+        }
+        (new TransportDecision(std::move(context), std::move(document),
+            document_scoped, std::move(origin), std::move(url),
+            std::move(callback), std::move(client)))->Begin();
+      }, std::move(context), std::move(document),
+      frame_routing_id != IPC::mojom::kRoutingIdNone, url,
+      initiator_origin.Serialize(), std::move(callback));
 }
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;

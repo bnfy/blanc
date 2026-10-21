@@ -66,3 +66,9 @@ patch("chrome/browser/chrome_content_browser_client.cc","SetBlancWebSocketWrappe
 patch("content/browser/websockets/websocket_connector_impl.cc","content/public/browser/blanc_websocket_gate.h","#include \"content/browser/websockets/websocket_connector_impl.h\"","#include \"content/browser/websockets/websocket_connector_impl.h\"\n#include \"content/public/browser/blanc_websocket_gate.h\"");
 patch("content/browser/websockets/websocket_connector_impl.cc","void SetBlancWebSocketWrapper","namespace content {","namespace content {\nnamespace { BlancWebSocketWrapper g_blanc_websocket_wrapper = nullptr; }\nvoid SetBlancWebSocketWrapper(BlancWebSocketWrapper wrapper) {\n  g_blanc_websocket_wrapper = wrapper;\n}\n");
 patch("content/browser/websockets/websocket_connector_impl.cc","factory = g_blanc_websocket_wrapper","  if (GetContentClient()->browser()->WillInterceptWebSocket(frame)) {","  if (g_blanc_websocket_wrapper) {\n    factory = g_blanc_websocket_wrapper(\n        frame_id_.child_id.GetUnsafeValue(), frame_id_.frame_routing_id, origin_,\n        std::move(factory));\n  }\n\n  if (GetContentClient()->browser()->WillInterceptWebSocket(frame)) {");
+
+patch('chrome/browser/chrome_content_browser_client.cc', 'callback = blanc::WrapWebTransportCallback(',
+  '    WillCreateWebTransportCallback callback) {',
+  `    WillCreateWebTransportCallback callback) {
+  callback = blanc::WrapWebTransportCallback(process_id, frame_routing_id, url,
+                                            initiator_origin, std::move(callback));`);

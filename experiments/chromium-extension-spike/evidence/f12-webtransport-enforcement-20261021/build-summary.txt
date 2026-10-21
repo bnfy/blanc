@@ -1,0 +1,1 @@
+One guarded incremental build: 40.71 seconds, 8 steps. Preflight 3 actions, final guard 0. No GN/toolchain/cache changes. Full log /private/tmp/blanc-wt-build.log. Fresh upstream footprint 56 files/134 hunks, +0 files/+1 hunk. Counter captured old threshold58/133; threshold updated to58/134 under standing owner authorization, with no code changes after count.
