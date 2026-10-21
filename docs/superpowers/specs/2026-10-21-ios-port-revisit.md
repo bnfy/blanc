@@ -233,13 +233,16 @@ TestFlight build is the companion, not a generic browser.
 |---|---|---|---|
 | M0–M6 | Prototype: tabs, palette, `blanc://` pages, one rule list, theming, settings-lite, session restore | F1, F2, F5–F7, F12, F14–F16, F18 | Built July 2026, unreleased |
 | **M6.5** | Re-baseline (below) | — | This PR |
+| **Duo-1** | iPhone Duo foundation: iOS 27.1 SDK build, edge to edge on both displays, the regular-width pill and in-place palette, fold continuity, CI on the Duo simulator ([design](2026-10-21-ios-iphone-duo-design.md)) | F1, F6, D30 | After M6.5 |
 | **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device | F27, F9 (read) | Next |
 | **M8** | Favorites and History, live on the `blanc://` pages | F9, F10 | |
 | **M9** | Private tabs | F4 | |
 | **M10** | Groups and Spaces from sync, shown read-only on the phone; Bangs; the full shared slash-command set; Find in page | F3, F41 (read), F47, F7, F8 | |
+| **Duo-2** | Two-pane Split View and floating Glance at regular width (the Duo's inner display) | F53, F34, D30 | With M10 |
 | **Beta** | First TestFlight upload, with the default-browser entitlement | D4 | Cut line |
 | Later | Editing groups and Spaces on the phone, downloads, permissions, passkeys, Quiet Tabs semantics, interface language (D27), the full filter pipeline (M15, now including `WKWebExtension` DNR and user-script cosmetics as options) | F3, F11, F13, F24, F31, F44, F12 | After the beta |
-| Out | iPad, Android, an in-app Patron purchase | D7, D11, F17 | Until the indicators below are met |
+| Later (Duo-3) | The side list from synced groups and Spaces, tabletop video, multiple windows | F28, F32, D30 | After the beta |
+| Out | iPad-specific work (an iPad gets the regular layout for free), Android, an in-app Patron purchase | D7, D11, F17 | Until the indicators below are met |
 
 ### M6.5: the re-baseline
 
