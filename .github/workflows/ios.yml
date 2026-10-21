@@ -38,16 +38,17 @@ concurrency:
 
 jobs:
   xctest:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # The pill's Liquid Glass branch (ContentView.swift) needs the iOS 26
-      # SDK, so use the newest Xcode 26 on the image.
-      - name: Select Xcode 26
+      # The project file is in Xcode's newest format (objectVersion 110), and
+      # the pill's Liquid Glass branch needs at least the iOS 26 SDK, so use
+      # the newest Xcode on the image.
+      - name: Select the newest Xcode
         run: |
-          xcode=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
-          if [ -z "$xcode" ]; then echo "::error::No Xcode 26 on this runner image"; ls -d /Applications/Xcode*; exit 1; fi
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
           sudo xcode-select -s "$xcode"
           xcodebuild -version
       - name: Pick an iPhone simulator
