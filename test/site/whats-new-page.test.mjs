@@ -242,8 +242,11 @@ for (const viewport of [{ width: 1280, height: 732 }, { width: 1440, height: 800
 test('/whats-new leads to the newest page and is not indexed', async () => {
   const html = await (await fetch(`${baseURL}/whats-new`)).text();
   assert.match(html, /<meta name="robots" content="noindex,follow">/);
+  // An upcoming page (its release not public yet) is left out of the redirect.
+  const released = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'site/src/data/releases.json'), 'utf8')).map((r) => r.version));
+  const newest = byRelease.find((p) => released.has(`${p.release}.0`));
   const { context, page } = await open('/whats-new');
-  await page.waitForURL(new RegExp(`/whats-new/${byRelease[0].release.replace('.', '\\.')}$`));
+  await page.waitForURL(new RegExp(`/whats-new/${newest.release.replace('.', '\\.')}$`));
   await context.close();
 });
 

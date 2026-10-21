@@ -3,6 +3,65 @@
   "noPage": [],
   "pages": [
     {
+      "release": "1.40",
+      "highlights": [
+        {
+          "id": "split-view",
+          "tile": "Split View",
+          "title": "Two tabs side by side",
+          "body": "Show two tabs in one window and drag the divider to share the space between them. The pane you click is the current tab, and the split stays together after a relaunch.",
+          "steps": [
+            "Right-click a tab and choose Split with.",
+            "Pick the tab to show beside it."
+          ],
+          "note": "To end it, choose Remove from Split or Close Split in a tab’s menu.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/split-view-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Blanc window split in two: The Met’s page for Van Gogh’s Wheat Field with Cypresses on the left and the painting’s Wikipedia article on the right, each in its own rounded pane."
+          }
+        },
+        {
+          "id": "floating-glance",
+          "tile": "Glance",
+          "title": "Glance floats over your page",
+          "body": "The tab you pick opens as a card over the page you’re on, and the page behind stays usable. Move it, resize it, and Blanc remembers where you left it.",
+          "steps": [
+            "Right-click a tab and choose Open in Glance.",
+            "Drag the card’s header to move it, or an edge to resize it."
+          ],
+          "note": "Open as tab makes the Glance page the current tab, and Keep as split puts the two side by side.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-glance-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Glance card floating over The Met’s page for Wheat Field with Cypresses, showing the painting’s Wikipedia article under a header with Change, Open as tab and Keep as split."
+          }
+        },
+        {
+          "id": "floating-island",
+          "tile": "A floating Island",
+          "title": "The Island floats over the page",
+          "body": "With Auto-hide the Island on, the Island now floats over the page when it comes back, so the page never jumps down to make room.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island."
+          ],
+          "note": "Prefer the page to move? Under When the Island comes back, choose Push the page down.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-island-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "The Island floating over the top of The Met’s page for Wheat Field with Cypresses, which fills the Blanc window to its top edge."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.39",
       "highlights": [
         {
