@@ -8,7 +8,7 @@ const vm = require('vm');
 const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/clock-art.js'), 'utf8');
 const sandbox = {};
 vm.runInNewContext(source, sandbox);
-const { lookup, fitHeight, insideDistance, glassMaps, luminance, shadowFor } = sandbox.blancClockArt;
+const { lookup, fitHeight, soften, glassMaps, luminance, shadowFor } = sandbox.blancClockArt;
 
 // A face whose text width grows with its width axis and a little with weight,
 // and whose stem grows with weight and a little with width; both are linear,
@@ -69,12 +69,28 @@ const BAR = glyph([
   '...........',
 ]);
 
-test('the distance field is deepest in the middle of a stroke and 0 outside', () => {
-  const d = insideDistance(BAR.alpha, BAR.width, BAR.height);
-  assert.equal(d[0], 0);
-  assert.equal(d[1 * BAR.width + 1], 1, 'an edge pixel is one step in');
-  assert.equal(d[4 * BAR.width + 5], 4, 'the centre is four steps in');
-  assert.ok(d[4 * BAR.width + 2] < d[4 * BAR.width + 5]);
+test('the glass surface is the figures softened: smooth, highest in the middle', () => {
+  const coverage = Float32Array.from(BAR.alpha, (v) => v / 255);
+  const surface = soften(coverage, BAR.width, BAR.height, 1);
+  const row = [...surface.subarray(4 * BAR.width, 5 * BAR.width)];
+  for (let x = 1; x <= 5; x++) assert.ok(row[x] >= row[x - 1], `rises to the middle at ${x}`);
+  for (let x = 6; x < BAR.width; x++) assert.ok(row[x] <= row[x - 1], `falls from the middle at ${x}`);
+});
+
+test('a stroke narrower than the bevel is a round rod, with no ridge down its middle', () => {
+  // A 7-pixel stroke under a 6-pixel bevel: a distance field would crease at
+  // its centreline. The bend across it must change steadily from one edge to
+  // the other.
+  const rod = glyph(Array.from({ length: 30 }, () => '.........#######.........'));
+  const { map } = glassMaps(rod.alpha, rod.width, rod.height, { bevel: 6, bend: 4, scale: 8, tint: [0, 0, 0] });
+  const red = [];
+  for (let x = 9; x <= 15; x++) red.push(map[(15 * rod.width + x) * 4]);
+  for (let k = 1; k < red.length; k++) assert.ok(red[k] >= red[k - 1], `steady across the rod: ${red}`);
+  // Level at the very middle, and a mirror image either side of it: the
+  // surface turns over smoothly instead of meeting in a crease.
+  assert.ok(Math.abs(red[3] - 128) <= 1, `level at the middle: ${red}`);
+  for (let k = 0; k < 3; k++) assert.ok(Math.abs(red[k] + red[6 - k] - 256) <= 2, `symmetric: ${red}`);
+  assert.ok(red[2] > red[0] && red[4] < red[6], `turning gradually: ${red}`);
 });
 
 test('the glass bends the page across its bevel only, and lights its rim', () => {

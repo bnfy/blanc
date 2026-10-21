@@ -6,9 +6,9 @@
 // clock keeps its width and stroke and every curve stays as designed. The fit
 // is solved from a small table of measured widths and stems.
 //
-// Glass is a lens over the page: a rounded bevel built from the figures'
-// distance field bends what is behind them (most at the edges) and lights
-// them with a highlight and a rim, and a shadow outside keeps them readable.
+// Glass is a lens over the page: a smooth pillow made by blurring the
+// figures bends what is behind them (most at the edges) and lights them with
+// a highlight and a rim, and a shadow outside keeps them readable.
 //
 // The rules at the top are pure (no DOM), so test/unit runs them in a vm; the
 // measuring and drawing below them need a document.
@@ -71,49 +71,11 @@
   // ---- Glass ----
 
   /**
-   * How far each covered pixel lies inside the figures (pixels to the nearest
-   * uncovered one, or the canvas edge), by a two-pass chamfer; 0 outside.
+   * `values` (0–1 a pixel) blurred by a box `radius` pixels wide, three times
+   * over: close to a Gaussian of that radius, and smooth everywhere.
    */
-  function insideDistance(alpha, width, height) {
-    const d = new Float32Array(width * height);
-    for (let i = 0; i < d.length; i++) d[i] = alpha[i] >= 128 ? 1e9 : 0;
-    const diag = Math.SQRT2;
-    const pass = (forward) => {
-      const dx = forward ? -1 : 1;
-      for (let k = 0; k < height; k++) {
-        const y = forward ? k : height - 1 - k;
-        for (let m = 0; m < width; m++) {
-          const x = forward ? m : width - 1 - m;
-          const i = y * width + x;
-          if (!d[i]) continue;
-          const px = x + dx, py = y + dx;
-          let best = d[i];
-          best = Math.min(best, px < 0 || px >= width ? 1 : d[i + dx] + 1);
-          if (py < 0 || py >= height) best = Math.min(best, 1);
-          else {
-            const row = py * width;
-            best = Math.min(best, d[row + x] + 1);
-            if (x - 1 >= 0) best = Math.min(best, d[row + x - 1] + diag);
-            if (x + 1 < width) best = Math.min(best, d[row + x + 1] + diag);
-          }
-          d[i] = best;
-        }
-      }
-    };
-    pass(true);
-    pass(false);
-    return d;
-  }
-
-  /**
-   * The distance field softened by a box blur of `radius` pixels, twice
-   * (close to a Gaussian), so the bevels round into each other at corners
-   * instead of meeting in mitred ridges, and the chamfer's steps never light
-   * up as sparkles. Still 0 outside the figures.
-   */
-  function smoothInside(d, alpha, width, height, radius = 1) {
+  function soften(values, width, height, radius) {
     const r = Math.max(1, Math.round(radius));
-    let from = d;
     const line = (src, dst, count, stride, offset) => {
       let sum = 0;
       for (let k = -r; k <= r; k++) sum += k >= 0 && k < count ? src[offset + k * stride] : 0;
@@ -124,14 +86,14 @@
         if (inn < count) sum += src[offset + inn * stride];
       }
     };
-    for (let pass = 0; pass < 2; pass++) {
+    let from = values;
+    for (let pass = 0; pass < 3; pass++) {
       const across = new Float32Array(width * height);
       for (let y = 0; y < height; y++) line(from, across, width, 1, y * width);
       const down = new Float32Array(width * height);
       for (let x = 0; x < width; x++) line(across, down, height, width, x);
       from = down;
     }
-    for (let i = 0; i < from.length; i++) if (alpha[i] < 128) from[i] = 0;
     return from;
   }
 
@@ -148,48 +110,45 @@
   const FILL_HALF = halfway(FILL);
   // How much of its color the body of the glass carries.
   const GLASS_BODY = 0.1;
-  // How far the bevel is softened, as a share of its width.
-  const SOFTEN = 0.3;
+  // The pillow's blur as a share of the bevel, and how steeply its edges rise.
+  const BLUR = 0.6;
+  const LIFT = 7;
 
   /**
    * The glass from the figures' coverage (`alpha`, one byte a pixel):
-   * - `map`: RGBA for feDisplacementMap (128 = no bend). A rounded bevel up
-   *   to `bevel` pixels wide (never wider than the stroke's half) rises from
-   *   each edge, and the page behind bends along its slope by up to `bend`
-   *   pixels (less on a narrower bevel), most at the edge, as through a
-   *   lens's rim. `scale` is the displacement filter's scale.
+   * - `map`: RGBA for feDisplacementMap (128 = no bend). A rounded bevel
+   *   about `bevel` pixels wide rises from each edge, and the page behind
+   *   bends along its slope by up to `bend` pixels, most at the edge, as
+   *   through a lens's rim. `scale` is the displacement filter's scale.
    * - `face`: RGBA light laid over the bent page: a crisp highlight where the
    *   bevel faces the key light, a softer one opposite, a bright Fresnel rim
    *   all round, and a faint body in `tint` ([r, g, b]).
    */
-  function glassMaps(alpha, width, height, { bevel: wanted, bend, scale, tint }) {
-    const d = smoothInside(insideDistance(alpha, width, height), alpha, width, height, wanted * SOFTEN);
-    // A bevel never wider than the stroke's half: a thin figure is all bevel
-    // and bends the page less, so it never turns to noise.
-    let deepest = 0;
-    for (let i = 0; i < d.length; i++) if (d[i] > deepest) deepest = d[i];
-    const bevel = Math.max(1, Math.min(wanted, deepest * 0.95));
+  function glassMaps(alpha, width, height, { bevel, bend, scale, tint }) {
+    // The glass's surface is the figures blurred, a pillow: smooth everywhere,
+    // so it has no ridge down a stroke's middle or at a corner (the crease a
+    // distance field has where the slopes from two edges meet). A thin stroke
+    // becomes a round rod, a wide one a slab with rounded edges.
+    const coverage = new Float32Array(width * height);
+    for (let i = 0; i < coverage.length; i++) coverage[i] = alpha[i] / 255;
+    const surface = soften(coverage, width, height, bevel * BLUR);
+    // Steep at the edges: a sharp edge blurred this far rises by about
+    // 0.4/bevel a pixel, so this lift tilts it to about 70 degrees there.
+    const lift = bevel * LIFT;
     const map = new Uint8ClampedArray(width * height * 4);
     const face = new Uint8ClampedArray(width * height * 4);
-    const at = (x, y) => d[Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))];
+    const at = (x, y) => surface[Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))];
     const dot = (a, b) => Math.max(0, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
-    const reach = (bend / scale) * 255 * (bevel / wanted);
+    const reach = (bend / scale) * 255;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = y * width + x, o = i * 4;
         map[o] = 128; map[o + 1] = 128; map[o + 2] = 128; map[o + 3] = 255;
         const cover = alpha[i] / 255;
         if (!cover) continue;
-        // Up the distance field is inward; the bevel rises that way.
-        let gx = (at(x + 1, y) - at(x - 1, y)) / 2;
-        let gy = (at(x, y + 1) - at(x, y - 1)) / 2;
-        const g = Math.hypot(gx, gy) || 1;
-        gx /= g; gy /= g;
-        // A quarter-circle profile: steep at the edge, flat on top.
-        const t = Math.min(1, d[i] / bevel);
-        const fall = 1 - t;
-        const slope = t < 1 ? fall / Math.sqrt(Math.max(1e-3, 1 - fall * fall)) : 0;
-        const normal = normalize([-gx * slope, -gy * slope, 1]);
+        const gx = (at(x + 1, y) - at(x - 1, y)) / 2;
+        const gy = (at(x, y + 1) - at(x, y - 1)) / 2;
+        const normal = normalize([-gx * lift, -gy * lift, 1]);
         map[o] = 128 + Math.max(-127, Math.min(127, normal[0] * reach));
         map[o + 1] = 128 + Math.max(-127, Math.min(127, normal[1] * reach));
         const key = dot(normal, KEY_HALF) ** 48;
@@ -374,7 +333,7 @@
   }
 
   globalThis.blancClockArt = Object.freeze({
-    lookup, fitHeight, insideDistance, smoothInside, glassMaps, luminance, shadowFor, parseColor, mixHex,
+    lookup, fitHeight, soften, glassMaps, luminance, shadowFor, parseColor, mixHex,
     instance, measureFace, drawClock, paintGlass, paintShadow,
   });
 })();

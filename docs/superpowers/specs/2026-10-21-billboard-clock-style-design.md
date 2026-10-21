@@ -95,18 +95,18 @@ Real refraction, in the page: the figures are a lens over the Start Page. A
 figures (wallpaper, your image, a color), masked to the figures' shape, with a
 little saturation and brightness.
 
-The lens's shape comes from the figures' distance field: how far each point
-lies inside a stroke (a two-pass chamfer), softened by a box blur about a third
-of the bevel wide so neighbouring bevels round into each other at corners
-rather than meeting in mitred ridges. A quarter-circle bevel rises from every
-edge, steep at the edge and flat on top, never wider than the stroke's half,
-so a thin stroke becomes a glass rod and a heavy one a slab with rounded
-edges. The page bends along the bevel's slope, most at the edges, as through a
-lens's rim, and less on a narrower bevel. The same surface is lit: a crisp
-highlight where it faces the key light (above, a little left), a softer one
-opposite, a Fresnel rim all round, and a faint body in the clock's color.
-Under `prefers-reduced-transparency: reduce` it draws as Solid in the same
-color.
+The lens's shape is the figures blurred, a pillow: a three-pass box blur
+(close to a Gaussian) about two thirds of the bevel wide. That surface is
+smooth everywhere, so a thin stroke becomes a round rod and a heavy one a slab
+with rounded edges. An earlier version took the shape from the figures'
+distance field, which creases down every stroke's middle and at every corner
+wherever a stroke is narrower than the bevel, and the lighting drew those
+creases as sharp ridges inside the figures; the owner flagged them. The page
+bends along the surface's slope, most at the edges, as through a lens's rim.
+The same surface is lit: a crisp highlight where it faces the key light
+(above, a little left), a softer one opposite, a Fresnel rim all round, and a
+faint body in the clock's color. Under `prefers-reduced-transparency: reduce`
+it draws as Solid in the same color.
 
 The glass is drawn on canvas from the typeset clock at its exact width and
 weight: canvas fonts can't take `font-variation-settings`, so each width and
@@ -194,8 +194,8 @@ rainbow/wallpaper-derived swatch. The
 - `src/main/pages.js`, `src/main/tab-preload.js`, `browser-api/bridges.json` —
   `start.setClock`.
 - `src/main/main.js` — `clock` in the Start Page status.
-- `src/renderer/pages/clock-art.js` — the Height fit, the glass's distance
-  field, refraction map and light, and the shadows.
+- `src/renderer/pages/clock-art.js` — the Height fit, the glass's surface,
+  refraction map and light, and the shadows.
 - `src/renderer/pages/roboto-flex-clock.woff2`, `roboto-flex-OFL.txt`,
   `scripts/build-clock-font.py` — the clock's Roboto Flex; recorded in
   `THIRD-PARTY-NOTICES.md` and `compliance/policy.json`.
