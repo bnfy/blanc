@@ -1,0 +1,923 @@
+{
+  "results": [
+    {
+      "kind": "regular",
+      "mode": "service-stop",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending"
+      ],
+      "browserContextId": "9EAF978B2CC1D8609B91D76A157CF0DA",
+      "owner": {
+        "targetId": "F484D1001A295E6B05611FCF7463525B",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64377/service.js",
+        "url": "http://127.0.0.1:64377/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "9EAF978B2CC1D8609B91D76A157CF0DA"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64377/service.js",
+        "runningStatus": "running",
+        "status": "installing",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618307.718512,
+        "controlledClients": [],
+        "targetId": "F484D1001A295E6B05611FCF7463525B"
+      },
+      "processes": {
+        "browserPid": 21392,
+        "utilityPid": 21408
+      },
+      "pendingId": "041F3C8A31E36F2307EDB3F39735D632",
+      "error": "Error: Probe wait timed out",
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "052A86DAC2979FB08C3D5098E45A0AC2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F8F312B40508D813407AF9BC312F4131",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1436398,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21405.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "408CC64920C3FC70C71C29070C58EB64",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3308,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 759834,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21405.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "408CC64920C3FC70C71C29070C58EB64",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 525,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 759835,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "32F83CA3B9678DA4A064BE589E8F251C",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "request_id": "32F83CA3B9678DA4A064BE589E8F251C",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "F484D1001A295E6B05611FCF7463525B",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F5ABE265A3BEB129E7E75813CAB15D76",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 432,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64377/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "041F3C8A31E36F2307EDB3F39735D632",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "service-stop",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending"
+      ],
+      "browserContextId": "199E71F83A89581BC52F88168075BCD1",
+      "owner": {
+        "targetId": "573556A1F9A4AB4F568B0FD8C7B02BC5",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64377/service.js",
+        "url": "http://127.0.0.1:64377/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "199E71F83A89581BC52F88168075BCD1"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64377/service.js",
+        "runningStatus": "running",
+        "status": "installing",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618321.497464,
+        "controlledClients": [],
+        "targetId": "573556A1F9A4AB4F568B0FD8C7B02BC5"
+      },
+      "processes": {
+        "browserPid": 21425,
+        "utilityPid": 21444
+      },
+      "pendingId": "61A566F4D6A88039F66B811D899371B2",
+      "error": "Error: Probe wait timed out",
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "7F66574E61F141C02B5F4696F8B937E9",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "DE5DF189CE4F994C03A0BA9411FF2362",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1489319,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21440.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "5B3F4991610E722291EDB6799EA75730",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3656,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 327996,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21440.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "5B3F4991610E722291EDB6799EA75730",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 362,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 327997,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "8EC38E2112EED99A2FBF4569AE13D676",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "request_id": "8EC38E2112EED99A2FBF4569AE13D676",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "573556A1F9A4AB4F568B0FD8C7B02BC5",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "FBBC32FCC41E6A03534E1A66480EAEF3",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 327,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64377/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "61A566F4D6A88039F66B811D899371B2",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ]
+    },
+    {
+      "kind": "private",
+      "mode": "context-close",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "private-context-removed",
+        "service-target-destroyed",
+        "utility-resumed"
+      ],
+      "browserContextId": "FAB776B44B023B8A82CEA043E0C128F6",
+      "owner": {
+        "targetId": "80993B76F3FE0E6F0A511CC445E2140B",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64377/service.js",
+        "url": "http://127.0.0.1:64377/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "FAB776B44B023B8A82CEA043E0C128F6"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64377/service.js",
+        "runningStatus": "running",
+        "status": "installing",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618335.329455,
+        "controlledClients": [],
+        "targetId": "80993B76F3FE0E6F0A511CC445E2140B"
+      },
+      "processes": {
+        "browserPid": 21505,
+        "utilityPid": 21524
+      },
+      "pendingId": "842F4D5771A0D350F3925046E47E7DB6",
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "842F4D5771A0D350F3925046E47E7DB6",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": false,
+          "decision": "block",
+          "engine_result": -1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "frame-less-worker",
+          "private": false,
+          "request_id": "842F4D5771A0D350F3925046E47E7DB6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ],
+      "recovery": {
+        "ready": true,
+        "echo": "blanc-http3-proof"
+      },
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "CEA40CDE732ED706CAADBF45FDE9A254",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "B65AB67CBB2C002F072407CF1244F0E4",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1504945,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -8,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21520.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F2B58E2ED8D429A65AF79A264F4E7E5C",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3164,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 827930,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21520.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F2B58E2ED8D429A65AF79A264F4E7E5C",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 441,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 827931,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "43C5CC1D56BD5A1CA55261BDA50159B9",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "document-or-dedicated-worker",
+          "private": true,
+          "request_id": "43C5CC1D56BD5A1CA55261BDA50159B9",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "80993B76F3FE0E6F0A511CC445E2140B",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "AF296F75004A50D0341284F1F9B3D7BB",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 348,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": -11,
+          "method": "GET",
+          "profile_kind": "private",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64377/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": true,
+          "request_id": "842F4D5771A0D350F3925046E47E7DB6",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": false,
+          "decision": "block",
+          "engine_result": -1,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "frame-less-worker",
+          "private": false,
+          "request_id": "842F4D5771A0D350F3925046E47E7DB6",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "C1DF44906EE513B24C1E1B802895F389",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "F3848C2808E90073EF5712C18BD46E46",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3988,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -12,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21528.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9BDCB4F9CAFB8A1D466302F3BB7FF2E1",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 399,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 291630,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21528.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "9BDCB4F9CAFB8A1D466302F3BB7FF2E1",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 260,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 291631,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "356DD3A466A4ADF4D9786F0D2A25278B",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "request_id": "356DD3A466A4ADF4D9786F0D2A25278B",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ]
+    },
+    {
+      "kind": "regular",
+      "mode": "browser-close",
+      "events": [
+        "positive-control",
+        "utility-stopped",
+        "native-pending",
+        "owned-browser-disconnected"
+      ],
+      "browserContextId": "41B897F027FD0720E11D4471590AD3EF",
+      "owner": {
+        "targetId": "47DA8152144148781B59E133AFFD0DA3",
+        "type": "service_worker",
+        "title": "Service Worker http://127.0.0.1:64377/service.js",
+        "url": "http://127.0.0.1:64377/service.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "41B897F027FD0720E11D4471590AD3EF"
+      },
+      "version": {
+        "versionId": "0",
+        "registrationId": "0",
+        "scriptURL": "http://127.0.0.1:64377/service.js",
+        "runningStatus": "running",
+        "status": "installing",
+        "scriptLastModified": 0,
+        "scriptResponseTime": 1792618340.40178,
+        "controlledClients": [],
+        "targetId": "47DA8152144148781B59E133AFFD0DA3"
+      },
+      "processes": {
+        "browserPid": 21530,
+        "utilityPid": 21546
+      },
+      "pendingId": "576DAE99BFD1A8A278ADBE26E321A5C2",
+      "utilityAliveAfterClose": false,
+      "pendingArrivals": [],
+      "pendingRecords": [
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "576DAE99BFD1A8A278ADBE26E321A5C2",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ],
+      "passed": true,
+      "records": [
+        {
+          "bundle_sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+          "event": "engine-ready"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "8413D0916D3D0C78CC34CEE8A5F3601C",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "10F941B0E9D1576F79FBB3FC7EBE9B72",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "other",
+          "factory_type": 0,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 1464553,
+          "initiator_origin": "absent",
+          "initiator_present": false,
+          "loader_request_id": -6,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "mainFrame",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21544.2",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "01143B5594D8C5AE3A698EC1FD4C8B3C",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 3529,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 280410,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/client.js"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "21544.4",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "01143B5594D8C5AE3A698EC1FD4C8B3C",
+          "factory_isolation_top_origin": "http://127.0.0.1:64377",
+          "factory_kind": "other",
+          "factory_type": 2,
+          "frame_role": "main",
+          "frame_state": "live-at-entry",
+          "hook_to_decision_us": 403,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": 280411,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "absent",
+          "resource_type": "image",
+          "status": "ready",
+          "top_frame_origin": "http://127.0.0.1:64377",
+          "url": "http://127.0.0.1:64377/favicon.ico"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "E39D3D779E5F6453E567408FC0803E3E",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "context_alive": true,
+          "decision": "allow",
+          "engine_result": 0,
+          "event": "webtransport-decision",
+          "initiator_origin": "http://127.0.0.1:64377",
+          "owner": "document-or-dedicated-worker",
+          "private": false,
+          "request_id": "E39D3D779E5F6453E567408FC0803E3E",
+          "source_contract": "webtransport-initiator-origin",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        },
+        {
+          "decision": "allow",
+          "devtools_request_id": "47DA8152144148781B59E133AFFD0DA3",
+          "engine_result": 0,
+          "event": "decision",
+          "factory_instance": "934D0F53051091AB3AC7C1267159EA63",
+          "factory_isolation_top_origin": "absent",
+          "factory_kind": "service-worker-script",
+          "factory_type": 5,
+          "frame_role": "unresolved",
+          "frame_state": "not-associated",
+          "hook_to_decision_us": 524,
+          "initiator_origin": "http://127.0.0.1:64377",
+          "initiator_present": true,
+          "loader_request_id": -7,
+          "method": "GET",
+          "profile_kind": "regular",
+          "redirect_index": 0,
+          "referrer": "http://127.0.0.1:64377/",
+          "request_isolation_top_origin": "http://127.0.0.1:64377",
+          "resource_type": "script",
+          "status": "ready",
+          "top_frame_origin": "unresolved",
+          "url": "http://127.0.0.1:64377/service.js"
+        },
+        {
+          "event": "webtransport-pending",
+          "private": false,
+          "request_id": "576DAE99BFD1A8A278ADBE26E321A5C2",
+          "url": "https://page.blanc-fixture.test:54649/transport"
+        }
+      ]
+    }
+  ],
+  "serverRows": [
+    {
+      "event": "ready"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:54649",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64377"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:54649",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64377"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:54649",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64377"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:54649",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64377"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    },
+    {
+      "event": "alpn",
+      "value": "h3"
+    },
+    {
+      "event": "connect",
+      "headers": {
+        ":scheme": "https",
+        ":method": "CONNECT",
+        ":authority": "page.blanc-fixture.test:54649",
+        ":path": "/transport",
+        ":protocol": "webtransport",
+        "sec-webtransport-http3-draft02": "1",
+        "origin": "http://127.0.0.1:64377"
+      },
+      "accepted": true
+    },
+    {
+      "event": "echo",
+      "value": "blanc-http3-proof"
+    }
+  ],
+  "errors": []
+}
