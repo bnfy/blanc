@@ -96,6 +96,7 @@ if (window.location.protocol === 'blanc:') {
         setWallpaperColor: (preset) => invoke('pages:start:set-wallpaper-color', preset),
         setWallpaperFill: (fill) => invoke('pages:start:set-wallpaper-fill', fill),
         setWallpaperFollowSpace: (enabled) => invoke('pages:start:set-wallpaper-follow-space', enabled),
+        setClock: (partial) => invoke('pages:start:set-clock', partial),
         chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
         removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),

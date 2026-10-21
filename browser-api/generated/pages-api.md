@@ -32,6 +32,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.setWallpaperColor` | invoke | `pages:start:set-wallpaper-color` | newtab | Choose the Color wallpaper's Spaces preset (sage, sky, iris, rose, clay, sand, slate or graphite). |
 | `start.setWallpaperFill` | invoke | `pages:start:set-wallpaper-fill` | newtab | Choose how the Color wallpaper is drawn: soft, solid or gradient. |
 | `start.setWallpaperFollowSpace` | invoke | `pages:start:set-wallpaper-follow-space` | newtab | Whether a window in a Space draws that Space's color as the Color wallpaper. |
+| `start.setClock` | invoke | `pages:start:set-clock` | newtab | Change the Billboard clock's Font & Color: any of font, weight, color, tone and style. Replies with the clock as now drawn. |
 | `start.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | newtab | Pick an image file for the Start Page wallpaper and show it. |
 | `start.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | newtab | Delete the stored Start Page image and return to Sunrise. |
 | `start.openMahjong` | invoke | `pages:start:open-mahjong` | newtab | Open blanc://mahjong as an ordinary tab. |

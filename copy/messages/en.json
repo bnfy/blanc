@@ -5278,6 +5278,68 @@
     "message": "Wallpaper",
     "note": "Start page → Customize popover: label above the wallpaper choices."
   },
+  "newtab.clock.open": {
+    "message": "Clock font & color…",
+    "note": "Start page → Customize popover, shown only while the Billboard layout is chosen: button that closes Customize and opens the clock’s Font & color popover under the clock.",
+    "maxLength": 34
+  },
+  "newtab.clock.title": {
+    "message": "Font & color",
+    "note": "Start page → the Billboard clock’s popover: its heading, after the iOS Lock Screen’s Font & Color sheet.",
+    "maxLength": 24
+  },
+  "newtab.clock.font": {
+    "message": "Font",
+    "note": "Start page → clock Font & color popover: accessible name of the row of four typefaces, each shown as the numerals “12”."
+  },
+  "newtab.clock.font.instrument": {
+    "message": "Instrument Sans",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language), read out and shown on hover."
+  },
+  "newtab.clock.font.condensed": {
+    "message": "Instrument Sans Condensed",
+    "note": "Start page → clock Font & color popover: name of the narrow cut of the Instrument Sans typeface (keep “Instrument Sans”; translate “Condensed”), read out and shown on hover."
+  },
+  "newtab.clock.font.inter": {
+    "message": "Inter",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language), read out and shown on hover."
+  },
+  "newtab.clock.font.mono": {
+    "message": "JetBrains Mono",
+    "note": "Start page → clock Font & color popover: name of a monospaced typeface (a proper name, kept in every language), read out and shown on hover."
+  },
+  "newtab.clock.weight": {
+    "message": "Weight",
+    "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight.",
+    "maxLength": 10
+  },
+  "newtab.clock.color": {
+    "message": "Color",
+    "note": "Start page → clock Font & color popover: accessible name of the row of color swatches for the clock."
+  },
+  "newtab.clock.auto": {
+    "message": "Automatic",
+    "note": "Start page → clock Font & color popover: the first swatch, which draws the clock in the page’s own text color (following the theme and wallpaper)."
+  },
+  "newtab.clock.tone": {
+    "message": "Tone",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right).",
+    "maxLength": 10
+  },
+  "newtab.clock.style": {
+    "message": "Style",
+    "note": "Start page → clock Font & color popover: accessible name of the Glass / Solid choice."
+  },
+  "newtab.clock.glass": {
+    "message": "Glass",
+    "note": "Start page → clock Font & color popover: draws the clock’s numerals as translucent, lit glass (as on the iOS Lock Screen).",
+    "maxLength": 10
+  },
+  "newtab.clock.solid": {
+    "message": "Solid",
+    "note": "Start page → clock Font & color popover: draws the clock’s numerals in flat, opaque color.",
+    "maxLength": 10
+  },
   "newtab.wallpaper.sunrise": {
     "message": "Sunrise",
     "note": "Start page → Customize popover, under Wallpaper: choice for Blanc’s own Sunrise artwork (the artwork’s name, kept in every language), beside “Your image”.",

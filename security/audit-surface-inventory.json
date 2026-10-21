@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "10cacc2a85ab46cd9efaebeecdf543ba6ccd82acb647929ebc653e4b0e24cb06",
+      "sha256": "b4e5ef63c5da8a53c3e53c85eda5f025b8223d20bc82ae60f2498d14ccff3357",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -481,7 +481,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "a010e73442a008d247d064452698536d4e2b9039218077c44cfc7a5538818357",
+      "sha256": "9b589679288086ec16bd7a87e279766487667ac727beb26e7d1d44d57ca8abcb",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -569,6 +569,7 @@
         "pages:start:privacy-complete",
         "pages:start:recover-session",
         "pages:start:remove-wallpaper",
+        "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
         "pages:start:set-layout",
         "pages:start:set-wallpaper",
@@ -849,7 +850,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "387c7bde5a452a4071832483c2aea47b0ee7f8c16faa0ee7a7bcbf65ac3ae4ad",
+      "sha256": "97cc99b44f46ea19c87f7f9780112b319c05e1849d613348d9ee3c69a1c86b68",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -939,6 +940,7 @@
         "pages:start:recover-session",
         "pages:start:remote-tabs",
         "pages:start:remove-wallpaper",
+        "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
         "pages:start:set-layout",
         "pages:start:set-wallpaper",

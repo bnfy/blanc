@@ -330,6 +330,19 @@ const START_SURFACES = [
   { name: 'start page (shelf)', open: startLayout('shelf') },
   { name: 'start page (tally, customize)', open: startLayout('tally', { customize: true }),
     close: (page) => page.evaluate(() => document.getElementById('customizePopover').hidePopover()) },
+  // The clock's Font & color, with a color chosen so the Tone line shows too.
+  { name: 'start page (billboard, clock font & color)',
+    open: async (context) => {
+      const page = await startLayout('billboard')(context);
+      await page.evaluate(() => document.getElementById('clockStyleOpen').click());
+      await page.evaluate(() => document.querySelector('[data-clock-color-pick="sky"]').click());
+      await page.waitForFunction(() => !document.getElementById('clockToneLine').hidden);
+      return page;
+    },
+    close: (page) => page.evaluate(async () => {
+      await window.bowserPages.start.setClock({ color: 'auto' });
+      document.getElementById('clockPopover').hidePopover();
+    }) },
   {
     name: 'start page (private)',
     open: async ({ app }) => {

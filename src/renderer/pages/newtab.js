@@ -814,6 +814,120 @@ function stopClock() {
   clockTimer = null;
 }
 
+// The clock's Font & Color. Main finishes every value (start-clock-style.js):
+// the weight already inside the face's range, and the ink as one hex, or null
+// for the page's own text color. The page only previews a slider while it is
+// dragged, then saves once on release.
+const clockElement = document.getElementById('bbClock');
+const clockPopover = document.getElementById('clockPopover');
+const clockStyleOpen = document.getElementById('clockStyleOpen');
+const clockFontPicks = [...document.querySelectorAll('[data-clock-font-pick]')];
+const clockStylePicks = [...document.querySelectorAll('[data-clock-style-pick]')];
+const clockWeight = document.getElementById('clockWeight');
+const clockTone = document.getElementById('clockTone');
+const clockToneLine = document.getElementById('clockToneLine');
+const clockColors = document.getElementById('clockColors');
+let clockState = null;
+let clockDragging = false;
+function paintClockWeight(weight) {
+  for (const element of [clockElement, clockPopover]) element.style.setProperty('--clock-weight', String(weight));
+}
+function paintClockInk(ink) {
+  if (ink) {
+    clockElement.dataset.ink = '';
+    clockElement.style.setProperty('--clock-ink', ink);
+  } else {
+    delete clockElement.dataset.ink;
+    clockElement.style.removeProperty('--clock-ink');
+  }
+}
+// The same mix main makes, as CSS, so the clock follows the tone thumb.
+function previewClockTone(tone) {
+  const base = clockState?.base;
+  const mix = clockState?.toneMix;
+  if (!base || !mix) return;
+  if (tone === 50) paintClockInk(base);
+  else if (tone < 50) paintClockInk(`color-mix(in srgb, ${base}, #000000 ${((50 - tone) / 50) * mix.darken * 100}%)`);
+  else paintClockInk(`color-mix(in srgb, ${base}, #ffffff ${((tone - 50) / 50) * mix.lighten * 100}%)`);
+}
+async function setClock(partial) {
+  try {
+    applyClock(await window.bowserPages.start.setClock(partial));
+  } catch {
+    // The saved clock comes back with the next status.
+  }
+}
+// Auto first, then one swatch per Spaces preset in main's order.
+function renderClockSwatches(presets) {
+  if (clockColors.childElementCount === presets.length + 1) return;
+  const swatch = (id, hex) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'clock-swatch';
+    button.dataset.clockColorPick = id;
+    button.setAttribute('aria-label', id === 'auto' ? t('newtab.clock.auto') : SWATCH_NAMES[id] ? t(SWATCH_NAMES[id]) : id);
+    if (hex) button.style.setProperty('--swatch', hex);
+    button.addEventListener('click', () => setClock({ color: id }));
+    return button;
+  };
+  clockColors.replaceChildren(swatch('auto'), ...presets.map(({ id, hex }) => swatch(id, hex)));
+}
+function applyClock(clock) {
+  if (!clock || typeof clock !== 'object') return;
+  clockState = clock;
+  clockElement.dataset.font = clock.font;
+  clockElement.dataset.style = clock.style;
+  renderClockSwatches(clock.presets ?? []);
+  for (const button of clockFontPicks) button.setAttribute('aria-pressed', String(button.dataset.clockFontPick === clock.font));
+  for (const button of clockStylePicks) button.setAttribute('aria-pressed', String(button.dataset.clockStylePick === clock.style));
+  for (const button of clockColors.children) button.setAttribute('aria-pressed', String(button.dataset.clockColorPick === clock.color));
+  clockToneLine.hidden = !clock.base;
+  if (clock.base) clockTone.style.setProperty('--clock-tone-mid', clock.base);
+  // A status broadcast must not yank a thumb out from under a drag.
+  if (clockDragging) return;
+  clockWeight.min = String(clock.range?.min ?? 400);
+  clockWeight.max = String(clock.range?.max ?? 700);
+  clockWeight.value = String(clock.weight);
+  clockTone.value = String(clock.tone);
+  paintClockWeight(clock.weight);
+  paintClockInk(clock.ink);
+}
+for (const button of clockFontPicks) {
+  button.addEventListener('click', () => setClock({ font: button.dataset.clockFontPick }));
+}
+for (const button of clockStylePicks) {
+  button.addEventListener('click', () => setClock({ style: button.dataset.clockStylePick }));
+}
+clockWeight.addEventListener('input', () => {
+  clockDragging = true;
+  paintClockWeight(Number(clockWeight.value));
+});
+clockTone.addEventListener('input', () => {
+  clockDragging = true;
+  previewClockTone(Number(clockTone.value));
+});
+for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone']]) {
+  slider.addEventListener('change', async () => {
+    const value = Number(slider.value);
+    clockDragging = false;
+    await setClock({ [key]: value });
+  });
+}
+// Customize closes and the clock's own popover opens under the clock, so the
+// clock stays in view while it changes.
+clockStyleOpen.addEventListener('click', () => {
+  document.getElementById('customizePopover').hidePopover();
+  clockPopover.showPopover();
+  clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
+});
+clockPopover.addEventListener('toggle', (event) => {
+  if (event.newState !== 'closed') return;
+  // Keyboard focus returns to Customize, where the popover was opened from.
+  if (document.activeElement === document.body || clockPopover.contains(document.activeElement)) {
+    document.getElementById('customizeButton').focus();
+  }
+});
+
 // A separate footer action opens the standalone game. Target=_blank is
 // adopted by the browser's managed-tab handler; its session follows this tab.
 document.getElementById('mahjongLink').href = isPrivate
@@ -841,6 +955,7 @@ function applyLayout(name) {
     button.setAttribute('aria-pressed', String(isActive));
   }
   stopClock();
+  if (name !== 'billboard' && clockPopover.matches(':popover-open')) clockPopover.hidePopover();
   if (!rendered.has(name)) {
     if (name === 'billboard') renderBillboard();
     if (name === 'shelf') renderShelf();
@@ -1106,6 +1221,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   // projection then replaces.
   applyWallpaper(data.wallpaper);
   applyDynamicWallpaper(data.dynamicWallpaperEnabled);
+  applyClock(data.clock);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
@@ -1141,6 +1257,7 @@ window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status && 'wallpaper' in status) applyWallpaper(status.wallpaper);
+  if (status && 'clock' in status) applyClock(status.clock);
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }

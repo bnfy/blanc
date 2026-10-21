@@ -435,6 +435,22 @@
         "doc": "Whether a window in a Space draws that Space's color as the Color wallpaper."
       },
       {
+        "name": "start.setClock",
+        "kind": "invoke",
+        "channel": "pages:start:set-clock",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "partial",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change the Billboard clock's Font & Color: any of font, weight, color, tone and style. Replies with the clock as now drawn."
+      },
+      {
         "name": "start.chooseWallpaper",
         "kind": "invoke",
         "channel": "pages:start:choose-wallpaper",

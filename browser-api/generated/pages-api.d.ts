@@ -45,6 +45,8 @@ export interface NewtabPagesAPI {
     setWallpaperFill: (fill: unknown) => Promise<unknown>;
     /** Whether a window in a Space draws that Space's color as the Color wallpaper. IPC: invoke `pages:start:set-wallpaper-follow-space`. */
     setWallpaperFollowSpace: (enabled: unknown) => Promise<unknown>;
+    /** Change the Billboard clock's Font & Color: any of font, weight, color, tone and style. Replies with the clock as now drawn. IPC: invoke `pages:start:set-clock`. */
+    setClock: (partial: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */

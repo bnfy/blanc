@@ -4611,7 +4611,8 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
   margin-top: 12px;
 }
 .wallpaper-swatches.is-overridden { opacity: 0.45; }
-.wallpaper-swatch {
+.wallpaper-swatch,
+.clock-swatch {
   width: 24px;
   height: 24px;
   padding: 0;
@@ -4621,10 +4622,14 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
   cursor: pointer;
 }
-.wallpaper-swatch:hover { box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), 0 0 0 3px color-mix(in srgb, var(--text) 10%, transparent); }
-.wallpaper-swatch:focus-visible { outline-offset: 3px; }
-.wallpaper-swatch[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 2px; }
-.wallpaper-swatch:disabled { cursor: default; }
+.wallpaper-swatch:hover,
+.clock-swatch:hover { box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), 0 0 0 3px color-mix(in srgb, var(--text) 10%, transparent); }
+.wallpaper-swatch:focus-visible,
+.clock-swatch:focus-visible { outline-offset: 3px; }
+.wallpaper-swatch[aria-pressed="true"],
+.clock-swatch[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 2px; }
+.wallpaper-swatch:disabled,
+.clock-swatch:disabled { cursor: default; }
 .wallpaper-fill-line { margin-top: 12px; }
 .wallpaper-fill-line .wallpaper-line-label { width: auto; min-width: 36px; }
 .wallpaper-follow {
@@ -4664,3 +4669,127 @@ body.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink] {
    group's dots on the Start Page take its color. */
 .cluster.group-colored i,
 .chip-dots.group-colored i { background: var(--group-color); opacity: 1; }
+
+/* Billboard clock Font & Color (spec 2026-10-21-billboard-clock-style-design.md).
+   newtab.js sets data-font, data-style and --clock-weight on the clock, and
+   data-ink with --clock-ink when a color is chosen; without them the clock
+   is drawn as before. Each face's preview in the popover uses the same rule. */
+.bb-clock { anchor-name: --bb-clock; }
+.bb-clock[data-font] { font-weight: var(--clock-weight, 500); }
+/* The universal wdth pin is !important, so the condensed cut must be too. */
+.bb-clock[data-font="condensed"],
+.clock-font[data-clock-font-pick="condensed"] > span { font-variation-settings: "wdth" 75 !important; }
+.bb-clock[data-font="inter"],
+.clock-font[data-clock-font-pick="inter"] > span { font-family: "Inter", var(--font-text); letter-spacing: -0.035em; }
+.bb-clock[data-font="mono"],
+.clock-font[data-clock-font-pick="mono"] > span { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: -0.06em; }
+.bb-clock[data-ink] { color: var(--clock-ink); }
+/* Glass: a translucent numeral lit from above, with a bright rim and a soft
+   shadow under it, in the clock's own color. Text can't blur what is behind
+   it, so the glass is drawn rather than sampled. */
+.bb-clock[data-style="glass"] {
+  --clock-glass: var(--clock-ink, var(--text));
+  color: transparent;
+  background-image: linear-gradient(172deg,
+    color-mix(in oklab, var(--clock-glass) 24%, rgb(255 255 255 / 0.94)) 0%,
+    color-mix(in oklab, var(--clock-glass) 52%, transparent) 36%,
+    color-mix(in oklab, var(--clock-glass) 30%, transparent) 64%,
+    color-mix(in oklab, var(--clock-glass) 64%, rgb(255 255 255 / 0.5)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--clock-glass) 24%, rgb(255 255 255 / 0.6));
+  text-shadow: none;
+  filter: drop-shadow(0 1px 0.5px rgb(255 255 255 / 0.4)) drop-shadow(0 12px 28px rgb(0 0 0 / 0.16));
+}
+@media (prefers-reduced-transparency: reduce) {
+  .bb-clock[data-style="glass"] {
+    color: var(--clock-glass);
+    background-image: none;
+    -webkit-text-stroke: 0;
+    filter: none;
+  }
+}
+
+/* The Customize popover's way in: shown only while Billboard is the layout. */
+.customize-clock {
+  display: block;
+  margin: 10px auto 0;
+  min-height: 22px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 500 12px/1.25 var(--font-text);
+  cursor: pointer;
+}
+.customize-clock:hover { text-decoration: underline; text-underline-offset: 3px; }
+.customize-clock:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+body:not([data-layout="billboard"]) .customize-clock { display: none; }
+
+/* The popover hangs under the clock, so the clock stays in view. */
+.clock-popover {
+  position: fixed;
+  position-anchor: --bb-clock;
+  position-area: bottom center;
+  position-try-fallbacks: flip-block;
+  inset: auto;
+  margin: 18px 0;
+  width: 296px;
+  max-width: calc(100vw - 32px);
+  padding: 14px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 18px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
+  color: var(--text);
+  font-family: var(--font-text);
+}
+.clock-popover-title {
+  margin: 0 0 10px;
+  color: var(--text);
+  font: 600 13px/1.3 var(--font-text);
+  text-align: center;
+}
+.clock-fonts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.clock-font {
+  height: 52px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.clock-font > span {
+  font-family: var(--font-text);
+  font-size: 30px;
+  font-weight: var(--clock-weight, 500);
+  line-height: 1;
+}
+.clock-font:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.clock-font:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.clock-font[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--text) 32%, transparent);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.clock-line { margin-top: 10px; }
+.clock-line .wallpaper-line-label { width: auto; min-width: 36px; }
+.clock-swatches {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+/* Auto shows the page's own ink beside its background. */
+.clock-swatch[data-clock-color-pick="auto"] {
+  background: linear-gradient(135deg, var(--text) 0 50%, var(--bg) 50% 100%);
+}
+/* The tone slider takes the chosen color. */
+.clock-tone {
+  accent-color: var(--clock-tone-mid, var(--text));
+}
+.clock-styles { margin-top: 12px; }

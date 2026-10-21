@@ -123,7 +123,10 @@ test('renderer reflects progress, keeps completed rows actionable, and retires a
   assert.match(js, /migrationChecklistShell\.classList\.add\('is-completing'\)/);
   assert.match(js, /migrationChecklistLabel\.textContent = completing \? t\('newtab\.checklist\.doneLabel'\) : t\('newtab\.checklist\.label'\)/,
     'the footer pill itself confirms completion');
-  assert.doesNotMatch(js, /showPopover\(/, 'completion never opens the popover on its own');
+  // The only popover the page opens itself is the clock's Font & color, from
+  // its button in Customize.
+  assert.deepEqual(js.match(/\b\w+\.showPopover\(/g) ?? [], ['clockPopover.showPopover('],
+    'completion never opens the popover on its own');
   assert.doesNotMatch(js, /is-expanded/);
   assert.match(js, /window\.addEventListener\('focus', presentPendingMigrationChecklistCompletion\)/);
   assert.match(js, /setTimeout\(hideMigrationChecklist, 1500\)/);

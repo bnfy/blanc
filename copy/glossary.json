@@ -218,7 +218,10 @@
       "settings.general.customBangs.name",
       "newtab.wallpaper.styleAuto",
       "newtab.wallpaper.styleSpotlight",
-      "newtab.wallpaper.sunrise"
+      "newtab.wallpaper.sunrise",
+      "newtab.clock.font.instrument",
+      "newtab.clock.font.inter",
+      "newtab.clock.font.mono"
     ],
     "es": [
       "about.chromium",
@@ -260,7 +263,11 @@
       "groupMenu.colorLabel",
       "newtab.wallpaper.styleAuto",
       "newtab.wallpaper.sunrise",
-      "newtab.wallpaper.color"
+      "newtab.wallpaper.color",
+      "newtab.clock.font.instrument",
+      "newtab.clock.font.inter",
+      "newtab.clock.font.mono",
+      "newtab.clock.color"
     ],
     "fr": [
       "about.chromium",
@@ -309,7 +316,11 @@
       "newtab.wallpaper.filter",
       "newtab.wallpaper.styleAuto",
       "newtab.wallpaper.sunrise",
-      "newtab.wallpaper.imageLabel"
+      "newtab.wallpaper.imageLabel",
+      "newtab.clock.font.instrument",
+      "newtab.clock.font.inter",
+      "newtab.clock.font.mono",
+      "newtab.clock.style"
     ],
     "pt-BR": [
       "about.chromium",
@@ -351,7 +362,10 @@
       "result.tag.space",
       "settings.general.bangs.label",
       "newtab.wallpaper.styleAuto",
-      "newtab.wallpaper.sunrise"
+      "newtab.wallpaper.sunrise",
+      "newtab.clock.font.instrument",
+      "newtab.clock.font.inter",
+      "newtab.clock.font.mono"
     ],
     "it": [
       "about.chromium",
@@ -404,7 +418,10 @@
       "spaces.picker.hex",
       "result.tag.space",
       "newtab.wallpaper.styleAuto",
-      "newtab.wallpaper.sunrise"
+      "newtab.wallpaper.sunrise",
+      "newtab.clock.font.instrument",
+      "newtab.clock.font.inter",
+      "newtab.clock.font.mono"
     ]
   }
 }

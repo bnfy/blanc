@@ -191,6 +191,7 @@ const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
 const { colorWallpaper } = require('./start-page-paint');
+const { clockStyleFromSettings } = require('./start-clock-style');
 const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
 // main, and main's resolver over the settings (spec
@@ -13239,6 +13240,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       whatsNew: whatsNewState(current, { version: app.getVersion(), now: Date.now() }),
       dynamicWallpaperEnabled: settings.isDynamicWallpaperEnabled(),
       wallpaper: wallpaperState(false),
+      // The Billboard clock's Font & Color, finished in start-clock-style.js.
+      clock: clockStyleFromSettings(current),
       // Start-page moving-in checklist. Shared across tabs; the send sites
       // apply the per-tab profile/private guard.
       migrationChecklist: migrationChecklistState({

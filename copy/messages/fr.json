@@ -5123,6 +5123,62 @@
     "message": "Fond d’écran",
     "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
   },
+  "newtab.clock.open": {
+    "message": "Police et couleur de l’horloge…",
+    "source": "sha256:3101ec02fa39d03c97bdaf8ddd75841ce2448f24bb6a547627d64e09d02b2de2"
+  },
+  "newtab.clock.title": {
+    "message": "Police et couleur",
+    "source": "sha256:15ced05b529d677392e5e8591e1565f86cbee773269aa6c094996d0e8564d716"
+  },
+  "newtab.clock.font": {
+    "message": "Police",
+    "source": "sha256:e33d20f9eed0e3c124073675ac01a4f14fb3bdb6b1b846ffec05fc091d5e1e7e"
+  },
+  "newtab.clock.font.instrument": {
+    "message": "Instrument Sans",
+    "source": "sha256:e2d184032945066ed9f875b834f67d04dcab10f396877c24c4326c59ef80469c"
+  },
+  "newtab.clock.font.condensed": {
+    "message": "Instrument Sans condensée",
+    "source": "sha256:bee4ba7921090acb2cbb158bb2c0cba980d7b13a41e74bf27feeab61a3ee3c76"
+  },
+  "newtab.clock.font.inter": {
+    "message": "Inter",
+    "source": "sha256:d581678f176219a554459ca4eeab2e19902b2e3e994e4ef1f2b9eb84bb3d9290"
+  },
+  "newtab.clock.font.mono": {
+    "message": "JetBrains Mono",
+    "source": "sha256:0b7df83126a8fd23fd4e3e3999a289e9a4df4d01266a9ce7d31dc1f312b052bb"
+  },
+  "newtab.clock.weight": {
+    "message": "Graisse",
+    "source": "sha256:37234f84770d4794a6954002728906ad5cc8142080afb0cce635e11616926fa0"
+  },
+  "newtab.clock.color": {
+    "message": "Couleur",
+    "source": "sha256:ca00ae4913e0162319257952f2b0b9ee148c7295384b0eff0cea88d58f455f7a"
+  },
+  "newtab.clock.auto": {
+    "message": "Automatique",
+    "source": "sha256:51cfef51c13b9db8c392011854ee4f783550f9c380893649914b84ee49588752"
+  },
+  "newtab.clock.tone": {
+    "message": "Teinte",
+    "source": "sha256:4e2dcec3039f3335a87b71b7c3b25be7ae640286420646a5c0b3a46c356a7c5d"
+  },
+  "newtab.clock.style": {
+    "message": "Style",
+    "source": "sha256:35da8a3ba5595a5d9ec4a085493d86354721a0199acdbe781966dfaa864c48d8"
+  },
+  "newtab.clock.glass": {
+    "message": "Verre",
+    "source": "sha256:1a2e9c95dc1bde38f563d97d2f69c1ff117805c0a6e930986eba65f44fa4b308"
+  },
+  "newtab.clock.solid": {
+    "message": "Uni",
+    "source": "sha256:dd41ab13c9fac80c6a3d3de1d56656050bc4fcfd42b1d8a4eff7cecdc9604c37"
+  },
   "newtab.wallpaper.sunrise": {
     "message": "Sunrise",
     "source": "sha256:72c31dc9ab3b984b0f5c3c2738c30f20b95ce96f87be7d22d3c5504f6dfbf636"

@@ -194,6 +194,9 @@
             <span class="layout-name" data-i18n="newtab.layout.tally">Tally</span>
           </button>
         </div>
+        <!-- Billboard only: the clock's own Font & Color, in a popover that
+             sits under the clock so every change shows as it is made. -->
+        <button id="clockStyleOpen" class="customize-clock" type="button" aria-haspopup="dialog" data-i18n="newtab.clock.open">Clock font &amp; color…</button>
         <hr class="customize-divider" />
         <div id="customizeWallpaperLabel" class="customize-label" data-i18n="newtab.customize.wallpaperHeading">Wallpaper</div>
         <!-- A cover preview of what the Start Page will show. Only the chosen
@@ -255,6 +258,32 @@
           </div>
         </div>
         <p id="customWallpaperError" class="wallpaper-error" role="status" hidden></p>
+      </div>
+      <!-- The Billboard clock's Font & Color, after the iOS Lock Screen's:
+           four bundled faces with a weight slider, then the page's own ink or
+           a Spaces color with a tone slider, then Glass or Solid. -->
+      <div id="clockPopover" class="clock-popover" popover role="dialog" aria-labelledby="clockPopoverTitle">
+        <h2 id="clockPopoverTitle" class="clock-popover-title" data-i18n="newtab.clock.title">Font &amp; color</h2>
+        <div id="clockFonts" class="clock-fonts" role="group" aria-label="Font" data-i18n-aria-label="newtab.clock.font">
+          <button type="button" class="clock-font" data-clock-font-pick="instrument" aria-pressed="true" aria-label="Instrument Sans" title="Instrument Sans" data-i18n-aria-label="newtab.clock.font.instrument" data-i18n-title="newtab.clock.font.instrument"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="condensed" aria-pressed="false" aria-label="Instrument Sans Condensed" title="Instrument Sans Condensed" data-i18n-aria-label="newtab.clock.font.condensed" data-i18n-title="newtab.clock.font.condensed"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="inter" aria-pressed="false" aria-label="Inter" title="Inter" data-i18n-aria-label="newtab.clock.font.inter" data-i18n-title="newtab.clock.font.inter"><span aria-hidden="true">12</span></button>
+          <button type="button" class="clock-font" data-clock-font-pick="mono" aria-pressed="false" aria-label="JetBrains Mono" title="JetBrains Mono" data-i18n-aria-label="newtab.clock.font.mono" data-i18n-title="newtab.clock.font.mono"><span aria-hidden="true">12</span></button>
+        </div>
+        <div class="wallpaper-line clock-line">
+          <label class="wallpaper-line-label" for="clockWeight" data-i18n="newtab.clock.weight">Weight</label>
+          <input id="clockWeight" class="wallpaper-fade" type="range" min="400" max="700" step="10" value="500" />
+        </div>
+        <hr class="customize-divider" />
+        <div id="clockColors" class="clock-swatches" role="group" aria-label="Color" data-i18n-aria-label="newtab.clock.color"></div>
+        <div id="clockToneLine" class="wallpaper-line clock-line">
+          <label class="wallpaper-line-label" for="clockTone" data-i18n="newtab.clock.tone">Tone</label>
+          <input id="clockTone" class="wallpaper-fade clock-tone" type="range" min="0" max="100" step="1" value="50" />
+        </div>
+        <div id="clockStyles" class="wallpaper-seg clock-styles" role="group" aria-label="Style" data-i18n-aria-label="newtab.clock.style">
+          <button type="button" data-clock-style-pick="glass" aria-pressed="false" data-i18n="newtab.clock.glass">Glass</button>
+          <button type="button" data-clock-style-pick="solid" aria-pressed="true" data-i18n="newtab.clock.solid">Solid</button>
+        </div>
       </div>
     </span>
     <span class="footer-right">

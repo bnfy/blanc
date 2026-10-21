@@ -12,6 +12,7 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
+const clockRules = require('./start-clock-style');
 const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
@@ -101,7 +102,7 @@ const CHECKLIST_FLAGS = [
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'bangsEnabled', 'customBangs', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
@@ -206,6 +207,14 @@ const DEFAULTS = {
   newtabWallpaperColor: 'sage',
   newtabWallpaperFill: 'gradient',
   newtabFollowSpaceColor: false,
+  // The Billboard clock's Font & Color (start-clock-style.js): a bundled face,
+  // its weight, the page's ink or a Spaces preset at a tone, and Solid or
+  // Glass. The defaults draw the clock as it was. Synced like the layout.
+  newtabClockFont: 'instrument',
+  newtabClockWeight: 500,
+  newtabClockColor: 'auto',
+  newtabClockTone: 50,
+  newtabClockStyle: 'solid',
   // Show this device's own image on the Start Page when one is stored
   // (wallpaper.js). Device-local like the image itself, so not Profile Synced.
   newtabCustomWallpaper: false,
@@ -504,6 +513,11 @@ function getSettings() {
   if (normalizePreset(data.newtabWallpaperColor) === null) data.newtabWallpaperColor = DEFAULTS.newtabWallpaperColor;
   if (normalizeFill(data.newtabWallpaperFill) === null) data.newtabWallpaperFill = DEFAULTS.newtabWallpaperFill;
   if (typeof data.newtabFollowSpaceColor !== 'boolean') data.newtabFollowSpaceColor = false;
+  if (clockRules.normalizeFont(data.newtabClockFont) === null) data.newtabClockFont = DEFAULTS.newtabClockFont;
+  if (clockRules.normalizeWeight(data.newtabClockWeight) === null) data.newtabClockWeight = DEFAULTS.newtabClockWeight;
+  if (clockRules.normalizeColor(data.newtabClockColor) === null) data.newtabClockColor = DEFAULTS.newtabClockColor;
+  if (clockRules.normalizeTone(data.newtabClockTone) === null) data.newtabClockTone = DEFAULTS.newtabClockTone;
+  if (clockRules.normalizeStyle(data.newtabClockStyle) === null) data.newtabClockStyle = DEFAULTS.newtabClockStyle;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
@@ -594,6 +608,13 @@ function sanitize(partial) {
   if (normalizePreset(partial.newtabWallpaperColor) !== null) clean.newtabWallpaperColor = partial.newtabWallpaperColor;
   if (normalizeFill(partial.newtabWallpaperFill) !== null) clean.newtabWallpaperFill = partial.newtabWallpaperFill;
   if (typeof partial.newtabFollowSpaceColor === 'boolean') clean.newtabFollowSpaceColor = partial.newtabFollowSpaceColor;
+  Object.assign(clean, clockRules.settingsForClock({
+    font: partial.newtabClockFont,
+    weight: partial.newtabClockWeight,
+    color: partial.newtabClockColor,
+    tone: partial.newtabClockTone,
+    style: partial.newtabClockStyle,
+  }));
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
