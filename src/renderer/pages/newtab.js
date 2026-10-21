@@ -749,11 +749,7 @@ function renderBillboard() {
       dismiss.className = 'bb-site-dismiss';
       dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
       dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
-      const closeIcon = document.createElement('img');
-      closeIcon.src = 'close.svg';
-      closeIcon.alt = '';
-      closeIcon.draggable = false;
-      dismiss.appendChild(closeIcon);
+      dismiss.appendChild(closeGlyph());
       dismiss.addEventListener('click', () => {
         const index = [...favs.children].indexOf(item);
         rememberHiddenTopSite(site.key);
@@ -780,19 +776,25 @@ function visibleBillboardSites() {
   return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
 }
 
-/** The ⌘L panel's pin glyph, drawn inline so it takes the theme's text color. */
-function pinGlyph() {
+/** A 16px line glyph drawn inline, so it takes the theme's text color in
+ * light, dark and private alike (an <img> can't follow currentColor). */
+function lineGlyph(paths) {
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 16 16');
   svg.setAttribute('aria-hidden', 'true');
-  for (const d of ['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']) {
+  for (const d of paths) {
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);
     svg.appendChild(path);
   }
   return svg;
 }
+
+/** The ⌘L panel's pin glyph. */
+const pinGlyph = () => lineGlyph(['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']);
+/** The × the other start page close buttons draw. */
+const closeGlyph = () => lineGlyph(['M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5']);
 
 async function fillBillboardSites() {
   if (

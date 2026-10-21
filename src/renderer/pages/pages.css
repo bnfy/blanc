@@ -2811,12 +2811,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
   transform: scale(0.88);
   transition: opacity 120ms ease, transform 120ms ease, border-color 120ms ease;
 }
-.bb-site-dismiss img { width: 10px; height: 10px; opacity: 0.68; }
-[data-theme="dark"] .bb-site-dismiss img,
-[data-theme="private"] .bb-site-dismiss img { filter: invert(1); }
+/* Both glyphs are drawn inline in the text color, so they read in light, dark
+   and private alike. The start page follows prefers-color-scheme and never
+   sets data-theme="dark", which left an inverted <img> × black on a dark
+   badge. */
+.bb-site-dismiss { color: var(--text); }
 /* The pin mirrors the × on the tile's other corner. Pinned, it stays on show
    and fills, so the row says which sites hold their place. */
 .bb-site-pin { right: auto; left: 28px; color: var(--text); }
+.bb-site-dismiss svg,
 .bb-site-pin svg,
 .fav-pin svg {
   width: 10px;

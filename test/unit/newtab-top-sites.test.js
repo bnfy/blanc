@@ -33,6 +33,12 @@ test('Billboard top sites stay local and private-safe; hiding stays in the page,
   assert.doesNotMatch((css.match(/\.bb-fav \.label \{[^}]*\}/g) ?? []).join(''), /line-clamp/,
     'Billboard labels stay on one line');
   assert.match(renderer, /t\('newtab\.billboard\.hide', \{ title: fullTitle \}\)/);
+  // The × takes the text color like the pin, so it reads in dark mode (the
+  // start page never sets data-theme="dark" for an <img> invert to key off).
+  assert.match(renderer, /dismiss\.appendChild\(closeGlyph\(\)\);/);
+  assert.doesNotMatch(renderer, /close\.svg/);
+  assert.match(css, /\.bb-site-dismiss \{ color: var\(--text\); \}/);
+  assert.match(css, /\.bb-site-dismiss svg,\s*\.bb-site-pin svg,[^{]*\{[^}]*stroke: currentColor;/);
   assert.match(preload, /topSites: \(options\) => invoke\('pages:start:top-sites', options\)/);
   // Hiding stays in this page's storage; no channel reaches main for it.
   assert.doesNotMatch(preload, /hideTopSite|dismissTopSite/);
