@@ -2,6 +2,7 @@ import { initHandheldDownload } from "./handheld-download.js";
 import { initHorizonShield } from "./horizon-shield.js";
 import { initGlanceDemo } from "./glance-demo.js";
 import { initGestureDemo } from "./gesture-demo.js";
+import { initFloatingIslandHero } from "./floating-island-hero.js";
 import { createImagePreview } from "./image-preview.js";
 
 // The homepage works without this script: every switching path and every
@@ -76,6 +77,7 @@ export function initLayouts(group, image, { view = window } = {}) {
 
 export function initHome({ document = window.document, view = window } = {}) {
   initHandheldDownload({ document, view });
+  initFloatingIslandHero(document.querySelector("[data-float-window]"), { view });
   // The Blocker shield turns as it scrolls by (three.js, loaded lazily).
   initHorizonShield(document.querySelector(".horizon-study"), { view });
   initGlanceDemo(document.querySelector("#glance"), { view });

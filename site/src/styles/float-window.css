@@ -54,7 +54,7 @@
   position: absolute;
   left: var(--pointer-x, 50%);
   top: var(--pointer-y, 62%);
-  width: 1.9%;
+  width: 2.3%;
   fill: #0e0e0e;
   stroke: #fff;
   stroke-width: 1.4;
