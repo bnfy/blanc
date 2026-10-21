@@ -74,30 +74,31 @@ final class PagesBridgeTests: XCTestCase {
     }
 
     // settings.get returns the full bootstrap payload built from the generated
-    // substrate: settings/searchEngines/appIcons/supporterIcons.
+    // substrate: settings/searchEngines/appIcons/capabilities.
     func testSettingsGetShape() {
         guard case .object(let pairs) = value("settings", "get") else {
             return XCTFail("settings.get should be an object")
         }
         let keys = pairs.map(\.0)
-        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "supporterIcons", "capabilities"])
+        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "capabilities"])
 
         let dict = Dictionary(uniqueKeysWithValues: pairs)
-        // 4 search engines, 8 free icons, 3 supporter icons.
-        if case .object(let engines)? = dict["searchEngines"] { XCTAssertEqual(engines.count, 4) }
-        else { XCTFail("searchEngines must be a record") }
-        if case .object(let icons)? = dict["appIcons"] { XCTAssertEqual(icons.count, 8) }
-        else { XCTFail("appIcons must be a record") }
-        if case .object(let sup)? = dict["supporterIcons"] {
-            XCTAssertEqual(sup.map(\.0).sorted(), ["ember", "gold", "plum"])
-        } else { XCTFail("supporterIcons must be a record") }
+        // Every engine and icon in the generated substrate, keyed by the
+        // stored id (`sunrise-dark`, not the Swift case name).
+        if case .object(let engines)? = dict["searchEngines"] {
+            XCTAssertEqual(engines.map(\.0), BlancSearchEngine.allCases.map(\.rawValue))
+        } else { XCTFail("searchEngines must be a record") }
+        if case .object(let icons)? = dict["appIcons"] {
+            XCTAssertEqual(icons.map(\.0), ["sunrise", "sunrise-dark", "sunrise-gold"])
+        } else { XCTFail("appIcons must be a record") }
 
         // usagePing comes from BlancSettingsDefaults, not a hardcode.
         if case .object(let s)? = dict["settings"] {
             let sd = Dictionary(uniqueKeysWithValues: s)
             XCTAssertEqual(sd["usagePing"], JSONValue.bool(BlancSettingsDefaults.usagePing))
             XCTAssertEqual(sd["searchEngine"], JSONValue.string(BlancSettingsDefaults.searchEngine.rawValue))
-            XCTAssertEqual(sd["supporterActive"], JSONValue.bool(false))
+            XCTAssertEqual(sd["patronActive"], JSONValue.bool(false))
+            XCTAssertEqual(sd["appIcon"], JSONValue.string("sunrise"))
         } else { XCTFail("settings must be an object") }
     }
 
@@ -132,5 +133,23 @@ final class PagesBridgeTests: XCTestCase {
         case .reject: break  // unknown method on a known group still rejects
         case .value: XCTFail("settings.teleport should reject")
         }
+    }
+
+    // The shim's member list comes from desktop's bridges.json, bundled as a
+    // resource, so the methods newtab.js calls unguarded exist on iOS too.
+    func testBundledMembersFollowTheDesktopContract() {
+        let names = Set(PagesBridge.bundledMembers.map(\.name))
+        for name in ["start.data", "start.onVisibility", "start.onRemoteTabs", "surface.close", "settings.get"] {
+            XCTAssertTrue(names.contains(name), "missing \(name)")
+        }
+        XCTAssertTrue(PagesBridge.userScriptSource.contains("\"start.onVisibility\""))
+        XCTAssertFalse(PagesBridge.userScriptSource.contains("__BLANC_MEMBERS__"))
+    }
+
+    func testMembersParseFromBridgesJSON() {
+        let json = #"{"bowserPages":{"members":[{"name":"start.data","kind":"invoke","hosts":["newtab"]},{"name":"broken"}]}}"#
+        XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data(json.utf8)),
+                       [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
+        XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
     }
 }

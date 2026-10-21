@@ -1,7 +1,7 @@
 # Blanc for iOS: revisiting the exploration (October 2026)
 
 **Date:** 2026-10-21
-**Status:** Assessment for the owner. Nothing here is decided; it changes no code.
+**Status:** Assessment, then decision: on 2026-10-21 the owner chose to move forward with an iOS product. §6 is the updated plan.
 **Revisits:** [`2026-07-07-ios-port-roadmap-design.md`](2026-07-07-ios-port-roadmap-design.md) and the M2–M5 specs and M0–M5 plans that followed it.
 
 ## Summary
@@ -196,3 +196,106 @@ they drive a decision.
    with desktop (Blanc Blocker, optional uBO, Patron unlocking nothing). That
    is desktop contract hygiene and is worth doing even if the iOS track is
    retired.
+
+## 6. Decision and updated plan (2026-10-21)
+
+**Decision (owner, 2026-10-21): resume.** Blanc moves forward with an iOS
+product. The market audit done the same day,
+[`docs/research/2026-10-21-mobile-browser-market-audit.md`](../../research/2026-10-21-mobile-browser-market-audit.md),
+sets its positioning and its tests. Its figures came partly from search
+extracts and must be re-checked before any public use under
+`docs/marketing-claims.md`.
+
+**Minimum iOS version: 18.4.** It keeps the prototype's UIKit-hosted
+`WKWebView` and makes `WKWebExtension` available for the M15 blocking work.
+iOS 26 stays open as a later raise if SwiftUI `WebView` earns it.
+
+### Positioning: a companion, not a challenger
+
+The audit's conclusion: a standalone iPhone browser has no ROI case, because
+every iOS browser blocks through the same `WKContentRuleList` and Chrome and
+Safari hold about 92% of mobile use. What no one offers is an open-source,
+AI-free, design-led iPhone browser that arrives already holding your desktop
+Blanc's tabs, Favorites and groups over end-to-end-encrypted sync. Quiche
+refuses sync and has no desktop app; Orion is closed source.
+
+So the iOS product is **"your Blanc, in your pocket"**: pair the phone, see the
+desktop's open tabs, send a tab back, and use the bottom Island with the Quick
+Switcher, slash commands and Bangs. Blocking ships on by default but is not the
+pitch: Blanc never claims to block better than Brave or DuckDuckGo on iOS.
+
+### The revised ladder
+
+The July sequencing stands; what changes is the order after M6, so the first
+TestFlight build is the companion, not a generic browser.
+
+| M | Delivers | spec | Status |
+|---|---|---|---|
+| M0–M6 | Prototype: tabs, palette, `blanc://` pages, one rule list, theming, settings-lite, session restore | F1, F2, F5–F7, F12, F14–F16, F18 | Built July 2026, unreleased |
+| **M6.5** | Re-baseline (below) | — | This PR |
+| **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device | F27, F9 (read) | Next |
+| **M8** | Favorites and History, live on the `blanc://` pages | F9, F10 | |
+| **M9** | Private tabs | F4 | |
+| **M10** | Groups and Spaces from sync, shown read-only on the phone; Bangs; the full shared slash-command set; Find in page | F3, F41 (read), F47, F7, F8 | |
+| **Beta** | First TestFlight upload, with the default-browser entitlement | D4 | Cut line |
+| Later | Editing groups and Spaces on the phone, downloads, permissions, passkeys, Quiet Tabs semantics, interface language (D27), the full filter pipeline (M15, now including `WKWebExtension` DNR and user-script cosmetics as options) | F3, F11, F13, F24, F31, F44, F12 | After the beta |
+| Out | iPad, Android, an in-app Patron purchase | D7, D11, F17 | Until the indicators below are met |
+
+### M6.5: the re-baseline
+
+Done in this PR:
+
+1. Deployment target raised to iOS 18.4.
+2. `ios/Blanc/Tokens.swift` and `BlancSettings.swift` are now symlinks to the
+   generated files, so `substrate:check` guards what the app compiles.
+   Generating them exposed a real bug: the Swift app-icon cases used the case
+   name as the raw value (`sunriseDark`, not the stored `sunrise-dark`).
+   `settings-schema/build.mjs` now emits explicit raw values.
+3. The scheme handler answers the virtual `strings.js` with the catalog desktop
+   would pick for the same system languages, plus the formatting locale, and
+   serves Mahjong, fonts and WebP.
+4. `window.bowserPages` is built from the bundled `browser-api/bridges.json`,
+   filtered per host exactly as `tab-preload.js` does, so every member desktop
+   pages call exists. Methods iOS doesn't answer yet reject instead of being
+   missing; events return an unsubscribe. Args are now positional, as on
+   desktop.
+5. Kagi search; a stored `custom` engine falls back to DuckDuckGo until iOS
+   offers the template field. Settings gets the flat icon list and
+   `patronActive`.
+6. CI: `.github/workflows/ios.yml` builds the app and runs the XCTests on a
+   simulator whenever the app or one of its bundled inputs changes, and
+   `test/unit/ios-pages-bridge.test.js` holds the Swift side to the desktop
+   sources from the Linux unit suite.
+
+Owner actions, outside the code:
+
+- Request the default-browser entitlement (`com.apple.developer.web-browser`)
+  now; its review time is outside the project's control.
+- Decide what `SHIPPED` means in the iOS column (decision 3 above). Until
+  then, read every iOS `SHIPPED`/`PARTIAL` as "in the unreleased prototype".
+
+### Indicators and kill criteria
+
+Set before launch so a slow fade can't happen by default. Thresholds are the
+audit's proposals for the owner to confirm; no benchmark exists for them.
+
+| Signal | Healthy | Trigger |
+|---|---|---|
+| Desktop waitlist (before M7 ends) | ≥100 sign-ups or 10% of Mac actives in six weeks | <25 |
+| TestFlight seven-day return | ≥30% | <15% |
+| Desktop Sync users who pair an iPhone within 60 days | ≥15% | <5% |
+| 30-day retention | ≥15% | <8% for two monthly cohorts |
+| iPhone monthly actives six months after launch | ≥750 | <200 |
+| Maintainer time on iOS | ≤25% | >35% for two quarters |
+
+If two triggers fire at the six-month review, iOS moves to maintenance only or
+an announced sunset, never a quiet stall. The biggest risk is not too few users
+but a second platform eating the one maintainer's time, as it did for Orion on
+Windows and Linux.
+
+The money case is weak and stays honest: the base case earns a few hundred
+dollars a year. The return is strategic (completing the product people ask for,
+desktop retention, grant eligibility), and the desktop numbers it rests on
+(43 monthly actives at the last recorded count, August 20) need refreshing from
+the `blanc-ping` Worker and Polar before the waitlist test.
+

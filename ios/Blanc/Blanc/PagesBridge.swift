@@ -138,7 +138,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         }
     }
 
-    /// The `{ settings, searchEngines, appIcons, supporterIcons, capabilities }`
+    /// The `{ settings, searchEngines, appIcons, capabilities }`
     /// payload `settings.js` reads on load, built from the generated substrate so
     /// values track `BlancSettingsDefaults`. `theme`/`searchEngine`/`adblockEnabled`
     /// are parameterized so the live store can override the defaults;
@@ -157,19 +157,18 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             ("usagePing", .bool(BlancSettingsDefaults.usagePing)),
             ("appIcon", .string(BlancSettingsDefaults.appIcon.rawValue)),
             ("adblockExceptions", .array([])),
+            ("patronActive", .bool(false)),
             ("supporterActive", .bool(false)),
         ])
         let searchEngines = JSONValue.object(
             BlancSearchEngine.allCases.map { ($0.rawValue, .string($0.label)) })
-        let freeIcons = BlancAppIcon.allCases.filter { !$0.isSupporterOnly }
-        let supporterIcons = BlancAppIcon.allCases.filter { $0.isSupporterOnly }
-        let appIcons = JSONValue.object(freeIcons.map { ($0.rawValue, .string($0.label)) })
-        let supporter = JSONValue.object(supporterIcons.map { ($0.rawValue, .string($0.label)) })
+        // Patron unlocks nothing, so every icon is listed (desktop sends the
+        // same flat `appIcons` record).
+        let appIcons = JSONValue.object(BlancAppIcon.allCases.map { ($0.rawValue, .string($0.label)) })
         return .object([
             ("settings", settings),
             ("searchEngines", searchEngines),
             ("appIcons", appIcons),
-            ("supporterIcons", supporter),
             ("capabilities", .array([
                 .string("theme"),
                 .string("searchEngine"),
@@ -193,13 +192,56 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
 
     // MARK: JS shim
 
+    /// One `window.bowserPages` member, as `browser-api/bridges.json` (desktop's
+    /// contract, bundled as a resource) declares it.
+    struct Member: Equatable {
+        let name: String
+        let kind: String
+        let hosts: [String]
+    }
+
+    /// The members in a `bridges.json` document; empty if it doesn't parse.
+    static func members(fromBridgesJSON data: Data) -> [Member] {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let pages = root["bowserPages"] as? [String: Any],
+              let list = pages["members"] as? [[String: Any]] else { return [] }
+        return list.compactMap { entry in
+            guard let name = entry["name"] as? String,
+                  let kind = entry["kind"] as? String,
+                  let hosts = entry["hosts"] as? [String] else { return nil }
+            return Member(name: name, kind: kind, hosts: hosts)
+        }
+    }
+
+    static let bundledMembers: [Member] = {
+        guard let url = Bundle.main.url(forResource: "bridges", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else { return [] }
+        return members(fromBridgesJSON: data)
+    }()
+
     /// Defines `window.bowserPages` at document-start, gated to `blanc://`
-    /// documents (mirrors `tab-preload.js`). Each method posts `{id, group,
-    /// method, args}` and returns a promise resolved by `window.__blancResolve`.
-    static let userScriptSource = #"""
+    /// documents and, like `tab-preload.js`, to the members the contract grants
+    /// this page's host. Every member exists so page scripts never hit a missing
+    /// function: an `invoke` posts `{id, group, method, args}` and returns a
+    /// promise resolved by `window.__blancResolve` (methods iOS doesn't answer
+    /// yet reject); an `event` registers a listener `window.__blancEmit` calls
+    /// and returns its unsubscribe.
+    static func makeUserScript(members: [Member]) -> String {
+        let list = members.map { ["name": $0.name, "kind": $0.kind, "hosts": $0.hosts] as [String: Any] }
+        let json = (try? JSONSerialization.data(withJSONObject: list, options: [.sortedKeys]))
+            .flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        return userScriptTemplate.replacingOccurrences(of: "__BLANC_MEMBERS__", with: json)
+    }
+
+    static let userScriptSource = makeUserScript(members: bundledMembers)
+
+    private static let userScriptTemplate = #"""
     (function () {
       if (location.protocol !== 'blanc:') return;
+      const MEMBERS = __BLANC_MEMBERS__;
+      const host = location.host;
       const pending = new Map();
+      const listeners = new Map();
       let seq = 0;
       window.__blancResolve = function (id, ok, payload) {
         const p = pending.get(id);
@@ -207,60 +249,47 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         pending.delete(id);
         ok ? p.resolve(payload) : p.reject(new Error(payload));
       };
+      window.__blancEmit = function (name, payload) {
+        for (const fn of (listeners.get(name) || []).slice()) {
+          try { fn(payload); } catch (e) { console.error(e); }
+        }
+      };
       function call(group, method, args) {
         return new Promise(function (resolve, reject) {
           const id = ++seq;
           pending.set(id, { resolve: resolve, reject: reject });
           window.webkit.messageHandlers.blancPages.postMessage({
-            id: id, group: group, method: method, args: args == null ? null : args,
+            id: id, group: group, method: method, args: args,
           });
         });
       }
-      window.bowserPages = {
-        appVersion: function () { return call(null, 'appVersion'); },
-        clearBrowsingData: function () { return call(null, 'clearBrowsingData'); },
-        bookmarks: {
-          list: function () { return call('bookmarks', 'list'); },
-          remove: function (id) { return call('bookmarks', 'remove', { id: id }); },
-          clearFavicon: function (url) { return call('bookmarks', 'clearFavicon', { url: url }); },
-        },
-        history: {
-          list: function (opts) { return call('history', 'list', opts); },
-          remove: function (url, visitedAt) { return call('history', 'remove', { url: url, visitedAt: visitedAt }); },
-          clear: function () { return call('history', 'clear'); },
-        },
-        downloads: {
-          list: function () { return call('downloads', 'list'); },
-          cancel: function (id) { return call('downloads', 'cancel', { id: id }); },
-          open: function (id) { return call('downloads', 'open', { id: id }); },
-          show: function (id) { return call('downloads', 'show', { id: id }); },
-          clearFinished: function () { return call('downloads', 'clearFinished'); },
-        },
-        settings: {
-          get: function () { return call('settings', 'get'); },
-          set: function (patch) { return call('settings', 'set', patch); },
-          syncGet: function () { return call('settings', 'syncGet'); },
-          syncEnable: function (opts) { return call('settings', 'syncEnable', opts); },
-          syncDisable: function (opts) { return call('settings', 'syncDisable', opts); },
-          syncNow: function () { return call('settings', 'syncNow'); },
-          activateSupporter: function (key) { return call('settings', 'activateSupporter', { key: key }); },
-        },
-        permissions: {
-          list: function () { return call('permissions', 'list'); },
-          remove: function (key) { return call('permissions', 'remove', { key: key }); },
-        },
-        defaultBrowser: {
-          get: function () { return call('defaultBrowser', 'get'); },
-          set: function () { return call('defaultBrowser', 'set'); },
-        },
-        start: {
-          data: function () { return call('start', 'data'); },
-          focusGroup: function (id) { return call('start', 'focusGroup', { id: id }); },
-        },
-        shortcuts: {
-          list: function () { return call('shortcuts', 'list'); },
-        },
-      };
+      const api = {};
+      for (const m of MEMBERS) {
+        if (m.hosts.indexOf(host) === -1) continue;
+        const parts = m.name.split('.');
+        const method = parts.pop();
+        const group = parts.length ? parts.join('.') : null;
+        let target = api;
+        for (const part of parts) target = target[part] || (target[part] = {});
+        if (m.kind === 'event') {
+          const name = m.name;
+          target[method] = function (fn) {
+            if (typeof fn !== 'function') return function () {};
+            if (!listeners.has(name)) listeners.set(name, []);
+            listeners.get(name).push(fn);
+            return function () {
+              const list = listeners.get(name) || [];
+              const i = list.indexOf(fn);
+              if (i !== -1) list.splice(i, 1);
+            };
+          };
+        } else {
+          target[method] = function () {
+            return call(group, method, Array.prototype.slice.call(arguments));
+          };
+        }
+      }
+      window.bowserPages = api;
     })();
     """#
 
@@ -286,7 +315,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         if group == "settings", method == "get" {
             result = .value(liveSettingsBootstrap())
         } else if group == "settings", method == "set" {
-            if let patch = body["args"] as? [String: Any] {
+            if let args = body["args"] as? [Any], let patch = args.first as? [String: Any] {
                 manager?.applySettingsPatch(patch)
             }
             result = .value(.null)

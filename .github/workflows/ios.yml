@@ -1,0 +1,66 @@
+name: iOS
+
+# Builds the iOS app (ios/Blanc) and runs its XCTest suite on a simulator. The
+# app bundles the desktop's blanc:// pages, the generated settings and token
+# substrate, the iOS blocklist and the bowserPages contract, so a change to any
+# of those inputs runs it too. Simulator builds are unsigned; nothing here
+# touches signing, TestFlight or App Store Connect.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/ios.yml
+      - ios/**
+      - src/renderer/pages/**
+      - settings-schema/**
+      - tokens/**
+      - copy/generated/**
+      - adblock/generated/**
+      - browser-api/bridges.json
+  pull_request:
+    paths:
+      - .github/workflows/ios.yml
+      - ios/**
+      - src/renderer/pages/**
+      - settings-schema/**
+      - tokens/**
+      - copy/generated/**
+      - adblock/generated/**
+      - browser-api/bridges.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xctest:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The pill's Liquid Glass branch (ContentView.swift) needs the iOS 26
+      # SDK, so use the newest Xcode 26 on the image.
+      - name: Select Xcode 26
+        run: |
+          xcode=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$xcode" ]; then echo "::error::No Xcode 26 on this runner image"; ls -d /Applications/Xcode*; exit 1; fi
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Pick an iPhone simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPhone")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      - name: Build and test
+        working-directory: ios/Blanc
+        run: |
+          xcodebuild test \
+            -project Blanc.xcodeproj \
+            -scheme Blanc \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO

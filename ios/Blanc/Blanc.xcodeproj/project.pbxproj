@@ -11,6 +11,7 @@
 		502D58322FFEC0EE00B5B1DE /* BlancSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */; };
 		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
 		502D58422FFED0A000B5B1DE /* generated in Resources */ = {isa = PBXBuildFile; fileRef = 502D58432FFED0A000B5B1DE /* generated */; };
+		502D58442FFED0A000B5B1DE /* bridges.json in Resources */ = {isa = PBXBuildFile; fileRef = 502D58452FFED0A000B5B1DE /* bridges.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +31,7 @@
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
 		502D58432FFED0A000B5B1DE /* generated */ = {isa = PBXFileReference; lastKnownFileType = folder; name = generated; path = ../../adblock/generated; sourceTree = "<group>"; };
+		502D58452FFED0A000B5B1DE /* bridges.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = bridges.json; path = ../../browser-api/bridges.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -64,6 +66,7 @@
 			children = (
 				502D58402FFED0A000B5B1DE /* pages */,
 				502D58432FFED0A000B5B1DE /* generated */,
+				502D58452FFED0A000B5B1DE /* bridges.json */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -168,6 +171,7 @@
 			files = (
 				502D58412FFED0A000B5B1DE /* pages in Resources */,
 				502D58422FFED0A000B5B1DE /* generated in Resources */,
+				502D58442FFED0A000B5B1DE /* bridges.json in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {
@@ -254,7 +258,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -312,7 +316,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -337,7 +341,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -374,7 +378,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -404,7 +408,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -426,7 +430,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
