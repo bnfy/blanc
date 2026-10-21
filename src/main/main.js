@@ -308,6 +308,7 @@ const {
   calculateCaptureBounds,
 } = require('./chrome-layout');
 const { cardGeometry, fractionsToFrame } = require('./glance-card');
+const { onScreenFocusedContents } = require('./focused-contents');
 const { createGlanceCardController } = require('./glance-card-controller');
 const {
   visiblePaneIds,
@@ -4889,8 +4890,10 @@ function ensurePermissionView() {
   view.setBackgroundColor('#00000000');
   // Electron focuses a brand-new view when it is first attached, which would
   // take the keyboard from the page on the first prompt. Hand it straight
-  // back; once the prompt has loaded, a click into it keeps focus there.
-  const focusedBefore = webContents.getFocusedWebContents();
+  // back; once the prompt has loaded, a click into it keeps focus there. The
+  // page is asked for among what is on screen: a hidden tab can still report
+  // focus on macOS (focused-contents.js).
+  const focusedBefore = onScreenFocusedContents(rt().window, webContents.getFocusedWebContents());
   const handBackFocus = () => {
     if (focusedBefore && !focusedBefore.isDestroyed()) focusedBefore.focus();
   };
