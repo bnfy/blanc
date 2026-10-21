@@ -2,7 +2,7 @@
   "publicRelease": "v1.40.0",
   "sourceSha": "17ed22052bc0e1d0c0ce3920cbcb85c4792d306e",
   "releaseEvidence": "docs/release-incidents/2026-10-20-v1.40.0.md",
-  "scope": "Site copy verified against public v1.40.0 on October 21, 2026: Glance as a card floating over the page (F34, #1007, #1008) on /features/glance, its Support guide, the /features tile and pop-up, the homepage Glance card and demo, and the Arc alternative page, which also point to Split View (F53, two panes) for side by side. The capture is docs/website-captures-v1.40.0.json. Glance was hand-checked in Windows and Linux VMs from source before #1008 (recorded on #1007); the copy makes no platform-specific claim.",
+  "scope": "Site copy verified against public v1.40.0 on October 21, 2026: Glance as a card floating over the page (F34, #1007, #1008) on /features/glance, its Support guide, the /features tile and pop-up, the homepage Glance card and demo, and the Arc alternative page, which also point to Split View (F53, two panes) for side by side. The capture is docs/website-captures-v1.40.0.json. Glance was hand-checked in Windows and Linux VMs from source before #1008 (recorded on #1007); the copy makes no platform-specific claim. Also the homepage’s first screen (October 21, 2026): its handwritten note, its lead and the floating Island window’s text alternative, recorded against the Auto-hide float style of v1.40.0.",
   "prohibitedClaims": [
     "Make main",
     "Drag the divider",
@@ -59,6 +59,38 @@
         "src/renderer/index.html"
       ],
       "qualification": "The picker lists tabs of the current window and local profile only (⌘⇧G or Ctrl+Shift+G, View → Open Glance…)."
+    },
+    "floatStyle": {
+      "evidence": [
+        "src/main/island-autohide.js",
+        "src/main/settings.js",
+        "src/renderer/styles.css",
+        "docs/press/release-notes/v1.40.0.md",
+        "spec/features.md",
+        "docs/superpowers/specs/2026-10-20-floating-island-design.md"
+      ],
+      "qualification": "Auto-hide the Island is opt-in and device-local (islandAutoHide defaults to false; Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B). With it on, the page fills the window and, since v1.40.0, the revealed Island floats over the page by default (islandAutoHideStyle 'float'). While it floats it comes back only from the window’s top edge (or ⌘L, Ctrl+L) and hides once the pointer moves into the page; the window buttons hide and come back with it on macOS, Windows and Linux (#1003, floatViewsShown), so nothing of Blanc’s stays drawn over the page; only an invisible 6 px drag band remains. On native Wayland the band above a floating window can’t reveal it. Never imply Blanc hides the Island out of the box."
+    },
+    "islandFacts": {
+      "evidence": [
+        "src/renderer/index.html",
+        "src/renderer/styles.css",
+        "src/renderer/overlay.js",
+        "docs/marketing-claims.md"
+      ],
+      "qualification": "Public v1.40.0: tabs, search and commands are reached from the one Island pill (the tab dots, the address field and slash commands in its panel)."
+    },
+    "platformsAndBlocking": {
+      "evidence": [
+        "package.json",
+        "site/src/pages/download.astro",
+        "build/installer.nsh",
+        "src/main/settings.js",
+        "settings-schema/schema.json",
+        "src/main/adblock.js",
+        "adblock/sources/pinned.json"
+      ],
+      "qualification": "Public v1.40.0 ships free for macOS (Apple Silicon and Intel), Windows (x64) and 64-bit Linux as an AppImage; desktop only. adblockEnabled defaults to true, so Blanc Blocker is on from the first launch; blocking reduces known ads and tracking, not all of it."
     }
   },
   "claims": [
@@ -384,6 +416,38 @@
         "splitView"
       ],
       "verdict": "verified"
+    },
+    {
+      "id": "v140-032",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "now, none at all",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatStyle"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v140-033",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Tabs, search and commands live in one compact Island. Turn on Auto-hide and it slips out of sight; point at the top edge and it floats back. Free for macOS, Windows and Linux, with ad and tracker blocking on from the first launch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "islandFacts",
+        "floatStyle",
+        "platformsAndBlocking"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v140-034",
+      "source": "site/src/components/FloatingIslandWindow.astro",
+      "exactWording": "A web page filling a Blanc window to its top edge. With Auto-hide on, Blanc’s Island hides, then floats back over the page when the pointer reaches the top edge.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "floatStyle"
+      ],
+      "verdict": "qualified"
     }
   ]
 }
