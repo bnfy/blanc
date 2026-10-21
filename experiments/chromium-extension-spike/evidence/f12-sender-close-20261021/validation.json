@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "label": "regular-keepalive",
+      "passed": true,
+      "postCloseRedirectDecisions": 2,
+      "allowedPostBodyPreserved": true,
+      "blockedTerminalAbsent": true
+    },
+    {
+      "label": "regular-beacon",
+      "passed": true,
+      "postCloseRedirectDecisions": 2,
+      "allowedPostBodyPreserved": true,
+      "blockedTerminalAbsent": true
+    },
+    {
+      "label": "private-keepalive",
+      "passed": true,
+      "postCloseRedirectDecisions": 2,
+      "allowedPostBodyPreserved": true,
+      "blockedTerminalAbsent": true
+    },
+    {
+      "label": "private-beacon",
+      "passed": true,
+      "postCloseRedirectDecisions": 2,
+      "allowedPostBodyPreserved": true,
+      "blockedTerminalAbsent": true
+    }
+  ],
+  "passed": true,
+  "scope": "pre-enqueued requests; 307 released after target destruction; three-second bounded observation",
+  "fullF12Acceptance": false,
+  "pairedElectronParity": false
+}

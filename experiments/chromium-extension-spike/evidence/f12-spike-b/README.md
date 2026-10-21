@@ -1,5 +1,8 @@
 # Spike B: MV2/uBlock Origin source audit
 
+**October21 acceptance index:** see the [shared F12 matrix](../../f12-acceptance-status.md). This dated source audit and its follow-ups are retained; the matrix distinguishes later superseding identity checks from still-open acceptance. Spike B remains in progress.
+
+
 October 17, 2026. Pinned Chromium 157.0.8103.6, pristine commit
 `41520584daa68d0040db7746ae562a0ff82187f6`. Read-only source checkpoint;
 no extension-system patch, uBO loading, native build or latency run performed.

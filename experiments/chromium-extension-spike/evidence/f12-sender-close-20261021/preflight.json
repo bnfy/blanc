@@ -1,0 +1,13 @@
+{
+  "status": "blocked-before-runtime",
+  "expectedReferenceSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "actualReferenceSha256": "a3c6e807f2651795dd40fe0be4f1f10a70447037d386bf5f728af15be7628cad",
+  "missingPaths": [
+    "/private/tmp/blanc-f12-native-assets",
+    "/private/tmp/blanc-f12-runtime",
+    "/private/tmp/blanc-electron-drag-fix"
+  ],
+  "bundleAttempt": "Existing reference app changed guard rejected regeneration; guard unchanged",
+  "runtimeRuns": 0,
+  "builds": 0
+}

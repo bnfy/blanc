@@ -2483,3 +2483,17 @@ Created `mac-preview-release-checklist.md`: proposed Apple Silicon fresh-profile
 ## Primary implementation plan reconciled — October21
 
 Located and updated `docs/chromium-migration-implementation-plan-2026-10-16.md` as the primary plan, per owner instruction. Added current task/workstream/gate statuses with evidence links, updated affected feature rows, and labeled the October16 baseline historical. Mac preview checklist is explicitly supporting only. Decision2, Google upgrade, native input/VoiceOver, latency and release gates remain open as applicable; Electron diagnostic build remains unapproved/unstarted. No runtime/build work for documentation reconciliation.
+
+
+## F12 acceptance consolidation — October21
+
+Primary plan next priority advanced: created `f12-acceptance-status.md` and the missing Spike A aggregate README; linked existing Spike B audit. Historical synthetic/network/identity/lifecycle passes are separated from complete acceptance and current-head qualification. Next task: map every request-path audit row to exact archived evidence/provenance before selecting bounded runtime reruns. Both spikes remain in progress; latency deferred, Electron diagnostic build unapproved/unstarted. No build/runtime/profile changes.
+
+
+## F12 request-path reconciliation — October21
+
+13 audit rows reconciled;38archives/1,269recordedmembers verified. Report: `evidence/f12-reconciliation-20261021/README.md`. Scoped ownership/controlled-fetch passes supersede old gaps; strict update attribution and keepalive/speculation/socket/transport qualification remain open. Historical integrity is not current-binary acceptance. Owner prioritizes sufficient Decision2 evidence ASAP; next bounded investigation keepalive/sendBeacon after sender close. No builds/runtime/latency/Electron diagnostic work. Primary plan updated; both spikes remain in progress.
+
+## F12 sender-closure evidence — October21
+
+Recovered authenticated native engine archive (13members verified, current source hash matches). Four regular/private keepalive/beacon schedules pass: eight post-close307 decisions, allowed POST bodies preserved, blocked terminal arrivals absent with explicit block records. Exact sender target destruction precedes redirect release. Scope is pre-enqueued single307 continuation; retries/process shutdown and paired Electron parity remain open. Evidence: evidence/f12-sender-close-20261021/README.md. No builds, latency deferred, Electron diagnostic build pending approval.
