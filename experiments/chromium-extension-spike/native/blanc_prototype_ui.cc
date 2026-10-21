@@ -554,6 +554,7 @@ class Owner : public base::SupportsUserData::Data,
     return *owners;
   }
   ~Owner() override { Live().erase(this); }
+  std::set<std::string> ratio_recovery_checked;
   bool identity_registered = false;
   bool initial_window_save_started = false;
   bool initial_window_saved = false;
@@ -1138,6 +1139,36 @@ void MarkPersistentSplit(BrowserWindowInterface* browser, content::WebContents* 
   if (!browser->GetProfile()->IsOffTheRecord())
     if (auto* service = SessionServiceFactory::GetForProfile(browser->GetProfile()))
       service->AddTabExtraData(browser->GetSessionID(), sessions::SessionTabHelper::IdForTab(tab), kPersistentSplitKey, enabled ? (focused ? "2" : "1") : "0");
+}
+// Ratio intents contain only durable UUIDs and a scalar, never browsing data.
+std::string RatioIdentity(BrowserWindowInterface* browser, int first, int second) {
+  if (browser->GetProfile()->IsOffTheRecord()) return "";
+  const auto window = WindowIdentity(browser);
+  const auto left = TabIdentity(browser->GetTabStripModel()->GetWebContentsAt(first));
+  const auto right = TabIdentity(browser->GetTabStripModel()->GetWebContentsAt(second));
+  if (!base::Uuid::ParseLowercase(window).is_valid() ||
+      !base::Uuid::ParseLowercase(left).is_valid() ||
+      !base::Uuid::ParseLowercase(right).is_valid()) return "";
+  return window + "_" + left + "_" + right;
+}
+base::FilePath RatioPath(Profile* profile, const std::string& key) {
+  return profile->GetPath().AppendASCII("BlancSplitRatios").AppendASCII(key);
+}
+bool WriteRatio(base::FilePath path, std::string value) {
+  return base::DirectoryExists(path.DirName().DirName()) &&
+      base::CreateDirectory(path.DirName()) &&
+      base::ImportantFileWriter::WriteFileAtomically(path, value);
+}
+std::string ReadRatio(base::FilePath path) {
+  std::string value;
+  if (!base::ReadFileToStringWithMaxSize(path, &value, 64)) return "";
+  return value;
+}
+void RetireRatio(base::FilePath path, std::string value, bool saved) {
+  if (!saved) return;
+  SpaceRunner()->PostTask(FROM_HERE, base::BindOnce([](base::FilePath path, std::string value) {
+    if (ReadRatio(path) == value) base::DeleteFile(path);
+  }, path, value));
 }
 void RestoreClosedSplitMetadata(BrowserWindowInterface* browser,
     std::optional<int> focus, const std::vector<sessions::LiveTab*>& restored) {
@@ -2250,6 +2281,50 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     service->SaveAndFlushSession(base::BindOnce(&Handler::InitialWindowSessionSaved,
         weak_factory_.GetWeakPtr(), browser->GetWeakPtr(), std::move(*capture)));
   }
+  void RatioWritten(std::string id, base::WeakPtr<BrowserWindowInterface> browser,
+                    int first, int second, std::string key, std::string value, base::FilePath path, bool saved) {
+    if (!browser || !saved) {
+      if (saved) RetireRatio(path, value, true);
+      Reply(id, false, base::Value("Split ratio recovery write failed.")); return; }
+    auto* model = browser->GetTabStripModel();
+    if (second >= model->count() || RatioIdentity(browser.get(), first, second) != key ||
+        !model->GetSplitForTab(first) || model->GetSplitForTab(first) != model->GetSplitForTab(second)) {
+      RetireRatio(path, value, true);
+      Reply(id, false, base::Value("Split changed during ratio save.")); return;
+    }
+    double ratio = 0;
+    base::StringToDouble(value, &ratio);
+    model->UpdateSplitRatio(*model->GetSplitForTab(first), ratio);
+    if (auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+      session->SaveAndFlushSession(base::BindOnce(&RetireRatio,
+          RatioPath(browser->GetProfile(), key), value));
+    Reply(id, true, base::Value(true));
+  }
+  void RecoverRatios(Owner* owner) {
+    auto* browser = owner->browser.get();
+    if (!browser->CreatedBySessionRestore() || browser->GetProfile()->IsOffTheRecord() ||
+        SessionRestore::IsRestoring(browser->GetProfile())) return;
+    auto* model = browser->GetTabStripModel();
+    for (int i = 0; i + 1 < model->count(); ++i) {
+      if (!model->GetSplitForTab(i) || model->GetSplitForTab(i) != model->GetSplitForTab(i + 1) ||
+          !model->GetWebContentsAt(i)->GetUserData(kPersistentSplitKey)) continue;
+      const auto key = RatioIdentity(browser, i, i + 1);
+      if (key.empty() || !owner->ratio_recovery_checked.insert(key).second) continue;
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&ReadRatio, RatioPath(browser->GetProfile(), key)),
+          base::BindOnce([](base::WeakPtr<BrowserWindowInterface> browser, int first,
+                            std::string key, std::string value) {
+            double ratio = 0;
+            if (!browser || !base::StringToDouble(value, &ratio) || !std::isfinite(ratio) || ratio < .2 || ratio > .8) return;
+            auto* model = browser->GetTabStripModel();
+            if (first + 1 >= model->count() || RatioIdentity(browser.get(), first, first + 1) != key ||
+                !model->GetSplitForTab(first) || model->GetSplitForTab(first) != model->GetSplitForTab(first + 1)) return;
+            model->UpdateSplitRatio(*model->GetSplitForTab(first), ratio);
+            if (auto* session = SessionServiceFactory::GetForProfile(browser->GetProfile()))
+              session->SaveAndFlushSession(base::BindOnce(&RetireRatio, RatioPath(browser->GetProfile(), key), value));
+          }, browser->GetWeakPtr(), i, key));
+    }
+  }
   void MaybeRollback(Owner* owner) {
     auto* profile = owner->browser->GetProfile();
     if (!owner->identity_registered && !profile->IsOffTheRecord()) {
@@ -2740,8 +2815,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           !model->GetWebContentsAt(first)->GetUserData(kPersistentSplitKey)) {
         reply(true, base::Value(false)); return;
       }
-      model->UpdateSplitRatio(*split, ratio);
-      reply(true, base::Value(true)); return;
+      if (profile->IsOffTheRecord()) {
+        model->UpdateSplitRatio(*split, ratio);
+        reply(true, base::Value(true)); return;
+      }
+      const auto key = RatioIdentity(browser, first, second);
+      if (key.empty()) { reply(false, base::Value("Split identity unavailable.")); return; }
+      const auto value = base::NumberToString(ratio);
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&WriteRatio, RatioPath(profile, key), value),
+          base::BindOnce(&Handler::RatioWritten, weak_factory_.GetWeakPtr(), id,
+              browser->GetWeakPtr(), first, second, key, value, RatioPath(profile, key)));
+      return;
     }
     if ((method == "previewGlanceClose" || method == "removeFromSplit") && args.size() == 1 && args[0].is_int()) {
       for (int i = 0; i < model->count(); ++i) {
@@ -2766,6 +2851,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(false)); return;
     }
     if (method == "snapshot") {
+      RecoverRatios(owner);
       MaybeRollback(owner);
       MaybeAutosave(owner);
       reply(true, base::Value(Snapshot(browser, owner)));

@@ -2370,3 +2370,32 @@ Evidence: evidence/cycle-crash-ratios-20261021.
 ## Repeated cancellation evidence publication — October 21
 
 Owner requested publication of the three preceding evidence sets to PR #920: six final schedules, 264 passing checkpoints, including six per-cycle crash/restarts with varying ratios. Earlier fixture failures remain separate. Evidence-only publication; no product/build changes, prior55/129 unchanged. Raw ignored logs remain local; all63 archived member hashes verified. CI monitoring resumes on the published head. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+
+# Pre-acknowledgement crash during profile cancellation — October 21, 2026
+
+Four final bounded schedules complete66 diagnostic checkpoints: clear/encrypted held-write crash controls16each and clear/encrypted held-write ratio mutations17each. All crash after native deletion cancellation while the actual cross-owner Session write remains held and its promise is unresolved; the write is never released before SIGKILL. Restart preserves the Default registry/sentinel, both source URLs once in one split and the decoy URL once; fresh history saving succeeds afterward.
+
+IMPORTANT: both mutation schedules change live ratio from35/65 to65/35 during the held write, but restart restores35/65. The unacknowledged ratio is lost in clear and encrypted modes. Harness completion records survivability and observation, not successful persistence of the latest mutation;66checkpoints are not66durability passes. Controls also recover35/65, which could have persisted before the held boundary. There is no general pre-ack or power-loss guarantee. No repair attempted in this check-only task.
+
+One initial encrypted fixture fails after6diagnostic checkpoints because it immediately asserted existence of Profile1 Preferences before its asynchronous creation. Retained separately; final encrypted fixtures wait for creation. Automated disposable restarts use the existing crash-bubble bypass, not physical Restore UI. No product changes or compile; guard zero actions and prior55/129unchanged. Raw logs/scripts/results retained, logs may remain local under ignore rules. Disposable profiles removed after process inspection; permanent profiles/tabs, retained preview and Google baseline untouched. Plan/evidence updated and uncommitted. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
+
+Evidence: evidence/preack-profile-cancel-20261021.
+
+
+# Pre-ack Split ratio recovery repair — October 21, 2026
+
+Regular Island resizeSplit now atomically writes a small per-pair recovery intent on the independent Spaces disk runner before applying/replying to the resize. Its filename uses validated durable window/ordered-tab UUIDs and content contains only the ratio, no URL/title/page data. Session flush retires only a matching record. Restored regular splits read bounded records asynchronously after native session restoration, validate the exact UUID pair, membership and finite20–80percent range, apply the ratio, then flush/retire. Private resizing remains memory-only. Abandoned writes clean up if owner/membership changed before applying; a missing profile directory is not deliberately recreated. Owner-destruction and deletion races of this new record path remain runtime-unqualified.
+
+Final normal binary passes five schedules164checkpoints: clear/encrypted pre-ack cancellation crashes restore65/35 (17each), blocked recovery-directory write refuses resize without changing35/65 then successful retry/crash restores65/35 (18), clear/encrypted three-cycle post-ack crash/restart regressions recover30/70,65/35,40/60 (56each). All final profiles have zero ratio records after successful recovery/session flush. Original pre-ack loss evidence is retained separately. Preliminary tests on the first implementation passed but are not added to final totals.
+
+This closes the tested gap after resizeSplit has durably recorded its intent but before the pending session save acknowledges. It does not promise persistence before that intent write completes, power-loss durability, or recovery when stable identities were never persisted. Unmatched/orphan records, malformed-record runtime cases, private runtime matrix, concurrent resize ordering, profile teardown races and interaction with an interrupted Spaces switch remain broader qualifications. No latency claim; additional per-resize disk work has not been benchmarked.
+
+Seven focused capture tests pass. Two incremental builds36.46s/37.42s, six steps each; final guard zero. Only Blanc-owned native source changes, prior upstream55files129hunks unchanged. No temporary native diagnostics. Disposable profiles removed after process inspection; permanent profiles/tabs, retained preview and Google baseline untouched. Plan/evidence updated, changes uncommitted. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Raw logs retained locally under normal ignore rules.
+
+Evidence: evidence/preack-ratio-fix-20261021.
+
+
+## Pre-ack ratio repair publication — October 21
+
+Owner requested commit/push to PR920 of the ratio recovery fix and original boundary/final repair evidence. Five final schedules164checkpoints and seven focused tests pass;69archived member hashes verified before publication. Raw ignored logs remain local. No build/runtime rerun for publication; prior55/129 unchanged. CI monitoring resumes on the published head. Native input pending, latency deferred, Electron diagnostic build pending approval.
