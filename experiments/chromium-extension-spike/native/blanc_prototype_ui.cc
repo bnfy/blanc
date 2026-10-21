@@ -555,6 +555,8 @@ class Owner : public base::SupportsUserData::Data,
   }
   ~Owner() override { Live().erase(this); }
   std::set<std::string> ratio_recovery_checked;
+  int pending_ratio_writes = 0;
+  base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
   bool identity_registered = false;
   bool initial_window_save_started = false;
   bool initial_window_saved = false;
@@ -827,6 +829,16 @@ class Owner : public base::SupportsUserData::Data,
         space_name, std::move(*capture)));
   }
   void OnTabStripModelDestroyed(TabStripModel*) override {
+    if (pending_ratio_writes && !browser->GetProfile()->IsOffTheRecord()) {
+      // Run after native WindowClosed records its close command. This task
+      // outlives the UI owner and never rebuilds a last-window session away.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+          base::BindOnce([](base::WeakPtr<Profile> profile) {
+            if (profile)
+              if (auto* session = SessionServiceFactory::GetForProfile(profile.get()))
+                session->SaveAndFlushSession(base::DoNothing());
+          }, browser->GetProfile()->GetWeakPtr()));
+    }
     closing_ = true;
     timer_.Stop();
     weak_factory_.InvalidateWeakPtrs();
@@ -2822,10 +2834,29 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const auto key = RatioIdentity(browser, first, second);
       if (key.empty()) { reply(false, base::Value("Split identity unavailable.")); return; }
       const auto value = base::NumberToString(ratio);
+      ++owner->pending_ratio_writes;
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&WriteRatio, RatioPath(profile, key), value),
-          base::BindOnce(&Handler::RatioWritten, weak_factory_.GetWeakPtr(), id,
-              browser->GetWeakPtr(), first, second, key, value, RatioPath(profile, key)));
+          base::BindOnce([](base::WeakPtr<Handler> handler, base::WeakPtr<Owner> owner,
+                            base::WeakPtr<Profile> profile, std::string id,
+                            base::WeakPtr<BrowserWindowInterface> browser,
+                            int first, int second, std::string key, std::string value,
+                            base::FilePath path, bool saved) {
+            if (owner) --owner->pending_ratio_writes;
+            if (handler) {
+              handler->RatioWritten(id, browser, first, second, key, value, path, saved);
+              return;
+            }
+            // Weak-binding the entire completion discarded orphan cleanup.
+            // Flush native close commands before retiring the abandoned intent.
+            if (saved && profile)
+              if (auto* session = SessionServiceFactory::GetForProfile(profile.get())) {
+                session->SaveAndFlushSession(base::BindOnce(&RetireRatio, path, value));
+                return;
+              }
+            if (saved) RetireRatio(path, value, true);
+          }, weak_factory_.GetWeakPtr(), owner->GetWeakPtr(), profile->GetWeakPtr(),
+             id, browser->GetWeakPtr(), first, second, key, value, RatioPath(profile, key)));
       return;
     }
     if ((method == "previewGlanceClose" || method == "removeFromSplit") && args.size() == 1 && args[0].is_int()) {

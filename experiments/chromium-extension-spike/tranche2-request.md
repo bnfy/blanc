@@ -2399,3 +2399,27 @@ Evidence: evidence/preack-ratio-fix-20261021.
 ## Pre-ack ratio repair publication — October 21
 
 Owner requested commit/push to PR920 of the ratio recovery fix and original boundary/final repair evidence. Five final schedules164checkpoints and seven focused tests pass;69archived member hashes verified before publication. Raw ignored logs remain local. No build/runtime rerun for publication; prior55/129 unchanged. CI monitoring resumes on the published head. Native input pending, latency deferred, Electron diagnostic build pending approval.
+
+
+# Pending ratio-write owner/profile lifecycle — October21,2026
+
+Actual native ratio recovery temporary-file writes are held with a bounded disposable interposer targeting only Default/BlancSplitRatios. No product changes/build; shim compiled locally, existing syscall deprecation warnings only. Six final schedules60diagnostic checkpoints: two hot-profile deletion passes11each; two immediate owner-destruction failures8each; two settled owner-destruction failures11each. These are not60passing checkpoints. Two earlier owner fixtures inspected only the first restored window and failed orphan cleanup; retained separately, not accepted as no-resurrection evidence.
+
+Owner destruction in clear/encrypted modes disconnects the caller without success. After the held write releases, one0.65 ratio record remains. Immediate crash/restoration inspecting every window finds both closed source URLs resurrected alongside the decoy. With a5.5second settled control, the closed source stays absent across restart but the abandoned record remains, so cleanup still fails. Native close durability was not acknowledged before the immediate crash; the comparison identifies a timing boundary, not proof that the ratio record causes window resurrection. Source inspection places cleanup inside a Handler weak callback, making destruction before callback a plausible orphan cause; not repaired here.
+
+Native hot deletion of Default in both modes removes its registry/windows while Profile1 stays live; the pending ratio request disconnects without success. Release followed by clean restart preserves the independent profile and removes Default directory/sentinel, with no deleted-profile tabs. Profile1 fresh history save remains usable. This is bounded CDP-driven native deletion, not physical input or arbitrary deletion ordering.
+
+Guard zero, no native compile, prior55/129 unchanged. Temporary test profiles removed after process inspection, source/shim code/results/logs retained. Permanent profiles/tabs, retained preview and Google baseline untouched. Plan/evidence updated, uncommitted. Orphan cleanup and immediate closed-window persistence remain open regardless of green CI. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
+
+Evidence: evidence/ratio-write-lifecycle-20261021.
+
+
+# Abandoned ratio intent and closed-pane recovery repair — October21,2026
+
+Pending ratio completion now runs an owner-independent callback. A live Handler applies the existing validated resize path; a destroyed Handler still flushes native session close commands before retiring the matching abandoned ratio intent, without replying success. A pending-write counter and weak Owner avoid raw lifetime access. Tab-strip destruction with pending ratio writes posts a profile-weak session flush after native WindowClosed has recorded its command. The path uses existing session semantics, does not rebuild away last-window restore state, and does not recreate a shut-down service on profile deletion.
+
+Six final normal-binary schedules pass76checkpoints: clear/encrypted immediate owner destruction10each, hot-profile deletion11each, and pre-ack ratio crash recovery17each. The original full-window owner scripts now observe no abandoned record, no success from the disconnected caller, and no closed source URLs in any restarted window; the decoy survives. Hot deletion still removes Default and preserves independent Profile1. Valid65/35 ratio intent still recovers in both modes when the session save has not acknowledged. Previous lifecycle failures and limited first-window fixtures remain retained separately. No final runtime failures.
+
+Seven capture tests pass; one36.07second incremental build/six steps; final guard zero, diff check pass. Only Blanc-owned native source changed; prior upstream55/129 unchanged. This is bounded process-crash coverage after write release and subsequent queued fixture work, not a guarantee for a crash before close-flush completion or power loss. Flush-failure retry, last-window shutdown, private runtime and wider concurrent destruction/resize remain unqualified. No temporary native diagnostics. Disposable profiles removed after process inspection; permanent profiles/tabs, retained preview and Google baseline untouched. Plan/evidence updated, uncommitted. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Raw logs retained locally under normal ignore rules.
+
+Evidence: evidence/ratio-owner-fix-20261021.

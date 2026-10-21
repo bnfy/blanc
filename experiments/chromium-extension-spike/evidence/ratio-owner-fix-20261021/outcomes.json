@@ -1,0 +1,32 @@
+[
+  {
+    "schedule": "delete-clear",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "delete-encrypted",
+    "pass": true,
+    "checkpoints": 11
+  },
+  {
+    "schedule": "owner-clear-allwindows",
+    "pass": true,
+    "checkpoints": 10
+  },
+  {
+    "schedule": "owner-encrypted-allwindows",
+    "pass": true,
+    "checkpoints": 10
+  },
+  {
+    "schedule": "preack-clear",
+    "pass": true,
+    "checkpoints": 17
+  },
+  {
+    "schedule": "preack-encrypted",
+    "pass": true,
+    "checkpoints": 17
+  }
+]
