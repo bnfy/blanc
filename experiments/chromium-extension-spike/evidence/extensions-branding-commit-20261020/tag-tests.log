@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: engineSearchVia tags only site-limited searches on a search engine
+ok 1 - engineSearchVia tags only site-limited searches on a search engine
+  ---
+  duration_ms: 5.799334
+  ...
+# Subtest: the committed data is the catalog at its ref, byte for byte
+ok 2 - the committed data is the catalog at its ref, byte for byte
+  ---
+  duration_ms: 59.76225
+  ...
+# Subtest: engine-search tags cover exactly the site-limited engine searches
+ok 3 - engine-search tags cover exactly the site-limited engine searches
+  ---
+  duration_ms: 17.302333
+  ...
+# Subtest: the try-it labels are the app’s English copy at the same ref
+ok 4 - the try-it labels are the app’s English copy at the same ref
+  ---
+  duration_ms: 15.301459
+  ...
+# Subtest: the try-it module and the Kagi license are byte copies from the same ref
+ok 5 - the try-it module and the Kagi license are byte copies from the same ref
+  ---
+  duration_ms: 24.306
+  ...
+# Subtest: candidate data is pinned to the bangs merge commit; release data to the latest release
+ok 6 - candidate data is pinned to the bangs merge commit; release data to the latest release
+  ---
+  duration_ms: 15.393291
+  ...
+# Subtest: the byte-checked bangs page files keep LF line endings on every checkout
+ok 7 - the byte-checked bangs page files keep LF line endings on every checkout
+  ---
+  duration_ms: 0.306
+  ...
+# Subtest: the website lists only the slash commands the latest public release ships
+ok 8 - the website lists only the slash commands the latest public release ships
+  ---
+  duration_ms: 20.174375
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.365541

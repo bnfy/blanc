@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "disable",
+    "enable",
+    "search-filter",
+    "details",
+    "sitePermissions",
+    "shortcuts",
+    "/",
+    "dark-mode"
+  ],
+  "dark": "rgb(32, 32, 30)"
+}

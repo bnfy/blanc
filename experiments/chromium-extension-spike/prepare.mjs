@@ -270,6 +270,15 @@ writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_webstore_promotion.h
   'inline constexpr char16_t kBlancWebStorePromotion[] = uR"BLANC(' +
   fs.readFileSync(path.join(here, 'native/webstore-promotion.js'), 'utf8') + ')BLANC";\n');
 
+
+let extensionsBranding = fs.readFileSync(path.join(here, 'native/extensions-branding.js'), 'utf8');
+extensionsBranding = extensionsBranding.replace('__BLANC_FONTS__', JSON.stringify([
+  ['Instrument Sans', fs.readFileSync(path.join(generated, 'pages/instrument-sans-latin-wdth-normal.woff2')).toString('base64'), '400 700'],
+  ['Inter', fs.readFileSync(path.join(generated, 'pages/inter-latin.woff2')).toString('base64'), '100 900'],
+])).replace('__BLANC_LOGO__', 'data:image/png;base64,' + fs.readFileSync(path.join(generated, 'pages/sunrise-mark.png')).toString('base64'));
+writeIfChanged(path.join(chromium, 'chrome/browser/ui/blanc_extensions_branding.h'),
+  'inline constexpr char16_t kBlancExtensionsBranding[] = uR"BLANC(' + extensionsBranding + ')BLANC";\n');
+
 function edit(relative, edits) {
   const target = path.join(chromium, relative);
   let source = fs.readFileSync(target, 'utf8');

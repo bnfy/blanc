@@ -263,6 +263,8 @@
       const items = strip.contentWindow?.TabSections?.itemsOf(snapshot.tabs) ?? [];
       const beforeIndex = items.findIndex(item => item.id === closedBefore);
       snapshot.closedSlot = beforeIndex < 0 ? items.length : beforeIndex;
+      strip.contentDocument?.documentElement?.toggleAttribute('data-extensions-page',
+        snapshot.tabs.find(t => t.id === snapshot.activeTabId)?.url === 'chrome://extensions/');
       paintHeader();
       paintSplitHeaders();
       const slot = strip.contentDocument?.getElementById('nativeExtensions');

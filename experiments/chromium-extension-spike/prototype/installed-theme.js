@@ -28,10 +28,14 @@
     const toolbar = enabled && /^chrome:\/\/blanc-prototype\/theme-toolbar\.png\?[a-p]{32}$/.test(theme.toolbarImage || '');
     if (toolbar) {
       root.style.setProperty('--theme-toolbar-image', `url("${theme.toolbarImage}")`);
-      root.style.setProperty('--theme-toolbar-text', hex(theme.toolbarImageText) || theme.text);
+      const foreground = hex(theme.toolbarImageText) || theme.text;
+      root.style.setProperty('--theme-toolbar-text', foreground);
+      const rgb = foreground.slice(1).match(/../g).map(value => parseInt(value, 16));
+      root.style.setProperty('--theme-toolbar-icon-filter', rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 > 128 ? 'brightness(0) invert(1)' : 'brightness(0)');
     } else {
       root.style.removeProperty('--theme-toolbar-image');
       root.style.removeProperty('--theme-toolbar-text');
+      root.style.removeProperty('--theme-toolbar-icon-filter');
     }
     root.toggleAttribute('data-store-toolbar', !!toolbar);
     root.toggleAttribute('data-store-theme', !!enabled);

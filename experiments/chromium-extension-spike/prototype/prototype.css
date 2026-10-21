@@ -80,3 +80,6 @@ html, body { background: transparent; }
   --island-resting-radius: 14px;
   --shadow-island-resting: inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
 }
+
+:root[data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-icon-filter, brightness(0)); }
+:root[data-store-toolbar][data-extensions-page] #pillFavicon.has-icon { filter: var(--theme-toolbar-icon-filter); }

@@ -1,0 +1,109 @@
+TAP version 13
+# Subtest: color-only themes apply their NTP palette
+ok 1 - color-only themes apply their NTP palette
+  ---
+  duration_ms: 1.331875
+  ...
+# Subtest: Undo/removal restores CSS inheritance
+ok 2 - Undo/removal restores CSS inheritance
+  ---
+  duration_ms: 0.567416
+  ...
+# Subtest: invalid theme colors are refused
+ok 3 - invalid theme colors are refused
+  ---
+  duration_ms: 0.24775
+  ...
+# Subtest: toolbar artwork is scoped to the native theme endpoint and cleared on removal
+ok 4 - toolbar artwork is scoped to the native theme endpoint and cleared on removal
+  ---
+  duration_ms: 0.242167
+  ...
+# Subtest: suppresses only the exact Chrome Store download campaign
+ok 5 - suppresses only the exact Chrome Store download campaign
+  ---
+  duration_ms: 1.221
+  ...
+# Subtest: does not run on other origins or child frames
+ok 6 - does not run on other origins or child frames
+  ---
+  duration_ms: 0.692791
+  ...
+# Subtest: leaves ordinary download links and installation forms alone
+ok 7 - leaves ordinary download links and installation forms alone
+  ---
+  duration_ms: 0.744
+  ...
+# Subtest: removes empty promotion shell without hiding mixed controls
+ok 8 - removes empty promotion shell without hiding mixed controls
+  ---
+  duration_ms: 0.70125
+  ...
+# Subtest: hides the complete exact inline banner
+ok 9 - hides the complete exact inline banner
+  ---
+  duration_ms: 0.484375
+  ...
+# Subtest: retains mixed installation/search/sign-in containers and changed copy
+ok 10 - retains mixed installation/search/sign-in containers and changed copy
+  ---
+  duration_ms: 0.346333
+  ...
+# Subtest: inline rule is limited to top-level Store origin
+ok 11 - inline rule is limited to top-level Store origin
+  ---
+  duration_ms: 0.368459
+  ...
+# Subtest: relabels installation text and accessibility without replacing button
+ok 12 - relabels installation text and accessibility without replacing button
+  ---
+  duration_ms: 0.256167
+  ...
+# Subtest: resting island tokens preserve the website material and canonical geometry
+not ok 13 - resting island tokens preserve the website material and canonical geometry
+  ---
+  duration_ms: 0.985666
+  location: '/private/tmp/blanc-chromium157-work/test/unit/island-resting-visual.test.js:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   common: '14px'
+    -   common: '17px'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    common: '17px'
+  actual:
+    common: '14px'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/island-resting-visual.test.js:35:10)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.start (node:internal/test_runner/test:877:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: resting island counter-scales fixed geometry and grows every element together
+ok 14 - resting island counter-scales fixed geometry and grows every element together
+  ---
+  duration_ms: 0.619625
+  ...
+# Subtest: expanded input and morph use the selected compact geometry
+ok 15 - expanded input and morph use the selected compact geometry
+  ---
+  duration_ms: 0.2545
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 14
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.659416

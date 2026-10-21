@@ -31,6 +31,8 @@ window.BlancExtensions = class {
     document.getElementById('extensionsManage').addEventListener('click', () => this.openPage('chrome://extensions/'));
     document.getElementById('extensionsGet').addEventListener('click', () => this.openPage('https://chromewebstore.google.com/category/extensions'));
     this.list.addEventListener('click', event => {
+      const themeAction = event.target.closest('[data-theme-action]');
+      if (themeAction) { this.themeAction(themeAction.dataset.themeId, themeAction.dataset.themeAction); return; }
       const button = event.target.closest('[data-extension-id]');
       if (button && !button.disabled) this.activate(button.dataset.extensionId);
     });
@@ -90,7 +92,7 @@ window.BlancExtensions = class {
     try {
       const result = await this.request('extensions');
       this.tabId = result.tabId;
-      const items = result.items.sort((a, b) => a.name.localeCompare(b.name));
+      const items = result.items.sort((a, b) => Number(!!a.theme) - Number(!!b.theme) || a.name.localeCompare(b.name));
       const key = JSON.stringify(items);
       if (key !== this.serialized) {
         this.serialized = key;
@@ -115,7 +117,7 @@ window.BlancExtensions = class {
     this.list.replaceChildren();
     let section = '';
     for (const item of this.visible) {
-      const nextSection = item.storeId || item.storeSearch ? 'Chrome Web Store' : 'Installed';
+      const nextSection = item.storeId || item.storeSearch ? 'Chrome Web Store' : item.theme ? 'Installed themes' : 'Installed';
       if (nextSection !== section) {
         const label = document.createElement('div');
         label.className = 'extension-section';
@@ -123,6 +125,21 @@ window.BlancExtensions = class {
         label.textContent = nextSection;
         this.list.append(label);
         section = nextSection;
+      }
+      if (item.theme) {
+        const row = document.createElement('div'); row.className = 'extension-row theme-row';
+        row.id = `extension-${item.id}`; row.dataset.extensionId = item.id;
+        row.setAttribute('role', 'option'); row.setAttribute('aria-label', item.name);
+        const name = document.createElement('span'); name.className = 'extension-text';
+        name.textContent = item.name + (item.active ? ' — Active' : ''); row.append(name);
+        for (const action of ['applyTheme', 'removeTheme']) {
+          const button = document.createElement('button'); button.type = 'button';
+          button.dataset.themeAction = action; button.dataset.themeId = item.id;
+          button.textContent = action === 'applyTheme' ? 'Apply' : 'Remove';
+          button.setAttribute('aria-label', button.textContent + ' ' + item.name);
+          button.disabled = this.busy || (action === 'applyTheme' && item.active); row.append(button);
+        }
+        this.list.append(row); continue;
       }
       const row = document.createElement('button');
       row.type = 'button';
@@ -227,6 +244,7 @@ window.BlancExtensions = class {
     }
     const installed = this.items.find(item => item.id === id);
     if (!installed || (!contextMenu && !installed.enabled)) return;
+    if (installed.theme) { if (!contextMenu && !installed.active) await this.themeAction(id, 'applyTheme'); return; }
     this.busy = true;
     try {
       const tabId = this.tabId;
@@ -246,6 +264,13 @@ window.BlancExtensions = class {
       await window.BlancPrototypeHost.extensions();
       this.message.textContent = error.message;
     } finally { this.contextMenuOpen = false; this.busy = false; }
+  }
+  async themeAction(id, action) {
+    if (this.busy) return;
+    this.busy = true;
+    try { await this.request(action, [id]); }
+    catch (error) { this.message.textContent = error.message; }
+    finally { this.busy = false; await this.update(); }
   }
   async openPage(url) {
     await this.close();

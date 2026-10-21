@@ -81,3 +81,7 @@
 :root[data-store-theme] #extensionsPanel img:not(.extension-icon),
 :root[data-store-theme] #extensionSearch::-webkit-search-cancel-button { filter: var(--theme-icon-filter); }
 :root[data-store-theme] .extension-icon-fallback { background: var(--accent-dim); color: var(--text); }
+
+.theme-row button { color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:6px 10px; cursor:pointer; }
+.theme-row button:disabled { opacity:.5; cursor:default; }
+.theme-row button:focus-visible { outline:2px solid var(--text); outline-offset:2px; }

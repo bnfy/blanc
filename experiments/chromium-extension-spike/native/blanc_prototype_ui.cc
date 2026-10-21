@@ -1,3 +1,4 @@
+#include "chrome/browser/extensions/extension_uninstall_dialog.h"
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/themes/theme_service_factory.h"
@@ -9,6 +10,7 @@
 #include "chrome/browser/sessions/session_service_factory.h"
 #include "chrome/browser/ui/blanc_prototype_ui.h"
 #include "chrome/browser/ui/blanc_webstore_promotion.h"
+#include "chrome/browser/ui/blanc_extensions_branding.h"
 #include "chrome/common/chrome_isolated_world_ids.h"
 
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
@@ -871,6 +873,10 @@ class Owner : public base::SupportsUserData::Data,
     if (!web_contents()) return;
     auto* frame = web_contents()->GetPrimaryMainFrame();
     const GURL& url = frame->GetLastCommittedURL();
+    if (frame->IsRenderFrameLive() && url.scheme() == "chrome" && url.host() == "extensions") {
+      frame->ExecuteJavaScript(kBlancExtensionsBranding, base::NullCallback());
+      return;
+    }
     if (!frame->IsRenderFrameLive() || url.scheme() != "https" ||
         url.host() != "chromewebstore.google.com" || url.EffectiveIntPort() != 443) return;
     frame->ExecuteJavaScriptInIsolatedWorld(kBlancWebStorePromotion,
@@ -1815,7 +1821,7 @@ class IslandExtensionMenu : public extensions::ExtensionContextMenuModel {
   base::RepeatingClosure closed_;
 };
 
-class Handler : public content::WebUIMessageHandler {
+class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate {
  public:
   void RegisterMessages() override {
     web_ui()->RegisterMessageCallback(
@@ -1827,6 +1833,7 @@ class Handler : public content::WebUIMessageHandler {
     weak_factory_.InvalidateWeakPtrs();
     tracker_.TryCancelAll();
     split_closes_.clear();
+    theme_uninstall_.reset();
     extension_menu_runner_.reset();
     extension_menu_adapter_.reset();
     extension_menu_.reset();
@@ -1835,6 +1842,7 @@ class Handler : public content::WebUIMessageHandler {
   }
 
  private:
+  std::unique_ptr<extensions::ExtensionUninstallDialog> theme_uninstall_;
   void ExtensionMenuClosed(std::string id) {
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE, base::BindOnce(&Handler::ExtensionMenuResult,
@@ -2827,6 +2835,33 @@ class Handler : public content::WebUIMessageHandler {
           &tracker_);
       return;
     }
+    if ((method == "applyTheme" || method == "removeTheme") && args.size() == 1 && args[0].is_string()) {
+      const auto installed = extensions::ExtensionRegistry::Get(profile)->GenerateInstalledExtensionsSet();
+      const auto* theme = installed.GetByID(args[0].GetString());
+      if (profile->IsOffTheRecord() || !theme || !theme->is_theme() ||
+          !contents->GetPrimaryMainFrame()->ConsumeTransientUserActivation()) {
+        reply(false, base::Value("Select an installed theme in a regular window."));
+        return;
+      }
+      if (method == "applyTheme") {
+        auto* service = ThemeServiceFactory::GetForProfile(profile);
+        if (service->UsingPolicyTheme()) {
+          reply(false, base::Value("Your organization manages this theme."));
+          return;
+        }
+        if (extensions::ExtensionRegistry::Get(profile)->disabled_extensions().Contains(theme->id()))
+          service->RevertToExtensionTheme(theme->id());
+        else service->SetTheme(theme);
+      }
+      else {
+        theme_uninstall_ = extensions::ExtensionUninstallDialog::Create(profile,
+            browser->GetWindow()->GetNativeWindow(), this);
+        theme_uninstall_->ConfirmUninstall(theme, extensions::UNINSTALL_REASON_USER_INITIATED,
+            extensions::UNINSTALL_SOURCE_TOOLBAR_CONTEXT_MENU);
+      }
+      reply(true, base::Value());
+      return;
+    }
     if (method == "extensions" && args.empty()) {
       auto* container = BrowserView::GetBrowserViewForBrowser(browser)
                             ->toolbar()->extensions_container_for_testing();
@@ -2844,6 +2879,16 @@ class Handler : public content::WebUIMessageHandler {
               .Set("enabled", action->IsEnabled(active))
               .Set("icon", icon.IsImage() && !icon.GetImage().IsEmpty()
                   ? webui::GetBitmapDataUrl(icon.GetImage().AsImageSkia().GetRepresentation(2.0f).GetBitmap()) : ""));
+        }
+      }
+      if (!profile->IsOffTheRecord()) {
+        const auto installed = extensions::ExtensionRegistry::Get(profile)->GenerateInstalledExtensionsSet();
+        const auto active_theme = ThemeServiceFactory::GetForProfile(profile)->GetThemeID();
+        for (const auto& theme : installed) {
+          if (!theme->is_theme()) continue;
+          items.Append(base::DictValue().Set("id", theme->id()).Set("name", theme->name())
+              .Set("theme", true).Set("active", theme->id() == active_theme)
+              .Set("enabled", true).Set("icon", ""));
         }
       }
       reply(true, base::Value(base::DictValue().Set("items", std::move(items))
