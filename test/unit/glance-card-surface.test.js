@@ -49,8 +49,9 @@ test('every strip broadcast also reaches the card', () => {
 test('the main page keeps the whole page area; the Glance page sits inside the card', () => {
   const resize = between(main, 'function resizeActiveView() {', 'syncSplitCornerTabs(split, place);');
   assert.match(resize, /tab\.view\.setBounds\(place\(layout\.pageBounds\)\)/);
-  assert.match(resize, /glanceTab\.view\.setBounds\(place\(card\.page\)\)/);
-  assert.match(resize, /cardView\.setBounds\(place\(card\.chrome\)\)/);
+  // The card is fixed to the window: only the main page slides with the Island.
+  assert.match(resize, /glanceTab\.view\.setBounds\(card\.page\)/);
+  assert.match(resize, /cardView\.setBounds\(card\.chrome\)/);
 });
 
 test('the card sits just above the main page and below the Glance page', () => {
