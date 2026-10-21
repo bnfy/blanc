@@ -63,6 +63,7 @@
     "capture:profiles-workspaces:installed": "node scripts/capture-installed-profiles-workspaces.mjs",
     "capture:spaces:installed": "node scripts/capture-installed-spaces.mjs",
     "capture:glance:installed": "node scripts/capture-installed-glance.mjs",
+    "capture:float-island:installed": "node scripts/capture-installed-float-island.mjs",
     "capture:wallpaper:installed": "node scripts/capture-installed-wallpaper.mjs",
     "test:tab-handoff": "node test/desktop/tab-handoff-smoke.mjs",
     "test:packaged:tab-handoff-protocol": "node test/desktop/packaged-tab-handoff-protocol-smoke.mjs",
