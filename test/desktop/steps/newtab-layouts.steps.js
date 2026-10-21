@@ -127,11 +127,14 @@ Then('the Billboard dismissal stays in local page storage without deleting histo
 });
 
 When('I pin {string} to the Billboard', async function (key) {
-  await waitForValue(
+  const dom = await waitForValue(
     () => this.call('readBillboardSites'),
     (value) => value?.sites?.some((site) => site.key === key && !site.pinned),
     `${key} to show unpinned on the Billboard`,
   );
+  // What the tile opens and is called before pinning: the page to keep.
+  const tile = dom.sites.find((site) => site.key === key);
+  this.billboardPinnedPage = { url: tile.href, title: tile.title };
   assert.equal(await this.call('toggleBillboardPin', key), true);
 });
 
@@ -161,8 +164,11 @@ Then('the Billboard lists {string} first, pinned', async function (key) {
   assert.equal(dom.focusedPinOf, key);
 });
 
-Then('the Start Page keeps {string} pinned as its site, under its short name', async function (key) {
-  assert.deepEqual(await this.call('startPagePins'), [{ url: `https://${key}/`, title: 'CNET' }]);
+Then('the Start Page keeps the page last visited on {string} pinned', async function (key) {
+  // The tile's own page and full title, not the site's front page.
+  assert.match(this.billboardPinnedPage.url, new RegExp(`^https://${key.replace('.', '\\.')}/article/`));
+  assert.equal(this.billboardPinnedPage.title, 'CNET – technology news and reviews');
+  assert.deepEqual(await this.call('startPagePins'), [this.billboardPinnedPage]);
   const dom = await this.call('readBillboardSites');
   assert.deepEqual(dom.hidden, []);
   assert.equal(await this.call('historyCount'), this.billboardHistoryCount);
@@ -178,7 +184,7 @@ Then('the Billboard keeps no pins', async function () {
   assert.deepEqual(await this.call('startPagePins'), []);
 });
 
-Then('the Billboard shows only {string}, pinned, opening its origin', async function (key) {
+Then('the Billboard shows only {string}, pinned, opening the page last visited', async function (key) {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),
     (value) => value?.sites?.length === 1,
@@ -186,7 +192,8 @@ Then('the Billboard shows only {string}, pinned, opening its origin', async func
   );
   assert.equal(dom.sites[0].key, key);
   assert.equal(dom.sites[0].pinned, true);
-  assert.equal(dom.sites[0].href, `https://${key}/`);
+  assert.equal(dom.sites[0].href, this.billboardPinnedPage.url);
+  assert.equal(dom.sites[0].key, key);
   // The name it was pinned under, though history no longer knows the site.
   assert.equal(dom.sites[0].label, 'CNET');
 });

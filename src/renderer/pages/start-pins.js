@@ -18,18 +18,6 @@
     }
   }
 
-  /** What pinning a Billboard tile pins: the site, not whichever of its pages
-   * was visited last. Null for anything but http(s). */
-  function siteOrigin(url) {
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-      return `${parsed.origin}/`;
-    } catch {
-      return null;
-    }
-  }
-
   /** The Billboard row: every pin first, in pin order, then the ranked sites
    * that are neither hidden nor already a pin's site. */
   function billboardSites(pins, ranked, hidden, limit = 6) {
@@ -74,7 +62,6 @@
 
   globalThis.blancStartPins = Object.freeze({
     siteKey,
-    siteOrigin,
     billboardSites,
     favoriteTiles,
     samePins,

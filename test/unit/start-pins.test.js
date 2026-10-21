@@ -10,7 +10,7 @@ const source = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/st
 const sandbox = { URL };
 sandbox.globalThis = sandbox;
 vm.runInNewContext(source, sandbox);
-const { siteKey, siteOrigin, billboardSites, favoriteTiles, samePins } = sandbox.blancStartPins;
+const { siteKey, billboardSites, favoriteTiles, samePins } = sandbox.blancStartPins;
 // Results come from the vm's realm; compare them as plain data.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -23,13 +23,11 @@ const site = (key, extra = {}) => ({
 });
 const pin = (url, title, favicon = null) => ({ url, title, favicon });
 
-test('sites are keyed and pinned by host, the way main ranks them', () => {
+test('sites are keyed by host, the way main ranks them', () => {
   assert.equal(siteKey('https://www.YouTube.com/watch?v=abc'), 'youtube.com');
-  assert.equal(siteOrigin('https://www.youtube.com/watch?v=abc#t=1'), 'https://www.youtube.com/');
-  assert.equal(siteOrigin('http://localhost:8080/app'), 'http://localhost:8080/');
+  assert.equal(siteKey('http://localhost:8080/app'), 'localhost');
   for (const url of ['javascript:alert(1)', 'blanc://settings/', 'not a url', null]) {
     assert.equal(siteKey(url), null, String(url));
-    assert.equal(siteOrigin(url), null, String(url));
   }
 });
 

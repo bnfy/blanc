@@ -62,7 +62,7 @@ Feature: Start page layouts
     When I open a new tab
     And I pin "cnet.com" to the Billboard
     Then the Billboard lists "cnet.com" first, pinned
-    And the Start Page keeps "cnet.com" pinned as its site, under its short name
+    And the Start Page keeps the page last visited on "cnet.com" pinned
     When I unpin "cnet.com" from the Billboard
     Then the Billboard lists "youtube.com" before "cnet.com"
     And the Billboard keeps no pins
@@ -76,7 +76,7 @@ Feature: Start page layouts
     And I pin "cnet.com" to the Billboard
     And I clear browsing history
     And I open a new tab
-    Then the Billboard shows only "cnet.com", pinned, opening its origin
+    Then the Billboard shows only "cnet.com", pinned, opening the page last visited
     When I unpin "cnet.com" from the Billboard
     Then "cnet.com" is absent from the Billboard
     And the Billboard keeps no pins

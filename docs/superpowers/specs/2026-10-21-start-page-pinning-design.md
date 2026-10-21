@@ -1,7 +1,7 @@
 # Start Page pins
 
 **Date:** 2026-10-21
-**Status:** draft for owner review. On 2026-10-21 the owner asked for pinning on all four layouts, then for "Pin to Start Page" on the Favorites page and in the tab right-click menu. The owner checks in §6 are open.
+**Status:** draft for owner review. On 2026-10-21 the owner asked for pinning on all four layouts, then for "Pin to Start Page" on the Favorites page and in the tab right-click menu, and then decided three checks: a Billboard pin keeps the page last visited, pins sync, and the limit stays at eight for now. The remaining owner checks in §6 are open.
 **Builds on:** [2026-10-05 start page layouts polish](2026-10-05-start-page-layouts-polish-design.md) (Billboard's one row of six, short site names, the hover ×), F35 in `spec/features.md`.
 
 ## 1. Why
@@ -17,7 +17,7 @@ There is one list of **Start Page pins**: up to eight pages, each an http(s) URL
 
 | Where | What it pins |
 |---|---|
-| A Billboard tile's pin (top-left, opposite the ×) | The tile's **site**: its http(s) origin, under the short name the tile shows. It doesn't pin the page visited last. |
+| A Billboard tile's pin (top-left, opposite the ×) | The page the tile opens, the site's page visited last, under that page's title (owner decision, 2026-10-21). |
 | A favorite's pin on Ledger, Shelf or Tally (end of a row; a Shelf card's top-right corner) | That favorite's URL and title. |
 | The Favorites page: **pin** / **unpin** beside **move ▸** and **remove** | That favorite's URL and title. |
 | The tab right-click menu: **Pin to Start Page** / **Unpin from Start Page**, right after **Save to Favorites** | The tab's URL and the name it shows (its custom name if renamed). The same pages Favorites take: never a private tab, only http(s). Disabled for a new pin when all eight are taken, but always available to unpin. |
@@ -38,7 +38,12 @@ Because pins can come from a tab or the Favorites page, they must reach whicheve
 ## 4. Data and privacy
 
 - Main keeps the list in a `scope: 'profile'` `JsonStore`, `start-page-pins.json` (`src/main/start-page-pins.js`). Personal's is at the userData root; a named profile's is under `profiles/<id>/` and is removed with that profile.
-- It is device-local: not in Profile Sync, not in telemetry. It is kept when history is cleared, like Favorites.
+- It is not in telemetry, and it is kept when history is cleared, like Favorites.
+- **Sync** (owner decision, 2026-10-21). Profile Sync carries the Personal profile's list, as Sync carries only Personal.
+  - The list rides inside the end-to-end-encrypted settings payload as one more clocked value, `startPagePins` in `values`/`meta`/`tieBreakers`. The v1 Worker accepts only its four store names, so a new store would need a Worker deploy; this avoids one.
+  - The list is one value with one clock. A local pin or unpin stamps a clock past any seen (`nextSyncWriteTimestamp`) and schedules a sync. A peer's list wins whole when its clock is newer; an equal clock is settled by the settings tie-breaker. So two devices changing pins offline keep the later device's list.
+  - A merged change redraws open pages. A value this version can't read still advances the clock, so it can't win every pass.
+  - A Blanc that predates pins drops the value when it uploads settings. `syncPayloadEquals` then sees the blob lacking it, and the next newer device uploads it again, as with device names.
 - Each pin is `{ url, title }`. The URL must be http(s) and at most 4,096 characters; the name is trimmed to 200, falling back to the host. Saved pins are re-sanitized on read, and repeats and anything past eight are dropped.
 - When listed, each pin gets an icon already held locally: its Favorite's, else its site's from the history icon cache. The page never fetches a site or a favicon service.
 - Channels (guarded, in `browser-api/bridges.json`, hosts `newtab` and `bookmarks` only):
@@ -55,18 +60,25 @@ The first two commits of this PR kept pins in the Start Page's own localStorage,
 
 ## 6. Owner checks
 
+Decided on 2026-10-21:
+- A Billboard pin keeps the page last visited.
+- Pins sync.
+- The limit stays at eight for now.
+
+Still open:
 1. **Pins lead**, rather than holding the slot where they were pinned (Firefox's model). Leading matches how pinned tabs lead their group in Blanc.
-2. **One list across all four layouts**, capped at eight (Shelf's tile count). A layout with fewer tiles shows the first pins that fit.
-3. **A Billboard tile pins its site's origin** under its short name, not the page visited last.
-4. **Pins outlive clearing history** and **don't sync**. Syncing them would add a new synced store, which is a separate decision.
+2. **One list across all four layouts.** A layout with fewer tiles shows the first pins that fit.
+3. **The newest change to the list wins whole** in Sync, rather than merging pin by pin.
+4. **Pins outlive clearing history.**
 5. **A pinned Billboard tile can't be hidden**, only unpinned.
 6. **Private start pages show the pins read-only.**
 7. **No drag to reorder pins.** Unpinning and re-pinning changes the order.
 
 ## 7. Tests
 
-- `test/unit/start-page-pins-store.test.js`: sanitizing, the cap, idempotent pinning, change notices, and the Personal and named-profile files.
-- `test/unit/start-pins.test.js`: Billboard and favorites-layout order, site keys and origins, and change detection.
+- `test/unit/start-page-pins-store.test.js`: sanitizing, the cap, idempotent pinning, change notices, the Personal and named-profile files, and the sync clock (no export before a change, newer wins, equal clocks converge, unreadable values advance the clock).
+- `test/unit/sync-start-page-pins.test.js`: two devices through the settings payload, the no-op upload skip, and repair after an older Blanc drops the value.
+- `test/unit/start-pins.test.js`: Billboard and favorites-layout order, site keys, and change detection.
 - `test/unit/tab-context-menu-model.test.js` and `tab-context-menu-runner.test.js`: the menu item's label, place, enabled rules and dispatch.
 - `test/unit/newtab-top-sites.test.js`:
   - hiding stays in page storage;

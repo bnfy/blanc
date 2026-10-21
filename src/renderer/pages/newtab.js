@@ -723,16 +723,14 @@ function renderBillboard() {
 
     // A pinned tile leads the row and stays whatever history does; its pin
     // stays on show so the row explains why it doesn't move. Only a ranked
-    // tile can be hidden, and pinning one pins its site, not the page visited
-    // last.
+    // tile can be hidden. Pinning one pins the page it opens: the site's page
+    // visited last, under that page's title.
     const pin = pinButton({ url: site.url, title: fullTitle }, site.pinned);
     pin.className = 'bb-site-pin';
     pin.addEventListener('click', async () => {
       const index = [...favs.children].indexOf(item);
-      const page = site.pinned
-        ? site
-        : { url: startPins.siteOrigin(site.url), title: label.textContent };
-      if (!page.url || !(await togglePin(page, site.pinned, 'bbTopSitesStatus'))) return;
+      const page = { url: site.url, title: fullTitle };
+      if (!(await togglePin(page, site.pinned, 'bbTopSitesStatus'))) return;
       // Focus follows the site to its new place, or stays in the slot it left
       // when unpinning drops it off the row.
       const moved = [...favs.children].find((candidate) => candidate.dataset.siteKey === site.key);

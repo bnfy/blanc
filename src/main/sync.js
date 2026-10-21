@@ -3,6 +3,7 @@ const { app, net, safeStorage, dialog, clipboard } = require('electron');
 const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
+const startPagePins = require('./start-page-pins');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const { deviceName } = require('./device-name');
@@ -94,7 +95,23 @@ function tabSyncContext() {
 // Order doesn't matter; each store syncs independently.
 const STORES = [
   { name: 'bookmarks', export: bookmarks.exportForSync, merge: bookmarks.mergeFromSync },
-  { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync, equals: settings.syncPayloadEquals },
+  {
+    // Start Page pins ride in the settings payload as one more clocked value
+    // (startPagePins), so the Worker needs no new store. A Blanc that predates
+    // it drops the value on upload; syncPayloadEquals then sees the blob
+    // lacking it and the next newer device uploads it again.
+    name: 'settings',
+    export: () => withStartPagePins(settings.exportForSync()),
+    merge: (remote) => {
+      settings.mergeFromSync(remote);
+      startPagePins.mergeFromSync({
+        value: remote?.values?.startPagePins,
+        at: remote?.meta?.startPagePins,
+        tie: remote?.tieBreakers?.startPagePins,
+      });
+    },
+    equals: settings.syncPayloadEquals,
+  },
   {
     name: 'session',
     // ctx is the run-scoped context syncNow snapshotted — NOT re-resolved
@@ -125,6 +142,20 @@ const STORES = [
     equals: (exported, remote) => tabicons.equalsRemote(exported, remote),
   },
 ];
+
+/** The settings payload plus the Personal profile's Start Page pins, when
+ * they have ever changed. */
+function withStartPagePins(payload) {
+  const pins = startPagePins.exportForSync();
+  if (!pins) return payload;
+  const out = {
+    values: { ...payload.values, startPagePins: pins.value },
+    meta: { ...payload.meta, startPagePins: pins.at },
+    tieBreakers: { ...payload.tieBreakers },
+  };
+  if (pins.tie) out.tieBreakers.startPagePins = pins.tie;
+  return out;
+}
 
 let syncing = false, timer = null, sessionTimer = null, iconTimer = null;
 /** Tab-driven publishes are trailing debounces, re-armed on every change —
@@ -891,6 +922,9 @@ function init() {
   });
   settings.onSettingsChanged(onDefaultLocalChange);
   bookmarks.onChanged(() => {
+    if (isDefaultLocalProfile()) onDefaultLocalChange();
+  });
+  startPagePins.onChanged(() => {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
   // Tab-driven publishes: fingerprint-gated upstream (tabsync.noteTabsChanged),

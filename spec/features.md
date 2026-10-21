@@ -928,7 +928,8 @@ From the desktop `DEFAULTS`:
   private themes.
 - **Start Page pins.** Up to eight pages can be pinned to the front of every
   layout, from four places: a Billboard tile's pin (on the corner opposite its
-  ×, which pins the tile's site, its http(s) origin, under its short name), a
+  ×, which pins the page the tile opens, the site's page visited last, under
+  its title), a
   favorite's pin on Ledger, Shelf or Tally (at the end of a row, in a Shelf
   card's corner), the Favorites page's **pin**/**unpin** row action, and the
   tab right-click menu's **Pin to Start Page**/**Unpin from Start Page** (web
@@ -942,8 +943,12 @@ From the desktop `DEFAULTS`:
   Favorites page marks a pinned favorite beside its date. A pin is an http(s)
   URL and a name of at most 200 characters, with an icon only from the
   profile's own Favorites or history cache. Main keeps the list in each local
-  profile's `start-page-pins.json`: device-local, never synced or reported,
-  kept when history is cleared, and removed with a named profile. Only the
+  profile's `start-page-pins.json`: never reported, kept when history is
+  cleared, and removed with a named profile. Profile Sync carries the Personal
+  profile's list inside the end-to-end-encrypted settings payload
+  (`startPagePins`) as one value with one clock, so the newest change wins
+  whole; a Blanc that predates it drops the value on upload and the next newer
+  device restores it. Only the
   Start Page and the Favorites page reach it (`pages:pins:*`), and open
   copies of both redraw when it changes. Private start pages draw the pins
   but never change them.

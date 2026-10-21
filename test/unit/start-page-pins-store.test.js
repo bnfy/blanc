@@ -108,3 +108,61 @@ test('the Personal profile writes start-page-pins.json; a named profile its own'
   assert.equal(named.pins[0].url, 'https://work.test/');
   assert.equal(pins.isPinned('https://work.test/'), false, 'Personal never sees the named profile’s pins');
 });
+
+test('Sync sends nothing before the first change, then the list with its clock', () => {
+  const id = 'profile_sync_fresh';
+  withLocalProfile(id, () => {
+    assert.equal(pins.exportForSync(), null);
+    pins.pin({ url: 'https://a.test/', title: 'A' });
+    const sent = pins.exportForSync();
+    assert.deepEqual(sent.value, [{ url: 'https://a.test/', title: 'A' }]);
+    assert.ok(Number.isSafeInteger(sent.at) && sent.at > 0);
+    assert.equal(typeof sent.tie, 'string');
+  });
+});
+
+test('a newer peer list wins whole; an older one changes nothing', () => {
+  withLocalProfile('profile_sync_merge', () => {
+    pins.pin({ url: 'https://local.test/', title: 'Local' });
+    const local = pins.exportForSync();
+    let notices = 0;
+    pins.onChanged(() => { notices += 1; });
+
+    assert.equal(pins.mergeFromSync({ value: [{ url: 'https://old.test/', title: 'Old' }], at: local.at - 1, tie: 'z' }), false);
+    assert.deepEqual(pins.listPins().map((pin) => pin.url), ['https://local.test/']);
+
+    const remote = [
+      { url: 'https://remote.test/a', title: 'Remote' },
+      { url: 'javascript:alert(1)', title: 'Refused' },
+    ];
+    assert.equal(pins.mergeFromSync({ value: remote, at: local.at + 10, tie: 'r' }), true);
+    assert.deepEqual(pins.listPins(), [{ url: 'https://remote.test/a', title: 'Remote' }]);
+    assert.equal(pins.exportForSync().at, local.at + 10, 'the peer clock is kept');
+    assert.ok(notices >= 1, 'open pages hear about it');
+
+    // A later local change stamps past the clock it adopted.
+    pins.unpin('https://remote.test/a');
+    assert.ok(pins.exportForSync().at > local.at + 10);
+  });
+});
+
+test('equal clocks converge; a value this version can’t read still advances the clock', () => {
+  withLocalProfile('profile_sync_tie', () => {
+    pins.pin({ url: 'https://tie.test/', title: 'Tie' });
+    const local = pins.exportForSync();
+    // The smaller tie-breaker wins an equal clock, the way synced settings do.
+    const loser = local.tie + '~';
+    assert.equal(pins.mergeFromSync({ value: [], at: local.at, tie: loser }), false);
+    assert.equal(pins.listPins().length, 1);
+    assert.equal(pins.mergeFromSync({ value: [], at: local.at, tie: '' }), true);
+    assert.deepEqual(pins.listPins(), []);
+
+    pins.pin({ url: 'https://kept.test/', title: 'Kept' });
+    const before = pins.exportForSync();
+    assert.equal(pins.mergeFromSync({ value: { future: 'shape' }, at: before.at + 5, tie: 'x' }), false);
+    assert.deepEqual(pins.listPins().map((pin) => pin.url), ['https://kept.test/']);
+    assert.equal(pins.exportForSync().at, before.at + 5);
+    assert.equal(pins.mergeFromSync({ value: [], at: 'nope' }), false);
+    assert.equal(pins.mergeFromSync(null), false);
+  });
+});
