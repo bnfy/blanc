@@ -1,0 +1,9 @@
+{
+  "capture_reproduces_exactly": true,
+  "source_hashes_verified": 9,
+  "capture_syntax": "pass",
+  "runtime_schedules": 0,
+  "native_builds": 0,
+  "latency": "deferred",
+  "electron_diagnostic_build": "pending approval"
+}

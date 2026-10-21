@@ -50,3 +50,7 @@ Supersedes the missing-native-assets blocker above: the authenticated CodeQL arc
 ### Native sender-closure evidence — October 21, 2026
 
 Four native schedules pass (regular/private × keepalive/beacon), with eight explicit post-close redirect decisions and preserved allowed POST body hashes. Qualifies pre-enqueued requests through one307 after target destruction; retries/process teardown/other methods and paired Electron parity remain open. See experiments/chromium-extension-spike/evidence/f12-sender-close-20261021/README.md and validation.json. No build; latency deferred; Electron diagnostic build pending. Next Decision2 priority: socket/speculation disposition and remaining strict source-path attribution.
+
+## Socket/speculation source disposition — October 21, 2026
+
+[Captured source disposition](evidence/f12-socket-speculation-20261021/README.md) completes the next reconciliation task. Socket/transport rows require a Blanc Blocker adapter, not just URL-loader test reruns. Normal prefetch needs runtime initial-request/consumption evidence; pre-prefetch is a conditional bypass with disabled defaults and scoped caller evidence; prerender cancellation is limited to the document-start switch. Next: context-bound WebSocket enforcement and real document/worker/private handshake controls, subject to the existing patch budget. This is source evidence only: no runtime pass, build, engine acceptance or release approval. Latency deferred; Electron diagnostic build pending approval.
