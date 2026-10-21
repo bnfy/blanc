@@ -1,5 +1,37 @@
 # Migrate to a Chromium fork: implementation plan
 
+**Primary implementation plan — status reconciled October 21, 2026.** This remains the governing plan and ordering for Chromium migration. The owner explicitly requested that ongoing work update this plan. The [Mac preview checklist](../experiments/chromium-extension-spike/mac-preview-release-checklist.md) is a supporting readiness checklist, not a replacement roadmap, authorization, or waiver of the gates below. Historical estimates are not a current release ETA.
+
+### Current execution status
+
+Evidence base: [tranche plan and dated checkpoints](../experiments/chromium-extension-spike/tranche2-request.md), [rebase ledger](../experiments/chromium-extension-spike/rebase-ledger.md), [runtime results](../experiments/chromium-extension-spike/results.md). “Implemented / bounded evidence” does not mean full parity or release acceptance. The October 16 narrative below is retained as a dated baseline; this reconciliation supersedes its status claims where explicitly identified.
+
+| Primary plan item | Current status | Completed evidence and next requirement |
+| --- | --- | --- |
+| §6 Task 0 / §4 A2 rebase | **Measured; gate still open** | Chromium156→157 cold recovery recorded at2h39m47s, one broken anchor/API change. Native scoped acceptance performed. Authentic Google-endpoint extension version upgrade on retained157 baseline still pending; no promotion or `passed` rebase outcome. Human attention/cost is not inferred from build duration. |
+| §4 A1 patch design | **Drafted; implementation/review incomplete** | [A1 design](../experiments/chromium-extension-spike/a1-patch-budget-design.md) exists. Latest owner-approved upstream ceiling55files/129hunks; last measured footprint55/129, subsequent Blanc-owned changes do not add upstream paths. Older49/120 or50/118 figures are historical. Layout move and authoritative native inventory CI remain open. |
+| §4 B Island / §3 F2,F6,F7,F8,F28 | **Implemented in parts; acceptance in progress** | Rail, split rows/numbered commands, native Restore Tab, find, menus, divider and pane controls have bounded evidence. Same-size visual checks exist but complete composed parity/VoiceOver/native physical-input acceptance is not closed. |
+| §4 C / F12 blocker spikes A and B | **In progress, not accepted** | Network/cosmetic/runtime and lifecycle evidence accumulated in results/tranche ledger. No final aggregate spike acceptance or engine decision asserted. Qualified latency remains explicitly deferred; diagnostic Electron build remains unapproved/unstarted. |
+| §3 F15,F16,F35 / §4 D,H themes and extensions | **Scoped implementation and native acceptance recorded** | Island Store results/icons, installation/permission Cancel, removal branding/menu, theme apply/Undo/removal/restart, theme-aware controls, installed-theme management and Extensions branding implemented. Does not close all internal pages, locales, extension matrix or signed native-host integration. |
+| §3 F18,F32,F33,F41 session / windows / profiles / Spaces | **Implemented in parts; bounded recovery passes** | Identity-based persistence, partial-close reconciliation, failed-write retry, cross-owner saves, profile-deletion cancellation and Split ratio intent recovery implemented. [Latest retry repair](../experiments/chromium-extension-spike/evidence/ratio-flush-retry-fix-20261021/README.md):6schedules60checks; [capped/shutdown checks](../experiments/chromium-extension-spike/evidence/ratio-cap-shutdown-20261021/README.md):4schedules32checks. These do not certify arbitrary crashes/power loss, full profile product parity, original-profile migration, or physical recovery UI. |
+| §3 F34 Glance / persistent Split View | **Partial migration against #993** | Reference is PR993 commit98ea48fc, mapped in [Split View migration](../experiments/chromium-extension-spike/split-view-migration.md). Persistent multiple/inactive/private snapshots, grouping, headers/divider, rail, shortcuts, Recently Closed and native restore have bounded evidence. Full Glance conversion/parity and cross-window whole-split drag remain open; old Glance alone is not the migration target. |
+| §2 Decision2 package visual comparison | **Started, incomplete** | Multiple geometry/theme/native checkpoints exist; full matched resting/panel/palette/find/private comparison and final diff disposition still required. |
+| §2 VoiceOver / cost sheet | **Not completed** | No complete VoiceOver acceptance or staffing/CI cost sheet established by this reconciliation. Keep as next Decision2 deliverables; do not substitute CI or elapsed build time. |
+| §4 E data migration / G cutover / I release | **Unqualified** | No production Electron→Chromium profile/updater handoff, rollback or signed public native artifact acceptance claimed. Preview checklist tracks a proposed narrower track, requiring explicit scope approval. |
+| §4 F infrastructure / beta gate | **Partial test infrastructure; gate open** | Native CDP fixtures and focused tests exist. Hosted PR green runs include Electron jobs, not full native Chromium spec acceptance on three platforms. Latest verified all-pass headede130ce:27pass/2skip, CodeQL no new alerts; later evidence/checklist head1bacf7e7 published, CI not rechecked in this documentation task. |
+| Decision2 / public release | **Not approved by this reconciliation** | Keep existing gate sequence. Owner-authorized prototype follow-ups are not blanket migration/release authorization. |
+
+### Next work under this primary plan
+
+1. Consolidate outstanding F12 A/B acceptance artifacts and A1 review; list missing qualifications without silently running deferred latency or the unapproved Electron diagnostic build.
+2. Finish the Decision2 package: matched visual comparison, owner-assisted physical-input/VoiceOver session and staffing/CI cost sheet. Keep the real Google upgrade gate monitored separately.
+3. Update §3 feature status as work lands; each completion needs a linked bounded result and remaining acceptance gap. Prioritize reproducible enabled-feature data-loss/security failures over an unlimited interleaving matrix.
+4. Use the supporting Mac checklist to prepare scope/isolation/packaging choices, then obtain the required owner decisions. Do not move cutover, migration or existing beta gates into a “follow-up” bucket without explicit approval.
+
+Documentation reconciliation only: no builds, runtime tests, profile changes, publication or release actions. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted.
+
+---
+
 **Status (October 16, 2026): a plan for Decision 2, not a commitment.** Shipping
 Blanc stays on Electron. The owner reopened the platform question on
 October 15 and authorized a time-boxed prototype under
@@ -30,7 +62,7 @@ Companion documents:
 - `AGENTS.md` and `CLAUDE.md`, platform-direction paragraph: the current
   authorization boundary.
 
-## 1. Where the prototype stands
+## 1. October 16 prototype baseline (historical)
 
 Everything in this section is backed by a dated entry in `results.md` or a
 merged PR on `codex/chromium-extension-spike`; nothing here is from source
@@ -118,7 +150,7 @@ first proposed engineering task, pending its separate cold-build approval.
 ## 2. Gates, restated with evidence
 
 The evaluation doc defines four gates. This table says what each needs and
-what exists today. A gate passes only on recorded evidence of the kind named
+the October 16 evidence baseline. See the current execution status above for subsequent progress; the requirements in this table remain binding. A gate passes only on recorded evidence of the kind named
 here; never from source inspection, an unpacked extension, or a harness
 result that was not reproduced with real input.
 
@@ -162,31 +194,31 @@ on Electron primitives and must be redone against Chromium's.
 | F9 | Favorites | Native model; no sheet, no "Add all open tabs" | Keep `BookmarkModel`; port `blanc://bookmarks` as a WebUI sheet; import from Electron `bookmarks.json` (Workstream E) | M |
 | F10 | History | Native service; no sheet | Keep `HistoryService`; port the sheet; import `history.json` | S |
 | F11 | Downloads | Chromium's manager | Port the sheet over `DownloadManager`; keep `downloads.json` import | M |
-| F12 | Ad/tracker blocking | **Missing** | Rebuild. Options: (a) Blanc Blocker through browser-side request interception chosen by a request-path coverage audit (a `URLLoaderThrottle` alone does not see keepalive, prefetch or worker paths), CSS injected per frame, and scriptlets executed in the page's main world where they patch globals; (b) full uBO, which needs Manifest V2: Chrome's supported MV2 use ended with Chrome 139, enterprise exception included (§7), while this checkout still carries MV2 handling, test overrides and component exceptions, so restoring a supported full-uBO path requires a source/API audit and a runtime spike; the required patches and their maintenance cost remain unknown, and option (b) is not a policy default. Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream; its estimate is unknown until both spikes run. | L+ |
+| F12 | Ad/tracker blocking | Spikes A/B implemented in parts; acceptance open; see current status | Rebuild. Options: (a) Blanc Blocker through browser-side request interception chosen by a request-path coverage audit (a `URLLoaderThrottle` alone does not see keepalive, prefetch or worker paths), CSS injected per frame, and scriptlets executed in the page's main world where they patch globals; (b) full uBO, which needs Manifest V2: Chrome's supported MV2 use ended with Chrome 139, enterprise exception included (§7), while this checkout still carries MV2 handling, test overrides and component exceptions, so restoring a supported full-uBO path requires a source/API audit and a runtime spike; the required patches and their maintenance cost remain unknown, and option (b) is not a policy default. Either way the shield count, per-site allow and the popover are Blanc UI over the chosen engine. Highest-risk workstream; its estimate is unknown until both spikes run. | L+ |
 | F13 | Permissions | Chromium prompts | Rebuild the explicit policy and copy over `PermissionRequestManager` with a Blanc prompt view; the held-view denial rules become moot or divergences | M |
 | F14 | Settings | Missing | Port `blanc://settings` as WebUI; `settings-schema` stays the source; Chromium prefs only for things Chromium owns | M |
-| F15 | Theming | Done (system/dark/private tint) | Port; drive `ThemeService`/`NativeTheme` from the setting | S |
+| F15 | Theming | ThemeService integration, Web Store themes and adaptive UI; bounded checks pass | Port; drive `ThemeService`/`NativeTheme` from the setting | S |
 | F16 | Internal pages | newtab only | Port the remaining pages as WebUI documents with the sheet surface | M |
 | F17 | Patron and app icons | Missing | Port (main-process activation becomes a browser-process service) | S |
-| F18 | Session persistence and restore | Chromium's | Decide: keep Chromium's `SessionService` and import `session.json` once, or port Blanc's v2 format. Recommend import once, then Chromium's. | M |
+| F18 | Session persistence and restore | Native persistence plus identity/retry recovery implemented; broader acceptance open | Decide: keep Chromium's `SessionService` and import `session.json` once, or port Blanc's v2 format. Recommend import once, then Chromium's. | M |
 | F19 | Context menu | Chromium's | Port the Blanc actions into `RenderViewContextMenu` overrides | S |
 | F20 | HTTP auth policy | Chromium's dialog | Override `LoginHandler` to fail the challenge silently | S |
 | F21 | Telemetry | Missing | Port (browser-process service; same endpoints and consent rules) | S |
 | F22 | Distribution and updates | None | Workstream G | L |
 | F23 | Zoom | Native | Keep | — |
 | F27 | Tab Sync | Missing | Port `sync.js` and `sync-crypto.js`; `safeStorage` becomes `OSCrypt` | M |
-| F28 | Vertical tabs | Missing | Port the rail as a side WebUI panel | M |
+| F28 | Vertical tabs | Rail and split rows implemented; bounded checks, full acceptance open | Port the rail as a side WebUI panel | M |
 | F30 | Favorites import | Missing | Port over `BookmarkModel` | S |
 | F31 | Quiet Tabs | Missing | Rebuild on Chromium's discarding (`TabLifecycleUnit`); the dirty probe, `sessionStorage` rule and "quiet" vocabulary need a divergence review | M |
 | F32 | Independent windows | Native | Keep; the window-runtime registry collapses into `BrowserWindowInterface` | S |
-| F33 | Local profiles | Missing | Rebuild on Chromium `Profile`s; import `profiles.json` | M |
-| F34 | Glance | Missing | Rebuild as a side-by-side `WebContents` in the browser view, or defer as a divergence | M |
+| F33 | Local profiles | Native-profile lifecycle/deletion checks; full profile UX/import incomplete | Rebuild on Chromium `Profile`s; import `profiles.json` | M |
+| F34 | Glance | Partial Glance/Split View migration against PR993; see current status | Rebuild as a side-by-side `WebContents` in the browser view, or defer as a divergence | M |
 | F35 | Start page layouts | Done (bookmarks, TopSites) | Port the remaining data hooks (blocked counts, groups, other devices) | S |
 | F36 | Onboarding | Hidden | Port once privacy consent and import exist | S |
 | F37 | Blank tab type-to-open | Done | Keep | — |
 | F38 | 1Password fill | Missing | Decide: the 1Password **extension** installs and runs (F38's reason to exist was Electron's lack of it); keep the broker only if the extension's desktop integration fails in a signed fork build | S (decision) |
 | F40 | Bring Your Tabs | Planned on Electron | Rebuild against Chromium sessions when F18 is decided | M |
-| F41 | Blanc Spaces | Missing | Port the saved-set model over native groups and `TabStripModel` | M |
+| F41 | Blanc Spaces | Spaces capture/store/journal and split recovery implemented; bounded checks pass | Port the saved-set model over native groups and `TabStripModel` | M |
 | F42 | Dark websites | Missing | Port the Dark Reader preload as a user script in an isolated world; the CSS fetch broker moves to the browser process | M |
 | F44 | Interface language | English only | Port `strings.<locale>.js` loading into the WebUI host; `copy/` stays the source | S |
 | F45 | Arc Spaces import | Missing | Port after F41 | S |

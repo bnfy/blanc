@@ -2,6 +2,8 @@
 
 Working release plan — October 21, 2026. Status: **not release-ready**.
 
+**Supporting checklist only.** The [Chromium migration implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) is the primary plan. Its gates, ordering and evidence requirements govern; this checklist tracks a proposed Mac preview and cannot waive or reorder them. Update primary-plan status whenever an implementation checkpoint changes it.
+
 This defines a proposed, limited public preview track, not approval to publish or a declaration that the migration gates have passed. The existing migration plan requires broader parity and Decision 2. Approve this narrower preview scope explicitly before distribution; do not silently relabel the existing beta/cutover gate. No reliable ship date until the blocking rows below have evidence and the candidate scope is frozen.
 
 ## Proposed first-preview contract

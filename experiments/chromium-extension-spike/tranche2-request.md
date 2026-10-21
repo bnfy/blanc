@@ -2478,3 +2478,8 @@ Evidence: `evidence/ratio-cap-shutdown-20261021/`.
 ## Mac side-by-side preview release planning — October 21, 2026
 
 Created `mac-preview-release-checklist.md`: proposed Apple Silicon fresh-profile preview, twelve prioritized launch gates, follow-up hardening, explicit acceptance/evidence requirements and final artifact approval. This does not waive Decision 2, existing beta/cutover or Google upgrade gates. Latency remains deferred pending an explicit prelaunch decision; Electron diagnostic build remains pending approval/unstarted. Native physical input remains a launch gate. No build, runtime testing, publishing or profile changes performed for this planning task.
+
+
+## Primary implementation plan reconciled — October21
+
+Located and updated `docs/chromium-migration-implementation-plan-2026-10-16.md` as the primary plan, per owner instruction. Added current task/workstream/gate statuses with evidence links, updated affected feature rows, and labeled the October16 baseline historical. Mac preview checklist is explicitly supporting only. Decision2, Google upgrade, native input/VoiceOver, latency and release gates remain open as applicable; Electron diagnostic build remains unapproved/unstarted. No runtime/build work for documentation reconciliation.
