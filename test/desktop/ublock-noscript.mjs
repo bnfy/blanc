@@ -60,10 +60,25 @@ try {
   }, value => value.phase === 'ready', 'uBO ready', 40000);
   await waitForValue(() => call('startupReady'), Boolean, 'startup released', 10000);
   async function visit(route) {
-    const id = await call('openTab', origin + route);
-    const page = await waitForValue(async () => (await electron.windows()).find(item => item.url() === origin + route), Boolean, 'fixture page');
-    await page.waitForLoadState('load');
-    return { id, page };
+    const url = origin + route;
+    const id = await call('openTab', url);
+    // openTab returns before navigation commits. The generic five-second
+    // poll is not a navigation deadline, especially on a cold Windows runner.
+    // Observe the returned tab, so a stalled/error navigation reports useful
+    // state instead of an undefined URL lookup (and never opens a second tab).
+    await waitForValue(async () => {
+      const tab = (await call('state')).tabs.find(item => item.id === id);
+      assert(tab, `fixture tab ${id} disappeared`);
+      assert(!tab.loadedUrl?.startsWith('blanc://error'), JSON.stringify(tab));
+      return { id, requestedUrl: url, loadedUrl: tab.loadedUrl, loading: tab.loading,
+        webContentsId: tab.webContentsId, hits: [...hits] };
+    }, tab => tab.loadedUrl === url, `fixture navigation ${route}`, 30000);
+    const page = await waitForValue(async () => {
+      const pages = electron.windows();
+      return { page: pages.find(item => item.url() === url), urls: pages.map(item => item.url()) };
+    }, value => Boolean(value.page), `fixture page attachment ${route}`);
+    await page.page.waitForLoadState('load');
+    return { id, page: page.page };
   }
   const control = await visit('/active-control');
   await control.page.waitForFunction(() => window.originalScriptRan && window.insertedScriptRan && window.eventRan);
