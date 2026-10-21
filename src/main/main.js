@@ -307,7 +307,7 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const { cardGeometry } = require('./glance-card');
+const { cardGeometry, fractionsToFrame } = require('./glance-card');
 const { createGlanceCardController } = require('./glance-card-controller');
 const {
   visiblePaneIds,
@@ -3851,6 +3851,10 @@ function liveGlanceCardView(runtime = rt()) {
   return view && !view.webContents.isDestroyed() ? view : null;
 }
 
+/** How long a window's first Glance waits for its card to draw before it
+ * shows anyway. */
+const GLANCE_CARD_DRAW_MAX_MS = 300;
+
 function ensureGlanceCardView(runtime = rt()) {
   const existing = liveGlanceCardView(runtime);
   if (existing) return existing;
@@ -3892,9 +3896,21 @@ function ensureGlanceCardView(runtime = rt()) {
     event.preventDefault();
     closeGlance();
   }));
+  // Until the card's document has drawn, its view would show as a clear
+  // hole with the Glance page floating chromeless inside it: the card and the
+  // page are held back (resizeActiveView) and show together once it has.
+  runtime.glanceCardDrawn = false;
   contents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     contents.send('tabs:updated', currentTabsPayload());
     contents.send('chrome:glance-layout', currentGlanceLayoutPayload());
+    const drawn = contents.executeJavaScript(
+      'new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))'
+    ).catch(() => false);
+    Promise.race([drawn, new Promise((resolve) => setTimeout(resolve, GLANCE_CARD_DRAW_MAX_MS))]).then(bindWindowRuntime(runtime, () => {
+      if (runtime.glanceCardView !== view || contents.isDestroyed()) return;
+      runtime.glanceCardDrawn = true;
+      if (activeGlanceTab() && hasLiveWindow()) resizeActiveView();
+    }));
   }));
   // The header's right-click: the Glance tab's menu, at the pointer.
   attachChromeMenu(contents, {
@@ -4461,8 +4477,10 @@ function roundSplitPane(tab, rounded) {
  * Make a split led by `initiatorId` (spec §3.1): every other tab takes the
  * initiator's group (or leaves its own), the split's tabs sit together where
  * the initiator was, and Glance closes. Returns the split, or null.
+ * `announced`: the caller announces the split itself, so a Glance it ends
+ * closes quietly rather than saying so first.
  */
-function createSplitFromTabs(initiatorId, otherIds, { layout = null } = {}) {
+function createSplitFromTabs(initiatorId, otherIds, { layout = null, announced = false } = {}) {
   const runtime = rt();
   const initiator = tabs.get(initiatorId);
   const others = otherIds.map((id) => tabs.get(id));
@@ -4470,7 +4488,7 @@ function createSplitFromTabs(initiatorId, otherIds, { layout = null } = {}) {
   if (all.some((tab) => !tab || tab.pinned || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
   if (all.length < 2 || new Set(all.map((tab) => tab.id)).size !== all.length) return null;
   const { split, groupId } = createSplit({ initiator, others, layout });
-  if (runtime.glanceTabId) closeGlance({ focusContent: false });
+  if (runtime.glanceTabId) closeGlance({ focusContent: false, announce: !announced });
   for (const tab of all) {
     tab.groupId = groupId;
     tab.splitId = split.id;
@@ -4565,7 +4583,7 @@ function keepGlanceAsSplit() {
   // A fresh 50/50 split, main page first: a floating card has no ratio.
   const ratio = 0.5;
   const notes = splitGroupMoveNotes(mainId, [referenceId]);
-  const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] } });
+  const split = createSplitFromTabs(mainId, [referenceId], { layout: { kind: 'columns', widths: [ratio, 1 - ratio] }, announced: true });
   if (split) announceSplitMade(split, notes);
   return split;
 }
@@ -4573,7 +4591,7 @@ function keepGlanceAsSplit() {
 /** Split with ▸ (D1): the right-clicked tab leads; the chosen tab joins. */
 function splitTabWith(tabId, otherId) {
   const notes = splitGroupMoveNotes(tabId, [otherId]);
-  const split = createSplitFromTabs(tabId, [otherId]);
+  const split = createSplitFromTabs(tabId, [otherId], { announced: true });
   if (!split) return null;
   setActiveTab(tabId);
   announceSplitMade(split, notes);
@@ -6314,6 +6332,7 @@ app.on('will-quit', () => {
   onePasswordBroker?.stop();
 });
 app.on('before-quit', () => {
+  glanceCards.flush(); // a card moved inside the save debounce keeps its place
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
       const existing = namedWorkspaces.get(runtime.workspaceId);
@@ -6717,13 +6736,15 @@ function resizeActiveView() {
     // The floating Glance card: the main page keeps the whole page area; the
     // card's chrome view and the Glance page inside it float over it.
     if (liveContents(tab)) tab.view.setBounds(place(layout.pageBounds));
+    const cardDrawn = rt().glanceCardDrawn === true;
     if (liveContents(glanceTab) && card) {
       glanceTab.view.setBounds(place(card.page));
       roundGlancePage(glanceTab, true);
+      if (glanceTab.view.getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
     }
     if (cardView) {
       if (card) cardView.setBounds(place(card.chrome));
-      cardView.setVisible(!!card);
+      cardView.setVisible(!!card && cardDrawn);
     }
   }
   syncSplitCornerTabs(split, place);
@@ -7363,7 +7384,7 @@ function closeGroup(groupId) {
   if (!runtime.activeTabId) {
     const referenceId = runtime.glanceTabId && tabs.has(runtime.glanceTabId) ? runtime.glanceTabId : null;
     if (referenceId) {
-      runtime.glanceTabId = null;
+      endGlance(runtime);
       setActiveTab(referenceId);
     } else if (runtime.tabOrder.length > 0) {
       setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
@@ -8744,7 +8765,8 @@ async function setGlanceTab(id) {
   ensureGlanceCardView(rt());
   if (previous) roundGlancePage(previous, false);
   if (previous && rt().focusedPaneTabId === previous.id) resetFocusedPane();
-  setTabViewVisible(tab, true);
+  // Held back until the card has drawn (a window's first Glance).
+  setTabViewVisible(tab, rt().glanceCardDrawn === true);
   attachTabViewToWindow(tab);
   // On Linux an inactive tab view stays attached and can already hold focus,
   // so it arrives focused with no focus event: record what holds focus now.
@@ -8759,19 +8781,28 @@ async function setGlanceTab(id) {
   return true;
 }
 
-function closeGlance({ focusContent = true } = {}) {
+/** Every way a Glance ends comes through here, closeGlance and the paths
+ * that close or move one of its two pages alike: a save of where the card was
+ * left is written now (a quit inside the debounce would lose it), messages
+ * still in flight from the card are refused, and its view goes at once,
+ * because a view takes every click inside it. */
+function endGlance(runtime = rt()) {
+  glanceCards.flush();
+  runtime.glanceTabId = null;
+  runtime.glanceCardGeneration = (runtime.glanceCardGeneration ?? 0) + 1;
+  liveGlanceCardView(runtime)?.setVisible(false);
+}
+
+/** announce: false when the caller says what happened instead (Open as
+ * tab, Keep as split), so a screen reader hears one message, not a close
+ * first. */
+function closeGlance({ focusContent = true, announce = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
-  // Keep where the card was left: a save still waiting is written now.
-  glanceCards.flush();
   if (findTargetTabId(rt()) === rt().glanceTabId) hideOverlay({ refocusContent: false });
   bumpSurfaceGeneration();
   bumpGlanceRequestEpoch();
-  rt().glanceTabId = null;
-  rt().glanceCardGeneration = (rt().glanceCardGeneration ?? 0) + 1;
-  // A view takes every click inside it: the card goes the moment the Glance
-  // ends, before anything else runs.
-  liveGlanceCardView()?.setVisible(false);
+  endGlance();
   roundGlancePage(tab, false);
   resetFocusedPane();
   // ⌘⇧G or View → Close Glance while the Change picker is up: the picker is
@@ -8787,7 +8818,7 @@ function closeGlance({ focusContent = true } = {}) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
-  if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
+  if (announce && hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.closed'));
   if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
@@ -8799,7 +8830,7 @@ function openGlanceAsTab() {
   const id = glance?.id;
   if (!id) return false;
   const title = displayTitle(glance) || mainI18n.t('tab.untitledShort');
-  closeGlance({ focusContent: false });
+  closeGlance({ focusContent: false, announce: false });
   setActiveTab(id, { focusContent: true });
   const opened = rt().activeTabId === id;
   if (opened && hasLiveWindow()) {
@@ -9122,7 +9153,7 @@ function closeTab(id) {
     if (!parked) prepareTabViewForClose(tab);
     else if (wasActive || wasGlance || wasSplitPane) detachTabView(tab);
   }
-  if (wasGlance) { rt().glanceTabId = null; resetFocusedPane(); }
+  if (wasGlance) { endGlance(); resetFocusedPane(); }
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
@@ -9155,7 +9186,7 @@ function closeTab(id) {
       // Closing the main page leaves the visible reference as the sole page.
       // Promote it and collapse Glance rather than silently choosing a third
       // background tab for the newly-empty primary pane.
-      rt().glanceTabId = null;
+      endGlance();
       rt().activeTabId = null;
       setActiveTab(survivingGlanceId);
       if (hasLiveWindow()) {
@@ -11976,7 +12007,7 @@ function detachTabForMove(source, id) {
       // takes its ordinary path — its promote branch would otherwise keep the
       // departing tab as the reference of a window it no longer belongs to.
       const referenceId = rt().glanceTabId && tabs.has(rt().glanceTabId) ? rt().glanceTabId : null;
-      if (referenceId) rt().glanceTabId = null;
+      if (referenceId) endGlance();
       const mruId = referenceId ?? previousSurvivor(rt().activationHistory,
         (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
       const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
@@ -13771,6 +13802,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getFloatWebContents: (role) => liveFloatRecord(rt(), role)?.view.webContents ?? null,
       getGlanceCardWebContents: () => liveGlanceCardView()?.webContents ?? null,
       getGlanceCardViewVisible: () => liveGlanceCardView()?.getVisible?.() ?? false,
+      getGlancePageViewVisible: () => activeGlanceTab()?.view?.getVisible?.() ?? false,
+      destroyGlanceCardViewForTest: () => destroyGlanceCardView(rt()),
+      // The remembered frame as written to settings, in window coordinates.
+      getSavedGlanceFrame: () => {
+        const saved = settings.getSettings().glanceFrame;
+        return saved && hasLiveWindow() ? fractionsToFrame(saved, glancePageArea()) : null;
+      },
       getTooltipViewState: () => ({ attached: rt().tooltipViewAttached === true, bounds: rt().tooltipView?.getBounds() ?? null }),
       getFloatWebContentsIds: (runtimeId) => {
         const runtime = runtimeId == null ? rt() : windowRuntimes.all().find((item) => String(item.id) === runtimeId);
