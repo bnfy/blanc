@@ -26,6 +26,8 @@
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/content_browser_client.h"
 #include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/render_process_host.h"
+#include "services/network/public/mojom/websocket.mojom.h"
 #include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/service_process_host.h"
 #include "crypto/hash.h"
@@ -36,6 +38,7 @@
 #include "mojo/public/cpp/bindings/remote.h"
 #include "mojo/public/cpp/system/data_pipe.h"
 #include "net/base/net_errors.h"
+#include "ipc/constants.mojom.h"
 #include "net/http/http_response_headers.h"
 #include "net/url_request/redirect_info.h"
 #include "services/network/public/cpp/resource_request.h"
@@ -124,6 +127,71 @@ class Engine {
   std::deque<base::OnceClosure> waiting_;
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
+};
+// One bounded, self-owned pending handshake. No raw profile/document pointers
+// survive the asynchronous engine decision. Disconnect/timeout invalidates the
+// engine reply; the existing network factory owns all original connection args.
+class SocketDecision {
+ public:
+  SocketDecision(base::WeakPtr<content::BrowserContext> context,
+      content::WeakDocumentPtr document, bool document_scoped,
+      std::string origin, content::ContentBrowserClient::WebSocketFactory factory,
+      GURL url, std::vector<network::mojom::HttpHeaderPtr> headers,
+      mojo::PendingRemote<network::mojom::WebSocketHandshakeClient> client,
+      mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth,
+      mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted)
+      : context_(std::move(context)), document_(std::move(document)),
+        document_scoped_(document_scoped), origin_(std::move(origin)),
+        factory_(std::move(factory)), url_(std::move(url)),
+        headers_(std::move(headers)), client_(std::move(client)),
+        auth_(std::move(auth)), trusted_(std::move(trusted)) {}
+  void Begin() {
+    client_.set_disconnect_handler(base::BindOnce(&SocketDecision::Abandon,
+                                                 weak_.GetWeakPtr()));
+    timeout_.Start(FROM_HERE, base::Seconds(35),
+        base::BindOnce(&SocketDecision::Done, weak_.GetWeakPtr(), -1));
+    // WebSocket has an initiator Origin rather than an HTTP referrer. Keep this
+    // contract explicit; do not claim HTTP-referrer parity from this adapter.
+    Engine::Get().Decide(url_.spec(), "webSocket", origin_,
+        base::BindOnce(&SocketDecision::Done, weak_.GetWeakPtr()));
+  }
+ private:
+  void Abandon() { delete this; }
+  void Done(int result) {
+    if (!context_ || (document_scoped_ && !document_.AsRenderFrameHostIfValid()))
+      result = -1;
+    timeout_.Stop();
+    base::DictValue event;
+    event.Set("event", "websocket-decision");
+    event.Set("url", url_.spec());
+    event.Set("initiator_origin", origin_);
+    event.Set("source_contract", "websocket-initiator-origin");
+    event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
+    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("context_alive", !!context_);
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    Record(std::move(event));
+    if (result == 0) {
+      std::move(factory_).Run(url_, std::move(headers_), client_.Unbind(),
+                             std::move(auth_), std::move(trusted_));
+    } else {
+      client_->OnFailure("Blocked by Blanc Blocker", net::ERR_BLOCKED_BY_CLIENT, -1);
+    }
+    delete this;
+  }
+  base::WeakPtr<content::BrowserContext> context_;
+  content::WeakDocumentPtr document_;
+  bool document_scoped_;
+  std::string origin_;
+  content::ContentBrowserClient::WebSocketFactory factory_;
+  GURL url_;
+  std::vector<network::mojom::HttpHeaderPtr> headers_;
+  mojo::Remote<network::mojom::WebSocketHandshakeClient> client_;
+  mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth_;
+  mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted_;
+  base::OneShotTimer timeout_;
+  base::WeakPtrFactory<SocketDecision> weak_{this};
 };
 std::string Type(const network::ResourceRequest& request) {
   if (request.is_fetch_like_api) return "xhr";
@@ -488,6 +556,35 @@ class Factory : public network::SelfDeletingURLLoaderFactory {
   Context context_;
   scoped_refptr<network::SharedURLLoaderFactory> target_;
 };
+}
+content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
+    int process_id, int frame_routing_id, const url::Origin& initiator_origin,
+    content::ContentBrowserClient::WebSocketFactory factory) {
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
+    return factory;
+  auto* process = content::RenderProcessHost::FromID(process_id);
+  // Preserve the separate experimental uBO provider. Its regular-profile socket
+  // coverage is not qualified here; private fallback remains Blanc Blocker.
+  if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
+    return factory;
+  auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
+  auto context = process ? process->GetBrowserContext()->GetWeakPtr()
+                         : base::WeakPtr<content::BrowserContext>();
+  auto document = frame ? frame->GetWeakDocumentPtr() : content::WeakDocumentPtr();
+  const bool document_scoped = frame_routing_id != IPC::mojom::kRoutingIdNone;
+  return base::BindOnce(
+      [](base::WeakPtr<content::BrowserContext> context,
+         content::WeakDocumentPtr document, bool document_scoped,
+         std::string origin, content::ContentBrowserClient::WebSocketFactory factory,
+         const GURL& url, std::vector<network::mojom::HttpHeaderPtr> headers,
+         mojo::PendingRemote<network::mojom::WebSocketHandshakeClient> client,
+         mojo::PendingRemote<network::mojom::WebSocketAuthenticationHandler> auth,
+         mojo::PendingRemote<network::mojom::TrustedHeaderClient> trusted) {
+        (new SocketDecision(std::move(context), std::move(document), document_scoped,
+             std::move(origin), std::move(factory), url, std::move(headers),
+             std::move(client), std::move(auth), std::move(trusted)))->Begin();
+      }, std::move(context), std::move(document), document_scoped,
+      initiator_origin.Serialize(), std::move(factory));
 }
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;

@@ -844,7 +844,7 @@ the patch budget, and with acceptable per-request latency?
 | Block rate | the **replay corpus** defined below, issued at the browser level through the fork and through Electron Blanc on the same lists | every request decided the same way in both, for blocked *and* allowed traffic; any divergence listed by URL, type and rule |
 | Cosmetic coverage | the corpus's **outcome pages**, checked in both browsers by DOM assertion and capture | parity with Electron on the same pages, CSS and scriptlet outcomes reported separately |
 | Decision latency | see the latency protocol below | **proposed** acceptance bounds, not criterion 3: p99 under 2 ms in-process, under 5 ms over Mojo, on the warm steady-state run; above that, the other engine placement is tried before concluding. The owner may change the bounds at approval |
-| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (55 files, 129 hunks); reported either way |
+| Patch count | upstream files and hunks, counted by the §7 rules and counter before and after the spike | within §7's amended tranche budget (58 files, 133 hunks); reported either way |
 | Private windows | the same hook active in incognito, verified by the fixture | blocked, as Blanc Blocker protects private tabs today |
 
 **Replay corpus — original approved definition.** This definition remains
@@ -1175,8 +1175,8 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
-**Patch budget, amended October 21:** **55 upstream files
-and 129 hunks**, counted as follows. A *file* is an existing upstream file
+**Patch budget, amended October 21:** **58 upstream files
+and 133 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
 new files do not count; the two icon assets count as files. A *hunk* is one
 `@@` section of a unified diff with zero context lines, produced
@@ -1213,7 +1213,7 @@ and after each spike, and recorded in the ledger. Today's count is **21
 files**; the hunk count is measured at the start of the tranche and
 recorded as the baseline. Each spike reports its own delta.
 
-From plan §5: criterion 2 (the count above exceeds 55 files or 129 hunks and
+From plan §5: criterion 2 (the count above exceeds 58 files or 133 hunks and
 cannot be moved into overrides within one sprint) and criterion 3 (neither
 F12 option blocks at Blanc Blocker's rate on the replay corpus within the
 budget). Either is recorded in the ledger and reported to the owner the day
@@ -2497,3 +2497,7 @@ Primary plan next priority advanced: created `f12-acceptance-status.md` and the 
 ## F12 sender-closure evidence — October21
 
 Recovered authenticated native engine archive (13members verified, current source hash matches). Four regular/private keepalive/beacon schedules pass: eight post-close307 decisions, allowed POST bodies preserved, blocked terminal arrivals absent with explicit block records. Exact sender target destruction precedes redirect release. Scope is pre-enqueued single307 continuation; retries/process shutdown and paired Electron parity remain open. Evidence: evidence/f12-sender-close-20261021/README.md. No builds, latency deferred, Electron diagnostic build pending approval.
+
+## WebSocket budget and consolidation — October 21, 2026
+
+Owner approved58upstreamfiles/133hunks for shared document/worker WebSocket enforcement, then authorized subsequent patch-budget increases without further approval requests, with consolidation later where possible. Record fresh totals and deltas; do not treat this as permission to bypass build guards, change toolchains, run latency, or start the Electron diagnostic build. Historical counts remain evidence of their checkpoints.

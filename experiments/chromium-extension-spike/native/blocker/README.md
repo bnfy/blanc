@@ -55,8 +55,9 @@ method and referrer, before forwarding OnReceiveRedirect. FollowRedirect passes
 headers unchanged to the existing loader; explicit replacement URLs are refused.
 The current single-frame corpus does not verify redirects. Ghostery resource
 redirects return `unsupported-resource-redirect` and fail closed; they cannot
-count as correct blocking. WebSocket/WebTransport have separate entry points
-and are **not intercepted**. Worker/SW, keepalive after teardown, prefetch and
+count as correct blocking. WebSocket now has a separate opt-in factory gate with bounded document/worker
+regular/private handshake evidence (f12-websocket-enforcement-20261021).
+WebTransport is **not intercepted** by this adapter. Worker/SW, keepalive after teardown, prefetch and
 prerender remain unverified. Cache/SW-served requests that bypass a network
 factory, response-header CSP, cosmetics, procedural rules and main-world
 scriptlets remain gaps. This is not full F12 acceptance or a real-web block rate.
