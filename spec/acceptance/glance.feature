@@ -1,25 +1,7 @@
 @glance @desktop
 Feature: Glance reference pane
-  Glance keeps one tab visible as a temporary reference beside the active page
+  Glance shows one other tab as a temporary card floating over the active page,
   without moving either tab across its native window or local profile.
-
-  @F34-1 @F34 @D11
-  Scenario: Choose, use, promote, resize, and close a Glance reference
-    Given two ordinary tabs in one workspace for Glance
-    When I summon Glance from its native keyboard shortcut
-    Then Glance shows a dedicated accessible local-tab picker
-    When I filter the Glance picker and choose the reference tab
-    Then the active page and Glance occupy separate dominant and reference panes
-    And the Island shows no tab dots while Glance is open
-    When I focus the interactive Glance page
-    Then the main and reference roles do not change
-    When I promote the Glance pane
-    Then the two visible tabs swap main and reference roles
-    When I resize the Glance divider
-    Then the main pane remains larger than the reference pane
-    When I close Glance
-    Then the active page fills the browser page region
-    And the Island shows its tab dots again
 
   @F34-1 @F34 @D11
   Scenario: Change and close the underlying Glance tab without disturbing main
@@ -30,13 +12,6 @@ Feature: Glance reference pane
     Then focus returns to the Change control
     When I close the underlying Glance tab
     Then the active page fills the browser page region
-
-  @F34-1 @F34 @D11
-  Scenario: Stack Glance below the main page in a narrow workspace
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And I narrow the workspace below the side-by-side threshold
-    Then Glance has a labelled stacked header above its reference content
 
   @F34-1 @F34 @F31 @D11
   Scenario: Wake a quiet tab only after it is chosen for Glance
@@ -127,28 +102,6 @@ Feature: Glance reference pane
     And keyboard focus is not stranded on the chrome strip
 
   @F34-1 @F34 @D11
-  Scenario: Dragging the divider keeps it under the pointer
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And I drag the Glance divider 80 pixels to the left from inside its grip
-    Then the divider moved 80 pixels
-
-  @F34-1 @F34 @D11
-  Scenario: Window controls stay legible over the Glance header
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    Then window controls over the side-by-side header ignore the page tint
-    When I narrow the workspace below the side-by-side threshold
-    Then window controls follow the page tint while Glance is stacked
-
-  @F34-1 @F34 @D11
-  Scenario: The Change picker stays usable when Glance is stacked
-    Given three ordinary tabs with one open in Glance
-    When I shrink the workspace to a small stacked window
-    And I open the Change picker
-    Then the Change picker is centred over the page with a visible list
-
-  @F34-1 @F34 @D11
   Scenario: Glance explains itself with a single tab
     Given a single ordinary tab for Glance
     When I summon Glance from its native keyboard shortcut
@@ -220,16 +173,6 @@ Feature: Glance reference pane
     And I press the reload command
     Then only the main page reloaded
     And the Glance header shows the main page has focus
-
-  @F34-1 @F34 @D11
-  Scenario: Find with focus in the reference searches the reference
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And the reference pane is the focused pane
-    And I press the find command
-    Then the find capsule sits over the reference pane and searches it
-    When I promote the Glance pane
-    Then the find capsule is closed
 
   @F34-1 @F34 @D11
   Scenario: Zoom and Back follow focus into the reference
@@ -317,42 +260,6 @@ Feature: Glance reference pane
     And I press the find command
     Then the find capsule is fresh and bound to the reference
 
-  @F34-1 @F34 @D11
-  Scenario: The Island stays clear of the macOS traffic lights while Glance is open
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    Then a full-width Island stays clear of the window's traffic lights
-    When I narrow the workspace below the side-by-side threshold
-    Then a full-width Island stays clear of the window's traffic lights
-
-  @F34-1 @F34 @F28 @D11
-  Scenario: The Island stays clear of the Windows and Linux window controls while Glance is open
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    Then a full-width Island stays clear of the Windows and Linux window controls
-    When I narrow the workspace below the side-by-side threshold
-    Then a full-width Island stays clear of the Windows and Linux window controls
-    When I switch the Glance window to vertical tabs
-    Then a full-width Island stays clear of the Windows and Linux window controls
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @F3 @D11
-  Scenario: The Island's controls stay inside it when the main pane is narrow
-    Given twelve ordinary tabs with one open in Glance
-    When I narrow the main pane to its smallest side-by-side width
-    Then every Island control stays inside the Island
-    And the Island's address stays readable
-    And the Island shows no tab dots while Glance is open
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @F11 @D11
-  Scenario: The divider leaves room for the Island's chips too
-    Given twelve ordinary tabs and a private main page with one open in Glance
-    When I narrow the main pane to its smallest side-by-side width
-    Then every Island control stays inside the Island
-    And the Island's address stays readable
-    And the Glance window returns to its usual layout
-
   @F34-1 @F34 @F3 @D11
   Scenario: The Island makes room for a new chip and grows back when it goes
     Given twelve ordinary tabs in a narrow window
@@ -360,15 +267,6 @@ Feature: Glance reference pane
     Then the Island makes room for the downloads button
     When the download indicator goes away
     Then the Island shows as many tab dots as before
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @D11
-  Scenario: Stacked on Windows and Linux, the Island keeps its address readable in a small window
-    Given twelve ordinary tabs with one open in Glance
-    When the window is as small as it goes with the Windows and Linux window controls
-    Then every Island control stays inside the Island
-    And the Island's address stays readable
-    And a full-width Island stays clear of the Windows and Linux window controls
     And the Glance window returns to its usual layout
 
   @F34-1 @F34 @F12 @D11
@@ -394,44 +292,6 @@ Feature: Glance reference pane
     And I press the close-tab command in the find bar
     Then the reference tab is closed and the main page has focus
 
-  @F34-1 @F34 @F2 @D11
-  Scenario: A new window's first Glance layout already leaves room for the Island
-    Given twelve ordinary tabs with one open in Glance
-    When I narrow the main pane to its smallest side-by-side width
-    And I open Glance in a new window just wide enough to stay side by side
-    Then its first layout already stops the divider at the Island's minimum
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @D11
-  Scenario: The Glance header stays clear of the Windows and Linux window controls at its narrowest
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And the strip draws the Windows and Linux window controls
-    And I drag the Glance divider as far right as it goes
-    Then the Glance header's buttons are clear of the window controls
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @F28 @D11
-  Scenario: Stacked with vertical tabs on Windows and Linux, the Island's controls stay inside it
-    Given twelve ordinary tabs with one open in Glance
-    When the strip draws the Windows and Linux window controls
-    And the window is 700 pixels wide
-    And I switch the Glance window to vertical tabs
-    Then every Island control stays inside the Island
-    And the Island's address stays readable
-    And the Island stays clear of the window controls and the tab rail
-    And the Glance window returns to its usual layout
-
-  @F34-1 @F34 @D11
-  Scenario: The Glance title keeps its room beside the Windows and Linux window controls
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And the window is 1200 pixels wide
-    And the strip draws the Windows and Linux window controls
-    Then the Glance title shows at least ten characters
-    And Make main still says what it does
-    And the Glance window returns to its usual layout
-
   @F34-1 @F34 @D11
   Scenario: A new tab opened with focus in the reference makes the main page the focused pane
     Given two ordinary tabs in one workspace for Glance
@@ -447,26 +307,6 @@ Feature: Glance reference pane
     And the reference pane is the focused pane
     And another Blanc window takes the foreground and this one is activated again
     Then the recorded focused pane is the pane that holds keyboard focus
-
-  @F34-1 @F34 @D11
-  Scenario: Glance opens and closes with the chrome's motion
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    Then the Glance header and divider glide in on the chrome's curve
-    When I choose Change from the Glance header
-    Then the Change picker grows out of the Change control
-    When I press Escape in the Change picker
-    Then the picker is still drawn while it leaves
-
-  @F34-1 @F34 @D11
-  Scenario: With Reduce Motion Glance only fades
-    Given two ordinary tabs in one workspace for Glance
-    And Reduce Motion is on
-    When I open the reference tab in Glance
-    Then the Glance header and divider only fade
-    When I narrow the workspace below the side-by-side threshold
-    And I close Glance
-    Then the leaving stacked header and divider do not move
 
   @F34-1 @F34 @D11
   Scenario: Choosing an awake tab says nothing about opening
@@ -505,7 +345,7 @@ Feature: Glance reference pane
   Scenario: A private reference shows the private chip in the header
     Given twelve ordinary tabs and a private main page with one open in Glance
     Then the Glance header shows no private chip
-    When I choose Make main
+    When I show a private tab in Glance instead
     Then the Glance header shows the private chip
     And the header's identity cross-faded rather than swapping
 
@@ -514,13 +354,6 @@ Feature: Glance reference pane
     Given two ordinary tabs in one workspace for Glance
     When I summon Glance from its native keyboard shortcut
     Then the picker has the dialog role and is labelled by its heading
-
-  @F34-1 @F34 @D11
-  Scenario: Make main names both pages
-    Given two ordinary tabs in one workspace for Glance
-    When I open the reference tab in Glance
-    And I choose Make main
-    Then the strip announces "glance-reference is now the main page; glance-main is in Glance"
 
   @F34-1 @F34 @F14 @D11
   Scenario: /glance opens the picker filtered to the typed text
@@ -554,3 +387,117 @@ Feature: Glance reference pane
     Given a private main page and an ordinary tab
     When I open a link from the main page in Glance
     Then the reference is a private tab in the private session
+
+  @F34-2 @F34 @D11
+  Scenario: A Glance opens as a centered card over the page
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    Then the Glance is a large centered card over the whole main page
+
+  @F34-3 @F34 @D11
+  Scenario: The card keeps its header on screen when the window shrinks and grows
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And the window's page is 700 by 500
+    Then the card keeps its share of the page with its header on screen
+    When the window's page is 1300 by 820
+    Then the card keeps its share of the page with its header on screen
+
+  @F34-4 @F34 @D11
+  Scenario: Moving the card keeps it there for the next Glance
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I move the Glance card by -120, -16
+    Then the Glance card has moved by -120, -16
+    When I close Glance
+    And I open the reference tab in Glance
+    Then the Glance card has moved by -120, -16
+
+  @F34-5 @F34 @D11
+  Scenario: Resizing the card from an edge, and double-clicking its header to reset it
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I drag the Glance card's left edge 300 to the right
+    Then the Glance card is 300 narrower with its right edge where it was
+    When I double-click the Glance card's header
+    Then the Glance is a large centered card over the whole main page
+
+  @F34-6 @F34 @D11
+  Scenario: Switching to another tab closes the Glance, and switching back doesn't bring it back
+    Given three ordinary tabs with one open in Glance
+    When I switch to the replacement tab
+    Then Glance is closed and the replacement tab fills the page
+    When I switch back to the original main page
+    Then Glance stays closed
+
+  @F34-7 @F34 @D11
+  Scenario: Choosing the Glance tab itself opens it as the tab
+    Given three ordinary tabs with one open in Glance
+    When I choose the Glance tab from the tab list
+    Then the Glance tab is the current tab and Glance is closed
+
+  @F34-8 @F34 @D11
+  Scenario: Open as tab makes the Glance page the current tab and keeps the old page open
+    Given three ordinary tabs with one open in Glance
+    When I choose Open as tab on the Glance card
+    Then the Glance tab is the current tab and Glance is closed
+    And the original main page is still open
+
+  @F34-9 @F34 @D11
+  Scenario: Escape on the card's header closes it; Escape inside the Glance page goes to the page
+    Given three ordinary tabs with one open in Glance
+    When I press Escape inside the Glance page
+    Then the Glance page received the Escape and Glance is still open
+    When I press Escape on the Glance card's header
+    Then Glance is closed and the original main page fills the page
+
+  @F34-10 @F34 @D11
+  Scenario: Clicking and scrolling the page behind keeps the Glance open
+    Given three ordinary tabs with one open in Glance
+    When I click and scroll the main page beside the card
+    Then Glance is still open over the main page
+
+  @F34-15 @F34 @D11
+  Scenario: Closing the main page while a Glance is open makes the Glance page the current tab
+    Given three ordinary tabs with one open in Glance
+    When I close the main page
+    Then the Glance tab is the current tab and Glance is closed
+
+  @F34-11 @F34 @D11
+  Scenario: At 360 px the header keeps Back, Reload, the three actions as icons and ×
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I narrow the Glance card to its minimum
+    Then the Glance header shows Back, Reload, the three actions as icons and × on one row
+    And hovering the compact Change button shows its tooltip under it
+
+  @F34-12 @F34 @D11
+  Scenario: Arrow keys on Move or resize move the card 16 px and announce it
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And I press the right arrow on the Glance card's Move or resize control
+    Then the Glance card has moved by 16, 0
+    And the Glance card announces "Glance moved"
+
+  @F34-13 @F34 @D11
+  Scenario: Find for the Glance page sits over the card
+    Given two ordinary tabs in one workspace for Glance
+    And the window's page is 1440 by 860
+    When I open the reference tab in Glance
+    And the reference pane is the focused pane
+    And I press the find command
+    Then the find capsule sits over the Glance card and searches it
+
+  @F34-14 @F34 @D11
+  Scenario: The card fades in at its full size and closes at once
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    Then the Glance card fades in at its full size
+    When I close Glance and look at the card in the same moment
+    Then the Glance card was already gone

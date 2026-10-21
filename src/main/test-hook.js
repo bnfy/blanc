@@ -77,6 +77,9 @@ function install(refs) {
     setIslandAutoHideStyle,
     getFloatViewState,
     getFloatWebContents,
+    getGlanceCardWebContents,
+    getGlanceCardViewVisible,
+    getTooltipViewState,
     getFloatWebContentsIds,
     isChromeSurfaceRegistered,
     getChromeButtonRects,
@@ -107,13 +110,11 @@ function install(refs) {
     getSessionRecoveryState,
     setGlanceTab,
     closeGlance: closeGlanceAction,
-    promoteGlance: promoteGlanceAction,
-    resizeGlanceAt,
-    resetGlanceRatio: resetGlanceRatioAction,
+    openGlanceAsTab: openGlanceAsTabAction,
+    resetGlanceCardFrame,
     getGlanceTabId,
     getFocusedPaneTabId,
-    getGlanceGeometry,
-    getGlanceMinimums,
+    getGlanceCard,
     openLinkInGlance,
     groupTabByName,
     renameTab,
@@ -580,6 +581,19 @@ function install(refs) {
       wc.sendInputEvent(input);
       return true;
     },
+    tooltipViewState() { return getTooltipViewState(); },
+    glanceCardFocused() {
+      const wc = getGlanceCardWebContents();
+      return !!wc && !wc.isDestroyed() && wc.isFocused();
+    },
+    // Keys and pointer events to the floating Glance card's own document.
+    sendGlanceCardInput(input) {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      wc.sendInputEvent(input);
+      return true;
+    },
     floatWebContentsIds(runtimeId) { return getFloatWebContentsIds(runtimeId == null ? null : String(runtimeId)); },
     chromeSurfaceRegistered(webContentsId) { return isChromeSurfaceRegistered(Number(webContentsId)); },
     /** The strip's own report of its Windows/Linux window buttons. */
@@ -719,8 +733,7 @@ function install(refs) {
         activeTabId: getActiveTabId(),
         glanceTabId: getGlanceTabId(),
         focusedPaneTabId: getFocusedPaneTabId(),
-        glanceGeometry: getGlanceGeometry(),
-        glanceMinimums: getGlanceMinimums(),
+        glanceCard: getGlanceCard(),
       };
     },
 
@@ -769,9 +782,9 @@ function install(refs) {
       return true;
     },
     closeGlance() { return closeGlanceAction({ focusContent: false }); },
-    promoteGlance() { return promoteGlanceAction(); },
-    resizeGlance(point) { return resizeGlanceAt(point); },
-    resetGlanceRatio() { return resetGlanceRatioAction(); },
+    openGlanceAsTab() { return openGlanceAsTabAction(); },
+    resetGlanceCard() { return resetGlanceCardFrame(); },
+    getGlanceCard() { return getGlanceCard(); },
     setWindowGlance(runtimeId, tabId) {
       return setGlanceTabInWindow(String(runtimeId), String(tabId));
     },
@@ -783,7 +796,7 @@ function install(refs) {
       return refs.runInWindowRuntime(String(runtimeId), async () => {
         setWindowContentSize(Number(width), 800);
         await setGlanceTab(String(tabId));
-        return getGlanceGeometry();
+        return getGlanceCard();
       });
     },
     closeTabInWindow(runtimeId, tabId) {
@@ -2374,9 +2387,29 @@ function install(refs) {
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
+    // The floating Glance card's computed motion, read in its own document.
+    async glanceCardMotion() {
+      const wc = getGlanceCardWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        const card = document.getElementById('glanceCard');
+        if (!card) return null;
+        const style = getComputedStyle(card);
+        return { transition: style.transition, transform: style.transform, opacity: style.opacity, hidden: card.hidden };
+      })()`);
+    },
+    // Close the Glance and, in the same turn, read whether the card's view is
+    // still visible: a visible view would take the page's clicks.
+    closeGlanceAndReadCard() {
+      const closed = closeGlanceAction({ focusContent: false });
+      const wc = getGlanceCardWebContents();
+      return { closed, cardViewVisible: wc && !wc.isDestroyed() ? getGlanceCardViewVisible() : false };
+    },
+    // The Glance header's identity cross-fade (in the card's document) and
+    // the overlay's picker motion.
     async glanceHeaderMotion() {
-      const strip = getChromeWebContents();
-      if (!strip) return null;
+      const strip = getGlanceCardWebContents();
+      if (!strip || strip.isDestroyed()) return null;
       const read = (selector) => `(() => {
         const element = document.querySelector(${JSON.stringify(selector)});
         if (!element) return null;
@@ -2384,14 +2417,13 @@ function install(refs) {
         return { transition: style.transition, transform: style.transform, opacity: style.opacity, transformOrigin: style.transformOrigin, width: element.getBoundingClientRect().width };
       })()`;
       const header = await strip.executeJavaScript(read('#glanceHeader'));
-      const divider = await strip.executeJavaScript(read('#glanceDivider'));
       const identity = await strip.executeJavaScript(`(() => {
         const element = document.querySelector('#glanceHeader .glance-tab-identity');
         return element ? { transition: getComputedStyle(element).transition, swapping: element.classList.contains('swapping') } : null;
       })()`);
       const overlay = getOverlayWebContents();
       const picker = overlay && getOverlayMode() === 'glance' ? await overlay.executeJavaScript(read('#glancePicker')) : null;
-      return { header, divider, identity, picker };
+      return { header, identity, picker };
     },
     pillPlaceholderState() {
       const wc = getChromeWebContents();

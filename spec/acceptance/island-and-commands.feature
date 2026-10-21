@@ -283,11 +283,11 @@ Feature: Island chrome, command palette, and slash commands
     Then the Island panel opens from hover
 
   @F1-33 @F1 @desktop @island-autohide
-  Scenario: Glance uses the push layout in float mode
+  Scenario: A Glance floats over the page in float mode
     Given a tab open on "autohide-page"
     And the Island auto-hides and floats
     When I open a Glance beside the page
-    Then the page sits below the strip and no pill floats
+    Then the Glance card floats over a page at the top of the window
     When I close the Glance
     Then the page returns to the top of the window and the pill hides
 
@@ -360,11 +360,11 @@ Feature: Island chrome, command palette, and slash commands
     Given a tab open on "autohide-page"
     And the Island auto-hides and floats
     When I open a Glance beside the page
-    Then the page sits below the strip and no pill floats
+    Then the Glance card floats over a page at the top of the window
     When I switch auto-hide to push
-    Then the page sits below the strip and no pill floats
+    Then the Glance card stays open over the page
     When I switch auto-hide to float
-    Then the page sits below the strip and no pill floats
+    Then the Glance card floats over a page at the top of the window
     When I close the Glance
     Then the page returns to the top of the window and the pill hides
 

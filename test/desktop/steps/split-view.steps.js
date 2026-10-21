@@ -176,6 +176,12 @@ Then('the two tabs form a split in group {string} and Glance is closed', async f
   assert.equal(state.groups.some((g) => g.name === 'Read'), false, 'the emptied group is gone');
 });
 
+// A floating Glance has no ratio to carry over: a fresh 50/50 split.
+Then('the split opens at equal widths', async function () {
+  const state = await this.waitForState((s) => s.splits.length === 1);
+  assert.deepEqual(state.splits[0].layout.widths, [0.5, 0.5]);
+});
+
 Given('two loaded ungrouped tabs', async function () {
   this.splitA = await openLoaded(this, 'split-a');
   this.splitB = await openLoaded(this, 'split-b');

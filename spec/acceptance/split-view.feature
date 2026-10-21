@@ -36,6 +36,7 @@ Feature: Split View
     Given a main page in group "Work" and a Glance reference in group "Read"
     When I keep the Glance as a split
     Then the two tabs form a split in group "Work" and Glance is closed
+    And the split opens at equal widths
 
   @F53-6 @F53 @desktop @D11
   Scenario: Split with makes a split from the tab menu

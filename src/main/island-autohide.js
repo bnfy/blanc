@@ -139,10 +139,11 @@ function slidingBounds(bounds, { stripTop, animatedTop }) {
  * Surfaces that are drawn from, or anchored to, the Island keep it revealed
  * whatever the pointer does.
  * So does the how-to tip shown when the setting is turned on.
- * @param {{overlayMode?: string|null, glanceOpen?: boolean, popupOpen?: boolean, introducing?: boolean}} state
+ * (A floating Glance card draws nothing in the strip, so it pins nothing.)
+ * @param {{overlayMode?: string|null, popupOpen?: boolean, introducing?: boolean}} state
  */
-function islandPinned({ overlayMode = null, glanceOpen = false, popupOpen = false, introducing = false } = {}) {
-  return !!overlayMode || glanceOpen === true || popupOpen === true || introducing === true;
+function islandPinned({ overlayMode = null, popupOpen = false, introducing = false } = {}) {
+  return !!overlayMode || popupOpen === true || introducing === true;
 }
 
 /**
@@ -183,9 +184,9 @@ function coveredStripHeight(platform) {
 }
 
 /** Whether the page ignores the strip because the Island floats over it.
- * Glance draws its header and divider in the strip, so it lays out as push. */
-function floatingLayout({ autoHide, style, glanceOpen }) {
-  return autoHide === true && style === 'float' && glanceOpen !== true;
+ * A floating Glance card floats over the page in either style. */
+function floatingLayout({ autoHide, style }) {
+  return autoHide === true && style === 'float';
 }
 
 /** Which float views a window needs at all. macOS has native traffic lights

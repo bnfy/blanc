@@ -15,6 +15,9 @@ const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 // The floating Island's views (auto-hide, float style) run the strip document.
 const CHROME_FLOAT_URL = `${CHROME_SCHEME}://float/`;
+// The floating Glance card's chrome: the strip document again, showing only
+// the card (spec 2026-10-20-floating-glance-design.md).
+const CHROME_GLANCE_URL = `${CHROME_SCHEME}://glance/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
 const CHROME_TOOLTIP_URL = `${CHROME_SCHEME}://tooltip/`;
@@ -56,6 +59,8 @@ const STRIP_ASSETS = new Map([
   // Pure tab-order sections (groups and runs of ungrouped tabs), shared
   // with main so the rail, the island and main draw one order. No IPC.
   ['/tab-sections.js', 'tab-sections.js'],
+  // The floating Glance card's drag lifecycle. Pure; no IPC of its own.
+  ['/glance-card-drag.js', 'glance-card-drag.js'],
   // Pure Blanc Spaces identity (presets, symbols, readability guard). No IPC
   // and no application data; the strip mark and the Spaces menu share it.
   ['/space-identity.js', 'space-identity.js'],
@@ -63,6 +68,7 @@ const STRIP_ASSETS = new Map([
 const HOST_ASSETS = new Map([
   ['index', STRIP_ASSETS],
   ['float', STRIP_ASSETS],
+  ['glance', STRIP_ASSETS],
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
@@ -173,6 +179,7 @@ module.exports = {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_FLOAT_URL,
+  CHROME_GLANCE_URL,
   CHROME_PERMISSION_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,

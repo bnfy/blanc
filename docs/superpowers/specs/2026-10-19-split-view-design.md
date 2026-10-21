@@ -18,7 +18,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 
 ### 3.1 Making a split (D1)
 
-- **From Glance:** the reference header gains **Keep as split**. It turns the main page and the reference into a two-pane split, in their current places and proportions. The panes become equals: no main or reference, no Make main.
+- **From Glance:** the reference header gains **Keep as split**. It turns the main page and the reference into a two-pane split. *(Amended 2026-10-20 by the floating Glance design: Glance is now a floating card with no ratio, so the split opens at 50/50 with the main page on the left.)* The panes become equals: no main or reference, no Make main.
 - **From the tab menu:** **Split with ▸** lists this window's other tabs (the Glance picker, filtered to eligible tabs). Picking one makes a two-pane split of the right-clicked tab and the chosen tab, side by side.
 - **Adding a pane:** while a split is showing, **Add to Split…** (pane header menu, the tab menu's **Add to Split**, `/split`) opens the same picker and adds the chosen tab as a new pane, up to four. With four panes the action is disabled, and its tooltip says why.
 - **Eligible tabs:** any tab in the window that isn't already in a split, including private tabs (a private pane shows the private chip, as a private Glance reference does). A split never crosses windows or profiles.

@@ -40,11 +40,13 @@ test('the renderer becomes a float surface on the float host and reports nothing
   const js = read('src/renderer/renderer.js');
   assert.match(js, /const floatSurface = window\.location\.hostname === 'float';/);
   assert.match(js, /if \(floatSurface\) document\.documentElement\.dataset\.surface = 'float';/);
-  // The strip underneath stays the one geometry authority.
-  assert.match(js, /const reportLayout = \(\) => \{\s+if \(floatSurface\) return;/);
-  assert.match(js, /const reportIslandRect = \(\) => \{\s+if \(floatSurface\) return;/);
+  // The strip underneath stays the one geometry authority; its copies (the
+  // float views and the Glance card) never report.
+  assert.match(js, /const copySurface = floatSurface \|\| glanceSurface;/);
+  assert.match(js, /const reportLayout = \(\) => \{\s+if \(copySurface\) return;/);
+  assert.match(js, /const reportIslandRect = \(\) => \{\s+if \(copySurface\) return;/);
   // The page's tint belongs to the strip; a floating element keeps its theme.
-  assert.match(js, /function applyStripTint\(tab\) \{\s+if \(floatSurface\) return;/);
+  assert.match(js, /function applyStripTint\(tab\) \{\s+if \(copySurface\) return;/);
 });
 
 test('the float surface takes its frame from main and slides in after two frames', () => {
@@ -65,7 +67,7 @@ test('the float surface shows one element, slides the whole view height and drop
   const css = read('src/renderer/styles.css');
   assert.match(css, /html\[data-surface="float"\],\s*html\[data-surface="float"\] body \{ background: transparent; \}/);
   // Split View's pane headers and dividers are the strip's, between the panes.
-  for (const id of ['verticalTabsRail', 'glanceDivider', 'glanceHeader', 'dragBand', 'splitPanes']) {
+  for (const id of ['verticalTabsRail', 'glanceHeader', 'dragBand', 'splitPanes']) {
     assert.match(css, new RegExp(`html\\[data-surface="float"\\] #${id}[,\\s{]`), id);
   }
   assert.match(css, /html\[data-surface="float"\] #chrome \{[^}]*left: calc\(-1 \* var\(--float-x\)\);[^}]*top: calc\(-1 \* var\(--float-y\)\);[^}]*width: var\(--float-stage-width\);/);

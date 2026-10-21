@@ -56,6 +56,10 @@ const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
 // A feature release, major.minor (whatsNewTabRelease).
 const FEATURE_RELEASE_RE = /^\d+\.\d+$/;
 const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+const isFraction = (value) => Number.isFinite(value) && value >= 0 && value <= 1;
+/** A remembered Glance card frame: four fractions of the page area. */
+const isGlanceFrame = (value) => !!value && typeof value === 'object'
+  && ['x', 'y', 'width', 'height'].every((key) => isFraction(value[key]));
 const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
 // plausible device clock. The bound also leaves ample safe-integer headroom
@@ -219,6 +223,10 @@ const DEFAULTS = {
   // Device-local, not Profile Synced.
   islandAutoHide: false,
   islandAutoHideStyle: 'float',
+  // Floating Glance: the card's remembered size and place, as fractions of
+  // the page area ({x, y, width, height}, each 0..1), or null for the
+  // first-open frame. Device-local, written ONLY by setGlanceFrame().
+  glanceFrame: null,
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
@@ -487,6 +495,7 @@ function getSettings() {
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
+  if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -799,6 +808,16 @@ function setUiLanguage(code, selectable) {
   return true;
 }
 
+/** The floating Glance's private write path: the card's remembered frame,
+ * or null to forget it. setSettings()'s whitelist has no glanceFrame. */
+function setGlanceFrame(frame) {
+  if (frame !== null && !isGlanceFrame(frame)) return false;
+  const next = frame === null ? null : { x: frame.x, y: frame.y, width: frame.width, height: frame.height };
+  ensureStore().update((data) => { data.glanceFrame = next; });
+  for (const fn of listeners) fn(getSettings());
+  return true;
+}
+
 function isDynamicWallpaperEnabled() {
   return getSettings().newtabDynamicWallpaper === true;
 }
@@ -1028,6 +1047,7 @@ module.exports = {
   isAppIconAllowed,
   setSupporter,
   setUiLanguage,
+  setGlanceFrame,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,

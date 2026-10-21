@@ -5,7 +5,6 @@
 // lifecycle unit-testable.
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
-const { DEFAULT_GLANCE_RATIO } = require('./glance-layout');
 
 let nextId = 1;
 let runtimes = [];
@@ -54,18 +53,15 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Temporary second visible tab. Glance is deliberately workspace-local
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
-    glanceRatio: DEFAULT_GLANCE_RATIO,
-    /** The visible pane (main or reference tab id) that last took keyboard
+    // The floating Glance card's chrome view (main.js ensureGlanceCardView)
+    // and its generation: every open and close bumps it, so a stale move or
+    // resize is refused.
+    glanceCardView: null,
+    glanceCardGeneration: 0,
+    /** The visible pane (main page or Glance tab id) that last took keyboard
      * focus; browser commands without a sending pane act on it
      * (glance-focus.js). Main-process only: never crosses IPC or disk. */
     focusedPaneTabId: null,
-    /** The narrowest side-by-side main pane that holds the slim Island with
-     * a readable address, as the strip last measured it (0 until then). */
-    islandMinPrimaryWidth: 0,
-    /** The narrowest reference that holds the Glance header at its most
-     * compact, window-control space included, as the strip last measured it
-     * (0 until then; glance-layout.js then uses its 300px default). */
-    glanceMinReferenceWidth: 0,
     /** Split View (F53): this window's splits, { id, tabIds, layout,
      * focusedIndex } (split-model.js). Saved with the session and Spaces. */
     splits: [],
@@ -135,6 +131,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * boundary — reset on view creation and render-process-gone. */
     fillStatusView: null,
     fillStatusViewAttached: false,
+    // The tab the fill capsule's message is about: with a Glance open, a
+    // message about the Glance page sits at the bottom of the card.
+    fillStatusTabId: null,
     fillStatusViewLoaded: false,
     /** The resting pill's tooltip (tooltip.html), floated under the pill
      * while the strip asks for it; `tooltipGeneration` drops a show that a
