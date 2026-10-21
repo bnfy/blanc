@@ -924,7 +924,34 @@ From the desktop `DEFAULTS`:
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
   emit telemetry, or contact a favicon service. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites. All four re-ink under the light, dark, and private themes.
+  no history-derived sites. All four re-ink under the light, dark, and
+  private themes.
+- **Start Page pins.** Up to eight pages can be pinned to the front of every
+  layout, from four places: a Billboard tile's pin (on the corner opposite its
+  ×, which pins the page the tile opens, the site's page visited last, under
+  its title), a
+  favorite's pin on Ledger, Shelf or Tally (at the end of a row, in a Shelf
+  card's corner), the Favorites page's **pin**/**unpin** row action, and the
+  tab right-click menu's **Pin to Start Page**/**Unpin from Start Page** (web
+  pages in non-private tabs only, like **Save to Favorites**, and unavailable
+  for a new pin once all eight are taken). Every layout draws the pins first,
+  newest first, so a fresh pin always shows, as far as it has room (Billboard and Ledger
+  six, Shelf eight, Tally five); Billboard follows them with the ranked sites
+  whose site isn't already pinned and Ledger, Shelf and Tally with the
+  Favorites that aren't pinned, in Favorites order. A pin's button stays on
+  show, filled; a pinned Billboard tile can be unpinned but not hidden. The
+  Favorites page marks a pinned favorite beside its date. A pin is an http(s)
+  URL and a name of at most 200 characters, with an icon only from the
+  profile's own Favorites or history cache. Main keeps the list in each local
+  profile's `start-page-pins.json`: never reported, kept when history is
+  cleared, and removed with a named profile. Profile Sync carries the Personal
+  profile's list inside the end-to-end-encrypted settings payload
+  (`startPagePins`) as one value with one clock, so the newest change wins
+  whole; a Blanc that predates it drops the value on upload and the next newer
+  device restores it. Only the
+  Start Page and the Favorites page reach it (`pages:pins:*`), and open
+  copies of both redraw when it changes. Private start pages draw the pins
+  but never change them.
 - All four start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and standalone Mahjong documents; other
@@ -986,7 +1013,9 @@ From the desktop `DEFAULTS`:
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
-  Billboard's local frequency ranking and dismissal, and confirms that each
+  Billboard's local frequency ranking, dismissal and pinning, pins from a
+  favorite tile, the tab menu and the Favorites page leading the favorites
+  layouts, and confirms that each
   footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding

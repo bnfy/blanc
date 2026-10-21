@@ -10,6 +10,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `surface.armEscape` | invoke | `pages:surface:escape-arm` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. |
 | `surface.onEscape` | event | `pages:surface:escape` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Escape was pressed while armed; the page closes its own consumer. |
 | `appVersion` | invoke | `pages:app-version` | newtab | The running app version string. |
+| `pins.list` | invoke | `pages:pins:list` | newtab, bookmarks | List the profile's Start Page pins, each with a locally held icon. |
+| `pins.pin` | invoke | `pages:pins:pin` | newtab, bookmarks | Pin an http(s) page to the Start Page; refused from private start pages and past the cap. |
+| `pins.unpin` | invoke | `pages:pins:unpin` | newtab, bookmarks | Unpin a page from the Start Page; refused from private start pages. |
+| `pins.onChanged` | event | `pages:pins:changed` | newtab, bookmarks | The Start Page pins changed; read them again. |
 | `bookmarks.list` | invoke | `pages:bookmarks:list` | newtab, bookmarks | List Favorites (internal name: bookmarks). |
 | `bookmarks.clearFavicon` | invoke | `pages:bookmarks:clear-favicon` | newtab, bookmarks | Drop a Favorite's cached favicon after it failed to load. |
 | `bookmarks.browserSources` | invoke | `pages:bookmarks:browser-sources` | newtab, bookmarks | List installed browsers Favorites can be imported from. |

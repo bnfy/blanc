@@ -4,6 +4,7 @@ const { t } = blancI18n;
 const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
 const MAX_HIDDEN_TOP_SITES = 200;
 const TOP_SITES_PAGE_SIZE = 48;
+const startPins = globalThis.blancStartPins;
 
 function readHiddenTopSites() {
   if (isPrivate) return new Set();
@@ -27,6 +28,15 @@ let topSitesLoad = null;
 let topSitesReady = false;
 let topSitesOffset = 0;
 
+function saveHiddenTopSites() {
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
+
 function rememberHiddenTopSite(key) {
   if (isPrivate || typeof key !== 'string' || !key) return;
   hiddenTopSites.delete(key);
@@ -34,12 +44,55 @@ function rememberHiddenTopSite(key) {
   while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
     hiddenTopSites.delete(hiddenTopSites.values().next().value);
   }
+  saveHiddenTopSites();
+}
+
+// Start Page pins live in main (start-page-pins.js), so a tab's menu and the
+// Favorites page can pin too. Every layout draws them first. A private start
+// page draws them but never changes them.
+async function loadPins() {
+  const listed = await window.bowserPages?.pins?.list?.().catch(() => null);
+  if (!Array.isArray(listed?.pins)) return false;
+  state.pinsMax = listed.max;
+  if (startPins.samePins(listed.pins, state.pins)) return false;
+  state.pins = listed.pins;
+  return true;
+}
+
+/** Pin or unpin one page, then draw the result on every layout. Resolves to
+ * whether it changed. A refusal (every pin taken) is announced; a change that
+ * didn't happen (another page or a sync got there first) or a failed request
+ * just redraws what main holds, without claiming success. */
+async function togglePin(page, pinned, statusId) {
+  if (isPrivate) return false;
+  const title = page.title || page.url;
+  const status = document.getElementById(statusId);
+  let changed = false;
   try {
-    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+    if (pinned) {
+      changed = (await window.bowserPages.pins.unpin(page.url)) === true;
+    } else {
+      const result = await window.bowserPages.pins.pin(page.url, page.title);
+      changed = result?.ok === true;
+      if (result?.reason === 'full') status.textContent = t('newtab.pin.full', { count: state.pinsMax });
+    }
   } catch {
-    // Storage may be unavailable; the in-memory dismissal still lasts for
-    // this page without falling back to any main-process or network store.
+    changed = false;
   }
+  if ((await loadPins()) || changed) renderPinnedLayouts();
+  if (changed) status.textContent = pinned ? t('newtab.unpin.done', { title }) : t('newtab.pin.done', { title });
+  return changed;
+}
+
+/** The pin button every layout's tiles share: filled and on show once pinned. */
+function pinButton(page, pinned) {
+  const title = page.title || page.url;
+  const pin = document.createElement('button');
+  pin.type = 'button';
+  pin.title = pinned ? t('newtab.unpin.title', { title }) : t('newtab.pin.title', { title });
+  pin.setAttribute('aria-label', pinned ? t('newtab.unpin.label', { title }) : t('newtab.pin.label', { title }));
+  pin.appendChild(startPins.glyph(document, 'pin'));
+  return pin;
 }
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
@@ -454,6 +507,39 @@ function favRow(b) {
   return row;
 }
 
+/** One tile in a favorites layout with its pin beside it, never inside the
+ * link. Pinned pages lead every favorites layout and keep their pin on show.
+ * Private start pages draw no pin. */
+function pinnableFavorite(b, link, className) {
+  const item = document.createElement('div');
+  item.className = className;
+  item.classList.toggle('pinned', b.pinned);
+  item.dataset.favoriteUrl = b.url;
+  item.appendChild(link);
+  if (isPrivate || !startPins.siteKey(b.url)) return item;
+
+  const pin = pinButton(b, b.pinned);
+  pin.className = 'fav-pin';
+  pin.addEventListener('click', async () => {
+    const list = item.parentElement;
+    const index = [...list.children].indexOf(item);
+    if (!(await togglePin(b, b.pinned, 'favoritesPinStatus'))) return;
+    // Focus follows the page to its new place, or stays in the slot it left
+    // when unpinning drops it past the layout's last tile.
+    const moved = [...list.children].find((candidate) => candidate.dataset.favoriteUrl === b.url);
+    const next = moved?.querySelector('.fav-pin') ??
+      list.children[Math.min(index, list.children.length - 1)]?.querySelector('a, .fav-pin');
+    next?.focus();
+  });
+  item.appendChild(pin);
+  return item;
+}
+
+/** The favorites a layout draws, pinned first, up to its limit. */
+function favoriteTilesFor(limit) {
+  return startPins.favoriteTiles(state.pins, state.favorites, limit);
+}
+
 /** Group chip for billboard/shelf/tally. `withCount` adds the trailing number
  * the shelf card shows; the billboard and tally chips carry the name alone. */
 /** A colored group's dots take its color (tab group colors spec §7). Main
@@ -496,14 +582,26 @@ function emptyFavoritesHint() {
   return hint;
 }
 
-function renderLedgerFavorites(items) {
+function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  if (!items.length) {
+  const tiles = favoriteTilesFor(6);
+  if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
   }
-  for (const b of items.slice(0, 6)) list.appendChild(favRow(b));
+  for (const b of tiles) list.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
+}
+
+/** A pin shows on every layout: Ledger, which is always drawn, and the
+ * showing layout redraw now; the others redraw when they are next shown. */
+function renderPinnedLayouts() {
+  renderLedgerFavorites();
+  invalidate();
+  if (state.layout === 'billboard') renderBillboard();
+  if (state.layout === 'shelf') renderShelf();
+  if (state.layout === 'tally') renderTally();
+  rendered.add(state.layout);
 }
 
 // Tab sync: other devices' tabs, read-only — clicking navigates the current
@@ -550,6 +648,8 @@ const state = {
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
   favorites: [],
+  pins: [],
+  pinsMax: 0,
   topSites: [],
   onboarding: null,
 };
@@ -602,14 +702,15 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  const sites = isPrivate
-    ? []
-    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  const sites = isPrivate ? [] : visibleBillboardSites();
   favs.hidden = !sites.length;
   for (const site of sites) {
     const item = document.createElement('div');
     item.className = 'bb-site';
+    item.classList.toggle('pinned', site.pinned);
     item.dataset.siteKey = site.key;
+    // Two pins can share a site; the page itself tells tiles apart.
+    item.dataset.siteUrl = site.url;
     const link = document.createElement('a');
     link.className = 'bb-fav';
     link.href = site.url;
@@ -627,29 +728,46 @@ function renderBillboard() {
     link.setAttribute('aria-label', t('newtab.billboard.open', { title: fullTitle }));
     link.append(tile, label);
 
-    const dismiss = document.createElement('button');
-    dismiss.type = 'button';
-    dismiss.className = 'bb-site-dismiss';
-    dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
-    dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
-    const closeIcon = document.createElement('img');
-    closeIcon.src = 'close.svg';
-    closeIcon.alt = '';
-    closeIcon.draggable = false;
-    dismiss.appendChild(closeIcon);
-    dismiss.addEventListener('click', () => {
+    // A pinned tile leads the row and stays whatever history does; its pin
+    // stays on show so the row explains why it doesn't move. Only a ranked
+    // tile can be hidden. Pinning one pins the page it opens: the site's page
+    // visited last, under that page's title.
+    const pin = pinButton({ url: site.url, title: fullTitle }, site.pinned);
+    pin.className = 'bb-site-pin';
+    pin.addEventListener('click', async () => {
       const index = [...favs.children].indexOf(item);
-      rememberHiddenTopSite(site.key);
-      renderBillboard();
-      document.getElementById('bbTopSitesStatus').textContent =
-        t('newtab.billboard.hidden', { title: fullTitle });
-      const next = favs.children[Math.min(index, favs.children.length - 1)]
-        ?.querySelector('.bb-fav, .bb-site-dismiss');
+      const page = { url: site.url, title: fullTitle };
+      if (!(await togglePin(page, site.pinned, 'bbTopSitesStatus'))) return;
+      // Focus follows the site to its new place, or stays in the slot it left
+      // when unpinning drops it off the row.
+      const moved = [...favs.children].find((candidate) => candidate.dataset.siteUrl === site.url);
+      const next = moved?.querySelector('.bb-site-pin') ??
+        favs.children[Math.min(index, favs.children.length - 1)]?.querySelector('.bb-fav, .bb-site-pin');
       next?.focus();
       fillBillboardSites().catch(() => {});
     });
+    item.append(link, pin);
 
-    item.append(link, dismiss);
+    if (!site.pinned) {
+      const dismiss = document.createElement('button');
+      dismiss.type = 'button';
+      dismiss.className = 'bb-site-dismiss';
+      dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
+      dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
+      dismiss.appendChild(startPins.glyph(document, 'close'));
+      dismiss.addEventListener('click', () => {
+        const index = [...favs.children].indexOf(item);
+        rememberHiddenTopSite(site.key);
+        renderBillboard();
+        document.getElementById('bbTopSitesStatus').textContent =
+          t('newtab.billboard.hidden', { title: fullTitle });
+        const next = favs.children[Math.min(index, favs.children.length - 1)]
+          ?.querySelector('.bb-fav, .bb-site-dismiss');
+        next?.focus();
+        fillBillboardSites().catch(() => {});
+      });
+      item.append(dismiss);
+    }
     favs.appendChild(item);
   }
 
@@ -660,7 +778,7 @@ function renderBillboard() {
 }
 
 function visibleBillboardSites() {
-  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
 }
 
 async function fillBillboardSites() {
@@ -708,11 +826,13 @@ function renderShelf() {
   // Private tabs show no blocked counts on any layout.
   document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
+  // Pins draw here too, so the grid and its empty hint count what is drawn.
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
-  document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(Math.min(state.favorites.length, 8)));
-  if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 8)) {
+  const shelfTiles = favoriteTilesFor(8);
+  document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(shelfTiles.length));
+  if (!shelfTiles.length) grid.appendChild(emptyFavoritesHint());
+  for (const b of shelfTiles) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
     tileLink.href = b.url;
@@ -729,7 +849,7 @@ function renderShelf() {
     text.dataset.i18nIgnore = ''; // the page's title and host
     text.append(name, host);
     tileLink.append(tile, text);
-    grid.appendChild(tileLink);
+    grid.appendChild(pinnableFavorite(b, tileLink, 'shelf-item'));
   }
 
   const groups = document.getElementById('shGroups');
@@ -747,8 +867,9 @@ function renderTally() {
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
-  if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
+  const tallyTiles = favoriteTilesFor(5);
+  if (!tallyTiles.length) favs.appendChild(emptyFavoritesHint());
+  for (const b of tallyTiles) favs.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
 
   const groups = document.getElementById('tlGroups');
   groups.replaceChildren();
@@ -1312,8 +1433,19 @@ customizePopover.addEventListener('toggle', (event) => {
 // has.
 const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   state.favorites = items;
-  renderLedgerFavorites(items);
+  renderLedgerFavorites();
   invalidate();
+});
+const pinsReady = loadPins().then(() => {
+  renderLedgerFavorites();
+  invalidate();
+});
+// Pins change from other pages too (another start page, the Favorites page,
+// a tab's menu); a notice that brings nothing new changes nothing here.
+window.bowserPages?.pins?.onChanged?.(() => {
+  loadPins().then((changed) => {
+    if (changed) renderPinnedLayouts();
+  }).catch(() => {});
 });
 
 const wallpaper = window.blancNewtabWallpaper.mount(document, window);
@@ -1571,7 +1703,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   invalidate();
 });
 
-Promise.all([favoritesReady, dataReady]).then(() => {
+Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
   applyLayout(state.layout);
   // Layout changes fade in from now on; the first paint never does.
   requestAnimationFrame(() => document.body.classList.add('layout-ready'));

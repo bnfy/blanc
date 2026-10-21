@@ -1049,6 +1049,9 @@ function markGroupNamesRecased() {
 }
 
 module.exports = {
+  // The per-key LWW clock rules, shared with stores that ride in the settings
+  // payload (start-page-pins.js).
+  syncClock: Object.freeze({ validSyncTimestamp, nextSyncWriteTimestamp, normalizeSyncTieBreaker, remoteWinsSyncTie }),
   groupNamesRecaseDue,
   markGroupNamesRecased,
   SEARCH_ENGINES,

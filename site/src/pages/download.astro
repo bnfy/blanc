@@ -115,6 +115,25 @@ const latest = releases[0];
         </ol>
       </article>
     </div>
+    <div class="install-terminal">
+      <div class="install-terminal-copy">
+        <h3 id="terminal-title"><PlatformLogo platform="apple" />Or install with Homebrew</h3>
+        <p>On a Mac with <a href="https://brew.sh" target="_blank" rel="noopener">Homebrew</a>, one command installs the same signed and notarized build as the DMG.</p>
+        <ul>
+          <li>Blanc keeps updating itself, so <code>brew upgrade</code> leaves it alone.</li>
+          <li>Already installed Blanc from this page? Quit it, move it to the Trash, then run the command. Your tabs, Favorites and settings stay.</li>
+        </ul>
+        <a class="text-link" href="https://github.com/bnfy/homebrew-tap" target="_blank" rel="noopener">See the Homebrew tap <span aria-hidden="true">↗</span></a>
+      </div>
+      <figure class="terminal-window" aria-labelledby="terminal-title">
+        <figcaption class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span>Terminal</figcaption>
+        <div class="terminal-body">
+          <pre><code><span class="terminal-prompt" aria-hidden="true">% </span>brew install --cask bnfy/tap/blanc</code></pre>
+          <button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy/tap/blanc" data-track="feature_cta_click" data-feature="homebrew" data-cta-position="install-terminal" hidden>Copy</button>
+        </div>
+        <p class="sr-only" role="status" aria-live="polite" data-terminal-status></p>
+      </figure>
+    </div>
   </section>
 
   <section class="download-block" aria-labelledby="trust-title">
@@ -155,6 +174,8 @@ const latest = releases[0];
 </main>
 <script>
   import { initHandheldDownload } from '../scripts/handheld-download.js';
+  import { initTerminalCopy } from '../scripts/terminal-copy.js';
   initHandheldDownload();
+  initTerminalCopy();
 </script>
 </BaseLayout>

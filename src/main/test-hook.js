@@ -13,6 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const archive = require('./archive');
 const bookmarks = require('./bookmarks');
+const startPagePins = require('./start-page-pins');
 const path = require('node:path');
 const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webContents } = require('electron');
 // A 1×1 PNG the bang icon server stub answers with (stubBangIconServer).
@@ -206,6 +207,7 @@ function install(refs) {
     straySplitIds,
     windowChildViewCount,
     menuContextActionsForTest,
+    tabMenuItemsForTest,
     closedEntrySummaries,
     splitLayoutForTest,
     splitCornerTabsForTest,
@@ -773,6 +775,11 @@ function install(refs) {
       return runTabContextMenuItem(itemId, { tab: { id: tabId, url: tabs.get(tabId)?.url }, ...extra, actions: menuContextActionsForTest() });
     },
     closedEntrySummaries() { return closedEntrySummaries(); },
+    /** One tab-menu item's label and state, as a right-click on its row shows it. */
+    tabMenuItem(tabId, itemId) {
+      const item = tabMenuItemsForTest(String(tabId))?.find((entry) => entry.id === itemId);
+      return item ? { label: item.label, enabled: item.enabled !== false } : null;
+    },
     moveGroupToNewWindow(groupId) { return !!moveGroupToNewWindowForTest(groupId); },
     straySplitIds() { return straySplitIds(); },
     windowChildViewCount() { return windowChildViewCount(); },
@@ -1590,6 +1597,8 @@ function install(refs) {
           label: item.querySelector('.label')?.textContent ?? null,
           hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
           dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+          pinned: item.classList.contains('pinned'),
+          pinLabel: item.querySelector('.bb-site-pin')?.getAttribute('aria-label') ?? null,
           title: item.querySelector('.label')?.title ?? null,
           ariaLabel: item.querySelector('.bb-fav')?.getAttribute('aria-label') ?? null,
           top: Math.round(item.getBoundingClientRect().top),
@@ -1601,7 +1610,102 @@ function install(refs) {
           })(),
         })),
         hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+        status: document.getElementById('bbTopSitesStatus')?.textContent ?? '',
+        focusedPinOf: document.activeElement?.classList.contains('bb-site-pin')
+          ? document.activeElement.closest('.bb-site')?.dataset.siteKey ?? null
+          : null,
       }))()`);
+    },
+    clearStartPagePins() {
+      for (const pin of startPagePins.listPins()) startPagePins.unpin(pin.url);
+      return startPagePins.listPins().length === 0;
+    },
+    startPagePins() { return startPagePins.listPins(); },
+    // The Favorites page's rows and their Start Page pins.
+    readFavoritesSheetPins() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => {
+        if (location.host !== 'bookmarks') return null;
+        return [...document.querySelectorAll('#list .row[data-url]')].map((row) => ({
+          url: row.dataset.url,
+          title: row.querySelector('.title')?.textContent ?? '',
+          pinned: row.classList.contains('start-pinned'),
+          mark: row.querySelector('.row-pin-mark')?.getAttribute('aria-label') ?? null,
+          button: row.querySelector('.pin-toggle')?.textContent ?? null,
+          buttonLabel: row.querySelector('.pin-toggle')?.getAttribute('aria-label') ?? null,
+          focused: document.activeElement === row.querySelector('.pin-toggle'),
+        }));
+      })()`);
+    },
+    toggleFavoritesSheetPin(title) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = [...document.querySelectorAll('#list .row[data-url]')]
+          .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
+        const button = row?.querySelector('.pin-toggle');
+        if (!button || button.disabled) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // The favorites the showing favorites layout draws.
+    readStartFavorites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const layout = document.body.dataset.layout;
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
+        const items = list ? [...document.getElementById(list).querySelectorAll('[data-favorite-url]')] : [];
+        return {
+          layout,
+          favorites: items.map((item) => ({
+            url: item.dataset.favoriteUrl,
+            title: item.querySelector('.name')?.textContent ?? null,
+            pinned: item.classList.contains('pinned'),
+            pinLabel: item.querySelector('.fav-pin')?.getAttribute('aria-label') ?? null,
+            pinShown: (() => {
+              const pin = item.querySelector('.fav-pin');
+              return !!pin && getComputedStyle(pin).opacity === '1';
+            })(),
+          })),
+          status: document.getElementById('favoritesPinStatus')?.textContent ?? '',
+          focusedPinOf: document.activeElement?.classList.contains('fav-pin')
+            ? document.activeElement.closest('[data-favorite-url]')?.dataset.favoriteUrl ?? null
+            : null,
+        };
+      })()`);
+    },
+    // Clicks a favorite's pin in the showing favorites layout.
+    toggleFavoritePin(title) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
+        const item = list && [...document.getElementById(list).querySelectorAll('[data-favorite-url]')]
+          .find((candidate) => candidate.querySelector('.name')?.textContent === ${JSON.stringify(String(title))});
+        const button = item?.querySelector('.fav-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // Clicks a site's pin, which pins an unpinned site and unpins a pinned one.
+    toggleBillboardPin(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
     },
     hideBillboardSite(key) {
       const tab = tabs.get(getActiveTabId());
@@ -3797,6 +3901,8 @@ function install(refs) {
       setTestCursorPoint(null);
       setTestCursorSamplingUnavailable(false);
       beforeUnloadProbes.clear();
+      // Start Page pins outlive history by design; no scenario inherits them.
+      for (const pin of startPagePins.listPins()) startPagePins.unpin(pin.url);
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
       hideOverlay({ refocusContent: false });

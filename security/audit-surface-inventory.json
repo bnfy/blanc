@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "b4e5ef63c5da8a53c3e53c85eda5f025b8223d20bc82ae60f2498d14ccff3357",
+      "sha256": "7a86ec71282315782b4a01b9716442b2bdd5d503da75081fa3bca3edd7a4f6d7",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -374,6 +374,7 @@
         "page-tint:changed",
         "page-title-updated",
         "pages:blocking:status",
+        "pages:pins:changed",
         "pages:settings:appearance",
         "pages:start:remote-tabs",
         "pages:start:status",
@@ -481,7 +482,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "e2a531c210c1523a89efebab63febb38e7f20643e252d019dd8f5c32e65afd47",
+      "sha256": "fcfdc4360cab2d8c2c43b7595e12c8da2eb1592528a8e8058e04d0b30595ac49",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -525,6 +526,9 @@
         "pages:mahjong:played",
         "pages:permissions:list",
         "pages:permissions:remove",
+        "pages:pins:list",
+        "pages:pins:pin",
+        "pages:pins:unpin",
         "pages:profiles:create",
         "pages:profiles:list",
         "pages:profiles:open",
@@ -836,7 +840,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "3a69085a4194d116a98623a6116d7d43f6eebaf618daa32ffce1cdedcbb97006",
+      "sha256": "7660b873b0200dadfd79316aabe86a079cc1b5b9a6d346bf625d756b132a86e7",
       "literalChannels": [
         "before-quit"
       ],
@@ -850,7 +854,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "97cc99b44f46ea19c87f7f9780112b319c05e1849d613348d9ee3c69a1c86b68",
+      "sha256": "8c298b3bf97278ebb7328810184f5cda9a3c4e52b06eec027c9feed13c12e115",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -894,6 +898,10 @@
         "pages:mahjong:played",
         "pages:permissions:list",
         "pages:permissions:remove",
+        "pages:pins:changed",
+        "pages:pins:list",
+        "pages:pins:pin",
+        "pages:pins:unpin",
         "pages:profiles:create",
         "pages:profiles:list",
         "pages:profiles:open",

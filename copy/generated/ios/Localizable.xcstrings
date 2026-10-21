@@ -20539,6 +20539,90 @@
         }
       }
     },
+    "tabMenu.pinStartPage": {
+      "comment": "Tab context menu command that pins the page to the front of every Start Page layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin to Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An Startseite anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar en la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler à la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa nella pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar na página inicial"
+          }
+        }
+      }
+    },
+    "tabMenu.unpinStartPage": {
+      "comment": "Tab context menu command that unpins the page from the Start Page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin from Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von Startseite lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar de la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher de la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia dalla pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar da página inicial"
+          }
+        }
+      }
+    },
     "tabMenu.moveToGroup": {
       "comment": "Tab context menu submenu listing tab groups.",
       "extractionState": "manual",
@@ -59509,6 +59593,300 @@
         }
       }
     },
+    "newtab.pin.title": {
+      "comment": "Start page: tooltip of the pin on a tile; {title} is the page’s title. A pinned page comes first on every Start Page layout.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar %1$@"
+          }
+        }
+      }
+    },
+    "newtab.pin.label": {
+      "comment": "Start page: accessible name of the pin on a tile; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin %1$@ to the Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ an die Startseite anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar %1$@ en la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler %1$@ à la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa %1$@ nella pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar %1$@ na página inicial"
+          }
+        }
+      }
+    },
+    "newtab.unpin.title": {
+      "comment": "Start page: tooltip of the pin on a pinned tile; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar %1$@"
+          }
+        }
+      }
+    },
+    "newtab.unpin.label": {
+      "comment": "Start page: accessible name of the pin on a pinned tile; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin %1$@ from the Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von der Startseite lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar %1$@ de la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher %1$@ de la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia %1$@ dalla pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar %1$@ da página inicial"
+          }
+        }
+      }
+    },
+    "newtab.pin.done": {
+      "comment": "Start page: announced after pinning a page; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ pinned to the Start Page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ an die Startseite angeheftet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ se fijó en la página de inicio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ épinglé à la page d’accueil."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ fissato nella pagina iniziale."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ foi fixado na página inicial."
+          }
+        }
+      }
+    },
+    "newtab.unpin.done": {
+      "comment": "Start page: announced after unpinning a page; {title} is its title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ unpinned from the Start Page."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von der Startseite gelöst."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ se soltó de la página de inicio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ détaché de la page d’accueil."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ rilasciato dalla pagina iniziale."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ foi desafixado da página inicial."
+          }
+        }
+      }
+    },
+    "newtab.pin.full": {
+      "comment": "Start page: announced when pinning is refused because every pin is taken; {count} is the most pins it holds.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Start Page holds %1$@ pins. Unpin one first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Startseite fasst %1$@ angeheftete Seiten. Löse zuerst eine."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La página de inicio admite %1$@ fijados. Suelta uno primero."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page d’accueil accepte %1$@ épingles. Détachez-en une d’abord."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pagina iniziale ne tiene %1$@ fissate. Rilasciane una prima."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A página inicial comporta %1$@ fixados. Desafixe um primeiro."
+          }
+        }
+      }
+    },
     "onboarding.skip": {
       "comment": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
       "extractionState": "manual",
@@ -64503,6 +64881,258 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mover para uma pasta"
+          }
+        }
+      }
+    },
+    "favorites.row.pin": {
+      "comment": "Favorites page: button on a favorite that pins it to the front of the Start Page, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pin"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fijar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "épingler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fissa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fixar"
+          }
+        }
+      }
+    },
+    "favorites.row.unpin": {
+      "comment": "Favorites page: button on a pinned favorite that unpins it from the Start Page, lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unpin"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soltar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "détacher"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rilascia"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "desafixar"
+          }
+        }
+      }
+    },
+    "favorites.row.pinLabel": {
+      "comment": "Favorites page: accessible name of the pin button; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin %1$@ to the Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ an die Startseite anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar %1$@ en la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler %1$@ à la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa %1$@ nella pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar %1$@ na página inicial"
+          }
+        }
+      }
+    },
+    "favorites.row.unpinLabel": {
+      "comment": "Favorites page: accessible name of the unpin button; {title} is the page’s title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin %1$@ from the Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von der Startseite lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar %1$@ de la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher %1$@ de la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia %1$@ dalla pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar %1$@ da página inicial"
+          }
+        }
+      }
+    },
+    "favorites.row.pinFull": {
+      "comment": "Favorites page: tooltip of the pin button when every pin is taken; {count} is the most pins the Start Page holds.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Start Page holds %1$@ pins. Unpin one to pin this."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Startseite fasst %1$@ angeheftete Seiten. Löse eine, um diese anzuheften."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La página de inicio admite %1$@ fijados. Suelta uno para fijar este."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La page d’accueil accepte %1$@ épingles. Détachez-en une pour épingler celle-ci."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pagina iniziale ne tiene %1$@ fissate. Rilasciane una per fissare questa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A página inicial comporta %1$@ fixados. Desafixe um para fixar este."
+          }
+        }
+      }
+    },
+    "favorites.row.pinned": {
+      "comment": "Favorites page: accessible name of the mark beside a pinned favorite.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinned to the Start Page"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An die Startseite angeheftet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijado en la página de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épinglé à la page d’accueil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissato nella pagina iniziale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixado na página inicial"
           }
         }
       }

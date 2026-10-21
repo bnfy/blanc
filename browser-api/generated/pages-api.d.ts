@@ -6,6 +6,16 @@
 export interface NewtabPagesAPI {
   /** The running app version string. IPC: invoke `pages:app-version`. */
   appVersion: () => Promise<unknown>;
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
+  };
   bookmarks: {
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
@@ -115,6 +125,16 @@ export interface BookmarksPagesAPI {
     armEscape: (armed: boolean) => Promise<unknown>;
     /** Escape was pressed while armed; the page closes its own consumer. IPC: event `pages:surface:escape`. */
     onEscape: (callback: () => void) => () => void;
+  };
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
   };
   bookmarks: {
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
