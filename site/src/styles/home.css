@@ -213,8 +213,10 @@
   align-self: start;
   position: relative;
   margin: 0;
-  transform: translate(0.3em, calc(-100% - 0.65em)) rotate(-6deg);
-  transform-origin: 100% 100%;
+  /* Tilted about its bottom-left corner, which is its lowest point, so no
+     font, however wide, dips it toward the headline. */
+  transform: translate(0.3em, calc(-100% - 0.15em)) rotate(-6deg);
+  transform-origin: 0 100%;
   color: var(--gold);
   font-family: "Reenie Beanie", "Bradley Hand", "Segoe Print", cursive;
   font-size: clamp(26px, 2.9vw, 42px);
