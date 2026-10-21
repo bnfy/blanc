@@ -617,13 +617,12 @@ function setupPages(hooks = {}) {
     if (typeof enabled === 'boolean') settings.setSettings({ newtabFollowSpaceColor: enabled });
     return wallpaperReply(event);
   });
-  // The Billboard clock's Font & Color (synced): any of font, weight, color,
-  // tone and style; each is validated on its own and anything else is ignored.
-  // The reply is the clock as now drawn.
+  // The Billboard clock's Font & Color (synced): any of font, weight, height,
+  // color, tone and style; each is validated on its own and anything else is
+  // ignored. The reply is the clock as now drawn.
   handle('pages:start:set-clock', 'newtab', (partial) => {
     const write = settingsForClock(partial);
-    if (Object.keys(write).length) settings.setSettings(write);
-    return clockStyleFromSettings(settings.getSettings());
+    return clockStyleFromSettings(Object.keys(write).length ? settings.setSettings(write) : settings.getSettings());
   });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;

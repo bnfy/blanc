@@ -209,6 +209,24 @@
    */
   const shadowFor = (rgb) => (luminance(rgb) > LIGHT_INK ? SHADOWS.light : SHADOWS.dark);
 
+  /**
+   * A computed CSS color as [r, g, b] in 0–255: `rgb()`/`rgba()`, or the
+   * `color(srgb r g b)` form (channels 0–1) Chromium gives a color-mix().
+   */
+  function parseColor(css) {
+    const value = String(css ?? '');
+    const numbers = (value.match(/-?[\d.]+(?:e-?\d+)?/g) ?? []).map(Number);
+    if (/^color\(\s*srgb\b/.test(value)) return [0, 1, 2].map((i) => Math.round((numbers[i] ?? 0) * 255));
+    return [0, 1, 2].map((i) => numbers[i] ?? 0);
+  }
+
+  /** `a` moved `t` (0–1) of the way to `b` in sRGB, as #rrggbb (main's mix). */
+  function mixHex(a, b, t) {
+    const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const x = channels(a), y = channels(b);
+    return `#${x.map((v, i) => Math.round(Math.min(255, Math.max(0, v + (y[i] - v) * t))).toString(16).padStart(2, '0')).join('')}`;
+  }
+
   /** The same shadow as a CSS filter, for the drawn clock. */
   const shadowFilter = (shadow) => shadow.split(/,(?![^(]*\))/).map((layer) => `drop-shadow(${layer.trim()})`).join(' ');
 
@@ -346,7 +364,7 @@
   }
 
   globalThis.blancClockArt = Object.freeze({
-    stretchRows, resampleRows, refractionMap, glassLight, luminance, shadowFor, shadowFilter,
+    stretchRows, resampleRows, refractionMap, glassLight, luminance, shadowFor, shadowFilter, parseColor, mixHex,
     drawClock, paintSolid, paintGlass, paintShadow,
   });
 })();

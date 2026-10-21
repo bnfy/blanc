@@ -3750,6 +3750,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .shelf-tile,
   .shelf-card,
   .start-customize-popover,
+  .clock-popover,
   .migration-checklist { backdrop-filter: none; }
   /* A solid footer, as before the footer blended into the wallpaper. */
   .ledger-footer,
@@ -3765,6 +3766,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .shelf-tile,
   .shelf-card,
   .start-customize-popover,
+  .clock-popover,
   .migration-checklist { backdrop-filter: none; }
   /* A solid footer, as before the footer blended into the wallpaper. */
   .ledger-footer,
@@ -3775,6 +3777,7 @@ body.has-underflow .ledger-footer::before { opacity: 1; }
   .group-chip,
   .start-customize,
   .start-customize-popover,
+  .clock-popover,
   .migration-checklist-shell,
   .migration-checklist,
   .layout-thumb,

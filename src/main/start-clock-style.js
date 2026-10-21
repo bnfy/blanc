@@ -6,6 +6,8 @@
 // unit-tested in one place and the fork ports this file unchanged.
 
 const Identity = require('../renderer/space-identity');
+// The same sRGB mix and preset lookup the Color wallpaper paints with.
+const { mix, presetHex } = require('./start-page-paint');
 
 // Each face is one the app already bundles (OFL, src/renderer/pages/), with
 // the weight range its variable file carries.
@@ -41,17 +43,9 @@ const normalizeWeight = (value) => (Number.isInteger(value) && value >= WEIGHT_M
 const normalizeTone = (value) => (Number.isInteger(value) && value >= 0 && value <= 100 ? value : null);
 const normalizeHeight = (value) => (Number.isInteger(value) && value >= HEIGHT_MIN && value <= HEIGHT_MAX ? value : null);
 
-const channels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-const toHex = (rgb) => `#${rgb.map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('')}`;
-/** `a` moved `t` (0–1) of the way to `b`, in sRGB. */
-function mix(a, b, t) {
-  const x = channels(a), y = channels(b);
-  return toHex(x.map((v, i) => v + (y[i] - v) * t));
-}
-
 /** The preset at a tone, or null for `auto` (or an unknown color). */
 function inkFor(color, tone) {
-  const hex = Identity.PRESETS.find((p) => p.id === color)?.hex;
+  const hex = presetHex(color);
   if (!hex) return null;
   const t = normalizeTone(tone) ?? DEFAULTS.tone;
   if (t < 50) return mix(hex, '#000000', ((50 - t) / 50) * TONE_DARKEN);
@@ -84,7 +78,7 @@ function clockStyle({ font, weight, color, tone, style, height } = {}) {
     ink: inkFor(c, t),
     // The preset itself and how far the tone moves it, so the page can follow
     // the tone slider while it is dragged with the same mix.
-    base: Identity.PRESETS.find((p) => p.id === c)?.hex ?? null,
+    base: presetHex(c),
     toneMix: { darken: TONE_DARKEN, lighten: TONE_LIGHTEN },
     style: normalizeStyle(style) ?? DEFAULTS.style,
     height: normalizeHeight(height) ?? DEFAULTS.height,

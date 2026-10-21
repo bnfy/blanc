@@ -85,6 +85,15 @@ try {
   assert.equal(await page.locator('#clockWeight').inputValue(), '400');
   await capture(page, '3-condensed');
 
+  // A drag let go where it started sends no change; the next choice still
+  // draws (the drag must not stay open).
+  await page.evaluate(() => {
+    const slider = document.getElementById('clockWeight');
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    slider.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+  });
+  await page.waitForTimeout(50);
+
   // Color and tone. Auto hides the tone.
   assert.equal(await page.locator('#clockToneLine').isHidden(), true);
   await page.getByRole('button', { name: 'Sky', exact: true }).click();

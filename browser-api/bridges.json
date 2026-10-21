@@ -448,7 +448,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Change the Billboard clock's Font & Color: any of font, weight, color, tone and style. Replies with the clock as now drawn."
+        "doc": "Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn."
       },
       {
         "name": "start.chooseWallpaper",

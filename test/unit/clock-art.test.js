@@ -115,3 +115,20 @@ test('the shadow is opposite to the ink, so every figure keeps an edge', () => {
   assert.equal((filter.match(/drop-shadow\(/g) ?? []).length, 3);
   assert.doesNotMatch(filter, /,\s*0 /, 'layers are split between shadows, not inside rgb()');
 });
+
+test("computed colors parse in both of Chromium's forms", () => {
+  const { parseColor } = sandbox.blancClockArt;
+  assert.deepEqual([...parseColor('rgb(55, 102, 148)')], [55, 102, 148]);
+  assert.deepEqual([...parseColor('rgba(0, 0, 0, 0)')], [0, 0, 0]);
+  // What a color-mix() computes to: channels 0–1, not 0–255.
+  assert.deepEqual([...parseColor('color(srgb 0.8 0.85 0.9)')], [204, 217, 230]);
+  assert.match(shadowFor(parseColor('color(srgb 0.95 0.95 0.95)')), /rgb\(0 0 0/, 'a pale toned ink still counts as light');
+});
+
+test("the page's tone preview mixes exactly as main does", () => {
+  const { mixHex } = sandbox.blancClockArt;
+  const { mix } = require('../../src/main/start-page-paint');
+  for (const [a, b, t] of [['#376694', '#ffffff', 0.44], ['#9b4761', '#000000', 0.7], ['#3a3a3a', '#ffffff', 0]]) {
+    assert.equal(mixHex(a, b, t), mix(a, b, t));
+  }
+});

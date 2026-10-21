@@ -883,7 +883,9 @@ function scheduleClockArt() {
     drawClockArt();
   });
 }
-const rgbOf = (color) => (color.match(/[\d.]+/g) ?? ['0', '0', '0']).slice(0, 3).map(Number);
+const rgbOf = (color) => globalThis.blancClockArt.parseColor(color);
+// What the last drawing was made from; an unchanged clock is not redrawn.
+let clockArtKey = '';
 function drawClockArt() {
   if (!clockState || state.layout !== 'billboard') return;
   // Every clock carries a shadow opposite to its ink (clock-art.js), so it
@@ -894,15 +896,18 @@ function drawClockArt() {
   clockElement.style.setProperty('--clock-shadow', shadow);
   const height = clockHeightPreview ?? clockState.height ?? 100;
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
-  const drawn = height > 100 || glass;
-  clockRow.toggleAttribute('data-drawn', drawn);
-  clockArt.hidden = !drawn;
-  if (!drawn) return;
+  if (height <= 100 && !glass) {
+    clockRow.removeAttribute('data-drawn');
+    clockArt.hidden = true;
+    clockArtKey = '';
+    return;
+  }
   const computed = getComputedStyle(clockElement);
   const size = parseFloat(computed.fontSize);
   const weight = Number(computed.fontWeight) || 500;
   const family = CLOCK_CANVAS_FAMILIES[clockState.font] ?? CLOCK_CANVAS_FAMILIES.instrument;
-  // Draw only once the face is ready; its load draws again.
+  // Draw only once the face is ready; its load draws again. Until then the
+  // clock stays as it is (typeset, or the last drawing).
   const spec = `${weight} ${size}px ${family}`;
   if (!document.fonts.check(spec)) {
     document.fonts.load(spec).then(scheduleClockArt, () => {});
@@ -912,8 +917,12 @@ function drawClockArt() {
   const fits = 1 + Math.max(0, innerHeight * 0.5 - size) / (size * 0.7);
   const factor = Math.max(1, Math.min(height / 100, fits));
   const scale = devicePixelRatio || 1;
+  const letterSpacing = parseFloat(computed.letterSpacing) || 0;
+  const key = JSON.stringify([clockElement.textContent, spec, letterSpacing, factor, scale, glass, computed.color, shadow]);
+  if (key === clockArtKey) return;
+  clockArtKey = key;
   const art = globalThis.blancClockArt.drawClock(clockElement.textContent, {
-    family, weight, size, stretch: 'normal', letterSpacing: parseFloat(computed.letterSpacing) || 0,
+    family, weight, size, stretch: 'normal', letterSpacing,
   }, factor, scale);
   clockArt.style.width = `${art.width}px`;
   clockArt.style.height = `${art.height}px`;
@@ -956,18 +965,31 @@ function drawClockArt() {
   clockFace.width = face.width;
   clockFace.height = face.height;
   clockFace.getContext('2d').drawImage(face, 0, 0);
+  // Shown only once drawn, so the clock never blanks while a face loads.
+  clockRow.setAttribute('data-drawn', '');
+  clockArt.hidden = false;
 }
 addEventListener('resize', scheduleClockArt);
+// The drawing is made at the display's pixel density, so moving the window to
+// another display redraws it.
+function watchClockScale() {
+  matchMedia(`(resolution: ${devicePixelRatio}dppx)`).addEventListener('change', () => {
+    scheduleClockArt();
+    watchClockScale();
+  }, { once: true });
+}
+watchClockScale();
 reducedTransparency.addEventListener('change', scheduleClockArt);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleClockArt);
-// The same mix main makes, as CSS, so the clock follows the tone thumb.
+// The same mix main makes, so the clock follows the tone thumb.
 function previewClockTone(tone) {
   const base = clockState?.base;
   const mix = clockState?.toneMix;
   if (!base || !mix) return;
+  const { mixHex } = globalThis.blancClockArt;
   if (tone === 50) paintClockInk(base);
-  else if (tone < 50) paintClockInk(`color-mix(in srgb, ${base}, #000000 ${((50 - tone) / 50) * mix.darken * 100}%)`);
-  else paintClockInk(`color-mix(in srgb, ${base}, #ffffff ${((tone - 50) / 50) * mix.lighten * 100}%)`);
+  else if (tone < 50) paintClockInk(mixHex(base, '#000000', ((50 - tone) / 50) * mix.darken));
+  else paintClockInk(mixHex(base, '#ffffff', ((tone - 50) / 50) * mix.lighten));
 }
 async function setClock(partial) {
   try {
@@ -1032,13 +1054,29 @@ clockHeight.addEventListener('input', () => {
   clockHeightPreview = Number(clockHeight.value);
   scheduleClockArt();
 });
+// A drag ends in `change` only when the value moved. Let go where it started
+// and no change comes, so the drag ends on release, back at the saved clock.
+function endClockDrag() {
+  clockDragging = false;
+  clockHeightPreview = null;
+  applyClock(clockState);
+}
 for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [clockHeight, 'height']]) {
   slider.addEventListener('change', async () => {
     const value = Number(slider.value);
     clockDragging = false;
+    // Kept at once, so the clock doesn't fall back to the old height while the
+    // save is on its way (or a new drag has begun).
+    if (key === 'height') {
+      clockState = { ...clockState, height: value };
+      clockHeightPreview = null;
+    }
     await setClock({ [key]: value });
-    clockHeightPreview = null;
   });
+  const release = () => setTimeout(() => {
+    if (clockDragging && clockState?.[key] === Number(slider.value)) endClockDrag();
+  });
+  for (const type of ['pointerup', 'pointercancel', 'keyup', 'blur']) slider.addEventListener(type, release);
 }
 // Customize closes and the clock's own popover opens under the clock, so the
 // clock stays in view while it changes.
