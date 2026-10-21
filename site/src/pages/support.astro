@@ -10,60 +10,59 @@ const supportEmail = "support@blanc.day";
 const crispWebsiteId = "564456ef-d242-4d04-af66-65e881e31fe2";
 const mailto = (subject, body) =>
   `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-const contactOptions = [
+const supportMail = mailto("Blanc support", "Blanc version:\nOperating system:\nWhat happened:\n");
+const contactGroups = [
   {
-    title: "Report a bug",
-    icon: ["M10 6.5a2 2 0 0 1 4 0", "M8 10a4 4 0 0 1 8 0v4a4 4 0 0 1-8 0z", "M12 10v8M8 11H5M16 11h3M8 15H5.5M16 15h2.5"],
-    text: "Something broken or behaving wrongly. The form asks for the details we need.",
-    channel: "GitHub · public",
-    href: "https://github.com/bnfy/blanc/issues/new?template=bug_report.yml",
-  },
-  {
-    title: "Request a feature",
-    icon: ["M9 18h6M10 21h4", "M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"],
-    text: "Something Blanc should do, or do differently.",
-    channel: "GitHub · public",
-    href: "https://github.com/bnfy/blanc/issues/new?template=feature_request.yml",
-  },
-  {
-    title: "Email Support",
-    icon: ["M4 6h16v12H4z", "m4 7 8 6 8-6"],
-    text: "Installs, updates, Patron keys and anything you'd rather not post in public.",
-    channel: "Email · private",
-    href: mailto(
-      "Blanc support",
-      "Blanc version:\nOperating system:\nWhat happened:\n",
-    ),
-  },
-  {
-    title: "Report a security issue",
-    icon: ["M12 3 5 6v5c0 4.5 3 8.2 7 10 4-1.8 7-5.5 7-10V6z", "m9 12 2 2 4-4"],
-    text: "Tell us privately first. Please don't file vulnerabilities on GitHub.",
-    channel: "Email · private",
-    href: mailto(
-      "Security report",
-      "Blanc version:\nOperating system:\nWhat you found and how to reproduce it:\n",
-    ),
-  },
-  crispWebsiteId && {
-    title: "Live chat",
-    icon: ["M5 5h14v10h-8l-4 4v-4H5z", "M9 10h.01M12 10h.01M15 10h.01"],
-    text: "Message us here. If we're away, leave your email and we'll reply there.",
-    channel: "Crisp · private",
-    href: mailto(
-      "Blanc support",
-      "Blanc version:\nOperating system:\nWhat happened:\n",
-    ),
-    chat: true,
+    title: "Talk to us",
+    items: [
+      crispWebsiteId && {
+        title: "Live chat",
+        icon: ["M5 5h14v10h-8l-4 4v-4H5z", "M9 10h.01M12 10h.01M15 10h.01"],
+        hint: "Crisp",
+        href: supportMail,
+        chat: true,
+      },
+      {
+        title: "Email Support",
+        icon: ["M4 6h16v12H4z", "m4 7 8 6 8-6"],
+        hint: "Private",
+        href: supportMail,
+      },
+      {
+        title: "Ask the community",
+        icon: ["M4 5h11v8H9l-3 3v-3H4z", "M18 9h2v8h-2v3l-3-3h-4v-2"],
+        hint: "Reddit",
+        href: "https://www.reddit.com/r/blancbrowser/",
+      },
+    ].filter(Boolean),
   },
   {
-    title: "Ask the community",
-    icon: ["M4 5h11v8H9l-3 3v-3H4z", "M18 9h2v8h-2v3l-3-3h-4v-2"],
-    text: "Questions, tips and ideas with other people who use Blanc.",
-    channel: "Reddit · r/blancbrowser",
-    href: "https://www.reddit.com/r/blancbrowser/",
+    title: "Report something",
+    items: [
+      {
+        title: "Report a bug",
+        icon: ["M10 6.5a2 2 0 0 1 4 0", "M8 10a4 4 0 0 1 8 0v4a4 4 0 0 1-8 0z", "M12 10v8M8 11H5M16 11h3M8 15H5.5M16 15h2.5"],
+        hint: "GitHub",
+        href: "https://github.com/bnfy/blanc/issues/new?template=bug_report.yml",
+      },
+      {
+        title: "Request a feature",
+        icon: ["M9 18h6M10 21h4", "M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"],
+        hint: "GitHub",
+        href: "https://github.com/bnfy/blanc/issues/new?template=feature_request.yml",
+      },
+      {
+        title: "Security issue",
+        icon: ["M12 3 5 6v5c0 4.5 3 8.2 7 10 4-1.8 7-5.5 7-10V6z", "m9 12 2 2 4-4"],
+        hint: "Private",
+        href: mailto(
+          "Security report",
+          "Blanc version:\nOperating system:\nWhat you found and how to reproduce it:\n",
+        ),
+      },
+    ],
   },
-].filter(Boolean);
+];
 ---
 
 <BaseLayout
@@ -106,36 +105,40 @@ const contactOptions = [
     </nav>
     <section class="reference-contact" id="contact" aria-labelledby="contact-title">
       <h2 id="contact-title">Get in touch</h2><p>
-        Include your Blanc version, operating system and what happened. Keep
-        passwords and private browsing information out of your message.
+        Include your Blanc version and operating system. Keep passwords and
+        private browsing information out of your message.
       </p><!--email_off-->
-      <ul class="contact-options">{
-        contactOptions.map(({ title, icon, text, channel, href, chat }) => (
-          <li>
-            <a
-              href={href}
-              data-live-chat={chat ? crispWebsiteId : undefined}
-            >
-              <svg
-                class="contact-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                {icon.map((d) => <path d={d} />)}
-              </svg>
-              <strong>{title} <span aria-hidden="true">↗</span></strong>
-              <span>{text}</span>
-              <small>{channel}</small>
-            </a>
-          </li>
+      <div class="contact-groups">{
+        contactGroups.map(({ title, items }) => (
+          <div>
+            <h3>{title}</h3>
+            <ul>
+              {items.map(({ title, icon, hint, href, chat }) => (
+                <li>
+                  <a
+                    href={href}
+                    data-live-chat={chat ? crispWebsiteId : undefined}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      {icon.map((d) => <path d={d} />)}
+                    </svg>
+                    {title}
+                    <small>{hint}</small>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))
-      }</ul><!--/email_off-->
-      <a class="contact-more" href="/trust">Privacy &amp; security →</a>
+      }</div><!--/email_off-->
     </section>
     <section class="answer-group">
       <h2>Using Blanc</h2><GuideTopics page="support" />
