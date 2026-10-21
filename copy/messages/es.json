@@ -5047,6 +5047,30 @@
     "message": "{title} se ocultó de Billboard.",
     "source": "sha256:33aa9d1c17e809017336617c6bfadbfc7792b624ba24936a86702bf0df84073e"
   },
+  "newtab.billboard.pinTitle": {
+    "message": "Fijar {title}",
+    "source": "sha256:c2ec2566dfd178851850a70ce2d40eafb6214b2a82a7983a082c19b7bf0debe2"
+  },
+  "newtab.billboard.pin": {
+    "message": "Fijar {title} en Billboard",
+    "source": "sha256:a3563f01575e19e73c4033507f61e215a57ed7eb3f4f58202fd3a935feb4ace1"
+  },
+  "newtab.billboard.unpinTitle": {
+    "message": "Soltar {title}",
+    "source": "sha256:072204e710eaa6ee53d7bc9332cd77233fda83fa1faaf330d4f073574f4ac996"
+  },
+  "newtab.billboard.unpin": {
+    "message": "Soltar {title} de Billboard",
+    "source": "sha256:159fba9332c0358dae84eb99b90895601f90e7c01476b897ea2479b1f2e218a6"
+  },
+  "newtab.billboard.pinned": {
+    "message": "{title} se fijó en Billboard.",
+    "source": "sha256:f615ac4a5f66281912dfc7dda3821f17e58a2b772b14b30cd46bd18d1e7fdf94"
+  },
+  "newtab.billboard.unpinned": {
+    "message": "{title} se soltó de Billboard.",
+    "source": "sha256:98301fca2b2280b15ec9fc23fb2d99b1398ee822fbb073f10e772a2da14f10ed"
+  },
   "newtab.checklist.label": {
     "message": "Por hacer",
     "source": "sha256:81dd62c5821fb06654ae53de8b302a78a501f43c1cc0c56b8d059192a530a36d"

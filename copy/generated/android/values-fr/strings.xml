@@ -1423,6 +1423,12 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_billboard_hide_title">Masquer %1$s</string>
     <string name="newtab_billboard_hide">Masquer %1$s de Billboard</string>
     <string name="newtab_billboard_hidden">%1$s masqué de Billboard.</string>
+    <string name="newtab_billboard_pin_title">Épingler %1$s</string>
+    <string name="newtab_billboard_pin">Épingler %1$s à Billboard</string>
+    <string name="newtab_billboard_unpin_title">Détacher %1$s</string>
+    <string name="newtab_billboard_unpin">Détacher %1$s de Billboard</string>
+    <string name="newtab_billboard_pinned">%1$s épinglé à Billboard.</string>
+    <string name="newtab_billboard_unpinned">%1$s détaché de Billboard.</string>
     <string name="newtab_checklist_label">Finaliser</string>
     <string name="newtab_checklist_done_label">Tout est prêt</string>
     <string name="newtab_checklist_hide">Masquer la liste d’installation</string>

@@ -55,6 +55,31 @@ Feature: Start page layouts
     And the Billboard dismissal stays in local page storage without deleting history
 
   @F35-5 @desktop
+  Scenario: Billboard keeps a pinned site at the front of its row
+    Given local history contains repeated visits for the Billboard
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    And I pin "cnet.com" to the Billboard
+    Then the Billboard lists "cnet.com" first, pinned
+    And the Billboard pin stays in local page storage as a hostname and origin only
+    When I unpin "cnet.com" from the Billboard
+    Then the Billboard lists "youtube.com" before "cnet.com"
+    And the Billboard keeps no pins
+
+  @F35-5 @desktop
+  Scenario: A pinned Billboard site outlasts history until it is hidden
+    Given local history contains repeated visits for the Billboard
+    And a profile whose start page layout is "billboard"
+    When I open a new tab
+    And I pin "cnet.com" to the Billboard
+    And I clear browsing history
+    And I open a new tab
+    Then the Billboard shows only "cnet.com", pinned, opening its origin
+    When I hide "cnet.com" from the Billboard
+    Then "cnet.com" is absent from the Billboard
+    And the Billboard keeps no pins
+
+  @F35-5 @desktop
   Scenario: Billboard continues past its initial candidate page
     Given local history contains sixty ranked sites for the Billboard
     And the first forty-eight Billboard sites are hidden locally

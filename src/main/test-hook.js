@@ -1590,6 +1590,8 @@ function install(refs) {
           label: item.querySelector('.label')?.textContent ?? null,
           hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
           dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+          pinned: item.classList.contains('pinned'),
+          pinLabel: item.querySelector('.bb-site-pin')?.getAttribute('aria-label') ?? null,
           title: item.querySelector('.label')?.title ?? null,
           ariaLabel: item.querySelector('.bb-fav')?.getAttribute('aria-label') ?? null,
           top: Math.round(item.getBoundingClientRect().top),
@@ -1601,7 +1603,26 @@ function install(refs) {
           })(),
         })),
         hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+        pins: JSON.parse(localStorage.getItem('blanc.billboard.pinned-top-sites.v1') || '[]'),
+        status: document.getElementById('bbTopSitesStatus')?.textContent ?? '',
+        focusedPinOf: document.activeElement?.classList.contains('bb-site-pin')
+          ? document.activeElement.closest('.bb-site')?.dataset.siteKey ?? null
+          : null,
       }))()`);
+    },
+    // Clicks a site's pin, which pins an unpinned site and unpins a pinned one.
+    toggleBillboardPin(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-pin');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
     },
     hideBillboardSite(key) {
       const tab = tabs.get(getActiveTabId());

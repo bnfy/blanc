@@ -2,8 +2,10 @@ const isPrivate = new URLSearchParams(location.search).has('private');
 const isMac = navigator.platform.startsWith('Mac');
 const { t } = blancI18n;
 const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
+const TOP_SITES_PINNED_KEY = 'blanc.billboard.pinned-top-sites.v1';
 const MAX_HIDDEN_TOP_SITES = 200;
 const TOP_SITES_PAGE_SIZE = 48;
+const billboardPins = globalThis.blancBillboardPins;
 
 function readHiddenTopSites() {
   if (isPrivate) return new Set();
@@ -27,6 +29,36 @@ let topSitesLoad = null;
 let topSitesReady = false;
 let topSitesOffset = 0;
 
+function saveHiddenTopSites() {
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
+
+// Pins live beside the hidden list, in this profile's page storage only, and
+// hold just a hostname and its origin (billboard-pins.js).
+function readPinnedTopSites() {
+  if (isPrivate) return [];
+  try {
+    return billboardPins.readPins(JSON.parse(localStorage.getItem(TOP_SITES_PINNED_KEY) || '[]'));
+  } catch {
+    return [];
+  }
+}
+
+let pinnedTopSites = readPinnedTopSites();
+
+function savePinnedTopSites() {
+  try {
+    localStorage.setItem(TOP_SITES_PINNED_KEY, JSON.stringify(pinnedTopSites));
+  } catch {
+    // As above: the pin still holds for this page.
+  }
+}
+
 function rememberHiddenTopSite(key) {
   if (isPrivate || typeof key !== 'string' || !key) return;
   hiddenTopSites.delete(key);
@@ -34,12 +66,25 @@ function rememberHiddenTopSite(key) {
   while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
     hiddenTopSites.delete(hiddenTopSites.values().next().value);
   }
-  try {
-    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
-  } catch {
-    // Storage may be unavailable; the in-memory dismissal still lasts for
-    // this page without falling back to any main-process or network store.
+  saveHiddenTopSites();
+  // Hiding a pinned site takes it off the row entirely.
+  if (pinnedTopSites.some((pin) => pin.key === key)) {
+    pinnedTopSites = billboardPins.removePin(pinnedTopSites, key);
+    savePinnedTopSites();
   }
+}
+
+function pinTopSite(site) {
+  if (isPrivate) return;
+  pinnedTopSites = billboardPins.addPin(pinnedTopSites, site);
+  savePinnedTopSites();
+  if (hiddenTopSites.delete(site.key)) saveHiddenTopSites();
+}
+
+function unpinTopSite(key) {
+  if (isPrivate) return;
+  pinnedTopSites = billboardPins.removePin(pinnedTopSites, key);
+  savePinnedTopSites();
 }
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
@@ -602,13 +647,12 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  const sites = isPrivate
-    ? []
-    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  const sites = isPrivate ? [] : visibleBillboardSites();
   favs.hidden = !sites.length;
   for (const site of sites) {
     const item = document.createElement('div');
     item.className = 'bb-site';
+    item.classList.toggle('pinned', site.pinned);
     item.dataset.siteKey = site.key;
     const link = document.createElement('a');
     link.className = 'bb-fav';
@@ -649,7 +693,36 @@ function renderBillboard() {
       fillBillboardSites().catch(() => {});
     });
 
-    item.append(link, dismiss);
+    // A pinned site leads the row and stays there whatever history does; its
+    // pin stays on show so the row explains why it doesn't move.
+    const pin = document.createElement('button');
+    pin.type = 'button';
+    pin.className = 'bb-site-pin';
+    pin.title = site.pinned
+      ? t('newtab.billboard.unpinTitle', { title: fullTitle })
+      : t('newtab.billboard.pinTitle', { title: fullTitle });
+    pin.setAttribute('aria-label', site.pinned
+      ? t('newtab.billboard.unpin', { title: fullTitle })
+      : t('newtab.billboard.pin', { title: fullTitle }));
+    pin.appendChild(pinGlyph());
+    pin.addEventListener('click', () => {
+      const index = [...favs.children].indexOf(item);
+      if (site.pinned) unpinTopSite(site.key);
+      else pinTopSite(site);
+      renderBillboard();
+      document.getElementById('bbTopSitesStatus').textContent = site.pinned
+        ? t('newtab.billboard.unpinned', { title: fullTitle })
+        : t('newtab.billboard.pinned', { title: fullTitle });
+      // Focus follows the site to its new place, or stays in the slot it left
+      // when unpinning drops it off the row.
+      const moved = [...favs.children].find((candidate) => candidate.dataset.siteKey === site.key);
+      const next = moved?.querySelector('.bb-site-pin') ??
+        favs.children[Math.min(index, favs.children.length - 1)]?.querySelector('.bb-fav, .bb-site-pin');
+      next?.focus();
+      fillBillboardSites().catch(() => {});
+    });
+
+    item.append(link, pin, dismiss);
     favs.appendChild(item);
   }
 
@@ -660,7 +733,21 @@ function renderBillboard() {
 }
 
 function visibleBillboardSites() {
-  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+  return billboardPins.billboardSites(pinnedTopSites, state.topSites, hiddenTopSites, 6);
+}
+
+/** The ⌘L panel's pin glyph, drawn inline so it takes the theme's text color. */
+function pinGlyph() {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of ['M5 3h6l-1 5 2 2v1H4v-1l2-2z', 'M8 11v3']) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    svg.appendChild(path);
+  }
+  return svg;
 }
 
 async function fillBillboardSites() {

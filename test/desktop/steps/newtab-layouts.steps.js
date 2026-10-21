@@ -126,6 +126,66 @@ Then('the Billboard dismissal stays in local page storage without deleting histo
   assert.equal(await this.call('historyCount'), this.billboardHistoryCount);
 });
 
+When('I pin {string} to the Billboard', async function (key) {
+  await waitForValue(
+    () => this.call('readBillboardSites'),
+    (value) => value?.sites?.some((site) => site.key === key && !site.pinned),
+    `${key} to show unpinned on the Billboard`,
+  );
+  assert.equal(await this.call('toggleBillboardPin', key), true);
+});
+
+When('I unpin {string} from the Billboard', async function (key) {
+  await waitForValue(
+    () => this.call('readBillboardSites'),
+    (value) => value?.sites?.some((site) => site.key === key && site.pinned),
+    `${key} to show pinned on the Billboard`,
+  );
+  assert.equal(await this.call('toggleBillboardPin', key), true);
+});
+
+Then('the Billboard lists {string} first, pinned', async function (key) {
+  const dom = await waitForValue(
+    () => this.call('readBillboardSites'),
+    (value) => value?.sites?.[0]?.key === key && value.sites[0].pinned,
+    `${key} to lead the Billboard, pinned`,
+  );
+  assert.equal(dom.sites.filter((site) => site.pinned).length, 1);
+  assert.equal(dom.sites[0].pinLabel, `Unpin ${dom.sites[0].title} from Billboard`);
+  assert.ok(dom.sites.slice(1).every((site) => site.pinLabel === `Pin ${site.title} to Billboard`));
+  assert.equal(dom.status, `${dom.sites[0].title} pinned to Billboard.`);
+  // Focus follows the site to the front of the row.
+  assert.equal(dom.focusedPinOf, key);
+});
+
+Then('the Billboard pin stays in local page storage as a hostname and origin only', async function () {
+  const dom = await this.call('readBillboardSites');
+  assert.deepEqual(dom.pins, [{ key: 'cnet.com', url: 'https://cnet.com/' }]);
+  assert.deepEqual(dom.hidden, []);
+  assert.equal(await this.call('historyCount'), this.billboardHistoryCount);
+});
+
+Then('the Billboard keeps no pins', async function () {
+  const dom = await waitForValue(
+    () => this.call('readBillboardSites'),
+    (value) => Array.isArray(value?.pins) && value.pins.length === 0,
+    'the Billboard pin list to empty',
+  );
+  assert.ok(dom.sites.every((site) => !site.pinned));
+});
+
+Then('the Billboard shows only {string}, pinned, opening its origin', async function (key) {
+  const dom = await waitForValue(
+    () => this.call('readBillboardSites'),
+    (value) => value?.sites?.length === 1,
+    `the Billboard to show only its pin after history is cleared`,
+  );
+  assert.equal(dom.sites[0].key, key);
+  assert.equal(dom.sites[0].pinned, true);
+  assert.equal(dom.sites[0].href, `https://${key}/`);
+  assert.equal(dom.sites[0].label, key);
+});
+
 Then('the Billboard backfills with {string}', async function (key) {
   const dom = await waitForValue(
     () => this.call('readBillboardSites'),

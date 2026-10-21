@@ -2725,7 +2725,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .bb-fav .tile.has-icon { background-size: 20px; background-position: center; background-repeat: no-repeat; }
 .bb-fav .label { font-family: var(--font-text); font-size: 11.5px; color: var(--text-dim); }
-.bb-site-dismiss {
+.bb-site-dismiss,
+.bb-site-pin {
   position: absolute;
   top: -8px;
   right: 28px;
@@ -2747,15 +2748,35 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .bb-site-dismiss img { width: 10px; height: 10px; opacity: 0.68; }
 [data-theme="dark"] .bb-site-dismiss img,
 [data-theme="private"] .bb-site-dismiss img { filter: invert(1); }
+/* The pin mirrors the × on the tile's other corner. Pinned, it stays on show
+   and fills, so the row says which sites hold their place. */
+.bb-site-pin { right: auto; left: 28px; color: var(--text); }
+.bb-site-pin svg {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.68;
+}
+.bb-site.pinned .bb-site-pin svg { fill: currentColor; }
 .bb-site:hover .bb-site-dismiss,
 .bb-site:focus-within .bb-site-dismiss,
-.bb-site-dismiss:focus-visible {
+.bb-site-dismiss:focus-visible,
+.bb-site:hover .bb-site-pin,
+.bb-site:focus-within .bb-site-pin,
+.bb-site-pin:focus-visible,
+.bb-site.pinned .bb-site-pin {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1);
 }
-.bb-site-dismiss:hover { border-color: var(--text-dim); }
-.bb-site-dismiss:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.bb-site-dismiss:hover,
+.bb-site-pin:hover { border-color: var(--text-dim); }
+.bb-site-dismiss:focus-visible,
+.bb-site-pin:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 2px; }
 .page-sr-only {
   position: absolute;
   width: 1px;
@@ -2768,7 +2789,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   border: 0;
 }
 @media (hover: none) {
-  .bb-site-dismiss { opacity: 1; pointer-events: auto; transform: scale(1); }
+  .bb-site-dismiss,
+  .bb-site-pin { opacity: 1; pointer-events: auto; transform: scale(1); }
 }
 .bb-groups { display: flex; gap: 14px; margin-top: 38px; }
 /* The billboard's chips are the one place the prototype sizes them up. */

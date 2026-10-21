@@ -922,9 +922,16 @@ From the desktop `DEFAULTS`:
   rendering the row never starts a favicon request. A
   hover/focus dismiss button stores only a bounded hostname list in that
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
-  emit telemetry, or contact a favicon service. Clearing history also clears
+  emit telemetry, or contact a favicon service. A pin button on the tile's
+  other corner keeps a site in the row: pinned sites lead it in the order
+  they were pinned (at most six), their pin stays on show, and the remaining
+  tiles follow the ranking. A pin stores only the site's hostname and http(s)
+  origin, beside the hidden list in the same localStorage, and survives
+  clearing history, after which the tile shows the domain's letter and opens
+  that origin until history ranks the site again. Hiding a pinned site
+  unpins it; pinning a hidden site unhides it. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites. All four re-ink under the light, dark, and private themes.
+  no history-derived sites and show no pins. All four re-ink under the light, dark, and private themes.
 - All four start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and standalone Mahjong documents; other
@@ -986,7 +993,7 @@ From the desktop `DEFAULTS`:
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
   renders the saved layout on a new tab, persists a footer switch, verifies
-  Billboard's local frequency ranking and dismissal, and confirms that each
+  Billboard's local frequency ranking, dismissal and pinning, and confirms that each
   footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding

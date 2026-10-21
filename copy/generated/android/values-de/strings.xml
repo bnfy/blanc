@@ -1385,6 +1385,12 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_billboard_hide_title">%1$s ausblenden</string>
     <string name="newtab_billboard_hide">%1$s in Billboard ausblenden</string>
     <string name="newtab_billboard_hidden">%1$s in Billboard ausgeblendet.</string>
+    <string name="newtab_billboard_pin_title">%1$s anheften</string>
+    <string name="newtab_billboard_pin">%1$s an Billboard anheften</string>
+    <string name="newtab_billboard_unpin_title">%1$s lösen</string>
+    <string name="newtab_billboard_unpin">%1$s von Billboard lösen</string>
+    <string name="newtab_billboard_pinned">%1$s an Billboard angeheftet.</string>
+    <string name="newtab_billboard_unpinned">%1$s von Billboard gelöst.</string>
     <string name="newtab_checklist_label">Fertig einrichten</string>
     <string name="newtab_checklist_done_label">Alles fertig</string>
     <string name="newtab_checklist_hide">Checkliste zum Umzug ausblenden</string>

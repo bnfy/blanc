@@ -1385,6 +1385,12 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_billboard_hide_title">Hide %1$s</string>
     <string name="newtab_billboard_hide">Hide %1$s from Billboard</string>
     <string name="newtab_billboard_hidden">%1$s hidden from Billboard.</string>
+    <string name="newtab_billboard_pin_title">Pin %1$s</string>
+    <string name="newtab_billboard_pin">Pin %1$s to Billboard</string>
+    <string name="newtab_billboard_unpin_title">Unpin %1$s</string>
+    <string name="newtab_billboard_unpin">Unpin %1$s from Billboard</string>
+    <string name="newtab_billboard_pinned">%1$s pinned to Billboard.</string>
+    <string name="newtab_billboard_unpinned">%1$s unpinned from Billboard.</string>
     <string name="newtab_checklist_label">Finish setup</string>
     <string name="newtab_checklist_done_label">All moved in</string>
     <string name="newtab_checklist_hide">Hide moving-in checklist</string>

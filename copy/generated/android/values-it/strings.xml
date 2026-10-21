@@ -1423,6 +1423,12 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_billboard_hide_title">Nascondi %1$s</string>
     <string name="newtab_billboard_hide">Nascondi %1$s da Billboard</string>
     <string name="newtab_billboard_hidden">%1$s nascosto da Billboard.</string>
+    <string name="newtab_billboard_pin_title">Fissa %1$s</string>
+    <string name="newtab_billboard_pin">Fissa %1$s in Billboard</string>
+    <string name="newtab_billboard_unpin_title">Rilascia %1$s</string>
+    <string name="newtab_billboard_unpin">Rilascia %1$s da Billboard</string>
+    <string name="newtab_billboard_pinned">%1$s fissato in Billboard.</string>
+    <string name="newtab_billboard_unpinned">%1$s rilasciato da Billboard.</string>
     <string name="newtab_checklist_label">Ultimi passi</string>
     <string name="newtab_checklist_done_label">Tutto pronto</string>
     <string name="newtab_checklist_hide">Nascondi l’elenco per sistemarti</string>

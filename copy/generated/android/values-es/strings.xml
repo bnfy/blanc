@@ -1423,6 +1423,12 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="newtab_billboard_hide_title">Ocultar %1$s</string>
     <string name="newtab_billboard_hide">Ocultar %1$s de Billboard</string>
     <string name="newtab_billboard_hidden">%1$s se ocultó de Billboard.</string>
+    <string name="newtab_billboard_pin_title">Fijar %1$s</string>
+    <string name="newtab_billboard_pin">Fijar %1$s en Billboard</string>
+    <string name="newtab_billboard_unpin_title">Soltar %1$s</string>
+    <string name="newtab_billboard_unpin">Soltar %1$s de Billboard</string>
+    <string name="newtab_billboard_pinned">%1$s se fijó en Billboard.</string>
+    <string name="newtab_billboard_unpinned">%1$s se soltó de Billboard.</string>
     <string name="newtab_checklist_label">Por hacer</string>
     <string name="newtab_checklist_done_label">Todo listo</string>
     <string name="newtab_checklist_hide">Ocultar la lista para instalarte</string>

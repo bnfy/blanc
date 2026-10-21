@@ -1423,6 +1423,12 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_billboard_hide_title">Ocultar %1$s</string>
     <string name="newtab_billboard_hide">Ocultar %1$s do Billboard</string>
     <string name="newtab_billboard_hidden">%1$s foi ocultado do Billboard.</string>
+    <string name="newtab_billboard_pin_title">Fixar %1$s</string>
+    <string name="newtab_billboard_pin">Fixar %1$s no Billboard</string>
+    <string name="newtab_billboard_unpin_title">Desafixar %1$s</string>
+    <string name="newtab_billboard_unpin">Desafixar %1$s do Billboard</string>
+    <string name="newtab_billboard_pinned">%1$s foi fixado no Billboard.</string>
+    <string name="newtab_billboard_unpinned">%1$s foi desafixado do Billboard.</string>
     <string name="newtab_checklist_label">Concluir ajustes</string>
     <string name="newtab_checklist_done_label">Tudo pronto</string>
     <string name="newtab_checklist_hide">Ocultar a lista de mudança</string>
