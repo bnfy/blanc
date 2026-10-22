@@ -2632,3 +2632,17 @@ versus HTTP cache reuse is unqualified. Refusal control and consumption attribut
 remain the next priority. Evidence: `evidence/f12-prefetch-initial-20261021/README.md`.
 No native code/build change; prior 56 files/134 hunks unchanged. Google baseline
 separate; latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: prefetch consumption and fail-closed refusal
+
+Four regular/private schedules pass. Dedicated same-origin prefetch serving is
+confirmed by fromPrefetchCache=true, fromDiskCache=false and PrefetchResponseUsed;
+no second server request. Utility loss before speculation causes explicit native
+engine-error refusals for both initial prefetch and navigation, with no arrival.
+The pinned engine explicitly allows mainFrame requests; filter-match refusal is
+not claimed. This resolves the earlier same-origin consumption ambiguity, while
+post-prefetch utility loss/policy change, cross-origin serving, redirects,
+pre-prefetch, prerender and uBO remain open. F12/Decision 2 remain in progress.
+Evidence: `evidence/f12-prefetch-consumption-20261021/README.md`.
+No native compile, guard zero, prior56/134 unchanged. Google baseline separate;
+latency deferred; native input and Electron diagnostic build pending.
