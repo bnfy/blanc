@@ -309,7 +309,7 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const { cardGeometry, fractionsToFrame } = require('./glance-card');
+const { cardGeometry, fractionsToFrame, CARD_PAGE_RADIUS: GLANCE_PAGE_RADIUS } = require('./glance-card');
 const { onScreenFocusedContents } = require('./focused-contents');
 const { createGlanceCardController } = require('./glance-card-controller');
 const {
@@ -3956,11 +3956,11 @@ function restackGlanceCard() {
   rt().window.contentView.addChildView(glanceTab.view);
 }
 
-/** The Glance page's view gets the card's corners; it goes back to square
- * when it leaves the card. */
+/** The Glance page's view gets rounded corners inside the card's frame; it
+ * goes back to square when it leaves the card. */
 function roundGlancePage(tab, rounded) {
   if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.view.setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
   tab.glanceRounded = rounded;
 }
 
@@ -4211,7 +4211,7 @@ function glanceCardFrame() {
 /** The card's views' bounds while a Glance is open, else null. */
 function glanceCardGeometry() {
   if (!activeGlanceTab() || !hasLiveWindow()) return null;
-  return cardGeometry(glanceCards.frame());
+  return cardGeometry(glanceCards.frame(), glancePageArea());
 }
 
 function currentGlanceLayoutPayload(card = glanceCardGeometry()) {

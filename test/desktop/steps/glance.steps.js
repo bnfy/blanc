@@ -1496,7 +1496,7 @@ Then('the Glance is a large centered card over the whole main page', async funct
   });
   assert.deepEqual(card.mainViewBounds, card.pageBounds, 'the main page keeps the whole page area');
   assert.deepEqual(card.viewBounds, card.page, 'the Glance page sits inside the card, below its header');
-  assert.deepEqual(card.page, { x: card.frame.x + 1, y: card.frame.y + 40, width: card.frame.width - 2, height: card.frame.height - 41 });
+  assert.deepEqual(card.page, { x: card.frame.x + 6, y: card.frame.y + 40, width: card.frame.width - 12, height: card.frame.height - 46 });
   assert.deepEqual(card.cardViewBounds, card.chrome);
   assert.ok(card.stackIndex.main < card.stackIndex.card && card.stackIndex.card < card.stackIndex.glance,
     `tabs < card < Glance page: ${JSON.stringify(card.stackIndex)}`);

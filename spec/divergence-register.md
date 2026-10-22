@@ -697,4 +697,8 @@ either style (the same with a transparent drag view, so it is Windows' own
 hit test). On Linux the window document went `hidden` while the page
 covered it whole and stopped tracking resizes, leaving the floating pill and
 window controls at stale positions after a maximise; on Linux a covered strip
-now keeps one row uncovered (bnfy/blanc#999).
+now keeps one row uncovered (bnfy/blanc#999). Windows does the same: its
+covered strip also went `hidden`, so a pill that grew while covered (more
+tabs, a longer domain) was drawn wider than its view and lost its ends
+(reported on v1.42.0; 2026-10-22 VM check), and a covered strip there keeps
+one row uncovered too (bnfy/blanc#1052).
