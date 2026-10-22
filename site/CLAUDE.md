@@ -192,8 +192,8 @@ law needs), and offers Patrons priority feature requests: requests emailed to
 support@blanc.day from the checkout address are read and answered first.
 Patron still unlocks no browser features.
 
-**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
-`/mail/download`) posts `{email, website}` to the same Worker's
+**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail`, twice,
+and in the Mail bar) posts `{email, website}` to the same Worker's
 `/mail-waitlist` route. It is a separate double opt-in list under its own
 `mailwait*` KV prefixes, never joins the newsletter, and is purged after the
 Mail launch announcement (runbook in the Worker README). The form copy, the

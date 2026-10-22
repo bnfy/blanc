@@ -79,12 +79,12 @@ test('the features and the careful row list what Mail does, each with a gilt gly
     const list = await page.evaluate(() => ({
       features: [...document.querySelectorAll('.mail-feature h3')].map(h => h.textContent.trim()),
       glyphs: [...document.querySelectorAll('.mail-feature-badge svg')].map(svg => getComputedStyle(svg).stroke),
-      careful: [...document.querySelectorAll('.mail-careful-row h3')].map(h => h.textContent.trim()),
+      careful: [...document.querySelectorAll('.mail-careful .mail-careful-row h3')].map(h => h.textContent.trim()),
       headings: [...document.querySelectorAll('.mail-stage h2')].map(h => h.textContent.trim()),
       island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
       islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
     }));
-    assert.deepEqual(list.headings, ['The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.']);
+    assert.deepEqual(list.headings, ['The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
     // The Island figure lists the app's eight commands in its own order and words.
     assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
@@ -92,6 +92,63 @@ test('the features and the careful row list what Mail does, each with a gilt gly
     assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
+});
+
+test('Pricing says purchases are not open before any price, and recommends neither plan', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const pricing = await page.evaluate(() => {
+      const status = document.querySelector('#pricing .mail-pricing-status');
+      const plans = document.querySelector('#pricing .mail-plans');
+      return {
+        text: status.textContent.trim(),
+        first: Boolean(status.compareDocumentPosition(plans) & Node.DOCUMENT_POSITION_FOLLOWING),
+        plans: [...plans.querySelectorAll('.mail-plan h3')].map(h => h.textContent.trim()),
+        prices: [...plans.querySelectorAll('.mail-plan-price')].map(p => p.innerText.replace(/\s+/g, ' ').trim()),
+        tabular: [...plans.querySelectorAll('.mail-plan-price')].every(p => getComputedStyle(p).fontVariantNumeric.includes('tabular-nums')),
+        badge: /recommended|best value|most popular/i.test(plans.textContent),
+        checkout: plans.querySelectorAll('a').length,
+      };
+    });
+    assert.match(pricing.text, /^Purchases are not open yet\./);
+    assert.ok(pricing.first, 'the status comes before the plans');
+    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Suite']);
+    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$7 / month or $70 / year']);
+    assert.ok(pricing.tabular, 'prices use tabular figures');
+    assert.equal(pricing.badge, false);
+    assert.equal(pricing.checkout, 0, 'no checkout until it opens');
+  } finally { await context.close(); }
+});
+
+test('Support gives its address, then three topics; Download closes with the waitlist and requirements', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const end = await page.evaluate(() => ({
+      address: document.querySelector('#support .mail-section-lead a[href^="mailto:"]').getAttribute('href'),
+      topics: [...document.querySelectorAll('#support .mail-support-row h3')].map(h => h.textContent.trim()),
+      order: [...document.querySelectorAll('.mail-stage > section[id]')].map(section => section.id).slice(-3),
+      form: document.querySelector('#download form[data-mail-waitlist]')?.id,
+      requirements: document.querySelector('#download .mail-requirements').textContent.trim(),
+      legal: [...document.querySelectorAll('.mail-stage-notes a')].map(a => a.getAttribute('href')),
+    }));
+    assert.equal(end.address, 'mailto:support@blanc.day');
+    assert.deepEqual(end.topics, ['Accounts and data', 'Uninstalling', 'Updates and licensing']);
+    assert.deepEqual(end.order, ['pricing', 'support', 'download']);
+    assert.equal(end.form, 'closing-waitlist');
+    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account\./);
+    assert.deepEqual(end.legal, ['/download', '/mail/privacy', '/mail/terms']);
+  } finally { await context.close(); }
+});
+
+test('a link to a section lands with its heading below the bars', async () => {
+  for (const id of ['pricing', 'support', 'download']) {
+    const { page, context } = await openPage(`/mail#${id}`);
+    try {
+      await page.waitForTimeout(300);
+      const gap = await page.evaluate(id => document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom, id);
+      assert.ok(gap >= 0 && gap <= 60, `#${id} starts ${gap}px below the bar`);
+    } finally { await context.close(); }
+  }
 });
 
 test('the envelope holds still under reduced motion, and otherwise leans toward the pointer', async () => {
@@ -155,7 +212,7 @@ test('a waitlist error shows inside the open bar popover', async () => {
     [400, 'That address didn’t look right. Please check it and try again.'],
     [503, 'We couldn’t add you just now. Please try again later.'],
   ]) {
-    const { page, context } = await openPage('/mail/pricing');
+    const { page, context } = await openPage('/mail');
     try {
       await answerWaitlist(page, status);
       await openBarWaitlist(page);
@@ -167,7 +224,7 @@ test('a waitlist error shows inside the open bar popover', async () => {
     } finally { await context.close(); }
   }
   // No answer at all (the catch-all aborts the request).
-  const { page, context } = await openPage('/mail/pricing');
+  const { page, context } = await openPage('/mail');
   try {
     await openBarWaitlist(page);
     await page.keyboard.type('reader@example.com');

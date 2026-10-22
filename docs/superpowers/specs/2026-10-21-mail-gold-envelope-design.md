@@ -76,7 +76,8 @@ against the signed Mail candidate.
 Restyled on all six Mail pages to match: smoked black glass with a gold
 hairline along its foot, cream links, a short gilt rule under the current
 page, the gold Join pill, and dark popovers (page menu and waitlist). Its
-structure, links and behavior are unchanged.
+structure, links and behavior are unchanged. (Its links and page menu went
+when Mail became one page; see the end of this spec.)
 
 ## Retired
 
@@ -88,3 +89,27 @@ Git history keeps them for the launch page.
 
 The global site header (still light on Mail pages), the other Mail pages'
 content, the waitlist Worker and its privacy-page section, and the OG image.
+
+## One page (October 22, 2026)
+
+The owner asked for Blanc Mail to be a one-pager. Pricing, Download and
+Support stopped being pages and became the last three sections of `/mail`, on
+the same dark stage, in their own words:
+
+- **Pricing** (`#pricing`): "A good home for your mail.", the trial line, the
+  purchases-not-open status before any price, the Mail and Suite plans as dark
+  cards with gilt prices (no checkout link while checkout is closed), and what
+  happens when a subscription ends.
+- **Support** (`#support`): the address first, then Accounts and data,
+  Uninstalling, and Updates and licensing in a row like the careful one.
+- **Download** (`#download`) closes the page: "Blanc Mail for Mac.", what the
+  first download waits on, the waitlist (its label now hidden, as in the hero,
+  since the heading says it) and the requirements. Download's line about
+  Browser's own downloads was dropped as a duplicate of the notes' Browser line.
+
+The notes end with links to Privacy and Terms, which stay their own pages
+(Google's OAuth review needs a privacy policy URL). The Mail bar lost its page
+links and page menu: it keeps the product's name, leading to `/mail`, and the
+gold Join. `/mail/pricing`, `/mail/download` and `/mail/support` (with or
+without a trailing slash) 301 to their sections, and Polar's checkout return
+URL is now `https://blanc.day/mail#pricing`.

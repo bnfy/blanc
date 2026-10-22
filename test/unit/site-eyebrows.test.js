@@ -29,10 +29,7 @@ const ALLOWED = [
   // The cinematic homepage carries none: the owner cut its four on October 15,
   // 2026 ("we need to cool it with all the eyebrow usage").
   'pages/mail.astro → Blanc Mail · for Mac · Coming soon',
-  'pages/mail/download.astro → macOS only · Coming soon',
-  'pages/mail/pricing.astro → Blanc Mail · Planned pricing',
   'pages/mail/privacy.astro → Blanc Mail · Pre-release policy',
-  'pages/mail/support.astro → Blanc Mail',
   'pages/mail/terms.astro → Blanc Mail · Pre-release terms',
   'pages/roadmap.astro → Feature Roadmap',
   'pages/support.astro → Blanc Support',
