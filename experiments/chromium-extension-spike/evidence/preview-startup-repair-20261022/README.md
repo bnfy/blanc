@@ -15,3 +15,5 @@ Native FindEvent previously checked host URL and live frame only. Retained old p
 Local artifact digest in artifact.json; ad-hoc signed only. Test installed copy removed after ZIP retention; profiles/logs retained for restart diagnosis. Full L2 remains open for restart stall, real keychain/service isolation and signed/quarantined acceptance. Diagnostic host reports macOS27.2; this is not macOS26 candidate qualification.1/12(8.3%) gates, delta0.
 
 Next: diagnose the retained SessionRestore wait using the saved profile and stack before additional candidate signoff. Do not erase or weaken the restart gate.
+
+Published Find fixture uses a static evaluation expression to read the active ID within the target, avoiding host-side interpolation. Runtime evidence above used the same active ID from the immediately preceding host snapshot; no separate runtime rerun for this fixture-only hardening.
