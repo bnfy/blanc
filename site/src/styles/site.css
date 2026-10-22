@@ -336,7 +336,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .design-fan-card:first-child { margin-left: 0; }
 .design-fan-card a { display: block; border-radius: 14px; -webkit-user-drag: none; }
 .design-fan-card a:focus-visible { outline: 2px solid var(--site-text); outline-offset: 5px; }
-.design-fan-card.released-capture img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border: 0; border-radius: 14px; background: transparent; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08), 0 calc(22px - var(--depth) * 14px) calc(48px - var(--depth) * 28px) rgba(17, 17, 17, calc(0.22 - var(--depth) * 0.12)); user-select: none; -webkit-user-select: none; }
+.design-fan-card img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border: 0; border-radius: 14px; background: transparent; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08), 0 calc(22px - var(--depth) * 14px) calc(48px - var(--depth) * 28px) rgba(17, 17, 17, calc(0.22 - var(--depth) * 0.12)); user-select: none; -webkit-user-select: none; }
 /* Receding cards dim a little, like the deck's back layers. */
 .design-fan-card::after { content: ""; position: absolute; inset: 0; border-radius: 14px; background: var(--site-bg); opacity: calc(var(--depth) * 0.28); pointer-events: none; }
 .design-fan[data-live="true"] .design-fan-viewport { overflow: hidden; cursor: grab; touch-action: pan-y; }

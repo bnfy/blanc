@@ -75,7 +75,10 @@ const states = [
   { name: 'color-sand', color: ['sand', 'solid'], clock: clock('instrument', 700, 100, 'auto', 'solid') },
   { name: 'color-rose', color: ['rose', 'soft'], clock: clock('condensed', 700, 100, 'rose', 'solid', 25) },
 ];
-for (const state of states) if (state.image) assert.ok(images[state.image] && fs.existsSync(images[state.image].path), `BLANC_CAPTURE_IMAGES needs ${state.image}`);
+// BLANC_CAPTURE_STATES (e.g. "sheet") limits the run to the named states.
+const only = process.env.BLANC_CAPTURE_STATES?.split(',').map((name) => name.trim()).filter(Boolean);
+const selected = states.filter((state) => !only || only.includes(state.name));
+for (const state of selected) if (state.image) assert.ok(images[state.image] && fs.existsSync(images[state.image].path), `BLANC_CAPTURE_IMAGES needs ${state.image}`);
 
 const windowIdScript = path.join(scratch, 'window-id.swift');
 fs.writeFileSync(windowIdScript, `
@@ -211,9 +214,7 @@ async function captureState(state) {
 }
 
 try {
-  // BLANC_CAPTURE_STATES (e.g. "sheet") limits the run to the named states.
-  const only = process.env.BLANC_CAPTURE_STATES?.split(',').map((name) => name.trim()).filter(Boolean);
-  for (const state of states) if (!only || only.includes(state.name)) await captureState(state);
+  for (const state of selected) await captureState(state);
   const used = Object.entries(images).map(([key, { path: file, trim = 0, crop, padLeft }]) => `${key} ${sha256(file).slice(0, 12)} ${crop ? `crop ${crop.join('/')}` : `trim ${trim}`}${padLeft ? ` padLeft ${padLeft}` : ''}`).join(', ');
   process.stdout.write(`Captured installed Blanc ${version} (${build}) clock set to ${outputDirectory} (${used}).\n`);
 } finally {
