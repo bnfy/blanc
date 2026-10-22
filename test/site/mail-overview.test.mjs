@@ -89,7 +89,7 @@ test('the features and the careful row list what Mail does, each with a gilt gly
     assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
     assert.deepEqual(list.features, ['Every account together', 'Set Aside', 'A native window', 'Gmail first', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
-    assert.deepEqual(list.careful, ['Mail that opens', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
+    assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
 });

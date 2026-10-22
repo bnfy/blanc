@@ -60,7 +60,8 @@ same dark stage and in the same words as the October 12 overview:
   new `rule-editor` scene in the Mail repository's capture script; until it
   lands the section is copy only.
 - **"Careful in what it sends, generous in what it accepts."** over four
-  columns divided by gold hairlines: Mail that opens, No accidental double
+  columns divided by gold hairlines: Safe to read (renamed from "Mail that
+  opens" at the owner's request), No accidental double
   sends, Nothing added to your mail, Privacy choices.
 - **The waitlist again**, its label set as a gilt heading.
 
