@@ -4537,16 +4537,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "website-115-073",
-      "source": "site/src/pages/features/start-page.astro",
-      "exactWording": "Billboard puts frequently visited sites within reach. Sample browsing data shown.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "website-115-098",
       "source": "site/src/pages/features/start-page.astro",
       "exactWording": "Make room for the way you browse.",
@@ -13216,6 +13206,28 @@
           {
             "before": "<p>The Glance relationship and divider position are device-local and never written to session restore or sync. The underlying ordinary tabs keep their usual browsing behavior.</p>",
             "after": "<p>Glance is never written to session restore or sync. Only the card’s size and place are remembered, on this device. The underlying ordinary tabs keep their usual browsing behavior.</p>"
+          }
+        ]
+      },
+      {
+        "source": "site/src/pages/features/start-page.astro",
+        "reason": "October 21, 2026: the clock's Font & color (F54) shipped in public v1.41.0. The headline names the clock, the single Billboard hero capture and its caption give way to a fan of 26 customized Start Pages captured from the public v1.41.0 app (docs/website-captures-v1.41.0.json, components/StartPageGallery.astro), and a clock section is added after the wallpaper gallery. New wording is recorded in docs/website-v1.41-claims.json; the owner approved the captures and copy in writing. The wallpaper and layout galleries are retaken from the same public v1.41.0 app (the Customize popover gained its Clock section); the Daily Mahjong deal had rotated to Pyramid, so its caption follows.",
+        "replacements": [
+          {
+            "before": "<h1 id=\"start-page-title\">Choose your Start Page layout and wallpaper.</h1>",
+            "after": "<h1 id=\"start-page-title\">Choose your Start Page layout, wallpaper and clock.</h1>"
+          },
+          {
+            "before": "<figcaption>Billboard puts frequently visited sites within reach. Sample browsing data shown.</figcaption>",
+            "after": ""
+          },
+          {
+            "before": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">",
+            "after": "  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-clock-title\">\n    <div><h2 id=\"start-page-clock-title\">Make the clock your own.</h2></div>\n    <div class=\"feature-copy-list\">\n      <article><h3>Font, weight and height</h3><p>Right-click the Billboard clock, or open Customize and choose Clock. Pick Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex, then set its weight and, with Instrument Sans or Roboto Flex, how tall it stands.</p></article>\n      <article><h3>A color, or glass</h3><p>Keep Automatic, which follows your theme, or pick one of the eight Spaces colors and a tone. Glass bends whatever is behind the numerals; Solid draws them flat.</p></article>\n      <article><h3>Readable on any wallpaper</h3><p>Every clock has a soft shadow. When the system asks for reduced transparency, Glass draws as Solid.</p></article>\n      <article><h3>Follows you</h3><p>Your clock style syncs with Profile Sync.</p></article>\n    </div>\n  </section>\n  <section class=\"feature-copy-grid\" aria-labelledby=\"start-page-section-1\">"
+          },
+          {
+            "before": "<figcaption>Standalone Mahjong — Daily Turtle / Burst</figcaption>",
+            "after": "<figcaption>Standalone Mahjong — Daily Pyramid / Burst</figcaption>"
           }
         ]
       }

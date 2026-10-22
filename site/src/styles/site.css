@@ -326,6 +326,30 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 640px) {
   .layout-gallery { grid-template-columns: 1fr; }
 }
+/* The Start Page hero: a fan of overlapping captures (components/StartPageGallery.astro).
+   The script sets --depth per card (0 at the middle, 1 a card-width away or more). */
+.design-fan { margin: 8px 0 56px; }
+.design-fan-viewport { position: relative; overflow-x: auto; overflow-y: hidden; padding: 28px 0 44px; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent); }
+.design-fan-viewport::-webkit-scrollbar { display: none; }
+.design-fan-track { display: flex; margin: 0; padding: 0 12%; list-style: none; width: max-content; }
+.design-fan-card { --depth: 0; position: relative; flex: none; width: clamp(240px, 36vw, 500px); margin-left: calc(clamp(240px, 36vw, 500px) * -0.34); transform: translateY(calc(var(--depth) * 18px)) scale(calc(1 - var(--depth) * 0.16)); transform-origin: 50% 100%; }
+.design-fan-card:first-child { margin-left: 0; }
+.design-fan-card a { display: block; border-radius: 14px; -webkit-user-drag: none; }
+.design-fan-card a:focus-visible { outline: 2px solid var(--site-text); outline-offset: 5px; }
+.design-fan-card.released-capture img { display: block; width: 100%; height: auto; aspect-ratio: 1440 / 900; border: 0; border-radius: 14px; background: transparent; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08), 0 calc(22px - var(--depth) * 14px) calc(48px - var(--depth) * 28px) rgba(17, 17, 17, calc(0.22 - var(--depth) * 0.12)); user-select: none; -webkit-user-select: none; }
+/* Receding cards dim a little, like the deck's back layers. */
+.design-fan-card::after { content: ""; position: absolute; inset: 0; border-radius: 14px; background: var(--site-bg); opacity: calc(var(--depth) * 0.28); pointer-events: none; }
+.design-fan[data-live="true"] .design-fan-viewport { overflow: hidden; cursor: grab; touch-action: pan-y; }
+.design-fan[data-dragging="true"] .design-fan-viewport { cursor: grabbing; }
+.design-fan[data-live="true"] .design-fan-track { will-change: transform; }
+.design-fan-caption { min-height: 1.6em; margin: 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; text-align: center; }
+.design-fan-caption.is-shown { animation: design-fan-caption-in 360ms ease-out; }
+@keyframes design-fan-caption-in { from { opacity: 0; } to { opacity: 1; } }
+/* Without the script, or with reduced motion, the row is still and scrolls. */
+.design-fan:not([data-live="true"]) .design-fan-viewport { scroll-snap-type: x mandatory; }
+.design-fan:not([data-live="true"]) .design-fan-card { scroll-snap-align: center; }
+.design-fan:not([data-live="true"]) .design-fan-card[aria-hidden="true"] { display: none; }
+@media (prefers-reduced-motion: reduce) { .design-fan-caption.is-shown { animation: none; } }
 .section-kicker { margin: 0 0 14px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.17em; text-transform: uppercase; color: var(--site-gold); }
 .download-section-head h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
 .download-hero h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(34px, 4.4vw, 56px); font-weight: 400; letter-spacing: 0; line-height: 1.06; text-wrap: balance; font-variant-numeric: lining-nums; }

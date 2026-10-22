@@ -1,0 +1,154 @@
+---
+// The Start Page hero: customized Billboard Start Pages from public v1.41.0
+// (docs/website-captures-v1.41.0.json) as a fan of overlapping cards that
+// drifts sideways on its own. The card nearest the middle comes forward and
+// the rest recede by distance, so the row needs no numbers or controls.
+// Drag (or swipe) tracks 1:1 and carries its momentum on release; pointing at,
+// dragging or focusing the fan holds the drift. Reduced motion gets a still,
+// scrollable row. The set is rendered twice so the loop never shows an edge;
+// the second copy is hidden from assistive tech and the tab order.
+import designs from '../data/start-page-designs.json';
+const passes = [0, 1];
+---
+<section class="design-fan" aria-label="Customized Start Pages" data-design-fan>
+  <div class="design-fan-viewport" data-fan-viewport>
+    <ul class="design-fan-track" data-fan-track>
+      {passes.map((pass) => designs.map((design, index) => (
+        <li class="design-fan-card released-capture" data-fan-card data-caption={design.credit ? `${design.style} · ${design.credit}` : design.style} aria-hidden={pass ? 'true' : undefined}>
+          <a href={`/feature-captures/clock-${design.name}-v1.41.0.png`} tabindex={pass ? -1 : undefined} draggable="false">
+            <img src={`/feature-captures/clock-${design.name}-v1.41.0.webp`} width="1440" height="900" loading={pass === 0 && index < 4 ? 'eager' : 'lazy'} decoding="async" draggable="false" alt={pass ? '' : `${design.alt} ${design.credit ? `(${design.credit})` : ''}`.trim()} />
+          </a>
+        </li>
+      )))}
+    </ul>
+  </div>
+  <p class="design-fan-caption" data-fan-caption aria-hidden="true">{designs[0].credit ? `${designs[0].style} · ${designs[0].credit}` : designs[0].style}</p>
+</section>
+
+<script>
+  // Drift speed, and Apple's scroll deceleration for a released drag
+  // (projection d / (1 − d) per ms; see Designing Fluid Interfaces).
+  const DRIFT = 28; // px/s
+  const DECAY = 0.998;
+  const DRAG_SLOP = 8; // px before a press becomes a drag
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-design-fan]')) {
+    const viewport = root.querySelector<HTMLElement>('[data-fan-viewport]')!;
+    const track = root.querySelector<HTMLElement>('[data-fan-track]')!;
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-fan-card]')];
+    const caption = root.querySelector<HTMLElement>('[data-fan-caption]')!;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduceMotion.matches) continue; // the CSS still row scrolls natively
+
+    root.dataset.live = 'true';
+    let x = 0; // track offset, px (negative moves left)
+    let velocity = -DRIFT; // px/s; eases back toward -DRIFT after a fling
+    let held = false; // pointed at or focused
+    let drag: { id: number; startX: number; lastX: number; lastT: number; v: number; moved: boolean } | null = null;
+    let last = performance.now();
+    let loopWidth = 0;
+    let centered = -1;
+
+    const measure = () => {
+      const half = cards.length / 2;
+      loopWidth = cards[half].offsetLeft - cards[0].offsetLeft;
+    };
+    const wrap = () => {
+      if (!loopWidth) return;
+      while (x <= -loopWidth) x += loopWidth;
+      while (x > 0) x -= loopWidth;
+    };
+    const paint = () => {
+      track.style.transform = `translate3d(${x}px, 0, 0)`;
+      const mid = viewport.clientWidth / 2;
+      let best = Infinity;
+      let bestIndex = 0;
+      cards.forEach((card, i) => {
+        const center = card.offsetLeft + card.offsetWidth / 2 + x;
+        const distance = (center - mid) / card.offsetWidth; // in card widths
+        const near = Math.min(1, Math.abs(distance));
+        card.style.setProperty('--depth', near.toFixed(3));
+        card.style.zIndex = String(1000 - Math.round(Math.abs(distance) * 100));
+        if (Math.abs(distance) < best) { best = Math.abs(distance); bestIndex = i; }
+      });
+      const index = bestIndex % (cards.length / 2);
+      if (index !== centered) {
+        centered = index;
+        caption.classList.remove('is-shown');
+        void caption.offsetWidth; // restart the fade
+        caption.textContent = cards[bestIndex].dataset.caption ?? '';
+        caption.classList.add('is-shown');
+        // Warm the next few captures before they arrive.
+        for (let k = 1; k <= 3; k++) {
+          const img = cards[(bestIndex + k) % cards.length].querySelector('img');
+          if (img) img.loading = 'eager';
+        }
+      }
+    };
+    const frame = (now: number) => {
+      const dt = Math.min(64, now - last);
+      last = now;
+      if (!drag) {
+        const target = held ? 0 : -DRIFT;
+        // Momentum decays like a scroll view, then blends into the drift.
+        const away = velocity - target;
+        velocity = target + away * Math.pow(DECAY, dt);
+        x += velocity * (dt / 1000);
+        wrap();
+      }
+      paint();
+      requestAnimationFrame(frame);
+    };
+
+    viewport.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      drag = { id: event.pointerId, startX: event.clientX, lastX: event.clientX, lastT: event.timeStamp, v: 0, moved: false };
+    });
+    viewport.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag.moved && Math.abs(event.clientX - drag.startX) < DRAG_SLOP) return;
+      if (!drag.moved) { drag.moved = true; viewport.setPointerCapture(event.pointerId); root.dataset.dragging = 'true'; }
+      const dx = event.clientX - drag.lastX;
+      const dt = Math.max(1, event.timeStamp - drag.lastT);
+      x += dx; // 1:1 with the pointer, from wherever it was grabbed
+      wrap();
+      drag.v = 0.6 * (dx / dt) * 1000 + 0.4 * drag.v; // smoothed px/s
+      drag.lastX = event.clientX;
+      drag.lastT = event.timeStamp;
+    });
+    const release = (event: PointerEvent) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      // Hand the finger's speed to the momentum, so there is no seam.
+      if (drag.moved) velocity = event.timeStamp - drag.lastT > 80 ? 0 : drag.v;
+      delete root.dataset.dragging;
+      const moved = drag.moved;
+      drag = null;
+      if (moved) root.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); }, { capture: true, once: true });
+    };
+    viewport.addEventListener('pointerup', release);
+    viewport.addEventListener('pointercancel', release);
+
+    root.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') held = true; });
+    root.addEventListener('pointerleave', () => { held = root.contains(document.activeElement); });
+    // A focused card glides to the middle and the fan holds still.
+    root.addEventListener('focusin', (event) => {
+      held = true;
+      const card = (event.target as HTMLElement).closest<HTMLElement>('[data-fan-card]');
+      if (!card) return;
+      viewport.scrollLeft = 0;
+      const mid = viewport.clientWidth / 2;
+      const offset = mid - (card.offsetLeft + card.offsetWidth / 2) - x;
+      velocity = (offset * (1 - DECAY)) / DECAY * 1000; // projects exactly onto the card
+    });
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget as Node | null)) held = root.matches(':hover');
+    });
+    reduceMotion.addEventListener('change', () => { if (reduceMotion.matches) location.reload(); });
+    addEventListener('resize', () => { measure(); wrap(); });
+
+    measure();
+    x = -cards[0].offsetLeft - cards[0].offsetWidth / 2 + viewport.clientWidth / 2 + 1; // start centered on the first card
+    wrap();
+    requestAnimationFrame((now) => { last = now; frame(now); });
+  }
+</script>
