@@ -4894,11 +4894,13 @@ function ensurePermissionView() {
   // take the keyboard from the page on the first prompt. Hand it straight
   // back; once the prompt has loaded, a click into it keeps focus there. The
   // page is asked for among what is on screen: a hidden tab can still report
-  // focus on macOS (focused-contents.js).
+  // focus on macOS (focused-contents.js). The hand-back waits a turn: on
+  // Windows and Linux a focus() made inside this focus event is overridden as
+  // Chromium finishes moving focus to the new view.
   const focusedBefore = onScreenFocusedContents(rt().window, webContents.getFocusedWebContents());
-  const handBackFocus = () => {
+  const handBackFocus = () => setImmediate(() => {
     if (focusedBefore && !focusedBefore.isDestroyed()) focusedBefore.focus();
-  };
+  });
   view.webContents.once('focus', handBackFocus);
   view.webContents.once('did-finish-load', () => view.webContents.removeListener('focus', handBackFocus));
   lockPrivilegedNavigation(view.webContents, CHROME_PERMISSION_URL);

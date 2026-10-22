@@ -3,6 +3,49 @@
   "noPage": [],
   "pages": [
     {
+      "release": "1.41",
+      "highlights": [
+        {
+          "id": "clock-font-color",
+          "tile": "Clock Font & color",
+          "title": "Make the clock your own",
+          "body": "Choose the Billboard clock’s font, weight, height and color, as on the iOS Lock Screen. Glass bends the wallpaper behind the numerals; Solid draws them flat.",
+          "steps": [
+            "On the Start Page, right-click the clock.",
+            "Pick a font, then drag Weight and Height and choose a color."
+          ],
+          "note": "Or open Customize and choose Clock. Every clock now has a soft shadow, so it reads on any wallpaper.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-clock-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with a tall glass clock reading 6:31 over a misty sunrise wallpaper, and the Font & color sheet open below it: four font samples, Weight and Height sliders, nine color swatches and a Glass or Solid switch."
+          }
+        },
+        {
+          "id": "start-page-pins",
+          "tile": "Start Page pins",
+          "title": "Pin pages to your Start Page",
+          "body": "Pin up to eight pages and they come first on every Start Page layout, newest first. Pins sync with Profile Sync.",
+          "steps": [
+            "Right-click a tab and choose Pin to Start Page.",
+            "Or press the pin on a Start Page tile or a favorite."
+          ],
+          "note": "You can pin and unpin favorites from the Favorites page too.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-pins-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with six site tiles under the clock; NASA and Wikipedia lead the row, each marked with a small pin."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.40",
       "highlights": [
         {
