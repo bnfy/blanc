@@ -37892,37 +37892,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "As you type, show search suggestions above your tabs, Favorites and history."
+            "value": "As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zeigt beim Tippen Suchvorschläge über deinen Tabs, Favoriten und dem Verlauf an."
+            "value": "Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, Favoritos e Historial."
+            "value": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, grupos, Spaces, Favoritos e Historial."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, Favoris et Historique."
+            "value": "Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i Preferiti e la Cronologia."
+            "value": "Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, Favoritos e Histórico."
+            "value": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico."
           }
         }
       }

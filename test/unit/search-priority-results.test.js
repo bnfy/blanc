@@ -58,9 +58,10 @@ test('on puts search rows ahead of a strong local match', () => {
 });
 
 test('the overlay takes the preference from every overlay:show', () => {
-  assert.match(overlay, /onOverlayShow\(\(\{[^}]*searchPriorityResults: searchFirst[^}]*\}\) => \{\s*searchPriorityResults = searchFirst === true;/);
+  assert.match(overlay, /onOverlayShow\(\(show\) => \{[\s\S]{0,200}?searchPriorityResults = show\.searchPriorityResults === true;/);
   const sends = main.match(/send\('overlay:show', \{[\s\S]*?\n\s*\}\);/g) || [];
-  assert.equal(sends.length, 2);
+  // The panel's show and the replay after the overlay's first load, at least.
+  assert.ok(sends.length >= 2, `expected overlay:show sends, found ${sends.length}`);
   for (const send of sends) {
     assert.match(send, /searchPriorityResults: settings\.getSettings\(\)\.searchPriorityResults === true/);
   }

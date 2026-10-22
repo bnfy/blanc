@@ -963,7 +963,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_island_site_colors_label">Reprendre les couleurs du site</string>
     <string name="settings_general_island_site_colors_hint">Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème.</string>
     <string name="settings_general_search_priority_results_label">Priorité aux résultats de recherche</string>
-    <string name="settings_general_search_priority_results_hint">Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, Favoris et Historique.</string>
+    <string name="settings_general_search_priority_results_hint">Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique.</string>
     <string name="settings_general_island_hover_open_label">Ouvrir l’Island au survol</string>
     <string name="settings_general_island_hover_open_hint">Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.</string>
     <string name="settings_general_island_auto_hide_label">Masquer automatiquement l’Island</string>

@@ -3436,7 +3436,7 @@
     "note": "Settings → General: setting name."
   },
   "settings.general.searchPriorityResults.hint": {
-    "message": "As you type, show search suggestions above your tabs, Favorites and history.",
+    "message": "As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history.",
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.islandHoverOpen.label": {

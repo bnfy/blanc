@@ -3361,9 +3361,9 @@
     "source": "sha256:b83f999a3cabc8754725b2ca8a05ac6e616a671ba91d65bb1e1154aa5efa8400"
   },
   "settings.general.searchPriorityResults.hint": {
-    "message": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, Favoritos e Histórico.",
+    "message": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico.",
     "note": "Settings → General: explanation under a setting.",
-    "source": "sha256:ead2aed7727bb22625826d095cb83b114c945ec213077fac7be09ebd2f805ec1"
+    "source": "sha256:1eeea61707c6c07ced234f1ca744789c464b810ed189defbaeb2cdff6705a22d"
   },
   "settings.general.islandHoverOpen.label": {
     "message": "Abrir a Island ao passar o cursor",

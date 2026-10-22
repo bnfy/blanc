@@ -3315,8 +3315,9 @@
     }, { capture: true, passive: true });
   }
 
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect, searchPriorityResults: searchFirst }) => {
-    searchPriorityResults = searchFirst === true;
+  window.browserAPI.onOverlayShow((show) => {
+    const { mode: next, prefill, purpose, pillRect } = show;
+    searchPriorityResults = show.searchPriorityResults === true;
     stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
