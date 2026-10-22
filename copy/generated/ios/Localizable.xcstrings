@@ -37843,6 +37843,90 @@
         }
       }
     },
+    "settings.general.searchPriorityResults.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search priority results"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchergebnisse priorisieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorizar resultados de búsqueda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorité aux résultats de recherche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai priorità ai risultati di ricerca"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorizar resultados de pesquisa"
+          }
+        }
+      }
+    },
+    "settings.general.searchPriorityResults.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, grupos, Spaces, Favoritos e Historial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico."
+          }
+        }
+      }
+    },
     "settings.general.islandHoverOpen.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",

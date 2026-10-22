@@ -3355,6 +3355,16 @@
     "message": "Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs.",
     "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
   },
+  "settings.general.searchPriorityResults.label": {
+    "message": "Suchergebnisse priorisieren",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:b83f999a3cabc8754725b2ca8a05ac6e616a671ba91d65bb1e1154aa5efa8400"
+  },
+  "settings.general.searchPriorityResults.hint": {
+    "message": "Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:1eeea61707c6c07ced234f1ca744789c464b810ed189defbaeb2cdff6705a22d"
+  },
   "settings.general.islandHoverOpen.label": {
     "message": "Island beim Darüberfahren öffnen",
     "note": "Settings → General: setting name.",

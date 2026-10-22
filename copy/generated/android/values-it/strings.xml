@@ -962,6 +962,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_theme_dark">Scuro</string>
     <string name="settings_general_island_site_colors_label">Usa i colori del sito</string>
     <string name="settings_general_island_site_colors_hint">Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema.</string>
+    <string name="settings_general_search_priority_results_label">Dai priorità ai risultati di ricerca</string>
+    <string name="settings_general_search_priority_results_hint">Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia.</string>
     <string name="settings_general_island_hover_open_label">Apri l’Island al passaggio del puntatore</string>
     <string name="settings_general_island_hover_open_hint">Lascia il puntatore sull’indirizzo dell’Island per aprirla senza fare clic.</string>
     <string name="settings_general_island_auto_hide_label">Nascondi automaticamente l’Island</string>

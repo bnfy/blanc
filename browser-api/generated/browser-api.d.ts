@@ -487,6 +487,8 @@ export interface OverlayShowPayload {
   purpose: unknown;
   /** The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. */
   pillRect?: Rect | null;
+  /** Settings → Search priority results: search suggestions lead typed results. */
+  searchPriorityResults: boolean;
 }
 
 /** Sent when main hides the overlay. */
