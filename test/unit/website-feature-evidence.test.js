@@ -653,3 +653,12 @@ test('every sentence on the Teams pilot page is recorded against public v1.37.0'
   const text = normalize(source);
   for (const retired of teams.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
 });
+
+// The owner chose on October 22, 2026 to keep the Teams pilot page out of search
+// until the pilot calls: it is shared by link only.
+test('the Teams pilot page stays out of search and the sitemap', () => {
+  assert.match(read('site/src/pages/teams.astro'), /\brobots="noindex,follow"/);
+  const sitemap = read('site/src/pages/sitemap.xml.js');
+  assert.doesNotMatch(sitemap.match(/const MANIFEST = \[[^\n]*\]/)[0], /'\/teams'/);
+  assert.match(sitemap.match(/const UNLISTED = new Set\(\[[^\n]*\]\)/)[0], /'\/teams'/);
+});

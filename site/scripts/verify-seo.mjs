@@ -10,7 +10,7 @@ const RETAINED_FEATURE_ROUTES = ['/features', ...FEATURE_TOPICS.map(topic => `/f
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 const DIST_ROOT = path.resolve(DIST);
 const NO_SOCIAL_ROUTES = new Set(['/404', '/privacy', '/terms', '/mail/privacy', '/mail/terms', '/import-tabs']);
-const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', ...Object.keys(LEGACY_ROUTES)]);
+const NOINDEX_ROUTES = new Set(['/404', '/import-tabs', '/teams', ...Object.keys(LEGACY_ROUTES)]);
 const OG_ASPECT_RATIO = 1200 / 630;
 const VERSIONED_SOCIAL_ASSET = /(?:^|[-_/])v?\d+\.\d+(?:\.\d+)?(?=[-_.\/]|$)/i;
 const htmlFiles = [];

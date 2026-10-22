@@ -4,7 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // Blanc for Teams pilot interest page (draft copy from the "Blanc for Teams
 // pilot" doc, October 18, 2026). Undecided by the owner, so kept in one place:
 // the name below, no price, no main-nav link, and the route (this file's name;
-// renaming it also means updating MANIFEST in sitemap.xml.js). Every sentence
+// renaming it also means updating UNLISTED in sitemap.xml.js). The owner chose
+// on October 22, 2026 to keep it out of search until the pilot calls: it is
+// noindex and left out of the sitemap, shared by link only. Every sentence
 // is recorded in docs/website-teams-claims-v1.37.json.
 const NAME = 'Blanc for Teams';
 const CONTACT = 'mailto:support@blanc.day?subject=Blanc%20for%20Teams%20pilot';
@@ -22,6 +24,7 @@ const offers = [
   description="Blanc for Teams is a pilot: the Blanc browser built under your brand for Mac, Windows and Linux, and kept up to date for you. Tell us what you’d need."
   path="/teams"
   page="teams"
+  robots="noindex,follow"
   ogTitle={`${NAME} — Your team’s browser, with your name on it`}
   ogDescription="We’re taking a few pilot teams for a version of Blanc under their own brand."
 >
