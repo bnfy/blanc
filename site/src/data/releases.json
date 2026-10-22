@@ -1,5 +1,69 @@
 [
   {
+    "tag": "v1.42.0",
+    "version": "1.42.0",
+    "name": "1.42.0",
+    "publishedAt": "2026-10-22T14:46:10.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.0",
+    "anchor": "v1-42-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Search priority results."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new setting in Settings → General, under Island, puts search suggestions first as you type: the search for what you typed and your search engine's suggestions come before your tabs, groups, Spaces, Favorites and history, and Enter searches. It is off by default, so the order you know stays the same until you turn it on."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, the first permission prompt in a window no longer keeps the keyboard, so what you type next goes to the page instead of being lost."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Auto-hide set to Float, the floating Island casts one shadow again, without a second outline along its bottom edge."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.41.0",
     "version": "1.41.0",
     "name": "1.41.0",
