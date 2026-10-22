@@ -2672,3 +2672,15 @@ Incremental43.79s/8steps after retained include error; guard0. Fresh56files/135h
 ceiling58/135 recorded under standing authorization, consolidation later. Eleven
 counter tests and scoped checks pass. Google baseline separate; permanent tabs
 untouched; native input and Electron diagnostic build pending.
+
+### October 21: prefetch response timeout and tab teardown
+
+Four regular/private schedules pass: paused utility forces native35s response
+timeout with refusal, or consuming tab closes while response is pending. After
+resumption no late commit/duplicate completion occurs in the bounded observation;
+fresh navigation succeeds. CDP PrefetchResponseUsed, unresolved source navigation,
+native decisions and server arrivals establish the tested phases. No production
+change; guard0; prior56/135 unchanged. Profile destruction, shutdown, subframes,
+redirects and broader lifecycle remain open. Evidence: `evidence/f12-prefetch-response-lifecycle-20261021/README.md`.
+Google baseline separate; latency deferred; native input and Electron diagnostic
+build pending. F12/Decision2 remain in progress.
