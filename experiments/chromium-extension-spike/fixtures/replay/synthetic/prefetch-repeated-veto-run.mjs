@@ -1,5 +1,5 @@
 // Shutdown schedules require the temporary native Exit hook archived in
-// evidence/f12-prefetch-veto-sequencing-fix-20261021/temporary-native-exit.patch.
+// evidence/f12-prefetch-readiness-reconciliation-20261022/temporary-native-probes.patch.
 // Restore normal native source/binary after use; Browser.close cannot test veto.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,10 +30,11 @@ try {
    const browser=context.browser(),active=kind==='private'?await browser.newContext():context,guard=await (config.lastWindow?active:context).newPage(),page=await active.newPage();
    const cdp=await active.newCDPSession(page);await cdp.send('Preload.enable');await cdp.send('Network.enable');cdp.on('Network.responseReceived',e=>row?.responses.push(e));
    cdp.on('Preload.prefetchStatusUpdated',e=>row?.preloadEvents.push(e));
+   for(const event of ['ruleSetUpdated','ruleSetRemoved','preloadingAttemptSourcesUpdated'])cdp.on('Preload.'+event,e=>row?.preloadDiagnostics.push({event,...e}));
    const target=(await cdp.send('Target.getTargetInfo')).targetInfo;
    const bc=await browser.newBrowserCDPSession();assert.equal((await bc.send('Target.getBrowserContexts')).browserContextIds.includes(target.browserContextId),kind==='private');
    for(let cycle=1;cycle<=3;cycle++){
-   row={kind,mode,cycle,responses:[],preloadEvents:[],prompts:[]};schedule.cycles.push(row);
+   row={kind,mode,cycle,responses:[],preloadEvents:[],preloadDiagnostics:[],prompts:[]};schedule.cycles.push(row);
    const origin=`https://page.blanc-fixture.test:${server.address().port}`;
    await page.goto(origin+'/source?cycle='+cycle);
    await cdp.send('Preload.disable');await cdp.send('Preload.enable');
@@ -54,14 +55,6 @@ try {
     await survivor.goto('chrome://profile-picker/');await survivor.waitForFunction(()=>typeof chrome.send==='function');
     await survivor.evaluate(p=>chrome.send('getProfileStatistics',[p]),path.join(profile,'Default'));await pause(300);
    }
-   await page.bringToFront();
-   await bc.send('Target.activateTarget',{targetId:target.targetId});
-   row.sourceVisibility=await page.evaluate(()=>document.visibilityState);
-   const urls=[origin+'/'+kind+'-'+mode+'-cycle-'+cycle];
-   row.urls=urls;const at=arrivals.length;
-   await page.evaluate(urls=>{const s=document.createElement('script');s.type='speculationrules';s.textContent=JSON.stringify({prefetch:[{source:'list',urls,eagerness:'immediate'}]});document.head.append(s);},urls);
-   await until(()=>row.preloadEvents.some(e=>e.prefetchUrl===urls[0]&&e.status==='Ready'),15000);
-   row.readyBeforeLoss=structuredClone(row.preloadEvents);
    if(config.lastWindow){
     assert.equal(mode,'shutdown-veto');
     const stage=value=>{row.stage=value;fs.writeFileSync(path.join(root,'stage.json'),JSON.stringify(row,null,2));};
@@ -82,6 +75,29 @@ try {
     row.privateContextId=kind==='private'?target.browserContextId:null;
     row.windowsBeforeVeto=windows;assert.equal(new Set(windows.map(w=>w.windowId)).size,1);
    }
+   await page.bringToFront();
+   await bc.send('Target.activateTarget',{targetId:target.targetId});
+   row.sourceVisibility=await page.evaluate(()=>document.visibilityState);
+   const nativeState=async()=>{
+    const host=(await bc.send('Target.getTargets')).targetInfos.find(t=>t.url==='chrome://blanc-prototype/host.html');assert(host);
+    const {sessionId}=await bc.send('Target.attachToTarget',{targetId:host.targetId,flatten:false});
+    try{return await new Promise((resolve,reject)=>{
+     const timer=setTimeout(()=>{bc.off('Target.receivedMessageFromTarget',receive);reject(Error('Native state response timeout'));},5000);
+     const receive=event=>{if(event.sessionId!==sessionId)return;const message=JSON.parse(event.message);if(message.id!==77)return;clearTimeout(timer);bc.off('Target.receivedMessageFromTarget',receive);if(message.error||message.result?.exceptionDetails)reject(Error(JSON.stringify(message)));else resolve(message.result.result.value);};
+     bc.on('Target.receivedMessageFromTarget',receive);
+     void bc.send('Target.sendMessageToTarget',{sessionId,message:JSON.stringify({id:77,method:'Runtime.evaluate',params:{expression:"BlancPrototypeHost.api.previewPageCommand('fixturePrefetchState')",awaitPromise:true,returnByValue:true}})}).catch(error=>{clearTimeout(timer);bc.off('Target.receivedMessageFromTarget',receive);reject(error);});
+    });}finally{await bc.send('Target.detachFromTarget',{sessionId});}
+   };
+   row.nativeVisibilitySamples=[];
+   await until(async()=>{const tabs=await nativeState();row.nativeVisibilitySamples.push(tabs);return tabs.some(t=>t.url===page.url()&&t.active&&t.primary_active&&t.visibility===2);},10000);
+   row.nativeBeforeCandidate=row.nativeVisibilitySamples.at(-1);
+   const urls=[origin+'/'+kind+'-'+mode+'-cycle-'+cycle];
+   row.urls=urls;const at=arrivals.length;
+   await page.evaluate(urls=>{const s=document.createElement('script');s.type='speculationrules';s.textContent=JSON.stringify({prefetch:[{source:'list',urls,eagerness:'immediate'}]});document.head.append(s);},urls);
+   try{await until(()=>row.preloadEvents.some(e=>e.prefetchUrl===urls[0]&&e.status==='Ready'),15000);}catch(error){
+    row.readinessFailure={native:await nativeState(),arrivals:arrivals.slice(at),target:(await cdp.send('Target.getTargetInfo')).targetInfo,document:await page.evaluate(()=>({url:location.href,visibility:document.visibilityState,ready:document.readyState,rules:[...document.querySelectorAll('script[type=speculationrules]')].map(s=>s.textContent)})),decisions:fs.readFileSync(log,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse)};throw error;
+   }
+   row.readyBeforeLoss=structuredClone(row.preloadEvents);
    {
     const processes=execFileSync('/bin/ps',['-axo','pid=,ppid=,command='],{encoding:'utf8'}).split('\n').map(l=>{const m=l.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/);return m&&{pid:Number(m[1]),ppid:Number(m[2]),command:m[3]};}).filter(Boolean);
     const owners=processes.filter(p=>p.command.includes('--user-data-dir='+profile)&&!p.command.includes('--type='));assert.equal(owners.length,1);
