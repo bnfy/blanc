@@ -4,6 +4,36 @@ import BrandMark from '../components/BrandMark.astro';
 import MailBar from '../components/MailBar.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import '../styles/mail.css';
+
+// Every sentence below was on the October 12 overview, word for word, and is
+// recorded with its evidence and limits in docs/website-mail-claims-2026-10-12.md.
+// Each glyph is a 24-unit line drawing, stroked in gilt.
+const features = [
+  { title: 'Every account together', text: 'Up to five Gmail accounts in one unified inbox, each with its own color. One search covers all of them.',
+    glyph: '<rect x="2.5" y="7.5" width="15" height="11" rx="2" /><path d="m3 9 7 4.8L17 9" /><path d="M6.5 4.5h12a3 3 0 0 1 3 3v8" />' },
+  { title: 'A native window', text: 'Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.',
+    glyph: '<rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="M3 9h18M9 9v10.5" />' },
+  { title: 'Gmail first', text: 'Connect your Google account directly. Mail is stored locally for reading and draft recovery.',
+    glyph: '<rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" />' },
+  { title: 'A moment to change your mind', text: 'Archiving takes effect at once, with five seconds to undo it.',
+    glyph: '<path d="M9 7.5 5.5 11 9 14.5" /><path d="M5.5 11H14a4.5 4.5 0 0 1 0 9h-1.5" />' },
+  { title: 'Later, on your terms', text: 'Snooze a conversation until you need it, or write now and send later. Scheduled mail goes out the next time Blanc Mail is running and online on your Mac.',
+    glyph: '<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />' },
+  { title: 'Ghost Mode', text: 'Hide a conversation or a whole Gmail label from view, then unlock it with Touch ID or your password. It locks again on a timer. Ghost Mode keeps things off your screen; it isn’t encryption.',
+    glyph: '<path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /><rect x="5.5" y="10.5" width="13" height="10" rx="2.5" />' },
+  { title: 'Rules that read like sentences', text: 'Your Gmail filters, written out in plain words. Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too.',
+    glyph: '<path d="M4 7h16M4 12h11M4 17h7" /><path d="m15.5 16 2 2 3.5-4" />' },
+  { title: 'Replies you type often', text: 'Save templates for the answers you give again and again; they stay on your Mac. Gmail’s vacation responder is in Settings too.',
+    glyph: '<rect x="5" y="3.5" width="14" height="17" rx="2.5" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" />' },
+  { title: 'Drafts that keep up', text: 'Move a draft to another account without losing a word. If anything interrupts you, your draft picks up right where you left off.',
+    glyph: '<path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" />' },
+];
+const careful = [
+  { title: 'Mail that opens', text: 'Messages are sanitized before they’re shown, and scripts in them never run. Malformed mail still renders rather than leaving a blank pane.' },
+  { title: 'No accidental double sends', text: 'If a send fails and Gmail’s answer is unclear, Blanc Mail never retries it on its own.' },
+  { title: 'Nothing added to your mail', text: 'Blanc Mail adds no read receipts and no open or click tracking to the mail you send.' },
+  { title: 'Privacy choices', text: 'Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.' },
+];
 ---
 <BaseLayout title="Blanc Mail — A little less inbox" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
   <MailBar />
@@ -31,6 +61,40 @@ import '../styles/mail.css';
       <p class="mail-soon-lead">Blanc Mail brings a careful, native Gmail experience to your Mac.</p>
       <MailWaitlistForm />
     </section>
+
+    <!-- The gilt that strokes every glyph on the page. -->
+    <svg class="mail-defs" aria-hidden="true" focusable="false"><linearGradient id="mail-gilt-stroke" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#f6e7bd" /><stop offset=".45" stop-color="#e0c084" /><stop offset=".75" stop-color="#b48c4a" /><stop offset="1" stop-color="#e8cf96" /></linearGradient></svg>
+
+    <section class="mail-features" aria-labelledby="mail-features-title">
+      <h2 id="mail-features-title"><span class="mail-gold-text">Every account, one calm inbox.</span></h2>
+      <ul class="mail-feature-grid">
+        {features.map(feature => (
+          <li class="mail-feature">
+            <span class="mail-feature-badge" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={feature.glyph} /></span>
+            <h3>{feature.title}</h3>
+            <p>{feature.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mail-careful" aria-labelledby="mail-careful-title">
+      <h2 id="mail-careful-title"><span class="mail-gold-text">Careful in what it sends, generous in what it accepts.</span></h2>
+      <ul class="mail-careful-row">
+        {careful.map(item => (
+          <li>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- The form's own label is the closing line, as on the October 12 page. -->
+    <section class="mail-closing" aria-label="Join the waitlist">
+      <MailWaitlistForm id="closing-waitlist" />
+    </section>
+
     <div class="mail-stage-notes">
       <p>Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
       <p><a href="/download">Blanc Browser</a> is available now on macOS, Windows, and Linux.</p>

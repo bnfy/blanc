@@ -95,16 +95,16 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-bar-waitlist{width:min(440px,calc(100vw - 24px));padding:22px 22px 20px}
 .mail-bar-waitlist .mail-waitlist{max-width:none;margin:0}
 /* The waitlist on dark glass, here and on the Overview: a smoked field and the gold pill. */
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist input[type=email]{color:var(--mail-band-text)}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist input[type=email]::placeholder{color:#8f846f}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
-@media(hover:hover){:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist button:focus-visible{outline-color:#e0c084}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist-note a{color:var(--mail-band-text)}
-:is(.mail-bar-waitlist,.mail-soon) .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist input[type=email]{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist input[type=email]::placeholder{color:#8f846f}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
+@media(hover:hover){:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button:focus-visible{outline-color:#e0c084}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-note a{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
 
 @media(max-width:880px){.mail-bar-links{display:none}.mail-bar-pages{display:flex}}
 @media(max-width:480px){
@@ -151,10 +151,11 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 1.6' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .65 -.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
   position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;
   padding:clamp(48px,7vh,80px) 24px clamp(56px,8vh,96px);overflow:hidden;color:var(--mail-band-text);
-  /* Black above, and a warm pool of light on the floor where the envelope stands. */
-  background:radial-gradient(ellipse 58% 26% at 50% var(--floor,62%),#8c76596b,#8c765900 70%),radial-gradient(ellipse 120% 60% at 50% 100%,#1a130b,#1a130b00 70%),#050403
+  background:#050403
 }
-.mail-soon{display:flex;flex-direction:column;align-items:center;width:min(880px,100%);text-align:center}
+.mail-soon{position:relative;display:flex;flex-direction:column;align-items:center;width:min(880px,100%);text-align:center}
+/* Black above, and a warm pool of light on the floor where the envelope stands. */
+.mail-soon::before{content:"";position:absolute;z-index:-1;top:-120px;bottom:-80px;left:50%;width:100vw;translate:-50% 0;background:radial-gradient(ellipse 58% 30% at 50% 60%,#8c76596b,#8c765900 70%);pointer-events:none}
 .mail-stage .mail-eyebrow{margin:0;color:#cfb27a;font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase}
 .mail-stage h1{margin:18px 0 0;font-family:var(--site-font-patron);font-size:clamp(44px,7vw,96px);font-weight:400;line-height:1.02;letter-spacing:0;text-wrap:balance}
 /* Gilt type: the metal's own gradient, clipped to the letters. */
@@ -194,14 +195,49 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 /* The waitlist takes the bar popover's dark styling (above), a little larger. */
 .mail-soon .mail-waitlist{width:min(480px,100%);margin:26px 0 0}
 .mail-soon .mail-waitlist-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.mail-soon .mail-waitlist-controls{gap:6px;padding:5px}
-.mail-soon .mail-waitlist input[type=email]{height:44px;padding:0 16px}
-.mail-soon .mail-waitlist button{height:44px;padding:0 22px}
-.mail-soon .mail-waitlist .mail-waitlist-note{max-width:46ch;margin:14px auto 0}
+:is(.mail-soon,.mail-closing) .mail-waitlist-controls{gap:6px;padding:5px}
+:is(.mail-soon,.mail-closing) .mail-waitlist input[type=email]{height:44px;padding:0 16px}
+:is(.mail-soon,.mail-closing) .mail-waitlist button{height:44px;padding:0 22px}
+:is(.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{max-width:46ch;margin:14px auto 0}
 .mail-stage-notes{max-width:60ch;margin-top:clamp(48px,7vh,72px);padding-top:28px;border-top:1px solid #f2ead81a;text-align:center}
 .mail-stage-notes p{margin:0 0 6px;color:var(--mail-band-muted);font-size:14px;line-height:1.55;text-wrap:balance}
 .mail-stage-notes a{color:#e6cf9a;text-decoration-thickness:1px;text-underline-offset:3px}
 .mail-stage-notes a:focus-visible{outline:2px solid #e6cf9a;outline-offset:2px;border-radius:2px}
+/* What's coming: the features as dark cards with gilt line glyphs, then the
+   four ways Mail is careful, divided by gold hairlines, then the waitlist again. */
+.mail-defs{position:absolute;width:0;height:0;overflow:hidden}
+.mail-stage h2{max-width:20ch;margin:0 auto;font-family:var(--site-font-patron);font-size:clamp(34px,4.6vw,60px);font-weight:400;line-height:1.05;letter-spacing:0;text-wrap:balance}
+.mail-stage h3{margin:0 0 8px;color:var(--mail-band-text);font-family:var(--site-font-patron);font-size:22px;font-weight:400;line-height:1.2;letter-spacing:0}
+.mail-features,.mail-careful{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
+.mail-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:52px 0 0;padding:0;list-style:none;text-align:left}
+.mail-feature{padding:28px 26px 30px;border-radius:22px;background:linear-gradient(180deg,#15110b,#0b0906);box-shadow:inset 0 0 0 1px #f2ead81a,inset 0 1px 0 #fff3d614;transition:box-shadow 240ms ease}
+@media(hover:hover){.mail-feature:hover{box-shadow:inset 0 0 0 1px #e0c08459,inset 0 1px 0 #fff3d626,0 24px 48px -28px #e0c08433}}
+.mail-feature-badge{display:grid;place-items:center;width:52px;height:52px;margin-bottom:22px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#e0c0842e,#e0c08400 72%);box-shadow:inset 0 0 0 1px #e0c08459}
+.mail-feature-badge svg{width:26px;height:26px;fill:none;stroke:url(#mail-gilt-stroke);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.mail-stage :is(.mail-feature,.mail-careful-row) p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55;text-wrap:pretty}
+.mail-careful-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:48px 0 0;padding:0;border-top:1px solid #e0c08447;list-style:none;text-align:left}
+.mail-careful-row li{padding:26px 22px 4px}
+.mail-careful-row li:first-child{padding-left:0}
+.mail-careful-row li+li{border-left:1px solid #e0c08433}
+.mail-closing{width:min(480px,100%);margin-top:clamp(96px,14vh,150px);text-align:center}
+.mail-closing .mail-waitlist{margin:0}
+.mail-closing .mail-waitlist-label{margin-bottom:24px;background:var(--mail-gilt);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:var(--site-font-patron);font-size:clamp(30px,3.8vw,44px);font-weight:400;line-height:1.08;letter-spacing:0;text-wrap:balance}
+@media(max-width:900px){
+  .mail-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mail-careful-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mail-careful-row li:nth-child(odd){padding-left:0;border-left:0}
+}
+@media(max-width:600px){
+  .mail-feature-grid{grid-template-columns:1fr}
+  .mail-careful-row{grid-template-columns:1fr}
+  .mail-careful-row li,.mail-careful-row li+li{padding:22px 0;border-left:0;border-bottom:1px solid #e0c08433}
+}
+/* Each card and the careful row rise into place as they scroll in. */
+@media(prefers-reduced-motion:no-preference){
+  @supports (animation-timeline:view()){
+    .mail-feature,.mail-careful-row li{animation:mail-soon-rise linear both;animation-timeline:view();animation-range:entry 0% entry 60%}
+  }
+}
 @media(max-width:640px){
   .mail-stage{padding:36px 16px 48px}
   .mail-stage .mail-eyebrow{font-size:11px;letter-spacing:.16em}
@@ -209,7 +245,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-envelope-face{border-radius:10px}
 }
 /* Stacked on phones, so the field keeps its own height instead of sharing a column's. */
-@media(max-width:480px){.mail-soon .mail-waitlist-controls{border-radius:26px}.mail-soon .mail-waitlist input[type=email]{flex:none}}
+@media(max-width:480px){:is(.mail-soon,.mail-closing) .mail-waitlist-controls{border-radius:26px}:is(.mail-soon,.mail-closing) .mail-waitlist input[type=email]{flex:none}}
 @media(prefers-reduced-motion:no-preference){
   .mail-soon>*{animation:mail-soon-rise 900ms var(--mail-arrive) both}
   .mail-soon>h1{animation-delay:80ms}
@@ -299,6 +335,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-bar-links a{color:var(--mail-band-text)}
   .mail-waitlist-controls,.mail-plan,.mail-card,.mail-callout{border-color:var(--mail-muted)}
   .mail-page .mail-lead,.mail-plan-price,.mail-topics p{color:#2b251d}
-  .mail-soon .mail-waitlist .mail-waitlist-note,.mail-stage-notes p{color:#e6dccb}
+  .mail-soon .mail-waitlist .mail-waitlist-note,.mail-stage-notes p,.mail-stage :is(.mail-feature,.mail-careful-row) p{color:#e6dccb}
+  .mail-feature{box-shadow:inset 0 0 0 1px #f2ead899}
   .mail-soon .mail-waitlist-controls{border-color:#f2ead899}
 }

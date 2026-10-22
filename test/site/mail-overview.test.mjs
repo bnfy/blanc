@@ -2,8 +2,9 @@
 //
 // The Blanc Mail overview (/mail) until launch: one gold envelope on a dark
 // stage (docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md).
-// It says what Mail is and that it is coming, takes a waitlist address, holds
-// still when motion is unwanted, and otherwise leans toward the pointer.
+// It says what Mail is and that it is coming, lists the features from the
+// claims ledger, takes a waitlist address at the top and the end, holds still
+// when motion is unwanted, and otherwise leans toward the pointer.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { after, before, test } from 'node:test';
@@ -72,6 +73,22 @@ test('the overview says what Mail is and that it is coming, with no screenshots'
   } finally { await context.close(); }
 });
 
+test('the features and the careful row list what Mail does, each with a gilt glyph', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const list = await page.evaluate(() => ({
+      features: [...document.querySelectorAll('.mail-feature h3')].map(h => h.textContent.trim()),
+      glyphs: [...document.querySelectorAll('.mail-feature-badge svg')].map(svg => getComputedStyle(svg).stroke),
+      careful: [...document.querySelectorAll('.mail-careful-row h3')].map(h => h.textContent.trim()),
+      headings: [...document.querySelectorAll('.mail-stage h2')].map(h => h.textContent.trim()),
+    }));
+    assert.deepEqual(list.headings, ['Every account, one calm inbox.', 'Careful in what it sends, generous in what it accepts.']);
+    assert.deepEqual(list.features, ['Every account together', 'A native window', 'Gmail first', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Rules that read like sentences', 'Replies you type often', 'Drafts that keep up']);
+    assert.deepEqual(list.careful, ['Mail that opens', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
+    for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
+  } finally { await context.close(); }
+});
+
 test('the envelope holds still under reduced motion, and otherwise leans toward the pointer', async () => {
   // Whether the envelope is rotated at all: the perspective alone leaves the
   // matrix's rotation terms at zero.
@@ -114,17 +131,17 @@ test('on a phone the waitlist stacks with a full-height field', async () => {
   } finally { await context.close(); }
 });
 
-test('the bar and page waitlists are separate, and the bar keeps its answer in view', async () => {
+test('the bar, hero and closing waitlists are separate, and the bar keeps its answer in view', async () => {
   const { page, context } = await openPage('/mail');
   try {
-    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('form[data-mail-waitlist]')].map(f => f.id)), ['bar-waitlist', 'waitlist']);
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('form[data-mail-waitlist]')].map(f => f.id)), ['bar-waitlist', 'waitlist', 'closing-waitlist']);
     await answerWaitlist(page, 200);
     await openBarWaitlist(page);
     await page.keyboard.type('reader@example.com');
     await page.keyboard.press('Enter');
     await page.locator('#bar-waitlist .mail-waitlist-status', { hasText: 'Check your inbox to confirm your place.' }).waitFor();
     assert.equal(await page.evaluate(() => document.getElementById('mail-bar-waitlist').matches(':popover-open')), true, 'the answer stays in view');
-    assert.equal(await page.locator('#waitlist .mail-waitlist-status').textContent(), '', 'the page form is untouched');
+    assert.equal(await page.locator('#waitlist .mail-waitlist-status').textContent(), '', 'the hero form is untouched');
   } finally { await context.close(); }
 });
 

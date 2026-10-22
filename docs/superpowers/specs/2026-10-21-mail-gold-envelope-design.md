@@ -18,7 +18,7 @@ that design.
 
 - **Stage:** black above, a warm pool of light on the floor where the object
   stands. The site header and footer are unchanged.
-- **Copy, top to bottom:** the eyebrow "Blanc Mail · for Mac · Coming soon",
+- **Hero copy, top to bottom:** the eyebrow "Blanc Mail · for Mac · Coming soon",
   the headline "A little less inbox." in gilt (the metal's gradient clipped to
   the letters), the gold envelope, the lead "Blanc Mail brings a careful,
   native Gmail experience to your Mac.", the waitlist, and two quiet notes
@@ -39,6 +39,25 @@ that design.
 - **Waitlist:** the existing `MailWaitlistForm` and Worker contract,
   restyled: a smoked field and the gold pill. Its label is visually hidden but
   still names the field; the privacy note shows.
+
+## Features (added October 22, 2026)
+
+The owner asked for the app's features on the page. Below the hero, on the
+same dark stage and in the same words as the October 12 overview:
+
+- **"Every account, one calm inbox."** (gilt) over nine dark cards, each with a
+  gilt line glyph in a hairline ring: Every account together, A native
+  window, Gmail first, A moment to change your mind, Later on your terms,
+  Ghost Mode, Rules that read like sentences, Replies you type often, Drafts
+  that keep up.
+- **"Careful in what it sends, generous in what it accepts."** over four
+  columns divided by gold hairlines: Mail that opens, No accidental double
+  sends, Nothing added to your mail, Privacy choices.
+- **The waitlist again**, its label set as a gilt heading.
+
+Cards rise into place as they scroll in where scroll timelines are
+supported; reduced motion shows them still. The Inbox Zero and light/dark
+sections are not carried over, because they depended on screenshots.
 
 ## The Mail bar
 
