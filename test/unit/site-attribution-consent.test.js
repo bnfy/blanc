@@ -6,6 +6,16 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.resolve(__dirname, '../../site/src/scripts/site.js'), 'utf8');
 
+test('download measurement choices use the existing opt-in panel without gating installers', () => {
+  const html = fs.readFileSync(path.resolve(__dirname, '../../site/src/pages/download.astro'), 'utf8');
+  assert.match(html, /<button type="button" data-consent-open aria-controls="consent">Measurement choices<\/button>/);
+  assert.match(html, /You can download Blanc without consenting\./);
+  assert.ok(html.indexOf('download-measurement') < html.indexOf('aria-labelledby="install-title"'));
+  for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
+    assert.match(html, new RegExp(`href="/dl/${platform}"`));
+  }
+});
+
 function page(choice, { unavailable = false, writeFails = false, href = 'https://blancbrowser.com/download?oppref=offline-fixture', userAgent = 'Macintosh' } = {}) {
   const local = new Map(choice ? [['measurement-consent-v2', choice]] : []);
   const session = new Map();

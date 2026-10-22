@@ -478,7 +478,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .download-footnote a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-footnote a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
 /* Release notes follow the platform cards, with spacing in normal flow. */
-.download-whatsnew { margin: 24px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); }
+.download-whatsnew { margin: 24px 0; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--site-text-dim); }
+.download-measurement { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 64px; padding: 20px; border: 1px solid var(--site-border); }
+.download-measurement p { flex: 1 1 280px; margin: 0; }
+.download-measurement button { min-height: 44px; padding: 10px 16px; border: 1px solid currentColor; border-radius: 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.download-measurement button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .download-whatsnew a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-whatsnew a:is(:hover, :focus-visible) { color: var(--site-gold); border-color: var(--site-gold); }
 /* With a detected platform, its download becomes the one primary action
@@ -827,7 +831,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .hero .platforms { margin-top: 12px; white-space: normal; line-height: 1.7; }
   .download-page { padding: 24px 18px 68px; }
   .download-options { margin: 52px 0 0; }
-  .download-whatsnew { margin: 24px 0 64px; }
+  .download-whatsnew { margin: 24px 0; }
   .download-block { padding-bottom: 72px; }
   .install-platforms { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; }
   .install-platform { padding: 22px 22px 24px; }
