@@ -109,7 +109,7 @@
     --accent-dim: rgba(245, 245, 245, 0.12);
     --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
     --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
-    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6);
+    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -140,7 +140,7 @@
      private ink, where the light themes' bright edge reads as a glare. */
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
-  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6);
+  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -4286,11 +4286,15 @@ html[data-surface="float"] #mainMenuButton {
    CARD_RING); the Glance page's own view covers the card below its header.
    Main sizes the card through --glance-card-w/-h. */
 html[data-surface="glance"] {
+  /* glance-card.js CARD_RING; renderer.js sets the top from the layout, as it
+     shrinks where the card meets the top of the page area. */
   --glance-ring-top: 12px;
   --glance-ring-side: 20px;
   --glance-ring-bottom: 28px;
   /* glance-card.js CARD_RADIUS; rounder than a Split View pane. */
   --glance-card-radius: 14px;
+  /* glance-card.js CARD_PAGE_INSET, from the card's outer edge. */
+  --glance-page-inset: 6px;
 }
 html[data-surface="glance"],
 html[data-surface="glance"] body { background: transparent; }
@@ -4328,32 +4332,52 @@ html[data-surface="glance"] .glance-card {
   html[data-surface="glance"] .glance-card { transition: none; }
 }
 html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
-/* The resize ring fills the whole ring outside the border, so no click there
-   is lost; each corner also reaches 7 px inside the card along both edges
-   (positioned from the padding edge, inside the 1 px border). */
+/* The resize edges fill the whole ring outside the border, so no click there
+   is lost. The side and bottom edges also cover the frame around the page
+   (the Glance page's view sits above them), and each corner reaches the
+   curve's full radius inside the card, under the header, which takes the
+   clicks inside its own rounded corners. Positions are from the padding
+   edge, inside the 1 px border. */
 .glance-card-edge { display: none; }
 html[data-surface="glance"] .glance-card-edge {
   display: block;
   position: absolute;
   z-index: 1;
+  --edge-frame: calc(var(--glance-page-inset) - 1px);
 }
-html[data-surface="glance"] .glance-card-edge[data-edge="n"] { top: calc(-1px - var(--glance-ring-top)); left: 7px; right: 7px; height: var(--glance-ring-top); cursor: ns-resize; }
-html[data-surface="glance"] .glance-card-edge[data-edge="s"] { bottom: calc(-1px - var(--glance-ring-bottom)); left: 7px; right: 7px; height: var(--glance-ring-bottom); cursor: ns-resize; }
-html[data-surface="glance"] .glance-card-edge[data-edge="e"] { right: calc(-1px - var(--glance-ring-side)); top: 7px; bottom: 7px; width: var(--glance-ring-side); cursor: ew-resize; }
-html[data-surface="glance"] .glance-card-edge[data-edge="w"] { left: calc(-1px - var(--glance-ring-side)); top: 7px; bottom: 7px; width: var(--glance-ring-side); cursor: ew-resize; }
-html[data-surface="glance"] .glance-card-edge:is([data-edge="ne"], [data-edge="nw"], [data-edge="se"], [data-edge="sw"]) { width: calc(var(--glance-ring-side) + 8px); }
-html[data-surface="glance"] .glance-card-edge:is([data-edge="ne"], [data-edge="nw"]) { top: calc(-1px - var(--glance-ring-top)); height: calc(var(--glance-ring-top) + 8px); }
-html[data-surface="glance"] .glance-card-edge:is([data-edge="se"], [data-edge="sw"]) { bottom: calc(-1px - var(--glance-ring-bottom)); height: calc(var(--glance-ring-bottom) + 8px); }
+html[data-surface="glance"] .glance-card-edge[data-edge="n"] { top: calc(-1px - var(--glance-ring-top)); left: var(--glance-card-radius); right: var(--glance-card-radius); height: var(--glance-ring-top); cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="s"] { bottom: calc(-1px - var(--glance-ring-bottom)); left: var(--glance-card-radius); right: var(--glance-card-radius); height: calc(var(--glance-ring-bottom) + 1px + var(--edge-frame)); cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="e"] { right: calc(-1px - var(--glance-ring-side)); top: var(--glance-card-radius); bottom: var(--glance-card-radius); width: calc(var(--glance-ring-side) + 1px + var(--edge-frame)); cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="w"] { left: calc(-1px - var(--glance-ring-side)); top: var(--glance-card-radius); bottom: var(--glance-card-radius); width: calc(var(--glance-ring-side) + 1px + var(--edge-frame)); cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge:is([data-edge="ne"], [data-edge="nw"], [data-edge="se"], [data-edge="sw"]) { width: calc(var(--glance-ring-side) + 1px + var(--glance-card-radius)); }
+html[data-surface="glance"] .glance-card-edge:is([data-edge="ne"], [data-edge="nw"]) { top: calc(-1px - var(--glance-ring-top)); height: calc(var(--glance-ring-top) + 1px + var(--glance-card-radius)); }
+html[data-surface="glance"] .glance-card-edge:is([data-edge="se"], [data-edge="sw"]) { bottom: calc(-1px - var(--glance-ring-bottom)); height: calc(var(--glance-ring-bottom) + 1px + var(--glance-card-radius)); }
 html[data-surface="glance"] .glance-card-edge:is([data-edge="ne"], [data-edge="se"]) { right: calc(-1px - var(--glance-ring-side)); }
 html[data-surface="glance"] .glance-card-edge:is([data-edge="nw"], [data-edge="sw"]) { left: calc(-1px - var(--glance-ring-side)); }
 html[data-surface="glance"] .glance-card-edge[data-edge="ne"],
 html[data-surface="glance"] .glance-card-edge[data-edge="sw"] { cursor: nesw-resize; }
 html[data-surface="glance"] .glance-card-edge[data-edge="nw"],
 html[data-surface="glance"] .glance-card-edge[data-edge="se"] { cursor: nwse-resize; }
+/* The focused-pane cue: a line around the page, in the frame just outside
+   the Glance page's view, alongside the card's darker border. */
+html[data-surface="glance"] .glance-card::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--glance-page-inset) - 2px);
+  right: calc(var(--glance-page-inset) - 2px);
+  bottom: calc(var(--glance-page-inset) - 2px);
+  top: 38px; /* one above the page, below the 40 px header (39 inside the border) */
+  border: 1px solid transparent;
+  border-radius: calc(var(--glance-card-radius) - var(--glance-page-inset) + 1px);
+  pointer-events: none;
+  transition: border-color 120ms ease;
+}
+html[data-surface="glance"] .glance-card.focused::after { border-color: var(--split-pane-focused-border); }
 /* No line under the header: the page's inset frame and its own rounded
    corners set it apart (glance-card.js CARD_PAGE_INSET). */
 html[data-surface="glance"] .glance-header {
   position: relative;
+  z-index: 2;
   height: 39px;
   padding: 0 8px 0 12px;
   border-left: 0;

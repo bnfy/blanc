@@ -133,11 +133,16 @@ function resizeCardFrame(frame, edge, dx, dy, pageArea) {
 }
 
 /** The views' bounds for a card frame: the chrome view (the frame plus its
- * ring), the header, and the page inset in the frame below the header. */
-function cardGeometry(frame) {
+ * ring), the frame itself, the header, and the page inset in the frame below
+ * the header. Given the page area, the ring never reaches above it, so a card
+ * at the top leaves the Island's band to the strip (the card can't grow
+ * upward from there anyway). */
+function cardGeometry(frame, pageArea = null) {
+  const top = pageArea ? Math.min(CARD_RING.top, Math.max(0, frame.y - pageArea.y)) : CARD_RING.top;
   return {
-    chrome: rect(frame.x - CARD_RING.side, frame.y - CARD_RING.top,
-      frame.width + 2 * CARD_RING.side, frame.height + CARD_RING.top + CARD_RING.bottom),
+    chrome: rect(frame.x - CARD_RING.side, frame.y - top,
+      frame.width + 2 * CARD_RING.side, frame.height + top + CARD_RING.bottom),
+    frame: rect(frame.x, frame.y, frame.width, frame.height),
     header: rect(frame.x, frame.y, frame.width, CARD_HEADER_HEIGHT),
     page: rect(frame.x + CARD_PAGE_INSET, frame.y + CARD_HEADER_HEIGHT,
       frame.width - 2 * CARD_PAGE_INSET, frame.height - CARD_HEADER_HEIGHT - CARD_PAGE_INSET),

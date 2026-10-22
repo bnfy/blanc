@@ -161,8 +161,8 @@ public enum BlancTokens {
     public static func shadowGlanceCard(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32)"
-        case .dark: return "0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6)"
-        case .privateBrowsing: return "0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6)"
+        case .dark: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
+        case .privateBrowsing: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
         }
     }
     public static func selectCaret(_ theme: BlancTheme) -> String {

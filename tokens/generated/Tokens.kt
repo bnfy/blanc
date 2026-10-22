@@ -114,8 +114,8 @@ object BlancTokens {
     }
     fun shadowGlanceCard(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32)"
-        BlancTheme.DARK -> "0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6)"
-        BlancTheme.PRIVATE -> "0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6)"
+        BlancTheme.DARK -> "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
+        BlancTheme.PRIVATE -> "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
     }
     fun selectCaret(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "url(\"select-caret.svg\")"

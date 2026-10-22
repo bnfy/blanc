@@ -84,7 +84,7 @@
     --on-danger: #0e0e0e;
     --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
     --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
-    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6);
+    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
   }
 }
 :root[data-theme="private"] {
@@ -109,7 +109,7 @@
   --on-danger: #0a0a0a;
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
-  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.36), 0 8px 18px -6px rgba(0,0,0,.6);
+  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
 }
 
 /* pages — src/renderer/pages/pages.css */

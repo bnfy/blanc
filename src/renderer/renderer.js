@@ -749,16 +749,6 @@
       && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
   }
 
-  // The card's own frame (border included) from its views' bounds: the ring
-  // differs above, beside and below it, so it runs from the header's top to
-  // the page's bottom plus the page's inset, the same at the sides and below
-  // (glance-card.js cardGeometry).
-  function glanceCardFrame(card) {
-    const inset = card.page.x - card.header.x;
-    const height = card.page.y + card.page.height + inset - card.header.y;
-    return { x: card.header.x, y: card.header.y, width: card.header.width, height };
-  }
-
   function renderGlance() {
     const tab = glanceTab();
     // The card's chrome draws on the glance surface only; the strip itself
@@ -772,11 +762,13 @@
       return;
     }
 
-    // The view is the card plus its resize ring; the card sits inside it.
-    const frame = glanceCardFrame(glanceLayout.card);
+    // The view is the card plus its resize ring; the card sits inside it. The
+    // ring above shrinks when the card meets the top of the page area.
+    const { chrome, frame } = glanceLayout.card;
     const root = document.documentElement;
     root.style.setProperty('--glance-card-w', `${frame.width}px`);
     root.style.setProperty('--glance-card-h', `${frame.height}px`);
+    root.style.setProperty('--glance-ring-top', `${frame.y - chrome.y}px`);
     glanceCard.classList.toggle('private', !!tab.private);
     glanceCard.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     glanceHeader.classList.toggle('private', !!tab.private);
@@ -1352,8 +1344,8 @@
     schedule: (fn) => requestAnimationFrame(fn),
   });
   const cardFrameOfLayout = () => {
-    const card = glanceLayout?.card;
-    return card ? glanceCardFrame(card) : null;
+    const frame = glanceLayout?.card?.frame;
+    return frame ? { ...frame } : null;
   };
   function startCardDrag(event, edge) {
     const frame = cardFrameOfLayout();

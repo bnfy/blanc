@@ -4211,7 +4211,7 @@ function glanceCardFrame() {
 /** The card's views' bounds while a Glance is open, else null. */
 function glanceCardGeometry() {
   if (!activeGlanceTab() || !hasLiveWindow()) return null;
-  return cardGeometry(glanceCards.frame());
+  return cardGeometry(glanceCards.frame(), glancePageArea());
 }
 
 function currentGlanceLayoutPayload(card = glanceCardGeometry()) {

@@ -1610,7 +1610,11 @@
       "fields": {
         "chrome": {
           "type": "Rect",
-          "doc": "The card's chrome view: the card plus its resize ring (12 px above, 20 px at the sides, 28 px below)."
+          "doc": "The card's chrome view: the card plus its resize ring (12 px above, less where the card meets the top of the page area; 20 px at the sides; 28 px below)."
+        },
+        "frame": {
+          "type": "Rect",
+          "doc": "The card itself, border included."
         },
         "header": {
           "type": "Rect",
