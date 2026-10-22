@@ -1,5 +1,7 @@
 # A1: upstream integration and patch-budget design
 
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest recorded upstream footprint is 56 files/135 hunks, not a fresh measurement here. Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+
 Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. Current tranche ceiling remains **49 existing upstream files / 120 hunks**.
 
 ## Measured starting point

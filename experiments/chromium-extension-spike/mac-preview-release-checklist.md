@@ -1,5 +1,7 @@
 # Side-by-side Mac Chromium preview release checklist
 
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest recorded upstream footprint is 56 files/135 hunks, not a fresh measurement here. Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+
 Working release plan — October 21, 2026. Status: **not release-ready**.
 
 **Supporting checklist only.** The [Chromium migration implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) is the primary plan. Its gates, ordering and evidence requirements govern; this checklist tracks a proposed Mac preview and cannot waive or reorder them. Update primary-plan status whenever an implementation checkpoint changes it.

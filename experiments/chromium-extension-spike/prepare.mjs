@@ -291,6 +291,20 @@ function edit(relative, edits) {
   writeIfChanged(target, source);
 }
 
+// Blanc uses the Island, not Chromium's OS-wide Google search launcher.
+// Deny profile eligibility as well as controller activation so persisted opt-in
+// and feature experiments cannot register the launcher or show its onboarding.
+edit('chrome/browser/ui/omnibox/omnibox_next_features.cc', [{
+  anchor: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n  if (!profile || profile->IsOffTheRecord()) {\n    return false;\n  }\n\n  if (!base::FeatureList::IsEnabled(kOmniboxEverywhere)) {\n    return false;\n  }\n\n  return search::DefaultSearchProviderIsGoogle(\n      TemplateURLServiceFactory::GetForProfile(profile));\n#else\n  return false;\n#endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)\n}",
+  replacement: "bool IsOmniboxEverywhereEligible(Profile* profile) {\n  return false;  // Blanc: no OS-wide Google search launcher.\n}",
+  present: 'return false;  // Blanc: no OS-wide Google search launcher.',
+}]);
+edit('chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc', [{
+  anchor: 'return !enabled_pref_member_.prefs() || enabled_pref_member_.GetValue();',
+  replacement: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+  present: 'return false;  // Blanc: disable launcher, hotkey and background activation.',
+}]);
+
 // Chromium 157 split BrowserView out of the former monolithic UI target.
 // Keep the bridge implementation with BrowserView and expose its declarations
 // through BrowserView's header target, avoiding an implementation dependency cycle.
