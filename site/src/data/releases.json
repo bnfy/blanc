@@ -1,5 +1,56 @@
 [
   {
+    "tag": "v1.42.1",
+    "version": "1.42.1",
+    "name": "1.42.1",
+    "publishedAt": "2026-10-22T17:07:27.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.1",
+    "anchor": "v1-42-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The floating Glance card stands out more from the page behind it: it casts a deeper shadow, its corners are rounder, and the page inside it sits slightly inset under its header."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Auto-hide set to Float, the floating Island no longer loses its rounded ends when it gets wider, for example after you open more tabs or visit a site with a longer address."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.42.0",
     "version": "1.42.0",
     "name": "1.42.0",
