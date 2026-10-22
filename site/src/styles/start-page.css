@@ -34,25 +34,17 @@ html:has(.start-page-showcase) { overflow-x: clip; }
 .sp-stage h1 { max-width: 20ch; margin: 0 auto; color: var(--stage-text); font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-size: clamp(38px, 4.8vw, 70px); line-height: 1.02; text-wrap: balance; }
 .sp-stage-copy p { max-width: 60ch; margin: 20px auto 0; color: var(--stage-dim); font-size: 17px; line-height: 1.6; text-wrap: pretty; }
 
-/* The fan in Cover Flow: side cards turn toward the middle (each card has its
-   own perspective, so it stays a flat, clickable layer with a working
-   z-index rather than sharing a 3D space with the track), and the light
-   behind them takes the middle card's color (StartPageGallery sets
-   --fan-tint, --offset and --depth). */
+/* The fan on the stage: larger cards, a reflection under each, deep
+   shadows, and light behind the fan in the middle design's colour
+   (StartPageGallery sets --fan-tint as each design arrives). */
 @property --fan-tint { syntax: '<color>'; inherits: true; initial-value: #2f5f9e; }
-.design-fan[data-variant="flow"] { position: relative; margin: 8px 0 0; transition: --fan-tint 1.4s ease; }
-.design-fan[data-variant="flow"] .design-fan-glow { position: absolute; inset: -45% -10% -5%; z-index: 0; display: block; background: radial-gradient(58% 52% at 50% 62%, color-mix(in srgb, var(--fan-tint) 48%, transparent), transparent 76%); pointer-events: none; }
-.design-fan[data-variant="flow"] .design-fan-viewport { position: relative; z-index: 1; padding: 40px 0 92px; -webkit-mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent); mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent); }
-.design-fan[data-variant="flow"] .design-fan-card { width: clamp(280px, 42vw, 680px); margin-left: calc(clamp(280px, 42vw, 680px) * -0.36); transform: perspective(1600px) translateY(calc(var(--depth) * 10px)) rotateY(calc(var(--offset, 0) * -42deg)) scale(calc(1 - var(--depth) * 0.1)); transform-origin: 50% 50%; }
-.design-fan[data-variant="flow"] .design-fan-card:first-child { margin-left: 0; }
-.design-fan[data-variant="flow"] .design-fan-card a { -webkit-box-reflect: below 8px linear-gradient(transparent 68%, rgba(255, 255, 255, 0.12)); }
-.design-fan[data-variant="flow"] .design-fan-card a:focus-visible { outline-color: var(--stage-text); }
-.design-fan[data-variant="flow"] .design-fan-card::after { background: var(--stage-bg); opacity: calc(var(--depth) * 0.5); }
-.design-fan[data-variant="flow"] .design-fan-card img { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 calc(40px - var(--depth) * 24px) calc(90px - var(--depth) * 50px) rgba(0, 0, 0, calc(0.7 - var(--depth) * 0.3)); }
-.design-fan[data-variant="flow"] .design-fan-caption { position: relative; z-index: 2; color: var(--stage-dim); }
-/* Without the script the row is a plain, flat scroller. */
-.design-fan[data-variant="flow"]:not([data-live="true"]) .design-fan-card { transform: none; margin-left: 16px; }
-.design-fan[data-variant="flow"]:not([data-live="true"]) .design-fan-card:first-child { margin-left: 0; }
+.sp-stage .design-fan { --card-w: clamp(260px, 36vw, 560px); margin: 8px 0 0; transition: --fan-tint 1.4s ease; }
+.sp-stage .design-fan-glow { position: absolute; inset: -45% -10% -5%; z-index: 0; background: radial-gradient(58% 52% at 50% 62%, color-mix(in srgb, var(--fan-tint) 48%, transparent), transparent 76%); pointer-events: none; }
+.sp-stage .design-fan-viewport { padding: 40px 0 92px; -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent); }
+.sp-stage .design-fan-card a { -webkit-box-reflect: below 8px linear-gradient(transparent 68%, rgba(255, 255, 255, 0.12)); }
+.sp-stage .design-fan-card a:focus-visible { outline-color: var(--stage-text); }
+.sp-stage .design-fan-card img { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 80px rgba(0, 0, 0, 0.6); }
+.sp-stage .design-fan-caption { position: relative; z-index: 2; color: var(--stage-dim); }
 
 /* ---- Editorial sections ---------------------------------------------- */
 .start-page-showcase .feature-copy-grid { grid-template-columns: 1fr; gap: 0; max-width: 1080px; padding: clamp(88px, 10vw, 140px) 0 0; }
@@ -91,8 +83,8 @@ html:has(.start-page-showcase) { overflow-x: clip; }
   .sp-stage .breadcrumb { margin-bottom: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .design-fan[data-variant="flow"] { transition: none; }
+  .sp-stage .design-fan { transition: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .design-fan[data-variant="flow"] .design-fan-card a { -webkit-box-reflect: none; }
+  .sp-stage .design-fan-card a { -webkit-box-reflect: none; }
 }
