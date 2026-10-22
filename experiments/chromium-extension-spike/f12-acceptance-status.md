@@ -182,3 +182,14 @@ Four regular/private sequences pass three consecutive browser-SIGKILL/restart cy
 This is bounded consecutive pending-work process-crash recovery, not request resumption, power loss, indefinite no replay, arbitrary load/repetition, or all provider/profile combinations. No production edits or compilation; guard zero, unchanged native/engine hashes, prior 56 files/134 hunks unchanged. Validator, syntax/lint, evidence hashes and diff checks pass. Disposable profiles/keys removed; raw root /private/tmp/blanc-wt-repeated-pending-service-01. Google baseline separate; physical native input pending, latency deferred, Electron diagnostic build pending approval/unstarted. F12/Decision 2 remain open; speculation initial requests/consumption remains a request-path priority.
 
 Evidence: experiments/chromium-extension-spike/evidence/f12-webtransport-repeated-pending-service-20261021/.
+
+### October 21: ordinary prefetch initial-request diagnostic
+
+Two regular/private schedules confirm four real speculative requests reach the
+native engine before navigation. All four receive explicit mainFrame allow,
+including the candidate tracker host; this is not a blocking pass. Same-origin
+navigation makes no additional server request, but dedicated prefetch consumption
+versus HTTP cache reuse is unqualified. Refusal control and consumption attribution
+remain the next priority. Evidence: `evidence/f12-prefetch-initial-20261021/README.md`.
+No native code/build change; prior 56 files/134 hunks unchanged. Google baseline
+separate; latency deferred; native input and Electron diagnostic build pending.
