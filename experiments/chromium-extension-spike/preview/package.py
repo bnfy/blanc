@@ -28,12 +28,12 @@ for f in a.output.rglob('Info.plist'):
  if old.startswith('day.blanc.prototype'):
   d['CFBundleIdentifier']=old.replace('day.blanc.prototype','me.bnfy.blanc.chromium.preview',1)
  if f==a.output/'Contents/Info.plist':
-  d.update(CFBundleIdentifier='me.bnfy.blanc.chromium.preview',CFBundleName='Blanc Chromium Preview',CFBundleDisplayName='Blanc Chromium Preview',CFBundleExecutable='Blanc Preview Launcher')
+  d.update(CFBundleIdentifier='me.bnfy.blanc.chromium.preview',CFBundleName='Blanc Chromium Preview',CFBundleDisplayName='Blanc Chromium Preview',CFBundleExecutable='Blanc Preview Launcher',LSMinimumSystemVersion='26.0')
   for k in ['CFBundleURLTypes','CFBundleDocumentTypes']: d.pop(k,None)
  f.write_bytes(plistlib.dumps(d))
  ids.append({'path':str(f.relative_to(a.output)),'id':d.get('CFBundleIdentifier')})
 launcher=a.output/'Contents/MacOS/Blanc Preview Launcher'
-subprocess.run(['xcrun','clang','-arch','arm64','-Os','-Wall','-Wextra','-Werror',str(pathlib.Path(__file__).with_name('launcher.c')),'-o',str(launcher)],check=True)
+subprocess.run(['xcrun','clang','-arch','arm64','-mmacosx-version-min=26.0','-Os','-Wall','-Wextra','-Werror',str(pathlib.Path(__file__).with_name('launcher.c')),'-o',str(launcher)],check=True)
 subprocess.run(['codesign','--force','--deep','--sign','-',str(a.output)],check=True)
 subprocess.run(['codesign','--verify','--deep','--strict',str(a.output)],check=True)
 manifest={'kind':'local-ad-hoc-preview-not-for-distribution','identities':ids,'files':{str(f.relative_to(a.output)):hashlib.sha256(f.read_bytes()).hexdigest() for f in a.output.rglob('*') if f.is_file() and not f.is_symlink()}}

@@ -1,6 +1,6 @@
 # Side-by-side Mac Chromium preview release checklist
 
-> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest October 22 measured footprint is 61 files/150 hunks; see [signed keychain repair evidence](evidence/preview-keychain-repair-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
 Working release plan — October 21, 2026. Status: **not release-ready**.
 
@@ -10,7 +10,7 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 ## Running Mac preview RC readiness
 
-**Baseline: October 22, 2026; source/evidence checkpoint `9772330a`.**
+**Baseline: October 22, 2026; source/evidence checkpoint `7c5d6bb5`.**
 
 `[■□□□□□□□□□□□] 1/12 launch gates cleared (8.3%) · Δ +1 L1`
 
@@ -21,19 +21,19 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 | Gate | Current acceptance status | Next evidence or decision |
 | --- | --- | --- |
 | L1 Scope/identity | **Accepted October 22** | [Owner approval](mac-preview-scope-approval-20261022.md); implementation verified under L2/L8 |
-| L2 Isolation | Open — disposable prototype evidence only | Candidate install/coexist/restart/uninstall with original data unchanged |
+| L2 Isolation | Open — signed isolated-profile checks pass boundedly | Candidate install/coexist/restart/uninstall with original data unchanged |
 | L3 Security/maintenance | Open — rebase evidence exists | Supported baseline, patch/dependency review and maintenance commitment |
 | L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |
-| L5 Physical input/accessibility | Open — pending | Packaged native-input and VoiceOver session |
+| L5 Physical input/accessibility | Open — owner confirmed Island labels/navigation | Complete packaged controls and matched visual session |
 | L6 Recovery | Open — substantial bounded evidence | Frozen candidate recovery suite and recovery-UI acceptance |
 | L7 Security/privacy | Open — scoped evidence only | Candidate boundary/privacy review and distribution free of diagnostic hooks |
-| L8 Signed distribution | Open — unqualified | Signed/notarized/stapled artifact and quarantined clean-Mac acceptance |
-| L9 Update/retreat | Open — policy/acceptance pending | Preview update/rollback proof or explicit manual-only policy approval |
+| L8 Signed distribution | Open — signed, notarized and stapled artifact produced | Clean supported macOS 26 acceptance remains |
+| L9 Update/retreat | Open — manual-only decision approved | [Operational policy](preview-manual-maintenance-policy.md), notices and signed replacement/withdrawal rehearsal |
 | L10 Functional smoke | Open — feature-specific evidence | Enabled-feature inventory and frozen candidate smoke |
 | L11 CI/audits | Open — no RC head frozen | Exact candidate checks/alerts/audits and runtime blocker disposition; no current CI claim here |
 | L12 Readiness package | Open — not completed | Instructions, exclusions, feedback/privacy route and artifact-specific go/no-go |
 
-**Next priority:** follow the primary plan: finish F12 request-path/current-head provenance and the Decision 2 package (visual comparison, physical-input/VoiceOver evidence and cost sheet), then resolve the proposed preview contract. Additional bounded lifecycle tests improve supporting evidence but do not independently clear L6 or increase the bar. Keep Google upgrade monitoring separate. Latency remains deferred; Electron diagnostic build remains pending approval/unstarted, neither counted as passed.
+**Next priority:** complete acceptance of the signed/notarized candidate on supported macOS 26, finish matched visual disposition and maintenance ownership for Decision 2, then run one frozen candidate acceptance suite. Self-contained packaging and encryption recovery have bounded passing evidence; do not repeat open-ended stress matrices. Google baseline remains separate; latency deferred; Electron diagnostic build pending.
 
 ### Update log
 
@@ -59,7 +59,7 @@ All rows remain open until attached evidence identifies the candidate commit, ar
 
 | Priority / ID | Deliverable and acceptance criterion | Current evidence / next action | Responsible |
 | --- | --- | --- | --- |
-| P0 / L1 | Approve preview scope, supported macOS versions and Apple Silicon-only distribution; choose separate app/profile/channel identities. Explicitly record the relationship to Decision 2 and existing beta gates. | This checklist is a proposal. Freeze the feature list before more open-ended parity work. | Owner decision, agent prepares scope |
+| P0 / L1 | Approve preview scope, supported macOS versions and Apple Silicon-only distribution; choose separate app/profile/channel identities. Explicitly record the relationship to Decision 2 and existing beta gates. | Accepted: [scope approval](mac-preview-scope-approval-20261022.md). Apple Silicon/macOS 26, fresh separate profile, manual signed updates. | Owner decision, agent prepares scope |
 | P0 / L2 | Prove isolation: install alongside shipping Blanc, run both, open/close/restart each, remove preview; original app, settings, tabs and update ownership remain unchanged. Use controlled representative profiles, not the owner's permanent data. | Separate disposable tests exist; distributable identity/isolation is not yet signed off. | Agent + owner hand check |
 | P0 / L3 | Establish supported Chromium security baseline and maintenance owner. Record upstream version/channel, relevant security fixes, patch inventory, dependency exceptions and a rehearsed incremental rebase/update path. | Rebase ledger exists; real Google upgrade gate remains open. Current developer build version alone is not release/security approval. | Agent + owner maintenance decision |
 | P0 / L4 | Complete real Google-endpoint extension upgrade gate: authentic installed old version → offered newer version, native update, Google network evidence, enabled state, restart persistence and popup focus. Install, permission Cancel/accept and removal also pass on candidate. | Existing Bitwarden baseline/monitor must be preserved. A no-change callback or replacement install is not an upgrade. If no offer arrives, keep gate open; no mechanism-only fallback without separate owner decision. | Agent; owner only if consent/unlock required |
@@ -95,7 +95,7 @@ These can follow a limited preview only when no known reproducible loss/security
 
 ## Immediate work queue
 
-1. Prepare L1 scope/identity choices and a feature-to-test/exclusion inventory. Resolve scope with owner before scheduling release work.
+1. L1 is approved. Prepare the signed candidate through the existing release-signing setup; preserve the approved identities and exclusions.
 2. In parallel with independent preparation, keep the existing Google upgrade monitor; prepare the bounded L5/L6 manual session and review L7 boundaries. No new build or test authorization is implied by this planning document.
 3. Complete L2 isolation and L8 packaging plan, then produce/test the candidate under the appropriate explicit build/signing authorization.
 4. Finish preview update policy and its tests (L9), run the frozen artifact suite once (L5/L6/L10), resolve concrete failures.
@@ -140,3 +140,18 @@ October22 [encryption readiness fault checks](evidence/encryption-faults-2026102
 October22 timeout repair design: [safety constraints and required checks](encryption-readiness-repair-design.md). Do not release the restore wait by synthesizing an empty session or failing the shared encryption provider. Owner selected the recovery screen with saved tabs preserved; the bounded recovery repair is validated below, and L2 remains open. Google/dev untouched; latency and Electron diagnostic build pending.
 
 October22 [encryption recovery repair](evidence/session-recovery-20261022/README.md): owner-selected native recovery screen appears after ten seconds without consuming the pending read. Late completion restores once; Quit avoids blank fallback and releases keep-alives after startup. Twelve starts/28 assertions pass, including encrypted-only delay and Quit/restart with unchanged saved records; both-store provider-error fallback controls pass. Initial Quit/fixture/compiler failures retained. Seven capture/eleven counter tests and final guard0 pass; diagnostics removed, normal binary restored incrementally. Fresh60/149 under standing budget authorization. Google/dev unchanged. Real keychain, historical stall cause, wider lifecycle and packaged macOS26 acceptance remain open; L2 open. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`. Latency and Electron diagnostic build pending.
+
+
+October 22 gate closeout reconciliation: current rows now credit scope approval, self-contained packaging, owner-confirmed Island VoiceOver and encryption recovery. Owner selected the existing release-signing Mac/CI setup. Local keychain reports zero valid signing identities, but the existing release workflow loads credentials through 1Password; signing availability there is not yet verified. [Manual maintenance policy](preview-manual-maintenance-policy.md) prepared for operational review. No new gate accepted: 1/12, delta 0. No build, profile change or public release.
+
+
+October 22 [signing access evidence](evidence/preview-signing-access-20261022/README.md): shipping publisher identified as Anthony Loria / XYGUCY4498; direct disposable signing probe finds no identity on this host. Notarization credentials available through configured release environment. Current candidate staged and launcher validated, but remains ad-hoc; signed isolation/recovery and notarization pending signing access. Google/dev unchanged; no Chromium/Electron build, latency deferred. 1/12 gates, delta 0.
+
+October 22 signing follow-up: configured release-vault backup is mislabeled; its sole attachment is an Apple Development public certificate, not the Developer ID private-key identity. Signed candidate/notarization and artifact acceptance await corrected backup or release-keychain access. No keychain/profile changes, no gate closure.
+
+
+October 22 [signed preview candidate](evidence/signed-preview-20261022/README.md): shipping Developer ID signs separate app/helpers; Apple Accepted, stapled, strict verification and Gatekeeper pass. Launcher minimum corrected from inherited27 to26 (17 Mach-O deployment audit passes). Five isolated recovery assertions and validated native shutdown-veto/restart fixture pass; failed fixture attempts retained. Mock keychain/macOS27.2 only; real keychain and clean macOS26/full acceptance remain open. Temporary SSH access and seven fixture app/profile directories removed; Google/dev tabs unchanged. Final archive SHA256 `1e2204deaad59d050171ea88f18fc0b789ee39e7435b58b414cd7b5e51d62e78`. No Chromium/Electron rebuild, latency deferred. 1/12 gates; delta0, signing/notarization preparation complete.
+
+October 22 [real-keychain preflight](evidence/real-keychain-preflight-20261022/README.md): signed framework and native provider still use generic Chromium Safe Storage/Chromium service/account. Preview-only keychain namespace is a concrete L2 blocker. No real-keychain launch or credential access performed; recovery tests remain pending a namespace repair and replacement signed/notarized artifact. Google/dev snapshots unchanged. 1/12 gates, delta0. No build; latency deferred, Electron diagnostic build pending.
+
+October 22 [preview keychain namespace repair](evidence/preview-keychain-repair-20261022/README.md): common native keychain service/account now stable preview-only names, no generic Chromium fallback or migration. Incremental33.29s/6steps, finalguard0; footprint61/150 under standing authorization. Developer ID signature verified. Six real-keychain checks pass including encrypted-only clean restart, order/selection and immediate post-close crash; native shutdown Cancel/restart fixture passes. Isolated-HOME authorization failure and sandbox trust-verification errors retained separately. Google/dev unchanged; temporary SSH key revoked/deleted. Apple Accepted fb2c7d4f-6254-4fc1-83b6-a1774730bdcb; stapled/strict verification/Gatekeeper pass. Archive SHA256 921422c6f0e37b47256ba43e0de21a3c532cce2b8bb984665e6103fac9fd6874. SupportedmacOS26/fullcandidateacceptance and denied-provider saved-data checks remain open. 1/12 gates, delta0. Latency deferred, Electron build pending.

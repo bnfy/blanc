@@ -293,6 +293,15 @@ function edit(relative, edits) {
   writeIfChanged(target, source);
 }
 
+// This fork has a fresh-profile-only preview contract. Never fall back to or
+// migrate the generic Chromium keychain item; both async and legacy users share
+// KeychainPassword. Stable names survive preview updates and app relocation.
+edit('components/os_crypt/common/keychain_password_mac.mm', [{
+  anchor: 'const char kDefaultServiceName[] = "Chromium Safe Storage";\nconst char kDefaultAccountName[] = "Chromium";',
+  replacement: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";\nconst char kDefaultAccountName[] = "Blanc Chromium Preview";',
+  present: 'const char kDefaultServiceName[] = "Blanc Chromium Preview Safe Storage";',
+}]);
+
 // Blanc uses the Island, not Chromium's OS-wide Google search launcher.
 // Deny profile eligibility as well as controller activation so persisted opt-in
 // and feature experiments cannot register the launcher or show its onboarding.
