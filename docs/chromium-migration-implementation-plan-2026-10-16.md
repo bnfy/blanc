@@ -714,3 +714,15 @@ change; guard0; prior56/135 unchanged. Profile destruction, shutdown, subframes,
 redirects and broader lifecycle remain open. Evidence: `experiments/chromium-extension-spike/evidence/f12-prefetch-response-lifecycle-20261021/README.md`.
 Google baseline separate; latency deferred; native input and Electron diagnostic
 build pending. F12/Decision2 remain in progress.
+
+### October 21: pending prefetch profile deletion and shutdown
+
+Four regular/private schedules pass. Actual Default profile deletion closes the
+pending consuming page, preserves the independent profile, and stays absent after
+restart. Clean browser shutdown while the utility is held cancels pending
+navigation and restarts usable. No late response completion or second server
+arrival in the bounded observation. Cancellation/veto, crash/powerloss, concurrent
+navigations and broader lifecycle remain open; no session-restoration claim.
+Evidence: `experiments/chromium-extension-spike/evidence/f12-prefetch-profile-shutdown-20261021/README.md`.
+No production change/build, guard0, prior56/135 unchanged. Google baseline
+separate; latency deferred; native input and Electron diagnostic build pending.
