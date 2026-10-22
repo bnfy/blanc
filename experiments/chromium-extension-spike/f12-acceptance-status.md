@@ -257,3 +257,15 @@ navigations and broader lifecycle remain open; no session-restoration claim.
 Evidence: `evidence/f12-prefetch-profile-shutdown-20261021/README.md`.
 No production change/build, guard0, prior56/135 unchanged. Google baseline
 separate; latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: pending-prefetch cancellation/veto still unqualified
+
+Three four-schedule fixture attempts retained; zero acceptance passes. Initial
+Browser.close bypasses unload handlers and was replaced by chrome://quit. Final
+delete-cancel captures native prompts and retains profiles, but only after the
+pending response timed out (settled=true/error document at prompt). Shutdown-veto
+prompt capture still times out. These do not establish a production cancellation
+bug or pending-response recovery. Next priority is reliable prompt activation/
+sequencing before timeout, without widening deadlines. Evidence: `evidence/f12-prefetch-cancellation-veto-20261021/README.md`.
+No native change/build; guard0; prior56/135 unchanged. Profiles cleaned, Google
+baseline separate; latency deferred; native input and Electron build pending.
