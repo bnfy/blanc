@@ -364,17 +364,18 @@ test('floatViewBounds wraps the rect with shadow room, from the window top, clam
   assert.equal(floatViewBounds({ x: NaN, y: 0, width: 10, height: 44 }, { ...win, side: 20, bottom: 24 }), null);
 });
 
-test('on Linux a covered strip keeps one row uncovered so Chromium keeps laying it out', () => {
-  // Chromium on Linux treats the window document as occluded once a page view
-  // covers it whole: it reports visibilityState 'hidden' and stops syncing
-  // its size, so the island-rect and window-controls reports the float views
-  // are placed from go stale after a resize (2026-10-20 VM check). One row
-  // of the strip left showing keeps it visible. macOS and Windows keep a
-  // fully covered document visible, so they give the page everything.
+test('on Linux and Windows a covered strip keeps one row uncovered so Chromium keeps laying it out', () => {
+  // Chromium on Linux and Windows treats the window document as occluded once
+  // a page view covers it whole: it reports visibilityState 'hidden' and stops
+  // syncing its size, so the island-rect and window-controls reports the float
+  // views are placed from go stale after a resize (2026-10-20 Linux VM check)
+  // or as the pill grows (2026-10-22 Windows VM check: the floating pill's
+  // ends were cut off). One row of the strip left showing keeps it visible.
+  // macOS keeps a fully covered document visible, so it gives the page all.
   assert.equal(COVERED_STRIP_ROW_PX, 1);
   assert.equal(coveredStripHeight('linux'), 1);
   assert.equal(coveredStripHeight('darwin'), 0);
-  assert.equal(coveredStripHeight('win32'), 0);
+  assert.equal(coveredStripHeight('win32'), 1);
   assert.equal(coveredStripHeight(undefined), 0);
   const layout = calculateChromeLayout({ width: 1280, height: 800, chromeHeight: coveredStripHeight('linux'), islandHeight: 0 });
   assert.equal(layout.pageBounds.y, 1);
