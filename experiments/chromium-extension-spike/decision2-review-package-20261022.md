@@ -25,7 +25,7 @@ Do not add checkpoint counts across overlapping runs or call archive integrity c
 
 ## Finite next work and stop rules
 
-1. **Scope decision:** review [preview proposal](mac-preview-scope-proposal.md). Owner approves scope and maintenance responsibility; this closes only the scope decision, not artifact gates.
+1. **Scope decision completed:** [owner approval](mac-preview-scope-approval-20261022.md) closes L1. Maintenance staffing remains a separate decision. [Source continuity](evidence/decision2-provenance-20261022/README.md) is reconciled; candidate resource/configuration mapping remains.
 2. **Single evidence session:** use the existing Electron app for five matched visual states; native keyboard/pointer/VoiceOver through Island, extension permissions/popup, close Cancel/Leave, Split focus/divider and Customize Theme. Record app versions, hashes, dimensions, accessibility names/focus and defects. If existing Electron cannot provide a valid comparison, record the blocker; do not build it.
 3. **Candidate preparation:** after required approvals, freeze source, upstream revision, configuration, patch inventory and assets. Map selected historical tests to changed production paths; rerun only changed or missing coverage. Execute the bounded recovery/functionality list in the gate reconciliation once per candidate.
 4. **Packaging/isolation/security:** build only under the guarded incremental policy and separately authorize any distribution operation. Validate signed/quarantined artifact, fresh profile coexistence, uninstall isolation and manual update/rollback policy.

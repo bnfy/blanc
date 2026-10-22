@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/browser/ui/blanc_prototype_ui.cc",
+    "previous": "9c7e1a4e6ef992e2f3cc28eb330a076b122d2c9563620a64ab63461896c787f9",
+    "current": "9c7e1a4e6ef992e2f3cc28eb330a076b122d2c9563620a64ab63461896c787f9",
+    "match": true
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+    "previous": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+    "current": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+    "match": true
+  },
+  {
+    "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+    "previous": "63db16279bea7c49ca93461c2f4e02eaaef7a0bcdbdc6675db3b0d42af12693d",
+    "current": "88651e093a39a73a3204c589afd3344b08d695b1848a83173344332b290ed915",
+    "match": false
+  },
+  {
+    "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+    "previous": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+    "current": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+    "match": true
+  }
+]

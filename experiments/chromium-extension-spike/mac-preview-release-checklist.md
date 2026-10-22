@@ -1,6 +1,6 @@
 # Side-by-side Mac Chromium preview release checklist
 
-> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest recorded upstream footprint is 56 files/135 hunks, not a fresh measurement here. Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
 Working release plan — October 21, 2026. Status: **not release-ready**.
 
@@ -12,15 +12,15 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 **Baseline: October 22, 2026; source/evidence checkpoint `9772330a`.**
 
-`[□□□□□□□□□□□□] 0/12 launch gates cleared (0%) · Δ baseline`
+`[■□□□□□□□□□□□] 1/12 launch gates cleared (8.3%) · Δ +1 L1`
 
-This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, but no row below has complete candidate-bound acceptance. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The proposed scope still needs approval.
+This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, but L1 has its explicit owner decision; artifact-bound rows remain open. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
 
 Scoring: one filled cell per fully accepted L-row, no partial credit for code written, test/checkpoint counts, CI jobs or repeated stress runs. A row requires the exit-record evidence below, including applicable candidate/artifact identity and approval. Reopen a cell if a relevant regression or candidate change invalidates its evidence. Any owner-approved scope/denominator change must be recorded explicitly, never used silently to inflate progress. This tracking-only metric supersedes the former blanket restriction on showing a percentage; it does not waive any gate or authorize new builds.
 
 | Gate | Current acceptance status | Next evidence or decision |
 | --- | --- | --- |
-| L1 Scope/identity | Open — owner decision pending | Prepare exact preview contract, OS/architecture support and separate identities |
+| L1 Scope/identity | **Accepted October 22** | [Owner approval](mac-preview-scope-approval-20261022.md); implementation verified under L2/L8 |
 | L2 Isolation | Open — disposable prototype evidence only | Candidate install/coexist/restart/uninstall with original data unchanged |
 | L3 Security/maintenance | Open — rebase evidence exists | Supported baseline, patch/dependency review and maintenance commitment |
 | L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |

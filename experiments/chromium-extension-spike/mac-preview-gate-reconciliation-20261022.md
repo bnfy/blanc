@@ -2,11 +2,11 @@
 
 Source checkpoint `8b421954`, [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md), [launch criteria](mac-preview-release-checklist.md). Existing runtime evidence is credited below without equating historical fixtures with a signed candidate.
 
-**Progress:** four review documents prepared (reconciliation, Decision 2 packet, cost sheet, scope proposal). These are completed authoring deliverables, not four accepted launch gates. Final sign-offs: `[□□□□□□□□□□□□] 0/12`. No gate is reset by this reconciliation; no gate has its complete artifact/approval record yet. Future updates report the specific accepted prerequisite and remaining criterion, not just this bar.
+**Progress:** four review documents prepared (reconciliation, Decision 2 packet, cost sheet, scope proposal). These are completed authoring deliverables, not four accepted launch gates. Final sign-offs: `[■□□□□□□□□□□□] 1/12`. No gate is reset by this reconciliation; L1 now has its owner approval record; artifact-bound gates remain open. Future updates report the specific accepted prerequisite and remaining criterion, not just this bar.
 
 | Gate | Existing work credited | Exact remaining closure action / responsible role |
 | --- | --- | --- |
-| L1 scope | Concrete side-by-side proposal now written | Owner approves proposal and relationship to Decision 2; record decision. |
+| L1 scope | **Accepted:** concrete side-by-side proposal and [owner decision](mac-preview-scope-approval-20261022.md) | Closed as scope decision; artifact and Decision 2 acceptance remain separate. |
 | L2 isolation | Disposable native profiles and preserved shipping profile practice | Engineer tests proposed packaged identity: coexist, restart, uninstall; compare shipping profile/tab/update state before/after. |
 | L3 security/maintenance | Measured rebase, native patch design and inventory records | Owner assigns primary/backup; engineer verifies supported security revision and candidate inventory/audit, records maintenance and withdrawal policy. |
 | L4 Google upgrade | Authentic install/restart baseline recorded separately | Wait for authentic newer version, then native update/network/enabled/restart/popup proof. No synthetic substitute; monitor separately. |

@@ -1,6 +1,6 @@
 # F12 acceptance consolidation — October 21, 2026
 
-> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest recorded upstream footprint is 56 files/135 hunks, not a fresh measurement here. Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
 Primary plan: [implementation plan §2/§4C](../../docs/chromium-migration-implementation-plan-2026-10-16.md). Status: **both spikes in progress; neither accepted; no engine-selection decision**. This report consolidates dated evidence, not a new runtime run. Historical binary passes do not establish current-head native acceptance. Latency remains deferred; the Electron diagnostic build remains pending approval/unstarted.
 

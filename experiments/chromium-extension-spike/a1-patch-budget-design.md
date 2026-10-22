@@ -1,8 +1,8 @@
 # A1: upstream integration and patch-budget design
 
-> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest recorded upstream footprint is 56 files/135 hunks, not a fresh measurement here. Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
-Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. Current tranche ceiling remains **49 existing upstream files / 120 hunks**.
+Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. The original 49/120 ceiling below is historical. Current counter is **58 files/137 hunks**; further increases use standing owner authorization and must be recorded.
 
 ## Measured starting point
 
@@ -44,7 +44,7 @@ The future apply tool operates only on the pinned clean source/dependency revisi
 
 ## CI reporting design
 
-Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Fail the budget check above 49/120; report approaching limits without changing the limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
+Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Fail the budget check above the recorded counter limit (currently58/137); report approaching limits without changing the limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
 
 The hosted PR suite currently does not constitute this authoritative Chromium inventory job. Wiring the manifest/apply tool and runner is implementation after Decision 2. Design review remains open; this artifact does not close the runtime, visual, VoiceOver, cost, latency or extension-upgrade gates.
 

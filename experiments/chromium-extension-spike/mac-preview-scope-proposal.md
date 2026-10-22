@@ -1,6 +1,6 @@
 # Concrete side-by-side Mac preview proposal
 
-October 22, 2026 — proposed for owner approval; no release authorization implied.
+October 22, 2026 — scope approved by the owner; see [decision record](mac-preview-scope-approval-20261022.md). No release authorization implied.
 
 **Recommended first audience:** opt-in technical testers, Apple Silicon only, fresh preview profiles. Publish as **Blanc Chromium Preview**, explicitly separate from shipping Blanc. Propose macOS 26 only for the first preview; verify an actual clean supported Mac and deployment target before acceptance. Intel, older macOS, Windows and Linux follow later and remain outside this preview's claims.
 
