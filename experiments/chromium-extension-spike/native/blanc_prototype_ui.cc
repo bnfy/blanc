@@ -117,6 +117,7 @@
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/public/browser/child_process_security_policy.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/render_widget_host_view.h"
@@ -675,9 +676,15 @@ class Owner : public base::SupportsUserData::Data,
  private:
   void FindEvent(const std::u16string& script) {
     auto* host = view ? view->GetWebContents() : nullptr;
-    if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
-        host->GetPrimaryMainFrame()->IsRenderFrameLive())
-      host->GetPrimaryMainFrame()->ExecuteJavaScript(script, base::NullCallback());
+    auto* frame = host ? host->GetPrimaryMainFrame() : nullptr;
+    // An error document can retain the host URL without WebUI bindings. Startup
+    // navigation may notify StopFind in that state; never inject into it or
+    // weaken Chromium's ExecuteJavaScript security precondition.
+    if (!frame || !frame->IsRenderFrameLive() || frame->IsErrorDocument() ||
+        frame->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+        !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+            frame->GetProcess()->GetID())) return;
+    frame->ExecuteJavaScript(script, base::NullCallback());
   }
   void DidReceiveFindReply(int request_id, int matches, const gfx::Rect&,
                            int ordinal, bool final_update) override {
