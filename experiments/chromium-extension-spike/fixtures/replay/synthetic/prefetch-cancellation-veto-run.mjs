@@ -59,6 +59,19 @@ try {
    await page.evaluate(urls=>{const s=document.createElement('script');s.type='speculationrules';s.textContent=JSON.stringify({prefetch:[{source:'list',urls,eagerness:'immediate'}]});document.head.append(s);},urls);
    await until(()=>row.preloadEvents.some(e=>e.prefetchUrl===urls[0]&&e.status==='Ready'),15000);
    row.readyBeforeLoss=structuredClone(row.preloadEvents);
+   if(config.lastWindow){
+    assert.equal(kind,'regular');assert.equal(mode,'shutdown-veto');
+    await survivor.close();
+    await until(async()=>!(await bc.send('Target.getTargets')).targetInfos.some(t=>t.url==='chrome://profile-picker/'),5000);
+    const targets=(await bc.send('Target.getTargets')).targetInfos;
+    row.islandTargets=targets.filter(t=>t.url==='chrome://blanc-prototype/host.html');
+    assert.equal(row.islandTargets.length,1);
+    const windows=[];
+    for(const t of targets.filter(t=>t.type==='page'&&t.url!=='chrome://blanc-prototype/host.html')){
+     const w=await bc.send('Browser.getWindowForTarget',{targetId:t.targetId});windows.push({target:t.targetId,url:t.url,windowId:w.windowId});
+    }
+    row.windowsBeforeVeto=windows;assert.equal(new Set(windows.map(w=>w.windowId)).size,1);
+   }
    {
     const processes=execFileSync('/bin/ps',['-axo','pid=,ppid=,command='],{encoding:'utf8'}).split('\n').map(l=>{const m=l.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/);return m&&{pid:Number(m[1]),ppid:Number(m[2]),command:m[3]};}).filter(Boolean);
     const owners=processes.filter(p=>p.command.includes('--user-data-dir='+profile)&&!p.command.includes('--type='));assert.equal(owners.length,1);
