@@ -27,7 +27,7 @@ try {
   try {
    const launchOptions={executablePath:config.chromium,headless:false,chromiumSandbox:true,args:['--blanc-prefetch-veto-fixture','--use-mock-keychain','--no-proxy-server',`--ignore-certificate-errors-spki-list=${spkiList(material)}`,'--host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',`--blanc-blocker-assets=${config.engine}`,`--blanc-blocker-log=${log}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--disable-component-update','--disable-sync']};
    context=await pw.chromium.launchPersistentContext(profile,launchOptions);
-   const browser=context.browser(),active=kind==='private'?await browser.newContext():context,guard=await context.newPage(),page=await active.newPage();
+   const browser=context.browser(),active=kind==='private'?await browser.newContext():context,guard=await (config.lastWindow?active:context).newPage(),page=await active.newPage();
    const cdp=await active.newCDPSession(page);await cdp.send('Preload.enable');await cdp.send('Network.enable');row.responses=[];cdp.on('Network.responseReceived',e=>row.responses.push(e));row.preloadEvents=[];
    cdp.on('Preload.prefetchStatusUpdated',e=>row.preloadEvents.push(e));
    const target=(await cdp.send('Target.getTargetInfo')).targetInfo;
@@ -37,7 +37,7 @@ try {
    await guard.goto(origin+'/guard');
 
    let dialog;guard.on('dialog',d=>{dialog=d;});
-   const guardCDP=await context.newCDPSession(guard);
+   const guardCDP=await guard.context().newCDPSession(guard);
    await guard.bringToFront();await guard.locator('main').click();
    await guardCDP.send('Runtime.evaluate',{expression:"window.onbeforeunload=e=>{e.preventDefault();e.returnValue='';}",userGesture:true});
    row.guardArmed=await guard.evaluate(()=>typeof onbeforeunload==='function'&&navigator.userActivation.hasBeenActive);assert(row.guardArmed);
@@ -60,16 +60,23 @@ try {
    await until(()=>row.preloadEvents.some(e=>e.prefetchUrl===urls[0]&&e.status==='Ready'),15000);
    row.readyBeforeLoss=structuredClone(row.preloadEvents);
    if(config.lastWindow){
-    assert.equal(kind,'regular');assert.equal(mode,'shutdown-veto');
-    await survivor.close();
+    assert.equal(mode,'shutdown-veto');
+    const stage=value=>{row.stage=value;fs.writeFileSync(path.join(root,'stage.json'),JSON.stringify(row,null,2));};
+    stage('closing-survivor');await survivor.close();
+    if(kind==='private')for(const regularPage of context.pages().filter(p=>p.url()!=='chrome://blanc-prototype/host.html')){
+     stage('closing-regular:'+regularPage.url());await regularPage.close();
+    }
+    stage('checking-picker-disappearance');
     await until(async()=>!(await bc.send('Target.getTargets')).targetInfos.some(t=>t.url==='chrome://profile-picker/'),5000);
-    const targets=(await bc.send('Target.getTargets')).targetInfos;
+    stage('listing-targets');const targets=(await bc.send('Target.getTargets')).targetInfos;
     row.islandTargets=targets.filter(t=>t.url==='chrome://blanc-prototype/host.html');
     assert.equal(row.islandTargets.length,1);
     const windows=[];
     for(const t of targets.filter(t=>t.type==='page'&&t.url!=='chrome://blanc-prototype/host.html')){
-     const w=await bc.send('Browser.getWindowForTarget',{targetId:t.targetId});windows.push({target:t.targetId,url:t.url,windowId:w.windowId});
+     if(kind==='private')assert.equal(t.browserContextId,target.browserContextId);
+     const w=await bc.send('Browser.getWindowForTarget',{targetId:t.targetId});windows.push({target:t.targetId,url:t.url,windowId:w.windowId,browserContextId:t.browserContextId});
     }
+    row.privateContextId=kind==='private'?target.browserContextId:null;
     row.windowsBeforeVeto=windows;assert.equal(new Set(windows.map(w=>w.windowId)).size,1);
    }
    {
