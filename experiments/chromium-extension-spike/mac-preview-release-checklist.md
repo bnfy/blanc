@@ -120,3 +120,6 @@ October22 self-contained local preview package: [evidence](evidence/preview-pack
 
 
 October22 [preview startup crash repair](evidence/preview-startup-repair-20261022/README.md): old-binary missing-assets fatal reproduced; guarded FindEvent now rejects error/no-WebUI frames, matching negative survives. Four fresh-start schedules and real native Find result pass with clean exits. Restored-profile startup stalls in SessionRestoreImpl::Restore; isolation remains open, next priority. Incremental49.97s/sixsteps, finalguard0; Google baseline/dev unchanged. No latency/Electron build. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`.
+
+
+October22 [restored-profile investigation](evidence/preview-restore-investigation-20261022/README.md): unchanged artifact restores the saved disposable copy, five repeat restarts and fifteen fresh/restart pairs pass. Settled three-tab fixture preserves order/selection across three restarts. Immediate close during pending navigation loses those pending tabs; retained separately. Prior startup stall did not recur and has no confirmed cause or repair; L2 stays open. No native build or production change; Google/dev tabs unchanged. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`. Latency and Electron diagnostic build pending.
