@@ -207,3 +207,14 @@ pre-prefetch, prerender and uBO remain open. F12/Decision 2 remain in progress.
 Evidence: `evidence/f12-prefetch-consumption-20261021/README.md`.
 No native compile, guard zero, prior56/134 unchanged. Google baseline separate;
 latency deferred; native input and Electron diagnostic build pending.
+
+### October 21: utility loss between ready prefetch and consumption
+
+Two regular/private diagnostics show previously allowed ready prefetch consumed
+after utility loss without a fresh native decision. Fresh control requests are
+explicitly refused before navigation; consumption uses prefetch cache with no
+new server arrival. This is not consumption-time fail-closed acceptance, nor a
+new network leak. No repair; invalidation/revalidation policy remains open before
+claiming that coverage. F12/Decision 2 stay open. Evidence: `evidence/f12-prefetch-postready-loss-20261021/README.md`.
+No build; guard zero; prior56/134 unchanged. Google baseline separate, latency
+deferred, native input and Electron diagnostic build pending.
