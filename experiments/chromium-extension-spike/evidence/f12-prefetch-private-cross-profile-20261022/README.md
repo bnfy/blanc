@@ -1,0 +1,9 @@
+# Private cross-profile shutdown veto — October 22, 2026
+
+Two private cross-profile schedules pass with native beforeunload guards armed in private windows belonging to Default and Profile 1. Temporary native probes assert IsOffTheRecord and original-profile basename for every guard and consumer, with distinct Island hosts and native windows. Each profile has one pending prefetched consumption. Both choices repeat twice: cancel the first prompt, or accept it and cancel the other profile's prompt. Eight acknowledged Exit requests coalesce into six sequential prompts; all four original consumptions remain pending through cancellation and recover after the owned utility resumes. Native response decisions retain private=true, each URL has exactly one server prefetch arrival, and fresh navigation passes in both private windows. No runtime failure occurred.
+
+The initial regular Default anchor remains open; this is not private-only last-window shutdown qualification. The probes add private/original-profile fields only under the temporary fixture flag, are archived in this evidence directory, and are removed byte-for-byte afterward. Normal binary restored incrementally, final guard zero; production unchanged and prior upstream footprint remains 56 files/135 hunks. Higher private cross-profile load, repeated cycles, persistence exclusion/cache isolation, physical native input, crash and power-loss remain unqualified. Google baseline separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Raw logs: /private/tmp/blanc-prefetch-private-cross-01. Run `python3 validate.py` and verify `SHA256SUMS`.
+
+Guarded incremental builds: diagnostic 37.58 seconds; restoration 36.44 seconds. Final guard zero. Report validation, syntax and scoped lint pass.
