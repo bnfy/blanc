@@ -854,3 +854,8 @@ Owner requested removal of Chromium's “Search from anywhere” Google/Lens lau
 [Authoritative provenance reconciliation](../experiments/chromium-extension-spike/evidence/decision2-provenance-20261022/README.md) measures58files/137hunks. All56 earlier upstream patches match the prefetch repair inventory; only two launcher paths were added. Native bridge/engine source continuity verified; framework binary changed, so historical tests are supporting evidence, not a rerun. Full new-file/resource mapping and candidate smoke remain. No more lifecycle permutations without a concrete acceptance gap.
 
 Visual comparison could not safely target the dev process through the native UI tool: the shared app path selected the Google baseline window. No UI actions were performed on that baseline. Use a uniquely identifiable isolated candidate window for the matched comparison; no new Electron build authorized. Latency deferred.
+
+
+### October 22 native visual/AX and local isolation checkpoint
+
+[Bounded evidence](../experiments/chromium-extension-spike/evidence/visual-ax-isolation-20261022/README.md): native/reference Find labels, matches and Escape focus pass; native settled address and private input checks pass. Native panel lacks reference secure-connection, Private, Spaces and Settings affordances. Capture dimensions differ across displays, so matched visual acceptance remains incomplete. Unique ad-hoc preview clone solves UI targeting and preserves dev two-tab order/selection; Google baseline stays separate. Final signed/fresh-profile isolation and VoiceOver remain open. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`. No build; latency deferred; Electron diagnostic build pending.

@@ -106,3 +106,8 @@ These can follow a limited preview only when no known reproducible loss/security
 For each launch row: status (open/pass/blocked), owner, candidate SHA, artifact SHA-256, architecture/macOS, evidence path, exact outcome, remaining limitations, reviewer/date. A row passes only on its acceptance criterion. Do not convert a test's diagnostic checkpoint count into a pass count. Use the gate-count metric above for progress reporting. Do not estimate overall engineering percentage or a calendar ETA while scope and the external upgrade dependency remain unresolved.
 
 References: [migration decisions and cutover gates](../../docs/platform-migration-electron-to-chromium-2026-10-04.md), [current rebase/evidence ledger](rebase-ledger.md), [implementation plan](tranche2-request.md).
+
+
+### October 22 native visual/AX and local isolation checkpoint
+
+[Bounded evidence](evidence/visual-ax-isolation-20261022/README.md): native/reference Find labels, matches and Escape focus pass; native settled address and private input checks pass. Native panel lacks reference secure-connection, Private, Spaces and Settings affordances. Capture dimensions differ across displays, so matched visual acceptance remains incomplete. Unique ad-hoc preview clone solves UI targeting and preserves dev two-tab order/selection; Google baseline stays separate. Final signed/fresh-profile isolation and VoiceOver remain open. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`. No build; latency deferred; Electron diagnostic build pending.

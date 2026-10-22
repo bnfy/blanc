@@ -32,3 +32,8 @@ Do not add checkpoint counts across overlapping runs or call archive integrity c
 5. **Closeout:** exact-head CI and security report, actual Google upgrade result, artifact-bound acceptance and explicit go/no-go. Do not expand stress coverage without an observed defect or unmet written acceptance criterion.
 
 Latency deferral is not a pass or a waiver of Decision 2 requirements. If the owner wants a different preview decision gate, record that explicit change separately. The Electron diagnostic build remains pending approval.
+
+
+### October 22 native visual/AX and local isolation checkpoint
+
+[Bounded evidence](evidence/visual-ax-isolation-20261022/README.md): native/reference Find labels, matches and Escape focus pass; native settled address and private input checks pass. Native panel lacks reference secure-connection, Private, Spaces and Settings affordances. Capture dimensions differ across displays, so matched visual acceptance remains incomplete. Unique ad-hoc preview clone solves UI targeting and preserves dev two-tab order/selection; Google baseline stays separate. Final signed/fresh-profile isolation and VoiceOver remain open. `[■□□□□□□□□□□□] 1/12 (8.3%) · Δ 0 gates`. No build; latency deferred; Electron diagnostic build pending.
