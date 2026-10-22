@@ -158,6 +158,13 @@ public enum BlancTokens {
         case .privateBrowsing: return "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28)"
         }
     }
+    public static func shadowGlanceCard(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32)"
+        case .dark: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
+        case .privateBrowsing: return "0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42)"
+        }
+    }
     public static func selectCaret(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "url(\"select-caret.svg\")"

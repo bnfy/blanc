@@ -48,6 +48,7 @@
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+  --shadow-glance-card: 0 1px 3px rgba(14,14,14,.12), 0 8px 18px -6px rgba(14,14,14,.32);
   --strip-h: 68px;
   --pill-zoom: 1.15;
   --radius: 6px;
@@ -83,6 +84,7 @@
     --on-danger: #0e0e0e;
     --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
     --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+    --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
   }
 }
 :root[data-theme="private"] {
@@ -107,6 +109,7 @@
   --on-danger: #0a0a0a;
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
   --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
+  --shadow-glance-card: 0 1px 3px rgba(0,0,0,.3), 0 8px 18px -6px rgba(0,0,0,.42);
 }
 
 /* pages — src/renderer/pages/pages.css */

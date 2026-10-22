@@ -762,11 +762,13 @@
       return;
     }
 
-    // The view is the card plus its resize ring; the card sits inside it.
-    const { chrome, header } = glanceLayout.card;
+    // The view is the card plus its resize ring; the card sits inside it. The
+    // ring above shrinks when the card meets the top of the page area.
+    const { chrome, frame } = glanceLayout.card;
     const root = document.documentElement;
-    root.style.setProperty('--glance-card-w', `${header.width}px`);
-    root.style.setProperty('--glance-card-h', `${chrome.height - (header.x - chrome.x) * 2}px`);
+    root.style.setProperty('--glance-card-w', `${frame.width}px`);
+    root.style.setProperty('--glance-card-h', `${frame.height}px`);
+    root.style.setProperty('--glance-ring-top', `${frame.y - chrome.y}px`);
     glanceCard.classList.toggle('private', !!tab.private);
     glanceCard.classList.toggle('focused', glanceLayout.focusedPane === 'glance');
     glanceHeader.classList.toggle('private', !!tab.private);
@@ -1342,10 +1344,8 @@
     schedule: (fn) => requestAnimationFrame(fn),
   });
   const cardFrameOfLayout = () => {
-    const card = glanceLayout?.card;
-    if (!card) return null;
-    const ring = card.header.x - card.chrome.x;
-    return { x: card.header.x, y: card.header.y, width: card.header.width, height: card.chrome.height - 2 * ring };
+    const frame = glanceLayout?.card?.frame;
+    return frame ? { ...frame } : null;
   };
   function startCardDrag(event, edge) {
     const frame = cardFrameOfLayout();

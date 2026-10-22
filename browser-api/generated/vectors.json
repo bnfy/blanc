@@ -2238,6 +2238,12 @@
                   "width": 1,
                   "height": 1
                 },
+                "frame": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
                 "header": {
                   "x": 1,
                   "y": 1,
@@ -2260,6 +2266,12 @@
               {
                 "card": {
                   "chrome": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "frame": {
                     "x": 1,
                     "y": 1,
                     "width": 1,
