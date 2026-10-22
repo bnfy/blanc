@@ -1,12 +1,12 @@
 {
   "preserved.json": "166d675b4004f42ef5479a76ab9cdef61f109e60ec4b4375de46136d92d5033e",
-  "initial-startup-failure.log": "b5ec2007dd2f881bbde51b69b240c21cabb1d3d9187c58a62cd688b262e3ce09",
+  "default-profile.log.gz": "8a1974da0465ee292f3605683d4e0dc6b0efcc89464fb4373a5dfba3a0d837ab",
   "removal.json": "7b9e6ad16e7ef7844802801a0cec642b7f79c6ced03c807e74cd09e499445c97",
   "runtime-ax.json": "7cc6a89751dfcc8e94bd4e35a57c67debf1bcbc275a1c114d6034ac99868643e",
+  "runtime.log.gz": "c7b4912a49c1dd3f46dfe702ce091a77b843a895810fd82fb47a789acfc70d43",
+  "initial-startup-failure.log.gz": "c976a7785becd7b82f0074b22526198c986ee4fc82777f7c3b15309a0a8cefe6",
   "README.md": "b83c7205dbf35b32b10c3d7a74349b74248f08adcf6d8748d2c6a429aa86ccf2",
   "check.json": "6938d8830c138cffaa97e6faebc41686bed4de5708bf2b89de67693d2faa030f",
-  "default-profile.log": "5aa22d2dc48d928c85fed27f9370df3b6470eb1dd65b745f3f8bf0a1f2a18d5f",
-  "restart.log": "5d2738890015ecd928b241d17f4b5955863654a8066bda242a07ac6416a904cc",
-  "runtime.log": "a51013cba1be03198cdc163e0788f514895be21f5038360ee5e7514ce12ce991",
+  "restart.log.gz": "5d9d1e632be62f649bcec090610a6d10a28e747c1c7366b8d418f92abe36f63c",
   "Blanc Chromium Preview.manifest.json": "7dc9bc0c174e761df81b91d565e40d08d2b27cf10dd4073c5b73169ccdb3f116"
 }
