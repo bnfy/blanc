@@ -34,7 +34,7 @@ build start: Ready 8253 Pending 88010
 [7/11] 43.50s F ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
 build finished
 
-	
+
 noexec:2 local:6 remote:0 cache:0 skip:96255
   cache-write:0(err:0) fallback:0 retry:0
 fs: ops: 3996(err:563) / r:572(err:0) 1.11GiB / w:2(err:0) 569.78MiB

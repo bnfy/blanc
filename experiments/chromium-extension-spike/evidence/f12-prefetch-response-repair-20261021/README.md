@@ -29,3 +29,6 @@ file. Ceiling updated58/135 under standing owner authorization; consolidation
 later. Eleven counter tests, fixture syntax/lint and evidence validation pass.
 Disposable profiles/keys removed; permanent profiles/tabs and separate Google
 baseline untouched. Native input and Electron diagnostic build pending.
+
+Archived build text has trailing whitespace normalized; original logs remain in
+/private/tmp/blanc-prefetch-repair-build.txt and build2.txt.
