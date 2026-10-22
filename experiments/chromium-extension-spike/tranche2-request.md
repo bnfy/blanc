@@ -2708,3 +2708,9 @@ bug or pending-response recovery. Next priority is reliable prompt activation/
 sequencing before timeout, without widening deadlines. Evidence: `evidence/f12-prefetch-cancellation-veto-20261021/README.md`.
 No native change/build; guard0; prior56/135 unchanged. Profiles cleaned, Google
 baseline separate; latency deferred; native input and Electron build pending.
+
+### October 21: pending-prefetch cancellation/veto sequencing repaired
+
+Four final regular/private schedules pass: profile-deletion cancellation and native Exit veto while cached prefetch consumption awaits a blocker response. The guard is armed in Default before the independent profile is opened and before the utility stall. Nonblocking trigger dispatch captures the actual beforeunload prompt with the original navigation still unsettled on its source URL. Cancellation retains Default; utility resume permits the original navigation with a native response allow, one prefetched server arrival, and a successful fresh navigation. Earlier failed setup/trigger attempts are retained separately, not counted as passes.
+
+Shutdown uses an archived temporary flag-gated IDC_EXIT command; CDP Browser.close bypasses unload handlers. The diagnostic is removed byte-for-byte and the normal binary restored. The final matrix includes an independent Profile 1 window, so last-window veto and physical native input remain unqualified. Two incremental builds (35.25/35.26 seconds); production blocker unchanged and prior56files/135hunks unchanged. Google baseline separate; latency deferred and Electron build pending approval/unstarted. F12/Decision2 remain open. Evidence: `evidence/f12-prefetch-veto-sequencing-fix-20261021/README.md`.

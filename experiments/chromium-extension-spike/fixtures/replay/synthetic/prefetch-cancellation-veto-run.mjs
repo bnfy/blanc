@@ -1,3 +1,6 @@
+// Shutdown schedules require the temporary native Exit hook archived in
+// evidence/f12-prefetch-veto-sequencing-fix-20261021/temporary-native-exit.patch.
+// Restore normal native source/binary after use; Browser.close cannot test veto.
 import fs from 'node:fs';
 import path from 'node:path';
 import https from 'node:https';
@@ -18,21 +21,29 @@ const server=https.createServer(material.entries[0],(req,res)=>{
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const pw=await import(pathToFileURL(config.playwright));const report={schedules:[],forcedFeatures:[],latencyMeasured:false};
 try {
- for(const kind of ['regular','private']) for(const mode of ['delete-cancel','shutdown-veto']) {
+ for(const kind of (config.kinds??['regular','private'])) for(const mode of (config.modes??['delete-cancel','shutdown-veto'])) {
   const profile=path.join(root,kind+'-'+mode);fs.mkdirSync(profile);const log=path.join(root,kind+'-'+mode+'.jsonl');fs.writeFileSync(log,'');let context,heldPid;
   const row={kind,mode};report.schedules.push(row);
   try {
-   const launchOptions={executablePath:config.chromium,headless:false,chromiumSandbox:true,args:['--use-mock-keychain','--no-proxy-server',`--ignore-certificate-errors-spki-list=${spkiList(material)}`,'--host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',`--blanc-blocker-assets=${config.engine}`,`--blanc-blocker-log=${log}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--disable-component-update','--disable-sync']};
+   const launchOptions={executablePath:config.chromium,headless:false,chromiumSandbox:true,args:['--blanc-prefetch-veto-fixture','--use-mock-keychain','--no-proxy-server',`--ignore-certificate-errors-spki-list=${spkiList(material)}`,'--host-resolver-rules=MAP page.blanc-fixture.test 127.0.0.1, MAP 000491b06a.com 127.0.0.1, MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',`--blanc-blocker-assets=${config.engine}`,`--blanc-blocker-log=${log}`,`--blanc-prototype-assets=${config.ui}`,'--no-first-run','--disable-component-update','--disable-sync']};
    context=await pw.chromium.launchPersistentContext(profile,launchOptions);
-   const browser=context.browser(),active=kind==='private'?await browser.newContext():context,page=await active.newPage();
+   const browser=context.browser(),active=kind==='private'?await browser.newContext():context,guard=await context.newPage(),page=await active.newPage();
    const cdp=await active.newCDPSession(page);await cdp.send('Preload.enable');await cdp.send('Network.enable');row.responses=[];cdp.on('Network.responseReceived',e=>row.responses.push(e));row.preloadEvents=[];
    cdp.on('Preload.prefetchStatusUpdated',e=>row.preloadEvents.push(e));
    const target=(await cdp.send('Target.getTargetInfo')).targetInfo;
    const bc=await browser.newBrowserCDPSession();assert.equal((await bc.send('Target.getBrowserContexts')).browserContextIds.includes(target.browserContextId),kind==='private');
    const origin=`https://page.blanc-fixture.test:${server.address().port}`;
    await page.goto(origin+'/source');
+   await guard.goto(origin+'/guard');
+
+   let dialog;guard.on('dialog',d=>{dialog=d;});
+   const guardCDP=await context.newCDPSession(guard);
+   await guard.bringToFront();await guard.locator('main').click();
+   await guardCDP.send('Runtime.evaluate',{expression:"window.onbeforeunload=e=>{e.preventDefault();e.returnValue='';}",userGesture:true});
+   row.guardArmed=await guard.evaluate(()=>typeof onbeforeunload==='function'&&navigator.userActivation.hasBeenActive);assert(row.guardArmed);
+   await page.bringToFront();
    let survivor;
-   if(mode==='delete-cancel'){
+   {
     const launcher=spawn(config.chromium,[`--user-data-dir=${profile}`,'--profile-directory=Profile 1','--no-first-run',origin+'/#independent'],{stdio:'ignore'});
     await new Promise((resolve,reject)=>launcher.once('exit',c=>c===0?resolve():reject(Error('launcher '+c))));
     survivor=await until(()=>browser.contexts().flatMap(c=>c.pages()).find(p=>p.url().endsWith('#independent')),15000);
@@ -40,11 +51,9 @@ try {
     await survivor.goto('chrome://profile-picker/');await survivor.waitForFunction(()=>typeof chrome.send==='function');
     await survivor.evaluate(p=>chrome.send('getProfileStatistics',[p]),path.join(profile,'Default'));await pause(300);
    }
-   const guard=page;
-   let dialog;guard.on('dialog',d=>{dialog=d;});
-   const guardCDP=cdp;
-   await guard.bringToFront();await guard.locator('main').click();
    await page.bringToFront();
+   await bc.send('Target.activateTarget',{targetId:target.targetId});
+   row.sourceVisibility=await page.evaluate(()=>document.visibilityState);
    const urls=[origin+'/'+kind+'-'+mode];
    row.urls=urls;const at=arrivals.length;
    await page.evaluate(urls=>{const s=document.createElement('script');s.type='speculationrules';s.textContent=JSON.stringify({prefetch:[{source:'list',urls,eagerness:'immediate'}]});document.head.append(s);},urls);
@@ -64,20 +73,23 @@ try {
    await pause(500);
    row.pending={settled,url:page.url(),decisions:records().filter(d=>d.event==='navigation-response-decision'&&d.url===urls[0])};
    assert(!settled);assert.equal(row.pending.decisions.length,0);assert.equal(row.pending.url,origin+'/source');
-   await guardCDP.send('Runtime.evaluate',{expression:"window.onbeforeunload=e=>{e.preventDefault();e.returnValue='';}",userGesture:true});
    if(mode==='delete-cancel'){
-    await survivor.evaluate(p=>chrome.send('removeProfile',[p]),path.join(profile,'Default'));
+    void survivor.evaluate(p=>chrome.send('removeProfile',[p]),path.join(profile,'Default')).catch(e=>{row.triggerError=String(e);});
    }else{
-    const quit=await context.newPage();void quit.goto('chrome://quit/').catch(()=>{});
+    const hosts=(await bc.send('Target.getTargets')).targetInfos.filter(t=>t.url==='chrome://blanc-prototype/host.html');assert(hosts.length);
+    const attached=await bc.send('Target.attachToTarget',{targetId:hosts[0].targetId,flatten:false});
+    await bc.send('Target.sendMessageToTarget',{sessionId:attached.sessionId,message:JSON.stringify({id:1,method:'Runtime.evaluate',params:{expression:"BlancPrototypeHost.api.previewPageCommand('fixtureQuit')",awaitPromise:false}})});
+
    }
    row.waitingForPrompt=true;await until(()=>dialog,10000);assert.equal(dialog.type(),'beforeunload');row.nativePrompt=true;
    row.pendingAtPrompt={settled,url:page.url(),closed:page.isClosed()};
+   assert(!settled,'prompt must precede native response timeout');assert.equal(row.pendingAtPrompt.url,origin+'/source');
    await dialog.dismiss();row.cancelled=true;
    assert(browser.isConnected());assert(!guard.isClosed());assert(!page.isClosed());
+   process.kill(heldPid,'SIGCONT');heldPid=null;
    await guardCDP.send('Runtime.evaluate',{expression:'window.onbeforeunload=null',userGesture:true});
    await until(()=>{try{return Object.hasOwn(JSON.parse(fs.readFileSync(path.join(profile,'Local State'))).profile.info_cache,'Default');}catch{return false;}},10000);
    row.profileRetained=true;
-   process.kill(heldPid,'SIGCONT');heldPid=null;
    row.navigation=await navigation;
    assert(!row.navigation.error,JSON.stringify(row.navigation));
    await until(()=>records().some(d=>d.event==='navigation-response-decision'&&d.url===urls[0]&&d.engine_result===0),5000);
@@ -87,7 +99,7 @@ try {
    const fresh=await active.newPage();await fresh.goto(origin+'/fresh-'+mode);assert.equal(await fresh.title(),'Prefetch fixture');row.freshPassed=true;
    row.passed=true;
 
-  }catch(e){row.error=String(e);process.exitCode=1;}finally{if(heldPid){try{process.kill(heldPid,'SIGCONT');}catch(e){if(e.code!=='ESRCH')throw e;}heldPid=null;}await context?.close();fs.rmSync(profile,{recursive:true,force:true});row.profileRemoved=!fs.existsSync(profile);}
+  }catch(e){row.error=String(e);process.exitCode=1;}finally{if(heldPid){try{process.kill(heldPid,'SIGCONT');}catch(e){if(e.code!=='ESRCH')throw e;}heldPid=null;}await context?.close();fs.rmSync(profile,{recursive:true,force:true});row.profileRemoved=!fs.existsSync(profile);fs.writeFileSync(path.join(root,'progress.json'),JSON.stringify(report,null,2));}
  }
 }finally{await new Promise(r=>server.close(r));fs.rmSync(path.join(root,'certificates'),{recursive:true,force:true});fs.writeFileSync(path.join(root,'report.json'),JSON.stringify(report,null,2));}
 console.log(JSON.stringify(report.schedules.map(r=>({kind:r.kind,error:r.error,preload:r.preloadEvents,arrivals:r.beforeConsumption?.arrivals}))));
