@@ -1,5 +1,9 @@
 #include "chrome/services/blanc_blocker/blocker_proxy.h"
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "content/public/browser/navigation_throttle.h"
+#include "content/public/browser/navigation_throttle_registry.h"
+#include "content/public/browser/navigation_handle.h"
+#include "third_party/blink/public/mojom/loader/referrer.mojom.h"
 #include <deque>
 #include <map>
 #include "base/json/json_reader.h"
@@ -129,6 +133,45 @@ class Engine {
   std::deque<base::OnceClosure> waiting_;
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
+};
+// Cached/prefetched navigation responses can skip the URL-loader adapter.
+// Revalidate before commit, with weak callbacks tied to this navigation.
+class NavigationResponseGate : public content::NavigationThrottle {
+ public:
+  explicit NavigationResponseGate(content::NavigationThrottleRegistry& registry)
+      : content::NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancResponseGate"; }
+  ThrottleCheckResult WillProcessResponse() override {
+    if (!navigation_handle()->GetURL().SchemeIsHTTPOrHTTPS()) return PROCEED;
+    timer_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(
+        &NavigationResponseGate::Complete, weak_.GetWeakPtr(), -1));
+    // Engine failure may reply synchronously; defer first, then ask it.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+        base::BindOnce(&NavigationResponseGate::Decide, weak_.GetWeakPtr()));
+    return DEFER;
+  }
+ private:
+  void Decide() {
+    Engine::Get().Decide(navigation_handle()->GetURL().spec(),
+        navigation_handle()->IsInMainFrame() ? "mainFrame" : "subFrame",
+        navigation_handle()->GetReferrer().url.spec(),
+        base::BindOnce(&NavigationResponseGate::Complete, weak_.GetWeakPtr()));
+  }
+  void Complete(int result) {
+    timer_.Stop();
+    weak_.InvalidateWeakPtrs();
+    base::DictValue event;
+    event.Set("event", "navigation-response-decision");
+    event.Set("url", navigation_handle()->GetURL().spec());
+    event.Set("engine_result", result);
+    event.Set("decision", result == 0 ? "allow" : "block");
+    event.Set("private", navigation_handle()->GetWebContents()->GetBrowserContext()->IsOffTheRecord());
+    Record(std::move(event));
+    if (result == 0) { Resume(); return; }
+    CancelDeferredNavigation(ThrottleCheckResult(CANCEL, net::ERR_BLOCKED_BY_CLIENT));
+  }
+  base::OneShotTimer timer_;
+  base::WeakPtrFactory<NavigationResponseGate> weak_{this};
 };
 // One bounded, self-owned pending handshake. No raw profile/document pointers
 // survive the asynchronous engine decision. Disconnect/timeout invalidates the
@@ -718,6 +761,12 @@ void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
 }
 void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver) {
   new DocumentScript(*frame, std::move(receiver));
+}
+void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
+  auto* command = base::CommandLine::ForCurrentProcess();
+  if (!command->HasSwitch("blanc-blocker-assets") ||
+      command->HasSwitch("blanc-ubo-component-probe")) return;
+  registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
 }
 void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,

@@ -72,3 +72,7 @@ patch('chrome/browser/chrome_content_browser_client.cc', 'callback = blanc::Wrap
   `    WillCreateWebTransportCallback callback) {
   callback = blanc::WrapWebTransportCallback(process_id, frame_routing_id, url,
                                             initiator_origin, std::move(callback));`);
+
+patch('chrome/browser/chrome_content_browser_client.cc','blanc::AddNavigationResponseGate(registry);',
+  '  CreateAndAddChromeThrottlesForNavigation(registry);',
+  '  blanc::AddNavigationResponseGate(registry);\n  CreateAndAddChromeThrottlesForNavigation(registry);');

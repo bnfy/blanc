@@ -2,10 +2,11 @@
 #define CHROME_SERVICES_BLANC_BLOCKER_PROXY_H_
 #include "chrome/services/blanc_blocker/blocker.mojom.h"
 #include "content/public/browser/content_browser_client.h"
-namespace content { class MojoBinderPolicyMap; class BrowserContext; class RenderFrameHost; }
+namespace content { class NavigationThrottleRegistry; class MojoBinderPolicyMap; class BrowserContext; class RenderFrameHost; }
 namespace network { class URLLoaderFactoryBuilder; }
 namespace net { class IsolationInfo; }
 namespace blanc {
+void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry);
 content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
     int process_id, int frame_routing_id, const url::Origin& initiator_origin,
     content::ContentBrowserClient::WebSocketFactory factory);

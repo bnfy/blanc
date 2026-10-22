@@ -2657,3 +2657,18 @@ new network leak. No repair; invalidation/revalidation policy remains open befor
 claiming that coverage. F12/Decision 2 stay open. Evidence: `evidence/f12-prefetch-postready-loss-20261021/README.md`.
 No build; guard zero; prior56/134 unchanged. Google baseline separate, latency
 deferred, native input and Electron diagnostic build pending.
+
+### October 21: prefetch consumption after utility loss repaired
+
+The opt-in Blanc navigation response throttle revalidates HTTP(S) responses
+before commit, including prefetch, with a weak callback and35s timeout. Two
+regular/private post-ready utility-loss schedules now cancel before document
+commit; four healthy-consumption/earlier-loss regressions also pass. This
+supersedes the prior bounded post-ready-loss failure. uBO is excluded. New
+throttle timeout/teardown, subframes, redirects, BFCache/prerender and broader
+policy changes remain unqualified; F12/Decision2 remain open. Extra response
+round-trip latency is unmeasured and deferred. Evidence: `evidence/f12-prefetch-response-repair-20261021/README.md`.
+Incremental43.79s/8steps after retained include error; guard0. Fresh56files/135hunks;
+ceiling58/135 recorded under standing authorization, consolidation later. Eleven
+counter tests and scoped checks pass. Google baseline separate; permanent tabs
+untouched; native input and Electron diagnostic build pending.
