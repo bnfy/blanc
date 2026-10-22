@@ -115,3 +115,12 @@ in the local preview and asked for it to be deployed ("do code review,
 address findings, then deploy new page to site"). The Qualified rows above
 are published on that instruction and stay open until they are rechecked
 against the signed Mail candidate; they are recorded as open, not passed.
+
+## One page: Pricing, Support and Download folded in (October 22, 2026)
+
+Pricing, Support and Download moved from their own pages
+(`/mail/pricing`, `/mail/support`, `/mail/download`) into sections of
+`/mail`, word for word, so their claims are unchanged and keep the standing
+they had there. One sentence was dropped, not reworded: Download's "Blanc
+Browser already has separate macOS, Windows, and Linux downloads", which the
+page's notes already say. Nothing new is claimed.

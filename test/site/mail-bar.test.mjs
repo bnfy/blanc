@@ -1,10 +1,10 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/mail-bar.test.mjs
 //
-// The Blanc Mail product bar on all six Mail pages
+// The Blanc Mail product bar on /mail and its Privacy and Terms
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3, §12):
-// the product's name, its six pages with the current one marked, and a "Join
-// the waitlist" popover. At 880px and narrower the links fold into a page
-// menu; at 480px and narrower Join shortens on screen but keeps its name.
+// the product's name, which leads back to /mail, and a "Join the waitlist"
+// popover. /mail has been one page since October 22, 2026, so the bar lists
+// no pages; at 480px and narrower Join shortens on screen but keeps its name.
 // The bar sticks under the site header, which stays in view on every page.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
@@ -12,10 +12,7 @@ import { chromium, webkit } from 'playwright';
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const isWebKit = process.env.BLANC_SITE_BROWSER === 'webkit';
-const pages = [
-  ['/mail', 'Overview'], ['/mail/pricing', 'Pricing'], ['/mail/download', 'Download'],
-  ['/mail/support', 'Support'], ['/mail/privacy', 'Privacy'], ['/mail/terms', 'Terms'],
-];
+const pages = ['/mail', '/mail/privacy', '/mail/terms'];
 let browser;
 before(async () => { browser = await (isWebKit ? webkit : chromium).launch(); });
 after(async () => { await browser?.close(); });
@@ -31,7 +28,6 @@ async function openPage(path, width = 1440, options = {}) {
   return { page, context };
 }
 
-const isOpen = (page, id) => page.evaluate(id => document.getElementById(id).matches(':popover-open'), id);
 const waitOpen = (page, id, open = true) =>
   page.waitForFunction(([id, open]) => document.getElementById(id).matches(':popover-open') === open, [id, open]);
 const scrollDown = async page => {
@@ -40,31 +36,29 @@ const scrollDown = async page => {
   await page.waitForFunction(() => scrollY > 1000);
 };
 
-test('every Mail page names the product, lists its six pages and marks the current one', async () => {
+test('every Mail page names the product, leads back to /mail and lists no pages', async () => {
   const { page, context } = await openPage('/mail');
   try {
-    for (const [path, label] of pages) {
+    for (const path of pages) {
       await page.goto(`${baseURL}${path}`);
       const bar = await page.evaluate(() => {
         const nav = document.querySelector('.mail-bar nav');
         return {
           name: nav.getAttribute('aria-label'),
           title: nav.querySelector('.mail-bar-title').textContent.trim(),
-          links: [...nav.querySelectorAll('.mail-bar-links a')].map(a => [a.getAttribute('href'), a.textContent.trim()]),
-          current: [...nav.querySelectorAll('.mail-bar-links a[aria-current="page"]')].map(a => a.textContent.trim()),
+          href: nav.querySelector('.mail-bar-title').getAttribute('href'),
+          links: nav.querySelectorAll('a').length,
+          popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),
         };
       });
-      assert.equal(bar.name, 'Blanc Mail', path);
-      assert.equal(bar.title, 'Blanc Mail', path);
-      assert.deepEqual(bar.links, pages, path);
-      assert.deepEqual(bar.current, [label], path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', links: 1, popovers: ['mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
 
 test('the bar is smoked black, with light text and a gold Join button', async () => {
   for (const width of [1440, 390]) {
-    const { page, context } = await openPage('/mail/pricing', width);
+    const { page, context } = await openPage('/mail/privacy', width);
     try {
       const colors = await page.evaluate(() => {
         const css = selector => getComputedStyle(document.querySelector(selector));
@@ -72,20 +66,12 @@ test('the bar is smoked black, with light text and a gold Join button', async ()
           bar: css('.mail-bar').backgroundColor,
           title: css('.mail-bar-title').color,
           join: [css('.mail-bar-join').backgroundImage, css('.mail-bar-join').color],
-          mark: getComputedStyle(document.querySelector('.mail-bar-links a[aria-current="page"]'), '::after').backgroundImage,
-          link: css('.mail-bar-links a:not([aria-current])').color,
-          current: css('.mail-bar-links a[aria-current="page"]').color,
-          pages: css('.mail-bar-pages').color,
         };
       });
       assert.equal(colors.bar, 'rgba(9, 7, 4, 0.95)', `${width}px: bar`);
       assert.equal(colors.title, 'rgb(242, 233, 218)', `${width}px: title`);
       assert.match(colors.join[0], /^linear-gradient\(rgb\(246, 231, 189\)/, `${width}px: Join is gold`);
       assert.equal(colors.join[1], 'rgb(27, 19, 6)', `${width}px: Join text`);
-      assert.equal(colors.link, 'rgb(191, 179, 161)', `${width}px: links`);
-      assert.equal(colors.current, 'rgb(242, 233, 218)', `${width}px: current page`);
-      assert.match(colors.mark, /^linear-gradient\(/, `${width}px: a gilt rule under the current page`);
-      assert.equal(colors.pages, 'rgb(242, 233, 218)', `${width}px: page menu button`);
     } finally { await context.close(); }
   }
 });
@@ -94,7 +80,7 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
   for (const width of [320, 390, 800, 1440]) {
     const { page, context } = await openPage('/mail', width);
     try {
-      for (const [path] of pages) {
+      for (const path of pages) {
         await page.goto(`${baseURL}${path}`);
         // Measure the settled page; the next test covers the stand-in font
         // drawn before the web fonts arrive.
@@ -106,7 +92,7 @@ test('nothing on a Mail page scrolls sideways, from phones to wide screens', asy
   }
 });
 
-test('at 320px the bar fits whichever font draws it, and the page menu gives way first', async () => {
+test('at 320px the bar fits whichever font draws it', async () => {
   // At 320px the bar's row has no room to spare. Until the web fonts arrive it
   // draws in a stand-in, and where Arial is missing (Linux, so CI) that is a
   // wider sans: Join pushed /mail 12px past the window, which made the header
@@ -114,24 +100,21 @@ test('at 320px the bar fits whichever font draws it, and the page menu gives way
   for (const font of [null, 'Verdana, "DejaVu Sans", sans-serif']) {
     const { page, context } = await openPage('/mail', 320);
     try {
-      for (const [path, label] of pages) {
+      for (const path of pages) {
         await page.goto(`${baseURL}${path}`);
         await page.evaluate(() => document.fonts.ready);
         if (font) await page.addStyleTag({ content: `.mail-bar { font-family: ${font} !important; }` });
         const bar = await page.evaluate(() => {
           const inner = document.querySelector('.mail-bar-inner');
           const end = inner.getBoundingClientRect().right - parseFloat(getComputedStyle(inner).paddingRight);
-          const name = document.querySelector('.mail-bar-pages-label');
           return {
             overflow: document.documentElement.scrollWidth - innerWidth,
             joinInside: document.querySelector('.mail-bar-join').getBoundingClientRect().right <= end + 0.5,
-            truncated: name ? name.scrollWidth > name.clientWidth : null,
           };
         });
         const state = `${path} ${font ? 'in a wide stand-in font' : 'settled'}`;
         assert.ok(bar.overflow <= 0, `${state}: overflows by ${bar.overflow}px`);
         assert.equal(bar.joinInside, true, `${state}: Join stays inside the bar's padding`);
-        if (!font) assert.equal(bar.truncated, false, `${state}: ${label} is shown whole`);
       }
     } finally { await context.close(); }
   }
@@ -155,7 +138,7 @@ test('the bar stays directly under the site header while the page scrolls', asyn
 
 test('Join keeps its name, opens the waitlist under the button, and Escape hands focus back', async () => {
   for (const width of [1440, 390, 320]) {
-    const { page, context } = await openPage('/mail/pricing', width);
+    const { page, context } = await openPage('/mail', width);
     try {
       const join = page.getByRole('navigation', { name: 'Blanc Mail' }).getByRole('button', { name: 'Join the waitlist', exact: true });
       assert.equal(await join.count(), 1, `${width}px: Join keeps its full accessible name`);
@@ -183,39 +166,6 @@ test('Join keeps its name, opens the waitlist under the button, and Escape hands
   }
 });
 
-test('at 880px and narrower the six links fold into a page menu', async () => {
-  for (const width of [800, 390]) {
-    const { page, context } = await openPage('/mail/download', width);
-    try {
-      assert.equal(await page.locator('.mail-bar-links').isVisible(), false, `${width}px: links folded away`);
-      const button = page.locator('.mail-bar-pages');
-      assert.equal((await button.textContent()).trim(), 'Download', `${width}px: the button names the page`);
-      await button.focus();
-      await page.keyboard.press('Enter');
-      await waitOpen(page, 'mail-bar-menu');
-      const menu = await page.evaluate(() => {
-        const pop = document.getElementById('mail-bar-menu');
-        const rect = pop.getBoundingClientRect();
-        return {
-          links: [...pop.querySelectorAll('a')].map(a => [a.getAttribute('href'), a.textContent.trim()]),
-          current: pop.querySelector('[aria-current="page"]')?.textContent.trim(),
-          inside: rect.left >= 0 && rect.right <= innerWidth,
-        };
-      });
-      assert.deepEqual(menu.links, pages);
-      assert.equal(menu.current, 'Download');
-      assert.ok(menu.inside, `${width}px: inside the viewport`);
-      await page.keyboard.press('Escape');
-      await waitOpen(page, 'mail-bar-menu', false);
-      assert.equal(await page.evaluate(() => document.activeElement?.classList.contains('mail-bar-pages')), true);
-    } finally { await context.close(); }
-  }
-  const wide = await openPage('/mail/download', 1440);
-  try {
-    assert.equal(await wide.page.locator('.mail-bar-pages').isVisible(), false, '1440px: no menu button');
-  } finally { await wide.context.close(); }
-});
-
 test('Join pressed after scrolling still opens under the button', async () => {
   const { page, context } = await openPage('/mail/privacy', 1440, { reducedMotion: 'no-preference' });
   try {
@@ -234,7 +184,7 @@ test('Join pressed after scrolling still opens under the button', async () => {
 });
 
 test('focusing a bar control from the keyboard leaves the page where it is', async () => {
-  for (const [width, control] of [[1440, '.mail-bar-join'], [390, '.mail-bar-pages'], [390, '.mail-bar-join']]) {
+  for (const [width, control] of [[1440, '.mail-bar-join'], [390, '.mail-bar-join']]) {
     const { page, context } = await openPage('/mail/privacy', width, { reducedMotion: 'no-preference' });
     try {
       await scrollDown(page);
@@ -266,29 +216,15 @@ test('on Mail pages the site header is the same bar as everywhere, with Browser 
   }
 });
 
-test('only one bar popover is ever open', async () => {
-  const { page, context } = await openPage('/mail/support', 390);
+test('without script the waitlist still opens and says how to join', async () => {
+  const { page, context } = await openPage('/mail/privacy', 390, { javaScriptEnabled: false });
   try {
-    await page.locator('.mail-bar-join').click();
-    await waitOpen(page, 'mail-bar-waitlist');
-    await page.locator('.mail-bar-pages').click();
-    await waitOpen(page, 'mail-bar-menu');
-    assert.equal(await isOpen(page, 'mail-bar-waitlist'), false);
-  } finally { await context.close(); }
-});
-
-test('without script the page menu and the waitlist still open, and the waitlist says how to join', async () => {
-  const { page, context } = await openPage('/mail/support', 390, { javaScriptEnabled: false });
-  try {
-    await page.locator('.mail-bar-pages').click();
-    assert.equal(await page.locator('#mail-bar-menu').isVisible(), true);
-    await page.keyboard.press('Escape');
     await page.locator('.mail-bar-join').click();
     assert.equal(await page.locator('#bar-waitlist .mail-waitlist-note', { hasText: 'Turn on JavaScript to join the waitlist' }).isVisible(), true);
   } finally { await context.close(); }
 });
 
-test('reduced transparency makes the bar solid, and more contrast brightens its links',
+test('reduced transparency makes the bar solid',
   { skip: isWebKit && 'needs Chromium media-feature emulation' }, async () => {
     const { page, context } = await openPage('/mail', 1440);
     try {
@@ -296,14 +232,11 @@ test('reduced transparency makes the bar solid, and more contrast brightens its 
       await cdp.send('Emulation.setEmulatedMedia', {
         features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }, { name: 'prefers-contrast', value: 'more' }],
       });
-      await page.waitForTimeout(400); // the links' 160ms color transition
       const style = await page.evaluate(() => {
         const bar = getComputedStyle(document.querySelector('.mail-bar'));
-        const link = getComputedStyle(document.querySelector('.mail-bar-links a:not([aria-current])'));
-        return { background: bar.backgroundColor, blur: bar.backdropFilter, link: link.color };
+        return { background: bar.backgroundColor, blur: bar.backdropFilter };
       });
       assert.equal(style.background, 'rgb(9, 7, 4)');
       assert.equal(style.blur, 'none');
-      assert.equal(style.link, 'rgb(242, 233, 218)');
     } finally { await context.close(); }
   });

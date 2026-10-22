@@ -32,7 +32,7 @@ export function productFor(plan) {
 // selection. No customer identity, token, trial or price override belongs here.
 // Constructing the payload does not create a session or open checkout.
 export function checkoutRequestFor(plan) {
-  return { products: [productFor(plan).id], return_url: 'https://blanc.day/mail/pricing' };
+  return { products: [productFor(plan).id], return_url: 'https://blanc.day/mail#pricing' };
 }
 
 export function checkoutHrefFor(plan) {

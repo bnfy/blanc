@@ -4,6 +4,7 @@ import BrandMark from '../components/BrandMark.astro';
 import MailBar from '../components/MailBar.astro';
 import MailShot from '../components/MailShot.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
+import { checkoutHrefFor, priceFor } from '../data/mail-commerce.mjs';
 import '../styles/mail.css';
 
 // The features: the October 12 overview's sentences, word for word, plus Set
@@ -46,6 +47,17 @@ const careful = [
   { title: 'No accidental double sends', text: 'If a send fails and Gmail’s answer is unclear, Blanc Mail never retries it on its own.' },
   { title: 'Nothing added to your mail', text: 'Blanc Mail adds no read receipts and no open or click tracking to the mail you send.' },
   { title: 'Privacy choices', text: 'Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.' },
+];
+// Pricing, Support and Download were their own pages until October 22, 2026;
+// their words moved here unchanged (the old URLs redirect to these sections).
+const plans = [
+  { key: 'mail', name: 'Blanc Mail', features: ['Blanc Mail on macOS', 'Gmail-first native app', '14-day local trial'] },
+  { key: 'suite', name: 'Blanc Suite', features: ['Blanc Browser Patron on macOS, Windows, and Linux', 'Blanc Mail on macOS', 'Your Browser and Mail license keys in one subscription'] },
+];
+const support = [
+  { title: 'Accounts and data', html: 'Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app’s access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.' },
+  { title: 'Uninstalling', html: 'Quit the app and move Blanc Mail to the Trash. To erase local settings and recovery data too, first resolve any drafts you need, then remove the app’s data under your Mac’s Application Support folder. Renaming the app does not erase an existing test install’s local data or Keychain credentials.' },
+  { title: 'Updates and licensing', html: 'After launch, Check for Updates in the app will use its signed Sparkle feed. New subscriptions will be handled by Polar. Existing beta keys will continue to work. To have a previous key sent again, email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> from the address you bought it with.' },
 ];
 ---
 <BaseLayout title="Blanc Mail — A little less inbox" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
@@ -151,15 +163,57 @@ const careful = [
       </ul>
     </section>
 
-    <!-- The form's own label is the closing line, as on the October 12 page. -->
-    <section class="mail-closing" aria-label="Join the waitlist">
+    <section id="pricing" class="mail-pricing" aria-labelledby="mail-pricing-title">
+      <h2 id="mail-pricing-title"><span class="mail-gold-text">A good home for your mail.</span></h2>
+      <p class="mail-section-lead">Start with a 14-day local trial when Mail launches. No card is needed to begin.</p>
+      <!-- Status first, so nobody reads the prices as an open offer. -->
+      <p class="mail-pricing-status">Purchases are not open yet. Current Browser Patron subscribers will be able to upgrade to Suite through Polar on the same billing period, and their Browser license key keeps working without being entered again. Existing Patron and founding benefits continue to apply to Browser only.</p>
+      <ul class="mail-plans">
+        {plans.map(plan => (
+          <li class="mail-plan">
+            <h3>{plan.name}</h3>
+            <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-monthly`)}</strong> / month<br />or <strong>{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+            <ul>{plan.features.map(feature => <li>{feature}</li>)}</ul>
+            {['monthly', 'annual'].map(period => {
+              const href = checkoutHrefFor(`${plan.key}-${period}`);
+              return href ? <a href={href}>{`Choose ${plan.name} — ${period}`}</a> : null;
+            })}
+          </li>
+        ))}
+      </ul>
+      <div class="mail-pricing-end">
+        <h3>What happens when a subscription ends?</h3>
+        <p>Blanc Mail keeps your mail readable, searchable, and exportable. Composing and sending pause until a valid license is available. Browser's free features remain free.</p>
+      </div>
+    </section>
+
+    <section id="support" class="mail-support" aria-labelledby="mail-support-title">
+      <h2 id="mail-support-title"><span class="mail-gold-text">Support</span></h2>
+      <p class="mail-section-lead">For help with the Mac app or your license, email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
+      <ul class="mail-careful-row mail-support-row">
+        {support.map(item => (
+          <li>
+            <h3>{item.title}</h3>
+            <p set:html={item.html} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Download closes the page: what it waits on, what it needs, and the
+         waitlist again (its label hidden, as in the hero; the heading says it). -->
+    <section id="download" class="mail-closing" aria-labelledby="mail-download-title">
+      <h2 id="mail-download-title"><span class="mail-gold-text">Blanc Mail for Mac.</span></h2>
+      <p class="mail-section-lead">The first download will appear here after the signed macOS build, Gmail sign-in, Private Push, and Sparkle update checks pass.</p>
       <MailWaitlistForm id="closing-waitlist" />
+      <p class="mail-requirements">macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account. Blanc Mail does not have a Windows or Linux edition planned for launch.</p>
     </section>
 
     <div class="mail-stage-notes">
       <p>At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
       <p>Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
       <p><a href="/download">Blanc Browser</a> is available now on macOS, Windows, and Linux.</p>
+      <p><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>
     </div>
   </main>
 </BaseLayout>
