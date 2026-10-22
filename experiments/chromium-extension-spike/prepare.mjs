@@ -1,3 +1,4 @@
+import { preparePendingNavigation } from './pending-navigation.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -765,3 +766,5 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
     replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
     present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
 ]);
+
+preparePendingNavigation(edit);

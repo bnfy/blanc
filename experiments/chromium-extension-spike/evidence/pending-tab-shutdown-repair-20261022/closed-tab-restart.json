@@ -1,0 +1,74 @@
+{
+  "label": "closed-tab-restart",
+  "hits": [
+    {
+      "url": "/settled",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/pending-stopped",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": false
+    }
+  ],
+  "committed": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "closeError": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Tab closed, but history persistence failed or timed out.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"53\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Tab closed, but history persistence failed or timed out.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-7785398408689935534.1.1\"}}",
+  "before": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "firstCleanExit": true,
+  "after": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "secondCleanExit": true,
+  "pass": true
+}
