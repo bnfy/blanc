@@ -1610,7 +1610,7 @@
       "fields": {
         "chrome": {
           "type": "Rect",
-          "doc": "The card's chrome view: the card plus its 8 px resize ring."
+          "doc": "The card's chrome view: the card plus its resize ring (12 px above, 20 px at the sides, 28 px below)."
         },
         "header": {
           "type": "Rect",
@@ -1618,7 +1618,7 @@
         },
         "page": {
           "type": "Rect",
-          "doc": "The Glance page's view, inside the side and bottom borders."
+          "doc": "The Glance page's view, inset 6 px in the card's frame below the header."
         }
       }
     },

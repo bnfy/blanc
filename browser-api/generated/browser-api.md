@@ -1126,9 +1126,9 @@ The card's views' bounds in window coordinates (cardGeometry() in glance-card.js
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
+| `chrome` | `Rect` | The card's chrome view: the card plus its resize ring (12 px above, 20 px at the sides, 28 px below). |
 | `header` | `Rect` | The card's header, top border included. |
-| `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |
+| `page` | `Rect` | The Glance page's view, inset 6 px in the card's frame below the header. |
 
 ### `GlanceCardMove`
 

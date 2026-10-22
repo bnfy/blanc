@@ -80,10 +80,10 @@ test('a resize from the right grows the card up to the page edge', () => {
   assert.equal(frame.x + frame.width, wide.x + wide.width);
 });
 
-test('the card geometry holds the chrome ring, the header and the page inside the border', () => {
+test('the card geometry holds the chrome ring, the header and the page inset in the frame', () => {
   assert.deepEqual(cardGeometry({ x: 250, y: 84, width: 1100, height: 884 }), {
-    chrome: { x: 242, y: 76, width: 1116, height: 900 },
+    chrome: { x: 230, y: 72, width: 1140, height: 924 },
     header: { x: 250, y: 84, width: 1100, height: 40 },
-    page: { x: 251, y: 124, width: 1098, height: 843 },
+    page: { x: 256, y: 124, width: 1088, height: 838 },
   });
 });
