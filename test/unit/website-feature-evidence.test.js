@@ -404,7 +404,7 @@ test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evid
   for (const label of v138.labels) assert.ok(normalize(read(label.source)).includes(label.exactWording), `label drifted: ${label.exactWording}`);
   // Every wallpaper sentence on the page is recorded, and no per-space image is promised.
   const raw = read('site/src/pages/features/start-page.astro');
-  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-clock-title"'));
   assert.ok(section.includes('Your image'), 'the wallpaper section is on the page');
   const recorded = new Set([...v138.claims, ...v138.labels].map(entry => entry.exactWording));
   const sentences = section.split(/<[^>]+>/).map(node => normalize(node)).filter(node => /\p{L}/u.test(node))
@@ -543,6 +543,45 @@ test('every sentence on the bangs page is recorded', () => {
   }
 });
 
+// The clock's Font & color (F54) and the hero gallery of customized Start
+// Pages, announced once public v1.41.0 shipped them.
+test('v1.41.0 Start Page clock copy resolves to verified public v1.41.0 evidence', () => {
+  const v141 = JSON.parse(read('docs/website-v1.41-claims.json'));
+  assert.equal(v141.publicRelease, 'v1.41.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v141.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v141.sourceSha);
+  assert.ok(read(v141.releaseEvidence).includes(v141.sourceSha));
+  for (const claim of v141.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v141.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v141.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // Every sentence in the clock section is recorded.
+  const raw = read('site/src/pages/features/start-page.astro');
+  const section = raw.slice(raw.indexOf('aria-labelledby="start-page-clock-title"'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  const recorded = new Set(v141.claims.map(claim => claim.exactWording));
+  const units = [...section.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => normalize(match[2]));
+  assert.ok(units.length >= 9, 'every clock heading and paragraph is read');
+  for (const unit of units) assert.ok(recorded.has(unit), `unrecorded clock copy: ${unit}`);
+  // Every gallery caption is a recorded label, and each capture is in the ledger.
+  const designs = JSON.parse(read('site/src/data/start-page-designs.json'));
+  const labels = new Set(v141.labels.map(label => label.exactWording));
+  const captures = new Set(JSON.parse(read('docs/website-captures-v1.41.0.json')).captures.map(capture => capture.file).filter(file => file.includes('/clock-')));
+  for (const design of designs) {
+    assert.ok(labels.has(design.style), `unrecorded caption: ${design.style}`);
+    if (design.credit) assert.ok(labels.has(design.credit), `unrecorded credit: ${design.credit}`);
+    assert.ok(captures.has(`site/public/feature-captures/clock-${design.name}-v1.41.0.png`), `${design.name}: not in the capture ledger`);
+  }
+  assert.equal(designs.length, captures.size);
+  const page = normalize(raw);
+  for (const retired of v141.prohibitedClaims) assert.ok(!page.includes(retired), `start page still says “${retired}”`);
+  const notes = execFileSync('git', ['show', `${v141.publicRelease}:docs/press/release-notes/v1.41.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Clock Font & color\.\*\*/);
+});
+
 test('public product captures match their reviewed dimensions, hashes, and source release', () => {
   const manifests = [
     ['docs/website-captures-v1.15.json', historicalLedger.publicRelease, historicalLedger.sourceSha, 10],
@@ -553,6 +592,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.38.0.json', 'v1.38.0', '87538deee7e8acd0019f25bdae74f22a7481cb2d', 14],
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
+    ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

@@ -1,0 +1,242 @@
+---
+// The Start Page hero: customized Billboard Start Pages from public v1.41.0
+// (docs/website-captures-v1.41.0.json) in Cover Flow. One design rests in the
+// middle, square on, with its neighbours turned toward it; every few seconds
+// the next glides in on a critically damped spring. The middle card stands
+// clear of its neighbours, so no two cards swap places while they overlap.
+// Drag (or swipe) tracks 1:1 and a release carries its speed to the nearest
+// design; a sideways trackpad or wheel scroll moves it 1:1 and then settles.
+// Pointing at it holds the next glide; keyboard focus brings a card to the
+// middle. Reduced motion, or no script, gets a still row that scrolls.
+import designs from '../data/start-page-designs.json';
+const caption = (design: (typeof designs)[number]) => (design.credit ? `${design.style} · ${design.credit}` : design.style);
+---
+<section class="design-fan" aria-label="Customized Start Pages" data-design-fan>
+  <div class="design-fan-glow" aria-hidden="true"></div>
+  <div class="design-fan-viewport" data-fan-viewport>
+    <ul class="design-fan-track">
+      {designs.map((design, index) => (
+        <li class="design-fan-card" data-fan-card data-tint={design.tint} data-caption={caption(design)}>
+          <a href={`/feature-captures/clock-${design.name}-v1.41.0.png`} draggable="false">
+            <img src={`/feature-captures/clock-${design.name}-v1.41.0.webp`} width="1440" height="900" loading={index < 3 || index >= designs.length - 2 ? 'eager' : 'lazy'} decoding="async" draggable="false" alt={`${design.alt} ${design.credit ? `(${design.credit})` : ''}`.trim()} />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <p class="design-fan-caption" data-fan-caption aria-hidden="true">{caption(designs[0])}</p>
+</section>
+
+<script>
+  // Layout, in card widths: the neighbours' distance from the middle (wide
+  // enough that two cards crossing the middle never overlap), the spacing of
+  // the cards stacked beyond them, and how far a side card turns.
+  const SPREAD = 0.9;
+  const STACK = 0.2;
+  const TURN = 52; // degrees
+  const SHOWN = 6; // cards drawn on each side
+  // Motion: Apple's critically damped spring (damping 1.0) with this response,
+  // how long a design rests in the middle, and the scroll deceleration used
+  // to project a released drag (Designing Fluid Interfaces).
+  const RESPONSE = 0.6; // s
+  const DWELL = 3200; // ms
+  const DECAY = 0.998;
+  const DRAG_SLOP = 8; // px before a press becomes a drag
+  const WHEEL_IDLE = 140; // ms without wheel events before it settles
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-design-fan]')) {
+    const viewport = root.querySelector<HTMLElement>('[data-fan-viewport]')!;
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-fan-card]')];
+    const caption = root.querySelector<HTMLElement>('[data-fan-caption]')!;
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduceMotion.matches) continue; // the CSS still row scrolls natively
+
+    root.dataset.live = 'true';
+    const count = cards.length;
+    const omega = (2 * Math.PI) / RESPONSE;
+    let p = 0; // position: the design at index p is in the middle
+    let v = 0; // designs per second
+    let target = 0; // where the spring is taking p
+    let unit = 0; // card width, px
+    let restingSince = 0;
+    let held = false; // pointed at, or keyboard focus inside
+    let drag: { id: number; startX: number; lastX: number; lastT: number; v: number; moved: boolean } | null = null;
+    let wheeling = 0; // timer while a sideways scroll moves the fan
+    let painted = NaN; // the p last drawn, to skip redrawing a still fan
+    let centered = -1;
+    let onScreen = true;
+    let running = false;
+    let stopped = false;
+    const layers = new Array<number>(count).fill(-1);
+
+    const measure = () => { unit = cards[0].offsetWidth; painted = NaN; };
+    // Where card i sits relative to the middle, in designs, by the short way round.
+    const offsetOf = (i: number) => {
+      let t = (i - p) % count;
+      if (t < -count / 2) t += count;
+      if (t >= count / 2) t -= count;
+      return t;
+    };
+    const wrapPosition = () => {
+      while (p >= count) { p -= count; target -= count; }
+      while (p < 0) { p += count; target += count; }
+    };
+    const paint = () => {
+      if (p === painted) return;
+      painted = p;
+      for (let i = 0; i < count; i++) {
+        const t = offsetOf(i);
+        const away = Math.abs(t);
+        const near = Math.min(away, 1);
+        const style = cards[i].style;
+        if (away > SHOWN + 0.5) { style.opacity = '0'; continue; }
+        const shift = Math.sign(t) * (near * SPREAD + Math.max(away - 1, 0) * STACK) * unit;
+        const turn = -Math.max(-1, Math.min(1, t)) * TURN;
+        style.opacity = '';
+        style.transform = `translate3d(${shift.toFixed(2)}px, ${(near * 12).toFixed(2)}px, 0) perspective(1600px) rotateY(${turn.toFixed(3)}deg) scale(${(1 - near * 0.14).toFixed(4)})`;
+        style.filter = `brightness(${(1 - Math.min(away, 2) * 0.24).toFixed(3)})`;
+        // Order by distance from the middle. Cards on one side never cross,
+        // and two from opposite sides only tie where they cannot overlap.
+        const layer = 1000 - Math.floor(away * 2);
+        if (layers[i] !== layer) { layers[i] = layer; style.zIndex = String(layer); }
+      }
+      const index = ((Math.round(p) % count) + count) % count;
+      if (index !== centered) {
+        centered = index;
+        caption.classList.remove('is-shown');
+        void caption.offsetWidth; // restart the fade
+        caption.textContent = cards[index].dataset.caption ?? '';
+        root.style.setProperty('--fan-tint', cards[index].dataset.tint ?? '');
+        caption.classList.add('is-shown');
+        // Warm the captures on both sides before they arrive.
+        for (const k of [-2, -1, 1, 2, 3]) {
+          const img = cards[(index + k + count) % count].querySelector('img');
+          if (img) img.loading = 'eager';
+        }
+      }
+    };
+    // A critically damped spring toward the target, in small fixed steps.
+    const settle = (dt: number) => {
+      for (let left = dt; left > 0; left -= 1 / 240) {
+        const h = Math.min(left, 1 / 240);
+        v += (-omega * omega * (p - target) - 2 * omega * v) * h;
+        p += v * h;
+      }
+      if (Math.abs(p - target) < 0.0005 && Math.abs(v) < 0.005) { p = target; v = 0; }
+    };
+    let last = 0;
+    const frame = (now: number) => {
+      if (stopped || !onScreen) { running = false; return; }
+      const dt = Math.min(0.064, (now - last) / 1000);
+      last = now;
+      if (!drag && !wheeling) {
+        if (p !== target || v !== 0) {
+          settle(dt);
+          restingSince = now;
+        } else if (held) {
+          restingSince = now; // the next glide waits a full rest after it is let go
+        } else if (now - restingSince > DWELL) {
+          target += 1; // the next design glides in
+        }
+      }
+      wrapPosition();
+      paint();
+      requestAnimationFrame(frame);
+    };
+    const start = () => {
+      if (running || stopped || !onScreen) return;
+      running = true;
+      requestAnimationFrame((now) => { last = now; restingSince = now; frame(now); });
+    };
+    // Snap to the design nearest where the motion is heading (momentum
+    // projection), keeping the current speed so there is no seam.
+    const release = (speed: number) => {
+      const projected = p + (speed / 1000) * DECAY / (1 - DECAY);
+      target = Math.round(projected);
+      v = speed;
+    };
+
+    const designsPerPx = () => 1 / (unit * SPREAD);
+    viewport.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      drag = { id: event.pointerId, startX: event.clientX, lastX: event.clientX, lastT: event.timeStamp, v: 0, moved: false };
+    });
+    viewport.addEventListener('pointermove', (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      if (!drag.moved && Math.abs(event.clientX - drag.startX) < DRAG_SLOP) return;
+      if (!drag.moved) { drag.moved = true; viewport.setPointerCapture(event.pointerId); root.dataset.dragging = 'true'; }
+      const dp = -(event.clientX - drag.lastX) * designsPerPx(); // 1:1 with the pointer
+      const dt = Math.max(1, event.timeStamp - drag.lastT);
+      p += dp;
+      target = p;
+      drag.v = 0.6 * (dp / dt) * 1000 + 0.4 * drag.v; // smoothed designs/s
+      drag.lastX = event.clientX;
+      drag.lastT = event.timeStamp;
+    });
+    // A drag's own click (fired right after pointerup) must not open a card;
+    // the guard lives only until the next task, so it never eats a later click.
+    const swallowClick = (event: Event) => { event.preventDefault(); event.stopPropagation(); };
+    const endDrag = (event: PointerEvent) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const moved = drag.moved;
+      if (moved) release(event.timeStamp - drag.lastT > 80 ? 0 : drag.v);
+      delete root.dataset.dragging;
+      drag = null;
+      if (moved) {
+        root.addEventListener('click', swallowClick, { capture: true, once: true });
+        setTimeout(() => root.removeEventListener('click', swallowClick, { capture: true }), 0);
+      }
+    };
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
+
+    // A sideways trackpad swipe or wheel moves the fan 1:1 (the system already
+    // supplies a flick's momentum as more events); when they stop it settles
+    // on the nearest design. Vertical scrolling stays with the page.
+    viewport.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientWidth : 1;
+      p += event.deltaX * scale * designsPerPx();
+      v = 0;
+      target = p;
+      clearTimeout(wheeling);
+      wheeling = window.setTimeout(() => { wheeling = 0; target = Math.round(p); }, WHEEL_IDLE);
+    }, { passive: false });
+
+    // Keyboard focus brings its card to the middle and holds it there; a
+    // mouse click's focus does not hold the fan.
+    root.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') held = true; });
+    root.addEventListener('pointerleave', () => { held = !!root.querySelector(':focus-visible'); });
+    root.addEventListener('focusin', (event) => {
+      const focused = event.target as HTMLElement;
+      if (!focused.matches(':focus-visible')) return;
+      held = true;
+      const card = focused.closest<HTMLElement>('[data-fan-card]');
+      if (card) target = p + offsetOf(cards.indexOf(card));
+    });
+    root.addEventListener('focusout', (event) => {
+      if (!root.contains(event.relatedTarget as Node | null)) held = root.matches(':hover');
+    });
+    // Cards move by transform alone; focusing one may still make the browser
+    // scroll the clipped viewport, so that scroll is always undone.
+    viewport.addEventListener('scroll', () => { if (viewport.scrollLeft) viewport.scrollLeft = 0; });
+    // Turning on reduced motion stops the fan where it is, as a still row.
+    reduceMotion.addEventListener('change', () => {
+      if (!reduceMotion.matches) return;
+      stopped = true;
+      delete root.dataset.live;
+      for (const card of cards) for (const property of ['transform', 'filter', 'opacity', 'z-index']) card.style.removeProperty(property);
+    });
+    addEventListener('resize', measure);
+    // Off screen, the fan does no work at all.
+    new IntersectionObserver((entries) => {
+      onScreen = entries.some((entry) => entry.isIntersecting);
+      start();
+    }).observe(root);
+
+    measure();
+    paint();
+    start();
+  }
+</script>
