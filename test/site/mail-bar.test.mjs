@@ -62,7 +62,7 @@ test('every Mail page names the product, lists its six pages and marks the curre
   } finally { await context.close(); }
 });
 
-test('the bar is dark, with light text and a light Join button', async () => {
+test('the bar is smoked black, with light text and a gold Join button', async () => {
   for (const width of [1440, 390]) {
     const { page, context } = await openPage('/mail/pricing', width);
     try {
@@ -71,17 +71,20 @@ test('the bar is dark, with light text and a light Join button', async () => {
         return {
           bar: css('.mail-bar').backgroundColor,
           title: css('.mail-bar-title').color,
-          join: [css('.mail-bar-join').backgroundColor, css('.mail-bar-join').color],
+          join: [css('.mail-bar-join').backgroundImage, css('.mail-bar-join').color],
+          mark: getComputedStyle(document.querySelector('.mail-bar-links a[aria-current="page"]'), '::after').backgroundImage,
           link: css('.mail-bar-links a:not([aria-current])').color,
           current: css('.mail-bar-links a[aria-current="page"]').color,
           pages: css('.mail-bar-pages').color,
         };
       });
-      assert.equal(colors.bar, 'rgba(28, 26, 22, 0.92)', `${width}px: bar`);
+      assert.equal(colors.bar, 'rgba(9, 7, 4, 0.95)', `${width}px: bar`);
       assert.equal(colors.title, 'rgb(242, 233, 218)', `${width}px: title`);
-      assert.deepEqual(colors.join, ['rgb(242, 233, 218)', 'rgb(28, 26, 22)'], `${width}px: Join`);
+      assert.match(colors.join[0], /^linear-gradient\(rgb\(246, 231, 189\)/, `${width}px: Join is gold`);
+      assert.equal(colors.join[1], 'rgb(27, 19, 6)', `${width}px: Join text`);
       assert.equal(colors.link, 'rgb(191, 179, 161)', `${width}px: links`);
       assert.equal(colors.current, 'rgb(242, 233, 218)', `${width}px: current page`);
+      assert.match(colors.mark, /^linear-gradient\(/, `${width}px: a gilt rule under the current page`);
       assert.equal(colors.pages, 'rgb(242, 233, 218)', `${width}px: page menu button`);
     } finally { await context.close(); }
   }
@@ -299,7 +302,7 @@ test('reduced transparency makes the bar solid, and more contrast brightens its 
         const link = getComputedStyle(document.querySelector('.mail-bar-links a:not([aria-current])'));
         return { background: bar.backgroundColor, blur: bar.backdropFilter, link: link.color };
       });
-      assert.equal(style.background, 'rgb(28, 26, 22)');
+      assert.equal(style.background, 'rgb(9, 7, 4)');
       assert.equal(style.blur, 'none');
       assert.equal(style.link, 'rgb(242, 233, 218)');
     } finally { await context.close(); }
