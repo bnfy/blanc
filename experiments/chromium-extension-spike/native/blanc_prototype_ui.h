@@ -2,6 +2,7 @@
 #ifndef CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 #define CHROME_BROWSER_UI_BLANC_PROTOTYPE_UI_H_
 
+#include "base/functional/callback.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -48,6 +49,8 @@ void RestoreTabIdentity(content::WebContents* tab,
     const std::map<std::string, std::string>& extra_data);
 bool RestoreClosedSplitFromCommand(BrowserWindowInterface* browser);
 bool SelectIslandSlot(BrowserWindowInterface* browser, int slot);
+// Returns a dismissal closure; no browser/profile/session state is created.
+base::OnceClosure ShowSessionRecovery();
 bool IsEnabled();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 bool HasIsland(views::View* parent);

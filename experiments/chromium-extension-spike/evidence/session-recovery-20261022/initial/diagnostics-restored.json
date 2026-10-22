@@ -1,0 +1,12 @@
+[
+  {
+    "file": "components/os_crypt/async/browser/os_crypt_async.cc",
+    "normal": "cf7de028f5ce66fe08b59297370d9a2f8b135b3c822ecd17c3b51692968c9ec1",
+    "diagnostic": "e1dd21d1479e84babd94796507706036997b36fc2657b7adbd799540834b1b36"
+  },
+  {
+    "file": "chrome/browser/ui/blanc_prototype_ui.cc",
+    "normal": "0409417c59f51db43a1baf20f15afd22e13a5cba6c891c82641a35ae964c213c",
+    "diagnostic": "76c3a104ac5864767c9355af07197897e7edabceb0e49570e5bb0740cf42e39d"
+  }
+]

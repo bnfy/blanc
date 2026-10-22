@@ -1,3 +1,4 @@
+import { prepareSessionRecovery } from './session-recovery.mjs';
 import { preparePendingNavigation } from './pending-navigation.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
 import fs from 'node:fs';
@@ -768,3 +769,4 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
 ]);
 
 preparePendingNavigation(edit);
+prepareSessionRecovery(edit);

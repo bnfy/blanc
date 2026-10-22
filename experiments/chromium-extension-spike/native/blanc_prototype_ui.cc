@@ -1,3 +1,7 @@
+#include "ui/views/window/dialog_delegate.h"
+#include "chrome/browser/lifetime/application_lifetime.h"
+#include "ui/views/controls/label.h"
+#include "ui/views/border.h"
 #include "chrome/browser/extensions/extension_uninstall_dialog.h"
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "chrome/browser/themes/theme_service.h"
@@ -3804,6 +3808,36 @@ Config::Config() : DefaultWebUIConfig("chrome", kHost) {}
 
 bool Config::IsWebUIEnabled(content::BrowserContext*) {
   return IsEnabled();
+}
+
+base::OnceClosure ShowSessionRecovery() {
+  auto dialog = std::make_unique<views::DialogDelegate>();
+  dialog->SetTitle(u"Restoring your tabs");
+  dialog->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk));
+  dialog->SetButtonLabel(ui::mojom::DialogButton::kOk, u"Quit Blanc");
+  dialog->SetAcceptCallbackWithClose(base::BindRepeating([] {
+    chrome::AttemptExit();
+    return false;
+  }));
+  dialog->SetShowCloseButton(false);
+  dialog->set_esc_should_cancel_dialog_override(false);
+  dialog->set_fixed_width(440);
+  auto label = std::make_unique<views::Label>(
+      u"Blanc is waiting for access to your saved session.\n\n"
+      u"If macOS asks for keychain access, allow it to continue. "
+      u"Your saved tabs are kept untouched. They will reopen automatically "
+      u"when access is ready.");
+  label->SetMultiLine(true);
+  label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  label->SetBorder(views::CreateEmptyBorder(gfx::Insets(24)));
+  dialog->SetContentsView(std::move(label));
+  auto* widget = views::DialogDelegate::CreateDialogWidget(
+      dialog.get(), gfx::NativeWindow(), gfx::NativeView());
+  widget->Show();
+  return base::BindOnce([](std::unique_ptr<views::DialogDelegate> owned_dialog,
+                           base::WeakPtr<views::Widget> weak) {
+    if (weak) weak->CloseNow();
+  }, std::move(dialog), widget->GetWeakPtr());
 }
 
 bool IsEnabled() {
