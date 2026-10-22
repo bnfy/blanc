@@ -4257,7 +4257,10 @@ html[data-surface="float"] #mainMenuButton { visibility: hidden; }
 html[data-surface="float"][data-float-role="pill"] #islandPill,
 html[data-surface="float"][data-float-role="controls"] #windowControls,
 html[data-surface="float"][data-float-role="menu"] #mainMenuButton { visibility: visible; }
-html[data-surface="float"] #islandPill { box-shadow: var(--shadow-island-float); }
+/* The surface (::after) casts the pill's one shadow. On the pill box, 1px
+   inside the surface, a second shadow's edge showed through the 94% surface
+   as a ridge along the bottom. */
+html[data-surface="float"] #islandPill::after { box-shadow: var(--shadow-island-float); }
 /* The window controls and the menu button sit in views with only 8px of
    room (FLOAT_CHROME_PAD_PX), so a smaller shadow that stays inside it. */
 html[data-surface="float"] #windowControls,
