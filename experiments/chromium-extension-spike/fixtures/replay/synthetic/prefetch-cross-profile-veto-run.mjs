@@ -1,3 +1,6 @@
+// Historical fixture: Default guard ownership was not verified after Profile 1 opened.
+// Do not use this fixture as proof of guard placement across profiles.
+// Use prefetch-cross-profile-high-guards-run.mjs with explicit native ownership assertions.
 // Shutdown schedules require the temporary native Exit hook archived in
 // evidence/f12-prefetch-readiness-reconciliation-20261022/temporary-native-probes.patch.
 // Restore normal native source/binary after use; Browser.close cannot test veto.

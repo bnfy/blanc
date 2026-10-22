@@ -1,5 +1,9 @@
 # Concurrent cross-profile guards — October 22, 2026
 
+> Evidence correction (October 22): Default guard ownership was not verified in this fixture. Its cross-profile guard-placement claim is withdrawn; see the corrected higher-concurrency cross-profile evidence below.
+
+Corrected evidence: ../f12-prefetch-cross-profile-high-guards-20261022/README.md. Original reports and fixtures retained unchanged.
+
 Two schedules pass with beforeunload guards armed concurrently in Default and Profile 1, each retaining one pending prefetch consumption. Both schedules repeat twice: one cancels the first prompt; the other accepts the first profile prompt and cancels the second. Chromium presents prompts sequentially. A second acknowledged Exit from the other profile while the first prompt is open coalesces within a bounded 200 ms observation. Across both schedules there are eight Exit acknowledgements, six actual prompts, four cancellation rounds and four original consumption recoveries. Both windows and guard pages survive cancellation, including the initially accepted profile, and every consumer remains unsettled with no response decision until utility resume. Native allow/private=false, exactly one server prefetch arrival per URL and fresh navigation in both profiles pass. No runtime failure occurred in this run.
 
 Temporary native visibility/Exit probes are removed byte-for-byte and the normal binary restored incrementally, with final guard zero. Production code and prior upstream footprint of 56 files/135 hunks are unchanged. This qualifies two regular profiles, one consumer per profile and two rounds per choice; private cross-profile guards, higher cross-profile load, arbitrary repetition, physical native input, crash and power-loss remain unqualified. Google baseline remains separate; disposable profiles and keys removed, permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval and unstarted. F12/Decision 2 remains open.
