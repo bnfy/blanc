@@ -46,7 +46,7 @@ async function openBarWaitlist(page) {
   await page.waitForFunction(() => document.activeElement?.id === 'bar-waitlistEmail');
 }
 
-test('the overview says what Mail is and that it is coming, with no screenshots', async () => {
+test('the overview says what Mail is and that it is coming, with one labelled screenshot', async () => {
   const { page, context } = await openPage('/mail');
   try {
     const soon = await page.evaluate(() => {
@@ -64,7 +64,7 @@ test('the overview says what Mail is and that it is coming, with no screenshots'
     assert.equal(soon.title, 'A little less inbox.');
     assert.equal(soon.lead, 'Blanc Mail brings a careful, native Gmail experience to your Mac.');
     assert.equal(soon.envelopeHidden, 'true', 'the envelope is decoration');
-    assert.deepEqual(soon.screenshots, []);
+    assert.deepEqual(soon.screenshots, [['/mail/screens/rule-editor.webp', 'Preview build']]);
     assert.equal(soon.browser, '/download');
     // The label is hidden on screen but still names the field.
     assert.equal(await page.locator('#waitlist').getByRole('textbox', { name: 'Get an email when Blanc Mail is ready' }).count(), 1);

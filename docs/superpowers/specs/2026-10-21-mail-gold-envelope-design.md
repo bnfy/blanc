@@ -55,10 +55,10 @@ same dark stage and in the same words as the October 12 overview:
   (owner request), A native window, Gmail first, A moment to change your
   mind, Later on your terms, Ghost Mode, Replies you type often, Drafts that
   keep up.
-- **"Rules that read like sentences"** in its own section. The owner wants a
-  real dark-mode capture of the rule editor (Edit Rule) beside it, taken by a
-  new `rule-editor` scene in the Mail repository's capture script; until it
-  lands the section is copy only.
+- **"Rules that read like sentences"** in its own section, with a real
+  dark capture of the rule editor (owner request): scene `rule-editor` of the
+  Mail repository's capture script (bnfy/blanc-mail#147, demo build at
+  `b3a4788a`), shown at 700px under `MailShot`'s "Preview build" caption.
 - **"Careful in what it sends, generous in what it accepts."** over four
   columns divided by gold hairlines: Safe to read (renamed from "Mail that
   opens" at the owner's request), No accidental double
@@ -80,7 +80,7 @@ structure, links and behavior are unchanged.
 
 ## Retired
 
-The Mail screenshots, `MailShot.astro`, their display-image entries, the overview-only CSS, and the tests
+The other Mail screenshots and their display-image entries, the overview-only CSS, and the tests
 that covered them (most of `test/site/mail-overview.test.mjs`).
 Git history keeps them for the launch page.
 

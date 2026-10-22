@@ -196,6 +196,13 @@
     "height": 900
   },
   {
+    "source": "mail/screens/rule-editor.webp",
+    "sourceSha256": "e189b25fac0acf528fc224326bf825744a0feef15772253d11891c4d587358a9",
+    "output": "mail/screens/rule-editor-1100.webp",
+    "width": 1100,
+    "height": 585
+  },
+  {
     "source": "feature-captures/float-island-hidden-v1.40.0.png",
     "sourceSha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
     "output": "revamp/float-island-hidden-v1.40.0-display.webp",

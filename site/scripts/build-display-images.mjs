@@ -51,6 +51,10 @@ const jobs = [
     output: `feature-captures/${name}-v1.35.0.webp`,
   })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
+  // The Blanc Mail rule editor, dark, from the Mail repository's
+  // capture-public-shots.sh (scene rule-editor, bnfy/blanc-mail#147): a 1100px
+  // copy for MailShot's srcset; the 1400px capture stays as taken.
+  { source: 'mail/screens/rule-editor.webp', output: 'mail/screens/rule-editor-1100.webp', width: 1100 },
   // The homepage's first screen: the floating Island from public v1.40.0
   // (docs/website-captures-float-island-v1.40.0.json). The hidden capture is
   // the window; the macOS buttons are cut from the revealed one at their

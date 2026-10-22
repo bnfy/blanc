@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import MailBar from '../components/MailBar.astro';
+import MailShot from '../components/MailShot.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import '../styles/mail.css';
 
@@ -126,13 +127,15 @@ const careful = [
       </ul>
     </section>
 
-    <!-- Rules: copy only until the dark rule-editor capture from the Mail
-         repository's capture script arrives. -->
+    <!-- Rules: the rule editor, dark, captured by the Mail repository's
+         capture-public-shots.sh (scene rule-editor) from the signed demo build
+         at b3a4788a; MailShot labels it as a preview. -->
     <section class="mail-rules" aria-labelledby="mail-rules-title">
       <div class="mail-rules-copy">
         <h2 id="mail-rules-title"><span class="mail-gold-text">Rules that read like sentences</span></h2>
         <p>Your Gmail filters, written out in plain words. Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too.</p>
       </div>
+      <MailShot name="rule-editor" class="mail-rules-shot" sizes="(max-width: 760px) 100vw, 700px" width={1400} height={744} alt="Editing a rule in the preview build, in the dark appearance: “When a message is from trailclub.example, label it Trips”, with its Gmail search, the one conversation it already matches, and Save Rule." />
     </section>
 
     <section class="mail-careful" aria-labelledby="mail-careful-title">
