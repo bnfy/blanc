@@ -52,8 +52,9 @@ const careful = [
   <MailBar />
   <!-- Until Mail launches, the overview is one gold envelope standing under a
        lamp on a dark stage (docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md).
-       Every sentence here was already on the Mail pages and is recorded in
-       docs/website-mail-claims-2026-10-12.md. -->
+       Every sentence is recorded in docs/website-mail-claims-2026-10-12.md:
+       the hero and most features carry over from the October 12 page; the
+       Island and Set Aside are new (its October 22 section). -->
   <main id="main-content" class="mail-stage">
     <section class="mail-soon" aria-labelledby="mail-soon-title">
       <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
@@ -156,6 +157,7 @@ const careful = [
     </section>
 
     <div class="mail-stage-notes">
+      <p>At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
       <p>Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
       <p><a href="/download">Blanc Browser</a> is available now on macOS, Windows, and Linux.</p>
     </div>
@@ -170,9 +172,21 @@ const careful = [
   const still = matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)');
   if (envelope) {
     let frame = 0;
-    const settle = () => { envelope.style.removeProperty('--mx'); envelope.style.removeProperty('--my'); };
+    let inView = true;
+    // Cancelling the queued frame matters: one already scheduled by the last
+    // move would otherwise lean the envelope again after it settled.
+    const settle = () => {
+      cancelAnimationFrame(frame);
+      envelope.style.removeProperty('--mx');
+      envelope.style.removeProperty('--my');
+    };
+    // Off screen, the envelope needs no light: skip the work and let it rest.
+    new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (!inView) settle();
+    }).observe(envelope);
     document.addEventListener('pointermove', (event) => {
-      if (still.matches || event.pointerType !== 'mouse') return;
+      if (still.matches || !inView || event.pointerType !== 'mouse') return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         // Measured against the viewport, so the light moves across the whole

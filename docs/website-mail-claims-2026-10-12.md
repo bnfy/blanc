@@ -109,3 +109,9 @@ Island or Sets entry yet.
 | The Island figure: the open panel after typing "/" with a conversation selected | Drawn from `MailIslandPanel.swift` (field, "commands" header, the eight command rows in order, footer chips and hint) and `MailWindowLayout.swift` metrics | A drawing, not a screenshot; no mail content shown | Qualified |
 | Set Aside: Put conversations into a named set, like "Read on the flight", and they leave your Inbox to wait in the sidebar. Give a set a review date and it's marked due when the day comes; nothing moves on its own. Set names and dates stay on this Mac. | `docs/superpowers/specs/2026-08-17-multi-select-and-sets-design.md:19-25, 270-280, 391-399`; `MailSetRecord.swift:85`; `MailSetManagementViews.swift:5-33`; `MailSidebarView.swift:652-653`; ~20 `MailSet*Tests` | Mac-local names and review dates stated; "due" is a marker, not a notification. Not from Spam (not stated) | Qualified: `RELEASE_ACCEPTANCE.md:82` is Partial, FEAT-17 in progress |
 | Rules image: the rule editor, dark (scene `rule-editor`) | Mail repository `native/scripts/capture-public-shots.sh` scene `rule-editor` (bnfy/blanc-mail#147), signed Debug demo build at `b3a4788a`; the fixture's `trailclub.example` → Trips rule; its "already matches" preview is seeded from the demo corpus by `MailRuleLocalMatcher` (DEBUG only), since the demo provider can't run Gmail's search; `SignedInCaptureFixtureTests` | Labelled "Preview build". Demo data only. The footer text in the image ("Runs in Gmail on new mail…") is the app's own and matches the Rules copy's limits | Verified as captured |
+
+**Deploy approval (October 22, 2026).** The owner reviewed the gold overview
+in the local preview and asked for it to be deployed ("do code review,
+address findings, then deploy new page to site"). The Qualified rows above
+are published on that instruction and stay open until they are rechecked
+against the signed Mail candidate; they are recorded as open, not passed.
