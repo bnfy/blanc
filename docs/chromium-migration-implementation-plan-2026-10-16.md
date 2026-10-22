@@ -2,6 +2,14 @@
 
 **Primary implementation plan — status reconciled October 21, 2026.** This remains the governing plan and ordering for Chromium migration. The owner explicitly requested that ongoing work update this plan. The [Mac preview checklist](../experiments/chromium-extension-spike/mac-preview-release-checklist.md) is a supporting readiness checklist, not a replacement roadmap, authorization, or waiver of the gates below. Historical estimates are not a current release ETA.
 
+### Running Mac preview release-candidate readiness
+
+`[□□□□□□□□□□□□] 0/12 launch gates cleared (0%) · Δ baseline — October 22, 2026`
+
+This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. Source/evidence checkpoint: `9772330a`; current CI was not checked for this documentation baseline. Decision 2 and preview-scope approval remain open.
+
+Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by preview scope and candidate acceptance—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
 ### Current execution status
 
 Evidence base: [tranche plan and dated checkpoints](../experiments/chromium-extension-spike/tranche2-request.md), [rebase ledger](../experiments/chromium-extension-spike/rebase-ledger.md), [runtime results](../experiments/chromium-extension-spike/results.md). “Implemented / bounded evidence” does not mean full parity or release acceptance. The October 16 narrative below is retained as a dated baseline; this reconciliation supersedes its status claims where explicitly identified.

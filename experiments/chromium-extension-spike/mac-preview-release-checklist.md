@@ -6,6 +6,41 @@ Working release plan — October 21, 2026. Status: **not release-ready**.
 
 This defines a proposed, limited public preview track, not approval to publish or a declaration that the migration gates have passed. The existing migration plan requires broader parity and Decision 2. Approve this narrower preview scope explicitly before distribution; do not silently relabel the existing beta/cutover gate. No reliable ship date until the blocking rows below have evidence and the candidate scope is frozen.
 
+## Running Mac preview RC readiness
+
+**Baseline: October 22, 2026; source/evidence checkpoint `9772330a`.**
+
+`[□□□□□□□□□□□□] 0/12 launch gates cleared (0%) · Δ baseline`
+
+This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, but no row below has complete candidate-bound acceptance. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The proposed scope still needs approval.
+
+Scoring: one filled cell per fully accepted L-row, no partial credit for code written, test/checkpoint counts, CI jobs or repeated stress runs. A row requires the exit-record evidence below, including applicable candidate/artifact identity and approval. Reopen a cell if a relevant regression or candidate change invalidates its evidence. Any owner-approved scope/denominator change must be recorded explicitly, never used silently to inflate progress. This tracking-only metric supersedes the former blanket restriction on showing a percentage; it does not waive any gate or authorize new builds.
+
+| Gate | Current acceptance status | Next evidence or decision |
+| --- | --- | --- |
+| L1 Scope/identity | Open — owner decision pending | Prepare exact preview contract, OS/architecture support and separate identities |
+| L2 Isolation | Open — disposable prototype evidence only | Candidate install/coexist/restart/uninstall with original data unchanged |
+| L3 Security/maintenance | Open — rebase evidence exists | Supported baseline, patch/dependency review and maintenance commitment |
+| L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |
+| L5 Physical input/accessibility | Open — pending | Packaged native-input and VoiceOver session |
+| L6 Recovery | Open — substantial bounded evidence | Frozen candidate recovery suite and recovery-UI acceptance |
+| L7 Security/privacy | Open — scoped evidence only | Candidate boundary/privacy review and distribution free of diagnostic hooks |
+| L8 Signed distribution | Open — unqualified | Signed/notarized/stapled artifact and quarantined clean-Mac acceptance |
+| L9 Update/retreat | Open — policy/acceptance pending | Preview update/rollback proof or explicit manual-only policy approval |
+| L10 Functional smoke | Open — feature-specific evidence | Enabled-feature inventory and frozen candidate smoke |
+| L11 CI/audits | Open — no RC head frozen | Exact candidate checks/alerts/audits and runtime blocker disposition; no current CI claim here |
+| L12 Readiness package | Open — not completed | Instructions, exclusions, feedback/privacy route and artifact-specific go/no-go |
+
+**Next priority:** follow the primary plan: finish F12 request-path/current-head provenance and the Decision 2 package (visual comparison, physical-input/VoiceOver evidence and cost sheet), then resolve the proposed preview contract. Additional bounded lifecycle tests improve supporting evidence but do not independently clear L6 or increase the bar. Keep Google upgrade monitoring separate. Latency remains deferred; Electron diagnostic build remains pending approval/unstarted, neither counted as passed.
+
+### Update log
+
+| Date / checkpoint | Gates cleared | Change | Evidence and remaining blockers |
+| --- | --- | --- | --- |
+| October 22 / `9772330a` | 0/12 | Initial baseline | Latest private-only cross-profile cancellation evidence is recorded in the primary plan; all L1–L12 acceptance rows remain open |
+
+For every future implementation update, include the bar and delta, link the new evidence, and name the next launch-blocking milestone. If only supporting tests improve, report `Δ 0 gates` and explain the specific progress. Update this table and the primary plan whenever a gate changes. A flat bar must not be disguised by changing weights or counting additional tests.
+
 ## Proposed first-preview contract
 
 - Mac Apple Silicon first. Intel support is excluded until a native Chromium x64 artifact passes the same checklist; Electron CI on macOS Intel is not proof of that.
@@ -27,7 +62,7 @@ All rows remain open until attached evidence identifies the candidate commit, ar
 | P0 / L3 | Establish supported Chromium security baseline and maintenance owner. Record upstream version/channel, relevant security fixes, patch inventory, dependency exceptions and a rehearsed incremental rebase/update path. | Rebase ledger exists; real Google upgrade gate remains open. Current developer build version alone is not release/security approval. | Agent + owner maintenance decision |
 | P0 / L4 | Complete real Google-endpoint extension upgrade gate: authentic installed old version → offered newer version, native update, Google network evidence, enabled state, restart persistence and popup focus. Install, permission Cancel/accept and removal also pass on candidate. | Existing Bitwarden baseline/monitor must be preserved. A no-change callback or replacement install is not an upgrade. If no offer arrives, keep gate open; no mechanism-only fallback without separate owner decision. | Agent; owner only if consent/unlock required |
 | P0 / L5 | Native physical-input and accessibility acceptance on packaged app: Island focus/typing, keyboard navigation/shortcuts, context menus, extension popup focus, permission dialogs, close/cancel, Split pane focus/divider and VoiceOver labels/order. No stuck focus or inaccessible destructive controls. | CDP/native automation is extensive but physical input remains pending. Schedule one bounded owner session after candidate stabilizes. | Owner physical check + agent evidence |
-| P0 / L6 | Freeze and run one candidate recovery suite: ordinary/last-window close, beforeunload Cancel/Leave, multiwindow restart, Spaces round trip, active/inactive Split ratios/focus, Recently Closed, private restart exclusion, failed save refusal/retry and owner/profile teardown. Preserve acknowledged state; no unintended duplicates/resurrection. Inspect recovery UI without diagnostic bypass. | Recent focused fixes/tests pass boundedly, including automatic flush retry. Capped/shutdown results are local evidence pending publication. Select representative regressions and run once on candidate; investigate failures, not every conceivable interleaving. | Agent + owner recovery UI |
+| P0 / L6 | Freeze and run one candidate recovery suite: ordinary/last-window close, beforeunload Cancel/Leave, multiwindow restart, Spaces round trip, active/inactive Split ratios/focus, Recently Closed, private restart exclusion, failed save refusal/retry and owner/profile teardown. Preserve acknowledged state; no unintended duplicates/resurrection. Inspect recovery UI without diagnostic bypass. | Recent focused fixes/tests pass boundedly, including automatic flush retry. Capped/shutdown results and subsequent recovery evidence have been published; they remain bounded development evidence. Select representative regressions and run once on candidate; investigate failures, not every conceivable interleaving. | Agent + owner recovery UI |
 | P0 / L7 | Review privileged native/WebUI boundaries and privacy: untrusted web content cannot invoke host management APIs, private data is excluded from durable stores, permissions and profile scope respected, no test hooks/interposers/debug ports in distribution. Enumerate user-data locations and removal behavior. | Scoped checks exist; candidate-level security/privacy signoff still required. | Agent review + owner approval |
 | P0 / L8 | Produce reproducible distributable: bundled assets/fonts, correct Sunrise branding, entitlements, Developer ID signing, notarization/stapling, Gatekeeper launch from quarantined download on a clean supported Mac. Verify extension installs/native integration in that signed identity; record checksum, SBOM and required release provenance. | Local prototype/incremental builds do not satisfy this gate. Use existing incremental outputs where supported; any new architecture/cold-build work needs a separate concrete plan. | Agent; owner signing access if needed |
 | P0 / L9 | Provide a safe preview maintenance/retreat path. Prove preview-to-preview signed update and rollback using disposable profiles, or obtain explicit approval for a documented manual-update-only preview with version/security notice and withdrawal process. Shipping Electron updater must not target preview. | Electron-to-Chromium handoff is unproven and is not part of this isolated preview. Preview's own update policy still needs implementation/acceptance. | Agent + owner policy decision |
@@ -66,6 +101,6 @@ These can follow a limited preview only when no known reproducible loss/security
 
 ## Exit record template
 
-For each launch row: status (open/pass/blocked), owner, candidate SHA, artifact SHA-256, architecture/macOS, evidence path, exact outcome, remaining limitations, reviewer/date. A row passes only on its acceptance criterion. Do not convert a test's diagnostic checkpoint count into a pass count. No percentage-complete or calendar ETA until L1 and the external upgrade dependency are resolved.
+For each launch row: status (open/pass/blocked), owner, candidate SHA, artifact SHA-256, architecture/macOS, evidence path, exact outcome, remaining limitations, reviewer/date. A row passes only on its acceptance criterion. Do not convert a test's diagnostic checkpoint count into a pass count. Use the gate-count metric above for progress reporting. Do not estimate overall engineering percentage or a calendar ETA while scope and the external upgrade dependency remain unresolved.
 
 References: [migration decisions and cutover gates](../../docs/platform-migration-electron-to-chromium-2026-10-04.md), [current rebase/evidence ledger](rebase-ledger.md), [implementation plan](tranche2-request.md).
