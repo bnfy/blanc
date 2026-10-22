@@ -1,0 +1,52 @@
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/sessions/session_restore.h"
++#include <cstdio>
+ 
+ #include <stddef.h>
+ 
+@@ -371,6 +372,7 @@
+ 
+   BrowserWindowInterface* Restore() {
+     DCHECK(!is_foreign_session_restore_);
++    fprintf(stderr, "BLANC_RESTORE begin sync=%d browser=%d apps=%d\n", synchronous_, restore_browser_, restore_apps_);
+     if (restore_browser_) {
+       SessionServiceBase* service =
+           SessionServiceFactory::GetForProfileForSessionRestore(profile_);
+@@ -404,7 +406,9 @@
+       {
+         base::RunLoop loop(base::RunLoop::Type::kNestableTasksAllowed);
+         quit_closure_for_sync_restore_ = loop.QuitClosure();
++        fprintf(stderr, "BLANC_RESTORE wait\n");
+         loop.Run();
++        fprintf(stderr, "BLANC_RESTORE resumed\n");
+         quit_closure_for_sync_restore_ = base::OnceClosure();
+       }
+       BrowserWindowInterface* browser =
+@@ -651,6 +655,7 @@
+ 
+     // Record before `windows` is merged into `windows_`, so that the sample
+     // describes this subsystem's restore alone.
++    fprintf(stderr, "BLANC_RESTORE session apps=%d windows=%zu status=%d\n", for_apps, windows.size(), static_cast<int>(status));
+     RecordSessionRestoreMetrics(for_apps, status, replay_result,
+                                 !windows.empty());
+ 
+@@ -696,6 +701,7 @@
+   void WebAppRegistryReady() {
+     DCHECK_EQ(web_app_registry_ready_, false);
+     DCHECK(restore_apps_);
++    fprintf(stderr, "BLANC_RESTORE registry-ready\n");
+     web_app_registry_ready_ = true;
+ 
+     ProcessSessionWindowsIfReady();
+@@ -706,6 +712,7 @@
+   // between async/sync restores.
+   void ProcessSessionWindowsIfReady() {
+     bool got_all_sessions = IsReadyToProcessSessionWindows();
++    fprintf(stderr, "BLANC_RESTORE ready=%d browser=%d apps=%d registry=%d\n", got_all_sessions, got_browser_windows_, got_app_windows_, web_app_registry_ready_);
+ 
+     // For async restores, we need to early exit here if we aren't ready to
+     // start restoring windows.
