@@ -1,0 +1,95 @@
+/* /features/start-page: a dark stage for the customized Start Pages, light
+   editorial sections between, and a second dark band for the clock. Every
+   sentence and its order is unchanged (docs/website-revamp-claims-v1.27.json);
+   only the staging is this page's own. */
+
+.start-page-showcase {
+  --stage-bg: #070707;
+  --stage-text: #fbf8f2;
+  --stage-dim: rgba(245, 242, 236, 0.64);
+  --stage-line: rgba(245, 242, 236, 0.14);
+  max-width: 1180px;
+  padding-bottom: 120px;
+}
+
+
+/* Full-bleed bands inside the centered column. */
+.start-page-showcase .sp-stage,
+.start-page-showcase [aria-labelledby="start-page-clock-title"] {
+  overflow: hidden;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  color: var(--stage-text);
+  background: var(--stage-bg);
+}
+
+/* ---- The stage ------------------------------------------------------- */
+.sp-stage { position: relative; padding: 28px 0 32px; text-align: center; isolation: isolate; }
+.sp-stage .breadcrumb { justify-content: center; margin: 0 0 40px; }
+.sp-stage .breadcrumb, .sp-stage .breadcrumb a { color: var(--stage-dim); }
+.sp-stage .breadcrumb a:hover { color: var(--stage-text); }
+.sp-stage-copy { position: relative; z-index: 2; width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+.sp-stage h1 { max-width: 20ch; margin: 0 auto; color: var(--stage-text); font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-size: clamp(38px, 4.8vw, 70px); line-height: 1.02; text-wrap: balance; }
+.sp-stage-copy p { max-width: 60ch; margin: 20px auto 0; color: var(--stage-dim); font-size: 17px; line-height: 1.6; text-wrap: pretty; }
+
+/* The fan in Cover Flow: side cards turn toward the middle, and the light
+   behind them takes the middle card's color (StartPageGallery sets
+   --fan-tint, --offset and --depth). */
+@property --fan-tint { syntax: '<color>'; inherits: true; initial-value: #2f5f9e; }
+.design-fan[data-variant="flow"] { position: relative; margin: 8px 0 0; transition: --fan-tint 1.4s ease; }
+.design-fan[data-variant="flow"] .design-fan-glow { position: absolute; inset: -45% -10% -5%; z-index: 0; display: block; background: radial-gradient(58% 52% at 50% 62%, color-mix(in srgb, var(--fan-tint) 48%, transparent), transparent 76%); pointer-events: none; }
+.design-fan[data-variant="flow"] .design-fan-viewport { position: relative; z-index: 1; padding: 40px 0 92px; perspective: 1600px; -webkit-mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent); mask-image: linear-gradient(to right, transparent, #000 13%, #000 87%, transparent); }
+.design-fan[data-variant="flow"] .design-fan-track { transform-style: preserve-3d; }
+.design-fan[data-variant="flow"] .design-fan-card { width: clamp(280px, 42vw, 680px); margin-left: calc(clamp(280px, 42vw, 680px) * -0.36); transform: translateY(calc(var(--depth) * 10px)) rotateY(calc(var(--offset, 0) * -42deg)) scale(calc(1 - var(--depth) * 0.1)); transform-origin: 50% 50%; }
+.design-fan[data-variant="flow"] .design-fan-card:first-child { margin-left: 0; }
+.design-fan[data-variant="flow"] .design-fan-card a { -webkit-box-reflect: below 8px linear-gradient(transparent 68%, rgba(255, 255, 255, 0.12)); }
+.design-fan[data-variant="flow"] .design-fan-card a:focus-visible { outline-color: var(--stage-text); }
+.design-fan[data-variant="flow"] .design-fan-card::after { background: var(--stage-bg); opacity: calc(var(--depth) * 0.5); }
+.design-fan[data-variant="flow"] .design-fan-card.released-capture img { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 calc(40px - var(--depth) * 24px) calc(90px - var(--depth) * 50px) rgba(0, 0, 0, calc(0.7 - var(--depth) * 0.3)); }
+.design-fan[data-variant="flow"] .design-fan-caption { position: relative; z-index: 2; color: var(--stage-dim); }
+/* Without the script the row is a plain, flat scroller. */
+.design-fan[data-variant="flow"]:not([data-live="true"]) .design-fan-card { transform: none; margin-left: 16px; }
+.design-fan[data-variant="flow"]:not([data-live="true"]) .design-fan-card:first-child { margin-left: 0; }
+
+/* ---- Editorial sections ---------------------------------------------- */
+.start-page-showcase .feature-copy-grid { grid-template-columns: 1fr; gap: 0; max-width: 1080px; padding: clamp(88px, 10vw, 140px) 0 0; }
+.start-page-showcase .feature-copy-grid h2,
+.start-page-showcase .truth-note h2 { max-width: 18ch; font-size: clamp(34px, 4.8vw, 62px); line-height: 1.02; }
+.start-page-showcase .feature-copy-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 64px; margin-top: 52px; border-top: 0; }
+.start-page-showcase .feature-copy-list article { padding: 24px 0 0; border-top: 1px solid var(--site-border); border-bottom: 0; }
+.start-page-showcase .feature-copy-list h3 { font-size: 20px; font-weight: 400; letter-spacing: 0; }
+.start-page-showcase .feature-copy-list p { margin-top: 10px; font-size: 16px; line-height: 1.6; }
+
+.start-page-showcase .layout-gallery { gap: 32px; max-width: 1180px; margin: 64px auto 0; }
+.start-page-showcase .layout-gallery img { border: 0; border-radius: 16px; box-shadow: 0 1px 2px rgba(17, 17, 17, 0.06), 0 24px 60px rgba(17, 17, 17, 0.12); }
+.start-page-showcase .layout-gallery figcaption { padding-top: 16px; font-size: 15px; }
+
+/* ---- The clock band -------------------------------------------------- */
+.start-page-showcase [aria-labelledby="start-page-clock-title"] { max-width: none; margin-top: clamp(96px, 11vw, 150px); padding: clamp(88px, 10vw, 130px) max(24px, calc(50vw - 540px)) clamp(88px, 10vw, 130px); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] h2 { color: var(--stage-text); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list article { border-top-color: var(--stage-line); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list h3 { color: var(--stage-text); }
+.start-page-showcase [aria-labelledby="start-page-clock-title"] .feature-copy-list p { color: var(--stage-dim); }
+.sp-clock-shot { position: relative; margin: 72px 0 0; }
+.sp-clock-shot::before { content: ""; position: absolute; inset: 8% 6% -6%; z-index: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(217, 180, 106, 0.32), transparent); filter: blur(24px); pointer-events: none; }
+.sp-clock-shot a { position: relative; z-index: 1; display: block; border-radius: 16px; }
+.sp-clock-shot a:focus-visible { outline: 2px solid var(--stage-text); outline-offset: 5px; }
+.sp-clock-shot.released-capture img { display: block; width: 100%; height: auto; border: 0; border-radius: 16px; background: transparent; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 40px 100px rgba(0, 0, 0, 0.6); }
+
+/* ---- The note and the close ------------------------------------------ */
+.start-page-showcase .truth-note { max-width: 1080px; margin: clamp(96px, 11vw, 140px) auto 0; }
+.start-page-showcase .feature-close { position: relative; overflow: hidden; margin-top: clamp(96px, 11vw, 140px); padding: clamp(80px, 9vw, 120px) 24px; border: 0; border-radius: 28px; color: var(--stage-text); background: var(--stage-bg); isolation: isolate; }
+.start-page-showcase .feature-close::before { content: ""; position: absolute; left: 50%; bottom: -55%; z-index: -1; width: 80%; height: 110%; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(217, 160, 80, 0.38), transparent); pointer-events: none; }
+.start-page-showcase .feature-close h2 { max-width: 16ch; color: var(--stage-text); font-size: clamp(34px, 4.8vw, 62px); letter-spacing: 0; }
+.start-page-showcase .feature-close .cta { color: var(--stage-bg); background: var(--stage-text); }
+
+@media (max-width: 760px) {
+  .start-page-showcase .feature-copy-list { grid-template-columns: 1fr; gap: 28px; }
+  .sp-stage .breadcrumb { margin-bottom: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .design-fan[data-variant="flow"] { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .design-fan[data-variant="flow"] .design-fan-card a { -webkit-box-reflect: none; }
+}

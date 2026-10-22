@@ -9,12 +9,14 @@
 // the second copy is hidden from assistive tech and the tab order.
 import designs from '../data/start-page-designs.json';
 const passes = [0, 1];
+const { variant = '' } = Astro.props;
 ---
-<section class="design-fan" aria-label="Customized Start Pages" data-design-fan>
+<section class="design-fan" aria-label="Customized Start Pages" data-design-fan data-variant={variant || undefined}>
+  <div class="design-fan-glow" data-fan-glow aria-hidden="true"></div>
   <div class="design-fan-viewport" data-fan-viewport>
     <ul class="design-fan-track" data-fan-track>
       {passes.map((pass) => designs.map((design, index) => (
-        <li class="design-fan-card released-capture" data-fan-card data-caption={design.credit ? `${design.style} · ${design.credit}` : design.style} aria-hidden={pass ? 'true' : undefined}>
+        <li class="design-fan-card released-capture" data-fan-card data-tint={design.tint} data-caption={design.credit ? `${design.style} · ${design.credit}` : design.style} aria-hidden={pass ? 'true' : undefined}>
           <a href={`/feature-captures/clock-${design.name}-v1.41.0.png`} tabindex={pass ? -1 : undefined} draggable="false">
             <img src={`/feature-captures/clock-${design.name}-v1.41.0.webp`} width="1440" height="900" loading={pass === 0 && index < 4 ? 'eager' : 'lazy'} decoding="async" draggable="false" alt={pass ? '' : `${design.alt} ${design.credit ? `(${design.credit})` : ''}`.trim()} />
           </a>
@@ -68,6 +70,7 @@ const passes = [0, 1];
         const distance = (center - mid) / card.offsetWidth; // in card widths
         const near = Math.min(1, Math.abs(distance));
         card.style.setProperty('--depth', near.toFixed(3));
+        card.style.setProperty('--offset', Math.max(-1, Math.min(1, distance)).toFixed(3));
         card.style.zIndex = String(1000 - Math.round(Math.abs(distance) * 100));
         if (Math.abs(distance) < best) { best = Math.abs(distance); bestIndex = i; }
       });
@@ -77,6 +80,7 @@ const passes = [0, 1];
         caption.classList.remove('is-shown');
         void caption.offsetWidth; // restart the fade
         caption.textContent = cards[bestIndex].dataset.caption ?? '';
+        root.style.setProperty('--fan-tint', cards[bestIndex].dataset.tint ?? '');
         caption.classList.add('is-shown');
         // Warm the next few captures before they arrive.
         for (let k = 1; k <= 3; k++) {

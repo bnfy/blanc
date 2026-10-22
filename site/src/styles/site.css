@@ -342,7 +342,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .design-fan[data-live="true"] .design-fan-viewport { overflow: hidden; cursor: grab; touch-action: pan-y; }
 .design-fan[data-dragging="true"] .design-fan-viewport { cursor: grabbing; }
 .design-fan[data-live="true"] .design-fan-track { will-change: transform; }
-.design-fan-caption { min-height: 1.6em; margin: 0; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; text-align: center; }
+.design-fan-caption { min-height: 1.6em; margin: 0; padding: 0 16px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; text-align: center; }
 .design-fan-caption.is-shown { animation: design-fan-caption-in 360ms ease-out; }
 @keyframes design-fan-caption-in { from { opacity: 0; } to { opacity: 1; } }
 /* Without the script, or with reduced motion, the row is still and scrolls. */

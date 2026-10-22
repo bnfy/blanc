@@ -1,28 +1,184 @@
 [
-  { "name": "wave", "style": "Glass, Roboto Flex", "credit": "Katsushika Hokusai, The Great Wave · The Met, public domain", "alt": "A tall glass clock over Hokusai’s Great Wave on the Billboard Start Page, the wave and Mount Fuji showing through the numerals." },
-  { "name": "festival", "style": "Glass, Roboto Flex, dark theme", "credit": "Photo: Aditya Chinchure, Unsplash", "alt": "A tall glass clock over a festival light show in green, blue and pink, with the crowd’s silhouettes below." },
-  { "name": "sheet", "style": "Right-click the clock → Font & color", "credit": "", "alt": "The Font & color sheet open below a tall glass clock: four font samples, the Weight and Height sliders, nine color choices and Glass or Solid." },
-  { "name": "dog", "style": "Solid, Inter in Sand, dark theme", "credit": "Photo: Brandon Day, Unsplash", "alt": "A bold sand-colored clock beside a golden dog with its tongue out, on a black background." },
-  { "name": "glass-image", "style": "Glass, Roboto Flex", "credit": "Vincent van Gogh, Wheat Field with Cypresses · The Met, public domain", "alt": "A tall glass clock over Van Gogh’s Wheat Field with Cypresses, the painted sky showing through the numerals." },
-  { "name": "pitch", "style": "Solid, Inter in Graphite", "credit": "Photo: matthew Feeney, Unsplash", "alt": "A heavy graphite clock over an overhead view of a football pitch." },
-  { "name": "aurora", "style": "Glass, Roboto Flex, dark theme", "credit": "Photo: Jonatan Pie, Unsplash", "alt": "A very tall glass clock over green and purple northern lights above a dark lake." },
-  { "name": "cat", "style": "Solid, Instrument Sans in Rose", "credit": "Photo: AcidFern, Unsplash", "alt": "A rose clock beside a black-and-white cat on a pink background." },
-  { "name": "color-iris", "style": "Glass, Roboto Flex on the Iris gradient, dark theme", "credit": "", "alt": "A tall glass clock on Blanc’s purple Iris gradient wallpaper." },
-  { "name": "hoop", "style": "Glass, Roboto Flex, dark theme", "credit": "Photo: insung yoon, Unsplash", "alt": "A very tall glass clock over a basketball hoop against a starry night sky." },
-  { "name": "irises", "style": "Solid, Instrument Sans in Iris", "credit": "Vincent van Gogh, Irises · The Met, public domain", "alt": "A purple clock over Van Gogh’s Irises, with the Spotlight wash behind the clock and favorites." },
-  { "name": "beach", "style": "Solid, Instrument Sans Condensed in Sky", "credit": "Photo: Ittemaldiviano, Unsplash", "alt": "A deep blue condensed clock over a palm beach and turquoise water." },
-  { "name": "stage", "style": "Solid, Instrument Sans Condensed, dark theme", "credit": "Photo: ActionVance, Unsplash", "alt": "A white condensed clock over a concert stage in purple light, with raised hands in silhouette." },
-  { "name": "oxbow", "style": "Glass, Roboto Flex, dark theme", "credit": "Thomas Cole, The Oxbow · The Met, public domain", "alt": "A very tall glass clock over Thomas Cole’s Oxbow, a storm passing over a river valley, in the dark theme." },
-  { "name": "track", "style": "Solid, Instrument Sans in Graphite", "credit": "Photo: Austris Augusts, Unsplash", "alt": "A tall graphite clock over the numbered lanes of a red running track." },
-  { "name": "skyline", "style": "Solid, Instrument Sans Condensed, dark theme", "credit": "Photo: Irina Iriser, Unsplash", "alt": "A thin white condensed clock over a city skyline at night." },
-  { "name": "solid-color", "style": "Solid, Inter in Rose", "credit": "", "alt": "A heavy rose clock on Blanc’s Sunrise wallpaper." },
-  { "name": "landers-peak", "style": "Solid, Instrument Sans", "credit": "Albert Bierstadt, The Rocky Mountains, Lander’s Peak · The Met, public domain", "alt": "A dark clock over Bierstadt’s Rocky Mountains, Lander’s Peak, softened by the Auto wash." },
-  { "name": "earth", "style": "Solid, Inter, dark theme", "credit": "Photo: NASA, Unsplash", "alt": "A thin white clock over Earth seen from orbit, with part of a spacecraft at the edge." },
-  { "name": "kanbara-snow", "style": "Solid, Instrument Sans Condensed in Graphite", "credit": "Utagawa Hiroshige, Evening Snow at Kanbara · The Met, public domain", "alt": "A dark condensed clock over Hiroshige’s Evening Snow at Kanbara, a village under snow." },
-  { "name": "color-sand", "style": "Solid, Instrument Sans on Sand", "credit": "", "alt": "A white clock on Blanc’s solid Sand wallpaper." },
-  { "name": "merced", "style": "Glass, Instrument Sans Condensed, dark theme", "credit": "Albert Bierstadt, Merced River, Yosemite Valley · The Met, public domain", "alt": "A glass condensed clock over Bierstadt’s Merced River, Yosemite Valley, in the dark theme." },
-  { "name": "sainte-victoire", "style": "Solid, Inter in Sage", "credit": "Paul Cézanne, Mont Sainte-Victoire · The Met, public domain", "alt": "A sage green clock over Cézanne’s Mont Sainte-Victoire and the Viaduct of the Arc River Valley." },
-  { "name": "solid-condensed", "style": "Solid, Instrument Sans Condensed in Sky", "credit": "", "alt": "A blue condensed clock on Blanc’s Sunrise wallpaper." },
-  { "name": "shono", "style": "Solid, Inter in Clay", "credit": "Utagawa Hiroshige, Sudden Shower at Shōno · The Met, public domain", "alt": "A heavy clay-colored clock over Hiroshige’s Sudden Shower at Shōno, travelers running through slanting rain." },
-  { "name": "color-rose", "style": "Solid, Instrument Sans Condensed on Rose", "credit": "", "alt": "A rose condensed clock on Blanc’s soft Rose wallpaper." }
+  {
+    "name": "wave",
+    "style": "Glass, Roboto Flex",
+    "credit": "Katsushika Hokusai, The Great Wave · The Met, public domain",
+    "alt": "A tall glass clock over Hokusai’s Great Wave on the Billboard Start Page, the wave and Mount Fuji showing through the numerals.",
+    "tint": "#2f5f9e"
+  },
+  {
+    "name": "festival",
+    "style": "Glass, Roboto Flex, dark theme",
+    "credit": "Photo: Aditya Chinchure, Unsplash",
+    "alt": "A tall glass clock over a festival light show in green, blue and pink, with the crowd’s silhouettes below.",
+    "tint": "#1f6fe0"
+  },
+  {
+    "name": "sheet",
+    "style": "Right-click the clock → Font & color",
+    "credit": "",
+    "alt": "The Font & color sheet open below a tall glass clock: four font samples, the Weight and Height sliders, nine color choices and Glass or Solid.",
+    "tint": "#c9a76a"
+  },
+  {
+    "name": "dog",
+    "style": "Solid, Inter in Sand, dark theme",
+    "credit": "Photo: Brandon Day, Unsplash",
+    "alt": "A bold sand-colored clock beside a golden dog with its tongue out, on a black background.",
+    "tint": "#b8862e"
+  },
+  {
+    "name": "glass-image",
+    "style": "Glass, Roboto Flex",
+    "credit": "Vincent van Gogh, Wheat Field with Cypresses · The Met, public domain",
+    "alt": "A tall glass clock over Van Gogh’s Wheat Field with Cypresses, the painted sky showing through the numerals.",
+    "tint": "#5f8fa8"
+  },
+  {
+    "name": "pitch",
+    "style": "Solid, Inter in Graphite",
+    "credit": "Photo: matthew Feeney, Unsplash",
+    "alt": "A heavy graphite clock over an overhead view of a football pitch.",
+    "tint": "#4f8a3a"
+  },
+  {
+    "name": "aurora",
+    "style": "Glass, Roboto Flex, dark theme",
+    "credit": "Photo: Jonatan Pie, Unsplash",
+    "alt": "A very tall glass clock over green and purple northern lights above a dark lake.",
+    "tint": "#2fbf8f"
+  },
+  {
+    "name": "cat",
+    "style": "Solid, Instrument Sans in Rose",
+    "credit": "Photo: AcidFern, Unsplash",
+    "alt": "A rose clock beside a black-and-white cat on a pink background.",
+    "tint": "#f27aa8"
+  },
+  {
+    "name": "color-iris",
+    "style": "Glass, Roboto Flex on the Iris gradient, dark theme",
+    "credit": "",
+    "alt": "A tall glass clock on Blanc’s purple Iris gradient wallpaper.",
+    "tint": "#7a62d6"
+  },
+  {
+    "name": "hoop",
+    "style": "Glass, Roboto Flex, dark theme",
+    "credit": "Photo: insung yoon, Unsplash",
+    "alt": "A very tall glass clock over a basketball hoop against a starry night sky.",
+    "tint": "#2c4a8a"
+  },
+  {
+    "name": "irises",
+    "style": "Solid, Instrument Sans in Iris",
+    "credit": "Vincent van Gogh, Irises · The Met, public domain",
+    "alt": "A purple clock over Van Gogh’s Irises, with the Spotlight wash behind the clock and favorites.",
+    "tint": "#4a6fc9"
+  },
+  {
+    "name": "beach",
+    "style": "Solid, Instrument Sans Condensed in Sky",
+    "credit": "Photo: Ittemaldiviano, Unsplash",
+    "alt": "A deep blue condensed clock over a palm beach and turquoise water.",
+    "tint": "#18b4c4"
+  },
+  {
+    "name": "stage",
+    "style": "Solid, Instrument Sans Condensed, dark theme",
+    "credit": "Photo: ActionVance, Unsplash",
+    "alt": "A white condensed clock over a concert stage in purple light, with raised hands in silhouette.",
+    "tint": "#8b4fd0"
+  },
+  {
+    "name": "oxbow",
+    "style": "Glass, Roboto Flex, dark theme",
+    "credit": "Thomas Cole, The Oxbow · The Met, public domain",
+    "alt": "A very tall glass clock over Thomas Cole’s Oxbow, a storm passing over a river valley, in the dark theme.",
+    "tint": "#8c6a32"
+  },
+  {
+    "name": "track",
+    "style": "Solid, Instrument Sans in Graphite",
+    "credit": "Photo: Austris Augusts, Unsplash",
+    "alt": "A tall graphite clock over the numbered lanes of a red running track.",
+    "tint": "#d0503a"
+  },
+  {
+    "name": "skyline",
+    "style": "Solid, Instrument Sans Condensed, dark theme",
+    "credit": "Photo: Irina Iriser, Unsplash",
+    "alt": "A thin white condensed clock over a city skyline at night.",
+    "tint": "#12a5b5"
+  },
+  {
+    "name": "solid-color",
+    "style": "Solid, Inter in Rose",
+    "credit": "",
+    "alt": "A heavy rose clock on Blanc’s Sunrise wallpaper.",
+    "tint": "#b8476a"
+  },
+  {
+    "name": "landers-peak",
+    "style": "Solid, Instrument Sans",
+    "credit": "Albert Bierstadt, The Rocky Mountains, Lander’s Peak · The Met, public domain",
+    "alt": "A dark clock over Bierstadt’s Rocky Mountains, Lander’s Peak, softened by the Auto wash.",
+    "tint": "#6f9bc6"
+  },
+  {
+    "name": "earth",
+    "style": "Solid, Inter, dark theme",
+    "credit": "Photo: NASA, Unsplash",
+    "alt": "A thin white clock over Earth seen from orbit, with part of a spacecraft at the edge.",
+    "tint": "#3c7bc4"
+  },
+  {
+    "name": "kanbara-snow",
+    "style": "Solid, Instrument Sans Condensed in Graphite",
+    "credit": "Utagawa Hiroshige, Evening Snow at Kanbara · The Met, public domain",
+    "alt": "A dark condensed clock over Hiroshige’s Evening Snow at Kanbara, a village under snow.",
+    "tint": "#a99c7c"
+  },
+  {
+    "name": "color-sand",
+    "style": "Solid, Instrument Sans on Sand",
+    "credit": "",
+    "alt": "A white clock on Blanc’s solid Sand wallpaper.",
+    "tint": "#c98d10"
+  },
+  {
+    "name": "merced",
+    "style": "Glass, Instrument Sans Condensed, dark theme",
+    "credit": "Albert Bierstadt, Merced River, Yosemite Valley · The Met, public domain",
+    "alt": "A glass condensed clock over Bierstadt’s Merced River, Yosemite Valley, in the dark theme.",
+    "tint": "#a8742a"
+  },
+  {
+    "name": "sainte-victoire",
+    "style": "Solid, Inter in Sage",
+    "credit": "Paul Cézanne, Mont Sainte-Victoire · The Met, public domain",
+    "alt": "A sage green clock over Cézanne’s Mont Sainte-Victoire and the Viaduct of the Arc River Valley.",
+    "tint": "#5d9a62"
+  },
+  {
+    "name": "solid-condensed",
+    "style": "Solid, Instrument Sans Condensed in Sky",
+    "credit": "",
+    "alt": "A blue condensed clock on Blanc’s Sunrise wallpaper.",
+    "tint": "#3f73b0"
+  },
+  {
+    "name": "shono",
+    "style": "Solid, Inter in Clay",
+    "credit": "Utagawa Hiroshige, Sudden Shower at Shōno · The Met, public domain",
+    "alt": "A heavy clay-colored clock over Hiroshige’s Sudden Shower at Shōno, travelers running through slanting rain.",
+    "tint": "#c0603a"
+  },
+  {
+    "name": "color-rose",
+    "style": "Solid, Instrument Sans Condensed on Rose",
+    "credit": "",
+    "alt": "A rose condensed clock on Blanc’s soft Rose wallpaper.",
+    "tint": "#d98a98"
+  }
 ]

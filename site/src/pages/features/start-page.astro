@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import StartPageGallery from '../../components/StartPageGallery.astro';
+import '../../styles/start-page.css';
 ---
 <BaseLayout
   title="Start Page Layouts and Mahjong | Blanc Browser"
@@ -14,13 +15,15 @@ import StartPageGallery from '../../components/StartPageGallery.astro';
   <script type="application/ld+json" is:inline slot="head">
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blanc.day/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blanc.day/features"},{"@type":"ListItem","position":3,"name":"Start Page","item":"https://blanc.day/features/start-page"}]}
   </script>
-<main id="main-content" class="feature-page feature-detail-page">
-  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">start page</span></nav>
-  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="start-page-title">
-    <h1 id="start-page-title">Choose your Start Page layout, wallpaper and clock.</h1>
-    <p>Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color. Every footer also opens Mahjong in its own tab and leaves your Start Page in place.</p>
+<main id="main-content" class="feature-page feature-detail-page start-page-showcase">
+  <section class="sp-stage" aria-labelledby="start-page-title">
+    <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">start page</span></nav>
+    <div class="sp-stage-copy">
+      <h1 id="start-page-title">Choose your Start Page layout, wallpaper and clock.</h1>
+      <p>Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color. Every footer also opens Mahjong in its own tab and leaves your Start Page in place.</p>
+    </div>
+    <StartPageGallery variant="flow" />
   </section>
-  <StartPageGallery />
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="start-page-section-0">
     <div><h2 id="start-page-section-0">A different starting point, whenever you want.</h2></div>
     <div class="feature-copy-list">
@@ -54,6 +57,7 @@ import StartPageGallery from '../../components/StartPageGallery.astro';
       <article><h3>Readable on any wallpaper</h3><p>Every clock has a soft shadow. When the system asks for reduced transparency, Glass draws as Solid.</p></article>
       <article><h3>Follows you</h3><p>Your clock style syncs with Profile Sync.</p></article>
     </div>
+    <figure class="sp-clock-shot released-capture"><a href="/feature-captures/clock-sheet-v1.41.0.png" aria-label="View full capture of the Font & color sheet"><img src="/feature-captures/clock-sheet-v1.41.0.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The Font & color sheet open below a tall glass clock on the Billboard Start Page: four font samples, the Weight and Height sliders, nine color choices and Glass or Solid." /></a></figure>
   </section>
   <section class="feature-copy-grid" aria-labelledby="start-page-section-1">
     <div><h2 id="start-page-section-1">Your regular sites, a click away.</h2></div>
