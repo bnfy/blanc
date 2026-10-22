@@ -509,6 +509,18 @@
     document.getElementById('islandSiteColorsSetting')?.remove();
   }
 
+  // Device-local: search suggestions lead the Island's typed results.
+  if (supports('searchPriorityResults')) {
+    const searchPriority = document.getElementById('searchPriorityResults');
+    searchPriority.checked = settings.searchPriorityResults === true;
+    searchPriority.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ searchPriorityResults: searchPriority.checked });
+      searchPriority.checked = saved.searchPriorityResults === true;
+    });
+  } else {
+    document.getElementById('searchPriorityResultsSetting')?.remove();
+  }
+
   // --- Dark websites (device-local) ---
   if (supports('darkWebsites')) {
     const darkWebsites = document.getElementById('darkWebsites');

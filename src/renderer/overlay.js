@@ -215,6 +215,9 @@
   // means the row shows the catalog's generic "search" tag.
   let searchProviderLabel = null;
   let suggestionDebounce = null;
+  // Settings → Island: search rows lead typed results even over a strong
+  // local match. Main sends it with every overlay:show.
+  let searchPriorityResults = false;
   let suggestionRequestGeneration = 0;
   let addressInputComposing = false;
   // A paste/drop or text entered while a private tab is active can contain
@@ -1815,12 +1818,13 @@
   }
 
   /** Keep six rows total. A confident local match retains the established
-   * Quick-Switcher top slot; otherwise exact search leads, followed by engine
-   * completions and then the weaker local guesses. */
+   * Quick-Switcher top slot unless Search priority results is on; otherwise
+   * exact search leads, followed by engine completions and then the local
+   * matches. */
   function blendedResults(query) {
     const local = switcherResults(query.toLowerCase());
     const search = searchResults(query);
-    if (local[0]?.score >= STRONG_MATCH_SCORE) {
+    if (!searchPriorityResults && local[0]?.score >= STRONG_MATCH_SCORE) {
       return [
         ...local.slice(0, 3),
         ...search.slice(0, 3),
@@ -3311,7 +3315,8 @@
     }, { capture: true, passive: true });
   }
 
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect, searchPriorityResults: searchFirst }) => {
+    searchPriorityResults = searchFirst === true;
     stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();

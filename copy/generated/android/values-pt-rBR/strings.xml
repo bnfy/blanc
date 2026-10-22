@@ -962,6 +962,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_theme_dark">Escuro</string>
     <string name="settings_general_island_site_colors_label">Usar as cores do site</string>
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
+    <string name="settings_general_search_priority_results_label">Priorizar resultados de pesquisa</string>
+    <string name="settings_general_search_priority_results_hint">Ao digitar, mostra as sugestões de pesquisa acima das suas abas, Favoritos e Histórico.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
     <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
     <string name="settings_general_island_auto_hide_label">Ocultar a Island automaticamente</string>

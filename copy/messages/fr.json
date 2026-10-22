@@ -3355,6 +3355,16 @@
     "message": "Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème.",
     "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
   },
+  "settings.general.searchPriorityResults.label": {
+    "message": "Priorité aux résultats de recherche",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:b83f999a3cabc8754725b2ca8a05ac6e616a671ba91d65bb1e1154aa5efa8400"
+  },
+  "settings.general.searchPriorityResults.hint": {
+    "message": "Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, Favoris et Historique.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:ead2aed7727bb22625826d095cb83b114c945ec213077fac7be09ebd2f805ec1"
+  },
   "settings.general.islandHoverOpen.label": {
     "message": "Ouvrir l’Island au survol",
     "note": "Settings → General: setting name.",

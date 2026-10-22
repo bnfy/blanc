@@ -3355,6 +3355,16 @@
     "message": "Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema.",
     "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
   },
+  "settings.general.searchPriorityResults.label": {
+    "message": "Priorizar resultados de búsqueda",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:b83f999a3cabc8754725b2ca8a05ac6e616a671ba91d65bb1e1154aa5efa8400"
+  },
+  "settings.general.searchPriorityResults.hint": {
+    "message": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, Favoritos e Historial.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:ead2aed7727bb22625826d095cb83b114c945ec213077fac7be09ebd2f805ec1"
+  },
   "settings.general.islandHoverOpen.label": {
     "message": "Abrir la Island al pasar el cursor",
     "note": "Settings → General: setting name.",

@@ -989,6 +989,10 @@
           "type": "Rect | null",
           "doc": "The resting pill in the overlay's coordinates; absent when replayed after the overlay loads.",
           "optional": true
+        },
+        "searchPriorityResults": {
+          "type": "boolean",
+          "doc": "Settings → Search priority results: search suggestions lead typed results."
         }
       }
     },

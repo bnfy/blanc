@@ -3431,6 +3431,14 @@
     "message": "Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.searchPriorityResults.label": {
+    "message": "Search priority results",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.searchPriorityResults.hint": {
+    "message": "As you type, show search suggestions above your tabs, Favorites and history.",
+    "note": "Settings → General: explanation under a setting."
+  },
   "settings.general.islandHoverOpen.label": {
     "message": "Open the Island on hover",
     "note": "Settings → General: setting name."

@@ -5176,6 +5176,7 @@ function createOverlay() {
         mode: rt().overlayMode,
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
+        searchPriorityResults: settings.getSettings().searchPriorityResults === true,
       });
       syncShieldAnchor();
       rt().overlayView.webContents.focus();
@@ -5378,6 +5379,9 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     mode,
     prefill,
     purpose,
+    // Read on every show: the setting changes only in the Settings sheet,
+    // which the overlay never shares the screen with.
+    searchPriorityResults: settings.getSettings().searchPriorityResults === true,
     // Where the resting pill is, in the overlay's OWN coordinates, so the
     // panel can start life at the pill's size and grow out of it. The two live
     // in different views, so this hand-off is the only way the overlay can

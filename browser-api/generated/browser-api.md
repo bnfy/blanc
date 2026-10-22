@@ -763,6 +763,7 @@ Sent when main shows the overlay.
 | `prefill` | `string \| null` | Initial input text. |
 | `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
 | `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
+| `searchPriorityResults` | `boolean` | Settings → Search priority results: search suggestions lead typed results. |
 
 ### `OverlayHidePayload`
 
