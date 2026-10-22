@@ -45,11 +45,20 @@ that design.
 The owner asked for the app's features on the page. Below the hero, on the
 same dark stage and in the same words as the October 12 overview:
 
+- **"The Island, made for mail."** leads, as the owner directed: a lead
+  sentence, a drawing of Mail's open Island panel after typing "/" (its
+  real layout, metrics, strings and command order, from
+  `MailIslandPanel.swift`; no mail content), and three points: Jump
+  anywhere, Commands with a slash, Actions at hand.
 - **"Every account, one calm inbox."** (gilt) over nine dark cards, each with a
-  gilt line glyph in a hairline ring: Every account together, A native
-  window, Gmail first, A moment to change your mind, Later on your terms,
-  Ghost Mode, Rules that read like sentences, Replies you type often, Drafts
-  that keep up.
+  gilt line glyph in a hairline ring: Every account together, Set Aside
+  (owner request), A native window, Gmail first, A moment to change your
+  mind, Later on your terms, Ghost Mode, Replies you type often, Drafts that
+  keep up.
+- **"Rules that read like sentences"** in its own section. The owner wants a
+  real dark-mode capture of the rule editor (Edit Rule) beside it, taken by a
+  new `rule-editor` scene in the Mail repository's capture script; until it
+  lands the section is copy only.
 - **"Careful in what it sends, generous in what it accepts."** over four
   columns divided by gold hairlines: Mail that opens, No accidental double
   sends, Nothing added to your mail, Privacy choices.
@@ -57,7 +66,9 @@ same dark stage and in the same words as the October 12 overview:
 
 Cards rise into place as they scroll in where scroll timelines are
 supported; reduced motion shows them still. The Inbox Zero and light/dark
-sections are not carried over, because they depended on screenshots.
+sections are not carried over. The Island, Set Aside and Rules copy is in
+the claims ledger's October 22 section, Qualified until it is rechecked
+against the signed Mail candidate.
 
 ## The Mail bar
 
@@ -68,9 +79,8 @@ structure, links and behavior are unchanged.
 
 ## Retired
 
-The Mail screenshots (`public/mail/screens/`), `MailShot.astro`, their
-display-image entries, the overview-only CSS, and the tests that covered them
-(`test/unit/site-mail-screens.test.js`, most of `test/site/mail-overview.test.mjs`).
+The Mail screenshots, `MailShot.astro`, their display-image entries, the overview-only CSS, and the tests
+that covered them (most of `test/site/mail-overview.test.mjs`).
 Git history keeps them for the launch page.
 
 ## Not changed

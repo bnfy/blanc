@@ -5,12 +5,15 @@ import MailBar from '../components/MailBar.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import '../styles/mail.css';
 
-// Every sentence below was on the October 12 overview, word for word, and is
-// recorded with its evidence and limits in docs/website-mail-claims-2026-10-12.md.
+// The features: the October 12 overview's sentences, word for word, plus Set
+// Aside and the Island (October 22). Each is recorded with its evidence and
+// limits in docs/website-mail-claims-2026-10-12.md.
 // Each glyph is a 24-unit line drawing, stroked in gilt.
 const features = [
   { title: 'Every account together', text: 'Up to five Gmail accounts in one unified inbox, each with its own color. One search covers all of them.',
     glyph: '<rect x="2.5" y="7.5" width="15" height="11" rx="2" /><path d="m3 9 7 4.8L17 9" /><path d="M6.5 4.5h12a3 3 0 0 1 3 3v8" />' },
+  { title: 'Set Aside', text: 'Put conversations into a named set, like “Read on the flight”, and they leave your Inbox to wait in the sidebar. Give a set a review date and it’s marked due when the day comes; nothing moves on its own. Set names and dates stay on this Mac.',
+    glyph: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5l-6.5 4V5A1.5 1.5 0 0 1 7 3.5Z" />' },
   { title: 'A native window', text: 'Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.',
     glyph: '<rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="M3 9h18M9 9v10.5" />' },
   { title: 'Gmail first', text: 'Connect your Google account directly. Mail is stored locally for reading and draft recovery.',
@@ -21,12 +24,21 @@ const features = [
     glyph: '<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />' },
   { title: 'Ghost Mode', text: 'Hide a conversation or a whole Gmail label from view, then unlock it with Touch ID or your password. It locks again on a timer. Ghost Mode keeps things off your screen; it isn’t encryption.',
     glyph: '<path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /><rect x="5.5" y="10.5" width="13" height="10" rx="2.5" />' },
-  { title: 'Rules that read like sentences', text: 'Your Gmail filters, written out in plain words. Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too.',
-    glyph: '<path d="M4 7h16M4 12h11M4 17h7" /><path d="m15.5 16 2 2 3.5-4" />' },
   { title: 'Replies you type often', text: 'Save templates for the answers you give again and again; they stay on your Mac. Gmail’s vacation responder is in Settings too.',
     glyph: '<rect x="5" y="3.5" width="14" height="17" rx="2.5" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" />' },
   { title: 'Drafts that keep up', text: 'Move a draft to another account without losing a word. If anything interrupts you, your draft picks up right where you left off.',
     glyph: '<path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" />' },
+];
+// The Island's slash commands, in the app's order and words
+// (MailIsland.swift and MailIslandPanel.swift in the Mail repository).
+const islandCommands = [
+  ['snooze', 'Snooze…'], ['set-aside', 'Set Aside'], ['label', 'Labels'], ['move', 'Move To…'],
+  ['archive', 'Archive'], ['trash', 'Trash'], ['compose', 'New Message'], ['rule', 'New Rule…'],
+];
+const islandPoints = [
+  { title: 'Jump anywhere', text: 'Type a few letters to jump to a mailbox, label, conversation, set or person in the accounts you’re viewing, or press ⇧↵ to search all your mail.' },
+  { title: 'Commands with a slash', text: 'Type / to snooze, set aside, label, move, archive or trash what you’ve selected, or start a new message or rule. A command that can’t run yet says why.' },
+  { title: 'Actions at hand', text: 'Select a conversation and the Island holds Archive, Snooze, Set Aside, Labels and Trash, with Reply, Forward and the rest one click away.' },
 ];
 const careful = [
   { title: 'Mail that opens', text: 'Messages are sanitized before they’re shown, and scripts in them never run. Malformed mail still renders rather than leaving a blank pane.' },
@@ -65,6 +77,42 @@ const careful = [
     <!-- The gilt that strokes every glyph on the page. -->
     <svg class="mail-defs" aria-hidden="true" focusable="false"><linearGradient id="mail-gilt-stroke" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#f6e7bd" /><stop offset=".45" stop-color="#e0c084" /><stop offset=".75" stop-color="#b48c4a" /><stop offset="1" stop-color="#e8cf96" /></linearGradient></svg>
 
+    <!-- The headline feature. The figure is the Island's open panel as the Mail
+         app draws it after typing "/" with a conversation selected: its
+         layout, strings and order come from MailIslandPanel.swift. Recorded in
+         docs/website-mail-claims-2026-10-12.md (Island). -->
+    <section class="mail-island" aria-labelledby="mail-island-title">
+      <h2 id="mail-island-title"><span class="mail-gold-text">The Island, made for mail.</span></h2>
+      <p class="mail-island-lead">Blanc Browser’s floating Island, rebuilt for email. One capsule floats over your inbox in place of a toolbar, and ⌘L or ⌘F opens it in place to search, jump and act.</p>
+      <figure class="mail-island-figure">
+        <div class="mail-island-panel" role="img" aria-label="The Island open in Blanc Mail, listing its slash commands: Snooze, Set Aside, Labels, Move To, Archive, Trash, New Message and New Rule.">
+          <div class="mip-field" aria-hidden="true">
+            <svg class="mip-chevron" viewBox="0 0 24 24"><path d="m6 6 6 6-6 6M12 6l6 6-6 6" /></svg>
+            <span class="mip-input">/<i class="mip-caret"></i></span>
+            <svg class="mip-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>
+          </div>
+          <div class="mip-results" aria-hidden="true">
+            <p class="mip-header">commands</p>
+            {islandCommands.map(([keyword, title], index) => (
+              <p class:list={['mip-row', { 'is-highlighted': index === 0 }]}><b>/{keyword}</b>{title}</p>
+            ))}
+          </div>
+          <div class="mip-footer" aria-hidden="true">
+            <span class="mip-chips">{['snooze', 'set-aside', 'label', 'rule'].map(k => <span>/{k}</span>)}</span>
+            <span class="mip-hint">↑↓ to move, ↵ to open, ⇧↵ to search all mail</span>
+          </div>
+        </div>
+      </figure>
+      <ul class="mail-island-points">
+        {islandPoints.map(point => (
+          <li>
+            <h3>{point.title}</h3>
+            <p>{point.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
     <section class="mail-features" aria-labelledby="mail-features-title">
       <h2 id="mail-features-title"><span class="mail-gold-text">Every account, one calm inbox.</span></h2>
       <ul class="mail-feature-grid">
@@ -76,6 +124,15 @@ const careful = [
           </li>
         ))}
       </ul>
+    </section>
+
+    <!-- Rules: copy only until the dark rule-editor capture from the Mail
+         repository's capture script arrives. -->
+    <section class="mail-rules" aria-labelledby="mail-rules-title">
+      <div class="mail-rules-copy">
+        <h2 id="mail-rules-title"><span class="mail-gold-text">Rules that read like sentences</span></h2>
+        <p>Your Gmail filters, written out in plain words. Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too.</p>
+      </div>
     </section>
 
     <section class="mail-careful" aria-labelledby="mail-careful-title">

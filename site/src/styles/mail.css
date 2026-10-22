@@ -59,7 +59,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-bar .mail-icon{display:block;width:26px;height:26px}
 .mail-bar .mail-icon img{display:block;width:100%;height:100%;filter:drop-shadow(0 0 6px #e0c08440)}
 .mail-bar-links{display:flex;align-items:center;gap:2px;margin:0 0 0 auto;padding:0;list-style:none}
-.mail-bar-links a{position:relative;display:block;padding:6px 11px;border-radius:9px;color:var(--mail-band-muted);font-size:14px;font-weight:500;text-decoration:none;transition:color 160ms ease,background-color 160ms ease,transform 100ms ease-out}
+.mail-bar-links a{position:relative;display:block;padding:6px 11px;border-radius:9px;color:var(--mail-band-muted);font-size:14px;font-weight:500;letter-spacing:.015em;text-decoration:none;transition:color 160ms ease,background-color 160ms ease,transform 100ms ease-out}
 .mail-bar-links a[aria-current=page]{color:var(--mail-band-text)}
 .mail-bar-links a[aria-current=page]::after{content:"";position:absolute;left:11px;right:11px;bottom:-9px;height:2px;border-radius:2px;background:var(--mail-gilt);box-shadow:0 0 10px #e0c08480}
 .mail-bar-pages{display:none;align-items:center;gap:5px;min-width:0;margin-left:auto;padding:7px 10px;border:0;border-radius:9px;background:transparent;color:var(--mail-band-text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
@@ -150,6 +150,9 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-stage{
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 1.6' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .65 -.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
   position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;
+  /* Light Blubird Text on black reads tight at its natural spacing, so the
+     stage's copy is opened up; headings keep 0 (the site's display rule). */
+  letter-spacing:.018em;
   padding:clamp(48px,7vh,80px) 24px clamp(56px,8vh,96px);overflow:hidden;color:var(--mail-band-text);
   background:#050403
 }
@@ -198,11 +201,53 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 :is(.mail-soon,.mail-closing) .mail-waitlist-controls{gap:6px;padding:5px}
 :is(.mail-soon,.mail-closing) .mail-waitlist input[type=email]{height:44px;padding:0 16px}
 :is(.mail-soon,.mail-closing) .mail-waitlist button{height:44px;padding:0 22px}
-:is(.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{max-width:46ch;margin:14px auto 0}
+:is(.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{max-width:46ch;margin:14px auto 0;letter-spacing:.03em;line-height:1.6}
 .mail-stage-notes{max-width:60ch;margin-top:clamp(48px,7vh,72px);padding-top:28px;border-top:1px solid #f2ead81a;text-align:center}
-.mail-stage-notes p{margin:0 0 6px;color:var(--mail-band-muted);font-size:14px;line-height:1.55;text-wrap:balance}
+.mail-stage-notes p{margin:0 0 6px;color:var(--mail-band-muted);font-size:14px;line-height:1.6;letter-spacing:.03em;text-wrap:balance}
 .mail-stage-notes a{color:#e6cf9a;text-decoration-thickness:1px;text-underline-offset:3px}
 .mail-stage-notes a:focus-visible{outline:2px solid #e6cf9a;outline-offset:2px;border-radius:2px}
+/* The Island: Mail's open panel, drawn from the app's own metrics
+   (MailWindowLayout.swift, MailIslandPanel.swift): 640 wide, corner 24, a
+   52 field row, 40 rows, a 34 footer, Instrument Sans, the Blanc ink on a
+   near-white canvas. It scales as one drawing (1em = 1/40 of its width),
+   never reflowing, so phones see the same panel smaller. */
+.mail-island{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
+.mail-island-lead{max-width:44ch;margin:20px auto 0;color:var(--mail-band-text);font-size:clamp(17px,1.8vw,20px);line-height:1.5;text-wrap:balance}
+.mail-island-figure{position:relative;width:min(640px,100%);margin:56px auto 0;container-type:inline-size}
+/* The lamp again, under the panel, so it reads as lit glass on the stage. */
+.mail-island-figure::before{content:"";position:absolute;z-index:-1;inset:-18% -30% -30%;background:radial-gradient(ellipse 50% 46% at 50% 56%,#c4914238,#c4914200 70%);pointer-events:none}
+.mail-island-panel{
+  --mip-ink:#0e0e0e;--mip-secondary:#6b6b6b;--mip-tertiary:#9a9a9a;--mip-hairline:#0000001a;
+  font-size:calc(100cqw / 40);width:40em;border-radius:1.5em;overflow:hidden;text-align:left;
+  background:#fbfbfb;color:var(--mip-ink);font-family:var(--font-app);font-stretch:98%;letter-spacing:.01em;
+  box-shadow:0 0 0 1px #ffffff40,0 .75em 1.625em #00000057,0 2.5em 5em -1.5em #000000b3
+}
+.mip-field{display:flex;align-items:center;gap:.625em;height:3.25em;padding:0 1em;border-bottom:1px solid var(--mip-hairline)}
+.mip-field svg{flex:none;width:1.125em;height:1.125em;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mip-chevron{stroke:#111;stroke-width:1.8}
+.mip-clear{stroke:var(--mip-tertiary);stroke-width:1.6}
+.mip-input{flex:1;display:flex;align-items:center;font-size:1.0625em}
+.mip-caret{display:inline-block;width:1px;height:1.1em;margin-left:1px;background:var(--mip-ink)}
+@media(prefers-reduced-motion:no-preference){.mip-caret{animation:mip-blink 1.1s steps(1) infinite}}
+@keyframes mip-blink{50%{opacity:0}}
+.mip-results{padding:0 0 .375em}
+.mail-stage .mip-header{margin:0;padding:.625em 1.125em .25em;color:var(--mip-tertiary);font-family:Inter,var(--font-app);font-size:.6875em;line-height:1.3}
+/* Rows and the footer set their own font size, so their metrics divide by it. */
+.mail-stage .mip-row{display:flex;align-items:center;gap:.625em;height:calc(2.5em / .8125);margin:0 calc(.5em / .8125);padding:0 calc(.625em / .8125);border-radius:calc(.875em / .8125);font-size:.8125em;line-height:1}
+.mip-row b{font-weight:600}
+.mip-row.is-highlighted{background:#11111121}
+.mip-footer{display:flex;align-items:center;gap:calc(.5em / .6875);height:calc(2.125em / .6875);padding:0 calc(1em / .6875);border-top:1px solid var(--mip-hairline);font-family:Inter,var(--font-app);font-size:.6875em}
+.mip-chips{display:flex;gap:.55em}
+.mip-chips span{padding:.18em .73em;border-radius:.64em;box-shadow:inset 0 0 0 1px var(--mip-hairline);color:var(--mip-ink)}
+.mip-hint{margin-left:auto;color:var(--mip-tertiary);white-space:nowrap}
+.mail-island-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin:56px 0 0;padding:0;list-style:none;text-align:left}
+.mail-island-points li{padding-top:20px;border-top:1px solid #e0c08447}
+.mail-island-points p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
+@media(max-width:760px){.mail-island-points{grid-template-columns:1fr}}
+@media(max-width:520px){.mip-hint{display:none}}
+/* Rules: its own section, a heading and one paragraph for now. */
+.mail-rules{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
+.mail-rules-copy p{max-width:52ch;margin:20px auto 0;color:var(--mail-band-text);font-size:clamp(17px,1.8vw,19px);line-height:1.55;text-wrap:balance}
 /* What's coming: the features as dark cards with gilt line glyphs, then the
    four ways Mail is careful, divided by gold hairlines, then the waitlist again. */
 .mail-defs{position:absolute;width:0;height:0;overflow:hidden}
@@ -214,7 +259,7 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 @media(hover:hover){.mail-feature:hover{box-shadow:inset 0 0 0 1px #e0c08459,inset 0 1px 0 #fff3d626,0 24px 48px -28px #e0c08433}}
 .mail-feature-badge{display:grid;place-items:center;width:52px;height:52px;margin-bottom:22px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#e0c0842e,#e0c08400 72%);box-shadow:inset 0 0 0 1px #e0c08459}
 .mail-feature-badge svg{width:26px;height:26px;fill:none;stroke:url(#mail-gilt-stroke);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.mail-stage :is(.mail-feature,.mail-careful-row) p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55;text-wrap:pretty}
+.mail-stage :is(.mail-feature,.mail-careful-row) p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
 .mail-careful-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:48px 0 0;padding:0;border-top:1px solid #e0c08447;list-style:none;text-align:left}
 .mail-careful-row li{padding:26px 22px 4px}
 .mail-careful-row li:first-child{padding-left:0}

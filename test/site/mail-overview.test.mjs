@@ -56,7 +56,7 @@ test('the overview says what Mail is and that it is coming, with no screenshots'
         title: section.querySelector('h1').textContent.trim(),
         lead: section.querySelector('.mail-soon-lead').textContent.trim(),
         envelopeHidden: section.querySelector('.mail-envelope').getAttribute('aria-hidden'),
-        screenshots: document.querySelectorAll('img[src*="/mail/screens/"]').length,
+        screenshots: [...document.querySelectorAll('img[src*="/mail/screens/"]')].map(img => [img.getAttribute('src'), img.closest('figure.mail-shot')?.querySelector('figcaption')?.textContent.trim()]),
         browser: document.querySelector('.mail-stage-notes a').getAttribute('href'),
       };
     });
@@ -64,7 +64,7 @@ test('the overview says what Mail is and that it is coming, with no screenshots'
     assert.equal(soon.title, 'A little less inbox.');
     assert.equal(soon.lead, 'Blanc Mail brings a careful, native Gmail experience to your Mac.');
     assert.equal(soon.envelopeHidden, 'true', 'the envelope is decoration');
-    assert.equal(soon.screenshots, 0);
+    assert.deepEqual(soon.screenshots, []);
     assert.equal(soon.browser, '/download');
     // The label is hidden on screen but still names the field.
     assert.equal(await page.locator('#waitlist').getByRole('textbox', { name: 'Get an email when Blanc Mail is ready' }).count(), 1);
@@ -81,9 +81,14 @@ test('the features and the careful row list what Mail does, each with a gilt gly
       glyphs: [...document.querySelectorAll('.mail-feature-badge svg')].map(svg => getComputedStyle(svg).stroke),
       careful: [...document.querySelectorAll('.mail-careful-row h3')].map(h => h.textContent.trim()),
       headings: [...document.querySelectorAll('.mail-stage h2')].map(h => h.textContent.trim()),
+      island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
+      islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
     }));
-    assert.deepEqual(list.headings, ['Every account, one calm inbox.', 'Careful in what it sends, generous in what it accepts.']);
-    assert.deepEqual(list.features, ['Every account together', 'A native window', 'Gmail first', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Rules that read like sentences', 'Replies you type often', 'Drafts that keep up']);
+    assert.deepEqual(list.headings, ['The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.']);
+    // The Island figure lists the app's eight commands in its own order and words.
+    assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
+    assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
+    assert.deepEqual(list.features, ['Every account together', 'Set Aside', 'A native window', 'Gmail first', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
     assert.deepEqual(list.careful, ['Mail that opens', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
