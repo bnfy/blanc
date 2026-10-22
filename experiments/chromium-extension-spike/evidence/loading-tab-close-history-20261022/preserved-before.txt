@@ -1,0 +1,4 @@
+{
+  google: { urls: [ 'blanc://newtab/' ], selected: 0 },
+  dev: { urls: [ 'blanc://newtab/', 'blanc://newtab/' ], selected: 1 }
+}

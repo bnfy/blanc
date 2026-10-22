@@ -1954,10 +1954,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
    public:
     SplitCloseWatch(content::WebContents* tab, base::RepeatingClosure cancelled)
         : content::WebContentsObserver(tab), cancelled_(std::move(cancelled)) {}
+    void WebContentsDestroyed() override {
+      // Match TabRestoreService's exclusion of an initial, uncommitted tab.
+      auto& controller = web_contents()->GetController();
+      without_history_ = controller.IsInitialBlankNavigation() ||
+                         controller.GetEntryCount() == 0;
+    }
+    bool without_history() const { return without_history_; }
     void BeforeUnloadFired(bool proceed) override { if (!proceed) cancelled_.Run(); }
     void BeforeUnloadDialogCancelled() override { cancelled_.Run(); }
    private:
     base::RepeatingClosure cancelled_;
+    bool without_history_ = false;
   };
   struct PendingSplitClose {
     base::WeakPtr<BrowserWindowInterface> browser;
@@ -2007,10 +2015,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     const bool cancelled = it->second.cancelled;
     if (it->second.single_tab) {
+      const bool without_history = it->second.watches.front()->without_history();
       split_closes_.erase(it);
       // A cancelled native unload is a normal outcome, not a storage failure.
       if (cancelled) Reply(id, true, base::Value(false));
-      else SaveClosedHistory(id, browser->GetProfile());
+      else SaveClosedHistory(id, browser->GetProfile(), without_history);
       return;
     }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
@@ -2098,7 +2107,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     ClosedHistorySaved(id, saved && profile);
   }
-  void SaveClosedHistory(std::string id, Profile* profile) {
+  void SaveClosedHistory(std::string id, Profile* profile, bool without_history = false) {
     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
     history_saves_.emplace(id, 0);
     auto* service = ClosedService(profile);
@@ -2109,6 +2118,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (SessionRepair(profile)->pending()) {
       // Revalidate after both stores flush; mutations require a fresh snapshot.
       RetryClosedSession(id, profile->GetWeakPtr());
+    } else if (without_history && service->entries().empty()) {
+      // There is no historical entry to flush, but the closed tab must still
+      // disappear from the persisted open session before acknowledging it.
+      auto* session = SessionServiceFactory::GetForProfile(profile);
+      if (!session) { ClosedHistorySaved(id, false); return; }
+      session->ResetFromCurrentBrowsers();
+      session->SaveAndFlushSession(base::BindOnce(
+          &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
     } else {
       service->SaveAndFlush(base::BindOnce(
           &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
