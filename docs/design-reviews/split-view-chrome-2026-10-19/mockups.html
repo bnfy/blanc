@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split View chrome</title>
+<style>
+/* Split View (F53) chrome directions for spec §12 Q1. Tokens, type and the
+   Island/Glance header shapes are copied from src/renderer/styles.css; the
+   web pages are neutral placeholders. Not shipped code. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../../../src/renderer/pages/instrument-sans-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 100%;
+}
+:root {
+  --bg: #ffffff; --surface: #f7f7f7; --surface-raised: #ffffff;
+  --island-resting-surface: rgba(255,255,255,.94);
+  --border: #dedede; --text: #0e0e0e; --text-dim: #6b6b6b;
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --font-text: "Instrument Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --page-a: #eef2f7; --page-b: #f6efe7; --page-c: #edf5ee; --page-d: #f3eef6;
+  --block: rgba(14,14,14,.08); --block-strong: rgba(14,14,14,.16);
+  --chrome: #f2f2f2; --frame: #d6d6d6; --canvas: #e9e9e7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0e0e; --surface: #171717; --surface-raised: #1f1f1f;
+    --island-resting-surface: rgba(31,31,31,.94);
+    --border: #2e2e2e; --text: #f5f5f5; --text-dim: #9c9c9c;
+    --page-a: #1a2029; --page-b: #251f19; --page-c: #19221b; --page-d: #221c26;
+    --block: rgba(245,245,245,.08); --block-strong: rgba(245,245,245,.16);
+    --chrome: #141414; --frame: #333; --canvas: #0b0b0b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e0e0e; --surface: #171717; --surface-raised: #1f1f1f;
+  --island-resting-surface: rgba(31,31,31,.94);
+  --border: #2e2e2e; --text: #f5f5f5; --text-dim: #9c9c9c;
+  --page-a: #1a2029; --page-b: #251f19; --page-c: #19221b; --page-d: #221c26;
+  --block: rgba(245,245,245,.08); --block-strong: rgba(245,245,245,.16);
+  --chrome: #141414; --frame: #333; --canvas: #0b0b0b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 32px 16px 64px; background: var(--canvas); color: var(--text);
+  font-family: var(--font-text); font-stretch: 98%; letter-spacing: .01em;
+}
+main { max-width: 1240px; margin: 0 auto; }
+h1 { font-size: 22px; margin: 0 0 6px; }
+.lede { color: var(--text-dim); margin: 0 0 28px; font-size: 14px; max-width: 780px; line-height: 1.5; }
+section.direction { margin-bottom: 44px; }
+.direction h2 { font-size: 16px; margin: 0 0 4px; }
+.direction .why { color: var(--text-dim); font-size: 13px; margin: 0 0 14px; max-width: 900px; line-height: 1.5; }
+.tag { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); margin-left: 8px; }
+.tag.rec { color: var(--text); }
+.frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(540px, 1fr)); gap: 20px; }
+figure { margin: 0; }
+figcaption { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---- Window ---- */
+.win {
+  position: relative; height: 380px; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--frame); background: var(--bg);
+  display: grid; grid-template-rows: 54px 1fr;
+}
+.strip { position: relative; background: var(--chrome); display: flex; align-items: center; }
+.lights { position: absolute; left: 12px; top: 20px; display: flex; gap: 6px; z-index: 2; }
+.lights i { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; }
+.lights i:nth-child(2) { background: #febc2e; }
+.lights i:nth-child(3) { background: #28c840; }
+
+/* ---- Island (resting pill, scaled to the frame) ---- */
+.island {
+  height: 34px; padding: 0 11px; display: inline-flex; align-items: center; gap: 8px;
+  background: var(--island-resting-surface); border-radius: 13px;
+  box-shadow: var(--shadow-island-resting); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 12px; white-space: nowrap;
+}
+.island .domain { color: var(--text); font-weight: 500; }
+.ico { width: 13px; height: 13px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.fav { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+.fav.a { background: #3b82f6; } .fav.b { background: #e0803a; } .fav.c { background: #3fa362; } .fav.d { background: #9b5ec4; }
+.sep { width: 1px; height: 14px; background: var(--border); }
+.island-center { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); }
+
+/* ---- Page region and panes ---- */
+.pages { position: relative; display: grid; gap: 6px; background: var(--chrome); padding: 0; }
+.pages.cols2 { grid-template-columns: 1fr 1fr; }
+.pages.grid4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.pane { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.page { flex: 1 1 auto; padding: 14px; overflow: hidden; }
+.page.a { background: var(--page-a); } .page.b { background: var(--page-b); }
+.page.c { background: var(--page-c); } .page.d { background: var(--page-d); }
+.page .h { height: 12px; width: 46%; border-radius: 4px; background: var(--block-strong); margin-bottom: 10px; }
+.page .l { height: 7px; border-radius: 4px; background: var(--block); margin-bottom: 7px; }
+.page .l.s { width: 70%; } .page .l.m { width: 86%; }
+.page .card { height: 54px; border-radius: 8px; background: var(--block); margin-top: 12px; }
+
+/* ---- Pane header: Glance's reference header, generalized ---- */
+.ph {
+  height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px;
+  background: var(--surface-raised); border-bottom: 1px solid var(--border);
+  color: var(--text-dim); font-size: 11.5px; min-width: 0;
+}
+.ph .title { color: var(--text); font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
+.ph .acts { display: flex; gap: 10px; align-items: center; flex: none; }
+.ph.focused { border-bottom-color: var(--text-dim); }
+.ph.dim .title { color: var(--text-dim); font-weight: 500; }
+
+/* B: a header that lives in the strip band over its column (Glance side by side). */
+.strip.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-items: stretch; }
+.strip-cell { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; }
+/* The first column clears the traffic lights, as the Island does today. */
+.strip.cols > .lights + .strip-cell { padding-left: 64px; }
+.strip-cell .ph { height: 100%; width: 100%; border-left: 1px solid var(--border); padding-left: 16px; }
+.eyebrow { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; padding-right: 10px; border-right: 1px solid var(--border); }
+
+/* C: no header bands; the Island lists the panes and the focused pane gets a hairline. */
+.island .panes { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border-radius: 9px; background: color-mix(in srgb, var(--text) 6%, transparent); }
+.island .pane-chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 6px; border-radius: 7px; }
+.island .pane-chip.on { background: var(--surface-raised); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .14); padding: 0 9px 0 6px; }
+.pane.ring::after { content: ""; position: absolute; inset: 0; border-top: 2px solid var(--text); pointer-events: none; }
+.pane.ring.tl::after { border-top-left-radius: 0; }
+
+.notes { margin: 10px 0 0; padding-left: 18px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; max-width: 900px; }
+.notes b { color: var(--text); font-weight: 600; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 24px; }
+.toolbar button { font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+<h1>Split View chrome: three directions</h1>
+<p class="lede">For spec §12 Q1 (docs/superpowers/specs/2026-10-19-split-view-design.md). Each direction is shown with two columns and with the 2×2 grid. In every frame the focused pane is the top-left one, “Docs”. Colors, type, the Island and the Glance header come from the app's own CSS; the pages are placeholders.</p>
+<div class="toolbar"><button type="button" data-set-theme="light">Light</button><button type="button" data-set-theme="dark">Dark</button></div>
+
+<svg width="0" height="0" class="defs" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-fwd" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+  <symbol id="i-reload" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+</svg>
+
+<template id="page-a"><div class="page a"><div class="h"></div><div class="l m"></div><div class="l"></div><div class="l s"></div><div class="card"></div></div></template>
+<template id="page-b"><div class="page b"><div class="h"></div><div class="l"></div><div class="l m"></div><div class="card"></div><div class="l s"></div></div></template>
+<template id="page-c"><div class="page c"><div class="h"></div><div class="l s"></div><div class="l"></div><div class="l m"></div><div class="card"></div></div></template>
+<template id="page-d"><div class="page d"><div class="h"></div><div class="card"></div><div class="l m"></div><div class="l"></div></div></template>
+
+<!-- ============ A ============ -->
+<section class="direction" id="dir-a">
+  <h2>A. One Island, a header band on every pane <span class="tag rec">chosen 2026-10-19 (spec D5)</span></h2>
+  <p class="why">The Island stays centered over the whole window and always addresses the focused pane. Every pane, top row included, gets the same 30 px header band at its top, reserved in its geometry and painted by the chrome document.</p>
+  <div class="frames">
+    <figure><div class="win">
+      <div class="strip"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="island island-center" data-island="docs"></div></div>
+      <div class="pages cols2">
+        <div class="pane"><div class="ph focused" data-ph="a"></div><div data-page="a"></div></div>
+        <div class="pane"><div class="ph" data-ph="b"></div><div data-page="b"></div></div>
+      </div></div><figcaption>Two columns. The focused header's hairline brightens, as Glance's does.</figcaption></figure>
+    <figure><div class="win">
+      <div class="strip"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="island island-center" data-island="docs"></div></div>
+      <div class="pages grid4">
+        <div class="pane"><div class="ph focused" data-ph="a"></div><div data-page="a"></div></div>
+        <div class="pane"><div class="ph" data-ph="b"></div><div data-page="b"></div></div>
+        <div class="pane"><div class="ph" data-ph="c"></div><div data-page="c"></div></div>
+        <div class="pane"><div class="ph" data-ph="d"></div><div data-page="d"></div></div>
+      </div></div><figcaption>2×2. Every pane looks the same; nothing moves when focus moves.</figcaption></figure>
+  </div>
+  <ul class="notes">
+    <li><b>For:</b> one rule everywhere; the Island never moves; every pane can be identified and closed in place; works the same in the grid's bottom row and in every fallback.</li>
+    <li><b>Against:</b> 30 px of page height per pane, including the top row, where Glance today uses the strip.</li>
+  </ul>
+</section>
+
+<!-- ============ B ============ -->
+<section class="direction" id="dir-b">
+  <h2>B. The Island follows focus (Glance, extended)</h2>
+  <p class="why">The strip band is divided by columns. The focused top-row column holds the Island; every other top-row column shows its header in the strip, exactly like Glance's reference header today. Bottom-row panes get header bands between the views.</p>
+  <div class="frames">
+    <figure><div class="win">
+      <div class="strip cols"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="strip-cell"><div class="island" data-island="compact"></div></div>
+        <div class="strip-cell"><div class="ph" data-ph="b" data-eyebrow="Split"></div></div>
+      </div>
+      <div class="pages cols2">
+        <div class="pane"><div data-page="a"></div></div>
+        <div class="pane"><div data-page="b"></div></div>
+      </div></div><figcaption>Two columns: identical to Glance today, without Make main.</figcaption></figure>
+    <figure><div class="win">
+      <div class="strip cols"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="strip-cell"><div class="island" data-island="compact"></div></div>
+        <div class="strip-cell"><div class="ph" data-ph="b" data-eyebrow="Split"></div></div>
+      </div>
+      <div class="pages grid4">
+        <div class="pane"><div data-page="a"></div></div>
+        <div class="pane"><div data-page="b"></div></div>
+        <div class="pane"><div class="ph" data-ph="c"></div><div data-page="c"></div></div>
+        <div class="pane"><div class="ph" data-ph="d"></div><div data-page="d"></div></div>
+      </div></div><figcaption>2×2: focusing “Tickets” (bottom left) can't move the Island there, so the top row and bottom row behave differently.</figcaption></figure>
+  </div>
+  <ul class="notes">
+    <li><b>For:</b> no new chrome for two panes, since it's what Glance users already know; the top row loses no height.</li>
+    <li><b>Against:</b> the Island jumps between columns when focus moves; the grid's two rows follow different rules; three columns leave little room for the Island in one third of the window.</li>
+  </ul>
+</section>
+
+<!-- ============ C ============ -->
+<section class="direction" id="dir-c">
+  <h2>C. The Island carries the panes, no header bands</h2>
+  <p class="why">No pane headers at all. The Island stays centered and gains a pane switcher: one chip per pane, with the focused pane's chip expanded to its title. The focused pane gets a 2 px top hairline. Back, Reload and the pane menu act on the focused pane from the Island.</p>
+  <div class="frames">
+    <figure><div class="win">
+      <div class="strip"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="island island-center" data-island="switcher2"></div></div>
+      <div class="pages cols2">
+        <div class="pane ring"><div></div><div data-page="a"></div></div>
+        <div class="pane"><div></div><div data-page="b"></div></div>
+      </div></div><figcaption>Two columns. The most page space of the three.</figcaption></figure>
+    <figure><div class="win">
+      <div class="strip"><div class="lights"><i></i><i></i><i></i></div>
+        <div class="island island-center" data-island="switcher4"></div></div>
+      <div class="pages grid4">
+        <div class="pane ring"><div></div><div data-page="a"></div></div>
+        <div class="pane"><div></div><div data-page="b"></div></div>
+        <div class="pane"><div></div><div data-page="c"></div></div>
+        <div class="pane"><div></div><div data-page="d"></div></div>
+      </div></div><figcaption>2×2. Which chip is which pane has to be learned from the order.</figcaption></figure>
+  </div>
+  <ul class="notes">
+    <li><b>For:</b> no lost height; closest to Arc, where the split's tabs live in the sidebar and the panes carry almost no chrome.</li>
+    <li><b>Against:</b> panes can't be identified or closed in place; a pane is closed by focusing it first; the Island gets wider with every pane; the hairline is the only focus cue on the page itself.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+// Fill the repeated parts from templates so the three directions share exact markup.
+const icon = (name) => `<svg class="ico" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const PAGES = { a: ['Docs', 'docs.example.com'], b: ['Preview', 'localhost:4321'], c: ['Tickets', 'tickets.example.com'], d: ['Dashboard', 'grafana.example.com'] };
+const islandHtml = {
+  docs: `${icon('back')}${icon('fwd')}<span class="sep"></span><span class="fav a"></span><span class="domain">docs.example.com</span>${icon('shield')}${icon('reload')}${icon('heart')}${icon('x')}`,
+  // F34: in a narrow column the Island drops Forward and Favorite.
+  compact: `${icon('back')}<span class="sep"></span><span class="fav a"></span><span class="domain">docs.example.com</span>${icon('shield')}${icon('reload')}${icon('x')}`,
+  switcher2: `${icon('back')}${icon('fwd')}<span class="panes"><span class="pane-chip on"><span class="fav a"></span><span class="domain">docs.example.com</span></span><span class="pane-chip"><span class="fav b"></span></span></span>${icon('shield')}${icon('reload')}${icon('more')}`,
+  switcher4: `${icon('back')}${icon('fwd')}<span class="panes"><span class="pane-chip on"><span class="fav a"></span><span class="domain">docs.example.com</span></span><span class="pane-chip"><span class="fav b"></span></span><span class="pane-chip"><span class="fav c"></span></span><span class="pane-chip"><span class="fav d"></span></span></span>${icon('shield')}${icon('reload')}${icon('more')}`,
+};
+document.querySelectorAll('[data-island]').forEach((el) => { el.innerHTML = islandHtml[el.dataset.island]; });
+document.querySelectorAll('[data-page]').forEach((el) => {
+  el.replaceWith(document.getElementById(`page-${el.dataset.page}`).content.cloneNode(true));
+});
+document.querySelectorAll('[data-ph]').forEach((el) => {
+  const [title] = PAGES[el.dataset.ph];
+  const eyebrow = el.dataset.eyebrow ? `<span class="eyebrow">${el.dataset.eyebrow}</span>` : '';
+  el.innerHTML = `${eyebrow}<span class="fav ${el.dataset.ph}"></span><span class="title">${title}</span><span class="acts">${icon('back')}${icon('reload')}${icon('more')}${icon('x')}</span>`;
+});
+const params = new URLSearchParams(location.search);
+const setTheme = (t) => { document.documentElement.dataset.theme = t; };
+if (params.get('theme')) setTheme(params.get('theme'));
+document.querySelectorAll('[data-set-theme]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.setTheme)));
+</script>
+</body>
+</html>

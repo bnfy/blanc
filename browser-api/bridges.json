@@ -100,6 +100,68 @@
         "doc": "The running app version string."
       },
       {
+        "name": "pins.list",
+        "kind": "invoke",
+        "channel": "pages:pins:list",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "List the profile's Start Page pins, each with a locally held icon."
+      },
+      {
+        "name": "pins.pin",
+        "kind": "invoke",
+        "channel": "pages:pins:pin",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          },
+          {
+            "name": "title",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Pin an http(s) page to the Start Page; refused from private start pages and past the cap."
+      },
+      {
+        "name": "pins.unpin",
+        "kind": "invoke",
+        "channel": "pages:pins:unpin",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "url",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Unpin a page from the Start Page; refused from private start pages."
+      },
+      {
+        "name": "pins.onChanged",
+        "kind": "event",
+        "channel": "pages:pins:changed",
+        "hosts": [
+          "newtab",
+          "bookmarks"
+        ],
+        "payload": null,
+        "doc": "The Start Page pins changed; read them again.",
+        "unsubscribe": false
+      },
+      {
         "name": "bookmarks.list",
         "kind": "invoke",
         "channel": "pages:bookmarks:list",
@@ -433,6 +495,22 @@
         ],
         "returns": "unknown",
         "doc": "Whether a window in a Space draws that Space's color as the Color wallpaper."
+      },
+      {
+        "name": "start.setClock",
+        "kind": "invoke",
+        "channel": "pages:start:set-clock",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "partial",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn."
       },
       {
         "name": "start.chooseWallpaper",
@@ -801,6 +879,65 @@
         "params": [],
         "returns": "unknown",
         "doc": "Clear all history."
+      },
+      {
+        "name": "archive.list",
+        "kind": "invoke",
+        "channel": "pages:archive:list",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "opts",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "List archived tabs (F52), optionally searched."
+      },
+      {
+        "name": "archive.restore",
+        "kind": "invoke",
+        "channel": "pages:archive:restore",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Restore one archived tab into the requesting window."
+      },
+      {
+        "name": "archive.forget",
+        "kind": "invoke",
+        "channel": "pages:archive:forget",
+        "hosts": [
+          "history"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove one archived tab from the Archive."
+      },
+      {
+        "name": "archive.clear",
+        "kind": "invoke",
+        "channel": "pages:archive:clear",
+        "hosts": [
+          "history"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Empty the Archive."
       },
       {
         "name": "downloads.list",

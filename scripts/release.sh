@@ -21,7 +21,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.37.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.41.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -222,6 +222,12 @@ if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null ||
   echo "Tag or release $TAG already exists. Bump package.json; never overwrite release assets." >&2
   exit 1
 fi
+
+# A feature release's What's New page must already be live: Blanc asks for it
+# once per launch after the update, and people update within a minute of
+# publication. Checked now so nothing builds without it, and again before
+# Sigstore in case the site changed during the run.
+node scripts/check-whats-new-page.mjs --version "$VERSION"
 
 RELEASE_SOURCES=(
   src
@@ -507,6 +513,7 @@ node scripts/verify-release-manifest.mjs \
   --mac-arches "$MAC_ARCH_CSV"
 cp "dist/$NATIVE_MAC_DIR/Blanc.app/Contents/Resources/runtime-sbom.cdx.json" "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
+node scripts/check-whats-new-page.mjs --version "$VERSION"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."
 PATH="$PWD/scripts/release-bin:$PATH" cosign sign-blob --yes \

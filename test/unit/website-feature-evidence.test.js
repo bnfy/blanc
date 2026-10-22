@@ -14,8 +14,10 @@ const previousLedger = JSON.parse(read('docs/website-v1.21-claims.json'));
 const historicalLedger = JSON.parse(read('docs/website-v1.15-claims.json'));
 const v132Ledger = JSON.parse(read('docs/website-v1.32-claims.json'));
 const v133Ledger = JSON.parse(read('docs/website-v1.33-claims.json'));
+const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1.38.json'));
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
+const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -57,7 +59,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -69,9 +71,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
-    for (const match of page.matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
     }
     // A claim about another product rests on a recorded first-party source the page links.
@@ -83,6 +85,24 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
       }
     }
   }
+});
+
+test('Arc switching guide and support link resolve to public v1.38.0 evidence', () => {
+  const record = arcSwitchingLedger;
+  assert.equal(record.publicRelease, 'v1.38.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    assert.ok(claim.evidenceGroups.length, claim.id);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, claim.id);
+      for (const file of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${file}`], { cwd: root });
+    }
+  }
+  assert.match(read('site/src/pages/support.astro'), /href="\/arc-alternative"/);
 });
 
 test('drag-to-reorder copy resolves to verified public v1.30.0 evidence', () => {
@@ -129,7 +149,7 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   // Any sentence on these pages about importing from Arc or about Blanc's
   // interface languages must be a recorded claim in this ledger, a later one
   // (v1.33, v1.35: Italian since v1.33.0) or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
@@ -223,7 +243,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -305,7 +325,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
   const v135Ledger = JSON.parse(read('docs/website-v1.35-claims.json'));
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims, ...JSON.parse(read('docs/website-v1.38-claims.json')).claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
@@ -363,6 +383,65 @@ test('v1.37.0 tab group copy resolves to verified public v1.37.0 evidence', () =
   const notes = execFileSync('git', ['show', `${v137.publicRelease}:docs/press/release-notes/v1.37.0.md`], { cwd: root, encoding: 'utf8' });
   assert.match(notes, /\*\*Tab group colors\.\*\*/);
   assert.match(notes, /\*\*Links open as ungrouped tabs\.\*\*/);
+});
+
+// Your own Start Page image (F49) and the Start Page Color wallpaper (F50),
+// announced once public v1.38.0 shipped them.
+test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evidence', () => {
+  const v138 = JSON.parse(read('docs/website-v1.38-claims.json'));
+  assert.equal(v138.publicRelease, 'v1.38.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v138.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v138.sourceSha);
+  assert.ok(read(v138.releaseEvidence).includes(v138.sourceSha));
+  for (const claim of v138.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v138.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v138.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const label of v138.labels) assert.ok(normalize(read(label.source)).includes(label.exactWording), `label drifted: ${label.exactWording}`);
+  // Every wallpaper sentence on the page is recorded, and no per-space image is promised.
+  const raw = read('site/src/pages/features/start-page.astro');
+  const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-section-1"'));
+  assert.ok(section.includes('Your image'), 'the wallpaper section is on the page');
+  const recorded = new Set([...v138.claims, ...v138.labels].map(entry => entry.exactWording));
+  const sentences = section.split(/<[^>]+>/).map(node => normalize(node)).filter(node => /\p{L}/u.test(node))
+    .flatMap(node => node.split(/(?<=\.)\s+/));
+  assert.ok(sentences.length >= 14, 'every wallpaper sentence is read');
+  for (const sentence of sentences) assert.ok(recorded.has(sentence), `unrecorded wallpaper copy: ${sentence}`);
+  const page = normalize(raw).toLowerCase();
+  for (const retired of v138.prohibitedClaims) assert.ok(!page.includes(retired.toLowerCase()), `start page still says “${retired}”`);
+  const notes = execFileSync('git', ['show', `${v138.publicRelease}:docs/press/release-notes/v1.38.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Your own Start Page image\.\*\*/);
+  assert.match(notes, /\*\*A Start Page color\.\*\*/);
+});
+
+// Glance as a card floating over the page (F34) and Split View for side by
+// side (F53), announced once public v1.40.0 shipped them.
+test('v1.40.0 floating Glance copy resolves to verified public v1.40.0 evidence', () => {
+  assert.equal(v140Ledger.publicRelease, 'v1.40.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v140Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v140Ledger.sourceSha);
+  assert.ok(read(v140Ledger.releaseEvidence).includes(v140Ledger.sourceSha));
+  for (const claim of v140Ledger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    const source = read(claim.source);
+    assert.ok(normalize(source).includes(claim.exactWording) || source.includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v140Ledger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v140Ledger.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // The side-by-side Glance of v1.35.0 to v1.39.0 is gone from every page that describes Glance.
+  for (const file of new Set(v140Ledger.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retired of v140Ledger.prohibitedClaims) assert.ok(!text.includes(retired), `${file}: still says “${retired}”`);
+  }
+  const notes = execFileSync('git', ['show', `${v140Ledger.publicRelease}:docs/press/release-notes/v1.40.0.md`], { cwd: root, encoding: 'utf8' });
+  assert.match(notes, /\*\*Glance floats over the page\.\*\*/);
+  assert.match(notes, /\*\*Split View\.\*\*/);
 });
 
 // Bangs page copy, written before v1.36.0 as candidates (owner decision,
@@ -471,6 +550,9 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.30.1.json', 'v1.30.1', '9e337ac583e81bae509cfc970b9d97a81f3287ba', 4],
     ['docs/website-captures-v1.31.0.json', 'v1.31.0', '5bb0e0da01e05d612382fa99a434524ed2c5b108', 4],
     ['docs/website-captures-v1.36.0.json', 'v1.36.0', '3c214274958c15d8f3b28f8c61f2fac26937e333', 6],
+    ['docs/website-captures-v1.38.0.json', 'v1.38.0', '87538deee7e8acd0019f25bdae74f22a7481cb2d', 14],
+    ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
+    ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
@@ -500,7 +582,7 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
   const homepage = read('site/src/pages/index.astro');
-  const startPage = JSON.parse(read('docs/website-captures-v1.35.0.json'));
+  const startPage = JSON.parse(read('docs/website-captures-v1.38.0.json'));
   assert.ok(homepage.includes(startPage.wallpapers[0].displayAsset.file.replace('site/public', '')));
   assert.match(homepage, /aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper/);
 });
@@ -538,20 +620,20 @@ test('hero wallpaper scenes retain actual public captures and phase provenance',
   }
 });
 
-// The homepage and /features show the Start Page as public v1.35.0 draws it
-// (Instrument Sans interface text), captured from the public DMG. They replace
-// the c70c55fa candidates that were published before the release.
-test('Start Page captures are tied to public v1.35.0 and are all the homepage shows', async () => {
-  const manifest = JSON.parse(read('docs/website-captures-v1.35.0.json'));
+// The homepage and /features show the Start Page as public v1.38.0 draws it
+// (the footer on the wallpaper, the Customize popover's Wallpaper section, and
+// your own image), captured from the public DMG. They replace the v1.35.0 set,
+// which keeps its ledger and files for the pages that still show it.
+test('Start Page captures are tied to public v1.38.0 and are all the homepage shows', async () => {
+  const manifest = JSON.parse(read('docs/website-captures-v1.38.0.json'));
   assert.equal(manifest.status, 'public');
-  assert.equal(manifest.release, 'v1.35.0');
+  assert.equal(manifest.release, 'v1.38.0');
   assert.equal(execFileSync('git', ['rev-parse', `${manifest.release}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), manifest.sourceSha);
-  assert.equal(manifest.source.version, '1.35.0');
-  assert.equal(manifest.source.bundleBuild, '1350');
-  assert.match(manifest.source.artifact, /Blanc-1\.35\.0-arm64\.dmg/);
-  assert.match(manifest.replaces, /website-candidate-captures-c70c55fa\.json/);
-  assert.equal(fs.existsSync(path.join(root, 'docs/website-candidate-captures-c70c55fa.json')), false);
-  assert.equal(manifest.settings.newtabDynamicWallpaper, true);
+  assert.equal(manifest.source.version, '1.38.0');
+  assert.equal(manifest.source.bundleBuild, '1380');
+  assert.match(manifest.source.artifact, /Blanc-1\.38\.0-arm64\.dmg/);
+  assert.match(manifest.replaces, /website-captures-v1\.35\.0\.json/);
+  assert.equal(manifest.wallpaperSettings.newtabDynamicWallpaper, true);
   assert.deepEqual(manifest.wallpapers.map(item => [item.phase, item.theme]), ['dawn', 'day', 'dusk', 'night'].map(phase => [phase, 'light']));
   const releasedModule = { exports: {} };
   runInNewContext(execFileSync('git', ['show', `${manifest.release}:src/renderer/pages/newtab-wallpaper.js`], { cwd: root, encoding: 'utf8' }), { module: releasedModule });
@@ -568,11 +650,10 @@ test('Start Page captures are tied to public v1.35.0 and are all the homepage sh
     }
   }
   const display = JSON.parse(read('site/src/data/display-images.json'));
-  for (const capture of manifest.layouts) {
+  // Layouts, Mahjong and the wallpaper states carry same-size WebP companions.
+  for (const capture of manifest.captures) {
     assert.equal(hash(capture.file), capture.sha256, capture.file);
     assert.equal(hash(capture.webp.file), capture.webp.sha256, capture.webp.file);
-    const job = display.find(item => `site/public/${item.output}` === capture.webp.file);
-    assert.equal(job?.sourceSha256, capture.sha256, `${capture.webp.file} is the display copy of ${capture.file}`);
   }
   // The Island stage's three states, over Smithsonian pages, with their
   // display copies made from these exact files: public v1.36.0, whose open
@@ -599,21 +680,25 @@ test('Start Page captures are tied to public v1.35.0 and are all the homepage sh
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
   assert.ok(shown.length >= 4);
-  for (const file of shown) assert.match(file, /-v1\.35\.0\.webp$/, `${file} is not a v1.35.0 capture`);
+  const homeKnown = new Set([...manifest.wallpapers.map(item => item.displayAsset.file), ...manifest.captures.map(item => item.webp.file)].map(file => file.replace('site/public', '')));
+  for (const file of shown) {
+    assert.match(file, /-v1\.38\.0\.webp$/, `${file} is not a v1.38.0 capture`);
+    if (!file.includes('${')) assert.ok(homeKnown.has(file), `${file} is not in the v1.38.0 ledger`);
+  }
   for (const time of ['dawn', 'day', 'dusk', 'night']) {
-    assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-v1.35.0.webp`), time);
+    assert.ok(manifest.wallpapers.some(item => item.displayAsset.file === `site/public/feature-captures/home-wallpaper-${time}-v1.38.0.webp`), time);
   }
   // The Features page shows the same captures: the time-of-day tile, the
   // layouts, Mahjong and the Island, never the older public captures.
   const features = read('site/src/pages/features.astro');
   const known = new Set([
     ...manifest.wallpapers.map(item => item.displayAsset.file),
-    ...manifest.layouts.map(item => item.webp.file),
+    ...manifest.captures.map(item => item.webp.file),
     ...island.captures.flatMap(item => ['-800.webp', '-1400.webp'].map(copy => item.file.replace('.webp', copy))),
   ].map(file => file.replace('site/public', '')));
-  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|island)[^"\s,]*\.webp/g)].map(match => match[0]);
+  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|start-page|island)[^"\s,]*\.webp/g)].map(match => match[0]);
   assert.ok(featureCaptures.length >= 12);
-  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.35.0 or v1.36.0 capture`);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.38.0 or v1.36.0 capture`);
 });
 
 // The Blanc for Teams pilot page: every sentence, the meta copy included, is

@@ -26,6 +26,8 @@ function harness(groups = []) {
     crypto,
     ...tabSections,
     pruneEmptyGroups: () => {},
+    // Split View (F53): no split in these fixtures.
+    alignSplitGroup: () => {},
     broadcastTabs: () => {},
     scheduleMenuRebuild: () => {},
     ...groupNameCase,

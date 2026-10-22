@@ -320,6 +320,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .layout-gallery figcaption { padding-top: 14px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
 .layout-gallery { margin: 48px 0; }
 .layout-gallery figure:last-child { grid-column: 1 / -1; }
+.layout-gallery--pairs figure:last-child { grid-column: auto; }
 .layout-gallery a, .released-capture a { display: block; border-radius: 12px; }
 .layout-gallery a:focus-visible, .released-capture a:focus-visible { outline: 2px solid var(--site-text); outline-offset: 5px; }
 @media (max-width: 640px) {
@@ -485,6 +486,29 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .install-platform ol { display: grid; gap: 10px; margin: 18px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
 .install-platform li::marker { color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; }
 .install-platform code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); font-size: 12px; overflow-wrap: anywhere; }
+/* Homebrew: the Mac's terminal route, set beside a small Terminal window. */
+.install-terminal { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: center; margin-top: 20px; padding: 32px 32px 32px 36px; border: 1px solid var(--site-border); border-radius: 16px; background: var(--site-surface); }
+.install-terminal h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 16px; font-weight: 600; }
+.install-terminal h3 .platform-logo { width: 16px; height: 18px; fill: currentColor; }
+.install-terminal-copy > p { margin: 12px 0 0; font-size: 15px; line-height: 1.6; }
+.install-terminal-copy > p a { color: inherit; text-decoration-color: var(--site-gold); text-underline-offset: 3px; }
+.install-terminal ul { display: grid; gap: 8px; margin: 16px 0 0; padding-left: 18px; color: var(--site-text-dim); font-size: 14px; line-height: 1.6; }
+.install-terminal ul code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); color: var(--site-text); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+.install-terminal .text-link { margin-top: 18px; }
+.terminal-window { margin: 0; overflow: hidden; border-radius: 12px; background: var(--site-ink-warm); color: #F8F2E8; box-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 22px 48px -26px rgb(18 16 11 / 0.55); }
+.terminal-bar { position: relative; padding: 11px 16px; border-bottom: 1px solid rgb(255 255 255 / 0.08); color: rgb(248 242 232 / 0.5); font-size: 12px; text-align: center; }
+.terminal-lights { position: absolute; top: 50%; left: 16px; display: flex; gap: 7px; transform: translateY(-50%); }
+.terminal-lights i { width: 11px; height: 11px; border-radius: 50%; background: rgb(248 242 232 / 0.18); }
+.terminal-body { display: flex; align-items: center; gap: 16px; padding: 26px 18px 28px 22px; }
+.terminal-body pre { flex: 1; min-width: 0; margin: 0; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14.5px; line-height: 1.5; white-space: pre; }
+.terminal-prompt { color: var(--site-gold-on-dark); user-select: none; }
+.terminal-copy { flex: none; padding: 7px 14px; border: 1px solid rgb(248 242 232 / 0.22); border-radius: 999px; background: transparent; color: #F8F2E8; font: inherit; font-size: 12.5px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; }
+.terminal-copy:is(:hover, :focus-visible) { border-color: var(--site-gold-on-dark); background: rgb(248 242 232 / 0.08); }
+.terminal-copy:focus-visible { outline: 2px solid var(--site-gold-on-dark); outline-offset: 2px; }
+.terminal-copy[data-state="copied"] { border-color: var(--site-gold-on-dark); color: var(--site-gold-on-dark); }
+@media (max-width: 860px) {
+  .install-terminal { grid-template-columns: 1fr; gap: 24px; padding: 26px 24px 24px; }
+}
 .download-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 36px; border-top: 1px solid var(--site-border); }
 .download-columns article { padding: 24px 28px 0 0; }
 .download-columns article + article { padding-left: 28px; border-left: 1px solid var(--site-border); }
@@ -787,6 +811,10 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .download-block { padding-bottom: 72px; }
   .install-platforms { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; }
   .install-platform { padding: 22px 22px 24px; }
+  .install-terminal { margin-top: 14px; padding: 22px 18px 18px; }
+  .terminal-body { flex-direction: column; align-items: stretch; gap: 14px; padding: 20px 16px; }
+  .terminal-body pre { font-size: 12px; }
+  .terminal-copy { align-self: flex-start; }
   .download-columns { grid-template-columns: 1fr; margin-top: 28px; }
   .download-columns article, .download-columns article + article { padding: 22px 0; border-left: 0; }
   .download-columns article + article { border-top: 1px solid var(--site-border); }
@@ -1020,7 +1048,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 }
 .memchart-track { display: block; width: 100%; }
 .memchart-bar {
-  display: block; width: var(--fill); height: 30px; border-radius: 0 4px 4px 0;
+  display: block; width: var(--fill); height: 10px; border-radius: 999px;
   background: #c4c4c4; min-width: 3px;
 }
 .memchart-val {
@@ -1031,6 +1059,20 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .memchart-table .is-blanc .memchart-bar { background: var(--site-accent); }
 .memchart-table .is-blanc .memchart-val { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
 
+/* When the chart scrolls into view, its bars grow from zero one after another
+   and each value fades in after its bar. MemoryChart's script sets
+   data-animate only with motion allowed, so without it (reduced motion, no
+   scripting) the finished chart shows at once. */
+.memchart-bar { transform-origin: 0 50%; }
+.memchart[data-animate] .memchart-bar {
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 90ms);
+}
+.memchart[data-animate] .memchart-val {
+  transition: opacity 0.4s ease calc(var(--i) * 90ms + 0.5s);
+}
+.memchart[data-animate="waiting"] .memchart-bar { transform: scaleX(0); }
+.memchart[data-animate="waiting"] .memchart-val { opacity: 0; }
+
 .memchart-note {
   font-size: 0.85rem; line-height: 1.65; color: var(--site-text-dim);
   border-top: 1px solid var(--site-border); padding-top: 16px; max-width: 70ch;
@@ -1039,7 +1081,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 @media (max-width: 640px) {
   .memchart-table td { grid-template-columns: 1fr 4rem; gap: 12px; }
   .memchart-table th[scope="row"] { width: 5.5rem; padding-right: 12px; font-size: 0.95rem; }
-  .memchart-bar { height: 24px; }
+  .memchart-bar { height: 8px; }
   .memchart-table .is-blanc .memchart-val { font-size: 1.15rem; }
 }
 

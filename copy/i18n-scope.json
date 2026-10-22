@@ -24,6 +24,10 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/hover-panel-leave.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/overlay.html": {
       "state": "guarded",
       "allow": [
@@ -53,6 +57,10 @@
       "allow": []
     },
     "src/renderer/tooltip.html": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/split-tab.html": {
       "state": "guarded",
       "allow": []
     },

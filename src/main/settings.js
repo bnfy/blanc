@@ -12,6 +12,8 @@ const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
 const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
+const clockRules = require('./start-clock-style');
+const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
@@ -44,12 +46,21 @@ const TAB_LAYOUTS = ['island', 'vertical'];
 const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
+// Device-local Tab Archive delay (F52); off by default, never in SYNCED_KEYS.
+const TAB_ARCHIVE_DELAYS = ['off', '12h', '1d', '7d', '30d'];
 // Interface language: 'system' or a BCP 47 language code. Device-local (never
 // in SYNCED_KEYS) and written ONLY by setUiLanguage(): the generic whitelist
 // has no entry, so pages:settings:set cannot bypass the relaunch flow.
-// An app version as package.json writes it (lastRunVersion, whatsNewVersion).
+// An app version as package.json writes it (lastRunVersion, whatsNewVersion,
+// whatsNewPageVersion).
 const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
+// A feature release, major.minor (whatsNewTabRelease).
+const FEATURE_RELEASE_RE = /^\d+\.\d+$/;
 const UI_LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+const isFraction = (value) => Number.isFinite(value) && value >= 0 && value <= 1;
+/** A remembered Glance card frame: four fractions of the page area. */
+const isGlanceFrame = (value) => !!value && typeof value === 'object'
+  && ['x', 'y', 'width', 'height'].every((key) => isFraction(value[key]));
 const isUiLanguageValue = (value) => value === 'system' || (typeof value === 'string' && UI_LANGUAGE_CODE.test(value));
 // Unix milliseconds beyond this point are corrupted sync metadata, not a
 // plausible device clock. The bound also leaves ample safe-integer headroom
@@ -91,13 +102,14 @@ const CHECKLIST_FLAGS = [
 // that would be license sharing).
 // deviceNames is merged entry by entry (device-names.js), never as one
 // last-writer-wins value, and only setDeviceName() writes it.
-const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'bangsEnabled', 'customBangs', 'deviceNames'];
+const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'newtabClockHeight', 'bangsEnabled', 'customBangs', 'deviceNames'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
 // is also the tile order Settings renders.
 const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
+  'sunrise-gold': 'Sunrise Gold',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 
@@ -195,6 +207,16 @@ const DEFAULTS = {
   newtabWallpaperColor: 'sage',
   newtabWallpaperFill: 'gradient',
   newtabFollowSpaceColor: false,
+  // The Billboard clock's Font & Color (start-clock-style.js): a bundled face,
+  // its weight, the page's ink or a Spaces preset at a tone, and Solid or
+  // Glass, and how tall the figures stand (percent; the Lock Screen's
+  // stretch). The defaults draw the clock as it was. Synced like the layout.
+  newtabClockFont: 'instrument',
+  newtabClockWeight: 500,
+  newtabClockColor: 'auto',
+  newtabClockTone: 50,
+  newtabClockStyle: 'solid',
+  newtabClockHeight: 100,
   // Show this device's own image on the Start Page when one is stored
   // (wallpaper.js). Device-local like the image itself, so not Profile Synced.
   newtabCustomWallpaper: false,
@@ -208,11 +230,20 @@ const DEFAULTS = {
   // Off keeps it on the theme background. Device-local, not Profile Synced.
   islandSiteColors: true,
   islandHoverOpen: false,
+  // Page fills the window; the Island strip returns at the top edge.
+  // Device-local, not Profile Synced.
+  islandAutoHide: false,
+  islandAutoHideStyle: 'float',
+  // Floating Glance: the card's remembered size and place, as fractions of
+  // the page area ({x, y, width, height}, each 0..1), or null for the
+  // first-open frame. Device-local, written ONLY by setGlanceFrame().
+  glanceFrame: null,
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
+  tabArchive: 'off',
   // 'system' follows the OS; a stored code that is no longer selectable is kept
   // and renders English (see src/main/i18n.js). Device-local, not Profile Synced.
   uiLanguage: 'system',
@@ -282,6 +313,10 @@ const DEFAULTS = {
   lastRunVersion: '',
   whatsNewVersion: '',
   whatsNewSince: 0,
+  // What's New page state (src/main/whats-new.js): the version whose page was
+  // found, and the feature release that no longer owes a tab.
+  whatsNewPageVersion: '',
+  whatsNewTabRelease: '',
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -456,8 +491,11 @@ function getSettings() {
   if (!Number.isFinite(data.patronCalloutDismissedAt) || data.patronCalloutDismissedAt < 0) {
     data.patronCalloutDismissedAt = DEFAULTS.patronCalloutDismissedAt;
   }
-  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewPageVersion']) {
     if (typeof data[key] !== 'string' || (data[key] && !APP_VERSION_RE.test(data[key]))) data[key] = DEFAULTS[key];
+  }
+  if (typeof data.whatsNewTabRelease !== 'string' || (data.whatsNewTabRelease && !FEATURE_RELEASE_RE.test(data.whatsNewTabRelease))) {
+    data.whatsNewTabRelease = DEFAULTS.whatsNewTabRelease;
   }
   if (!Number.isFinite(data.whatsNewSince) || data.whatsNewSince < 0) data.whatsNewSince = DEFAULTS.whatsNewSince;
   if (!Number.isFinite(data.firstRunCompletedAt) || data.firstRunCompletedAt < 0) {
@@ -466,6 +504,9 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
+  if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
+  data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
+  if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -474,10 +515,17 @@ function getSettings() {
   if (normalizePreset(data.newtabWallpaperColor) === null) data.newtabWallpaperColor = DEFAULTS.newtabWallpaperColor;
   if (normalizeFill(data.newtabWallpaperFill) === null) data.newtabWallpaperFill = DEFAULTS.newtabWallpaperFill;
   if (typeof data.newtabFollowSpaceColor !== 'boolean') data.newtabFollowSpaceColor = false;
+  if (clockRules.normalizeFont(data.newtabClockFont) === null) data.newtabClockFont = DEFAULTS.newtabClockFont;
+  if (clockRules.normalizeWeight(data.newtabClockWeight) === null) data.newtabClockWeight = DEFAULTS.newtabClockWeight;
+  if (clockRules.normalizeColor(data.newtabClockColor) === null) data.newtabClockColor = DEFAULTS.newtabClockColor;
+  if (clockRules.normalizeTone(data.newtabClockTone) === null) data.newtabClockTone = DEFAULTS.newtabClockTone;
+  if (clockRules.normalizeStyle(data.newtabClockStyle) === null) data.newtabClockStyle = DEFAULTS.newtabClockStyle;
+  if (clockRules.normalizeHeight(data.newtabClockHeight) === null) data.newtabClockHeight = DEFAULTS.newtabClockHeight;
   if (normalizeWash(data.newtabWallpaperWash) === null) data.newtabWallpaperWash = DEFAULTS.newtabWallpaperWash;
   if (normalizeWashStyle(data.newtabWallpaperStyle) === null) data.newtabWallpaperStyle = DEFAULTS.newtabWallpaperStyle;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!TAB_ARCHIVE_DELAYS.includes(data.tabArchive)) data.tabArchive = DEFAULTS.tabArchive;
   if (!isUiLanguageValue(data.uiLanguage)) data.uiLanguage = DEFAULTS.uiLanguage;
   if (!['blanc', 'ublock-origin'].includes(data.adblockProvider)) data.adblockProvider = DEFAULTS.adblockProvider;
   if (typeof data.mouseGesturesEnabled !== 'boolean') data.mouseGesturesEnabled = false;
@@ -546,8 +594,11 @@ function sanitize(partial) {
   if (Number.isFinite(partial.patronCalloutDismissedAt) && partial.patronCalloutDismissedAt >= 0) {
     clean.patronCalloutDismissedAt = partial.patronCalloutDismissedAt;
   }
-  for (const key of ['lastRunVersion', 'whatsNewVersion']) {
+  for (const key of ['lastRunVersion', 'whatsNewVersion', 'whatsNewPageVersion']) {
     if (typeof partial[key] === 'string' && (partial[key] === '' || APP_VERSION_RE.test(partial[key]))) clean[key] = partial[key];
+  }
+  if (typeof partial.whatsNewTabRelease === 'string' && (partial.whatsNewTabRelease === '' || FEATURE_RELEASE_RE.test(partial.whatsNewTabRelease))) {
+    clean.whatsNewTabRelease = partial.whatsNewTabRelease;
   }
   if (Number.isFinite(partial.whatsNewSince) && partial.whatsNewSince >= 0) clean.whatsNewSince = partial.whatsNewSince;
   if (typeof partial.homePage === 'string') {
@@ -560,13 +611,24 @@ function sanitize(partial) {
   if (normalizePreset(partial.newtabWallpaperColor) !== null) clean.newtabWallpaperColor = partial.newtabWallpaperColor;
   if (normalizeFill(partial.newtabWallpaperFill) !== null) clean.newtabWallpaperFill = partial.newtabWallpaperFill;
   if (typeof partial.newtabFollowSpaceColor === 'boolean') clean.newtabFollowSpaceColor = partial.newtabFollowSpaceColor;
+  Object.assign(clean, clockRules.settingsForClock({
+    font: partial.newtabClockFont,
+    weight: partial.newtabClockWeight,
+    color: partial.newtabClockColor,
+    tone: partial.newtabClockTone,
+    style: partial.newtabClockStyle,
+    height: partial.newtabClockHeight,
+  }));
   if (normalizeWash(partial.newtabWallpaperWash) !== null) clean.newtabWallpaperWash = partial.newtabWallpaperWash;
   if (normalizeWashStyle(partial.newtabWallpaperStyle) !== null) clean.newtabWallpaperStyle = partial.newtabWallpaperStyle;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
+  if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
+  if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
+  if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
   if (validMapping(partial.mouseGestureMapping)) clean.mouseGestureMapping = { ...partial.mouseGestureMapping };
   if (Number.isFinite(partial.verticalTabsWidth)) {
@@ -767,6 +829,16 @@ function setUiLanguage(code, selectable) {
     s.data.uiLanguage = previous;
     return false;
   }
+  for (const fn of listeners) fn(getSettings());
+  return true;
+}
+
+/** The floating Glance's private write path: the card's remembered frame,
+ * or null to forget it. setSettings()'s whitelist has no glanceFrame. */
+function setGlanceFrame(frame) {
+  if (frame !== null && !isGlanceFrame(frame)) return false;
+  const next = frame === null ? null : { x: frame.x, y: frame.y, width: frame.width, height: frame.height };
+  ensureStore().update((data) => { data.glanceFrame = next; });
   for (const fn of listeners) fn(getSettings());
   return true;
 }
@@ -977,12 +1049,16 @@ function markGroupNamesRecased() {
 }
 
 module.exports = {
+  // The per-key LWW clock rules, shared with stores that ride in the settings
+  // payload (start-page-pins.js).
+  syncClock: Object.freeze({ validSyncTimestamp, nextSyncWriteTimestamp, normalizeSyncTieBreaker, remoteWinsSyncTie }),
   groupNamesRecaseDue,
   markGroupNamesRecased,
   SEARCH_ENGINES,
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
+  TAB_ARCHIVE_DELAYS,
   PRESENTATION_DEFAULTS_RESET_VERSION,
   APP_ICONS,
   APP_ICON_LABELS,
@@ -999,6 +1075,7 @@ module.exports = {
   isAppIconAllowed,
   setSupporter,
   setUiLanguage,
+  setGlanceFrame,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,

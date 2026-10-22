@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.40.0",
+  "sourceSha": "17ed22052bc0e1d0c0ce3920cbcb85c4792d306e",
+  "captureDate": "2026-10-21",
+  "timezone": "America/New_York",
+  "replaces": "On /features and /features/glance: glance-v1.35.0 (docs/website-captures-v1.35.0.json), which shows the side-by-side Glance of v1.35.0 to v1.39.0. v1.40.0 made Glance a card floating over the page. The older files stay in place with their ledger.",
+  "source": {
+    "artifact": "Public release asset Blanc-1.40.0-arm64.dmg from https://github.com/bnfy/blanc/releases/tag/v1.40.0, checked against the Sigstore-verified SHA256SUMS and mounted read-only; the installed /Applications/Blanc.app and its profile were not used",
+    "dmgSha256": "38331a6cf265afd6e42115e8f8ea6ae33cf4e51e20d0d1d8e30a6f5cf24f0465",
+    "executableSha256": "6d8856ddd9cc5647a4c6a4f4479eb5018e634d805757e63ab7b9b0e17a9b4311",
+    "version": "1.40.0",
+    "bundleBuild": "1400",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "On October 20, 2026, Gatekeeper accepted the mounted app (Notarized Developer ID); the release report records strict deep codesign, the pinned leaf certificate and the stapled ticket for this DMG. It launched as a separate instance in a disposable profile.",
+    "releaseEvidence": "docs/release-incidents/2026-10-20-v1.40.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "theme": "light",
+    "tabSleep": "off",
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "method": "BLANC_PACKAGED_EXECUTABLE=<mounted DMG>/Blanc.app/Contents/MacOS/Blanc BLANC_CAPTURE_VERSION=1.40.0 node scripts/capture-installed-glance.mjs, unchanged since the v1.35.0 capture: a map of Lisbon (OpenStreetMap) as the main page with the Wikivoyage Lisbon guide in Glance, opened through the shipped preload actions only (createTab, switchTab, setGlanceTab), so the card sits at its first-open place. One native screencapture -o -x -l of that window (2560×1600), resized to 1440×900 with lanczos3 and converted to sRGB by sharp, with a same-size WebP companion (quality 85). The live sites are drawn as they loaded; the blocked count on the Island is the release blocker’s own count for that page load. Nothing is retouched.",
+  "captures": [
+    {
+      "state": "Glance open over the main page: the floating card with its header (Glance, Back, Reload, the site, Change, Open as tab, Keep as split, Move or resize, Close) and the Glance page inside it",
+      "file": "site/public/feature-captures/glance-v1.40.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "bf43177138e281c5b9865ea8ed0d39f8e78880165dc05281defa65bbe5285c6b",
+      "webp": {
+        "file": "site/public/feature-captures/glance-v1.40.0.webp",
+        "sha256": "923d04e9f2eb22e158c0ebdd472057e4e92600089ae853b1905c3a44fddacf75"
+      },
+      "shownOn": [
+        "/features/glance",
+        "/features"
+      ],
+      "verdict": "verified",
+      "evidence": [
+        "docs/release-incidents/2026-10-20-v1.40.0.md",
+        "src/renderer/index.html",
+        "spec/acceptance/glance.feature"
+      ]
+    }
+  ]
+}

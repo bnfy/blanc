@@ -20,6 +20,8 @@ const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?
 const captureSource = mainSource.match(/function captureWindowEntry\([\s\S]*?\n\}/)?.[0];
 // captureWindowEntry reconciles the tab order and the Recently closed band first.
 const syncSource = mainSource.match(/function syncTabLayout\([\s\S]*?\n\}/)?.[0];
+const pruneSplitsSource = mainSource.match(/function pruneSplits\([\s\S]*?\n\}/)?.[0];
+const savedWindowSplitsSource = mainSource.match(/function savedWindowSplits\([\s\S]*?\n\}/)?.[0];
 const layoutListSource = mainSource.match(/function tabLayoutList\([\s\S]*?\n\}/)?.[0];
 const closedSlotModel = require('../../src/main/closed-slot');
 const tabSections = require('../../src/renderer/tab-sections');
@@ -69,8 +71,9 @@ function run(tabList, activeTabId, {
     autosaveWorkspaceBindings: () => {},
     ...closedSlotModel,
     ...tabSections,
+    ...require('../../src/main/split-model'),
   };
-  vm.runInNewContext(`${layoutListSource}\n${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
+  vm.runInNewContext(`${layoutListSource}\n${pruneSplitsSource}\n${savedWindowSplitsSource}\n${syncSource}\n${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();
   return data;
 }

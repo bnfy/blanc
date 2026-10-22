@@ -40,7 +40,7 @@ function sandbox({ enabled = true, recent = [], custom = [], sectionsOpen = {} }
   const calls = [];
   const context = {
     state: { groups: [], tabs: [{ id: 't1', title: 'lofi hip hop radio', url: 'https://www.youtube.com/watch?v=1' }], activeTabId: 't1' },
-    favorites: [], remoteDevices: [], historyEntries: [], wsWorkspaces: [],
+    favorites: [], remoteDevices: [], historyEntries: [], archivedEntries: [], wsWorkspaces: [],
     matchableText: (title, url) => `${title ?? ''} ${url ?? ''}`, stripUrl: (url) => url, tabDomain: (tab) => tab.url,
     blancI18n: { t: (key, params) => {
       if (key === 'bang.search') return `Search ${params.site} for “${params.query}”`;

@@ -70,6 +70,15 @@ if (window.location.protocol === 'blanc:') {
       return () => ipcRenderer.removeListener('pages:surface:escape', listener);
     },
   };
+  // Start Page pins, for the Start Page and the Favorites page alike.
+  const startPins = {
+    list: () => invoke('pages:pins:list'),
+    pin: (url, title) => invoke('pages:pins:pin', url, title),
+    unpin: (url) => invoke('pages:pins:unpin', url),
+    onChanged: (callback) => {
+      ipcRenderer.on('pages:pins:changed', () => callback());
+    },
+  };
   let api = null;
 
   if (host === 'newtab') {
@@ -82,6 +91,7 @@ if (window.location.protocol === 'blanc:') {
         importBrowser: (id) => invoke('pages:bookmarks:import-browser', id),
         import: () => invoke('pages:bookmarks:import'),
       },
+      pins: startPins,
       start: {
         data: () => invoke('pages:start:data'),
         topSites: (options) => invoke('pages:start:top-sites', options),
@@ -96,6 +106,7 @@ if (window.location.protocol === 'blanc:') {
         setWallpaperColor: (preset) => invoke('pages:start:set-wallpaper-color', preset),
         setWallpaperFill: (fill) => invoke('pages:start:set-wallpaper-fill', fill),
         setWallpaperFollowSpace: (enabled) => invoke('pages:start:set-wallpaper-follow-space', enabled),
+        setClock: (partial) => invoke('pages:start:set-clock', partial),
         chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
         removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
@@ -159,6 +170,7 @@ if (window.location.protocol === 'blanc:') {
         renameFolder: (oldName, newName) => invoke('pages:bookmarks:rename-folder', oldName, newName),
         removeFolder: (name) => invoke('pages:bookmarks:remove-folder', name),
       },
+      pins: startPins,
     };
   } else if (host === 'history') {
     api = {
@@ -167,6 +179,12 @@ if (window.location.protocol === 'blanc:') {
         list: (opts) => invoke('pages:history:list', opts),
         remove: (url, visitedAt) => invoke('pages:history:remove', url, visitedAt),
         clear: () => invoke('pages:history:clear'),
+      },
+      archive: {
+        list: (opts) => invoke('pages:archive:list', opts),
+        restore: (id) => invoke('pages:archive:restore', id),
+        forget: (id) => invoke('pages:archive:forget', id),
+        clear: () => invoke('pages:archive:clear'),
       },
     };
   } else if (host === 'downloads') {

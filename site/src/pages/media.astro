@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/media.css';
 import BrandMark from '../components/BrandMark.astro';
+import MemoryChart from '../components/MemoryChart.astro';
 import releaseData from '../data/releases.json';
 import { version } from '../../../package.json';
 
@@ -273,6 +274,10 @@ const ANNOUNCEMENT_URL = 'https://github.com/bnfy/blanc/blob/main/docs/press/pre
       <div><dt>built-in AI agent</dt><dd>None</dd></div>
     </dl>
   </section>
+
+  <div class="media-section media-memory" id="memory">
+    <MemoryChart headingId="media-memory-title" />
+  </div>
 
   <section class="media-section media-news" id="in-the-news" aria-labelledby="media-news-title">
     <header class="media-section-head">

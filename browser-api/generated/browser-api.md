@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-124 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`.
+138 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -32,7 +32,7 @@
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |
 | `openGlancePicker` | glance | invoke | `tabs:open-glance-picker` | `(query?: string) => Promise<boolean>` | all |
 | `closeGlance` | glance | invoke | `tabs:close-glance` | `() => Promise<boolean>` | all |
-| `promoteGlance` | glance | invoke | `tabs:promote-glance` | `() => Promise<boolean>` | all |
+| `openGlanceAsTab` | glance | invoke | `tabs:open-glance-as-tab` | `() => Promise<boolean>` | all |
 | `setTabGroup` | groups | invoke | `tabs:set-group` | `(id: TabId, groupId: GroupId \| null) => Promise<void>` | all |
 | `groupTabByName` | groups | invoke | `tabs:group-by-name` | `(id: TabId, name: string) => Promise<void>` | all |
 | `toggleGroupCollapsed` | groups | invoke | `tabs:toggle-group-collapsed` | `(groupId: GroupId) => Promise<void>` | all |
@@ -60,9 +60,16 @@
 | `previewVerticalTabsWidth` | layout | send | `chrome:preview-vertical-tabs-width` | `(width: number)` | all |
 | `setVerticalTabsWidth` | layout | invoke | `chrome:set-vertical-tabs-width` | `(width: number) => Promise<number>` | all |
 | `onVerticalTabsWidth` | layout | event | `chrome:vertical-tabs-width` | `(payload: VerticalTabsMetrics) => void` | all |
-| `resizeGlance` | glance | send | `chrome:resize-glance` | `(point: Point)` | all |
-| `resetGlance` | glance | invoke | `chrome:reset-glance` | `() => Promise<number \| null>` | all |
 | `onGlanceLayout` | glance | event | `chrome:glance-layout` | `(payload: GlanceLayout \| null) => void` | all |
+| `moveGlanceCard` | glance | invoke | `chrome:glance-card-move` | `(input: GlanceCardMove) => Promise<Rect \| null>` | all |
+| `resizeGlanceCard` | glance | invoke | `chrome:glance-card-resize` | `(input: GlanceCardResize) => Promise<Rect \| null>` | all |
+| `resetGlanceCard` | glance | invoke | `chrome:glance-card-reset` | `(input: GlanceCardReset) => Promise<Rect \| null>` | all |
+| `keepGlanceAsSplit` | split | invoke | `chrome:split-keep-glance` | `() => Promise<boolean>` | all |
+| `removeFromSplit` | split | invoke | `chrome:split-remove` | `(tabId: string) => Promise<boolean>` | all |
+| `closeSplit` | split | invoke | `chrome:split-close` | `(tabId: string) => Promise<boolean>` | all |
+| `resizeSplit` | split | send | `chrome:resize-split` | `(splitId: string, index: number, axis: 'x' \| 'y', point: Point)` | all |
+| `resetSplit` | split | invoke | `chrome:reset-split` | `(splitId: string) => Promise<boolean>` | all |
+| `onSplitLayout` | split | event | `chrome:split-layout` | `(payload: SplitLayout \| null) => void` | all |
 | `onGlanceStatus` | glance | event | `chrome:glance-status` | `(payload: string) => void` | all |
 | `openIsland` | island | send | `chrome:open-island` | `()` | all |
 | `openIslandCommands` | island | send | `chrome:open-island-commands` | `()` | all |
@@ -85,6 +92,10 @@
 | `setOverlayDragState` | overlay | send | `overlay:drag-state` | `(active: boolean)` | all |
 | `onOverlayEscape` | overlay | event | `overlay:escape` | `() => void` | all |
 | `listHistory` | history | invoke | `chrome:history-list` | `(opts?: HistoryListOptions) => Promise<HistoryEntry[]>` | all |
+| `archiveList` | history | invoke | `chrome:archive-list` | `() => Promise<ArchivedTab[]>` | all |
+| `archiveRestore` | history | invoke | `chrome:archive-restore` | `(id: string) => Promise<boolean>` | all |
+| `archiveNotice` | history | invoke | `chrome:archive-notice` | `() => Promise<ArchiveNotice \| null>` | all |
+| `archiveNoticeDone` | history | invoke | `chrome:archive-notice-done` | `(action: 'view' \| 'dismiss') => Promise<boolean>` | all |
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
@@ -129,6 +140,9 @@
 | `onOverlayToggle` | overlay | event | `overlay:toggle` | `() => void` | all |
 | `onIslandState` | island | event | `chrome:island-state` | `(payload: IslandState) => void` | all |
 | `onIslandCovered` | island | event | `chrome:island-covered` | `() => void` | all |
+| `onStripHidden` | island | event | `chrome:strip-hidden` | `(payload: boolean) => void` | all |
+| `onFloatFrame` | island | event | `chrome:float-frame` | `(payload: FloatFrame) => void` | all |
+| `onFloatShown` | island | event | `chrome:float-shown` | `(payload: boolean) => void` | all |
 | `onFindResult` | find | event | `chrome:find-result` | `(payload: FindResult) => void` | all |
 
 ## Types
@@ -345,6 +359,7 @@ One tab in tabs:updated, projected by serializeTabs() in main.js. Main-only stat
 | `shield` | `ShieldChip` |  |
 | `connection` | `ConnectionState \| null` |  |
 | `siteInfo` | `SiteInfo` |  |
+| `splitId` | `string \| null` | The Split View (F53) this tab belongs to, or null. |
 
 ### `TabGroup`
 
@@ -356,6 +371,28 @@ A tab group: a name, and optionally one of the Spaces preset colors.
 | `name` | `string` |  |
 | `collapsed` | `boolean` |  |
 | `color` | `string \| null` | A Spaces preset hex (#rrggbb), or null for no color. |
+
+### `SplitInfo`
+
+A Split View (F53): 2–4 tabs shown together, from split-model.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `tabIds` | `string[]` | Member tab ids in pane order. |
+| `layout` | `SplitSavedLayout` |  |
+| `focusedIndex` | `number` | The pane that was focused last. |
+
+### `SplitSavedLayout`
+
+A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `kind` | `'columns' \| 'grid'` |  |
+| `widths?` | `number[]` | Columns: one share per pane, each ≥ 0.2, summing to 1. |
+| `column?` | `number` | Grid: the left column's share, 0.25–0.75. |
+| `row?` | `number` | Grid: the top row's share, 0.25–0.75. |
 
 ### `GroupColorResult`
 
@@ -488,6 +525,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `verticalTabsMinWidth` | `number` |  |
 | `verticalTabsMaxWidth` | `number` |  |
 | `verticalTabsDefaultWidth` | `number` |  |
+| `splits` | `SplitInfo[]` | This window's splits (F53). |
 
 ### `TabsUpdatedPayload`
 
@@ -512,6 +550,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `verticalTabsMinWidth` | `number` |  |
 | `verticalTabsMaxWidth` | `number` |  |
 | `verticalTabsDefaultWidth` | `number` |  |
+| `splits` | `SplitInfo[]` | This window's splits (F53). |
 
 ### `ShieldAnchorUpdate`
 
@@ -536,21 +575,49 @@ Vertical tab rail widths, from verticalTabsMetrics() in main.js.
 
 ### `GlanceLayout`
 
-Glance split geometry, from calculateGlanceLayout() in glance-layout.js.
+The floating Glance card's layout, from glanceLayoutPayload() in glance-focus.js over cardGeometry() in glance-card.js.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `direction` | `'horizontal' \| 'vertical'` |  |
-| `ratio` | `number` |  |
-| `minRatio` | `number` | The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights. |
-| `maxRatio` | `number` | The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px. |
-| `page` | `Rect` |  |
-| `primary` | `Rect` |  |
-| `divider` | `Rect` |  |
-| `glanceHeader` | `Rect` |  |
-| `glanceContent` | `Rect` |  |
-| `glance` | `Rect` | Alias of glanceContent kept for older consumers. |
-| `focusedPane?` | `'main' \| 'glance'` | Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out. |
+| `card` | `GlanceCard` |  |
+| `focusedPane` | `'main' \| 'glance'` | Which pane holds keyboard focus. |
+| `generation` | `number` | The open card's generation: every Glance open and close bumps it, and a move, resize or reset carrying an older one is refused. |
+
+### `SplitLayout`
+
+What the strip draws for the visible split, from splitLayoutPayload() in split-layout.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `splitId` | `string` |  |
+| `mode` | `'columns' \| 'rows' \| 'grid' \| 'focus'` | The saved layout, or the fallback that fits (spec §3.2). |
+| `panes` | `SplitPane[]` |  |
+| `dividers` | `SplitDivider[]` |  |
+
+### `SplitPane`
+
+One pane of the visible split: its card and the page area inside it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tabId` | `string` |  |
+| `frame` | `Rect \| null` | The pane's card, border included; null while the pane is hidden (focus only). |
+| `content` | `Rect \| null` |  |
+| `focused` | `boolean` |  |
+| `title` | `string` |  |
+| `favicon` | `string \| null` | A PNG data URL, or null. |
+| `private` | `boolean` |  |
+
+### `SplitDivider`
+
+A split divider; `saved` dividers change the saved layout.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `index` | `number` |  |
+| `axis` | `'x' \| 'y'` |  |
+| `rect` | `Rect` |  |
+| `saved` | `boolean` |  |
 
 ### `WorkspaceSaveStatus`
 
@@ -781,6 +848,27 @@ A history entry, from listHistory() in history.js: the stored visit plus the sit
 | `visitedAt` | `number` | Epoch milliseconds of the latest visit. |
 | `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
 
+### `ArchivedTab`
+
+An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `url` | `string` |  |
+| `title` | `string` | The tab's custom name, else its page title, or empty. |
+| `favicon` | `string \| null` | A sanitized PNG data URL, or null. |
+| `archivedAt` | `number` | Epoch milliseconds when the tab was archived. |
+| `spaceName` | `string \| null` | The Space it was archived from, for display only. |
+
+### `ArchiveNotice`
+
+The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `count` | `number` | Tabs given an Archive entry since the notice was first recorded. |
+
 ### `FavoriteItem`
 
 A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.
@@ -928,8 +1016,8 @@ The resting pill's rectangle as the strip reports it, plus the open shield popov
 | `hoverRect?` | `Rect` | The pill's favicon and domain area at full pill height, unscaled like the pill rectangle: hover-open's only target. |
 | `shieldAnchor?` | `ShieldAnchor` | Present while the shield popover is open, so a uBlock Origin popup can follow the pill. |
 | `spacesAnchor?` | `SpacesAnchor` | Present while the Spaces menu is open from the mark, so it follows the pill. |
-| `minPrimaryWidth?` | `number` | With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there. |
-| `minReferenceWidth?` | `number` | With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there. |
+| `windowControlsRect?` | `Rect` | Windows and Linux: where the strip draws its window controls, for the floating Island’s copy. |
+| `menuButtonRect?` | `Rect` | Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy. |
 
 ### `GroupMenuAnchor`
 
@@ -1011,3 +1099,61 @@ A strip tooltip: its text, the button it belongs to and the size the strip measu
 | `width` | `number` | The measured tooltip width; main caps it. |
 | `height` | `number` | The measured tooltip height; main caps it. |
 | `privateTheme?` | `boolean` | Whether the strip is in its private theme. |
+
+### `FloatRole`
+
+Which strip element a floating Island view shows.
+
+`'pill' \| 'controls' \| 'menu'`
+
+### `FloatFrame`
+
+Where a floating Island view sits (window coordinates) and the width of the strip it replicates.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `role` | `FloatRole` |  |
+| `x` | `number` |  |
+| `y` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `stageWidth` | `number` |  |
+
+### `GlanceCard`
+
+The card's views' bounds in window coordinates (cardGeometry() in glance-card.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
+| `header` | `Rect` | The card's header, top border included. |
+| `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |
+
+### `GlanceCardMove`
+
+A move of the floating Glance card (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+| `dx` | `number` |  |
+| `dy` | `number` |  |
+
+### `GlanceCardResize`
+
+A resize of the floating Glance card from one edge or corner (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+| `edge` | `'n' \| 's' \| 'e' \| 'w' \| 'ne' \| 'nw' \| 'se' \| 'sw'` |  |
+| `dx` | `number` |  |
+| `dy` | `number` |  |
+
+### `GlanceCardReset`
+
+A reset of the floating Glance card (glance-card-controller.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `generation` | `number` | The generation from the last chrome:glance-layout applied. |

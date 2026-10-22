@@ -1,0 +1,303 @@
+{
+  "firstRelease": "1.36",
+  "noPage": [],
+  "pages": [
+    {
+      "release": "1.41",
+      "highlights": [
+        {
+          "id": "clock-font-color",
+          "tile": "Clock Font & color",
+          "title": "Make the clock your own",
+          "body": "Choose the Billboard clock’s font, weight, height and color, as on the iOS Lock Screen. Glass bends the wallpaper behind the numerals; Solid draws them flat.",
+          "steps": [
+            "On the Start Page, right-click the clock.",
+            "Pick a font, then drag Weight and Height and choose a color."
+          ],
+          "note": "Or open Customize and choose Clock. Every clock now has a soft shadow, so it reads on any wallpaper.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-clock-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with a tall glass clock reading 6:31 over a misty sunrise wallpaper, and the Font & color sheet open below it: four font samples, Weight and Height sliders, nine color swatches and a Glass or Solid switch."
+          }
+        },
+        {
+          "id": "start-page-pins",
+          "tile": "Start Page pins",
+          "title": "Pin pages to your Start Page",
+          "body": "Pin up to eight pages and they come first on every Start Page layout, newest first. Pins sync with Profile Sync.",
+          "steps": [
+            "Right-click a tab and choose Pin to Start Page.",
+            "Or press the pin on a Start Page tile or a favorite."
+          ],
+          "note": "You can pin and unpin favorites from the Favorites page too.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-pins-v1.41.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Billboard Start Page with six site tiles under the clock; NASA and Wikipedia lead the row, each marked with a small pin."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.40",
+      "highlights": [
+        {
+          "id": "split-view",
+          "tile": "Split View",
+          "title": "Two tabs side by side",
+          "body": "Show two tabs in one window and drag the divider to share the space between them. The pane you click is the current tab, and the split stays together after a relaunch.",
+          "steps": [
+            "Right-click a tab and choose Split with.",
+            "Pick the tab to show beside it."
+          ],
+          "note": "To end it, choose Remove from Split or Close Split in a tab’s menu.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/split-view-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Blanc window split in two: The Met’s page for Van Gogh’s Wheat Field with Cypresses on the left and the painting’s Wikipedia article on the right, each in its own rounded pane."
+          }
+        },
+        {
+          "id": "floating-glance",
+          "tile": "Glance",
+          "title": "Glance floats over your page",
+          "body": "The tab you pick opens as a card over the page you’re on, and the page behind stays usable. Move it, resize it, and Blanc remembers where you left it.",
+          "steps": [
+            "Right-click a tab and choose Open in Glance.",
+            "Drag the card’s header to move it, or an edge to resize it."
+          ],
+          "note": "Open as tab makes the Glance page the current tab, and Keep as split puts the two side by side.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-glance-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "A Glance card floating over The Met’s page for Wheat Field with Cypresses, showing the painting’s Wikipedia article under a header with Change, Open as tab and Keep as split."
+          }
+        },
+        {
+          "id": "floating-island",
+          "tile": "A floating Island",
+          "title": "The Island floats over the page",
+          "body": "With Auto-hide the Island on, the Island now floats over the page when it comes back, so the page never jumps down to make room.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island."
+          ],
+          "note": "Prefer the page to move? Under When the Island comes back, choose Push the page down.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/floating-island-v1.40.0.webp",
+            "width": 1440,
+            "height": 888,
+            "alt": "The Island floating over the top of The Met’s page for Wheat Field with Cypresses, which fills the Blanc window to its top edge."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.39",
+      "highlights": [
+        {
+          "id": "auto-hide-island",
+          "tile": "Auto-hide the Island",
+          "title": "Give the page the whole window",
+          "body": "Turn on Auto-hide the Island, and the page fills the window to its top edge. The Island slides back when you point at the top edge, rest the pointer near the top, or press `⌘L`.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Auto-hide the Island, or press `⌘⌥B` (`Ctrl+Alt+B` on Windows and Linux)."
+          ],
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/auto-hide-island-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "The Met’s page for Van Gogh’s Wheat Field with Cypresses filling a Blanc window to its top edge, with the Island hidden."
+          }
+        },
+        {
+          "id": "tab-archive",
+          "tile": "Tab Archive",
+          "title": "Let idle tabs tidy themselves away",
+          "body": "Loose tabs you haven’t looked at in a while close themselves into an Archive. Find them again in the `⌘L` panel or in History, and bring one back with a click.",
+          "steps": [
+            "Open Settings → General.",
+            "Under Archive inactive tabs, choose 12 hours, 1 day, 7 days or 30 days."
+          ],
+          "note": "Pinned, grouped and private tabs are never archived, and nor is a tab playing media or holding something you typed. The Archive stays on this device for 30 days.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-archive-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s History sheet on the Archived tabs view, listing six archived tabs under Today and Yesterday, each with its site icon and the time it was archived."
+          }
+        },
+        {
+          "id": "sunrise-gold",
+          "tile": "Sunrise Gold",
+          "title": "A gold icon for your Dock",
+          "body": "Sunrise Gold puts the Sunrise in glass over gold: soft in Light, polished in Dark.",
+          "steps": [
+            "Open Settings → General.",
+            "Under App icon, choose Sunrise Gold."
+          ],
+          "note": "Sunrise Gold is for macOS.",
+          "platforms": [
+            "mac"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/sunrise-gold-v1.39.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings on the Appearance card, where the App icon row offers Sunrise, Sunrise Dark and Sunrise Gold, with Sunrise Gold selected."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.38",
+      "highlights": [
+        {
+          "id": "your-image",
+          "tile": "Your own Start Page image",
+          "title": "Make the Start Page your own",
+          "body": "Put a photo of your own behind the Start Page. Wash and Fade keep the page easy to read over it.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Your image.",
+            "Pick a JPEG or PNG, up to 25 MB."
+          ],
+          "note": "Blanc keeps a resized copy on this device only, without location, camera or time details. It isn't synced, and private tabs never show it.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-image-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page over Van Gogh’s Wheat Field with Cypresses, with the Spotlight wash behind the clock and favorites.",
+            "caption": "Van Gogh, Wheat Field with Cypresses, The Met (public domain)."
+          }
+        },
+        {
+          "id": "start-page-color",
+          "tile": "A Start Page color",
+          "title": "Paint the Start Page in a color",
+          "body": "Choose one of the eight colors Spaces use, as a Soft, Solid or Gradient fill. Turn on Match each space’s color, and a window that belongs to a space shows that space’s color instead.",
+          "steps": [
+            "Open Customize at the bottom of the Start Page.",
+            "Under Wallpaper, choose Color.",
+            "Pick a color and a fill."
+          ],
+          "note": "The color settings sync with Profile Sync. An image chosen on this device still comes first here, and private tabs never show the color.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-page-color-rose-solid-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Billboard Start Page painted in the Rose color with the Solid fill."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.37",
+      "highlights": [
+        {
+          "id": "group-colors",
+          "tile": "Tab group colors",
+          "title": "Give each tab group a color",
+          "body": "A group can take one of the eight colors Spaces use. Its block in the `⌘L` panel takes a light tint, its name gets a dot, and its tabs’ dots in the Island take the color.",
+          "steps": [
+            "Right-click a group’s header in the `⌘L` panel, or press its `⋮` button.",
+            "Pick a color."
+          ],
+          "note": "Groups have no color unless you choose one.",
+          "learnMore": "/features/tab-groups",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/tab-group-colors-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over a Wikipedia article, with an Inspiration group tinted rose and a Reading group tinted green."
+          }
+        },
+        {
+          "id": "island-hover",
+          "tile": "Open the Island on hover",
+          "title": "Open the Island just by pointing",
+          "body": "Rest the pointer on the Island’s address for a moment, and the panel opens.",
+          "steps": [
+            "Open Settings → General.",
+            "Turn on Open the Island on hover."
+          ],
+          "note": "It’s off by default.",
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/island-hover-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s resting Island over the Smithsonian Open Access page, with the address and the tab dots of a rose-colored group."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.36",
+      "highlights": [
+        {
+          "id": "bangs",
+          "tile": "Bangs",
+          "title": "Search any site from the address bar",
+          "body": "Type an exclamation mark and a site’s code before your search, like `!yt lofi`, and Blanc opens that site’s results directly, whichever search engine you use.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Type `!yt lofi` and press Return."
+          ],
+          "note": "Type `!` on its own to see popular bangs. The list ships inside Blanc, so Blanc never looks bangs up online.",
+          "learnMore": "/bangs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/bangs-v1.36.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel on the Start Page with !yt lofi typed and the bang row Search YouTube for “lofi”."
+          }
+        },
+        {
+          "id": "recently-closed",
+          "tile": "Recently closed",
+          "title": "Bring back what you closed",
+          "body": "Recently closed sits as a band in the `⌘L` panel. Unfold it to see every closed tab Blanc keeps, up to 25, newest first.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Unfold Recently closed and pick what to bring back."
+          ],
+          "learnMore": "/features/reopen-closed-tabs",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/reopen-closed-tabs-great-wave-v1.38.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s ⌘L panel over The Met’s page for Hokusai’s Under the Wave off Kanagawa, with Recently closed unfolded above a Painting class group.",
+            "caption": "Katsushika Hokusai, Under the Wave off Kanagawa, The Met (public domain)."
+          }
+        }
+      ]
+    }
+  ]
+}

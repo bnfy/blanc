@@ -182,3 +182,22 @@ test('metaAfterHistoryClear returns null when there is no name to keep', () => {
   assert.equal(metaAfterHistoryClear(undefined), null);
   assert.equal(metaAfterHistoryClear('junk'), null);
 });
+
+// F52: the Tab Archive's idle clock survives relaunches through session meta.
+test('sessionTabMeta writes a finite lastViewedAt and nothing otherwise', () => {
+  assert.equal(sessionTabMeta(tab({ lastViewedAt: 1_700_000_000_000 })).lastViewedAt, 1_700_000_000_000);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab()), false);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab({ lastViewedAt: Number.NaN })), false);
+  assert.equal('lastViewedAt' in sessionTabMeta(tab({ lastViewedAt: '5' })), false);
+});
+
+test('metaAfterHistoryClear keeps lastViewedAt but drops titles and icons', () => {
+  const kept = metaAfterHistoryClear([
+    { title: 'Secret', favicon: SAFE_ICON, lastViewedAt: 1_700_000_000_000 },
+    { title: 'Other', favicon: null },
+  ]);
+  assert.deepEqual(kept, [
+    { title: '', favicon: null, lastViewedAt: 1_700_000_000_000 },
+    { title: '', favicon: null },
+  ]);
+});

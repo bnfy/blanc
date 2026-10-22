@@ -10,6 +10,7 @@ const {
   CHROME_OVERLAY_URL,
   CHROME_FILL_STATUS_URL,
   CHROME_TOOLTIP_URL,
+  CHROME_SPLIT_TAB_URL,
   CHROME_DISPLAY_CAPTURE_HELPER_URL,
   chromeResourcePath,
 } = require('../../src/main/chrome-protocol');
@@ -97,6 +98,16 @@ test('only the overlay can load the Spaces colour picker', () => {
   ]) assert.equal(chromeResourcePath(url), null, url);
 });
 
+test('only the overlay can load the hover-opened panel leave policy', () => {
+  assert.equal(chromeResourcePath('blanc-chrome://overlay/hover-panel-leave.js'), path.join(renderer, 'hover-panel-leave.js'));
+  for (const url of [
+    'blanc-chrome://index/hover-panel-leave.js',
+    'blanc-chrome://permission/hover-panel-leave.js',
+    'blanc-chrome://fill-status/hover-panel-leave.js',
+    'blanc-chrome://overlay/hover-panel-leave.js?v=1',
+  ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
 test('the blocker Sunrise is the canonical gold artwork and only the overlay can load it', () => {
   const asset = path.join(renderer, 'sunrise-hero-mark.png');
   assert.equal(chromeResourcePath('blanc-chrome://overlay/sunrise-hero-mark.png'), asset);
@@ -178,6 +189,19 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
     'file:///etc/passwd',
     'not a url',
   ]) assert.equal(chromeResourcePath(url), null, url);
+});
+
+test('split-tab host serves its scriptless document and shared styles only', () => {
+  assert.equal(CHROME_SPLIT_TAB_URL, 'blanc-chrome://split-tab/');
+  assert.equal(chromeResourcePath(CHROME_SPLIT_TAB_URL), path.join(renderer, 'split-tab.html'));
+  assert.equal(chromeResourcePath('blanc-chrome://split-tab/styles.css'), path.join(renderer, 'styles.css'));
+  for (const file of ['renderer.js', 'overlay.js', 'tooltip.html', '../preload.js']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://split-tab/${file}`), null, file);
+  }
+  const html = fs.readFileSync(path.join(renderer, 'split-tab.html'), 'utf8');
+  assert.doesNotMatch(html, /<script/i, 'main writes the site; the document runs no script');
+  assert.match(html, /default-src 'none'/);
+  assert.match(html, /img-src data:/, 'favicons arrive as PNG data URLs only');
 });
 
 test('tooltip host serves its scriptless document and shared styles only', () => {

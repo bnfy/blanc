@@ -650,3 +650,51 @@ a first tap as hover would steal the tap's ordinary job.
 reachable. Only the optional pointer-hover trigger is desktop-specific.
 
 **Status:** Accepted 2026-10-17.
+
+## D29 — Desktop auto-hiding Island strip
+**Features:** F1
+
+**Why:** On desktop the Island sits in a permanent 68px strip above the page.
+Some people want every pixel for the page and reach the Island only when they
+need it, as Vivaldi's and Arc's hidden toolbars allow. The reveal depends on a
+pointer reaching the window's top edge, which touch input has no equivalent for.
+
+- **Desktop:** an off-by-default, device-local setting (Settings → General and
+  View → Auto-hide the Island, ⌘⌥B / Ctrl+Alt+B) gives the page the whole
+  window. The pointer at the top edge, or any Island surface (palette, find,
+  popovers, Glance), brings the Island back; it hides again once the pointer
+  leaves it. A second device-local choice says how it comes back: **Float over
+  the page** (the default, added 2026-10-20) slides the pill alone down over
+  the page, which never moves, with the site still visible and clickable beside
+  it; **Push the page down** shows the strip and moves pages down to make room,
+  as v1.39.0 did. In both styles the window buttons come and go with the
+  Island (the macOS traffic lights; in float mode the Windows and Linux
+  controls, which float top-right, and the main-menu button), so they never
+  sit over a site's own corner buttons while it is hidden; the macOS buttons
+  stay beside the vertical rail, which owns that corner. In push mode resting
+  the pointer just below the top edge also brings the Island back; in float
+  mode only the top edge does, because a site's own header sits in that band
+  and the Island would land on it, and the floating Island hides as soon as
+  the pointer moves below the strip. Glance always uses the push layout.
+  Turning it on shows the Island for a few seconds with a tip on how to bring
+  it back. While hidden, a 6px band along the page pane's
+  top edge drags the window (both styles); below it the page's top band
+  belongs to the page. With vertical tabs the rail is never reveal territory;
+  only the page pane's top band is. On Linux under native Wayland, which gives
+  apps no pointer position outside their windows, the Island is revealed from
+  just inside the top edge only, not from the band above a floating window.
+- **iOS and Android:** not offered. Mobile Island placement and any
+  scroll-driven collapse are each platform's own presentation (D11).
+
+**Parity contract:** the Island and all of its actions stay reachable through
+the same keyboard and pointer routes; only how long the strip stays on screen
+differs.
+
+**Status:** Accepted 2026-10-19; float style added 2026-10-20. Windows and
+Linux (X11 and native Wayland) hand checks ran 2026-10-20 (bnfy/blanc#994):
+on Windows the drag band drags but a double-click on it does not maximise, in
+either style (the same with a transparent drag view, so it is Windows' own
+hit test). On Linux the window document went `hidden` while the page
+covered it whole and stopped tracking resizes, leaving the floating pill and
+window controls at stale positions after a maximise; on Linux a covered strip
+now keeps one row uncovered (bnfy/blanc#999).

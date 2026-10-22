@@ -8,7 +8,7 @@
 // tab silently joins the default session while the chrome still paints the
 // dashed private pill.
 const path = require('path');
-const { WebContentsView, session, dialog } = require('electron');
+const { WebContentsView, session, dialog, nativeTheme } = require('electron');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const history = require('./history');
@@ -29,6 +29,7 @@ const { commitEntryMarks, freshCertificateRecord } = require('./certificate-hist
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
+const { primeLoadingBackground } = require('./tab-loading-background');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -88,13 +89,25 @@ function createTabView(tab) {
   const browsingSession = tab?.private
     ? getPrivateBrowsingSession(profileId)
     : getNormalBrowsingSession(profileId);
-  return new WebContentsView({
+  const view = new WebContentsView({
     webPreferences: {
       ...TAB_WEB_PREFERENCES, session: browsingSession,
       // Electron's Chromium document sandbox inheritance, separate from the
       // process sandbox above. Retain it when a quiet tab's view is rebuilt.
       openerSandboxFlags: tab?.openerSandboxFlags ?? 0,
     },
+  });
+  primeTabLoadingBackground(view, tab);
+  return view;
+}
+
+/** Load a dark or private tab on its theme's page color instead of a white
+ *  flash (tab-loading-background.js). Needs only the tab's privacy, so it is
+ *  safe before the tab record exists. */
+function primeTabLoadingBackground(view, tab) {
+  return primeLoadingBackground(view, {
+    dark: nativeTheme.shouldUseDarkColors,
+    private: tab?.private === true,
   });
 }
 
@@ -604,6 +617,8 @@ function wireTabView(tab, view, { owner, adopted }) {
           const childView = options.webContents
             ? new WebContentsView({ webContents: options.webContents })
             : null;
+          // The child inherits the opener's privacy (createTab below).
+          if (childView) primeTabLoadingBackground(childView, tab);
           // Read at open time: a foreground tab the reference opened becomes
           // the reference, leaving the main page and its focus untouched.
           const role = foregroundOpenRole(getOwner(), tab.id);
@@ -676,6 +691,7 @@ function wireTabView(tab, view, { owner, adopted }) {
 
 module.exports = {
   createTabView,
+  primeTabLoadingBackground,
   wireTabView,
   unwireTabView,
   initTabView,

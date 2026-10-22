@@ -4,7 +4,9 @@
   "surfaces": [
     "blanc-chrome://index/",
     "blanc-chrome://overlay/",
-    "blanc-chrome://permission/"
+    "blanc-chrome://permission/",
+    "blanc-chrome://float/",
+    "blanc-chrome://glance/"
   ],
   "types": {
     "Platform": {
@@ -312,6 +314,10 @@
         },
         "siteInfo": {
           "type": "SiteInfo"
+        },
+        "splitId": {
+          "type": "string | null",
+          "doc": "The Split View (F53) this tab belongs to, or null."
         }
       }
     },
@@ -330,6 +336,48 @@
         "color": {
           "type": "string | null",
           "doc": "A Spaces preset hex (#rrggbb), or null for no color."
+        }
+      }
+    },
+    "SplitInfo": {
+      "doc": "A Split View (F53): 2–4 tabs shown together, from split-model.js.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "tabIds": {
+          "type": "string[]",
+          "doc": "Member tab ids in pane order."
+        },
+        "layout": {
+          "type": "SplitSavedLayout"
+        },
+        "focusedIndex": {
+          "type": "number",
+          "doc": "The pane that was focused last."
+        }
+      }
+    },
+    "SplitSavedLayout": {
+      "doc": "A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4.",
+      "fields": {
+        "kind": {
+          "type": "'columns' | 'grid'"
+        },
+        "widths": {
+          "type": "number[]",
+          "optional": true,
+          "doc": "Columns: one share per pane, each ≥ 0.2, summing to 1."
+        },
+        "column": {
+          "type": "number",
+          "optional": true,
+          "doc": "Grid: the left column's share, 0.25–0.75."
+        },
+        "row": {
+          "type": "number",
+          "optional": true,
+          "doc": "Grid: the top row's share, 0.25–0.75."
         }
       }
     },
@@ -553,6 +601,10 @@
         },
         "verticalTabsDefaultWidth": {
           "type": "number"
+        },
+        "splits": {
+          "type": "SplitInfo[]",
+          "doc": "This window's splits (F53)."
         }
       }
     },
@@ -610,6 +662,10 @@
         },
         "verticalTabsDefaultWidth": {
           "type": "number"
+        },
+        "splits": {
+          "type": "SplitInfo[]",
+          "doc": "This window's splits (F53)."
         }
       }
     },
@@ -647,45 +703,81 @@
       }
     },
     "GlanceLayout": {
-      "doc": "Glance split geometry, from calculateGlanceLayout() in glance-layout.js.",
+      "doc": "The floating Glance card's layout, from glanceLayoutPayload() in glance-focus.js over cardGeometry() in glance-card.js.",
       "fields": {
-        "direction": {
-          "type": "'horizontal' | 'vertical'"
-        },
-        "ratio": {
-          "type": "number"
-        },
-        "minRatio": {
-          "type": "number",
-          "doc": "The smallest main-pane share the divider allows; above 0.5 on macOS when the main pane needs room for the Island and the traffic lights."
-        },
-        "maxRatio": {
-          "type": "number",
-          "doc": "The largest main-pane share the divider allows: 0.78, or less so the reference keeps 300 px."
-        },
-        "page": {
-          "type": "Rect"
-        },
-        "primary": {
-          "type": "Rect"
-        },
-        "divider": {
-          "type": "Rect"
-        },
-        "glanceHeader": {
-          "type": "Rect"
-        },
-        "glanceContent": {
-          "type": "Rect"
-        },
-        "glance": {
-          "type": "Rect",
-          "doc": "Alias of glanceContent kept for older consumers."
+        "card": {
+          "type": "GlanceCard"
         },
         "focusedPane": {
           "type": "'main' | 'glance'",
-          "optional": true,
-          "doc": "Which pane holds keyboard focus. Present on chrome:glance-layout (glanceLayoutPayload() in glance-focus.js); calculateGlanceLayout() leaves it out."
+          "doc": "Which pane holds keyboard focus."
+        },
+        "generation": {
+          "type": "number",
+          "doc": "The open card's generation: every Glance open and close bumps it, and a move, resize or reset carrying an older one is refused."
+        }
+      }
+    },
+    "SplitLayout": {
+      "doc": "What the strip draws for the visible split, from splitLayoutPayload() in split-layout.js.",
+      "fields": {
+        "splitId": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "'columns' | 'rows' | 'grid' | 'focus'",
+          "doc": "The saved layout, or the fallback that fits (spec §3.2)."
+        },
+        "panes": {
+          "type": "SplitPane[]"
+        },
+        "dividers": {
+          "type": "SplitDivider[]"
+        }
+      }
+    },
+    "SplitPane": {
+      "doc": "One pane of the visible split: its card and the page area inside it.",
+      "fields": {
+        "tabId": {
+          "type": "string"
+        },
+        "frame": {
+          "type": "Rect | null",
+          "doc": "The pane's card, border included; null while the pane is hidden (focus only)."
+        },
+        "content": {
+          "type": "Rect | null"
+        },
+        "focused": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A PNG data URL, or null."
+        },
+        "private": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SplitDivider": {
+      "doc": "A split divider; `saved` dividers change the saved layout.",
+      "fields": {
+        "index": {
+          "type": "number"
+        },
+        "axis": {
+          "type": "'x' | 'y'"
+        },
+        "rect": {
+          "type": "Rect"
+        },
+        "saved": {
+          "type": "boolean"
         }
       }
     },
@@ -1044,6 +1136,42 @@
         }
       }
     },
+    "ArchivedTab": {
+      "doc": "An archived tab (F52), from listArchive() in archive.js: the projected row a renderer may see, never page state or back history.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "doc": "The tab's custom name, else its page title, or empty."
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A sanitized PNG data URL, or null."
+        },
+        "archivedAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds when the tab was archived."
+        },
+        "spaceName": {
+          "type": "string | null",
+          "doc": "The Space it was archived from, for display only."
+        }
+      }
+    },
+    "ArchiveNotice": {
+      "doc": "The one-time first-archive notice (F52 spec D6), from pendingNotice() in archive.js.",
+      "fields": {
+        "count": {
+          "type": "number",
+          "doc": "Tabs given an Archive entry since the notice was first recorded."
+        }
+      }
+    },
     "FavoriteItem": {
       "doc": "A Favorite, from listBookmarks() in bookmarks.js. Internally still called a bookmark.",
       "fields": {
@@ -1292,15 +1420,15 @@
           "optional": true,
           "doc": "Present while the Spaces menu is open from the mark, so it follows the pill."
         },
-        "minPrimaryWidth": {
-          "type": "number",
+        "windowControlsRect": {
+          "type": "Rect",
           "optional": true,
-          "doc": "With Glance side by side: the narrowest main pane that holds the slim Island with a readable address, its chips and clearance included. Main stops the divider there."
+          "doc": "Windows and Linux: where the strip draws its window controls, for the floating Island’s copy."
         },
-        "minReferenceWidth": {
-          "type": "number",
+        "menuButtonRect": {
+          "type": "Rect",
           "optional": true,
-          "doc": "With Glance side by side: the narrowest reference that holds the Glance header at its most compact, including the window-control space on Windows and Linux. Main stops the divider there."
+          "doc": "Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy."
         }
       }
     },
@@ -1443,6 +1571,92 @@
           "type": "boolean",
           "optional": true,
           "doc": "Whether the strip is in its private theme."
+        }
+      }
+    },
+    "FloatRole": {
+      "ts": "'pill' | 'controls' | 'menu'",
+      "doc": "Which strip element a floating Island view shows."
+    },
+    "FloatFrame": {
+      "doc": "Where a floating Island view sits (window coordinates) and the width of the strip it replicates.",
+      "fields": {
+        "role": {
+          "type": "FloatRole"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "stageWidth": {
+          "type": "number"
+        }
+      }
+    },
+    "GlanceCard": {
+      "doc": "The card's views' bounds in window coordinates (cardGeometry() in glance-card.js).",
+      "fields": {
+        "chrome": {
+          "type": "Rect",
+          "doc": "The card's chrome view: the card plus its 8 px resize ring."
+        },
+        "header": {
+          "type": "Rect",
+          "doc": "The card's header, top border included."
+        },
+        "page": {
+          "type": "Rect",
+          "doc": "The Glance page's view, inside the side and bottom borders."
+        }
+      }
+    },
+    "GlanceCardMove": {
+      "doc": "A move of the floating Glance card (glance-card-controller.js).",
+      "fields": {
+        "generation": {
+          "type": "number",
+          "doc": "The generation from the last chrome:glance-layout applied."
+        },
+        "dx": {
+          "type": "number"
+        },
+        "dy": {
+          "type": "number"
+        }
+      }
+    },
+    "GlanceCardResize": {
+      "doc": "A resize of the floating Glance card from one edge or corner (glance-card-controller.js).",
+      "fields": {
+        "generation": {
+          "type": "number",
+          "doc": "The generation from the last chrome:glance-layout applied."
+        },
+        "edge": {
+          "type": "'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'"
+        },
+        "dx": {
+          "type": "number"
+        },
+        "dy": {
+          "type": "number"
+        }
+      }
+    },
+    "GlanceCardReset": {
+      "doc": "A reset of the floating Glance card (glance-card-controller.js).",
+      "fields": {
+        "generation": {
+          "type": "number",
+          "doc": "The generation from the last chrome:glance-layout applied."
         }
       }
     }
@@ -1831,13 +2045,13 @@
       "doc": "Close the Glance view."
     },
     {
-      "name": "promoteGlance",
+      "name": "openGlanceAsTab",
       "group": "glance",
       "kind": "invoke",
-      "channel": "tabs:promote-glance",
+      "channel": "tabs:open-glance-as-tab",
       "params": [],
       "returns": "boolean",
-      "doc": "Promote the Glance tab to the active tab. Resolves to whether the Glance tab became the active tab."
+      "doc": "Open as tab: end the Glance and make its page the current tab. Resolves to whether it became the current tab."
     },
     {
       "name": "setTabGroup",
@@ -2216,34 +2430,139 @@
       "doc": "Vertical tab rail metrics changed."
     },
     {
-      "name": "resizeGlance",
-      "group": "glance",
-      "kind": "send",
-      "channel": "chrome:resize-glance",
-      "params": [
-        {
-          "name": "point",
-          "type": "Point"
-        }
-      ],
-      "doc": "Resize the Glance view to a pointer position."
-    },
-    {
-      "name": "resetGlance",
-      "group": "glance",
-      "kind": "invoke",
-      "channel": "chrome:reset-glance",
-      "params": [],
-      "returns": "number | null",
-      "doc": "Reset the Glance view size. Resolves to the reset ratio, or null when no Glance is open."
-    },
-    {
       "name": "onGlanceLayout",
       "group": "glance",
       "kind": "event",
       "channel": "chrome:glance-layout",
       "payload": "GlanceLayout | null",
       "doc": "Glance layout changed.",
+      "payloadCheck": "fixtures"
+    },
+    {
+      "name": "moveGlanceCard",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "chrome:glance-card-move",
+      "params": [
+        {
+          "name": "input",
+          "type": "GlanceCardMove"
+        }
+      ],
+      "returns": "Rect | null",
+      "doc": "Move the floating Glance card by a delta. Resolves to the card's new frame, or null when no Glance is open or the generation is stale."
+    },
+    {
+      "name": "resizeGlanceCard",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "chrome:glance-card-resize",
+      "params": [
+        {
+          "name": "input",
+          "type": "GlanceCardResize"
+        }
+      ],
+      "returns": "Rect | null",
+      "doc": "Resize the floating Glance card by dragging one edge or corner. Resolves to the card's new frame, or null when no Glance is open or the generation is stale."
+    },
+    {
+      "name": "resetGlanceCard",
+      "group": "glance",
+      "kind": "invoke",
+      "channel": "chrome:glance-card-reset",
+      "params": [
+        {
+          "name": "input",
+          "type": "GlanceCardReset"
+        }
+      ],
+      "returns": "Rect | null",
+      "doc": "Forget the card's remembered frame and return it to its first-open size and place. Resolves to that frame, or null when no Glance is open or the generation is stale."
+    },
+    {
+      "name": "keepGlanceAsSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-keep-glance",
+      "params": [],
+      "returns": "boolean",
+      "doc": "Turn the open Glance into a two-pane Split View (F53). False when there is no Glance to keep."
+    },
+    {
+      "name": "removeFromSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-remove",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Take a tab out of its split; it lands directly below the split, and a split left with one tab dissolves."
+    },
+    {
+      "name": "closeSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:split-close",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Close every tab of the split holding this tab, as one Recently closed entry."
+    },
+    {
+      "name": "resizeSplit",
+      "group": "split",
+      "kind": "send",
+      "channel": "chrome:resize-split",
+      "params": [
+        {
+          "name": "splitId",
+          "type": "string"
+        },
+        {
+          "name": "index",
+          "type": "number"
+        },
+        {
+          "name": "axis",
+          "type": "'x' | 'y'"
+        },
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "doc": "Move a split divider to a window point (drag or keyboard); main saves the new layout."
+    },
+    {
+      "name": "resetSplit",
+      "group": "split",
+      "kind": "invoke",
+      "channel": "chrome:reset-split",
+      "params": [
+        {
+          "name": "splitId",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Give the visible split's panes equal sizes again."
+    },
+    {
+      "name": "onSplitLayout",
+      "group": "split",
+      "kind": "event",
+      "channel": "chrome:split-layout",
+      "payload": "SplitLayout | null",
+      "doc": "The visible Split View's layout changed, or no split shows (null).",
       "payloadCheck": "fixtures"
     },
     {
@@ -2523,6 +2842,52 @@
       ],
       "returns": "HistoryEntry[]",
       "doc": "List history entries, newest first."
+    },
+    {
+      "name": "archiveList",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-list",
+      "params": [],
+      "returns": "ArchivedTab[]",
+      "doc": "List the profile's archived tabs (F52), newest first. Empty while the active tab is private."
+    },
+    {
+      "name": "archiveRestore",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-restore",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Restore one archived tab as a new ungrouped tab at the end of the window. False when the entry is already gone."
+    },
+    {
+      "name": "archiveNotice",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-notice",
+      "params": [],
+      "returns": "ArchiveNotice | null",
+      "doc": "The profile's one-time first-archive notice (F52 spec D6) while it waits to be seen, else null. Null while the active tab is private."
+    },
+    {
+      "name": "archiveNoticeDone",
+      "group": "history",
+      "kind": "invoke",
+      "channel": "chrome:archive-notice-done",
+      "params": [
+        {
+          "name": "action",
+          "type": "'view' | 'dismiss'"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Finish the first-archive notice for good; 'view' also opens History on its Archived view. True when it was still pending."
     },
     {
       "name": "listFavorites",
@@ -3000,6 +3365,30 @@
       "channel": "chrome:island-covered",
       "payload": null,
       "doc": "The expanded panel now covers the resting pill, which may hide (strip only)."
+    },
+    {
+      "name": "onStripHidden",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:strip-hidden",
+      "payload": "boolean",
+      "doc": "Auto-hide moved the page over the strip (true) or uncovered it (false); a hidden strip drops its window-drag region."
+    },
+    {
+      "name": "onFloatFrame",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:float-frame",
+      "payload": "FloatFrame",
+      "doc": "Which element a floating Island view shows and where the view sits (float surface only)."
+    },
+    {
+      "name": "onFloatShown",
+      "group": "island",
+      "kind": "event",
+      "channel": "chrome:float-shown",
+      "payload": "boolean",
+      "doc": "A floating Island view slides its element in (true) or out (false) (float surface only)."
     },
     {
       "name": "onFindResult",

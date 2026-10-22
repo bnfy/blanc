@@ -20,6 +20,10 @@
     "message": "Open browsing history",
     "note": "Slash command hint shown in the ⌘L palette for /history."
   },
+  "slash.archive.hint": {
+    "message": "See tabs Blanc archived for you",
+    "note": "Slash command hint shown in the ⌘L palette for /archive (F52): opens History on its Archived tabs view."
+  },
   "slash.downloads.hint": {
     "message": "Open downloads",
     "note": "Slash command hint shown in the ⌘L palette for /downloads."
@@ -125,7 +129,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /space (/workspace still works as an alias)."
   },
   "slash.glance.hint": {
-    "message": "Keep another open tab beside this page",
+    "message": "Look at another open tab without leaving this page",
     "note": "The /glance slash command's hint in the ⌘L list and on the Shortcuts page. Opens the Glance picker (the Change picker while Glance is open)."
   },
   "slash.glance.doc": {
@@ -281,6 +285,10 @@
     "message": "{count, plural, one {# more tab — open the list} other {# more tabs — open the list}}",
     "note": "Tooltip of the +N overflow beside the pill's tab dots; opens the tab list."
   },
+  "island.autoHide.intro": {
+    "message": "Point at the top edge, or press {shortcut}, to bring the Island back.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere."
+  },
   "dot.switchTo": {
     "message": "Switch to {title}",
     "note": "Accessible name of a tab dot or rail row; {title} is the tab's title."
@@ -350,19 +358,38 @@
     "message": "GLANCE",
     "note": "Uppercase eyebrow of the Glance reference-pane header. Glance is a fixed product name."
   },
-  "glance.promote": {
-    "message": "Make main — swap with the main page",
-    "note": "Tooltip and accessible name of the button that swaps Glance with the main page. Begins with the visible label (glance.promoteShort) so speech-input users can say what they see."
-  },
-  "glance.promoteShort": {
-    "message": "Make main",
-    "note": "Short visible label of that same button.",
-    "maxLength": 13
-  },
   "glance.change": {
     "message": "Change",
     "note": "Button that picks a different tab for Glance.",
     "maxLength": 10
+  },
+  "glance.openAsTab": {
+    "message": "Open as tab",
+    "note": "Floating Glance card header button: end the Glance and make its page the current tab, full window. Visible label; icon-only when the card is narrow."
+  },
+  "glance.openAsTab.title": {
+    "message": "Open as tab — make this page the current tab",
+    "note": "Tooltip and accessible name of Open as tab. Begins with the visible label (glance.openAsTab) so speech-input users can say what they see."
+  },
+  "glance.move": {
+    "message": "Move or resize Glance",
+    "note": "Accessible name and tooltip of the floating Glance card's keyboard move/resize control."
+  },
+  "glance.move.hint": {
+    "message": "Arrow keys move it. Option or Alt with an arrow key resizes it. Enter resets it.",
+    "note": "Screen-reader description of the Move or resize Glance control. Option is the macOS name of the Alt key."
+  },
+  "glance.status.moved": {
+    "message": "Glance moved",
+    "note": "Screen reader announcement after the keyboard moves the floating Glance card."
+  },
+  "glance.status.resized": {
+    "message": "Glance resized to {width} by {height}",
+    "note": "Screen reader announcement after the keyboard resizes the floating Glance card; {width} and {height} are its size in pixels."
+  },
+  "glance.status.reset": {
+    "message": "Glance reset",
+    "note": "Screen reader announcement after the floating Glance card returns to its first-open size and place."
   },
   "glance.change.title": {
     "message": "Choose a different tab for Glance",
@@ -371,14 +398,6 @@
   "glance.close": {
     "message": "Close Glance",
     "note": "Tooltip and accessible name of the Glance close button."
-  },
-  "glance.resize": {
-    "message": "Resize Glance",
-    "note": "Accessible name of the divider between the main page and Glance."
-  },
-  "glance.dividerValue": {
-    "message": "Main page {percent} percent",
-    "note": "Screen-reader value of the Glance divider; {percent} is the main page's share of the width."
   },
   "resize.hint": {
     "message": "Drag to resize; double-click to reset",
@@ -1584,6 +1603,22 @@
     "message": "{count, plural, one {# tab} other {# tabs}}",
     "note": "Detail line of a Quick Switcher group result: how many tabs the group holds."
   },
+  "result.archived": {
+    "message": "Archived",
+    "note": "Quick Switcher: marker after the address of a result that is an archived tab (F52), e.g. 'example.com · Archived'."
+  },
+  "archive.notice.title": {
+    "message": "{count, plural, one {Blanc archived # tab} other {Blanc archived # tabs}}",
+    "note": "⌘L panel: one-time notice at the top of the tab list after Blanc first archives idle tabs (F52)."
+  },
+  "archive.notice.view": {
+    "message": "View Archive",
+    "note": "⌘L panel, first-archive notice: action that opens History on its Archived tabs view."
+  },
+  "archive.notice.dismiss": {
+    "message": "Dismiss",
+    "note": "⌘L panel, first-archive notice: accessible name and tooltip of the ✕ that hides the notice for good."
+  },
   "result.tag.search": {
     "message": "Search",
     "note": "Tag on a Quick Switcher search row when the search engine's own name is not available. Sentence case.",
@@ -1857,9 +1892,89 @@
     "message": "Remove from Favorites",
     "note": "Tab context menu command that removes the page from Favorites."
   },
+  "tabMenu.pinStartPage": {
+    "message": "Pin to Start Page",
+    "note": "Tab context menu command that pins the page to the front of every Start Page layout."
+  },
+  "tabMenu.unpinStartPage": {
+    "message": "Unpin from Start Page",
+    "note": "Tab context menu command that unpins the page from the Start Page."
+  },
   "tabMenu.moveToGroup": {
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
+  },
+  "tabMenu.splitWith": {
+    "message": "Split with",
+    "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
+  },
+  "tabMenu.splitPinnedRefused": {
+    "message": "Pinned tabs can't join a split",
+    "note": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View."
+  },
+  "tabMenu.removeFromSplit": {
+    "message": "Remove from Split",
+    "note": "Tab context menu and pane header: take this tab out of its Split View."
+  },
+  "tabMenu.closeSplit": {
+    "message": "Close Split",
+    "note": "Tab context menu and pane header: close every tab of this Split View."
+  },
+  "split.groupMoveInto": {
+    "message": "Moves {title} into {group}",
+    "note": "Note beside a Split with choice: making the split moves that tab into the right-clicked tab's group."
+  },
+  "split.groupMoveOutOf": {
+    "message": "Moves {title} out of {group}",
+    "note": "Note beside a Split with choice: making the split takes that tab out of its group."
+  },
+  "split.menuMovesInto": {
+    "message": "Moves into {group}",
+    "note": "Header atop a Split with group submenu: picking a tab there moves it into the right-clicked tab's group."
+  },
+  "split.menuMovesOutOf": {
+    "message": "Moves out of {group}",
+    "note": "Header atop a Split with group submenu: picking a tab there takes it out of its group."
+  },
+  "tabMenu.splitUngrouped": {
+    "message": "Ungrouped",
+    "note": "Split with submenu that lists the ungrouped tabs, shown when the right-clicked tab is in a group."
+  },
+  "split.made": {
+    "message": "{first} and {second} are now side by side",
+    "note": "Screen reader announcement after a Split View is made."
+  },
+  "split.dissolved": {
+    "message": "Split closed; {title} fills the window",
+    "note": "Screen reader announcement when a Split View ends and its remaining tab fills the window."
+  },
+  "split.keepAsSplit": {
+    "message": "Keep as split",
+    "note": "Glance header button that turns the current Glance into a Split View that stays open."
+  },
+  "split.dividerLabel": {
+    "message": "Resize panes",
+    "note": "Accessible name of a Split View divider; arrow keys resize, Enter makes the panes equal again."
+  },
+  "split.cornerLabel": {
+    "message": "{site}, Split View pane",
+    "note": "Accessible name of a Split View pane's corner tab (the small tab on the pane's bottom-right corner): the pane's site or title."
+  },
+  "split.rowLabel": {
+    "message": "{first} + {second}",
+    "note": "A Split View's row in the tab panel and side list: its two tabs' titles."
+  },
+  "split.rowLabelMore": {
+    "message": "{first} + {count} more",
+    "note": "A Split View's row with three or four tabs: the first title and how many more."
+  },
+  "split.rowName": {
+    "message": "Split: {titles}",
+    "note": "Accessible name of a Split View's row: 'Split:' and every tab title joined with ' + '."
+  },
+  "split.showTabs": {
+    "message": "Show this split's tabs",
+    "note": "Tooltip and accessible name of a Split View row's disclosure, which lists its tabs."
   },
   "tabMenu.removeFromGroup": {
     "message": "Remove from Group",
@@ -2672,6 +2787,10 @@
     "message": "Toggle Vertical Tabs",
     "note": "View menu item and shortcut list entry."
   },
+  "menu.autoHideIsland": {
+    "message": "Auto-hide the Island",
+    "note": "View menu checkbox item."
+  },
   "menu.tabLayout": {
     "message": "Tab Layout",
     "note": "View menu submenu choosing how tabs are shown."
@@ -2809,9 +2928,13 @@
     "message": "Glance closed",
     "note": "Screen reader announcement."
   },
-  "glance.status.promoted": {
-    "message": "{title} is now the main page; {other} is in Glance",
-    "note": "Screen reader announcement after Make main: the former reference ({title}) is the main page and the former main page ({other}) is in Glance."
+  "split.glanceUnavailable": {
+    "message": "Glance isn't available while a split is showing",
+    "note": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing."
+  },
+  "glance.status.openedAsTab": {
+    "message": "{title} is now the current tab",
+    "note": "Screen reader announcement after Open as tab on the floating Glance card: the Glance page ({title}) became the current tab, full window, and the Glance ended."
   },
   "glance.status.tabClosed": {
     "message": "Glance closed because its tab was closed",
@@ -3257,8 +3380,28 @@
     "message": "General",
     "note": "Settings → General: section heading."
   },
-  "settings.general.theme.label": {
+  "settings.general.cards.island": {
+    "message": "Island",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.appearance": {
     "message": "Appearance",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.startPage": {
+    "message": "Start Page",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.search": {
+    "message": "Search",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.cards.browsing": {
+    "message": "Browsing",
+    "note": "Settings → General: card heading."
+  },
+  "settings.general.theme.label": {
+    "message": "Theme",
     "note": "Settings → General: setting name."
   },
   "settings.general.theme.hint": {
@@ -3295,6 +3438,30 @@
   "settings.general.islandHoverOpen.hint": {
     "message": "Rest the pointer on the Island’s address to open it without clicking.",
     "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.islandAutoHide.label": {
+    "message": "Auto-hide the Island",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "Let pages fill the window. Move the pointer to the top edge, or open search and commands, to bring the Island back.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.islandAutoHideStyle.label": {
+    "message": "When the Island comes back",
+    "note": "Settings → General: setting name."
+  },
+  "settings.general.islandAutoHideStyle.hint": {
+    "message": "Float it over the page, or move the page down to make room.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.islandAutoHideStyle.float": {
+    "message": "Float over the page",
+    "note": "Settings → General: choice in a dropdown."
+  },
+  "settings.general.islandAutoHideStyle.push": {
+    "message": "Push the page down",
+    "note": "Settings → General: choice in a dropdown."
   },
   "settings.general.darkWebsites.label": {
     "message": "Dark websites",
@@ -3406,6 +3573,34 @@
     "message": "After 6 hours",
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 19
+  },
+  "settings.general.tabArchive.label": {
+    "message": "Archive inactive tabs",
+    "note": "Settings → General: label of the Tab Archive delay select."
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived.",
+    "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Off",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "After 12 hours",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "After 1 day",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "After 7 days",
+    "note": "Settings → General: Tab Archive delay option."
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "After 30 days",
+    "note": "Settings → General: Tab Archive delay option."
   },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Mouse gestures",
@@ -5087,9 +5282,85 @@
     "message": "Layout",
     "note": "Start page → Customize popover: label above the layout choices."
   },
+  "newtab.customize.clockHeading": {
+    "message": "Clock",
+    "note": "Start page → Customize popover: label above the row that opens the Billboard clock’s Font & color sheet; shown only while the Billboard layout is chosen.",
+    "maxLength": 16
+  },
   "newtab.customize.wallpaperHeading": {
     "message": "Wallpaper",
     "note": "Start page → Customize popover: label above the wallpaper choices."
+  },
+  "newtab.clock.open": {
+    "message": "Clock font & color…",
+    "note": "Start page → Customize popover, Clock section (Billboard layout only): accessible name of the row that closes Customize and opens the clock’s Font & color sheet under the clock. The row itself shows a sample, “Font & color” and a summary.",
+    "maxLength": 34
+  },
+  "newtab.clock.title": {
+    "message": "Font & color",
+    "note": "Start page → the Billboard clock’s Font & color sheet: its heading, after the iOS Lock Screen’s Font & Color sheet; also the title of the row in Customize’s Clock section that opens it.",
+    "maxLength": 24
+  },
+  "newtab.clock.back": {
+    "message": "Back to Customize",
+    "note": "Start page → the clock’s Font & color sheet: accessible name and tooltip of the chevron button at its top left, which closes the sheet and reopens the Customize popover (“Customize” is the footer button’s name)."
+  },
+  "newtab.clock.font": {
+    "message": "Font",
+    "note": "Start page → clock Font & color popover: accessible name of the row of four typefaces, each shown as the numerals “12”."
+  },
+  "newtab.clock.font.instrument": {
+    "message": "Instrument Sans",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language), read out and shown on hover."
+  },
+  "newtab.clock.font.condensed": {
+    "message": "Instrument Sans Condensed",
+    "note": "Start page → clock Font & color popover: name of the narrow cut of the Instrument Sans typeface (keep “Instrument Sans”; translate “Condensed”), read out and shown on hover."
+  },
+  "newtab.clock.font.inter": {
+    "message": "Inter",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language), read out and shown on hover."
+  },
+  "newtab.clock.font.flex": {
+    "message": "Roboto Flex",
+    "note": "Start page → clock Font & color popover: name of a typeface (a proper name, kept in every language) that can stand taller with the Height slider, read out and shown on hover."
+  },
+  "newtab.clock.weight": {
+    "message": "Weight",
+    "note": "Start page → clock Font & color popover: label of the slider from the typeface’s lightest to its boldest weight. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
+    "maxLength": 10
+  },
+  "newtab.clock.height": {
+    "message": "Height",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the clock’s figures taller (as on the iOS Lock Screen) while they keep their width, as far as the chosen typeface allows. Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
+    "maxLength": 10
+  },
+  "newtab.clock.color": {
+    "message": "Color",
+    "note": "Start page → clock Font & color popover: accessible name of the row of color swatches for the clock."
+  },
+  "newtab.clock.auto": {
+    "message": "Automatic",
+    "note": "Start page → clock Font & color popover: the first swatch, which draws the clock in the page’s own text color (following the theme and wallpaper)."
+  },
+  "newtab.clock.tone": {
+    "message": "Tone",
+    "note": "Start page → clock Font & color popover: label of the slider that makes the chosen color deeper (left) or lighter (right). Read out by screen readers and shown as the slider’s hover tooltip; the slider has no visible label.",
+    "maxLength": 10
+  },
+  "newtab.clock.style": {
+    "message": "Style",
+    "note": "Start page → clock Font & color popover: accessible name of the Glass / Solid choice."
+  },
+  "newtab.clock.glass": {
+    "message": "Glass",
+    "note": "Start page → clock Font & color popover: draws the clock’s numerals as translucent, lit glass (as on the iOS Lock Screen).",
+    "maxLength": 10
+  },
+  "newtab.clock.solid": {
+    "message": "Solid",
+    "note": "Start page → clock Font & color popover: draws the clock’s numerals in flat, opaque color.",
+    "maxLength": 10
   },
   "newtab.wallpaper.sunrise": {
     "message": "Sunrise",
@@ -5252,6 +5523,34 @@
     "message": "Favorite a page with ♥ to pin it here",
     "note": "Start page: shown when there are no Favorites; ♥ is the Favorite button."
   },
+  "newtab.pin.title": {
+    "message": "Pin {title}",
+    "note": "Start page: tooltip of the pin on a tile; {title} is the page’s title. A pinned page comes first on every Start Page layout."
+  },
+  "newtab.pin.label": {
+    "message": "Pin {title} to the Start Page",
+    "note": "Start page: accessible name of the pin on a tile; {title} is the page’s title."
+  },
+  "newtab.unpin.title": {
+    "message": "Unpin {title}",
+    "note": "Start page: tooltip of the pin on a pinned tile; {title} is the page’s title."
+  },
+  "newtab.unpin.label": {
+    "message": "Unpin {title} from the Start Page",
+    "note": "Start page: accessible name of the pin on a pinned tile; {title} is the page’s title."
+  },
+  "newtab.pin.done": {
+    "message": "{title} pinned to the Start Page.",
+    "note": "Start page: announced after pinning a page; {title} is its title."
+  },
+  "newtab.unpin.done": {
+    "message": "{title} unpinned from the Start Page.",
+    "note": "Start page: announced after unpinning a page; {title} is its title."
+  },
+  "newtab.pin.full": {
+    "message": "The Start Page holds {count} pins. Unpin one first.",
+    "note": "Start page: announced when pinning is refused because every pin is taken; {count} is the most pins it holds."
+  },
   "onboarding.skip": {
     "message": "skip setup",
     "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
@@ -5396,6 +5695,14 @@
   "onboarding.island.shortcut": {
     "message": "Control L",
     "note": "Onboarding dialog → step 3: how a screen reader reads the Ctrl+L key."
+  },
+  "onboarding.island.archive": {
+    "message": "Archive tabs after 7 days<0>Loose tabs you haven't opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.</0>",
+    "note": "Onboarding → step 3 (the Island): Tab Archive switch name (F52), then (tag 0) its explanation in smaller type. Preset on for a fresh profile."
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Archive tabs after 7 days",
+    "note": "Onboarding → step 3: accessible name of the Tab Archive switch (F52)."
   },
   "onboarding.blocking.title": {
     "message": "Block ads & trackers",
@@ -5676,6 +5983,32 @@
     "message": "Move to a folder",
     "note": "Favorites page: tooltip of the move button on a favorite in no folder."
   },
+  "favorites.row.pin": {
+    "message": "pin",
+    "note": "Favorites page: button on a favorite that pins it to the front of the Start Page, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.row.unpin": {
+    "message": "unpin",
+    "note": "Favorites page: button on a pinned favorite that unpins it from the Start Page, lowercase by design.",
+    "maxLength": 12
+  },
+  "favorites.row.pinLabel": {
+    "message": "Pin {title} to the Start Page",
+    "note": "Favorites page: accessible name of the pin button; {title} is the page’s title."
+  },
+  "favorites.row.unpinLabel": {
+    "message": "Unpin {title} from the Start Page",
+    "note": "Favorites page: accessible name of the unpin button; {title} is the page’s title."
+  },
+  "favorites.row.pinFull": {
+    "message": "The Start Page holds {count} pins. Unpin one to pin this.",
+    "note": "Favorites page: tooltip of the pin button when every pin is taken; {count} is the most pins the Start Page holds."
+  },
+  "favorites.row.pinned": {
+    "message": "Pinned to the Start Page",
+    "note": "Favorites page: accessible name of the mark beside a pinned favorite."
+  },
   "favorites.row.remove": {
     "message": "remove",
     "note": "Favorites page: button on a favorite, lowercase by design.",
@@ -5723,6 +6056,38 @@
   "history.empty": {
     "message": "No history yet.",
     "note": "History page: shown when there is no history."
+  },
+  "history.view.visits": {
+    "message": "Visits",
+    "note": "History page: segmented choice showing the list of visits (F52)."
+  },
+  "history.view.archived": {
+    "message": "Archived tabs",
+    "note": "History page: segmented choice showing tabs Blanc archived (F52)."
+  },
+  "history.archived.search": {
+    "message": "Search archived tabs",
+    "note": "History page, Archived tabs view: placeholder and accessible name of the search field."
+  },
+  "history.archived.clear": {
+    "message": "Clear Archive",
+    "note": "History page, Archived tabs view: button that empties the Archive."
+  },
+  "history.archived.restore": {
+    "message": "Restore",
+    "note": "History page, Archived tabs view: button on an entry that reopens the tab."
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restore {title} as a tab",
+    "note": "History page, Archived tabs view: accessible name of the restore button; {title} is the tab’s title."
+  },
+  "history.archived.forgetLabel": {
+    "message": "Remove {title} from the Archive",
+    "note": "History page, Archived tabs view: accessible name of the remove button; {title} is the tab’s title."
+  },
+  "history.archived.empty": {
+    "message": "No archived tabs. Turn on Archive inactive tabs in Settings → General.",
+    "note": "History page, Archived tabs view: shown when nothing is archived."
   },
   "history.day.today": {
     "message": "Today",

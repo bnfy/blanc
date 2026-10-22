@@ -10,6 +10,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `surface.armEscape` | invoke | `pages:surface:escape-arm` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. |
 | `surface.onEscape` | event | `pages:surface:escape` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Escape was pressed while armed; the page closes its own consumer. |
 | `appVersion` | invoke | `pages:app-version` | newtab | The running app version string. |
+| `pins.list` | invoke | `pages:pins:list` | newtab, bookmarks | List the profile's Start Page pins, each with a locally held icon. |
+| `pins.pin` | invoke | `pages:pins:pin` | newtab, bookmarks | Pin an http(s) page to the Start Page; refused from private start pages and past the cap. |
+| `pins.unpin` | invoke | `pages:pins:unpin` | newtab, bookmarks | Unpin a page from the Start Page; refused from private start pages. |
+| `pins.onChanged` | event | `pages:pins:changed` | newtab, bookmarks | The Start Page pins changed; read them again. |
 | `bookmarks.list` | invoke | `pages:bookmarks:list` | newtab, bookmarks | List Favorites (internal name: bookmarks). |
 | `bookmarks.clearFavicon` | invoke | `pages:bookmarks:clear-favicon` | newtab, bookmarks | Drop a Favorite's cached favicon after it failed to load. |
 | `bookmarks.browserSources` | invoke | `pages:bookmarks:browser-sources` | newtab, bookmarks | List installed browsers Favorites can be imported from. |
@@ -32,6 +36,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.setWallpaperColor` | invoke | `pages:start:set-wallpaper-color` | newtab | Choose the Color wallpaper's Spaces preset (sage, sky, iris, rose, clay, sand, slate or graphite). |
 | `start.setWallpaperFill` | invoke | `pages:start:set-wallpaper-fill` | newtab | Choose how the Color wallpaper is drawn: soft, solid or gradient. |
 | `start.setWallpaperFollowSpace` | invoke | `pages:start:set-wallpaper-follow-space` | newtab | Whether a window in a Space draws that Space's color as the Color wallpaper. |
+| `start.setClock` | invoke | `pages:start:set-clock` | newtab | Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn. |
 | `start.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | newtab | Pick an image file for the Start Page wallpaper and show it. |
 | `start.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | newtab | Delete the stored Start Page image and return to Sunrise. |
 | `start.openMahjong` | invoke | `pages:start:open-mahjong` | newtab | Open blanc://mahjong as an ordinary tab. |
@@ -60,6 +65,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `history.list` | invoke | `pages:history:list` | history | List history entries, optionally filtered. |
 | `history.remove` | invoke | `pages:history:remove` | history | Remove one visit. |
 | `history.clear` | invoke | `pages:history:clear` | history | Clear all history. |
+| `archive.list` | invoke | `pages:archive:list` | history | List archived tabs (F52), optionally searched. |
+| `archive.restore` | invoke | `pages:archive:restore` | history | Restore one archived tab into the requesting window. |
+| `archive.forget` | invoke | `pages:archive:forget` | history | Remove one archived tab from the Archive. |
+| `archive.clear` | invoke | `pages:archive:clear` | history | Empty the Archive. |
 | `downloads.list` | invoke | `pages:downloads:list` | downloads | List downloads. |
 | `downloads.cancel` | invoke | `pages:downloads:cancel` | downloads | Cancel a download in progress. |
 | `downloads.resume` | invoke | `pages:downloads:resume` | downloads | Continue an interrupted download where it stopped. |

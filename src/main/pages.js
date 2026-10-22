@@ -9,10 +9,12 @@ const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
+const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { settingsForSource } = require('./wallpaper-model');
+const { settingsForClock, clockStyleFromSettings } = require('./start-clock-style');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const { createDefaultBrowserStatus, requestDefaultBrowser } = require('./default-browser-status');
 const patron = require('./patron');
@@ -197,6 +199,14 @@ function setupPages(hooks = {}) {
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
+  // Start Page pins (start-page-pins.js): one device-local list that the
+  // Start Page and the Favorites page read and change; main tells both when it
+  // moves (pages:pins:changed).
+  handle('pages:pins:list', ['bookmarks', 'newtab'], () => hooks.startPins?.list?.() ?? { max: 0, pins: [] });
+  handleEvent('pages:pins:pin', ['bookmarks', 'newtab'], (event, url, title) =>
+    hooks.startPins?.pin?.(event.sender, { url, title }) ?? { ok: false, reason: 'unavailable' });
+  handleEvent('pages:pins:unpin', ['bookmarks', 'newtab'], (event, url) =>
+    hooks.startPins?.unpin?.(event.sender, url) ?? false);
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
     hooks.onDataChanged?.();
@@ -332,6 +342,16 @@ function setupPages(hooks = {}) {
     // session.json's meta column holds the same titles; clearHistory() only
     // owns history.json, so the main-process hook drops the persisted copy.
   });
+
+  // F52 Tab Archive: the History sheet's Archived view. Restore goes through
+  // main, which opens the tab in the requesting window.
+  handle('pages:archive:list', 'history', (opts) => archive.listArchive({
+    query: typeof opts?.query === 'string' ? opts.query : '',
+    now: Date.now(),
+  }));
+  handle('pages:archive:restore', 'history', (id) => hooks.restoreArchived?.(typeof id === 'string' ? id : '') === true);
+  handle('pages:archive:forget', 'history', (id) => archive.forgetEntry(typeof id === 'string' ? id : ''));
+  handle('pages:archive:clear', 'history', () => archive.clearArchive());
 
   handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
   handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
@@ -605,6 +625,13 @@ function setupPages(hooks = {}) {
     if (typeof enabled === 'boolean') settings.setSettings({ newtabFollowSpaceColor: enabled });
     return wallpaperReply(event);
   });
+  // The Billboard clock's Font & Color (synced): any of font, weight, height,
+  // color, tone and style; each is validated on its own and anything else is
+  // ignored. The reply is the clock as now drawn.
+  handle('pages:start:set-clock', 'newtab', (partial) => {
+    const write = settingsForClock(partial);
+    return clockStyleFromSettings(Object.keys(write).length ? settings.setSettings(write) : settings.getSettings());
+  });
   handleEvent('pages:start:choose-wallpaper', ['newtab', 'settings'], async (event) => {
     let file = hooks.wallpaperTestFile?.() ?? null;
     if (!file) {
@@ -702,13 +729,18 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
-  // Onboarding may change exactly these two settings, live — never the whole
+  // Onboarding may change exactly these settings, live — never the whole
   // settings surface. Values still pass setSettings' own validation.
   handle('pages:start:onboarding-set', 'newtab', (partial) => {
     const clean = {};
     if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
     if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
     if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
+    // F52 spec D5: the island step's Tab Archive offer — After 7 days or Off,
+    // and main accepts it only while first run is pending.
+    if (partial && (partial.tabArchive === '7d' || partial.tabArchive === 'off')) {
+      hooks.startPage?.offerTabArchive?.(partial.tabArchive);
+    }
   });
 
   // Replays the first-run walkthrough. Main creates and activates the tour

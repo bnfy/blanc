@@ -8,11 +8,11 @@ RUNTIME NPM COMPONENTS
 
 - @1password/sdk-core 0.5.0 — MIT — https://registry.npmjs.org/@1password/sdk-core/-/sdk-core-0.5.0.tgz
 - @1password/sdk 0.5.0 — MIT — https://registry.npmjs.org/@1password/sdk/-/sdk-0.5.0.tgz
-- @ghostery/adblocker-content 2.18.2 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.18.2.tgz
-- @ghostery/adblocker-electron-preload 2.18.2 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.18.2.tgz
-- @ghostery/adblocker-electron 2.18.2 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.18.2.tgz
-- @ghostery/adblocker-extended-selectors 2.18.2 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.18.2.tgz
-- @ghostery/adblocker 2.18.2 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.18.2.tgz
+- @ghostery/adblocker-content 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.20.1.tgz
+- @ghostery/adblocker-electron-preload 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.20.1.tgz
+- @ghostery/adblocker-electron 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.20.1.tgz
+- @ghostery/adblocker-extended-selectors 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.20.1.tgz
+- @ghostery/adblocker 2.20.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.20.1.tgz
 - @ghostery/url-parser 1.3.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/url-parser/-/url-parser-1.3.1.tgz
 - @remusao/guess-url-type 2.1.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/guess-url-type/-/guess-url-type-2.1.0.tgz
 - @remusao/small 2.1.0 — MPL-2.0 — https://registry.npmjs.org/@remusao/small/-/small-2.1.0.tgz
@@ -64,6 +64,9 @@ BUNDLED ASSETS AND DATA
 - Instrument Sans Latin variable webfont 5.3.0 — OFL-1.1
   Source: https://github.com/Instrument/instrument-sans
   Full text: ThirdPartyLicenses/instrument-sans-OFL.txt
+- Roboto Flex clock subset (variable webfont) 5.3.0 — OFL-1.1
+  Source: https://github.com/googlefonts/roboto-flex
+  Full text: ThirdPartyLicenses/roboto-flex-OFL.txt
 - EasyList 202607091627 — CC-BY-SA-3.0-or-later
   Attribution: The EasyList authors (https://easylist.to/)
   Source: https://easylist.to/
@@ -72,9 +75,9 @@ BUNDLED ASSETS AND DATA
   Attribution: The EasyList authors (https://easylist.to/)
   Source: https://easylist.to/
   License: https://easylist.to/pages/licence.html
-- Ghostery adblocker resources c4c20aa63e3a72113f66777cf35a3f58877a36ee — MPL-2.0
+- Ghostery adblocker resources c18718adc33e82a086d996d0b0f75deb3d01745a — MPL-2.0
   Source: https://github.com/ghostery/adblocker
-- Blanc compiled blocker seed 194ddc2d204c13b9 — MPL-2.0 AND CC-BY-SA-3.0-or-later
+- Blanc compiled blocker seed b2873ed6ff04941e — MPL-2.0 AND CC-BY-SA-3.0-or-later
 - Lucide uBO popup icons 0.468.0 — ISC
   Attribution: Lucide Contributors 2022; portions by Cole Bemis 2013–2022 (Feather, MIT)
   Source: https://github.com/lucide-icons/lucide/tree/0.468.0

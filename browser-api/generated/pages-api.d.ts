@@ -6,6 +6,16 @@
 export interface NewtabPagesAPI {
   /** The running app version string. IPC: invoke `pages:app-version`. */
   appVersion: () => Promise<unknown>;
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
+  };
   bookmarks: {
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
@@ -45,6 +55,8 @@ export interface NewtabPagesAPI {
     setWallpaperFill: (fill: unknown) => Promise<unknown>;
     /** Whether a window in a Space draws that Space's color as the Color wallpaper. IPC: invoke `pages:start:set-wallpaper-follow-space`. */
     setWallpaperFollowSpace: (enabled: unknown) => Promise<unknown>;
+    /** Change the Billboard clock's Font & Color: any of font, weight, height, color, tone and style. Replies with the clock as now drawn. IPC: invoke `pages:start:set-clock`. */
+    setClock: (partial: unknown) => Promise<unknown>;
     /** Pick an image file for the Start Page wallpaper and show it. IPC: invoke `pages:start:choose-wallpaper`. */
     chooseWallpaper: () => Promise<unknown>;
     /** Delete the stored Start Page image and return to Sunrise. IPC: invoke `pages:start:remove-wallpaper`. */
@@ -114,6 +126,16 @@ export interface BookmarksPagesAPI {
     /** Escape was pressed while armed; the page closes its own consumer. IPC: event `pages:surface:escape`. */
     onEscape: (callback: () => void) => () => void;
   };
+  pins: {
+    /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
+    list: () => Promise<unknown>;
+    /** Pin an http(s) page to the Start Page; refused from private start pages and past the cap. IPC: invoke `pages:pins:pin`. */
+    pin: (url: unknown, title: unknown) => Promise<unknown>;
+    /** Unpin a page from the Start Page; refused from private start pages. IPC: invoke `pages:pins:unpin`. */
+    unpin: (url: unknown) => Promise<unknown>;
+    /** The Start Page pins changed; read them again. IPC: event `pages:pins:changed`. */
+    onChanged: (callback: () => void) => void;
+  };
   bookmarks: {
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
@@ -152,6 +174,16 @@ export interface HistoryPagesAPI {
     /** Remove one visit. IPC: invoke `pages:history:remove`. */
     remove: (url: unknown, visitedAt: unknown) => Promise<unknown>;
     /** Clear all history. IPC: invoke `pages:history:clear`. */
+    clear: () => Promise<unknown>;
+  };
+  archive: {
+    /** List archived tabs (F52), optionally searched. IPC: invoke `pages:archive:list`. */
+    list: (opts: unknown) => Promise<unknown>;
+    /** Restore one archived tab into the requesting window. IPC: invoke `pages:archive:restore`. */
+    restore: (id: unknown) => Promise<unknown>;
+    /** Remove one archived tab from the Archive. IPC: invoke `pages:archive:forget`. */
+    forget: (id: unknown) => Promise<unknown>;
+    /** Empty the Archive. IPC: invoke `pages:archive:clear`. */
     clear: () => Promise<unknown>;
   };
 }

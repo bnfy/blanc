@@ -260,3 +260,47 @@ After({ tags: '@island-hover' }, async function () {
   const block = this.hoverPermissionPrompt?.locator('#permBlockBtn');
   if (block && await block.isVisible().catch(() => false)) await block.click();
 });
+
+// A hover-opened panel closes once the pointer leaves it (hover-panel-leave.js).
+// Moves over the open panel reach the overlay document, so they go there.
+Given('the Island panel has opened from hover', async function () {
+  await enter(this);
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel',
+    'the Island panel to open from hover');
+  this.hoverPanelRect = await waitForValue(() => this.call('overlayPanelRect'),
+    (rect) => rect && rect.right > rect.left, 'the open panel card');
+  // The pointer is on the card when the panel opens.
+  const card = this.hoverPanelRect;
+  assert.equal(await this.call('sendOverlayInput', {
+    type: 'mouseMove', x: Math.round((card.left + card.right) / 2), y: Math.round(card.top + 20),
+  }), true);
+});
+
+When('I move the pointer off the panel', async function () {
+  const card = this.hoverPanelRect;
+  assert.equal(await this.call('sendOverlayInput', {
+    type: 'mouseMove', x: Math.max(1, Math.round(card.left - 60)), y: Math.round(card.top + 20),
+  }), true);
+});
+
+When('I type in the panel', async function () {
+  assert.equal(await this.call('sendOverlayInput', { type: 'keyDown', keyCode: 'a' }), true);
+  assert.equal(await this.call('sendOverlayInput', { type: 'char', keyCode: 'a' }), true);
+  assert.equal(await this.call('sendOverlayInput', { type: 'keyUp', keyCode: 'a' }), true);
+});
+
+Then('the Island panel closes after its grace period', async function () {
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode == null,
+    'the hover-opened panel to close', 2000);
+});
+
+// A leave close detaches the overlay view at once (no retract): the pointer
+// is heading for the strip beneath it.
+Then('the overlay is gone with the panel', async function () {
+  assert.equal(await this.call('overlayViewAttached'), false, 'the overlay view stayed attached after a hover-leave close');
+});
+
+Then('the Island panel stays open after {int} milliseconds', async function (ms) {
+  await sleep(ms);
+  assert.equal(await this.call('overlayMode'), 'panel');
+});

@@ -4,9 +4,14 @@
 // panes (spec: Commands follow focus). Pure — no Electron — so the routing
 // rule is unit-tested; main.js owns the runtime and passes a liveness lookup.
 
-/** The window's visible page tab ids: the main page, then the reference. */
+/** The window's visible page tab ids: the main page, then the reference; or,
+ * while the active tab is in a Split View (F53), every tab of that split in
+ * pane order. A set-aside (resident) window shows no split. */
 function visiblePaneIds(runtime) {
   if (!runtime) return [];
+  const split = runtime.resident ? null
+    : (runtime.splits ?? []).find((s) => s.tabIds.includes(runtime.activeTabId));
+  if (split) return [...split.tabIds];
   return [runtime.activeTabId, runtime.glanceTabId].filter((id) => id != null);
 }
 
@@ -63,9 +68,12 @@ function focusedPane(runtime) {
     : 'main';
 }
 
-/** The chrome:glance-layout payload: Glance geometry plus focusedPane. */
-function glanceLayoutPayload(layout, pane) {
-  return layout ? { ...layout, focusedPane: pane === 'glance' ? 'glance' : 'main' } : null;
+/** The chrome:glance-layout payload: the card's geometry plus focusedPane. */
+/** The floating Glance card's layout message: the card's views' bounds,
+ * which pane has focus, and the card's generation (a stale move or resize
+ * carrying an older one is refused). */
+function glanceLayoutPayload(card, pane, generation = 0) {
+  return card ? { card, focusedPane: pane === 'glance' ? 'glance' : 'main', generation } : null;
 }
 
 module.exports = { visiblePaneIds, isVisiblePaneId, livePaneId, commandTargetTab, focusedPane, glanceLayoutPayload, foregroundOpenRole };

@@ -23,7 +23,7 @@ function sandbox(workspaces) {
   const calls = [];
   const context = {
     state: { groups: [{ id: 'g1', name: 'research' }], tabs: [{ id: 't1', title: 'Research notes', url: 'https://notes.test/', groupId: 'g1' }], activeTabId: 't1' },
-    favorites: [], remoteDevices: [], historyEntries: [], wsWorkspaces: workspaces,
+    favorites: [], remoteDevices: [], historyEntries: [], archivedEntries: [], wsWorkspaces: workspaces,
     matchableText: (title, url) => `${title ?? ''} ${url ?? ''}`, stripUrl: (url) => url, tabDomain: (tab) => tab.url,
     blancI18n: { t: (key, params) => (params?.count !== undefined ? `${params.count} tabs` : key) },
     workspaceUI: { switchTo: (w) => calls.push(['switch', w.id]) },

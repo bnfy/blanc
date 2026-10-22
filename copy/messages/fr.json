@@ -25,6 +25,10 @@
     "message": "Ouvrir l’historique de navigation",
     "source": "sha256:2fe6be7d6c896865b21a56859f0089adb0b0d79b54b2c01e5b64a28d4843b3b1"
   },
+  "slash.archive.hint": {
+    "message": "Voir les onglets que Blanc a archivés pour vous",
+    "source": "sha256:aa22619c1bdbe2d9a2783aa30fad10b136641f7ca0bc7140a0b816d52dd98895"
+  },
   "slash.downloads.hint": {
     "message": "Ouvrir les téléchargements",
     "source": "sha256:de5dda86535350198af94dd025f1bfc49ea8f6fc730a1005dae18bc8e01d0ff3"
@@ -130,8 +134,8 @@
     "source": "sha256:2c357c354eb837202c27e466c8eae03f656733b0c84b8b8b955d31044fbca4c6"
   },
   "slash.glance.hint": {
-    "message": "Garder un autre onglet ouvert à côté de cette page",
-    "source": "sha256:1e9a55801e7a04c926a6c3389ede976e70a92b09685378e051dcd9d2c3f8e4df"
+    "message": "Regarder un autre onglet ouvert sans quitter cette page",
+    "source": "sha256:89d44dd6c6ee15feb9b12a39f6a814650b3d1b4cbee3d9fb377120c7aa211c8a"
   },
   "slash.glance.doc": {
     "message": "Ouvrir le sélecteur Glance, filtré par le texte",
@@ -277,6 +281,11 @@
     "message": "{count, plural, one {# onglet de plus — ouvrir la liste} many {# onglets de plus — ouvrir la liste} other {# onglets de plus — ouvrir la liste}}",
     "source": "sha256:223dbc55be62b11cf0ef0fffc65479abea129999eceefb446253155639ffb7d5"
   },
+  "island.autoHide.intro": {
+    "message": "Pointez le bord supérieur ou appuyez sur {shortcut} pour faire revenir l’Island.",
+    "note": "Tip under the Island when auto-hide is turned on. {shortcut} is ⌘L on Mac, Ctrl+L elsewhere.",
+    "source": "sha256:cf7d536bfe25f81579a78097a6cad5b7277965bed9d958987940d0e74fe3c513"
+  },
   "dot.switchTo": {
     "message": "Passer à {title}",
     "source": "sha256:8cd93dcac1d354c4891b429c8dc0c19b1f9e08de34a4c3a68098f355d850300b"
@@ -345,17 +354,37 @@
     "message": "GLANCE",
     "source": "sha256:fcb19c0f9926b34ef991e7bebad4a2ea5e62f162474ce3ebd734ed7aa0a1fb61"
   },
-  "glance.promote": {
-    "message": "Principale — échanger avec la page principale",
-    "source": "sha256:eec8c9d3246f48133edee61045ede79eefc2abb3fdf5b3eb434f6638fac79dd9"
-  },
-  "glance.promoteShort": {
-    "message": "Principale",
-    "source": "sha256:a7e42de240a757d798f520cbf37c73e9f731bbd0b6ab2fb3f353eaec2dc40c6b"
-  },
   "glance.change": {
     "message": "Changer",
     "source": "sha256:cd6459f87faebe36f9d245ef5af8bba9b1d69ea3fbdebd42670ab48f1e7ece47"
+  },
+  "glance.openAsTab": {
+    "message": "Ouvrir dans un onglet",
+    "source": "sha256:3e9f5990a32b542d258e3383610b2cbde942e5fd7dc18a5acd13575c3f1b05df"
+  },
+  "glance.openAsTab.title": {
+    "message": "Ouvrir dans un onglet — faire de cette page l'onglet actuel",
+    "source": "sha256:72750983152366387531dbd015f122a48fa41b1930be28411a529e8e46fb239e"
+  },
+  "glance.move": {
+    "message": "Déplacer ou redimensionner Glance",
+    "source": "sha256:417e8beeb9920781b5230f286eaca82c665d66c8d630ee8e0de3e433070abb75"
+  },
+  "glance.move.hint": {
+    "message": "Les flèches le déplacent. Option ou Alt avec une flèche le redimensionne. Entrée le réinitialise.",
+    "source": "sha256:2def091c2a979f3e45be59a6db61d4e68ac82f574ab3e9c5eee1781cdc417981"
+  },
+  "glance.status.moved": {
+    "message": "Glance déplacé",
+    "source": "sha256:57357980b7c6ebaac416613bfef1992aba5dd6759a467cfcba85a8b7f4684e4f"
+  },
+  "glance.status.resized": {
+    "message": "Glance redimensionné à {width} sur {height}",
+    "source": "sha256:1b2bd9fb0f730194c0fb3acc217bd4d00df2a24908a777a10001e9d3d6b2390e"
+  },
+  "glance.status.reset": {
+    "message": "Glance réinitialisé",
+    "source": "sha256:866d7896d94521bbd01b8bdb44fa9c11ea22636c9580b9164ea02e57616cfef0"
   },
   "glance.change.title": {
     "message": "Choisir un autre onglet pour Glance",
@@ -364,14 +393,6 @@
   "glance.close": {
     "message": "Fermer Glance",
     "source": "sha256:7d9da4291b72a86359f91c029c4ef7759bfabfe06b20affe464c96edcf7c9490"
-  },
-  "glance.resize": {
-    "message": "Redimensionner Glance",
-    "source": "sha256:03ab2e38f02e3f30e60d7bf0a49fba22503b00d0a9d696f494ff979e6130a4f8"
-  },
-  "glance.dividerValue": {
-    "message": "Page principale {percent} pour cent",
-    "source": "sha256:6f112c08e28d8b3081d779d8cd2b7ab7f7bd2e4ba3f7cc21c969d268bbf6f580"
   },
   "resize.hint": {
     "message": "Faites glisser pour redimensionner ; double-cliquez pour réinitialiser",
@@ -1525,6 +1546,22 @@
     "message": "{count, plural, one {# onglet} many {# onglets} other {# onglets}}",
     "source": "sha256:8b02624af5db598735fb0be9f0cf76fa52854083bfe98681a4fb88a33c9ae2a7"
   },
+  "result.archived": {
+    "message": "Archivé",
+    "source": "sha256:192a2958de4f03ebb2d906d631b240ba1ebd135c71a191dc55a34b2fc261da7b"
+  },
+  "archive.notice.title": {
+    "message": "{count, plural, one {Blanc a archivé # onglet} many {Blanc a archivé # onglets} other {Blanc a archivé # onglets}}",
+    "source": "sha256:eada64636357582450f5c84631a1e953c48bea9ebd508108a33fbec8eef1940d"
+  },
+  "archive.notice.view": {
+    "message": "Voir les Archives",
+    "source": "sha256:b9b13e5db74e47a02ef6e47678bbb2d7e31af153a36aa1c0f2c7c5fe00f965b4"
+  },
+  "archive.notice.dismiss": {
+    "message": "Ignorer",
+    "source": "sha256:98d1fcff74566a6e97d4d5acd0922062309b31853038b20939f5c1bcb26709e9"
+  },
   "result.tag.search": {
     "message": "Recherche",
     "source": "sha256:4a7dcfce43596d4c2528ae99e29709118a90f7b7e3a606d65459a2e5c641bbdb"
@@ -1797,9 +1834,89 @@
     "message": "Retirer des favoris",
     "source": "sha256:11f30e93f20f0577e0e069e894d71fb2e12a78d131a79c8fa85530776ddfbf60"
   },
+  "tabMenu.pinStartPage": {
+    "message": "Épingler à la page d’accueil",
+    "source": "sha256:44d380d29074c2a9d7cc6d92792c921b8981c67c3d03d67043abf642bf47ede2"
+  },
+  "tabMenu.unpinStartPage": {
+    "message": "Détacher de la page d’accueil",
+    "source": "sha256:aae2fce160e354f25eccd17cae0397d8cbc6a24f0f498e125ca9b1d17165407f"
+  },
   "tabMenu.moveToGroup": {
     "message": "Déplacer dans le groupe",
     "source": "sha256:a9cb65ecce0b3e63ce684799e3574b7f13ed662d025c1b214fcf8d4baab9ef54"
+  },
+  "tabMenu.splitWith": {
+    "message": "Partager avec",
+    "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"
+  },
+  "tabMenu.splitPinnedRefused": {
+    "message": "Les onglets épinglés ne peuvent pas rejoindre une vue partagée",
+    "source": "sha256:c2a6099a8019b08c63bc85326cef22fe78126914feb00fd186b99d9963a3509d"
+  },
+  "tabMenu.removeFromSplit": {
+    "message": "Retirer de la vue partagée",
+    "source": "sha256:04b371535864ecd5973d41edbdba8270ba30126b9a2f18d6ec958d8ac9c5db1d"
+  },
+  "tabMenu.closeSplit": {
+    "message": "Fermer la vue partagée",
+    "source": "sha256:c50cb226d259e2a8d695cf8c800ac0f5d3af30f01382c263a30f40dd2dba4ded"
+  },
+  "split.groupMoveInto": {
+    "message": "Déplace {title} dans {group}",
+    "source": "sha256:054e149ff130ae0417882c786c38a85d0806f75ea00e60f93273fe4692e94523"
+  },
+  "split.groupMoveOutOf": {
+    "message": "Retire {title} de {group}",
+    "source": "sha256:67b4e525c29b9cb73bd54e45db7b96a385e41c5898177ce777fa7600cd1ed01e"
+  },
+  "split.menuMovesInto": {
+    "message": "Passe dans {group}",
+    "source": "sha256:176e58be7908b2848dd3724a5f8b30a2ce41ce57b28989927eaac6108c8bb0a8"
+  },
+  "split.menuMovesOutOf": {
+    "message": "Sort de {group}",
+    "source": "sha256:6c04053a4f6b01bf8f0a8dc46f252cecbf3f092606802d84467457e73894fa56"
+  },
+  "tabMenu.splitUngrouped": {
+    "message": "Sans groupe",
+    "source": "sha256:81431e24c4f4c3bbc98147a7972ffe11a7ca65df17b35013559bcdb0bcec3856"
+  },
+  "split.made": {
+    "message": "{first} et {second} sont maintenant côte à côte",
+    "source": "sha256:feab0cf7295a42fb8bd3ac6caa0cf04b730369876716def6cfd132435f3ee978"
+  },
+  "split.dissolved": {
+    "message": "Vue partagée fermée ; {title} occupe la fenêtre",
+    "source": "sha256:e9210188a7a13dc3d3a6584c1af89c5c42753409b99a2ef7b6993cd9e554e4d4"
+  },
+  "split.keepAsSplit": {
+    "message": "Garder en vue partagée",
+    "source": "sha256:e896dde49f5322216828b5d25388c5d36b168ab86015e64b82498b2aa0bf413a"
+  },
+  "split.dividerLabel": {
+    "message": "Redimensionner les volets",
+    "source": "sha256:79377077876c5ad1546888f681fc5b45645c4b4f42c536a3c8dd539d6a98528d"
+  },
+  "split.cornerLabel": {
+    "message": "{site}, volet de la vue partagée",
+    "source": "sha256:8993c42c7306703235065cd1936f1c75be6c62d0d46f34b00d7cc025a6830e63"
+  },
+  "split.rowLabel": {
+    "message": "{first} + {second}",
+    "source": "sha256:d794a3cacbad713512415c8ccea52d7f0e18ea3d67bf4ef034467ec3cdd4e2f8"
+  },
+  "split.rowLabelMore": {
+    "message": "{first} + {count} autres",
+    "source": "sha256:8566d7fca1d5a5ba6347ca78a60bea3ebb4f445527c93eae472e6876469d515f"
+  },
+  "split.rowName": {
+    "message": "Vue partagée : {titles}",
+    "source": "sha256:2f29f803f393d03f4d9fbf330014ea68d5154573ce08ff0c4f95ea9fd2814661"
+  },
+  "split.showTabs": {
+    "message": "Afficher les onglets de cette vue partagée",
+    "source": "sha256:3545fc9237be09e6eb43fed3e05aa7c07536efbcfbcac3ef45632309ff9c1df6"
   },
   "tabMenu.removeFromGroup": {
     "message": "Retirer du groupe",
@@ -2609,6 +2726,11 @@
     "message": "Activer ou désactiver les onglets verticaux",
     "source": "sha256:865466509e3065f3fcbd56c0c32ac3d8fe09d42053ff89337532291ba01d70b2"
   },
+  "menu.autoHideIsland": {
+    "message": "Masquer automatiquement l’Island",
+    "note": "View menu checkbox item.",
+    "source": "sha256:29e502a4351e1fff43315628979999ab21829e54bcde36154a6a83c02578a567"
+  },
   "menu.tabLayout": {
     "message": "Disposition des onglets",
     "source": "sha256:4c328813077335981a1240160d5f7fa2ac2a8c5790420bbc165ebdb61d464088"
@@ -2745,9 +2867,13 @@
     "message": "Glance fermé",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
   },
-  "glance.status.promoted": {
-    "message": "{title} est maintenant la page principale ; {other} est dans Glance",
-    "source": "sha256:f1844b81d7e515a8fbe384d87c4dac18634f8b689b6a7da50c71b2dd8a32fd85"
+  "split.glanceUnavailable": {
+    "message": "Glance n’est pas disponible pendant l’affichage d’une vue partagée",
+    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
+  },
+  "glance.status.openedAsTab": {
+    "message": "{title} est maintenant l'onglet actuel",
+    "source": "sha256:da42c4ef628bd55efb34be6c34eb1c7f61768d8ae0199d75c7d10f9fdced9eb7"
   },
   "glance.status.tabClosed": {
     "message": "Glance s’est fermé car son onglet a été fermé",
@@ -3181,9 +3307,29 @@
     "message": "Général",
     "source": "sha256:c0d54a06a31ec270fe6ae5b7115ab3e55b78fb91351f7246577d221f26748fef"
   },
-  "settings.general.theme.label": {
+  "settings.general.cards.island": {
+    "message": "Island",
+    "source": "sha256:4bb8942c10a49fd2ec6fb7fd8bfa94ca489366818f22d60a4c072c8578df6185"
+  },
+  "settings.general.cards.appearance": {
     "message": "Apparence",
-    "source": "sha256:52b09162f68b5ad1cb1c27c30b0ad203225aca30b36893fecc34b6dba05da47d"
+    "source": "sha256:1c63c160ca08afe5f5d0da16bf64aea79b05fc070f1288f29ed9b17796ce637e"
+  },
+  "settings.general.cards.startPage": {
+    "message": "Page d’accueil",
+    "source": "sha256:6bf09565100e3b5b02c3194f4d896fdb40445255286a910060d9b4340e989950"
+  },
+  "settings.general.cards.search": {
+    "message": "Recherche",
+    "source": "sha256:4efc29ebe90fcc4000e73eeda6ffb88c6251bfe5b1735c564eb96822a6390e76"
+  },
+  "settings.general.cards.browsing": {
+    "message": "Navigation",
+    "source": "sha256:b5d2ae1a08d68e131187b61f01fc708c4cb3560723828e98a07be19735a5038c"
+  },
+  "settings.general.theme.label": {
+    "message": "Thème",
+    "source": "sha256:9f26b42c1f26d6b316e6ba7046aef543e22232ad9046dafd8711f4a0d8932a5c"
   },
   "settings.general.theme.hint": {
     "message": "Système suit le thème de macOS ou Windows",
@@ -3218,6 +3364,36 @@
     "message": "Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.",
     "note": "Settings → General: explanation under a setting.",
     "source": "sha256:6a86198b7bfd2f7ff14e2ef0eb16790a53a6f2b428fc5600f8a9e417e3504936"
+  },
+  "settings.general.islandAutoHide.label": {
+    "message": "Masquer automatiquement l’Island",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:a28f3c41796f381ae34c70fdcc7729492aa7a4d1118c3d98ea2ea0a1d36abc8e"
+  },
+  "settings.general.islandAutoHide.hint": {
+    "message": "Les pages occupent toute la fenêtre. Amenez le pointeur au bord supérieur ou ouvrez la recherche et les commandes pour faire revenir l’Island.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:e9d5fc10c99b5f7d7d86e4f1f0930d2be749730abf4cac6b2cadf8efc542a5cd"
+  },
+  "settings.general.islandAutoHideStyle.label": {
+    "message": "Quand l’Island revient",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:9a2b0886ae3dc8932235b24c6beb5f06c0cd21ae84eac4c1f362a1de76034413"
+  },
+  "settings.general.islandAutoHideStyle.hint": {
+    "message": "Faites-la flotter au-dessus de la page, ou décalez la page vers le bas pour lui faire de la place.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:36b18408772f128bc2651d59ec2c1a6dafd34bb23171a665228f0ef65a5869b2"
+  },
+  "settings.general.islandAutoHideStyle.float": {
+    "message": "Flotter au-dessus de la page",
+    "note": "Settings → General: choice in a dropdown.",
+    "source": "sha256:66d865128d9ad9fdc688330e15ffdacd9ae72ee9916e4922044a4d70f9556b57"
+  },
+  "settings.general.islandAutoHideStyle.push": {
+    "message": "Décaler la page vers le bas",
+    "note": "Settings → General: choice in a dropdown.",
+    "source": "sha256:dab2d198c40d0170ce7887c970001d930b9d6b03675b28094365f652617405b9"
   },
   "settings.general.darkWebsites.label": {
     "message": "Sites sombres",
@@ -3318,6 +3494,34 @@
   "settings.general.tabSleep.6h": {
     "message": "Après 6 heures",
     "source": "sha256:e369a2475ed758f1ff998ad2cdb0344051f06ffe8e4b10fd39688cfc3b564edb"
+  },
+  "settings.general.tabArchive.label": {
+    "message": "Archiver les onglets inactifs",
+    "source": "sha256:68f39eb3637bf5102e4438ab9af386d4a90424a3b6cfa7b798f3f672392a685e"
+  },
+  "settings.general.tabArchive.hint": {
+    "message": "Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés.",
+    "source": "sha256:9497d3dfbeea792d76976580371095c892c9cb2d6fee30e8fdab8fea96ec346b"
+  },
+  "settings.general.tabArchive.off": {
+    "message": "Désactivé",
+    "source": "sha256:09eced221f16e46f22bb24a4b4f006b8a91b15ed815c2d643b5ff1c9a116c88b"
+  },
+  "settings.general.tabArchive.12h": {
+    "message": "Après 12 heures",
+    "source": "sha256:bb0ecf3b5ecaeba27a273184cc147b805e18a73bf57584ab2b16279b6a923e20"
+  },
+  "settings.general.tabArchive.1d": {
+    "message": "Après 1 jour",
+    "source": "sha256:1b92cb8dba7691b1c3a7da50305baab6485df84c4eae682b30733c9938600dca"
+  },
+  "settings.general.tabArchive.7d": {
+    "message": "Après 7 jours",
+    "source": "sha256:6d863858a13c83ea58127e81dec2c2e1003d9b99cefc12e7cb36fb695c20e32a"
+  },
+  "settings.general.tabArchive.30d": {
+    "message": "Après 30 jours",
+    "source": "sha256:3a7f28647622838782d78a1ff12c6a10372fc0cde9b4e2a40eda5624b8b12e76"
   },
   "settings.general.mouseGesturesEnabled.label": {
     "message": "Gestes de la souris",
@@ -4923,9 +5127,77 @@
     "message": "Disposition",
     "source": "sha256:4ef13ebe9f4450cd3bb26a58b7f2d4509f288dd9603bb6c469bb25da5eb2cd39"
   },
+  "newtab.customize.clockHeading": {
+    "message": "Horloge",
+    "source": "sha256:ea624a956604281ebced03c6cc13fb922cb4acb73032f59e4c788d88d961e96c"
+  },
   "newtab.customize.wallpaperHeading": {
     "message": "Fond d’écran",
     "source": "sha256:7e8018bf89f41cc8f05f3e432b17a54c26d74eb6b167b26826b379bdc951fd3d"
+  },
+  "newtab.clock.open": {
+    "message": "Police et couleur de l’horloge…",
+    "source": "sha256:099a95a12c72f3b97f074c0c2cc1ecee83bf4ae979b654316ffaf46c694701b5"
+  },
+  "newtab.clock.title": {
+    "message": "Police et couleur",
+    "source": "sha256:eaa8ddde892810344eecb2cb43ddf137460efbdfeedccdb5d586004824493bd5"
+  },
+  "newtab.clock.back": {
+    "message": "Revenir à Personnaliser",
+    "source": "sha256:6e9e39bdc9ae0b1acc9c96e6495536dda11a8fdfe2b2f8f8a17e10c5833ab636"
+  },
+  "newtab.clock.font": {
+    "message": "Police",
+    "source": "sha256:e33d20f9eed0e3c124073675ac01a4f14fb3bdb6b1b846ffec05fc091d5e1e7e"
+  },
+  "newtab.clock.font.instrument": {
+    "message": "Instrument Sans",
+    "source": "sha256:e2d184032945066ed9f875b834f67d04dcab10f396877c24c4326c59ef80469c"
+  },
+  "newtab.clock.font.condensed": {
+    "message": "Instrument Sans condensée",
+    "source": "sha256:bee4ba7921090acb2cbb158bb2c0cba980d7b13a41e74bf27feeab61a3ee3c76"
+  },
+  "newtab.clock.font.inter": {
+    "message": "Inter",
+    "source": "sha256:d581678f176219a554459ca4eeab2e19902b2e3e994e4ef1f2b9eb84bb3d9290"
+  },
+  "newtab.clock.font.flex": {
+    "message": "Roboto Flex",
+    "source": "sha256:511be9c6e1a7882f5417d071663e058632d4bba5f7125361ee4b2309df36358c"
+  },
+  "newtab.clock.weight": {
+    "message": "Graisse",
+    "source": "sha256:2e338358a18921b3fb57ef986c17b87064b60d4c6311af33247ed2d70712b59a"
+  },
+  "newtab.clock.height": {
+    "message": "Hauteur",
+    "source": "sha256:029e171b6858cddf4a22745a84b32120d27a7aef8765dbc56c76a2326cc8d366"
+  },
+  "newtab.clock.color": {
+    "message": "Couleur",
+    "source": "sha256:ca00ae4913e0162319257952f2b0b9ee148c7295384b0eff0cea88d58f455f7a"
+  },
+  "newtab.clock.auto": {
+    "message": "Automatique",
+    "source": "sha256:51cfef51c13b9db8c392011854ee4f783550f9c380893649914b84ee49588752"
+  },
+  "newtab.clock.tone": {
+    "message": "Teinte",
+    "source": "sha256:c3e75899980b0f2932a04cb0b72a56cd00557e750c137747dec9b2a395912c9d"
+  },
+  "newtab.clock.style": {
+    "message": "Style",
+    "source": "sha256:35da8a3ba5595a5d9ec4a085493d86354721a0199acdbe781966dfaa864c48d8"
+  },
+  "newtab.clock.glass": {
+    "message": "Verre",
+    "source": "sha256:1a2e9c95dc1bde38f563d97d2f69c1ff117805c0a6e930986eba65f44fa4b308"
+  },
+  "newtab.clock.solid": {
+    "message": "Uni",
+    "source": "sha256:dd41ab13c9fac80c6a3d3de1d56656050bc4fcfd42b1d8a4eff7cecdc9604c37"
   },
   "newtab.wallpaper.sunrise": {
     "message": "Sunrise",
@@ -5071,6 +5343,34 @@
     "message": "Ajoutez une page aux favoris avec ♥ pour l’épingler ici",
     "source": "sha256:a8c5bc39f2ff768a828feb602b5653e437c279ff00061ada1b503b684a4f4e32"
   },
+  "newtab.pin.title": {
+    "message": "Épingler {title}",
+    "source": "sha256:172aac0fc7898e41b80b4794b6dfee9691a9ff87dad169256725f601a7ba75a6"
+  },
+  "newtab.pin.label": {
+    "message": "Épingler {title} à la page d’accueil",
+    "source": "sha256:f24d8ef2b15a52f38caa4fc5f1925bd443cebd7f7f5c928af6decef0a20caab9"
+  },
+  "newtab.unpin.title": {
+    "message": "Détacher {title}",
+    "source": "sha256:7c6b552989a45ea0befdae5a9c9f284d97befab75aa524780beb4f7ddee7b66f"
+  },
+  "newtab.unpin.label": {
+    "message": "Détacher {title} de la page d’accueil",
+    "source": "sha256:53ab7a89d4afd3637497a6899dd57c5d0090f4291c01d5404e4412df40bfb886"
+  },
+  "newtab.pin.done": {
+    "message": "{title} épinglé à la page d’accueil.",
+    "source": "sha256:5066b04d96d253df73ed7e73d66f8c3c17ee46697b92d19b5293a0b90187f0df"
+  },
+  "newtab.unpin.done": {
+    "message": "{title} détaché de la page d’accueil.",
+    "source": "sha256:7e8315008580dd6f3a94962c23b06400037a1e482a723b70dc3faac173ae2717"
+  },
+  "newtab.pin.full": {
+    "message": "La page d’accueil accepte {count} épingles. Détachez-en une d’abord.",
+    "source": "sha256:6fbb93e65570389bfea1c052fe00d3e09a248ed7f91bdcb42ab7dae32cba352d"
+  },
   "onboarding.skip": {
     "message": "tout passer",
     "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"
@@ -5210,6 +5510,14 @@
   "onboarding.island.shortcut": {
     "message": "Contrôle L",
     "source": "sha256:ffbdc2079d2653a6c938eddff05942027e2793a9b7a1c24e29201600a4e60324"
+  },
+  "onboarding.island.archive": {
+    "message": "Archiver les onglets après 7 jours<0>Les onglets isolés que vous n’avez pas ouverts depuis 7 jours sont fermés et gardés 30 jours dans vos Archives. Les onglets épinglés et les groupes restent.</0>",
+    "source": "sha256:bc560c72cdebab99d1b921aee522ce88d9629ba2d36a0ded17470bbf657a294a"
+  },
+  "onboarding.island.archiveLabel": {
+    "message": "Archiver les onglets après 7 jours",
+    "source": "sha256:d1abb4147431e6240fdcf51f2a4ce3f5635baad08235ebf794a194479b3bbccf"
   },
   "onboarding.blocking.title": {
     "message": "Bloquez les publicités et traceurs",
@@ -5475,6 +5783,30 @@
     "message": "Déplacer vers un dossier",
     "source": "sha256:42d2f770438dc24948f2ba42f8b57b819bb1fab0a2c7fe05a03b9a5948d3c087"
   },
+  "favorites.row.pin": {
+    "message": "épingler",
+    "source": "sha256:7b4e653b134e7c5f274fcd604f1c8ceaf56b643e1ae1cabb99f0e2f41376978f"
+  },
+  "favorites.row.unpin": {
+    "message": "détacher",
+    "source": "sha256:b0a40a562e88b30b6b1330212cca9acd9ffd150cc79b790ae92e3c8f1866bc87"
+  },
+  "favorites.row.pinLabel": {
+    "message": "Épingler {title} à la page d’accueil",
+    "source": "sha256:26cd7867972e42ae87b43c08eca5503569bbe82fa73899f2f9ff0923241f8959"
+  },
+  "favorites.row.unpinLabel": {
+    "message": "Détacher {title} de la page d’accueil",
+    "source": "sha256:7a91d17f6aec839d1bdfcc929e9bb337ad5741d7e4472f04cac8a97ffa6c0734"
+  },
+  "favorites.row.pinFull": {
+    "message": "La page d’accueil accepte {count} épingles. Détachez-en une pour épingler celle-ci.",
+    "source": "sha256:7c3b02892c5ff103bf5f6e579401f9d335057cc555ef3f3493557b22ae9cb064"
+  },
+  "favorites.row.pinned": {
+    "message": "Épinglé à la page d’accueil",
+    "source": "sha256:280c4608a07b38d18f7d59e171756120b6ec5e8c68acdc291c2a913360ac530a"
+  },
   "favorites.row.remove": {
     "message": "retirer",
     "source": "sha256:a0f45d951528f5ddbd68c605c99c1619cce2d2b2ea854726091a128cafafa2b1"
@@ -5518,6 +5850,38 @@
   "history.empty": {
     "message": "Aucun historique pour l’instant.",
     "source": "sha256:883512e2bcfd0228ba7af9fa941ac79ac6c6cc44c7d867dc6d1795d2703de58e"
+  },
+  "history.view.visits": {
+    "message": "Visites",
+    "source": "sha256:acbe9c8cbc2a0916ac6f13d68a86d92c1b434d458786b75fbdae9aa5c9794716"
+  },
+  "history.view.archived": {
+    "message": "Onglets archivés",
+    "source": "sha256:a7798196c917471c562cbccee33965d4e47929c09c97325ab82048b429ba42ca"
+  },
+  "history.archived.search": {
+    "message": "Rechercher dans les onglets archivés",
+    "source": "sha256:f5e1d0f24bdf8afcb0a6a1ae78bc8be5933d9d8bed2007849b2a81c0b686038f"
+  },
+  "history.archived.clear": {
+    "message": "Vider les Archives",
+    "source": "sha256:7b07cc903b31dc8d6b3e5aab852f7c93caf2547df1407df700d73312ce150187"
+  },
+  "history.archived.restore": {
+    "message": "Restaurer",
+    "source": "sha256:1037f92386beebc4db4637f1dfc6a7e63cb16c8a14f0faf1fd1f12bce2b55466"
+  },
+  "history.archived.restoreLabel": {
+    "message": "Restaurer {title} dans un onglet",
+    "source": "sha256:7b684210b40a6cc7aeb4e01c5a3cef44868e74c1208bec0be5b7cdfcaa6e6022"
+  },
+  "history.archived.forgetLabel": {
+    "message": "Retirer {title} des Archives",
+    "source": "sha256:a5def2131b7b98b566ec7ce179a759f7eb5e300de46c3f305e923e44ba10e9ad"
+  },
+  "history.archived.empty": {
+    "message": "Aucun onglet archivé. Activez Archiver les onglets inactifs dans Réglages → Général.",
+    "source": "sha256:338ab29048c77bc2e57da837b8c69651acfd1900ea71f8973efca93866f673cf"
   },
   "history.day.today": {
     "message": "Aujourd’hui",

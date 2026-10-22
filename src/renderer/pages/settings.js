@@ -465,6 +465,36 @@
     document.getElementById('islandHoverOpenSetting')?.remove();
   }
 
+  // How a revealed Island makes room; only meaningful while auto-hide is on.
+  const islandAutoHideStyleSetting = document.getElementById('islandAutoHideStyleSetting');
+  const showIslandAutoHideStyle = (on) => {
+    if (islandAutoHideStyleSetting) islandAutoHideStyleSetting.hidden = !on;
+  };
+  if (supports('islandAutoHideStyle')) {
+    const islandAutoHideStyle = document.getElementById('islandAutoHideStyle');
+    islandAutoHideStyle.value = settings.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    islandAutoHideStyle.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHideStyle: islandAutoHideStyle.value });
+      islandAutoHideStyle.value = saved.islandAutoHideStyle === 'push' ? 'push' : 'float';
+    });
+  } else {
+    islandAutoHideStyleSetting?.remove();
+  }
+
+  if (supports('islandAutoHide')) {
+    const islandAutoHide = document.getElementById('islandAutoHide');
+    islandAutoHide.checked = settings.islandAutoHide === true;
+    showIslandAutoHideStyle(islandAutoHide.checked);
+    islandAutoHide.addEventListener('change', async () => {
+      const saved = await window.bowserPages.settings.set({ islandAutoHide: islandAutoHide.checked });
+      islandAutoHide.checked = saved.islandAutoHide === true;
+      showIslandAutoHideStyle(islandAutoHide.checked);
+    });
+  } else {
+    document.getElementById('islandAutoHideSetting')?.remove();
+    islandAutoHideStyleSetting?.remove();
+  }
+
   // --- Quiet Tabs idle delay (device-local memory policy) ---
   // Device-local: the Island strip's site-color tint. Off leaves it on the
   // theme background (near-black in Dark).
@@ -567,6 +597,15 @@
       window.bowserPages.settings.set({ tabSleep: tabSleep.value }));
   } else {
     document.getElementById('tabSleepSetting')?.remove();
+  }
+
+  if (supports('tabArchive')) {
+    const tabArchive = document.getElementById('tabArchive');
+    tabArchive.value = settings.tabArchive ?? 'off';
+    tabArchive.addEventListener('change', () =>
+      window.bowserPages.settings.set({ tabArchive: tabArchive.value }));
+  } else {
+    document.getElementById('tabArchiveSetting')?.remove();
   }
 
   // Device-local right-button gestures. Drawing uses left pointer input in
@@ -1393,9 +1432,9 @@
     }
   }
 
-  // A Privacy card whose every control was removed above (unsupported on this
-  // platform) would otherwise leave a lone title behind.
-  for (const card of document.querySelectorAll('#group-privacy .settings-card')) {
+  // A General or Privacy card whose every control was removed above
+  // (unsupported on this platform) would otherwise leave a lone title behind.
+  for (const card of document.querySelectorAll('#group-general .settings-card, #group-privacy .settings-card')) {
     if (!card.querySelector(':scope > :not(.card-title)')) card.remove();
   }
 

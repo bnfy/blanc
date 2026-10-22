@@ -97,6 +97,8 @@ if (main && list && search && countLine && showing && more && browse && searchTh
   function render() {
     const listing = Boolean(query) || browsing;
     main.dataset.view = listing ? 'list' : 'cards';
+    // The query this render applied (the search box waits 120 ms first).
+    main.dataset.query = query;
     const matched = filterBangs(rows, query);
     const shown = matched.slice(0, limit).map((row) => byCode.get(row.code)).filter(Boolean);
     const next = new Set(shown);

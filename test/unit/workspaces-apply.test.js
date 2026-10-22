@@ -84,6 +84,8 @@ function applyHarness(runtime) {
     },
     pruneEmptyGroups: () => calls.push(['pruneEmptyGroups']),
     applySavedLayout: (_runtime, workspace, ids) => calls.push(['applySavedLayout', workspace, [...ids]]),
+    // Split View (F53): the Space's splits come back after its layout.
+    applyRestoredSplits: (_runtime, saved, ids) => calls.push(['applyRestoredSplits', saved, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
     filterRestoredSession,

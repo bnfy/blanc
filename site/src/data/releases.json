@@ -1,5 +1,575 @@
 [
   {
+    "tag": "v1.41.0",
+    "version": "1.41.0",
+    "name": "1.41.0",
+    "publishedAt": "2026-10-21T23:21:58.000Z",
+    "humanDate": "October 21, 2026",
+    "machineDate": "2026-10-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.41.0",
+    "anchor": "v1-41-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Clock Font & color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose how the Billboard Start Page's clock looks, like the iOS Lock Screen: open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and pick "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Clock"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or right-click the clock. Pick a font (Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex), its weight and its height, then a color: "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Automatic"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or one of eight colors with a tone. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Glass"
+                  },
+                  {
+                    "type": "text",
+                    "value": " bends the page behind the numerals like glass; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " draws them flat. Every clock now has a soft shadow so it stays readable on any background."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Start Page pins."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pin up to eight pages to the Start Page, and they come first on every layout, newest first. Pin a Billboard tile, a favorite on Ledger, Shelf or Tally, a favorite on the Favorites page, or the current page from a tab's right-click menu with "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pin to Start Page"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Pins sync with Profile Sync."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After a site asks for a permission, the keyboard goes back to that page instead of to a tab you can't see."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On the Billboard Start Page in dark mode, a tile's × is visible again."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.40.0",
+    "version": "1.40.0",
+    "name": "1.40.0",
+    "publishedAt": "2026-10-21T03:27:16.000Z",
+    "humanDate": "October 20, 2026",
+    "machineDate": "2026-10-20",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.40.0",
+    "anchor": "v1-40-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Split View."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Show two tabs side by side in one window. Right-click a tab and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Split with"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a Glance card. Drag the divider between the panes to resize them. The pane you click is the current tab, so the Island, Back and Reload follow it, and each pane's corner shows its site. A split stays together in the ⌘L panel and comes back after a relaunch and in Blanc Spaces. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Remove from Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in a tab's menu (or the × in its corner) takes one tab out; "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Close Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " closes both, and Reopen Closed Tab brings the split back."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance floats over the page."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The tab you pick now opens as a large card over the current page instead of beside it, and the page behind stays usable. Drag the card's header to move it, drag an edge to resize it, and double-click the header to put it back; Blanc remembers where you left it. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open as tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": " makes the Glance page the current tab, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " turns the two into a Split View. Switching tabs closes the Glance, and so does Escape on the card's header; Escape inside the page stays with the page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "With Auto-hide on, the Island floats over the page when it comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " instead of pushing the page down. To keep the old behavior, choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Push the page down"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "When the Island comes back"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General. While it floats, the Island comes back only from the top edge of the window (or ⌘L, Ctrl+L on Windows and Linux) and hides as soon as the pointer moves into the page, and the window buttons hide and come back with it."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After you close a window's last tab, the address field is ready to type into, as it is after ⌘T."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Dark and private tabs load on a dark background instead of flashing white."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.39.0",
+    "version": "1.39.0",
+    "name": "1.39.0",
+    "publishedAt": "2026-10-20T01:50:41.000Z",
+    "humanDate": "October 19, 2026",
+    "machineDate": "2026-10-19",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.39.0",
+    "anchor": "v1-39-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Auto-hide the Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, from the View menu, or with ⌘⌥B on macOS (Ctrl+Alt+B on Windows and Linux), and the page fills the whole window. Point at the top edge of the window, rest the pointer near the top, or press ⌘L (Ctrl+L) to bring the Island back; it slides away again once you move off it. It's off by default."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tab Archive."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archive inactive tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General, and loose tabs you haven't looked at for 12 hours, a day, 7 days or 30 days close themselves into an Archive. Pinned, grouped and private tabs are never archived, and neither is a tab that is playing media or holding something you typed. Find archived tabs in the ⌘L panel, or in History → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Archived tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/archive"
+                  },
+                  {
+                    "type": "text",
+                    "value": "), and restore them with one click. The Archive stays on this device and keeps each tab for 30 days. It's off by default; a new profile offers it during setup."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Gold."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new macOS app icon: the Sunrise in glass over gold, soft in Light and polished in Dark. Choose it in Settings → General → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "What's New."
+                  },
+                  {
+                    "type": "text",
+                    "value": " After an update that adds features, Blanc opens a page on blanc.day showing the highlights, once."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → General is grouped into cards:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " Island, Appearance, Start Page, Search and Browsing. The theme setting is now labeled "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Theme"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A panel opened by hover closes when you move away"
+                  },
+                  {
+                    "type": "text",
+                    "value": " from it, unless you used it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "On macOS, the window buttons sit where Safari and Finder put them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.38.0",
+    "version": "1.38.0",
+    "name": "1.38.0",
+    "publishedAt": "2026-10-18T20:24:38.000Z",
+    "humanDate": "October 18, 2026",
+    "machineDate": "2026-10-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.38.0",
+    "anchor": "v1-38-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your own Start Page image."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on the Start Page and choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Your image"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to show a JPEG or PNG of your own, up to 25 MB. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Wash"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (Auto, Light, Dark or Spotlight) and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Fade"
+                  },
+                  {
+                    "type": "text",
+                    "value": " keep the page readable over it. Blanc keeps a resized copy on this device only, with location, camera and time details removed. It isn't synced, and private tabs never show it. Settings → General → Start Page image offers the same choice."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A Start Page color."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Color"
+                  },
+                  {
+                    "type": "text",
+                    "value": " under Wallpaper to paint the Start Page in one of the eight colors Spaces use, as a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Soft"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Solid"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Gradient"
+                  },
+                  {
+                    "type": "text",
+                    "value": " fill. Turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Match each space's color"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", and a window that belongs to a space shows that space's color instead. The color settings sync with Profile Sync; an image chosen on this device still takes priority here. Private tabs never show the color."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.37.0",
     "version": "1.37.0",
     "name": "1.37.0",

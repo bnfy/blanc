@@ -5,6 +5,7 @@
 // fixture-testable without loading main.js.
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
+const { savedSplitColumns } = require('./split-model');
 
 const SESSION_WORKSPACE_VERSION = 2;
 const PRIMARY_WINDOW_ID = 'primary';
@@ -75,6 +76,8 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     // The band's place among groups and ungrouped tabs; closedSlot above
     // stays the rollback copy, counting groups only.
     ...(Number.isInteger(source.closedIndex) && source.closedIndex > 0 ? { closedIndex: source.closedIndex } : {}),
+    // Split View (F53): splits plus a splitIds column parallel to urls.
+    ...savedSplitColumns(source, urls.length),
   };
 }
 

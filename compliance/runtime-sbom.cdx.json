@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.37.0",
+      "bom-ref": "application:runtime:blanc@1.41.0",
       "name": "Blanc",
-      "version": "1.37.0",
+      "version": "1.41.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -26,7 +26,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "194ddc2d204c13b9ccbd853240fa75e5f2014b88d7fdd864a4b9471cb74a67d4"
+          "content": "b2873ed6ff04941eadfa5617ec309d7579d5889a8a3de681634e9deaebb07f9c"
         }
       ],
       "licenses": [
@@ -40,7 +40,7 @@
           "value": "src/main/assets/adblock-engine-seed.bin"
         }
       ],
-      "version": "194ddc2d204c13b9"
+      "version": "b2873ed6ff04941e"
     },
     {
       "type": "file",
@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+          "content": "5ce0ce483f0e5514308ccb0240960a9dd7bfeab417debeef96960dce2c95f690"
         }
       ],
       "licenses": [
@@ -221,7 +221,7 @@
           "value": "adblock/sources/ghostery-resources.json"
         }
       ],
-      "version": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+      "version": "c18718adc33e82a086d996d0b0f75deb3d01745a",
       "externalReferences": [
         {
           "type": "website",
@@ -372,6 +372,42 @@
         {
           "type": "website",
           "url": "https://github.com/kagisearch/bangs"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:roboto-flex-clock-font",
+      "name": "Roboto Flex clock subset (variable webfont)",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f327fc1ef274fbe54d9ba50784ad1968e90597de4633820d2f1508731f1b90e8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/roboto-flex-clock.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/roboto-flex-OFL.txt"
+        }
+      ],
+      "version": "5.3.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/googlefonts/roboto-flex"
         }
       ]
     },
@@ -551,14 +587,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-content@2.20.1",
       "name": "@ghostery/adblocker-content",
-      "version": "2.18.2",
+      "version": "2.20.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4ce7bf6f828e04511cf4e8cb1bec2f81a9867124c83d20c100be5849af25ce306ca1297c2039df3a37890e57652da72c0bf24450c2e46480c33649c4a25255aa"
+          "content": "d6f043cc4ce88b8644f718cbdda9009f43e2200d8a21e4352b4242a512233cf5b2f06a2a375b1a57631dda345264fb97bfd88434c2913e7d537ad104d0c6d45f"
         }
       ],
       "licenses": [
@@ -568,7 +604,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "purl": "pkg:npm/%40ghostery/adblocker-content@2.20.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -590,20 +626,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.18.2.tgz"
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.20.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.20.1",
       "name": "@ghostery/adblocker-electron-preload",
-      "version": "2.18.2",
+      "version": "2.20.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "97de3584d0015ec50cc75a2a5521e344c4175850a6942fc317cac7041387f80d2ec4b8cbeabeb6165e8ab0bec5e21c658377725ab0cf10870acdac56a9175f3a"
+          "content": "8b369ac1510489f9b5f9d2f5c9470ea0e85e860e85064096264a13b287ed22afbe662eb5c0c40861c80a6a59c1ed242b9d57d205f9687bd53d8b26547ad16152"
         }
       ],
       "licenses": [
@@ -613,7 +649,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "purl": "pkg:npm/%40ghostery/adblocker-electron-preload@2.20.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -635,20 +671,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.18.2.tgz"
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.20.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
       "name": "@ghostery/adblocker-electron",
-      "version": "2.18.2",
+      "version": "2.20.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9693e1ec49852c3216f8ec9429a602514507c157d55e9c25c1fc73a3a22573ea07e8dfab0935624f4f28957e235ec7f17b367acdfc821b948bf622c1535c2b9e"
+          "content": "e6abf4317b72db2d05825c8b57863dd515e1399b1d953da70422ab9b8bf97891bad08067808bf6c5448ecf9a03f6bef8ce901ece5403e08def3273b67fcc3468"
         }
       ],
       "licenses": [
@@ -658,7 +694,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "purl": "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -680,20 +716,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.18.2.tgz"
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.20.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.20.1",
       "name": "@ghostery/adblocker-extended-selectors",
-      "version": "2.18.2",
+      "version": "2.20.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "76828d4a1064dfe73340bd3c524af2b079023de1bf90d3e55efcf70c7ed25f10fd63bf28bd69040218de47eba9a1a9f77e898926e2b7743f88ae5a1f9e372463"
+          "content": "3c29c42dd228ca5490f21b115d05248929dc87a5b01d3358c6ef2202d8666ce0fee385a85e79a347e65f81dbaddcb877c54666befd6ea23b25348858ac95fdac"
         }
       ],
       "licenses": [
@@ -703,7 +739,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "purl": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.20.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -725,20 +761,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.18.2.tgz"
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.20.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker@2.20.1",
       "name": "@ghostery/adblocker",
-      "version": "2.18.2",
+      "version": "2.20.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c7acc491fd5d1d2374b781312e6b8dea72201f4a008ba95aa0a7b9c86b22201e23904beeb5e6b53c98318115088d67cd6c346691fe068d4b6ea9015982f406d7"
+          "content": "d60842acc9d645ffc2590e4f330ed9c4be16d14dfdd209a4a3c90f5e1c26ef38bee060ce478f4994756f98291ef74136842a4122835d4b98ed36520a6a5a765b"
         }
       ],
       "licenses": [
@@ -748,7 +784,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "purl": "pkg:npm/%40ghostery/adblocker@2.20.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -770,7 +806,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.18.2.tgz"
+          "url": "https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.20.1.tgz"
         }
       ]
     },
@@ -1939,15 +1975,16 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.37.0",
+      "ref": "application:runtime:blanc@1.41.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:caveat-font",
         "asset:instrument-sans-font",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
+        "asset:roboto-flex-clock-font",
         "pkg:npm/%401password/sdk@0.5.0",
-        "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+        "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@44.8.0"
       ]
@@ -1958,7 +1995,7 @@
         "asset:easylist-data",
         "asset:easyprivacy-data",
         "asset:ghostery-resources",
-        "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
+        "pkg:npm/%40ghostery/adblocker-electron@2.20.1"
       ]
     },
     {
@@ -1998,6 +2035,10 @@
       "dependsOn": []
     },
     {
+      "ref": "asset:roboto-flex-clock-font",
+      "dependsOn": []
+    },
+    {
       "ref": "asset:ublock-origin",
       "dependsOn": []
     },
@@ -2016,34 +2057,34 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "ref": "pkg:npm/%40ghostery/adblocker-content@2.20.1",
       "dependsOn": [
-        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2"
+        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.20.1"
       ]
     },
     {
-      "ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.20.1",
       "dependsOn": [
-        "pkg:npm/%40ghostery/adblocker-content@2.18.2"
+        "pkg:npm/%40ghostery/adblocker-content@2.20.1"
       ]
     },
     {
-      "ref": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "ref": "pkg:npm/%40ghostery/adblocker-electron@2.20.1",
       "dependsOn": [
-        "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
-        "pkg:npm/%40ghostery/adblocker@2.18.2",
+        "pkg:npm/%40ghostery/adblocker-electron-preload@2.20.1",
+        "pkg:npm/%40ghostery/adblocker@2.20.1",
         "pkg:npm/tldts-experimental@7.4.10"
       ]
     },
     {
-      "ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.20.1",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "ref": "pkg:npm/%40ghostery/adblocker@2.20.1",
       "dependsOn": [
-        "pkg:npm/%40ghostery/adblocker-content@2.18.2",
-        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+        "pkg:npm/%40ghostery/adblocker-content@2.20.1",
+        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.20.1",
         "pkg:npm/%40ghostery/url-parser@1.3.1",
         "pkg:npm/%40remusao/guess-url-type@2.1.0",
         "pkg:npm/%40remusao/small@2.1.0",

@@ -73,6 +73,9 @@
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  /* The floating Island (auto-hide, float style) sits over any page, so it
+     needs a real shadow; small enough to fit its tight view. */
+  --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
   --island-resting-height: 44px;
   --island-resting-radius: 17px;
   --island-panel-radius: 18px;
@@ -102,6 +105,7 @@
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
     --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+    --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -131,6 +135,7 @@
   /* The Island's top catch-light, toned down to a hairline on the deeper
      private ink, where the light themes' bright edge reads as a glare. */
   --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --shadow-island-float: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(14,14,14,.035), 0 6px 20px -6px rgba(14,14,14,.28);
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -230,6 +235,28 @@ button svg {
 /* While the command bar overlay covers the strip, window-drag must not
    steal its clicks (drag regions hit-test above child views). */
 #strip.drag-suspended { -webkit-app-region: no-drag; }
+/* Auto-hide: the page covers the strip, so the page's top band must not
+   drag the window. */
+#strip.strip-hidden { -webkit-app-region: no-drag; }
+/* While the page covers the strip, a thin band along the page pane's top edge
+   is the window's only drag handle (a click there never reaches the page). */
+#dragBand {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  -webkit-app-region: drag;
+}
+#strip.strip-hidden #dragBand { display: block; }
+/* A split's panes are inset cards, so the covered strip still shows around
+   them: drop its tint and its own pill and controls (the floating views draw
+   the revealed ones). */
+#strip.strip-hidden.split-open { background: transparent; }
+#strip.strip-hidden.split-open :is(#islandPill, #windowControls, #mainMenuButton) { visibility: hidden; }
+#strip.drag-suspended #dragBand { -webkit-app-region: no-drag; }
+:root[data-tab-layout="vertical"] #dragBand { left: var(--vertical-tabs-w); }
 
 #strip {
   -webkit-app-region: drag;
@@ -244,38 +271,17 @@ button svg {
   transition: background-color 80ms linear;
 }
 
+/* The width the strip lays out in: the window's, except in a floating
+   Island view (float surface below), which copies a strip of the window's
+   width. Declared off :root {} so tokens:check stays desktop-only. */
+html { --stage-w: 100vw; }
+
 /* Width of the custom Windows/Linux window-control cluster (3 × 34px, two
    2px gaps, 8px inset), reserved by the side-by-side Glance header and the
    stacked pill. macOS draws native traffic lights at the left and reserves
    nothing. Declared off :root {} so tokens:check stays desktop-only. */
 :root[data-platform="darwin"] { --window-controls-w: 0px; }
 :root:not([data-platform="darwin"]) { --window-controls-w: 114px; }
-
-/* Glance keeps the existing Island centered over the dominant page pane.
-   Main ships exact native-view geometry; padding narrows the strip's flex
-   centerline without teaching CSS about vertical-rail arithmetic. */
-#strip.glance-open {
-  padding-right: calc(100vw - var(--glance-primary-right));
-}
-#strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
-}
-/* With Glance open the Island gives up its tab dots (and +N) entirely, to
-   keep room for the address and its controls in a narrower main pane; tabs
-   stay reachable from ⌘L, the rail and ⌘1–9. */
-#strip.glance-open #pillDots { display: none; }
-/* Stacked: centred over the full page, kept clear of the window controls on
-   both sides so the centre line does not move. */
-#strip.glance-open[data-glance-direction="vertical"] #islandPill {
-  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
-}
-/* macOS draws its traffic lights at the window's left edge, inside the main
-   pane's strip in both Glance layouts. Keep the same clearance the Island has
-   without Glance (#islandPill: 170px), split across both sides so the pill
-   stays centred. With vertical tabs the lights sit in the rail instead. */
-:root[data-platform="darwin"]:not([data-tab-layout="vertical"]) #strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 170px) / var(--pill-zoom));
-}
 
 .glance-header {
   position: fixed;
@@ -293,22 +299,9 @@ button svg {
   container-type: inline-size;
 }
 
-/* Motion: the Spaces menu's vocabulary (opacity 140 ms, transform 340 ms on
-   the Spaces curve), through transition + @starting-style + display
-   allow-discrete. The header and divider slide 6 px in from the right side
-   by side and from below when stacked; the two page views take their
-   bounds at once. Reduce Motion keeps the fade only (the block near the
-   end of this file). */
-.glance-header,
-.glance-divider {
-  transition: opacity 140ms ease, transform 340ms cubic-bezier(.2, .9, .25, 1), display 340ms allow-discrete;
-}
-.glance-header[hidden] { display: none; opacity: 0; transform: translateX(6px); }
-.glance-header[data-direction="vertical"][hidden] { transform: translateY(6px); }
-@starting-style {
-  .glance-header:not([hidden]) { opacity: 0; transform: translateX(6px); }
-  .glance-header[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
-}
+/* The header moves with its card: the floating Glance card fades in as a
+   whole (the glance surface block near the end of this file). */
+.glance-header[hidden] { display: none; }
 /* The reference holds keyboard focus, so ⌘R, ⌘W, ⌘F … act on it. Quieter
    than an outline: the eyebrow and the bottom hairline brighten. (The title
    is already --text.) */
@@ -373,9 +366,34 @@ button svg {
   border-radius: var(--radius);
   color: var(--text-dim);
 }
-.glance-action { padding: 0 8px; font-size: 11.5px; }
-.glance-promote svg { display: none; }
+.glance-action { gap: 5px; padding: 0 8px; font-size: 11.5px; }
+.glance-action svg,
+.glance-move svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .glance-close { width: 30px; padding: 0; }
+/* The keyboard's Move or resize control; the pointer drags the whole header. */
+.glance-move {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  cursor: move;
+}
+.glance-move:hover { background: var(--accent-dim); color: var(--text); }
+.glance-move:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  color: var(--text);
+}
+/* A narrow card gives up room in this order (renderer.js fitGlanceHeader):
+   the three actions' labels (each keeps its name and tooltip), then the
+   GLANCE label, then the host (the favicon stays). Back, Reload, × and the
+   private chip never hide. */
+.glance-header.compact-actions .glance-action-label { display: none; }
+.glance-header.compact-actions .glance-action { width: 30px; padding: 0; }
+.glance-header.no-eyebrow #glanceEyebrow { display: none; }
+.glance-header.no-host #glanceTitle { display: none; }
 .glance-nav {
   flex: 0 0 auto;
   display: flex;
@@ -414,88 +432,85 @@ button svg {
   border-top: 7px solid var(--surface-raised);
   filter: drop-shadow(0 1px 0 var(--border));
 }
-.glance-header[data-direction="horizontal"] {
-  padding-right: calc(12px + var(--window-controls-w));
-}
-.glance-header[data-direction="vertical"] {
-  border-left: 0;
-  padding-left: 12px;
-}
-.glance-header[data-direction="vertical"] .glance-eyebrow { display: none; }
-
-/* Measuring the Glance header (renderer.js measureGlanceFloors): the same
-   compaction as the two container queries below, at the width its contents
-   need. Containment is lifted so max-content sees the children. */
-.glance-header.measuring { container-type: normal; width: max-content !important; }
-.glance-header.measuring .glance-eyebrow { display: none; }
-.glance-header.measuring .glance-copy { gap: 8px; flex: 0 0 auto; }
-.glance-header.measuring #glanceTitle { display: none; }
-
-@container (max-width: 360px) {
-  .glance-eyebrow { display: none; }
-  /* Back and Reload still sit beside the title. */
-  .glance-copy { gap: 8px; }
-}
-/* Make main as its swap icon alone, in one place: while measuring the
-   header's floor, and when renderer.js fitGlanceHeader decides the title
-   needs the room (cut below about ten characters, or hidden by the tier
-   below). */
-.glance-header:is(.measuring, .promote-icon) .glance-promote { width: 30px; padding: 0; }
-.glance-header:is(.measuring, .promote-icon) .glance-promote svg { display: block; }
-.glance-header:is(.measuring, .promote-icon) .glance-promote span { display: none; }
-@container (max-width: 300px) {
-  #glanceTitle { display: none; }
-  .glance-copy { flex: 0 0 auto; }
-}
 
 /* The child page views deliberately leave this narrow gap uncovered, so the
    trusted BrowserWindow renderer below them owns pointer + keyboard resizing
    without another privileged WebContentsView. */
-.glance-divider {
-  position: fixed;
-  z-index: 3;
+/* Split View (F53): a split is one row in the ⌘L panel and the rail, its
+   tabs' favicons overlapped; the panel's disclosure lists them below it. */
+.split-row-icons,
+.vertical-split-icons { display: inline-flex; flex: 0 0 auto; }
+.split-row-icons > .favicon + .favicon,
+.vertical-split-icons > .favicon + .favicon { margin-left: -5px; box-shadow: 0 0 0 1.5px var(--surface-raised); }
+.split-row-disclosure {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 22px;
   display: grid;
   place-items: center;
-  background: var(--bg);
-  box-shadow: inset 1px 0 var(--border), inset -1px 0 var(--border);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+}
+.split-row-disclosure svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.5; transition: transform 140ms ease; }
+.split-row-disclosure.open svg { transform: rotate(90deg); }
+.split-row-disclosure:hover { background: var(--accent-dim); color: var(--text); }
+.island-row.tab-row.in-split { padding-left: 22px; }
+
+/* Split View (F53, spec D9): Chromium-style pane cards. Each page view sits
+   inside its card's 1 px border; this document draws the borders and the
+   dividers where no page view covers the window, and each pane's corner tab
+   is a view of its own (split-tab.html). Main places every card and divider;
+   the geometry rides --split-x/y/w/h. */
+/* Shared with the corner tab document, so a card and its tab agree. */
+.split-panes,
+.split-tab-surface,
+.glance-card {
+  --split-pane-radius: 8px;
+  --split-pane-focused-border: var(--text-dim);
+}
+.split-panes { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+.split-panes[hidden] { display: none; }
+#strip.split-open #pillDots { display: none; }
+.split-pane-frame,
+.split-divider {
+  position: fixed;
+  left: var(--split-x, 0);
+  top: var(--split-y, 0);
+  width: var(--split-w, 0);
+  height: var(--split-h, 0);
+}
+.split-pane-frame {
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--split-pane-radius);
+  transition: border-color 120ms ease;
+}
+.split-pane-frame[hidden] { display: none; }
+.split-pane-frame.focused { border-color: var(--split-pane-focused-border); }
+.split-divider {
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
   touch-action: none;
 }
-.glance-divider[hidden] { display: none; opacity: 0; transform: translateX(6px); }
-.glance-divider[data-direction="vertical"][hidden] { transform: translateY(6px); }
-@starting-style {
-  .glance-divider:not([hidden]) { opacity: 0; transform: translateX(6px); }
-  .glance-divider[data-direction="vertical"]:not([hidden]) { transform: translateY(6px); }
-}
-.glance-divider[data-direction="horizontal"] { cursor: col-resize; }
-.glance-divider[data-direction="vertical"] {
-  cursor: row-resize;
-  box-shadow: inset 0 1px var(--border), inset 0 -1px var(--border);
-}
-.glance-divider > span {
-  width: 4px;
-  height: 38px;
+.split-divider[aria-orientation="vertical"] { cursor: col-resize; }
+.split-divider[aria-orientation="horizontal"] { cursor: row-resize; }
+.split-divider[data-saved="false"] { cursor: default; }
+.split-divider-grip {
   border-radius: 999px;
-  background: var(--border);
-  transition: background-color 120ms ease;
+  background: var(--text-dim);
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
-.glance-divider[data-direction="vertical"] > span {
-  width: 38px;
-  height: 4px;
-}
-.glance-divider:hover > span,
-.glance-divider:focus-visible > span { background: var(--text-dim); }
-.glance-divider:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-:root[data-glance-resizing="horizontal"],
-:root[data-glance-resizing="horizontal"] * {
-  cursor: col-resize !important;
-}
-:root[data-glance-resizing="vertical"],
-:root[data-glance-resizing="vertical"] * {
-  cursor: row-resize !important;
-}
+.split-divider[aria-orientation="vertical"] .split-divider-grip { width: 4px; height: 32px; }
+.split-divider[aria-orientation="horizontal"] .split-divider-grip { width: 32px; height: 4px; }
+.split-divider[data-saved="true"]:hover .split-divider-grip,
+.split-divider[data-saved="true"]:active .split-divider-grip,
+.split-divider:focus-visible .split-divider-grip { opacity: 1; }
+.split-divider:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: var(--radius); }
 
 /* A user-selected theme preview is an immediate handoff while Chromium's
    prefers-color-scheme catches up. Keep the normal transition for page-derived
@@ -516,22 +531,6 @@ button svg {
   color: #f5f5f5;
 }
 
-/* Side-by-side Glance: the controls sit on the header's neutral surface, not
-   the sampled page tint — take the theme's ink and a fill the header lacks.
-   Stacked, the header is below the page and the tint rules above apply. */
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button { color: var(--text-dim); }
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button:hover,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button:hover {
-  background: var(--accent-dim);
-  color: var(--text);
-}
-#strip.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover,
-#strip.tint-dark.glance-open[data-glance-direction="horizontal"] #windowControls button.close-btn:hover {
-  background: var(--danger);
-  color: var(--on-danger);
-}
-
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------
    The rail starts below the strip and reserves space only from page-scoped
    surfaces. With the rail now owning the full left edge, the remaining website
@@ -543,34 +542,13 @@ button svg {
 
 :root[data-tab-layout="vertical"] #islandPill {
   /* Non-mac window buttons remain at the website pane's right edge. */
-  max-width: calc((100vw - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
 }
 
 /* macOS traffic lights live inside the rail, so only a small pane-side
    clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
-  max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
-}
-
-:root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
-  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
-}
-/* Stacked with the rail: the Island is centred over the whole page, which
-   reaches the window's right edge, where Windows and Linux draw their window
-   controls. Reserve them on both sides as the stacked rule above does; on
-   macOS --window-controls-w is 0 and the traffic lights are in the rail. */
-:root[data-tab-layout="vertical"] #strip.glance-open[data-glance-direction="vertical"] #islandPill {
-  max-width: calc((var(--glance-primary-width) - 2 * var(--window-controls-w) - 24px) / var(--pill-zoom));
-}
-/* When even the slim Island does not fit between those two reservations, it
-   gives up its centre line before its address (renderer.js fitIslandDots adds
-   .uncentred): the controls are reserved once, on their own side, and the
-   margin shifts the centred pill left by half their width. Windows and Linux
-   only; macOS has no controls on this edge. Written to outrank both stacked
-   rules above. */
-:root:not([data-platform="darwin"]) #strip.glance-open[data-glance-direction="vertical"] #islandPill.uncentred {
-  max-width: calc((var(--glance-primary-width) - var(--window-controls-w) - 24px) / var(--pill-zoom));
-  margin-right: calc(var(--window-controls-w) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
@@ -679,7 +657,7 @@ button svg {
    lights, while the main pane's sampled website gutter remains independent. */
 body.mac .vertical-tabs-toolbar {
   min-height: var(--strip-h);
-  padding: 8px 10px 7px 96px;
+  padding: 8px 10px 7px 103px;
 }
 
 .vertical-tabs-layout-button {
@@ -1180,9 +1158,11 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   isolation: isolate;
   /* Clear the macOS traffic lights / window controls on narrow windows.
      `100vw` resolves against the unscaled viewport, but `zoom` then multiplies
-     the used length — so divide by the zoom to keep the real 170px clearance
-     (without this the pill renders 1.15× wider and runs under the controls). */
-  max-width: calc((100vw - 170px) / var(--pill-zoom));
+     the used length — so divide by the zoom to keep the real 184px clearance
+     (without this the pill renders 1.15× wider and runs under the controls).
+     184px is 92px a side: the traffic lights at macOS's standard 18pt inset
+     end 80pt in, plus a 12pt gap. */
+  max-width: calc((var(--stage-w) - 184px) / var(--pill-zoom));
   background: transparent;
   /* Keep the one-pixel border in layout while the visible material moves to
      ::after. The resting pill has no transform, which keeps the URL and
@@ -1286,12 +1266,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn[hidden] { display: none; }
 /* A slim Island (a narrow Glance main pane) drops Forward and Favorite. */
 #islandPill.slim .pill-slim-hide { display: none; }
-/* Measuring the Island (renderer.js measureGlanceFloors): a filler shows the
-   room the max-width rules allow; the measuring state shows what the slim
-   Island needs with about ten characters of address. */
-.island-measure-filler { flex: 0 0 4000px; height: 1px; }
-#islandPill.measuring { max-width: none !important; flex-shrink: 0; }
-#islandPill.measuring #pillDomain { flex: 0 0 10ch; }
+
 :root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 /* Disabled glyphs fade to a lighter shade of the same ink rather than the
@@ -1301,7 +1276,6 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 .pill-btn.on { color: var(--accent); }
 .pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
 .pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
-
 
 /* Downloads cistern: while a download is in flight the button fills like a
    vessel (--dl-progress is 0..1, set from renderer.js), its surface a pair of
@@ -2706,6 +2680,92 @@ body.tooltip-surface { background: transparent; }
   vertical-align: top;
   transition: none;
 }
+/* Auto-hide's how-to tip (main.js showIslandAutoHideIntro) is a sentence, so
+   it wraps instead of truncating. Sized from its own text, never the view's
+   width: main measures it before the view has resized. */
+.tooltip-surface .island-tip.intro {
+  width: max-content;
+  max-width: 280px;
+  white-space: normal;
+}
+
+/* Split View corner tab (split-tab.html, spec D9): a tab on a pane card's
+   bottom-right corner, over the page, as Chromium draws split panes. The
+   view is the tab plus an 8 px fillet band above it and to its left; the
+   fillets bend the card's border into the tab. Its right and bottom edges
+   are the card's own border, so it redraws that border and corner. */
+html:has(> body.split-tab-surface),
+body.split-tab-surface {
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  --split-tab-border: var(--border);
+}
+body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-border); }
+/* The tab's top and left borders sit on the fillets' last ring row and
+   column (1px inside the band), so each curve runs straight into them. */
+.split-tab {
+  position: absolute;
+  left: calc(var(--split-pane-radius) - 1px);
+  top: calc(var(--split-pane-radius) - 1px);
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 3px 0 10px;
+  border: 1px solid var(--split-tab-border);
+  border-radius: var(--split-pane-radius) 0 var(--split-pane-radius) 0;
+  background: var(--bg);
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 12px;
+  cursor: default;
+}
+.split-tab-surface.focused .split-tab { padding-left: 3px; }
+/* main.js paintSplitCorner reads the tab's natural width this way. */
+.split-tab-surface.measuring .split-tab { right: auto; width: max-content; }
+.split-tab-surface.focused .split-tab-icon,
+.split-tab-surface.focused .split-tab-globe,
+.split-tab-surface.focused .split-tab-site { display: none; }
+.split-tab-icon { width: 16px; height: 16px; flex: 0 0 auto; }
+.split-tab-icon[hidden],
+.split-tab-globe[hidden] { display: none; }
+.split-tab-globe { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.2; }
+.split-tab-site {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.split-tab-close {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius);
+}
+.split-tab-close svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.split-tab-close:hover { background: var(--accent-dim); color: var(--text); }
+/* Above the tab: each fillet paints over the tab's own border where the
+   curve takes over, or that border closes the curve into an extra corner. */
+.split-tab-fillet {
+  position: absolute;
+  z-index: 1;
+  width: var(--split-pane-radius);
+  height: var(--split-pane-radius);
+  background: radial-gradient(circle at 0 0,
+    transparent calc(var(--split-pane-radius) - 1px),
+    var(--split-tab-border) calc(var(--split-pane-radius) - 1px),
+    var(--split-tab-border) var(--split-pane-radius),
+    var(--bg) var(--split-pane-radius));
+}
+/* Above the tab, against the card's right border. */
+.split-tab-fillet-top { right: 0; top: 0; box-shadow: inset -1px 0 var(--split-tab-border); }
+/* Left of the tab, against the card's bottom border. */
+.split-tab-fillet-left { left: 0; bottom: 0; box-shadow: inset 0 -1px var(--split-tab-border); }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is
@@ -2803,6 +2863,17 @@ body.tooltip-surface { background: transparent; }
 }
 .closed-clear:hover,
 .closed-clear:focus-visible { color: var(--text); opacity: 1; }
+
+/* F52 spec D6: the one-time "Blanc archived N tabs" band at the top of the
+   resting list. Recently closed's band and glyph, but a notice reads at full
+   strength and keeps its two actions visible without hover. */
+.archive-notice .island-row { cursor: default; }
+.archive-notice .island-row:hover { background: transparent; }
+.archive-notice .row-title { color: var(--text); }
+.archive-notice .archive-notice-view { margin-left: auto; color: var(--text); opacity: 1; }
+.archive-notice .archive-notice-view:hover,
+.archive-notice .archive-notice-view:focus-visible { text-decoration: underline; }
+.archive-notice .row-close { opacity: 1; }
 
 /* Group results size to their text (flex 0 0 auto), so the overflow fade
    above would wash out every name's tail — exempt them. */
@@ -3966,19 +4037,14 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 #workspaceFeedback .ws-error { margin: 6px 0; color: var(--danger); font: 12.5px/1.45 var(--font-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Glance: the fade only, in both layouts (the stacked rules above carry
-     their own [hidden] offset, so they are named here too). The open picker
-     keeps the translate that centres it. */
-  .glance-header, .glance-header[hidden], .glance-header[data-direction="vertical"][hidden],
-  .glance-divider, .glance-divider[hidden], .glance-divider[data-direction="vertical"][hidden],
+  /* The Glance picker: the fade only. The open picker keeps the translate
+     that centres it. */
   body[data-glance-purpose="change"] .glance-picker, body[data-glance-purpose="change"] .glance-picker[hidden] {
     transform: none;
     transition: opacity 140ms ease, display 140ms allow-discrete;
   }
   .glance-picker, .glance-picker[hidden] { transform: translateX(-50%); transition: opacity 140ms ease, display 140ms allow-discrete; }
   @starting-style {
-    .glance-header:not([hidden]), .glance-header[data-direction="vertical"]:not([hidden]),
-    .glance-divider:not([hidden]), .glance-divider[data-direction="vertical"]:not([hidden]),
     body[data-glance-purpose="change"] .glance-picker:not([hidden]) { transform: none; }
     .glance-picker:not([hidden]) { transform: translateX(-50%); }
   }
@@ -4153,3 +4219,121 @@ body[data-mode="group-menu"] { background: transparent; }
 .vertical-tabs-group-row { display: flex; align-items: center; gap: 2px; }
 .vertical-tabs-group-row .vertical-tabs-group-header { flex: 1 1 auto; min-width: 0; }
 .vertical-tabs-group-more { margin: 0 4px 0 0; flex: 0 0 auto; }
+
+/* ---- Floating Island (blanc-chrome://float/) -----------------------------
+   Auto-hide's float style runs this document again in small transparent views
+   above the page. Each view is a clipped window onto a full-size copy of the
+   strip (#chrome, offset by the view's origin) and shows one element: the
+   pill, or on Windows and Linux the window controls or the main-menu button.
+   The view starts at the window's top edge, so sliding the whole stage up by
+   the view's height takes the element, its margin and its shadow above it. */
+html[data-surface="float"],
+html[data-surface="float"] body { background: transparent; }
+/* The pill's room follows the strip it copies, not the small view it is in. */
+html[data-surface="float"] { --stage-w: var(--float-stage-width); }
+html[data-surface="float"] #chrome {
+  position: fixed;
+  left: calc(-1 * var(--float-x));
+  top: calc(-1 * var(--float-y));
+  width: var(--float-stage-width);
+  transform: translateY(calc(-1 * var(--float-height)));
+  transition: transform 200ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+html[data-surface="float"].float-shown #chrome {
+  transform: none;
+  transition-duration: 160ms;
+}
+html[data-surface="float"] #strip {
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+html[data-surface="float"] #verticalTabsRail,
+html[data-surface="float"] #glanceHeader,
+html[data-surface="float"] #splitPanes,
+html[data-surface="float"] #dragBand { display: none !important; }
+html[data-surface="float"] #islandPill,
+html[data-surface="float"] #windowControls,
+html[data-surface="float"] #mainMenuButton { visibility: hidden; }
+html[data-surface="float"][data-float-role="pill"] #islandPill,
+html[data-surface="float"][data-float-role="controls"] #windowControls,
+html[data-surface="float"][data-float-role="menu"] #mainMenuButton { visibility: visible; }
+html[data-surface="float"] #islandPill { box-shadow: var(--shadow-island-float); }
+/* The window controls and the menu button sit in views with only 8px of
+   room (FLOAT_CHROME_PAD_PX), so a smaller shadow that stays inside it. */
+html[data-surface="float"] #windowControls,
+html[data-surface="float"] #mainMenuButton {
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px -2px rgba(14, 14, 14, 0.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-surface="float"] #chrome { transition: none; }
+}
+
+/* ---- Floating Glance card (blanc-chrome://glance/) -------------------------
+   The Glance page floats over the main page in a card drawn like a Split View
+   pane (spec 2026-10-20-floating-glance-design.md). This document runs in the
+   card's chrome view, which is the card plus an 8 px ring (the resize edges and
+   the shadow); the Glance page's own view covers the card below its header.
+   Main sizes the card through --glance-card-w/-h. */
+html[data-surface="glance"],
+html[data-surface="glance"] body { background: transparent; }
+html[data-surface="glance"] #strip {
+  height: auto;
+  background: transparent;
+  -webkit-app-region: no-drag;
+}
+html[data-surface="glance"] #strip > :not(#glanceCard),
+html[data-surface="glance"] #chrome > :not(#strip),
+html[data-surface="glance"] #verticalTabsRail { display: none !important; }
+.glance-card[hidden] { display: none; }
+html[data-surface="glance"] .glance-card {
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  width: var(--glance-card-w);
+  height: var(--glance-card-h);
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--split-pane-radius);
+  background: var(--surface-raised);
+  /* Kept inside the 8 px ring: a view clips what it draws past its edge. */
+  box-shadow: 0 3px 7px -2px rgba(14, 14, 14, 0.2);
+  /* The card's chrome fades in at its full size: the Glance page is a view
+     of its own that can't fade or change size on the way in, and a growing
+     border would part from it. It closes at once, with no exit (a view takes
+     every click inside it, so nothing may linger after a close). */
+  transition: opacity 140ms ease, display 140ms allow-discrete;
+}
+@starting-style {
+  html[data-surface="glance"] .glance-card:not([hidden]) { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-surface="glance"] .glance-card { transition: none; }
+}
+html[data-surface="glance"] .glance-card.focused { border-color: var(--split-pane-focused-border); }
+/* The resize ring: 8 px just outside the border, corners 16 px square
+   (positioned from the padding edge, inside the 1 px border). */
+.glance-card-edge { display: none; }
+html[data-surface="glance"] .glance-card-edge {
+  display: block;
+  position: absolute;
+  z-index: 1;
+}
+html[data-surface="glance"] .glance-card-edge[data-edge="n"] { top: -9px; left: 7px; right: 7px; height: 8px; cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="s"] { bottom: -9px; left: 7px; right: 7px; height: 8px; cursor: ns-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="e"] { right: -9px; top: 7px; bottom: 7px; width: 8px; cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="w"] { left: -9px; top: 7px; bottom: 7px; width: 8px; cursor: ew-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="ne"] { top: -9px; right: -9px; width: 16px; height: 16px; cursor: nesw-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="sw"] { bottom: -9px; left: -9px; width: 16px; height: 16px; cursor: nesw-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="nw"] { top: -9px; left: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
+html[data-surface="glance"] .glance-card-edge[data-edge="se"] { bottom: -9px; right: -9px; width: 16px; height: 16px; cursor: nwse-resize; }
+html[data-surface="glance"] .glance-header.focused { border-bottom-color: var(--text-dim); }
+html[data-surface="glance"] .glance-header {
+  position: relative;
+  height: 39px;
+  padding: 0 8px 0 12px;
+  border-left: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: calc(var(--split-pane-radius) - 1px) calc(var(--split-pane-radius) - 1px) 0 0;
+}

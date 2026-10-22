@@ -19,6 +19,7 @@
     t('onboarding.step.theme'),
   ];
   const IMPORT_STEP = 1;
+  const ISLAND_STEP = 2;
   const PRIVACY_STEP = 4;
   const LAST_STEP = 5;
   const FILE_SOURCE = '__file__';
@@ -39,6 +40,8 @@
   const adblockToggle = document.getElementById('obAdblock');
   const suggestionsToggle = document.getElementById('obSuggestions');
   const pingToggle = document.getElementById('obPing');
+  const archiveRow = document.getElementById('obArchiveRow');
+  const archiveToggle = document.getElementById('obArchive');
   const privacyError = document.getElementById('obPrivacyError');
   const themeLight = document.getElementById('obThemeLight');
   const themeDark = document.getElementById('obThemeDark');
@@ -63,6 +66,11 @@
     adblock: true,
     suggestions: true,
     ping: true,
+    // F52 spec D5: offered only on a fresh profile's first run (never on a
+    // tour replay), preset on at After 7 days. Continue from the island step
+    // saves it; Skip, or never reaching that Continue, leaves it Off.
+    archiveOffered: false,
+    archive: true,
     theme: null,           // 'system' | 'light' | 'dark' — system marks no card
   };
 
@@ -102,6 +110,8 @@
     setToggle(adblockToggle, state.adblock);
     setToggle(suggestionsToggle, state.suggestions);
     setToggle(pingToggle, state.ping);
+    archiveRow.hidden = !state.archiveOffered;
+    setToggle(archiveToggle, state.archive);
 
     themeLight.classList.toggle('selected', state.theme === 'light');
     themeDark.classList.toggle('selected', state.theme === 'dark');
@@ -312,6 +322,11 @@
 
   async function next() {
     if (state.step === IMPORT_STEP && (await runImportIfSelected())) return;
+    if (state.step === ISLAND_STEP && state.archiveOffered) {
+      try {
+        await window.bowserPages.start.onboardingSet({ tabArchive: state.archive ? '7d' : 'off' });
+      } catch { /* the setting stays as it was: Off on a fresh profile */ }
+    }
     if (state.step === LAST_STEP) {
       await finish();
       return;
@@ -328,6 +343,7 @@
 
   async function show(status, onboarding) {
     state.shown = true;
+    state.archiveOffered = !TOUR && status?.privacy?.required === true;
     // Real current values only: the projection carries what is actually
     // saved, so a tour replay shows the truth, never invented defaults.
     state.adblock = !!onboarding.adblockEnabled;
@@ -391,6 +407,10 @@
   suggestionsToggle.addEventListener('click', () => {
     state.suggestions = !state.suggestions;
     privacyError.textContent = '';
+    sync();
+  });
+  archiveToggle.addEventListener('click', () => {
+    state.archive = !state.archive;
     sync();
   });
   pingToggle.addEventListener('click', () => {

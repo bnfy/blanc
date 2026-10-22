@@ -4,6 +4,7 @@ const { t } = blancI18n;
 const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
 const MAX_HIDDEN_TOP_SITES = 200;
 const TOP_SITES_PAGE_SIZE = 48;
+const startPins = globalThis.blancStartPins;
 
 function readHiddenTopSites() {
   if (isPrivate) return new Set();
@@ -27,6 +28,15 @@ let topSitesLoad = null;
 let topSitesReady = false;
 let topSitesOffset = 0;
 
+function saveHiddenTopSites() {
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
+
 function rememberHiddenTopSite(key) {
   if (isPrivate || typeof key !== 'string' || !key) return;
   hiddenTopSites.delete(key);
@@ -34,12 +44,55 @@ function rememberHiddenTopSite(key) {
   while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
     hiddenTopSites.delete(hiddenTopSites.values().next().value);
   }
+  saveHiddenTopSites();
+}
+
+// Start Page pins live in main (start-page-pins.js), so a tab's menu and the
+// Favorites page can pin too. Every layout draws them first. A private start
+// page draws them but never changes them.
+async function loadPins() {
+  const listed = await window.bowserPages?.pins?.list?.().catch(() => null);
+  if (!Array.isArray(listed?.pins)) return false;
+  state.pinsMax = listed.max;
+  if (startPins.samePins(listed.pins, state.pins)) return false;
+  state.pins = listed.pins;
+  return true;
+}
+
+/** Pin or unpin one page, then draw the result on every layout. Resolves to
+ * whether it changed. A refusal (every pin taken) is announced; a change that
+ * didn't happen (another page or a sync got there first) or a failed request
+ * just redraws what main holds, without claiming success. */
+async function togglePin(page, pinned, statusId) {
+  if (isPrivate) return false;
+  const title = page.title || page.url;
+  const status = document.getElementById(statusId);
+  let changed = false;
   try {
-    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+    if (pinned) {
+      changed = (await window.bowserPages.pins.unpin(page.url)) === true;
+    } else {
+      const result = await window.bowserPages.pins.pin(page.url, page.title);
+      changed = result?.ok === true;
+      if (result?.reason === 'full') status.textContent = t('newtab.pin.full', { count: state.pinsMax });
+    }
   } catch {
-    // Storage may be unavailable; the in-memory dismissal still lasts for
-    // this page without falling back to any main-process or network store.
+    changed = false;
   }
+  if ((await loadPins()) || changed) renderPinnedLayouts();
+  if (changed) status.textContent = pinned ? t('newtab.unpin.done', { title }) : t('newtab.pin.done', { title });
+  return changed;
+}
+
+/** The pin button every layout's tiles share: filled and on show once pinned. */
+function pinButton(page, pinned) {
+  const title = page.title || page.url;
+  const pin = document.createElement('button');
+  pin.type = 'button';
+  pin.title = pinned ? t('newtab.unpin.title', { title }) : t('newtab.pin.title', { title });
+  pin.setAttribute('aria-label', pinned ? t('newtab.unpin.label', { title }) : t('newtab.pin.label', { title }));
+  pin.appendChild(startPins.glyph(document, 'pin'));
+  return pin;
 }
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
@@ -454,6 +507,39 @@ function favRow(b) {
   return row;
 }
 
+/** One tile in a favorites layout with its pin beside it, never inside the
+ * link. Pinned pages lead every favorites layout and keep their pin on show.
+ * Private start pages draw no pin. */
+function pinnableFavorite(b, link, className) {
+  const item = document.createElement('div');
+  item.className = className;
+  item.classList.toggle('pinned', b.pinned);
+  item.dataset.favoriteUrl = b.url;
+  item.appendChild(link);
+  if (isPrivate || !startPins.siteKey(b.url)) return item;
+
+  const pin = pinButton(b, b.pinned);
+  pin.className = 'fav-pin';
+  pin.addEventListener('click', async () => {
+    const list = item.parentElement;
+    const index = [...list.children].indexOf(item);
+    if (!(await togglePin(b, b.pinned, 'favoritesPinStatus'))) return;
+    // Focus follows the page to its new place, or stays in the slot it left
+    // when unpinning drops it past the layout's last tile.
+    const moved = [...list.children].find((candidate) => candidate.dataset.favoriteUrl === b.url);
+    const next = moved?.querySelector('.fav-pin') ??
+      list.children[Math.min(index, list.children.length - 1)]?.querySelector('a, .fav-pin');
+    next?.focus();
+  });
+  item.appendChild(pin);
+  return item;
+}
+
+/** The favorites a layout draws, pinned first, up to its limit. */
+function favoriteTilesFor(limit) {
+  return startPins.favoriteTiles(state.pins, state.favorites, limit);
+}
+
 /** Group chip for billboard/shelf/tally. `withCount` adds the trailing number
  * the shelf card shows; the billboard and tally chips carry the name alone. */
 /** A colored group's dots take its color (tab group colors spec §7). Main
@@ -496,14 +582,26 @@ function emptyFavoritesHint() {
   return hint;
 }
 
-function renderLedgerFavorites(items) {
+function renderLedgerFavorites() {
   const list = document.getElementById('favoritesList');
   list.replaceChildren();
-  if (!items.length) {
+  const tiles = favoriteTilesFor(6);
+  if (!tiles.length) {
     list.appendChild(emptyFavoritesHint());
     return;
   }
-  for (const b of items.slice(0, 6)) list.appendChild(favRow(b));
+  for (const b of tiles) list.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
+}
+
+/** A pin shows on every layout: Ledger, which is always drawn, and the
+ * showing layout redraw now; the others redraw when they are next shown. */
+function renderPinnedLayouts() {
+  renderLedgerFavorites();
+  invalidate();
+  if (state.layout === 'billboard') renderBillboard();
+  if (state.layout === 'shelf') renderShelf();
+  if (state.layout === 'tally') renderTally();
+  rendered.add(state.layout);
 }
 
 // Tab sync: other devices' tabs, read-only — clicking navigates the current
@@ -550,6 +648,8 @@ const state = {
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
   favorites: [],
+  pins: [],
+  pinsMax: 0,
   topSites: [],
   onboarding: null,
 };
@@ -602,14 +702,15 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  const sites = isPrivate
-    ? []
-    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  const sites = isPrivate ? [] : visibleBillboardSites();
   favs.hidden = !sites.length;
   for (const site of sites) {
     const item = document.createElement('div');
     item.className = 'bb-site';
+    item.classList.toggle('pinned', site.pinned);
     item.dataset.siteKey = site.key;
+    // Two pins can share a site; the page itself tells tiles apart.
+    item.dataset.siteUrl = site.url;
     const link = document.createElement('a');
     link.className = 'bb-fav';
     link.href = site.url;
@@ -627,29 +728,46 @@ function renderBillboard() {
     link.setAttribute('aria-label', t('newtab.billboard.open', { title: fullTitle }));
     link.append(tile, label);
 
-    const dismiss = document.createElement('button');
-    dismiss.type = 'button';
-    dismiss.className = 'bb-site-dismiss';
-    dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
-    dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
-    const closeIcon = document.createElement('img');
-    closeIcon.src = 'close.svg';
-    closeIcon.alt = '';
-    closeIcon.draggable = false;
-    dismiss.appendChild(closeIcon);
-    dismiss.addEventListener('click', () => {
+    // A pinned tile leads the row and stays whatever history does; its pin
+    // stays on show so the row explains why it doesn't move. Only a ranked
+    // tile can be hidden. Pinning one pins the page it opens: the site's page
+    // visited last, under that page's title.
+    const pin = pinButton({ url: site.url, title: fullTitle }, site.pinned);
+    pin.className = 'bb-site-pin';
+    pin.addEventListener('click', async () => {
       const index = [...favs.children].indexOf(item);
-      rememberHiddenTopSite(site.key);
-      renderBillboard();
-      document.getElementById('bbTopSitesStatus').textContent =
-        t('newtab.billboard.hidden', { title: fullTitle });
-      const next = favs.children[Math.min(index, favs.children.length - 1)]
-        ?.querySelector('.bb-fav, .bb-site-dismiss');
+      const page = { url: site.url, title: fullTitle };
+      if (!(await togglePin(page, site.pinned, 'bbTopSitesStatus'))) return;
+      // Focus follows the site to its new place, or stays in the slot it left
+      // when unpinning drops it off the row.
+      const moved = [...favs.children].find((candidate) => candidate.dataset.siteUrl === site.url);
+      const next = moved?.querySelector('.bb-site-pin') ??
+        favs.children[Math.min(index, favs.children.length - 1)]?.querySelector('.bb-fav, .bb-site-pin');
       next?.focus();
       fillBillboardSites().catch(() => {});
     });
+    item.append(link, pin);
 
-    item.append(link, dismiss);
+    if (!site.pinned) {
+      const dismiss = document.createElement('button');
+      dismiss.type = 'button';
+      dismiss.className = 'bb-site-dismiss';
+      dismiss.title = t('newtab.billboard.hideTitle', { title: fullTitle });
+      dismiss.setAttribute('aria-label', t('newtab.billboard.hide', { title: fullTitle }));
+      dismiss.appendChild(startPins.glyph(document, 'close'));
+      dismiss.addEventListener('click', () => {
+        const index = [...favs.children].indexOf(item);
+        rememberHiddenTopSite(site.key);
+        renderBillboard();
+        document.getElementById('bbTopSitesStatus').textContent =
+          t('newtab.billboard.hidden', { title: fullTitle });
+        const next = favs.children[Math.min(index, favs.children.length - 1)]
+          ?.querySelector('.bb-fav, .bb-site-dismiss');
+        next?.focus();
+        fillBillboardSites().catch(() => {});
+      });
+      item.append(dismiss);
+    }
     favs.appendChild(item);
   }
 
@@ -660,7 +778,7 @@ function renderBillboard() {
 }
 
 function visibleBillboardSites() {
-  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+  return startPins.billboardSites(state.pins, state.topSites, hiddenTopSites, 6);
 }
 
 async function fillBillboardSites() {
@@ -708,11 +826,13 @@ function renderShelf() {
   // Private tabs show no blocked counts on any layout.
   document.getElementById('shBlocked').closest('.shelf-card').hidden = isPrivate;
 
+  // Pins draw here too, so the grid and its empty hint count what is drawn.
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
-  document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(Math.min(state.favorites.length, 8)));
-  if (!state.favorites.length) grid.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 8)) {
+  const shelfTiles = favoriteTilesFor(8);
+  document.getElementById('layoutShelf').dataset.columns = String(shelfColumns(shelfTiles.length));
+  if (!shelfTiles.length) grid.appendChild(emptyFavoritesHint());
+  for (const b of shelfTiles) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
     tileLink.href = b.url;
@@ -729,7 +849,7 @@ function renderShelf() {
     text.dataset.i18nIgnore = ''; // the page's title and host
     text.append(name, host);
     tileLink.append(tile, text);
-    grid.appendChild(tileLink);
+    grid.appendChild(pinnableFavorite(b, tileLink, 'shelf-item'));
   }
 
   const groups = document.getElementById('shGroups');
@@ -747,8 +867,9 @@ function renderTally() {
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
-  if (!state.favorites.length) favs.appendChild(emptyFavoritesHint());
-  for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
+  const tallyTiles = favoriteTilesFor(5);
+  if (!tallyTiles.length) favs.appendChild(emptyFavoritesHint());
+  for (const b of tallyTiles) favs.appendChild(pinnableFavorite(b, favRow(b), 'fav-item'));
 
   const groups = document.getElementById('tlGroups');
   groups.replaceChildren();
@@ -800,6 +921,7 @@ function updateClock() {
     .map((part) => part.value)
     .join('')
     .trim();
+  scheduleClockArt();
 }
 function startClock() {
   updateClock();
@@ -813,6 +935,442 @@ function stopClock() {
   if (clockTimer) clearTimeout(clockTimer);
   clockTimer = null;
 }
+
+// The clock's Font & Color. Main finishes every value (start-clock-style.js):
+// the weight already inside the face's range, and the ink as one hex, or null
+// for the page's own text color. The page only previews a slider while it is
+// dragged, then saves once on release.
+const clockElement = document.getElementById('bbClock');
+const clockPopover = document.getElementById('clockPopover');
+const clockStyleOpen = document.getElementById('clockStyleOpen');
+const clockStyleSample = document.getElementById('clockStyleSample');
+const clockStyleSummary = document.getElementById('clockStyleSummary');
+const CLOCK_FONT_NAMES = {
+  instrument: 'newtab.clock.font.instrument', condensed: 'newtab.clock.font.condensed',
+  inter: 'newtab.clock.font.inter', flex: 'newtab.clock.font.flex',
+};
+const clockPercent = new Intl.NumberFormat(blancI18n.formatLocale(), { style: 'percent' });
+const clockFontPicks = [...document.querySelectorAll('[data-clock-font-pick]')];
+const clockStylePicks = [...document.querySelectorAll('[data-clock-style-pick]')];
+const clockWeight = document.getElementById('clockWeight');
+const clockTone = document.getElementById('clockTone');
+const clockToneLine = document.getElementById('clockToneLine');
+const clockColors = document.getElementById('clockColors');
+const clockHeight = document.getElementById('clockHeight');
+const clockHeightLine = document.getElementById('clockHeightLine');
+const clockRow = clockElement.parentElement;
+const clockArt = document.getElementById('bbClockArt');
+const clockLens = document.getElementById('bbClockLens');
+const clockFace = document.getElementById('bbClockFace');
+const clockShadow = document.getElementById('bbClockShadow');
+const clockRefract = document.getElementById('bbClockRefract');
+const clockRefractMap = document.getElementById('bbClockRefractMap');
+const clockRefractBend = document.getElementById('bbClockRefractBend');
+const reducedTransparency = matchMedia('(prefers-reduced-transparency: reduce)');
+let clockState = null;
+let clockDragging = false;
+// The Height thumb's value while it is dragged, drawn before it is saved.
+let clockHeightPreview = null;
+function paintClockWeight(weight) {
+  for (const element of [clockElement, clockPopover, clockStyleSample]) element.style.setProperty('--clock-weight', String(weight));
+  scheduleClockArt();
+}
+function paintClockInk(ink) {
+  if (ink) {
+    clockElement.dataset.ink = '';
+    clockElement.style.setProperty('--clock-ink', ink);
+    clockStyleSample.style.setProperty('--clock-ink', ink);
+  } else {
+    delete clockElement.dataset.ink;
+    clockElement.style.removeProperty('--clock-ink');
+    clockStyleSample.style.removeProperty('--clock-ink');
+  }
+  scheduleClockArt();
+}
+
+// Height and Glass (clock-art.js). Height is type: the clock is set larger,
+// then narrower and lighter through its face's own width and weight axes, so
+// it keeps its width and stroke and nothing is distorted; it stays real text.
+// Glass is drawn over the page from that same text: each width and weight is
+// loaded as a canvas face of its own, because canvas fonts can't take
+// font-variation-settings.
+const CLOCK_FACES = {
+  instrument: {
+    url: 'instrument-sans-latin-wdth-normal.woff2', stretch: 98,
+    stretches: [75, 86.5, 98], weights: [400, 550, 700],
+  },
+  condensed: { url: 'instrument-sans-latin-wdth-normal.woff2', stretch: 75 },
+  inter: { url: 'inter-latin.woff2', stretch: 100 },
+  flex: {
+    url: 'roboto-flex-clock.woff2', stretch: 100,
+    stretches: [25, 37.5, 50, 62.5, 75, 87.5, 100], weights: [100, 250, 400, 550, 700, 850, 1000],
+  },
+};
+// The figures stand about this much of the type size; the clock may take at
+// most half the window's height.
+const FIGURE_HEIGHT = 0.72;
+const MOST_OF_WINDOW = 0.5;
+// The glass's bevel and how far it bends the page, as shares of the clock's
+// usual type size: Height keeps the strokes as they are, so the glass keeps
+// its edge too.
+const GLASS_BEVEL = 0.045;
+const GLASS_BEND = 0.035;
+// How far the glass's shadow may reach past the figures, as a share of the
+// type size.
+const GLASS_SHADOW_MARGIN = 0.3;
+// While a slider is dragged the glass is redrawn at most this often (ms); the
+// typeset figures follow every frame.
+const GLASS_DRAG_INTERVAL = 120;
+let clockArtFrame = 0;
+function scheduleClockArt() {
+  if (clockArtFrame) return;
+  clockArtFrame = requestAnimationFrame(() => {
+    clockArtFrame = 0;
+    drawClockArt().catch(dropClockArt);
+  });
+}
+// A face that would not load leaves the clock typeset rather than frozen as
+// the last glass; the next change tries again.
+function dropClockArt() {
+  clockRow.removeAttribute('data-drawn');
+  clockArt.hidden = true;
+  clockArtKey = '';
+}
+const rgbOf = (color) => globalThis.blancClockArt.parseColor(color);
+// What the last glass was made from; an unchanged clock is not redrawn. A
+// newer draw makes an older one, still waiting on a face, give up.
+let clockArtKey = '';
+let clockDrawGeneration = 0;
+let clockGlassAt = 0;
+let clockGlassTrail = 0;
+// The Weight thumb's value while it is dragged.
+let clockWeightPreview = null;
+async function drawClockArt() {
+  if (!clockState || state.layout !== 'billboard') return;
+  const art = globalThis.blancClockArt;
+  const generation = ++clockDrawGeneration;
+  const face = CLOCK_FACES[clockState.font] ?? CLOCK_FACES.instrument;
+  const weight = clockWeightPreview ?? clockState.weight;
+
+  // Height: the type size the stylesheet gives, times the factor, at the
+  // fitted width and weight.
+  const inline = clockElement.style.fontSize;
+  clockElement.style.removeProperty('font-size');
+  const size = parseFloat(getComputedStyle(clockElement).fontSize);
+  clockElement.style.fontSize = inline;
+  const height = clockHeightPreview ?? clockState.height ?? 100;
+  const most = (clockState.heightRange?.max ?? 100) / 100;
+  const fits = (innerHeight * MOST_OF_WINDOW) / (size * FIGURE_HEIGHT);
+  const factor = face.stretches ? Math.max(1, Math.min(height / 100, most, fits)) : 1;
+  let type = { stretch: face.stretch, weight };
+  if (factor > 1) {
+    const table = await art.measureFace(face.url, face.stretches, face.weights);
+    if (generation !== clockDrawGeneration) return;
+    const fit = art.fitHeight(table, { stretch: face.stretch, weight }, factor);
+    // Snapped, so a drag reuses a handful of faces instead of making one for
+    // every fraction of a step.
+    type = { stretch: Math.round(fit.stretch * 2) / 2, weight: Math.round(fit.weight / 5) * 5 };
+    clockElement.style.fontSize = `${size * factor}px`;
+    clockElement.style.setProperty('--clock-wdth', type.stretch.toFixed(1));
+    clockElement.style.fontWeight = String(type.weight);
+  } else {
+    clockElement.style.removeProperty('font-size');
+    clockElement.style.removeProperty('--clock-wdth');
+    clockElement.style.removeProperty('font-weight');
+  }
+
+  // Every clock carries a shadow opposite to its ink, so it reads over any
+  // wallpaper in any color.
+  const computed = getComputedStyle(clockElement);
+  const shadow = art.shadowFor(rgbOf(computed.color));
+  clockElement.style.setProperty('--clock-shadow', shadow);
+
+  const glass = clockState.style === 'glass' && !reducedTransparency.matches;
+  if (!glass) {
+    dropClockArt();
+    return;
+  }
+  const typeSize = parseFloat(computed.fontSize);
+  const letterSpacing = parseFloat(computed.letterSpacing) || 0;
+  const scale = devicePixelRatio || 1;
+  const text = clockElement.textContent;
+  const key = JSON.stringify([text, face.url, type.stretch, type.weight, typeSize, letterSpacing, scale, computed.color]);
+  if (key === clockArtKey) return;
+  if (clockDragging) {
+    const wait = GLASS_DRAG_INTERVAL - (performance.now() - clockGlassAt);
+    if (wait > 0) {
+      clearTimeout(clockGlassTrail);
+      clockGlassTrail = setTimeout(scheduleClockArt, wait);
+      return;
+    }
+  }
+  clockGlassAt = performance.now();
+  // Until the face for this width and weight has loaded, the clock stays as
+  // it is (typeset, or the last glass).
+  const family = await art.instance(face.url, type.stretch, type.weight);
+  if (generation !== clockDrawGeneration) return;
+  clockArtKey = key;
+  const drawn = art.drawClock(text, { family, weight: type.weight, size: typeSize, letterSpacing }, scale);
+  clockArt.style.width = `${drawn.width}px`;
+  clockArt.style.height = `${drawn.height}px`;
+  clockArt.style.marginInline = `${-drawn.left}px`;
+  const bend = size * GLASS_BEND * scale;
+  const { map, face: light } = art.paintGlass(drawn.mask, {
+    bevel: size * GLASS_BEVEL * scale, bend, scale: bend * 2, tint: rgbOf(computed.color),
+  });
+  for (const element of [clockRefract, clockRefractMap]) {
+    element.setAttribute('width', String(drawn.width));
+    element.setAttribute('height', String(drawn.height));
+  }
+  clockRefractMap.setAttribute('href', map.toDataURL());
+  // The map is in device pixels; the filter bends in CSS pixels.
+  clockRefractBend.setAttribute('scale', String((bend * 2) / scale));
+  const mask = `url(${drawn.mask.toDataURL()})`;
+  clockLens.style.maskImage = mask;
+  clockLens.style.webkitMaskImage = mask;
+  // A contact shadow and a wide soft one, outside the figures.
+  const margin = Math.ceil(typeSize * GLASS_SHADOW_MARGIN * scale);
+  const cast = art.paintShadow(drawn.mask, [
+    { blur: typeSize * 0.012 * scale, y: typeSize * 0.008 * scale, alpha: 0.42 },
+    { blur: typeSize * 0.09 * scale, y: typeSize * 0.05 * scale, alpha: 0.3 },
+  ], margin);
+  clockShadow.width = cast.width;
+  clockShadow.height = cast.height;
+  clockShadow.getContext('2d').drawImage(cast, 0, 0);
+  clockShadow.style.left = clockShadow.style.top = `${-margin / scale}px`;
+  clockShadow.style.width = `${cast.width / scale}px`;
+  clockShadow.style.height = `${cast.height / scale}px`;
+  clockFace.width = light.width;
+  clockFace.height = light.height;
+  clockFace.getContext('2d').drawImage(light, 0, 0);
+  // Shown only once drawn, so the clock never blanks while a face loads.
+  clockRow.setAttribute('data-drawn', '');
+  clockArt.hidden = false;
+}
+addEventListener('resize', scheduleClockArt);
+// The drawing is made at the display's pixel density, so moving the window to
+// another display redraws it.
+function watchClockScale() {
+  matchMedia(`(resolution: ${devicePixelRatio}dppx)`).addEventListener('change', () => {
+    scheduleClockArt();
+    watchClockScale();
+  }, { once: true });
+}
+watchClockScale();
+reducedTransparency.addEventListener('change', scheduleClockArt);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleClockArt);
+// The rule main uses (clock-ink.js), so the clock follows the tone thumb.
+function previewClockTone(tone) {
+  const base = clockState?.base;
+  if (base) paintClockInk(globalThis.blancClockInk.toneInk(base, tone));
+}
+async function setClock(partial) {
+  try {
+    applyClock(await window.bowserPages.start.setClock(partial));
+  } catch {
+    // Not saved: back to the clock as last saved, dropping any preview.
+    clockDragging = false;
+    clockHeightPreview = null;
+    clockWeightPreview = null;
+    try {
+      applyClock((await window.bowserPages.start.data()).clock);
+    } catch {
+      applyClock(clockState);
+    }
+  }
+}
+// Auto first, then one swatch per Spaces preset in main's order.
+function renderClockSwatches(presets) {
+  if (clockColors.childElementCount === presets.length + 1) return;
+  const swatch = (id, hex) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'clock-swatch';
+    button.dataset.clockColorPick = id;
+    button.setAttribute('aria-label', id === 'auto' ? t('newtab.clock.auto') : SWATCH_NAMES[id] ? t(SWATCH_NAMES[id]) : id);
+    if (hex) button.style.setProperty('--swatch', hex);
+    button.addEventListener('click', () => setClock({ color: id }));
+    return button;
+  };
+  clockColors.replaceChildren(swatch('auto'), ...presets.map(({ id, hex }) => swatch(id, hex)));
+}
+function applyClock(clock) {
+  if (!clock || typeof clock !== 'object') return;
+  clockState = clock;
+  clockElement.dataset.font = clock.font;
+  clockElement.dataset.style = clock.style;
+  // Customize's Clock row: a live sample, and the face, height and style in words.
+  clockStyleSample.dataset.font = clock.font;
+  clockStyleSample.dataset.style = clock.style;
+  const styleName = clock.style === 'glass' ? t('newtab.clock.glass') : t('newtab.clock.solid');
+  const summary = [t(CLOCK_FONT_NAMES[clock.font] ?? CLOCK_FONT_NAMES.instrument)];
+  if ((clock.height ?? 100) > 100) summary.push(clockPercent.format(clock.height / 100));
+  summary.push(styleName);
+  clockStyleSummary.textContent = summary.join(' · ');
+  renderClockSwatches(clock.presets ?? []);
+  for (const button of clockFontPicks) button.setAttribute('aria-pressed', String(button.dataset.clockFontPick === clock.font));
+  for (const button of clockStylePicks) button.setAttribute('aria-pressed', String(button.dataset.clockStylePick === clock.style));
+  for (const button of clockColors.children) button.setAttribute('aria-pressed', String(button.dataset.clockColorPick === clock.color));
+  clockToneLine.hidden = !clock.base;
+  // Only a face with room on its width axis can stand taller.
+  const tallest = clock.heightRange?.max ?? 100;
+  clockHeightLine.hidden = tallest <= 100;
+  // Tone's track shows the color from its deepest to its lightest.
+  if (clock.base) {
+    const { toneInk } = globalThis.blancClockInk;
+    clockToneLine.style.setProperty('--clock-tone-deep', toneInk(clock.base, 0));
+    clockToneLine.style.setProperty('--clock-tone-mid', clock.base);
+    clockToneLine.style.setProperty('--clock-tone-light', toneInk(clock.base, 100));
+  }
+  scheduleClockArt();
+  // A status broadcast must not yank a thumb out from under a drag.
+  if (clockDragging) return;
+  clockWeight.min = String(clock.range?.min ?? 400);
+  clockWeight.max = String(clock.range?.max ?? 700);
+  clockWeight.value = String(clock.weight);
+  clockTone.value = String(clock.tone);
+  clockHeight.max = String(tallest);
+  clockHeight.value = String(clock.height ?? 100);
+  for (const slider of [clockWeight, clockHeight, clockTone]) paintSliderFill(slider);
+  paintClockWeight(clock.weight);
+  paintClockInk(clock.ink);
+}
+// A slider's track is filled up to its thumb (pages.css reads --fill, 0–1,
+// from the row, so Weight's rail behind the slider reads it too).
+function paintSliderFill(slider) {
+  const min = Number(slider.min), max = Number(slider.max);
+  const fill = max > min ? (Number(slider.value) - min) / (max - min) : 0;
+  slider.parentElement.style.setProperty('--fill', String(Math.max(0, Math.min(1, fill))));
+}
+// Weight's wedge: a rounded taper from a hairline to a thick end, cut to the
+// rail's exact width so its rounded ends stay round.
+const clockWeightRail = document.getElementById('clockWeightRail');
+const RAIL_THIN = 2;
+const RAIL_THICK = 10;
+function shapeWeightRail() {
+  const width = clockWeightRail.clientWidth;
+  if (!width) return;
+  const mid = RAIL_THICK / 2, a = RAIL_THIN / 2, b = RAIL_THICK / 2;
+  clockWeightRail.style.clipPath = `path('M ${a} ${mid - a} L ${width - b} ${mid - b} `
+    + `A ${b} ${b} 0 0 1 ${width - b} ${mid + b} L ${a} ${mid + a} A ${a} ${a} 0 0 1 ${a} ${mid - a} Z')`;
+}
+new ResizeObserver(shapeWeightRail).observe(clockWeightRail);
+for (const button of clockFontPicks) {
+  button.addEventListener('click', () => setClock({ font: button.dataset.clockFontPick }));
+}
+for (const button of clockStylePicks) {
+  button.addEventListener('click', () => setClock({ style: button.dataset.clockStylePick }));
+}
+for (const slider of [clockWeight, clockHeight, clockTone]) {
+  slider.addEventListener('input', () => paintSliderFill(slider));
+}
+clockWeight.addEventListener('input', () => {
+  clockDragging = true;
+  clockWeightPreview = Number(clockWeight.value);
+  paintClockWeight(clockWeightPreview);
+});
+clockTone.addEventListener('input', () => {
+  clockDragging = true;
+  previewClockTone(Number(clockTone.value));
+});
+clockHeight.addEventListener('input', () => {
+  clockDragging = true;
+  clockHeightPreview = Number(clockHeight.value);
+  scheduleClockArt();
+});
+// A drag ends in `change` only when the value moved. Let go where it started
+// and no change comes, so the drag ends on release, back at the saved clock.
+function endClockDrag() {
+  clockDragging = false;
+  clockHeightPreview = null;
+  clockWeightPreview = null;
+  applyClock(clockState);
+}
+for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [clockHeight, 'height']]) {
+  slider.addEventListener('change', async () => {
+    const value = Number(slider.value);
+    clockDragging = false;
+    // Kept at once, so the clock doesn't fall back to the old height while the
+    // save is on its way (or a new drag has begun).
+    if (key === 'height') {
+      clockState = { ...clockState, height: value };
+      clockHeightPreview = null;
+    }
+    if (key === 'weight') {
+      clockState = { ...clockState, weight: value };
+      clockWeightPreview = null;
+    }
+    await setClock({ [key]: value });
+  });
+  const release = () => setTimeout(() => {
+    if (clockDragging && clockState?.[key] === Number(slider.value)) endClockDrag();
+  });
+  for (const type of ['pointerup', 'pointercancel', 'keyup', 'blur']) slider.addEventListener(type, release);
+}
+// Customize closes and the clock's own popover opens under the clock, so the
+// clock stays in view while it changes.
+// Opened from the keyboard (a click with no pointer behind it), focus lands
+// on the chosen font, ringed; opened with the pointer, it lands on the sheet
+// itself, so no ring shows until Tab moves into it.
+function openClockSheet(fromKeyboard) {
+  document.getElementById('customizePopover').hidePopover();
+  clockPopover.showPopover();
+  if (fromKeyboard) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
+  else clockPopover.focus();
+}
+clockStyleOpen.addEventListener('click', (event) => openClockSheet(event.detail === 0));
+// Right-clicking the clock opens its sheet, as a long press on the Lock
+// Screen does, instead of the page's context menu. On macOS and Linux the
+// event comes on press, and the release that follows would count as a click
+// outside the new sheet and close it, so it opens once the button is up.
+// A press that never ends in a release here (the window loses focus, the
+// pointer is cancelled) opens nothing and leaves no listener behind.
+let clockMenuPress = null;
+clockRow.addEventListener('contextmenu', (event) => {
+  if (state.layout !== 'billboard') return;
+  event.preventDefault();
+  if (clockPopover.matches(':popover-open')) return;
+  clockMenuPress?.abort();
+  clockMenuPress = null;
+  const open = () => setTimeout(() => openClockSheet(false));
+  if (!event.buttons) {
+    open();
+    return;
+  }
+  const press = new AbortController();
+  clockMenuPress = press;
+  const end = () => {
+    press.abort();
+    if (clockMenuPress === press) clockMenuPress = null;
+  };
+  // Any button: Control-click on a Mac is a primary press.
+  addEventListener('pointerup', () => {
+    end();
+    open();
+  }, { signal: press.signal });
+  for (const type of ['pointercancel', 'blur']) addEventListener(type, end, { signal: press.signal });
+});
+// Back returns to Customize, where the sheet was opened from. From the
+// keyboard, focus lands on the Clock row again.
+let clockGoingBack = false;
+document.getElementById('clockPopoverBack').addEventListener('click', (event) => {
+  // Cleared by the toggle event, which comes after this handler.
+  clockGoingBack = true;
+  clockPopover.hidePopover();
+  document.getElementById('customizePopover').showPopover();
+  if (event.detail === 0) clockStyleOpen.focus();
+});
+clockPopover.addEventListener('toggle', (event) => {
+  if (event.newState !== 'closed') return;
+  if (clockGoingBack) {
+    clockGoingBack = false;
+    return;
+  }
+  // Closed any other way, keyboard focus returns to the Customize button.
+  if (document.activeElement === document.body || clockPopover.contains(document.activeElement)) {
+    document.getElementById('customizeButton').focus();
+  }
+});
 
 // A separate footer action opens the standalone game. Target=_blank is
 // adopted by the browser's managed-tab handler; its session follows this tab.
@@ -841,6 +1399,7 @@ function applyLayout(name) {
     button.setAttribute('aria-pressed', String(isActive));
   }
   stopClock();
+  if (name !== 'billboard' && clockPopover.matches(':popover-open')) clockPopover.hidePopover();
   if (!rendered.has(name)) {
     if (name === 'billboard') renderBillboard();
     if (name === 'shelf') renderShelf();
@@ -874,8 +1433,19 @@ customizePopover.addEventListener('toggle', (event) => {
 // has.
 const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
   state.favorites = items;
-  renderLedgerFavorites(items);
+  renderLedgerFavorites();
   invalidate();
+});
+const pinsReady = loadPins().then(() => {
+  renderLedgerFavorites();
+  invalidate();
+});
+// Pins change from other pages too (another start page, the Favorites page,
+// a tab's menu); a notice that brings nothing new changes nothing here.
+window.bowserPages?.pins?.onChanged?.(() => {
+  loadPins().then((changed) => {
+    if (changed) renderPinnedLayouts();
+  }).catch(() => {});
 });
 
 const wallpaper = window.blancNewtabWallpaper.mount(document, window);
@@ -1016,6 +1586,8 @@ function applyWallpaper(state) {
   if (state && typeof state === 'object') wallpaperState = state;
   wallpaper.setSource(wallpaperState);
   renderWallpaperControls();
+  // The wallpaper can change the page's ink, and so an Automatic clock's.
+  scheduleClockArt();
 }
 function applyDynamicWallpaper(enabled) {
   dynamicWallpaperEnabled = enabled === true;
@@ -1106,6 +1678,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   // projection then replaces.
   applyWallpaper(data.wallpaper);
   applyDynamicWallpaper(data.dynamicWallpaperEnabled);
+  applyClock(data.clock);
   migrationChecklistUtilitySheetVisible = data.utilitySheetVisible === true;
   Object.assign(state, {
     layout: data.layout ?? 'billboard',
@@ -1130,7 +1703,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   invalidate();
 });
 
-Promise.all([favoritesReady, dataReady]).then(() => {
+Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
   applyLayout(state.layout);
   // Layout changes fade in from now on; the first paint never does.
   requestAnimationFrame(() => document.body.classList.add('layout-ready'));
@@ -1141,6 +1714,7 @@ window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status && 'wallpaper' in status) applyWallpaper(status.wallpaper);
+  if (status && 'clock' in status) applyClock(status.clock);
   if (status && 'dynamicWallpaperEnabled' in status) {
     applyDynamicWallpaper(status.dynamicWallpaperEnabled);
   }

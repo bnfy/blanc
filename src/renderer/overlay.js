@@ -154,6 +154,10 @@
   // Quick Switcher corpora, refreshed each time the panel opens.
   let favorites = [];
   let historyEntries = [];
+  // F52: the profile's archived tabs (projected rows; never private).
+  let archivedEntries = [];
+  // Spec D6: the one-time first-archive notice ({count}), or null.
+  let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
@@ -323,6 +327,8 @@
     // The group header's ⋮ (tab group colors spec §6).
     more: '<svg viewBox="0 0 16 16"><circle cx="8" cy="3.75" r="1.1"/><circle cx="8" cy="8" r="1.1"/><circle cx="8" cy="12.25" r="1.1"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    // A split row's disclosure (F53): points right when closed, down when open.
+    caret: '<svg viewBox="0 0 16 16"><path d="M6.25 4.5 9.75 8l-3.5 3.5"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
     secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
@@ -331,6 +337,7 @@
     // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
     // baseline-low and renders unevenly across platforms.
     reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
+    archive: '<svg viewBox="0 0 16 16"><rect x="2.25" y="3" width="11.5" height="3" rx="0.75"/><path d="M3.25 6v6.25c0 .4.35.75.75.75h8c.4 0 .75-.35.75-.75V6M6.5 8.5h3"/></svg>',
     // Glance: a window split down the middle with the far half filled, "this
     // tab goes in the other half". The earlier page-and-sliver glyph read as a
     // video camera. The filled half keeps it apart from the footer's sidebar
@@ -360,6 +367,89 @@
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
+
+  // ---- Split View (F53): one row per split ------------------------------
+  // A split's tabs collapse into one row (TabSections.rowsOf); its disclosure
+  // lists them as ordinary rows. Which splits are open is this document's.
+  const openSplitRows = new Set();
+
+  /** Row nodes for a run of tabs, a split drawn once. `inGroup` marks rows
+   *  indented under a group header. */
+  function tabRowsFor(tabs, { inGroup = false } = {}) {
+    const byId = new Map(tabs.map((t) => [t.id, t]));
+    return TabSections.rowsOf(tabs.map((t) => t.id), state.tabs).flatMap((row) => {
+      if (row.kind === 'tab') {
+        const node = tabRow(byId.get(row.id));
+        if (inGroup) node.classList.add('in-group');
+        return [node];
+      }
+      return splitRowNodes(row.splitId, row.tabIds.map((id) => byId.get(id)).filter(Boolean), { inGroup });
+    });
+  }
+
+  function splitRowNodes(splitId, tabs, { inGroup = false } = {}) {
+    const split = (state.splits ?? []).find((s) => s.id === splitId);
+    const titles = tabs.map((t) => t.title || blancI18n.t('tab.untitled'));
+    const label = titles.length > 2
+      ? blancI18n.t('split.rowLabelMore', { first: titles[0], count: titles.length - 1 })
+      : blancI18n.t('split.rowLabel', { first: titles[0], second: titles[1] ?? '' });
+    const row = document.createElement('div');
+    row.className = 'island-row split-row'
+      + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
+      + (inGroup ? ' in-group' : '');
+    row.dataset.splitId = splitId;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
+    row.dataset.i18nIgnore = 'aria-label'; // page titles
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary split-row-primary';
+    const icons = document.createElement('span');
+    icons.className = 'split-row-icons';
+    for (const tab of tabs.slice(0, 4)) {
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      icons.append(favicon);
+    }
+    const title = document.createElement('span');
+    title.className = 'row-title split-row-title';
+    title.textContent = label;
+    title.dataset.i18nIgnore = '';
+    primary.append(icons, title);
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.dataset.i18nIgnore = 'aria-label';
+    const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
+    primary.addEventListener('click', () => {
+      if (focused) window.browserAPI.switchTab(focused.id);
+      window.browserAPI.closeOverlay();
+    });
+    const open = openSplitRows.has(splitId);
+    const disclosure = document.createElement('button');
+    disclosure.type = 'button';
+    disclosure.className = 'split-row-disclosure' + (open ? ' open' : '');
+    disclosure.dataset.noDrag = '';
+    disclosure.innerHTML = ICONS.caret;
+    disclosure.setAttribute('aria-expanded', String(open));
+    disclosure.setAttribute('aria-label', blancI18n.t('split.showTabs'));
+    disclosure.dataset.tooltip = blancI18n.t('split.showTabs');
+    disclosure.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (openSplitRows.has(splitId)) openSplitRows.delete(splitId);
+      else openSplitRows.add(splitId);
+      renderList();
+    });
+    row.append(primary, disclosure);
+    const nodes = [row];
+    if (open) {
+      for (const tab of tabs) {
+        const node = tabRow(tab);
+        node.classList.add('in-split');
+        if (inGroup) node.classList.add('in-group');
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  }
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
@@ -1271,6 +1361,7 @@
       window.browserAPI.saveFavorite(folder || null);
     } },
     { cmd: '/history', hint: blancI18n.t('slash.history.hint'), run: () => window.browserAPI.openPage('history') },
+    { cmd: '/archive', hint: blancI18n.t('slash.archive.hint'), run: () => window.browserAPI.openPage('history', 'archived') },
     { cmd: '/downloads', hint: blancI18n.t('slash.downloads.hint'), run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: blancI18n.t('slash.settings.hint'), run: () => window.browserAPI.openPage('settings') },
     { cmd: '/sync', hint: blancI18n.t('slash.sync.hint'), run: () => window.browserAPI.openPage('settings', 'sync') },
@@ -1506,6 +1597,47 @@
     return row;
   }
 
+  /** Spec D6: "Blanc archived N tabs · View Archive ×", once per profile, at
+   *  the top of the resting list where a missing tab would be looked for.
+   *  Shaped like the Recently closed band; both actions end it for good. */
+  function archiveNoticeBand(notice) {
+    const band = document.createElement('div');
+    band.className = 'island-group-band archive-notice';
+    band.setAttribute('role', 'status');
+    const row = document.createElement('div');
+    row.className = 'island-row in-group';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = ICONS.archive;
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = blancI18n.t('archive.notice.title', { count: notice.count });
+    const view = document.createElement('button');
+    view.type = 'button';
+    view.className = 'closed-clear archive-notice-view';
+    view.textContent = blancI18n.t('archive.notice.view');
+    view.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.archiveNoticeDone('view');
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close archive-notice-dismiss';
+    dismiss.setAttribute('aria-label', blancI18n.t('archive.notice.dismiss'));
+    dismiss.dataset.tooltip = blancI18n.t('archive.notice.dismiss');
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.archiveNoticeDone('dismiss');
+      archiveNotice = null;
+      renderList();
+    });
+    row.append(glyph, title, view, dismiss);
+    band.append(row);
+    return band;
+  }
+
   function commandNoticeRow(text) {
     const notice = emptyRow(text);
     notice.classList.add('command-notice');
@@ -1626,6 +1758,16 @@
         if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
+    // Archived tabs rank below remote tabs (+0.05) and above history (+0);
+    // the url-keyed dedup below keeps the archived row over a history row.
+    // A private tab's switcher never shows the Archive (F52).
+    const activePrivate = state.tabs.find((t) => t.id === state.activeTabId)?.private;
+    if (!activePrivate) {
+      for (const a of archivedEntries) {
+        const s = matchScore(query, matchableText(a.title, a.url));
+        if (s) results.push({ kind: 'archived', title: a.title || a.url, sub: `${stripUrl(a.url)} · ${blancI18n.t('result.archived')}`, url: a.url, tab: { url: a.url, favicon: a.favicon }, entryId: a.id, score: s + 0.02 });
+      }
+    }
     for (const h of historyEntries) {
       const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
@@ -1724,6 +1866,7 @@
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
     else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (result.kind === 'remote') window.browserAPI.createTab(result.url, { focusAddress: false });
+    else if (result.kind === 'archived') window.browserAPI.archiveRestore(result.entryId);
     else if (result.kind === 'search' && state.activeTabId) {
       window.browserAPI.search(state.activeTabId, result.query, result.providerId);
     }
@@ -2349,6 +2492,7 @@
       // which intercepts 'unsaved-scratch' before it ever becomes a plain
       // commandNotice string).
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
         ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
         : dragEmptyZone('pinned'));
@@ -2373,25 +2517,21 @@
         if (group) {
           const bandNodes = [groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset)];
           // Collapsed: header alone. Open: indent membership under the group.
-          if (!group.collapsed) {
-            for (const t of gtabs) {
-              const row = tabRow(t);
-              row.classList.add('in-group');
-              bandNodes.push(row);
-            }
-          }
+          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));
           rows.push(groupBand(group, bandNodes, gtabs[0].id));
           itemIndex += 1;
         } else {
           let chunk = [];
-          for (const t of gtabs) {
+          // A split is drawn once; Recently closed never lands inside one.
+          for (const row of TabSections.rowsOf(gtabs.map((t) => t.id), state.tabs)) {
             if (due()) {
               if (chunk.length) rows.push(dragSection('loose', chunk));
               chunk = [];
               placeClosed();
             }
-            chunk.push(tabRow(t));
-            itemIndex += 1;
+            const members = row.kind === 'tab' ? [row.id] : row.tabIds;
+            chunk.push(...tabRowsFor(members.map((id) => gtabs.find((t) => t.id === id)).filter(Boolean)));
+            itemIndex += members.length;
           }
           if (chunk.length) rows.push(dragSection('loose', chunk));
         }
@@ -3136,7 +3276,43 @@
     shieldPopPointer.hidden = mode !== 'shield' || !shieldConnected;
     if (Number.isFinite(x)) shieldPopPointer.style.left = `${x}px`;
   });
+  // A panel opened by hover closes once the pointer leaves it, until it is
+  // used (hover-panel-leave.js). Capture phase: rows stop their own events.
+  const HoverPanelLeave = globalThis.blancHoverPanelLeave;
+  let hoverLeave = HoverPanelLeave.initialLeaveState();
+  let hoverLeaveTimer = null;
+  function stepHoverLeave(event) {
+    const next = HoverPanelLeave.leaveStep(hoverLeave, event);
+    hoverLeave = next.state;
+    if (next.effect) {
+      clearTimeout(hoverLeaveTimer);
+      hoverLeaveTimer = null;
+    }
+    if (next.effect === 'start') {
+      hoverLeaveTimer = setTimeout(() => {
+        hoverLeaveTimer = null;
+        stepHoverLeave({ type: 'fired' });
+      }, HoverPanelLeave.LEAVE_GRACE_MS);
+    }
+    if (next.effect === 'close') window.browserAPI.closeOverlay('hover-leave');
+  }
+  const onPanelCard = (event) => HoverPanelLeave.pointNearCard(
+    { x: event.clientX, y: event.clientY }, islandPanel.getBoundingClientRect());
+  document.addEventListener('pointermove', (event) => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'move', inside: onPanelCard(event) });
+  }, { capture: true, passive: true });
+  document.documentElement.addEventListener('mouseleave', () => {
+    if (hoverLeave.watching) stepHoverLeave({ type: 'exit' });
+  });
+  document.addEventListener('keydown', () => stepHoverLeave({ type: 'interact' }), true);
+  for (const type of ['pointerdown', 'wheel']) {
+    document.addEventListener(type, (event) => {
+      if (hoverLeave.watching && onPanelCard(event)) stepHoverLeave({ type: 'interact' });
+    }, { capture: true, passive: true });
+  }
+
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
+    stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();
     // A quick close/reopen can arrive while the old retract timer is still
@@ -3210,6 +3386,7 @@
   }
 
   window.browserAPI.onOverlayHide((payload) => {
+    stepHoverLeave({ type: 'close' });
     islandDrag.cancel();
     hideIslandTip();
     // Closing the overlay any other way than Escape keeps a typed name.
@@ -3308,7 +3485,9 @@
       e.stopPropagation();
       return;
     }
-    window.browserAPI.closeOverlay();
+    // An Escape, as main's own path reports it: a surface opened from a
+    // control (the Glance card's Change) hands focus back to it.
+    window.browserAPI.closeOverlay('escape');
   });
 
   /** Layered Esc for the footer workspace popover. Returns true if handled
@@ -3566,15 +3745,19 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
       window.browserAPI.listWorkspaces(),
       window.browserAPI.bangs(),
+      window.browserAPI.archiveList(),
+      window.browserAPI.archiveNotice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
+    archivedEntries = Array.isArray(archivedList) ? archivedList : [];
+    archiveNotice = notice ?? null;
     remoteDevices = remoteList;
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;

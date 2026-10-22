@@ -5,7 +5,9 @@
     "trusted": [
       "blanc-chrome://index/",
       "blanc-chrome://overlay/",
-      "blanc-chrome://permission/"
+      "blanc-chrome://permission/",
+      "blanc-chrome://float/",
+      "blanc-chrome://glance/"
     ],
     "untrusted": [
       "blanc-chrome://fill-status/",
@@ -997,14 +999,14 @@
         false
       ]
     },
-    "promoteGlance": {
+    "openGlanceAsTab": {
       "kind": "invoke",
       "platforms": [
         "darwin",
         "win32",
         "linux"
       ],
-      "channel": "tabs:promote-glance",
+      "channel": "tabs:open-glance-as-tab",
       "calls": [
         {
           "label": "typical",
@@ -1012,7 +1014,7 @@
           "sends": [
             {
               "kind": "invoke",
-              "channel": "tabs:promote-glance",
+              "channel": "tabs:open-glance-as-tab",
               "args": []
             }
           ]
@@ -1463,7 +1465,8 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": []
         },
         {
           "tabs": [
@@ -1516,7 +1519,8 @@
                   "example"
                 ],
                 "error": "site-info-1"
-              }
+              },
+              "splitId": "tab-entry-1"
             }
           ],
           "activeTabId": "tab-id-1",
@@ -1543,7 +1547,24 @@
           "verticalTabsPreferredWidth": 1,
           "verticalTabsMinWidth": 1,
           "verticalTabsMaxWidth": 1,
-          "verticalTabsDefaultWidth": 1
+          "verticalTabsDefaultWidth": 1,
+          "splits": [
+            {
+              "id": "split-info-1",
+              "tabIds": [
+                "split-info-1"
+              ],
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  1
+                ],
+                "column": 1,
+                "row": 1
+              },
+              "focusedIndex": 1
+            }
+          ]
         }
       ]
     },
@@ -1851,8 +1872,18 @@
                 "bottom": 1,
                 "closing": true
               },
-              "minPrimaryWidth": 1,
-              "minReferenceWidth": 1
+              "windowControlsRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              },
+              "menuButtonRect": {
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1
+              }
             }
           ],
           "sends": [
@@ -1883,8 +1914,18 @@
                     "bottom": 1,
                     "closing": true
                   },
-                  "minPrimaryWidth": 1,
-                  "minReferenceWidth": 1
+                  "windowControlsRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "menuButtonRect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
                 }
               ]
             }
@@ -2178,64 +2219,6 @@
         }
       ]
     },
-    "resizeGlance": {
-      "kind": "send",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:resize-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [
-            {
-              "x": 1,
-              "y": 1
-            }
-          ],
-          "sends": [
-            {
-              "kind": "send",
-              "channel": "chrome:resize-glance",
-              "args": [
-                {
-                  "x": 1,
-                  "y": 1
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    "resetGlance": {
-      "kind": "invoke",
-      "platforms": [
-        "darwin",
-        "win32",
-        "linux"
-      ],
-      "channel": "chrome:reset-glance",
-      "calls": [
-        {
-          "label": "typical",
-          "args": [],
-          "sends": [
-            {
-              "kind": "invoke",
-              "channel": "chrome:reset-glance",
-              "args": []
-            }
-          ]
-        }
-      ],
-      "replies": [
-        1,
-        null
-      ]
-    },
     "onGlanceLayout": {
       "kind": "event",
       "platforms": [
@@ -2248,91 +2231,404 @@
         {
           "emit": [
             {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              }
-            }
-          ],
-          "callbacks": [
-            [
-              {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
+              "card": {
+                "chrome": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
+                "header": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
                 "page": {
                   "x": 1,
                   "y": 1,
                   "width": 1,
                   "height": 1
-                },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
                 }
+              },
+              "focusedPane": "main",
+              "generation": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "card": {
+                  "chrome": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "header": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "page": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  }
+                },
+                "focusedPane": "main",
+                "generation": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
+    "moveGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-move",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-move",
+              "args": [
+                {
+                  "generation": 1,
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resizeGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-resize",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1,
+              "edge": "n",
+              "dx": 1,
+              "dy": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-resize",
+              "args": [
+                {
+                  "generation": 1,
+                  "edge": "n",
+                  "dx": 1,
+                  "dy": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "resetGlanceCard": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:glance-card-reset",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            {
+              "generation": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:glance-card-reset",
+              "args": [
+                {
+                  "generation": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "x": 1,
+          "y": 1,
+          "width": 1,
+          "height": 1
+        },
+        null
+      ]
+    },
+    "keepGlanceAsSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-keep-glance",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-keep-glance",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "removeFromSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-remove",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-remove",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "closeSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-close",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:split-close",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "resizeSplit": {
+      "kind": "send",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:resize-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            1,
+            "x",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "x",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "axis = \"y\"",
+          "args": [
+            "example",
+            1,
+            "y",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "send",
+              "channel": "chrome:resize-split",
+              "args": [
+                "example",
+                1,
+                "y",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "resetSplit": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:reset-split",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:reset-split",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "onSplitLayout": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:split-layout",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [],
+              "dividers": []
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [],
+                "dividers": []
               }
             ]
           ]
@@ -2340,93 +2636,83 @@
         {
           "emit": [
             {
-              "direction": "horizontal",
-              "ratio": 1,
-              "minRatio": 1,
-              "maxRatio": 1,
-              "page": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "primary": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "divider": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceHeader": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glanceContent": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "glance": {
-                "x": 1,
-                "y": 1,
-                "width": 1,
-                "height": 1
-              },
-              "focusedPane": "main"
+              "splitId": "split-layout-1",
+              "mode": "columns",
+              "panes": [
+                {
+                  "tabId": "split-pane-1",
+                  "frame": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "content": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "focused": true,
+                  "title": "split-pane-1",
+                  "favicon": "split-pane-1",
+                  "private": true
+                }
+              ],
+              "dividers": [
+                {
+                  "index": 1,
+                  "axis": "x",
+                  "rect": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "saved": true
+                }
+              ]
             }
           ],
           "callbacks": [
             [
               {
-                "direction": "horizontal",
-                "ratio": 1,
-                "minRatio": 1,
-                "maxRatio": 1,
-                "page": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "primary": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "divider": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceHeader": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glanceContent": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "glance": {
-                  "x": 1,
-                  "y": 1,
-                  "width": 1,
-                  "height": 1
-                },
-                "focusedPane": "main"
+                "splitId": "split-layout-1",
+                "mode": "columns",
+                "panes": [
+                  {
+                    "tabId": "split-pane-1",
+                    "frame": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "content": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "focused": true,
+                    "title": "split-pane-1",
+                    "favicon": "split-pane-1",
+                    "private": true
+                  }
+                ],
+                "dividers": [
+                  {
+                    "index": 1,
+                    "axis": "x",
+                    "rect": {
+                      "x": 1,
+                      "y": 1,
+                      "width": 1,
+                      "height": 1
+                    },
+                    "saved": true
+                  }
+                ]
               }
             ]
           ]
@@ -3208,6 +3494,144 @@
             "favicon": "history-entry-1"
           }
         ]
+      ]
+    },
+    "archiveList": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "archived-tab-1",
+            "url": "archived-tab-1",
+            "title": "archived-tab-1",
+            "favicon": "archived-tab-1",
+            "archivedAt": 1,
+            "spaceName": "archived-tab-1"
+          }
+        ]
+      ]
+    },
+    "archiveRestore": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-restore",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-restore",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "archiveNotice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "count": 1
+        },
+        null
+      ]
+    },
+    "archiveNoticeDone": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:archive-notice-done",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "view"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "view"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "action = \"dismiss\"",
+          "args": [
+            "dismiss"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:archive-notice-done",
+              "args": [
+                "dismiss"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     },
     "listFavorites": {
@@ -5100,7 +5524,8 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": []
             }
           ],
           "callbacks": [
@@ -5151,7 +5576,8 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": []
               }
             ]
           ]
@@ -5209,7 +5635,8 @@
                       "example"
                     ],
                     "error": "site-info-1"
-                  }
+                  },
+                  "splitId": "tab-entry-1"
                 }
               ],
               "activeTabId": "tab-id-1",
@@ -5288,7 +5715,24 @@
               "verticalTabsPreferredWidth": 1,
               "verticalTabsMinWidth": 1,
               "verticalTabsMaxWidth": 1,
-              "verticalTabsDefaultWidth": 1
+              "verticalTabsDefaultWidth": 1,
+              "splits": [
+                {
+                  "id": "split-info-1",
+                  "tabIds": [
+                    "split-info-1"
+                  ],
+                  "layout": {
+                    "kind": "columns",
+                    "widths": [
+                      1
+                    ],
+                    "column": 1,
+                    "row": 1
+                  },
+                  "focusedIndex": 1
+                }
+              ]
             }
           ],
           "callbacks": [
@@ -5344,7 +5788,8 @@
                         "example"
                       ],
                       "error": "site-info-1"
-                    }
+                    },
+                    "splitId": "tab-entry-1"
                   }
                 ],
                 "activeTabId": "tab-id-1",
@@ -5423,7 +5868,24 @@
                 "verticalTabsPreferredWidth": 1,
                 "verticalTabsMinWidth": 1,
                 "verticalTabsMaxWidth": 1,
-                "verticalTabsDefaultWidth": 1
+                "verticalTabsDefaultWidth": 1,
+                "splits": [
+                  {
+                    "id": "split-info-1",
+                    "tabIds": [
+                      "split-info-1"
+                    ],
+                    "layout": {
+                      "kind": "columns",
+                      "widths": [
+                        1
+                      ],
+                      "column": 1,
+                      "row": 1
+                    },
+                    "focusedIndex": 1
+                  }
+                ]
               }
             ]
           ]
@@ -5671,6 +6133,103 @@
           "emit": [],
           "callbacks": [
             []
+          ]
+        }
+      ]
+    },
+    "onStripHidden": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:strip-hidden",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatFrame": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-frame",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "role": "pill",
+              "x": 1,
+              "y": 1,
+              "width": 1,
+              "height": 1,
+              "stageWidth": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "role": "pill",
+                "x": 1,
+                "y": 1,
+                "width": 1,
+                "height": 1,
+                "stageWidth": 1
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "onFloatShown": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:float-shown",
+      "deliveries": [
+        {
+          "emit": [
+            true
+          ],
+          "callbacks": [
+            [
+              true
+            ]
+          ]
+        },
+        {
+          "emit": [
+            false
+          ],
+          "callbacks": [
+            [
+              false
+            ]
           ]
         }
       ]

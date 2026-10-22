@@ -361,17 +361,6 @@
       "verdict": "verified"
     },
     {
-      "id": "site-133-arc-alternative-02",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "arcImport",
-        "freeSpaces"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "site-133-features-01",
       "source": "site/src/pages/features.astro",
       "exactWording": "Now free",
@@ -435,6 +424,18 @@
     }
   ],
   "supersededClaims": [
+    {
+      "id": "site-133-arc-alternative-02",
+      "source": "site/src/pages/arc-alternative.astro",
+      "exactWording": "Open Bring Your Tabs (type /bring-tabs in the ⌘L or Ctrl+L panel), choose Arc and pick the Spaces you want. Each one comes across with its pinned tabs, its Today tabs, and its folders as tab groups. Each Space becomes a space in Blanc Spaces. Tabs load only when you open them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "arcImport",
+        "freeSpaces"
+      ],
+      "verdict": "qualified",
+      "reason": "Superseded by the owner-approved October 19 switching guide; replacement wording and current release evidence are in docs/website-arc-switching-claims-v1.38.json."
+    },
     {
       "id": "site-133-workspaces-01",
       "source": "site/src/pages/features/workspaces.astro",

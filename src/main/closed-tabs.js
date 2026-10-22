@@ -125,6 +125,49 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
   return entry;
 }
 
+/** A closed group's or split's members as recorded: private members are
+ *  dropped (never recorded), the rest keep what a reopen restores. */
+function closedMembers(members) {
+  return members
+    .filter((m) => !m.private)
+    .map((m) => {
+      const pinnedHomeUrl = closedPinnedHome(m);
+      return {
+        url: m.url,
+        localFile: m.localFile === true,
+        openerSandboxFlags: m.openerSandboxFlags ?? 0,
+        title: typeof m.title === 'string' && m.title ? m.title : m.url,
+        customTitle: normalizeTabName(m.customTitle),
+        ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
+        favicon: typeof m.favicon === 'string' ? m.favicon : null,
+        pinned: !!m.pinned,
+        muted: !!m.muted,
+        snapshot: m.snapshot ?? null,
+      };
+    });
+}
+
+/** One entry for Close Split (Split View, F53): reopened whole, in order,
+ *  with its layout, at its place, back in its group if that still exists. */
+function buildSplitEntry(split, members, now = 0) {
+  return {
+    kind: 'split',
+    id: nextEntryId(),
+    closedAt: now,
+    split: {
+      layout: split.layout ?? null,
+      focusedIndex: Number.isInteger(split.focusedIndex) ? split.focusedIndex : 0,
+      index: Number.isInteger(split.index) ? split.index : 0,
+      groupId: typeof split.groupId === 'string' ? split.groupId : null,
+    },
+    tabs: closedMembers(members),
+    view: null,
+    heldAt: null,
+    wcId: null,
+    expiryTimer: null,
+  };
+}
+
 /** One entry for a whole group close (§2.2). Private members are dropped
  *  from the record (never recorded) though the caller still closes them. */
 function buildGroupEntry(group, members, now = 0) {
@@ -140,24 +183,7 @@ function buildGroupEntry(group, members, now = 0) {
       index: Number.isInteger(group.index) ? group.index : 0,
     },
     activeMemberIndex: Number.isInteger(group.activeMemberIndex) ? group.activeMemberIndex : 0,
-    tabs: members
-      .filter((m) => !m.private)
-      .map((m) => {
-        const pinnedHomeUrl = closedPinnedHome(m);
-        const member = {
-          url: m.url,
-          localFile: m.localFile === true,
-          openerSandboxFlags: m.openerSandboxFlags ?? 0,
-          title: typeof m.title === 'string' && m.title ? m.title : m.url,
-          customTitle: normalizeTabName(m.customTitle),
-          ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
-          favicon: typeof m.favicon === 'string' ? m.favicon : null,
-          pinned: !!m.pinned,
-          muted: !!m.muted,
-          snapshot: m.snapshot ?? null,
-        };
-        return member;
-      }),
+    tabs: closedMembers(members),
     view: null,
     heldAt: null,
     wcId: null,
@@ -226,13 +252,15 @@ function projectEntries(entries) {
     id: e.id,
     title: e.kind === 'group' ? e.group.name
       : e.kind === 'batch' ? `${e.tabs.length} tabs`
+      : e.kind === 'split' ? e.tabs.map((m) => m.customTitle || m.title).join(' + ')
       : (e.customTitle || e.title),
-    favicon: e.kind === 'group' || e.kind === 'batch' ? null : pngFavicon(e.favicon),
-    tabCount: e.kind === 'group' || e.kind === 'batch' ? e.tabs.length : 1,
+    favicon: ['group', 'batch', 'split'].includes(e.kind) ? null : pngFavicon(e.favicon),
+    tabCount: ['group', 'batch', 'split'].includes(e.kind) ? e.tabs.length : 1,
   }));
 }
 
 module.exports = {
+  buildSplitEntry,
   holdEligibility,
   mayParkTabView,
   sanitizeSnapshot,

@@ -54,7 +54,7 @@ test('the masthead is one sticky bar that stays put while the homepage scenes sc
   assert.doesNotMatch(styles + revamp, /is-tucked|is-scroll-hidden/);
   assert.doesNotMatch(styles, /\.site-header[^{}]*\{[^}]*inset: auto 0 0/s);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
-  assert.match(header, /import \{ directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
+  assert.match(header, /import \{ (browserMenu, )?directLinks(, pagePath)? \} from ['"]\.\.\/data\/navigation\.mjs['"]/);
   // The homepage's sticky scenes sit just below the bar, so it never hides.
   assert.doesNotMatch(header, /is-scroll-hidden|travel >= 8|tuckDistance|is-tucked/);
   assert.doesNotMatch(header, /pointerenter|mouseenter|site-mega/);

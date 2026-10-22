@@ -138,12 +138,12 @@
   background: var(--paper);
 }
 .sun-stage {
-  --w: 160px;
+  --w: 120px;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 96px 22px 88px;
+  padding: 40px 22px 72px;
   text-align: center;
 }
 .sun-sky {
@@ -186,15 +186,63 @@
 .sun-mark .sun-disc {
   clip-path: circle(20.6% at 49.9% 64.2%);
 }
+/* The headline sits in the middle column, as wide as its words, so the
+   handwritten note can sit above its end; everything else spans the copy. */
 .sun-copy {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  width: 100%;
+  max-width: 1120px;
+}
+.sun-copy > * {
+  grid-column: 1 / -1;
 }
 .sunrise h1 {
-  max-width: 11ch;
-  margin: 0 auto;
-  font-size: clamp(56px, 8.5vw, 120px);
+  grid-area: 1 / 2;
+  margin: 0;
+  font-size: clamp(44px, 6.6vw, 96px);
   line-height: 0.96;
+}
+/* "now, none at all", handwritten above the headline's end (owner, October 21,
+   2026). Real text; the underline flick is drawn. */
+.opening-aside {
+  grid-area: 1 / 2;
+  justify-self: end;
+  align-self: start;
+  position: relative;
+  margin: 0;
+  /* Tilted about its bottom-left corner, which is its lowest point, so no
+     font, however wide, dips it toward the headline. */
+  transform: translate(0.3em, calc(-100% - 0.15em)) rotate(-6deg);
+  transform-origin: 0 100%;
+  color: var(--gold);
+  font-family: "Reenie Beanie", "Bradley Hand", "Segoe Print", cursive;
+  font-size: clamp(26px, 2.9vw, 42px);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.opening-note {
+  display: block;
+  padding-bottom: 0.12em;
+}
+.opening-flick {
+  position: absolute;
+  left: -2%;
+  bottom: -0.02em;
+  width: 104%;
+  height: 0.3em;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+/* The window: its top half on the first screen, the rest after a scroll. */
+.opening-window {
+  margin-top: clamp(36px, 5vh, 56px);
 }
 .sunrise .lead {
   max-width: 31em;
@@ -689,8 +737,9 @@
   align-items: center;
 }
 
-/* Glance: the split drawn at 960 x 520 and scaled to its card, the divider
-   its one control (glance-demo.js). Site replicas keep Inter. */
+/* Glance: the window drawn at 960 x 520 and scaled to its card, with the
+   app's floating card (GlanceCard.astro) over the main page; moving the card
+   is its one control (glance-demo.js). */
 #glance {
   height: 100%;
 }
@@ -713,9 +762,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  display: grid;
-  grid-template-columns: minmax(0, var(--split)) 12px minmax(0, 1fr);
-  grid-template-rows: 1fr;
   width: 960px;
   height: 520px;
   overflow: hidden;
@@ -728,17 +774,13 @@
   color: var(--ink);
   font-family: var(--font-ui);
 }
-.glance-window.is-closed {
-  grid-template-columns: 1fr;
-}
-.glance-window.is-closed :is(.glance-divider, .glance-reference) {
-  display: none;
-}
 .glance-window.is-dragging {
   user-select: none;
 }
-/* The panes are sections; none of the page's section spacing. */
+/* The main page is a section; none of the page's section spacing. */
 .home-cinema .glance-pane {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -746,8 +788,7 @@
   padding: 0;
   overflow: hidden;
 }
-.glance-chrome,
-.glance-reference-chrome {
+.glance-chrome {
   display: flex;
   flex: none;
   align-items: center;
@@ -761,33 +802,6 @@
   display: block;
   width: 100%;
   height: 100%;
-}
-.glance-window[data-main-page="copenhagen"] .glance-native-island[data-page="louisiana"],
-.glance-window[data-main-page="louisiana"] .glance-native-island[data-page="copenhagen"] {
-  display: none;
-}
-.glance-reference-chrome {
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 0 12px;
-  background: #fff;
-  font-size: 11px;
-}
-.glance-reference-chrome > span:first-child {
-  color: var(--dim);
-  font-size: 9px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-.reference-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.glance-close-mark {
-  margin-left: auto;
-  color: var(--dim);
-  font: 22px/1 var(--font-ui);
 }
 .glance-document {
   flex: 1;
@@ -827,41 +841,35 @@
 .louisiana-title { position: absolute; z-index: 1; right: 24px; bottom: 36px; left: 24px; }
 .home-cinema .louisiana-title h4 { margin: 0 0 15px; color: #fff; font: 650 clamp(25px, 8.7cqi, 45px)/1.02 var(--font-ui); letter-spacing: -0.035em; text-transform: uppercase; overflow-wrap: anywhere; }
 .louisiana-title p { margin: 0; color: #fff; font: 400 12px/1.5 var(--font-ui); }
-.glance-divider {
-  position: relative;
+.glance-card-frame {
+  position: absolute;
   z-index: 2;
-  border-inline: 1px solid #e3ddd2;
-  background: #fff;
-  cursor: col-resize;
-  touch-action: pan-y;
+  left: var(--card-x, 96px);
+  top: var(--card-y, 68px);
+  width: var(--card-w, 768px);
+  height: var(--card-h, 420px);
+}
+.glance-native-card {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The card's header is its handle, as in the app: a 40px target over it.
+   The header itself is an inert illustration in the card's shadow root. */
+.glance-card-handle {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 40px;
+  border-radius: 8px 8px 0 0;
+  cursor: grab;
+  touch-action: none;
   user-select: none;
   outline-offset: -2px;
 }
-/* A 44px target at any scale. */
-.glance-divider::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 calc(50% - 22px / var(--glance-scale));
-  width: calc(44px / var(--glance-scale));
+.glance-window.is-dragging .glance-card-handle {
+  cursor: grabbing;
 }
-.glance-divider > span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 43px;
-  border-radius: 8px;
-  background: #c7b89f;
-  transform: translate(-50%, -50%);
-  transition: height 180ms, background 180ms;
-}
-.glance-divider:hover > span,
-.glance-divider:focus-visible > span,
-.glance-window.is-dragging .glance-divider > span {
-  height: 65px;
-  background: var(--gold);
-}
-.glance-divider:focus-visible {
+.glance-card-handle:focus-visible {
   outline: 2px solid var(--gold);
 }
 
@@ -989,8 +997,7 @@
 .gesture-controls button[aria-pressed="true"] { background: var(--night-text); color: var(--ink); }
 .gesture-controls button[aria-pressed="true"] span { color: #795b34; }
 @media (prefers-reduced-motion: reduce) {
-  .gesture-page,
-  .glance-divider > span {
+  .gesture-page {
     transition: none;
   }
 }
@@ -1627,6 +1634,26 @@ details[open] .faq-sign::after {
   min-height: 44px;
   text-decoration: none;
 }
+/* The Island scene's link to its feature page, below the three states. */
+/* Centered both in normal flow and on the sticky stage, a flex column. */
+.home-cinema .pin-more {
+  display: inline-flex;
+  align-self: center;
+  margin-top: 16px;
+}
+/* One quiet line of the feature pages the tool cards leave out. */
+.tools-more {
+  margin: 32px 0 0;
+  color: var(--night-dim);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.tools-more a {
+  text-decoration: none;
+}
+.tools-more a:hover {
+  text-decoration: underline;
+}
 
 /* ---------- Patron ---------- */
 .home-cinema .patron-section {
@@ -2128,14 +2155,10 @@ details[open] .faq-sign::after {
    no reduced-motion preference; otherwise the finished scene shows at once. */
 @media (prefers-reduced-motion: no-preference) {
   .sun-stage {
-    --w: min(56vmin, 540px);
-    min-height: calc(100vh - var(--site-header-h));
-    min-height: calc(100svh - var(--site-header-h));
-    box-sizing: border-box;
-    justify-content: center;
+    --w: min(34vmin, 300px);
     overflow: hidden;
-    padding-top: 32px;
-    padding-bottom: 48px;
+    padding-top: 28px;
+    padding-bottom: 72px;
   }
   .sun-sky,
   .sun-mark,
@@ -2156,8 +2179,9 @@ details[open] .faq-sign::after {
   .sun-mark .sun-disc { animation-name: sun-disc; }
   .sun-rays { animation-name: sun-rays; }
   .sun-copy { margin-top: calc(var(--w) * -0.52 + 8px); animation-name: sun-copy; }
-  /* The copy never hides from the keyboard: focusing a link shows it at once. */
-  .sun-copy:focus-within { animation: none; }
+  /* The copy never hides from the keyboard: focusing a link shows it at once.
+     Keyboard focus only, so a click in the window doesn't cut the entrance short. */
+  .sun-copy:has(:focus-visible) { animation: none; }
 }
 
 @keyframes home-rise { from { opacity: 0; transform: translateY(80px); } to { opacity: 1; transform: none; } }

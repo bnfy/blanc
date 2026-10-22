@@ -139,16 +139,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "v134-008",
-      "source": "site/src/components/MemoryChart.astro",
-      "exactWording": "Measured 15 October 2026 with Blanc 1.34.0, on fresh profiles with no extensions. Brave also blocks by default, and it used a little less. With Blanc’s blocker turned off, the same pages used 5.4 GB, about the same as Chrome, so the saving comes from blocking.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "memory"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "v134-009",
       "source": "site/src/components/MemoryChart.astro",
       "exactWording": "Under a third of Chrome’s memory.",
