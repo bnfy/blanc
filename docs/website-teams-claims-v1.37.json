@@ -1,0 +1,266 @@
+{
+  "publicRelease": "v1.37.0",
+  "sourceSha": "70a4cc14db6ef77d11ca26b88ae58c2a13580ac5",
+  "releaseEvidence": "docs/release-incidents/2026-10-18-v1.37.0.md",
+  "scope": "The Blanc for Teams pilot interest page (/teams), from the draft copy in the “Blanc for Teams pilot” doc, verified against public v1.37.0 on October 18, 2026. Changed from the draft: the Island no longer “floats”, Linux builds are described by their signed checksum manifest rather than as signed, blocking is “by default” rather than “from the first page”, Chromium updates are described as updates Blanc downloads and installs on restart, and the licence line is limited to Blanc’s own code. Labels (headings with no claim) carry no evidence group.",
+  "prohibitedClaims": [
+    "floating Island",
+    "signed builds for Mac, Windows and Linux",
+    "blocked from the first page",
+    "Blanc's code is MIT-licensed",
+    "US$"
+  ],
+  "evidenceGroups": {
+    "island": {
+      "evidence": [
+        "src/renderer/index.html",
+        "src/renderer/overlay.html",
+        "spec/features.md",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "Blanc replaces the permanent horizontal tab strip and conventional toolbar with the compact Island; its resting controls occupy a reserved 68px band above the page (it does not float over the page), and the user opens its panel to search, switch tabs and run slash commands. The draft's “single floating Island” was dropped for that reason."
+    },
+    "platformsUpdates": {
+      "evidence": [
+        "package.json",
+        "src/main/updater.js",
+        "src/main/updater-policy.js",
+        "test/unit/updater.test.js",
+        "test/unit/linux-update-rehearsal.test.js",
+        "site/src/pages/download.astro"
+      ],
+      "qualification": "v1.37.0 ships an Apple Silicon and an Intel DMG (signed and notarized), a signed Windows NSIS installer and a Linux AppImage. AppImages carry no OS publisher signature; their publisher check is the Sigstore-signed checksum manifest, so the copy says that instead of the draft's “signed builds” for all three. Packaged builds download updates themselves (electron-updater, autoDownload) and install them on restart; Flatpak updates through its own channel."
+    },
+    "blocking": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/adblock.js",
+        "src/main/adblock-startup.js",
+        "test/unit/adblock-startup.test.js"
+      ],
+      "qualification": "Blanc Blocker is on by default and blocks ad and tracker requests (EasyList + EasyPrivacy). The draft's “from the first page” was softened to “by default”: if the blocker cannot start, the user can continue without it."
+    },
+    "permissions": {
+      "evidence": [
+        "spec/features.md",
+        "src/main/permissions.js"
+      ],
+      "qualification": "Camera and microphone (media) are prompted permissions: a real site gets Blanc's prompt before use, per origin; file:// pages are denied without a prompt."
+    },
+    "chromium": {
+      "evidence": [
+        "package.json",
+        "src/main/updater.js",
+        "docs/press/release-notes/v1.37.0.md"
+      ],
+      "qualification": "Blanc runs on official Electron (44.8.0, Chromium 152, in v1.37.0); releases move to newer Electron builds and so to newer Chromium with its security fixes, and Blanc downloads them itself and installs them on restart. For a pilot this is a service the Blanc team performs, not a guarantee of a fixed patch interval."
+    },
+    "license": {
+      "evidence": [
+        "LICENSE",
+        "package.json",
+        "THIRD-PARTY-NOTICES.md",
+        "ASSET-LICENSE.md"
+      ],
+      "qualification": "Bananify Creative-owned code is MIT-licensed and public at github.com/bnfy/blanc. Third-party material keeps its own terms (THIRD-PARTY-NOTICES.md) and the names and logos stay reserved (ASSET-LICENSE.md), so the copy says “Blanc’s own code”, never the whole repository."
+    },
+    "pilotOffer": {
+      "evidence": [
+        "LICENSE",
+        "package.json"
+      ],
+      "qualification": "An offer, not a shipped feature: branded builds are made to order for pilot teams; no price, admin console, single sign-on or compliance certificate is offered. Every capability the offer relies on is recorded under its own group above."
+    }
+  },
+  "claims": [
+    {
+      "id": "teams-001",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Your team’s browser, with your name on it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-002",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Blanc is a quiet browser with almost no interface. We’ll build a version under your brand and keep it up to date, so your team gets a browser that feels like yours.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "pilotOffer",
+        "platformsUpdates"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-003",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Ask about a pilot",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-004",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "What you get",
+      "subject": "label",
+      "evidenceGroups": [],
+      "verdict": "verified"
+    },
+    {
+      "id": "teams-005",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Your brand",
+      "subject": "label",
+      "evidenceGroups": [],
+      "verdict": "verified"
+    },
+    {
+      "id": "teams-006",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Your name, your icon and your own Start Page. Blanc replaces the usual tab strip and toolbar with the Island, one compact bar your team opens to search, switch tabs and run commands.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "island",
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-007",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Every platform",
+      "subject": "label",
+      "evidenceGroups": [],
+      "verdict": "verified"
+    },
+    {
+      "id": "teams-008",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Builds for Mac, Windows and Linux that download their own updates. Mac builds are signed and notarized, Windows installers are signed, and Linux builds come with a signed checksum manifest.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "platformsUpdates"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-009",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Private by default",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking",
+        "permissions"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-010",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Blanc blocks ads and trackers by default, and a site must ask before it can use the camera or microphone.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "blocking",
+        "permissions"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-011",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Kept current",
+      "subject": "label",
+      "evidenceGroups": [],
+      "verdict": "verified"
+    },
+    {
+      "id": "teams-012",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "We build the updates, including newer Chromium releases with their security fixes, and Blanc installs them on restart, so nobody on your team has to.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "chromium",
+        "platformsUpdates"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-013",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Open source",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-014",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Blanc’s own code is MIT-licensed and public on GitHub, so your IT team can read every line of it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "license"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-015",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "We’re taking a few pilot teams.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-016",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Tell us what you’d need. Email support@blanc.day and we’ll reply.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-017",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Pilot builds are made to order. Admin consoles, single sign-on and compliance certificates aren’t offered yet.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-018",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "Blanc for Teams is a pilot: the Blanc browser built under your brand for Mac, Windows and Linux, and kept up to date for you. Tell us what you’d need.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer",
+        "platformsUpdates"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "teams-019",
+      "source": "site/src/pages/teams.astro",
+      "exactWording": "We’re taking a few pilot teams for a version of Blanc under their own brand.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "pilotOffer"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}

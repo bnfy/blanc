@@ -168,7 +168,7 @@ no double opt-in yet and unsubscribe is manual (token-gated DELETE) until a
 sending provider is chosen. The privacy page's "Newsletter (optional)" section
 describes exactly this contract — change them together or not at all.
 `components/NewsletterPrompt.astro` is the discreet signup card BaseLayout
-adds to measured, non-legal pages (not `/mail*`, `/ambassadors`, `/patron`):
+adds to measured, non-legal pages (not `/mail*`, `/ambassadors`, `/patron`, `/teams`):
 bottom corner, shown once per visit only after 8 s on the page and a quarter of it read,
 never while the footer form is on screen, no focus stealing. "Not now" snoozes
 it 60 days and a request from either form stops it for good, through one
@@ -189,6 +189,15 @@ by role, never as Polar (the Terms and Privacy Policy still name it, as the
 law needs), and offers Patrons priority feature requests: requests emailed to
 support@blanc.day from the checkout address are read and answered first.
 Patron still unlocks no browser features.
+
+**Blanc for Teams (`/teams`):** a pilot interest page for branded builds,
+from the draft in the "Blanc for Teams pilot" doc (October 18, 2026). It is in
+the sitemap but not in the header or footer, shows no price, and its one call
+to action is an email to support@blanc.day; the name and the contact link are
+constants at the top of `pages/teams.astro`. Every sentence, meta copy
+included, is recorded in `docs/website-teams-claims-v1.37.json`, and
+`test/unit/website-feature-evidence.test.js` fails on unrecorded copy or on the
+draft wording it corrected. Name no third-party providers there.
 
 **Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
 `/mail/download`) posts `{email, website}` to the same Worker's
