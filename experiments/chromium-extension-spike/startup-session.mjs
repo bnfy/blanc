@@ -17,4 +17,17 @@ export function prepareStartupSession(edit) {
       present: '  // Blanc continues its saved session on an ordinary application launch.\n'
     }
   ]);
+  edit('chrome/browser/ui/startup/startup_browser_creator.cc', [
+    {
+      anchor: '  if (is_first_run && SessionStartupPref::TypeIsDefault(prefs)) {\n',
+      replacement: `  // A fresh Blanc profile has no previous session, including when its
+  // controlled launcher suppresses the generic Chromium first-run flow.
+  const bool blanc_new_profile =
+      command_line.HasSwitch("blanc-prototype-assets") && profile->IsNewProfile();
+  if ((is_first_run || blanc_new_profile) &&
+      SessionStartupPref::TypeIsDefault(prefs)) {
+`,
+      present: '  const bool blanc_new_profile =\n'
+    }
+  ]);
 }
