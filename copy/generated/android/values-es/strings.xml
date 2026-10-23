@@ -709,6 +709,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="sync_error_server_error">Error del servidor de sincronización: inténtalo de nuevo más tarde.</string>
     <string name="sync_error_offline">No se pudo conectar con la sincronización: comprueba tu conexión.</string>
     <string name="sync_error_off">La sincronización está desactivada.</string>
+    <string name="sync_error_account_gone">Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador.</string>
     <string name="settings_sync_recovery_dialog_message">¿Copiar el código de recuperación de la sincronización?</string>
     <string name="settings_sync_recovery_dialog_detail">Cualquiera con este código puede leer y cambiar tus datos sincronizados. Pégalo ahora en tu gestor de contraseñas, y en ningún otro sitio.</string>
     <string name="settings_sync_recovery_dialog_copy">Copiar al portapapeles</string>

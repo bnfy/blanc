@@ -58,6 +58,7 @@ nonisolated struct SyncedSettings: Equatable, Sendable {
         let names = Self.mergeNames(values[key] ?? .object([]), value)
         if !names.pairs.isEmpty { values[key] = names }
         if let clock = remote.meta[key], clock > (meta[key] ?? 0) { setMeta(key, clock) }
+        setTie(key, "")  // never a whole-key tie: see setDeviceName
         continue
       }
       guard let rt = remote.meta[key] else {
@@ -113,7 +114,14 @@ nonisolated struct SyncedSettings: Equatable, Sendable {
       ), ("at", .number(Double(at))), ("tie", .string(tie)),
     ])
     names = Self.mergeNames(names, .object([]))
-    stampLocal(key: "deviceNames", value: names, now: now, tie: tie)
+    // Desktop keeps a clock for the whole key but never a tie-breaker (each
+    // entry carries its own), so recording one here would never match its
+    // export and both sides would rewrite settings on every pass.
+    let clock = max(now, (meta["deviceNames"] ?? 0) + 1)
+    guard clock < Self.maxClock else { return }
+    values["deviceNames"] = names
+    setMeta("deviceNames", clock)
+    setTie("deviceNames", "")
   }
   func equalsForSync(_ other: Self) -> Bool { payload().canonical() == other.payload().canonical() }
   static func validID(_ id: String) -> Bool {

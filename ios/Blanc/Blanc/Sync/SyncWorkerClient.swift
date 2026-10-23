@@ -44,7 +44,7 @@ nonisolated enum SyncError: Error, Equatable {
   case rateLimited, busy, tooLarge, badPassphrase
   case pairNotFound, pairUnavailable, pairInvalid, offline
   case server(Int)
-  case stale, storage, syncOn, syncOff, createOnComputer, wipeUnsupported
+  case stale, storage, syncOn, syncOff, createOnComputer, wipeUnsupported, accountGone
   var code: String {
     switch self {
     case .notFound: "not-found"
@@ -64,6 +64,7 @@ nonisolated enum SyncError: Error, Equatable {
     case .syncOff: "sync-off"
     case .createOnComputer: "create-on-computer"
     case .wipeUnsupported: "wipe-unsupported"
+    case .accountGone: "account-gone"
     }
   }
 }

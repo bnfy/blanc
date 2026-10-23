@@ -37,6 +37,14 @@ final class SyncCryptoTests: XCTestCase {
         }
     }
 
+    // JavaScript's toLowerCase, Final_Sigma included (review of #1068, P2-1).
+    func testLowercaseMatchesJavaScriptVectors() throws {
+        for vector in try SyncVectors.section("lowercase") {
+            let text = try XCTUnwrap(vector["input"]?["text"]?.string)
+            XCTAssertEqual(Array(SyncCrypto.lowercaseLikeJavaScript(text).unicodeScalars),
+                           Array(try XCTUnwrap(vector["expected"]?.string).unicodeScalars), text)
+        }
+    }
     func testOpenDesktopEnvelope() throws {
         for vector in try SyncVectors.section("envelopes") {
             let input = try XCTUnwrap(vector["input"])

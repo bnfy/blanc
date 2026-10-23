@@ -23,6 +23,7 @@ actor MemorySyncTransport: SyncTransport {
     func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
         blobs["v1/blob/\(account)/\(store.rawValue)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
     }
+    func remove(_ account: String, _ store: SyncStore) { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil }
     func fail(_ method: String, _ path: String, statuses: [Int]) { failures[method + " " + path] = statuses }
     func suspendNext(_ method: String, _ path: String) { heldMethod = method; heldPath = path }
     func isSuspended() -> Bool { held != nil }
@@ -246,6 +247,59 @@ actor MemorySyncTransport: SyncTransport {
         let g = try await make()
         await g.engine.syncNow()
         let puts = await putCount(g.transport, suffix: "/session"); XCTAssertEqual(puts, 0)
+    }
+    // Leaving a sync never depends on the retraction (review of #1068, P1-2).
+    func testDisableWithoutKeyStillTurnsSyncOff() async throws {
+        let f = try await make(sharing: true)
+        f.secrets.key = nil  // a backup restored to a new phone: sync.json, no device-only key
+        let result = await f.engine.disable()
+        XCTAssertEqual(result["ok"], .bool(true))
+        XCTAssertFalse(f.state.state.enabled); XCTAssertNil(f.state.state.accountId)
+        let requests = await f.transport.records(); XCTAssertTrue(requests.isEmpty)
+    }
+    func testDisableWhenRetractionFailsStillTurnsSyncOff() async throws {
+        let f = try await make(sharing: true)
+        await f.engine.syncNow()
+        let before = await putCount(f.transport)
+        await f.transport.fail("GET", "v1/blob/\(accountA)/session", statuses: [503])
+        let result = await f.engine.disable()
+        XCTAssertEqual(result["ok"], .bool(true))
+        XCTAssertFalse(f.state.state.enabled); XCTAssertNil(try f.secrets.readKey())
+        let after = await putCount(f.transport); XCTAssertEqual(after, before)
+    }
+    func testSwitchWithoutKeyJoinsTheNewAccount() async throws {
+        let f = try await make(sharing: true)
+        f.secrets.key = nil
+        try await f.transport.install(accountB, .settings, settings("dark"), key: f.key)
+        let result = await f.engine.switchWithCode(try code(accountB, key: f.key))
+        XCTAssertEqual(result["ok"], .bool(true)); XCTAssertEqual(f.state.state.accountId, accountB)
+        let toA = await f.transport.records().filter { $0.path.contains(accountA) }
+        XCTAssertTrue(toA.isEmpty)
+    }
+    // A sync deleted from desktop is never recreated by the phone (P2-3).
+    func testDeletedAccountIsNotRecreated() async throws {
+        let f = try await make()
+        await f.transport.remove(accountA, .settings)
+        f.engine.localSettingChanged(key: "theme", value: .string("dark"))
+        await f.engine.syncNow()
+        XCTAssertEqual(f.state.state.lastError, "account-gone")
+        let puts = await putCount(f.transport); XCTAssertEqual(puts, 0)
+    }
+    func testRetractionNeverCreatesAMissingTabList() async throws {
+        let f = try await make(sharing: true)
+        await f.engine.setShareTabs(false)
+        XCTAssertFalse(f.state.state.syncTabs)
+        let puts = await putCount(f.transport, suffix: "/session"); XCTAssertEqual(puts, 0)
+    }
+    // Favicons are optional, as on desktop (P2-4).
+    func testIconsFailureDoesNotBlockThePass() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .session, session("desktop-a"), key: f.key)
+        await f.transport.fail("GET", "v1/blob/\(accountA)/icons", statuses: [503])
+        await f.engine.syncNow()
+        XCTAssertNil(f.state.state.lastError)
+        XCTAssertEqual(f.engine.remoteDevices.map(\.id), ["desktop-a"])
+        XCTAssertEqual(f.state.load(.settings)?["values"]?["theme"], .string("light"))
     }
     func testDisablePersistenceFailurePreservesOldKeyAndAccount() async throws {
         let f = try await make()

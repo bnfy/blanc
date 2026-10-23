@@ -17,7 +17,7 @@ nonisolated enum SyncCrypto {
     enum Failure: Error { case invalidEnvelope }
 
     static func deriveKeys(handle: String, passphrase: String) throws -> SyncKeys {
-        let normalized = trim(handle).lowercased()
+        let normalized = lowercaseLikeJavaScript(trim(handle))
         let salt = Array("blanc-sync:v1:\(normalized)".utf8)
         var root = try Scrypt.derive(password: Array(passphrase.utf8), salt: salt,
                                      n: 32768, r: 8, p: 1, length: 64)
@@ -61,6 +61,38 @@ nonisolated enum SyncCrypto {
              0x2028, 0x2029, 0x202f, 0x205f, 0x3000, 0xfeff: return true
         default: return false
         }
+    }
+
+    /// `String.prototype.toLowerCase`: Unicode's default lowercase mapping per
+    /// scalar plus its one context rule, Final_Sigma (Σ becomes ς at the end of a
+    /// word). Swift's `lowercased()` always gives σ, which would derive a
+    /// different account for a handle such as "ΟΔΟΣ".
+    static func lowercaseLikeJavaScript(_ text: String) -> String {
+        let scalars = Array(text.unicodeScalars)
+        var out = String.UnicodeScalarView()
+        for (i, scalar) in scalars.enumerated() {
+            if scalar == "\u{03A3}", isFinalSigma(scalars, at: i) {
+                out.append("\u{03C2}")
+            } else {
+                out.append(contentsOf: String(scalar).lowercased().unicodeScalars)
+            }
+        }
+        return String(out)
+    }
+
+    /// Final_Sigma: a cased scalar before (skipping case-ignorables), and no cased
+    /// scalar after (skipping case-ignorables).
+    private static func isFinalSigma(_ scalars: [Unicode.Scalar], at index: Int) -> Bool {
+        func cased(in range: some Sequence<Int>) -> Bool {
+            for j in range {
+                let p = scalars[j].properties
+                if p.isCaseIgnorable { continue }
+                return p.isCased
+            }
+            return false
+        }
+        return cased(in: stride(from: index - 1, through: 0, by: -1))
+            && !cased(in: (index + 1)..<scalars.count)
     }
 
     static func trim(_ text: String) -> String {

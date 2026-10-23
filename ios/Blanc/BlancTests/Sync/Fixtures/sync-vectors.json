@@ -34,6 +34,17 @@
       }
     },
     {
+      "name": "ΟΔΟΣ",
+      "input": {
+        "handle": "ΟΔΟΣ",
+        "passphrase": "correct horse battery staple"
+      },
+      "expected": {
+        "accountId": "3cdc783f17f0d3a5a04dff553f578ce98c0f305c073c3e3beb763677fef25387",
+        "contentKey": "58012fc597d6605260f69ca03c219390f0a86f90942ee83b4da6e54c2325a815"
+      }
+    },
+    {
       "name": "ab",
       "input": {
         "handle": "ab",
@@ -6355,6 +6366,138 @@
         "a": 1
       },
       "expected": "{\"10\":\"ten\",\"2\":\"two\",\"a\":1}"
+    }
+  ],
+  "lowercase": [
+    {
+      "name": "ΟΔΟΣ",
+      "input": {
+        "text": "ΟΔΟΣ"
+      },
+      "expected": "οδος"
+    },
+    {
+      "name": "Σ",
+      "input": {
+        "text": "Σ"
+      },
+      "expected": "σ"
+    },
+    {
+      "name": "ΣΟΦΟΣ",
+      "input": {
+        "text": "ΣΟΦΟΣ"
+      },
+      "expected": "σοφος"
+    },
+    {
+      "name": "ΑΣ.Β",
+      "input": {
+        "text": "ΑΣ.Β"
+      },
+      "expected": "ασ.β"
+    },
+    {
+      "name": "ΑΣ.",
+      "input": {
+        "text": "ΑΣ."
+      },
+      "expected": "ας."
+    },
+    {
+      "name": "ΑΣ́",
+      "input": {
+        "text": "ΑΣ́"
+      },
+      "expected": "ας́"
+    },
+    {
+      "name": "ΟΔΟΣ ΜΟΥ",
+      "input": {
+        "text": "ΟΔΟΣ ΜΟΥ"
+      },
+      "expected": "οδος μου"
+    },
+    {
+      "name": ".Σ",
+      "input": {
+        "text": ".Σ"
+      },
+      "expected": ".σ"
+    },
+    {
+      "name": "ΑΣ́Β",
+      "input": {
+        "text": "ΑΣ́Β"
+      },
+      "expected": "ασ́β"
+    },
+    {
+      "name": "İstanbul",
+      "input": {
+        "text": "İstanbul"
+      },
+      "expected": "i̇stanbul"
+    },
+    {
+      "name": "ΑΣ1",
+      "input": {
+        "text": "ΑΣ1"
+      },
+      "expected": "ας1"
+    },
+    {
+      "name": "ΑΣ­Β",
+      "input": {
+        "text": "ΑΣ­Β"
+      },
+      "expected": "ασ­β"
+    }
+  ],
+  "deviceNamesRename": [
+    {
+      "name": "rename on phone",
+      "input": {
+        "deviceId": "abc-phone",
+        "name": "My phone",
+        "now": 1800000000000,
+        "tie": "t1"
+      },
+      "expected": {
+        "values": {
+          "searchEngine": "duckduckgo",
+          "searchEngineTemplate": "",
+          "adblockEnabled": true,
+          "homePage": "",
+          "theme": "system",
+          "adblockExceptions": [],
+          "newtabLayout": "billboard",
+          "newtabDynamicWallpaper": false,
+          "newtabColorWallpaper": false,
+          "newtabWallpaperColor": "sage",
+          "newtabWallpaperFill": "gradient",
+          "newtabFollowSpaceColor": false,
+          "newtabClockFont": "instrument",
+          "newtabClockWeight": 500,
+          "newtabClockColor": "auto",
+          "newtabClockTone": 50,
+          "newtabClockStyle": "solid",
+          "newtabClockHeight": 100,
+          "bangsEnabled": true,
+          "customBangs": [],
+          "deviceNames": {
+            "abc-phone": {
+              "name": "My phone",
+              "at": 1800000000000,
+              "tie": "t1"
+            }
+          }
+        },
+        "meta": {
+          "deviceNames": 1800000000000
+        },
+        "tieBreakers": {}
+      }
     }
   ]
 }

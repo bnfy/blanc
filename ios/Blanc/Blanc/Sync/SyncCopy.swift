@@ -29,6 +29,7 @@ enum SyncCopy {
       "credentials-save-failed": "sync.error.credentialsSave",
       "create-on-computer": "settings.sync.createOnComputer",
       "wipe-unsupported": "settings.sync.createOnComputer",
+      "account-gone": "sync.error.accountGone",
     ]
     return text(keys[code] ?? "sync.error.server")
   }

@@ -2563,6 +2563,10 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "sync.error.accountGone": {
+    "message": "This sync no longer exists. Turn sync off here, then add this phone again from your computer.",
+    "note": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it."
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copy your sync recovery code?",
     "note": "Settings → Sync → Copy recovery code: native dialog title."

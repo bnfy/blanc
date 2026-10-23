@@ -195,7 +195,8 @@ import Observation
       if stateStore.state.enabled, stateStore.state.accountId != payload.accountId,
         stateStore.state.syncTabs
       {
-        try await retract(try snapshot())
+        await retractBestEffort()
+        try check(g)
       }
       await cancelPairing()
       try adopt(handle: payload.handle, id: payload.accountId, key: key)
@@ -300,7 +301,7 @@ import Observation
     defer { transitioning = false }
     await barrier()
     do {
-      if stateStore.state.enabled, stateStore.state.syncTabs { try await retract(try snapshot()) }
+      if stateStore.state.enabled, stateStore.state.syncTabs { await retractBestEffort() }
       await cancelPairing()
       let oldKey = try secrets.readKey()
       let oldState = stateStore.state
@@ -362,12 +363,24 @@ import Observation
       let snap = try snapshot()
       try check(g)
       var pulled: [SyncStore: (String, JSONValue)] = [:]
+      var iconsUnavailable = false
       for store in SyncStore.allCases {
-        let item = try await request { try await client.get(snap.accountId, store) }
-        try check(g)
-        if let item { pulled[store] = (item.version, try decode(item.blob, key: snap.key)) }
+        do {
+          let item = try await request { try await client.get(snap.accountId, store) }
+          try check(g)
+          if let item { pulled[store] = (item.version, try decode(item.blob, key: snap.key)) }
+        } catch let error where store == .icons && (error as? SyncError) != .stale {
+          // Favicons are optional, as on desktop: a missing, broken or busy
+          // icons store keeps the phone's last icons and never blocks the rest.
+          try check(g)
+          iconsUnavailable = true
+        }
       }
       try check(g)
+      // Desktop creates the settings store when a sync starts, so its absence
+      // means the sync was deleted (Settings → Sync → delete synced data). The
+      // phone joins only: it stops and says so rather than recreating it.
+      guard pulled[.settings] != nil else { throw SyncError.accountGone }
       // Stage all reads/authentication before applying anything or writing remotely.
       var mergedSettings = settings
       if let data = pulled[.settings]?.1 {
@@ -384,14 +397,17 @@ import Observation
           in: mergedSession,
           entry: TabSnapshots.ownEntry(tabs: tabsSource(), previous: previous, now: clock()))
       }
-      let mergedIcons: JSONValue = .object([
-        (
-          "devices",
-          SyncedIcons.merge(
-            local: icons["devices"] ?? .object([]),
-            remote: pulled[.icons]?.1["devices"] ?? .object([]), now: clock())
-        )
-      ])
+      let mergedIcons: JSONValue =
+        iconsUnavailable
+        ? icons
+        : .object([
+          (
+            "devices",
+            SyncedIcons.merge(
+              local: icons["devices"] ?? .object([]),
+              remote: pulled[.icons]?.1["devices"] ?? .object([]), now: clock())
+          )
+        ])
       let mergedFavorites = SyncedFavorites.merge(
         local: stateStore.load(.bookmarks) ?? .object([]),
         remote: pulled[.bookmarks]?.1 ?? .object([]))
@@ -475,7 +491,10 @@ import Observation
         guard attempt < 3 else { throw SyncError.conflict(version: nil) }
         let latest = try await request { try await client.get(snap.accountId, store) }
         try check(snap.generation)
-        current = try latest.map { ($0.version, try decode($0.blob, key: snap.key)) }
+        // A conflict whose store has since vanished was a delete: never
+        // recreate it with ifVersion null.
+        guard let latest else { throw SyncError.accountGone }
+        current = (latest.version, try decode(latest.blob, key: snap.key))
         if store == .settings {
           var merged = SyncedSettings(payload: value)
           if let current { merged.merge(remote: SyncedSettings(payload: current.1)) }
@@ -497,10 +516,22 @@ import Observation
     }
     throw SyncError.conflict(version: nil)
   }
+  /// Leaving a sync (turning it off, or switching to another) must never depend
+  /// on the network or on the key still being there (a backup restored to a new
+  /// phone keeps sync.json but not the device-only key). Try to tell the other
+  /// devices this phone stopped sharing; if that can't happen, its entry ages
+  /// out after 30 days like any silent device's.
+  private func retractBestEffort() async {
+    guard let snap = try? snapshot() else { return }
+    try? await retract(snap)
+  }
   private func retract(_ snap: AccountSnapshot) async throws {
     let item = try await request { try await client.get(snap.accountId, .session) }
     try check(snap.generation)
-    let remote = try item.map { ($0.version, try decode($0.blob, key: snap.key)) }
+    // No tab list on the server: nothing lists this phone, and writing one
+    // would recreate data deleted from desktop.
+    guard let item else { return }
+    let remote: (String, JSONValue)? = (item.version, try decode(item.blob, key: snap.key))
     let merged: JSONValue = .object([
       (
         "devices",

@@ -2502,6 +2502,10 @@
     "message": "A sincronização está desativada.",
     "source": "sha256:a6b94c2efc548ceae8da66471f7f2a1917d874cf56b34623e92f11790da5323d"
   },
+  "sync.error.accountGone": {
+    "message": "Esta sincronização não existe mais. Desative-a aqui e adicione este telefone de novo pelo seu computador.",
+    "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copiar o código de recuperação da sincronização?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"

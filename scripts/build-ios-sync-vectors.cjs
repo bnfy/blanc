@@ -33,9 +33,13 @@ function seal(key, plaintext, iv) {
   assert.equal(crypt.decrypt(key, blob), plaintext); return blob;
 }
 try {
-  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], canonical: [] };
-  for (const [handle, passphrase] of [['Anthony','correct horse battery staple'],['  Zoë ','Pässwörd-1234'],['İstanbul','🦊🦊🦊🦊🦊 long enough'],['ab','x']]) {
+  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], canonical: [], lowercase: [], deviceNamesRename: [] };
+  for (const [handle, passphrase] of [['Anthony','correct horse battery staple'],['  Zoë ','Pässwörd-1234'],['İstanbul','🦊🦊🦊🦊🦊 long enough'],['ΟΔΟΣ','correct horse battery staple'],['ab','x']]) {
     const k = crypt.deriveKeys(handle,passphrase); vectors.deriveKeys.push(entry(handle,{handle,passphrase},{accountId:k.accountId,contentKey:k.key.toString('hex')}));
+  }
+  // JavaScript's toLowerCase applies Unicode's Final_Sigma rule; the handle salt depends on it.
+  for (const text of ['ΟΔΟΣ','Σ','ΣΟΦΟΣ','ΑΣ.Β','ΑΣ.','ΑΣ\u0301','ΟΔΟΣ ΜΟΥ','.Σ','ΑΣ\u0301Β','İstanbul','ΑΣ1','ΑΣ\u00adΒ']) {
+    vectors.lowercase.push(entry(text,{text},text.toLowerCase()));
   }
   const payload = { v:1, handle:'Anthony', accountId:vectors.deriveKeys[0].expected.accountId, key:Buffer.from(vectors.deriveKeys[0].expected.contentKey,'hex').toString('base64') };
   for (const code of ['k7mr-4px2','K7MR 4PX2','ABCDEFGH']) {
@@ -58,6 +62,15 @@ try {
   }
   const nmLocal={phone:{name:'Phone',at:100,tie:'b'}}, nmRemote={phone:{name:'😀',at:100,tie:'a'},desktop:{name:'Desk',at:200,tie:''}};
   vectors.deviceNamesMerge.push(entry('entry clocks',{local:nmLocal,remote:nmRemote},names.mergeDeviceNames(nmLocal,nmRemote)));
+  // A rename made on the phone: desktop must merge it and export a payload the
+  // phone sees as equal, or the two rewrite settings on every pass.
+  {
+    const phone={values:{deviceNames:{'abc-phone':{name:'My phone',at:fixedNow,tie:'t1'}}},meta:{deviceNames:fixedNow},tieBreakers:{}};
+    const mod=moduleInProfile('settings',{onboardingVersion:1,presentationDefaultsResetVersion:999});
+    mod.mergeFromSync(phone); const exported=mod.exportForSync();
+    assert.ok(mod.syncPayloadEquals(exported,phone),'desktop must treat the phone rename as already in sync');
+    vectors.deviceNamesRename.push(entry('rename on phone',{deviceId:'abc-phone',name:'My phone',now:fixedNow,tie:'t1'},exported));
+  }
   const dev=(name,updatedAt,tabsList=[])=>({name,platform:'ios',updatedAt,tabs:tabsList,groups:[]});
   for(const [name,local,remote] of [['own wins tie',{own:dev('local',fixedNow)},{own:dev('remote',fixedNow)}],['retraction wins tie',{other:dev('local',fixedNow)},{other:{retracted:true,updatedAt:fixedNow}}],['thirty day prune',{old:dev('old',fixedNow-tabs.PRUNE_MS-1)},{new:dev('new',fixedNow)}]]) {
     vectors.sessionMerge.push(entry(name,{local,remote,ownId:'own',now:fixedNow},tabs.mergeDevices(local,remote,{ownId:'own',now:fixedNow})));

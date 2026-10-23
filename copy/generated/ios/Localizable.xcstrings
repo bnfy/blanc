@@ -27937,6 +27937,48 @@
         }
       }
     },
+    "sync.error.accountGone": {
+      "comment": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sync no longer exists. Turn sync off here, then add this phone again from your computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses Telefon dann auf deinem Computer erneut hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa sincronizzazione non esiste più. Disattivala qui, poi aggiungi di nuovo questo telefono dal tuo computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronização não existe mais. Desative-a aqui e adicione este telefone de novo pelo seu computador."
+          }
+        }
+      }
+    },
     "settings.sync.recovery.dialogMessage": {
       "comment": "Settings → Sync → Copy recovery code: native dialog title.",
       "extractionState": "manual",
