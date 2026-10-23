@@ -4,6 +4,11 @@ if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const packageMetadata = require('../../package.json');
+const drmSupport = require('./drm-support').createDrmSupport({
+  app, session, BrowserWindow, metadata: packageMetadata,
+  components: packageMetadata.blancRuntime === 'ecs' ? require('electron').components : undefined,
+});
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
   savesSessionEntry,
@@ -1821,6 +1826,10 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
+  if (drmSupport.enabled) {
+    void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
+    return;
+  }
   externalUrlHandoff.openLocalFiles(paths);
 }
 
@@ -8259,7 +8268,7 @@ initTabView({
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
-  const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
+  const admittedLocalFile = !drmSupport.enabled && allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external

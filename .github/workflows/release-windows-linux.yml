@@ -31,6 +31,11 @@ on:
         required: false
         default: false
         type: boolean
+      ecs_production:
+        description: "Private ECS production-integration qualification (never publishes)"
+        required: false
+        default: false
+        type: boolean
       platform:
         description: "Platform jobs to run"
         required: true
@@ -56,6 +61,7 @@ jobs:
           RELEASE_PLATFORM: ${{ inputs.platform }}
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
           ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
+          ECS_PRODUCTION: ${{ inputs.ecs_production }}
         run: |
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
@@ -63,6 +69,10 @@ jobs:
           fi
           if [ "$ECS_CANDIDATE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ]; }; then
             echo "ECS requires validation mode and excludes unqualified uBO" >&2
+            exit 1
+          fi
+          if [ "$ECS_PRODUCTION" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ]; }; then
+            echo "ECS production integration requires exclusive private validation mode" >&2
             exit 1
           fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
@@ -85,7 +95,7 @@ jobs:
 
   windows:
     needs: validate-inputs
-    if: ${{ !inputs.ecs_candidate && (inputs.platform == 'all' || inputs.platform == 'windows') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
@@ -401,9 +411,122 @@ jobs:
             dist/ublock-noscript-windows.json
             dist/ublock-installed-windows.json
 
+  ecs-production-windows:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
+    runs-on: windows-latest
+    environment: ecs-signing
+    permissions:
+      contents: read
+    steps:
+      - name: Preserve repository bytes
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Install pinned EVS client
+        shell: pwsh
+        run: |
+          python -m venv "$env:RUNNER_TEMP/evs-venv"
+          & "$env:RUNNER_TEMP/evs-venv/Scripts/python.exe" -m pip install castlabs-evs==1.3.2
+          if ($LASTEXITCODE -ne 0) { throw 'EVS install failed' }
+      - name: Materialize protected credentials without logging their values
+        env:
+          EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
+          EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
+        run: node scripts/prepare-evs-ci.cjs
+      - name: Build private production-integration installer
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: node scripts/build-ecs-production.cjs --win --x64
+      - name: Verify final Authenticode signatures after VMP signing
+        shell: pwsh
+        env:
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          if (!$env:EXPECTED_WINDOWS_PUBLISHER) { throw 'Expected publisher is required' }
+          $version = node -p "require('./package.json').version"
+          foreach ($file in @("dist-ecs/Blanc-Setup-$version.exe", 'dist-ecs/win-unpacked/Blanc.exe')) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid' -or !$signature.TimeStamperCertificate -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER) { throw "Invalid final signature: $file" }
+          }
+      - name: Verify native browser and local-file isolation
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist-ecs/win-unpacked/Blanc.exe).Path
+          $env:BLANC_UBLOCK_EVIDENCE = "$PWD/output/ecs-production/ublock-windows.json"
+          node test/desktop/packaged-ublock-acceptance.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'uBO acceptance failed' }
+          node test/desktop/ecs-production-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Offline startup or file access isolation failed' }
+          node test/desktop/packaged-workspace-recovery-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Workspace recovery failed' }
+          node test/desktop/packaged-media-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Media permissions failed' }
+      - name: Remove EVS credentials even after failure
+        if: always()
+        run: node scripts/prepare-evs-ci.cjs --clean
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-production-windows-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
+
+  ecs-production-linux:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci
+      - name: Verify production profile selection and preload isolation
+        run: node --test test/unit/ecs-linux-launcher.test.js
+      - name: Build private production-integration AppImage
+        run: node scripts/build-ecs-production.cjs --linux --x64
+      - name: Verify native browser and local-file isolation
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          export BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-linux.json"
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-ublock-acceptance.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-production-linux-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
+
   linux:
     needs: validate-inputs
-    if: ${{ !inputs.ecs_candidate && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -682,7 +805,7 @@ jobs:
 
   linux-sandbox:
     needs: validate-inputs
-    if: ${{ !inputs.ecs_candidate && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     strategy:
       fail-fast: false
       matrix:

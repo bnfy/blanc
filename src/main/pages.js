@@ -49,6 +49,8 @@ const PAGES_DIR = path.join(__dirname, '../renderer/pages');
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
+    ...(require('../../package.json').blancRuntime === 'ecs'
+      ? [require('./local-html-preview').LOCAL_HTML_SCHEME] : []),
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
     // The privileged strip + overlay cannot remain on file:// when the
     // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
@@ -105,7 +107,7 @@ function setupPages(hooks = {}) {
 
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
-    if (branding) return net.fetch(pathToFileURL(branding).toString());
+    if (branding) return net.fetch(pathToFileURL(branding).toString(), { bypassCustomProtocolHandlers: true });
     const { host, pathname } = new URL(request.url);
     // The custom Start Page image is a userData file, so it is answered by
     // its own exact name, never through the flat PAGES_DIR resolver below.
@@ -129,7 +131,7 @@ function setupPages(hooks = {}) {
       dockIconPath: developmentDockIconPath,
       darkDockIconPath: developmentDarkDockIconPath,
     });
-    return net.fetch(pathToFileURL(resource).toString());
+    return net.fetch(pathToFileURL(resource).toString(), { bypassCustomProtocolHandlers: true });
   };
 
   // The top-level `protocol` module binds only to the default session, so a

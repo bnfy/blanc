@@ -12,6 +12,8 @@
     "dist": "electron-builder",
     "predist:dir": "npm run brand:check && npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
     "dist:dir": "electron-builder --dir",
+    "dist:ecs": "node scripts/build-ecs-production.cjs",
+    "dist:ecs:dir": "node scripts/build-ecs-production.cjs --dir",
     "release": "scripts/release.sh",
     "site:changelog": "node scripts/generate-site-changelog.mjs",
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",

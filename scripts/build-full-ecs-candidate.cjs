@@ -14,7 +14,7 @@ function replaceExactly(source, before, after, label) {
 function patchMain(source) {
   source = replaceExactly(source, '  externalUrlHandoff.openLocalFiles(paths);',
     "  require('./ecs-full-bootstrap.cjs').openLocalFiles(paths);", 'local HTML entrypoint');
-  source = replaceExactly(source, '  const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);',
+  source = replaceExactly(source, '  const admittedLocalFile = !drmSupport.enabled && allowLocalFile && isSupportedLocalHtmlUrl(url);',
     '  const admittedLocalFile = false; // Candidate: never admit raw file URLs into browser tabs.', 'raw file admission');
   source = replaceExactly(source, '  if (!ownsInstanceLock) return;\n  mainI18n.init();',
     "  if (!ownsInstanceLock) return;\n  await require('./ecs-full-bootstrap.cjs').ready;\n  mainI18n.init();", 'DRM startup gate');
@@ -57,16 +57,15 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   await patch('src/main/pages.js', source => {
     source = replaceExactly(source, '  protocol.registerSchemesAsPrivileged([',
       "  protocol.registerSchemesAsPrivileged([\n    require('./ecs-local-html.cjs').LOCAL_HTML_SCHEME,", 'local preview scheme');
-    source = replaceExactly(source, 'net.fetch(pathToFileURL(branding).toString())',
-      'net.fetch(pathToFileURL(branding).toString(), { bypassCustomProtocolHandlers: true })', 'trusted branding loader');
-    return replaceExactly(source, 'net.fetch(pathToFileURL(resource).toString())',
-      'net.fetch(pathToFileURL(resource).toString(), { bypassCustomProtocolHandlers: true })', 'trusted page loader');
+    return source;
   });
-  await patch('src/main/chrome-protocol.js', source => replaceExactly(source,
-    'net.fetch(pathToFileURL(resource).href)', 'net.fetch(pathToFileURL(resource).href, { bypassCustomProtocolHandlers: true })', 'trusted chrome loader'));
   if (!stagingUpdater) await patch('src/main/updater.js', () => "'use strict';\nmodule.exports = { setupAutoUpdater() {}, checkForUpdatesManually: async () => ({ enabled: false, reason: 'Isolated ECS candidate never updates' }) };\n");
   await patch('src/main/default-browser-status.js', () => "'use strict';\nmodule.exports = { canSetDefaultBrowser: () => false, createDefaultBrowserStatus: () => () => ({ isDefault: false, canSet: false }), requestDefaultBrowser: () => false };\n");
-  for (const name of ['drm-runtime.js', 'ecs-full-bootstrap.cjs', 'ecs-local-html.cjs', 'ecs-graphics-policy.cjs', 'ecs-drm-startup.cjs', 'ecs-updater-policy.cjs', 'ecs-profile-policy.cjs', 'ecs-runtime-state.cjs', 'ecs-appimage-relaunch.cjs']) await fs.copyFile(path.join(__dirname, name), path.join(project, 'src/main', name));
+  const shared = { 'drm-runtime.js': 'drm-runtime.js', 'ecs-local-html.cjs': 'local-html-preview.js',
+    'ecs-drm-startup.cjs': 'drm-startup.js', 'ecs-appimage-relaunch.cjs': 'drm-relaunch.js' };
+  for (const name of ['drm-runtime.js', 'ecs-full-bootstrap.cjs', 'ecs-local-html.cjs', 'ecs-graphics-policy.cjs', 'ecs-drm-startup.cjs', 'ecs-updater-policy.cjs', 'ecs-profile-policy.cjs', 'ecs-runtime-state.cjs', 'ecs-appimage-relaunch.cjs']) {
+    await fs.copyFile(shared[name] ? path.join(root, 'src/main', shared[name]) : path.join(__dirname, name), path.join(project, 'src/main', name));
+  }
   // Every adaptation is confined to this private tree. The original lockfile,
   // production runtime declaration, reviewed uBO matrix and entitlements stay untouched.
   const config = {

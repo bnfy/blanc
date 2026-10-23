@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "cdf75b4954602a33241c63988d892adf77a1999fc42647823d4b70a2c6aff1f7",
+      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -212,6 +212,38 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/drm-relaunch.js",
+      "sha256": "2d377e5837a34763b06904581a2fcd1e2d411df96c4d5114035125051cb6d427",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/drm-runtime.js",
+      "sha256": "d5bcd6a740b7dbe47cd62b674c7ffc945f11fde08c390884692bb3e93e69fcce",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/drm-startup.js",
+      "sha256": "35051822690ed11fecfe9f331ea4640c5429f5e1fb8fa3faea1dd2835dffe10b",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/drm-support.js",
+      "sha256": "9b50506fcceb58e06a93b20911baf9a05d1513e84eeeecde741df44e6e69fa62",
+      "literalChannels": [
+        "file",
+        "session-created",
+        "unhandledRejection",
+        "web-contents-created",
+        "will-frame-navigate",
+        "will-navigate",
+        "will-redirect"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/external-protocols.js",
       "sha256": "e3de37e86a4c74cb9ff1acafe8946ef040672d606ba734367f1aa2697152d4cb",
       "literalChannels": [
@@ -243,6 +275,19 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/local-html-preview.js",
+      "sha256": "629c4d43dbfacbc8f815ae3ef81751d9e765987be3fe7296d594d9c92aaf6621",
+      "literalChannels": [
+        "blanc-local-preview",
+        "will-attach-webview",
+        "will-download",
+        "will-frame-navigate",
+        "will-navigate",
+        "will-redirect"
+      ],
+      "role": "privileged implementation or service"
+    },
+    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -250,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "1a2dec1acd24a14d70d1d2c0d509f9f505b09cc54d1e036a9e53a99dbd3e0ac0",
+      "sha256": "faba4f6677fc4404ce2bb1f645c129690abbb204f7485c19f479b25d1fca0035",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -482,7 +527,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "fcfdc4360cab2d8c2c43b7595e12c8da2eb1592528a8e8058e04d0b30595ac49",
+      "sha256": "b89e5ea010146abda34eefeecadfeba9277a1669d3b0ecc805e5d948009f8859",
       "literalChannels": [
         "blanc",
         "pages:app-version",

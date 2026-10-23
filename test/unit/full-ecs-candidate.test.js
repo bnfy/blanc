@@ -61,7 +61,8 @@ test('production does not load full candidate bootstrap and retains off file fus
   assert.ok(!metadata.blancEcsFullCandidate);
   assert.ok(!metadata.blancEcsGraphicsPolicy);
   assert.ok(!fs.existsSync(path.join(root, 'src/main/ecs-graphics-policy.cjs')));
-  assert.ok(!fs.existsSync(path.join(root, 'src/main/drm-runtime.js')));
+  assert.ok(fs.existsSync(path.join(root, 'src/main/drm-runtime.js')), 'shared runtime implementation is available to explicit ECS builds');
+  assert.equal(require('../../src/main/drm-support').createDrmSupport({ metadata }).enabled, false, 'ordinary builds do not enable ECS');
   const { FileMatcher } = require('app-builder-lib/out/fileMatcher');
   const filter = new FileMatcher(root, '/unused', value => value, metadata.build.files).createFilter();
   for (const name of ['drm-runtime.js', 'ecs-full-bootstrap.cjs', 'ecs-local-html.cjs']) {

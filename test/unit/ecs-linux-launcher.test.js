@@ -110,3 +110,29 @@ test('AppImage entrypoint uses its own launcher, never an inherited mount or san
   assert.match(builder, /if \(nativeSecurityPatch\) \{/);
   assert.match(builder, /ecs-linux-launcher\.cc/);
 });
+
+test('production launcher uses normal profile paths without creating them before migration', { skip: process.platform !== 'linux' }, t => {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ecs-production-launcher-')));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const app = path.join(root, 'app'); fs.mkdirSync(app);
+  const launcher = path.join(app, 'blanc-ecs-launcher');
+  execFileSync('c++', ['-std=c++17', '-DBLANC_ECS_PRODUCTION', '-Wall', '-Wextra', '-Werror', path.resolve('scripts/ecs-linux-launcher.cc'), '-o', launcher]);
+  fs.writeFileSync(path.join(app, 'blanc-cdm-preload.so'), 'fixture');
+  fs.writeFileSync(path.join(app, 'blanc'), '#!/bin/sh\nprintf "%s\\n" "$BLANC_ECS_FULL_PROFILE" "$@"\n', { mode: 0o755 });
+  const config = path.join(root, 'config'); fs.mkdirSync(config);
+  const run = (args = [], env = {}) => spawnSync(launcher, args, { encoding: 'utf8', env: { ...process.env, XDG_CONFIG_HOME: config, BLANC_ECS_FULL_PROFILE: '/ignored-candidate-profile', ...env } });
+  const result = run();
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout.split('\n')[0], path.join(config, 'Blanc'));
+  assert.equal(fs.existsSync(path.join(config, 'Blanc')), false, 'legacy migration owns profile creation');
+  const explicit = path.join(root, 'custom profile'); fs.mkdirSync(explicit, { mode: 0o700 });
+  assert.equal(run([`--user-data-dir=${explicit}`]).stdout.split('\n')[0], explicit);
+  assert.equal(run(['--user-data-dir', explicit]).status, 0);
+  assert.equal(run(['--user-data-dir=relative']).status, 126);
+  assert.equal(run([`--user-data-dir=${explicit}`, '--user-data-dir=/another']).status, 126);
+  const alias = path.join(root, 'config-link'); fs.symlinkSync(config, alias);
+  assert.equal(run([], { XDG_CONFIG_HOME: alias }).stdout.split('\n')[0], path.join(config, 'Blanc'));
+  fs.chmodSync(explicit, 0o777);
+  assert.equal(run([`--user-data-dir=${explicit}`]).status, 126, 'shared writable profile rejected');
+  for (const flag of ['--no-sandbox', '--no-zygote-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox']) assert.equal(run([flag]).status, 126);
+});
