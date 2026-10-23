@@ -42,12 +42,12 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
-  // Sunrise Spectrum and Sunrise Amber: the Sunrise redrawn as a sun and
-  // heavy rounded rays with no water lines, each a colored glass layer over a
-  // white rim, with a near-black tile in Dark. Spectrum runs deep blue through
-  // red to light pink on the graded gray Arc's icon sits on in the Dock;
-  // Amber is bronze on a warm cream fill. Their layers live in
-  // build/app-icons/colorways (npm run brand:build).
+  // Sunrise Spectrum and Sunrise Amber: the Sunrise redrawn as a ring sun,
+  // seven rays and six water lines, each part a colored glass layer over a
+  // white rim, with a near-black tile in Dark. Spectrum is coral over blue on
+  // the graded gray Arc's icon sits on in the Dock; Amber is gold over bronze
+  // on a warm cream fill. Their layers live in build/app-icons/colorways
+  // (npm run brand:build).
   // Spectrum's tile is Arc's graded gray, too much for a one-color fill, so
   // it is drawn as tile images (a near-black one in Dark), like Gold's.
   'sunrise-spectrum': colorwayDefinition('SunriseSpectrum', 'spectrum', '#C3C9D2', '#3A3942', {
@@ -66,7 +66,10 @@ function colorwayDefinition(nativeName, prefix, background, darkBackground, tile
     imageDir: 'build/app-icons/colorways',
     imageName: `${prefix}-sun.png`,
     layerName: 'Sun',
-    extraLayers: [{ imageName: `${prefix}-rays.png`, layerName: 'Rays' }],
+    extraLayers: [
+      { imageName: `${prefix}-rays.png`, layerName: 'Rays' },
+      { imageName: `${prefix}-water.png`, layerName: 'Water' },
+    ],
     rimImageName: `${prefix}-rim.png`,
     glass: true,
     specular: true,

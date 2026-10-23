@@ -105,7 +105,7 @@ test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', ()
   for (const layer of tiles.layers) assert.equal(layer.glass, false);
 });
 
-test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', () => {
+test('Sunrise Spectrum and Amber stack a glass sun, rays and water over a white rim', () => {
   for (const [id, nativeName, prefix] of [
     ['sunrise-spectrum', 'SunriseSpectrum', 'spectrum'],
     ['sunrise-amber', 'SunriseAmber', 'amber'],
@@ -119,7 +119,7 @@ test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', (
     const [mark, rim, tiles] = document.groups;
     assert.deepEqual(
       mark.layers.map((layer) => [layer.name, layer['image-name'], layer.glass]),
-      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true]],
+      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true], ['Water', `${prefix}-water.png`, true]],
     );
     assert.equal(mark.specular, true);
     assert.equal(mark.lighting, 'individual');
@@ -767,11 +767,11 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
   const CANVAS = 1024;
   const visible = (_r, _g, _b, a) => a > 24;
   // The colored strokes, not the white rim, glow or tile.
-  const colored = (r, g, b, a) => a > 200 && Math.max(r, g, b) - Math.min(r, g, b) > 90;
+  const colored = (r, g, b, a) => a > 200 && Math.max(r, g, b) - Math.min(r, g, b) > 60;
   for (const prefix of ['spectrum', 'amber']) {
     const layer = (part) => path.join(root, `build/app-icons/colorways/${prefix}-${part}.png`);
     let native = null;
-    for (const part of ['sun', 'rays']) {
+    for (const part of ['sun', 'rays', 'water']) {
       const meta = await sharp(layer(part)).metadata();
       assert.deepEqual([meta.width, meta.height, meta.hasAlpha], [CANVAS, CANVAS, true]);
       const bounds = await markBoundsOf(sharp(layer(part)), visible);
@@ -780,15 +780,19 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
         minY: Math.min(native.minY, bounds.minY), maxY: Math.max(native.maxY, bounds.maxY),
       } : bounds;
     }
-    // With no water lines the mark is wider than tall; its width fills the tile.
+    // The ring sun, rays and water lines make a nearly square mark that fills
+    // the tile.
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
     assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 560 && nativeHeight < 610, `${prefix} artwork is the sun and rays alone`);
-    // Like the Sunrise artwork's, the sun is a half disc on the horizon: half
-    // as tall as it is wide.
+    assert.ok(nativeHeight > 765 && nativeHeight < 815, `${prefix} artwork spans rays to water`);
+    // The sun is an outlined ring, open in the middle, not a solid disc.
+    const sun = await sharp(layer('sun')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
-    assert.ok(Math.abs(sunBounds.height / sunBounds.width - 0.5) < 0.02, `${prefix} sun is a half disc`);
+    const row = Math.round(sunBounds.minY + sunBounds.height * 0.7);
+    const alphaAt = (x) => sun.data[((row * sun.info.width) + x) * sun.info.channels + 3];
+    assert.ok(alphaAt(512) < 24, `${prefix} sun is open in the middle`);
+    assert.ok(alphaAt(sunBounds.minX + 12) > 200 && alphaAt(sunBounds.maxX - 12) > 200, `${prefix} sun is a ring`);
     // Like the Sunrise artwork, the middle ray stands tallest: the topmost
     // pixels are its tip, centered on the canvas.
     const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);
@@ -827,29 +831,42 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
   }
 });
 
-test('Sunrise Spectrum\'s middle ray is all red, with its highlight down the middle', async () => {
-  const { data, info } = await sharp(path.join(root, 'build/app-icons/colorways/spectrum-rays.png'))
-    .ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const at = (x, y) => Array.from(data.subarray(((y * info.width) + x) * info.channels, ((y * info.width) + x) * info.channels + 4));
-  const bounds = await markBoundsOf(sharp(path.join(root, 'build/app-icons/colorways/spectrum-rays.png')), (_r, _g, _b, a) => a > 24);
-  // A row through the middle ray, a third of the way down from its tip.
-  const y = bounds.minY + 120;
-  let left = 512;
-  let right = 512;
-  while (at(left - 1, y)[3] > 200) left -= 1;
-  while (at(right + 1, y)[3] > 200) right += 1;
-  const half = (right - left) / 2;
-  assert.ok(half > 50, 'the row crosses the middle ray');
-  for (const x of [left + 4, Math.round(left + half), right - 4]) {
-    const [r, , b] = at(x, y);
-    assert.ok(r > b + 60, `the middle ray is red at x=${x}, not split with blue`);
+test('the water is the Sunrise\'s six stepped lines, with the ring\'s color where it passes behind', async () => {
+  for (const prefix of ['spectrum', 'amber']) {
+    const file = path.join(root, `build/app-icons/colorways/${prefix}-water.png`);
+    const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const at = (x, y) => Array.from(data.subarray(((y * info.width) + x) * info.channels, ((y * info.width) + x) * info.channels + 4));
+    // Down the middle: one opaque run per water line.
+    const lines = [];
+    let inLine = false;
+    for (let y = 0; y < info.height; y += 1) {
+      const on = at(512, y)[3] > 128;
+      if (on && !inLine) lines.push({ top: y });
+      if (!on && inLine) lines.at(-1).bottom = y - 1;
+      inLine = on;
+    }
+    assert.equal(lines.length, 6, `${prefix} has six water lines`);
+    // Each line is narrower than the one above it.
+    const widths = lines.map(({ top, bottom }) => {
+      const y = Math.round((top + bottom) / 2);
+      let left = 512;
+      let right = 512;
+      while (at(left - 1, y)[3] > 128) left -= 1;
+      while (at(right + 1, y)[3] > 128) right += 1;
+      return { y, left, right, width: right - left };
+    });
+    for (let i = 1; i < widths.length; i += 1) {
+      assert.ok(widths[i].width < widths[i - 1].width, `${prefix} water line ${i + 1} steps in`);
+    }
+    // In the top line, the ring passes behind about halfway out from the
+    // middle; its color, screened over the line's, brightens it there.
+    const { y, left, right } = widths[0];
+    const half = (right - left) / 2;
+    const brightness = (x) => at(x, y).slice(0, 3).reduce((sum, c) => sum + c, 0);
+    const ringX = Math.round(512 + half * (214 / 415));
+    const plainX = Math.round(512 + half * 0.85);
+    assert.ok(brightness(ringX) > brightness(plainX) + 60, `${prefix} ring color shows through the water`);
   }
-  // The highlight brightens the ray symmetrically about its center line.
-  const brightness = (x) => at(x, y).slice(0, 3).reduce((sum, c) => sum + c, 0);
-  const center = Math.round(left + half);
-  const offset = Math.round(half * 0.4);
-  assert.ok(Math.abs(brightness(center - offset) - brightness(center + offset)) < 45, 'the highlight is centered');
-  assert.ok(brightness(center) > brightness(left + 6), 'the highlight runs down the middle');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {
