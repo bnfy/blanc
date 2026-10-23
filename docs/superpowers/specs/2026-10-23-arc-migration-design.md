@@ -1,7 +1,7 @@
 # Arc migration: import and Space sync
 
 Date: 2026-10-23
-Status: draft for owner review; not committed, nothing implemented
+Status: draft for owner review in PR #1070; nothing implemented
 Builds on: F45 Arc Spaces import (`docs/superpowers/specs/2026-10-11-arc-spaces-import-design.md`), Blanc Spaces, Profile Sync v1 (`cloudflare/sync-worker/README.md`)
 
 ## Why
@@ -122,7 +122,7 @@ Built on the existing **v1 encrypted transport**, with a separately reviewed Wor
 
 ### Device identity, retirement and copied devices
 
-- **Copied devices:** Migration Assistant and backup restores copy `userData`, which includes the device's writer identity. If a device finds a revision in its own remote index that it never published, it's a copy, and it takes a new writer identity before publishing anything.
+- **Copied devices:** Migration Assistant and backup restores copy `userData`, which includes the device's writer identity. If a device finds a revision in its own remote index that it never published, it's a copy, and it takes a new writer identity before publishing anything more. This only catches a copy after the fact: two copies running at the same time can both publish under the one identity before either sees the other's revision, and one index update can replace the other. **Unresolved:** the November 5 review must show a design in which simultaneous copies lose no edits and are detected, without relying on KV's non-atomic read-then-write.
 - **Retirement:** people can retire a device. Retired writers are left out of merging, and their remote objects are removed by cleanup that can safely run again.
 - **Returning devices:** inactivity expiry and how long deletion records are kept are set together. A device away longer than that window must sign up again, and its local data is offered as a separate recovery import. A returning device always reconciles before publishing.
 
@@ -140,6 +140,7 @@ Two-way sync continues only if the reviewed design shows all of these:
 - lasting tab identity
 - matching of duplicate imports
 - recovery from concurrent and offline edits
+- no lost edits when two copies of one device publish at the same time (see *Device identity*)
 
 The review also fixes chunk size, writer limits, polling intervals, how long deletion records are kept, and conflict capacity.
 
