@@ -15,6 +15,8 @@ test('Mac ECS handoff requires a disposable native Mac host and the normal Resta
  assert.match(source,/exact updated app payload/);
  assert.match(source,/const root=await fs.realpath\(await fs.mkdtemp\(/);
  assert.match(source,/assert.equal\(media.status,2\)/);
+ assert.match(source,/protectedPage\(marker,\{muted:false\}\)/);
+ assert.match(source,/assert.equal\(media.muted,false/);
  assert.match(source,/ecs-handoff-owner/);
  assert.match(source,/probeRequests\+\+/);
  assert.match(source,/updated probe navigation request/);
@@ -38,7 +40,7 @@ test('fresh Mac intake binds both native architectures to private signed bytes',
  assert.match(job,/inputs.ecs_fresh_mac/);
  assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
  assert.match(job,/arch: \[arm64, x64\]/);
- assert.match(job,/mode: \[acceptance, updater\]/);
+ assert.match(job,/mode: \$\{\{ inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater"\]'\) \}\}/);
  assert.match(job,/os: macos-15\n/);
  assert.match(job,/os: macos-15-intel/);
  assert.match(job,/fail-fast: false/);

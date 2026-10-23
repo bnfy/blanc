@@ -76,7 +76,13 @@ test('Windows updater requires native Restart Now and exact automatic successor'
  assert.doesNotMatch(source,/quitAndInstall\(|STAGING_AUTO_INSTALL:'1'|--no-sandbox/);
  const ui=fs.readFileSync('test/desktop/support/windows-owned-ui.ps1','utf8');
  assert.match(ui,/ProcessIdProperty,\$TargetProcessId/);assert.match(ui,/InvokePattern/);
- assert.match(ui,/ControlTypeProperty,\[System.Windows.Automation.ControlType\]::Button/);
+ assert.match(ui,/GetClassName\(\$handle,\$class/);
+ assert.match(ui,/\$class.ToString\(\) -ceq '#32770' -and \$owner -eq \$TargetProcessId/);
+ assert.match(ui,/Update \$ExpectedVersion downloaded/);
+ assert.match(ui,/NameProperty,'Later'/);
+ assert.match(ui,/if\(\$buttons.Count -ne 1\)/);
+ assert.match(ui,/if\(!\$dialog\)\{continue\}/);
+ assert.match(source,/-ExpectedVersion \$\{quote\(targetVersion\)\}/);
  assert.match(ui,/TryGetCurrentPattern/);
  assert.match(ui,/\$owner -ne \$TargetProcessId/);
  assert.match(ui,/Automation\]::Compare/);

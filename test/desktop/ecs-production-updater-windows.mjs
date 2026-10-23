@@ -34,7 +34,7 @@ assert.equal(targetMetadata.version,targetVersion);assert.equal(targetMetadata.b
 const bytes=await fs.readFile(targetInstaller),sha512=crypto.createHash('sha512').update(bytes).digest('base64');
 const ps=runWindowsPowerShell;
 const quote=s=>"'"+s.replaceAll("'","''")+"'";
-const ui=(pid,action,url='')=>ps(`& ${quote(path.resolve('test/desktop/support/windows-owned-ui.ps1'))} -TargetProcessId ${pid} -Action ${action} -Url ${quote(url)}`);
+const ui=(pid,action,url='')=>ps(`& ${quote(path.resolve('test/desktop/support/windows-owned-ui.ps1'))} -TargetProcessId ${pid} -Action ${action} -Url ${quote(url)} -ExpectedVersion ${quote(targetVersion)}`);
 const pids=()=>JSON.parse(ps(`ConvertTo-Json -InputObject @((Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} -and $_.CommandLine -notmatch '--type=' }).ProcessId) -Compress`)).filter(Number.isInteger);
 const alive=pid=>{try{process.kill(pid,0);return true;}catch{return false;}};
 const wait=async(name,read,timeout=120000)=>{const end=Date.now()+timeout;while(Date.now()<end){const v=await read();if(v)return v;await new Promise(r=>setTimeout(r,250));}throw Error('Timed out: '+name);};

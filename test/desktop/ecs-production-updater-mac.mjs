@@ -32,7 +32,7 @@ const server=http.createServer(async(request,response)=>{
  const url=new URL(request.url,'http://127.0.0.1');
  if(url.pathname==='/staging-mac.yml')return response.end(`version: ${targetVersion}\nfiles:\n  - url: update.zip\n    sha512: ${sha512}\n    size: ${bytes.length}\npath: update.zip\nsha512: ${sha512}\n`);
  if(url.pathname==='/update.zip'){response.on('finish',()=>{downloaded=true;});response.setHeader('Content-Length',bytes.length);return response.end(bytes);}
- if(url.pathname==='/') {report.probeRequests++;response.setHeader('Content-Type','text/html');return response.end(protectedPage(marker));}
+ if(url.pathname==='/') {report.probeRequests++;response.setHeader('Content-Type','text/html');return response.end(protectedPage(marker,{muted:false}));}
  if(url.pathname==='/favicon.ico')return response.writeHead(204).end();
  if(['/ready','/result'].includes(url.pathname)&&request.headers['x-blanc-probe']===marker){let body='';for await(const chunk of request){body+=chunk;if(body.length>4096)return response.writeHead(413).end();}const data=JSON.parse(body);if(url.pathname==='/ready'){ready=data.ready===true;report.probeReady=data.ready===true;}else playback=data;return response.end('ok');}
  response.writeHead(404).end();
@@ -120,6 +120,7 @@ end tell`;
  run('/usr/bin/osascript',['-e','tell application "System Events" to key code 36']);
  const media=await wait('updated protected playback',()=>playback);
  assert.equal(media.failure,undefined);assert.equal(media.status,2);assert.equal(media.mediaKeys,true);
+ assert.equal(media.muted,false,'automatic successor must play unmuted protected media');
  assert(media.encryptedEvents>0);assert.deepEqual(media.mediaErrors,[]);assert.equal(media.error,null);assert.equal(media.paused,false);assert(media.second-media.first>2&&media.second-media.first<8);
  report.protectedPlayback=media;report.passed=true;
 }catch(error){

@@ -7,6 +7,58 @@ Main's subsequent Split View update (`33da400fe`) is now merged into this
 integration branch. Earlier signed binaries and native evidence below predate
 that source update and do not by themselves qualify the merged result.
 
+## Current gate status — October 23, 19:25 UTC
+
+This summary supersedes historical pending-status notes below. Application
+source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
+
+- **Passed:** Linux native playback, sandbox, CDM lifecycle and both real
+  versionless AppImage updater handoffs; Windows real first CDM install,
+  vendor update, controlled cache rollback and offline readiness; native
+  Apple Silicon signed-package acceptance and Spotify/Netflix playback.
+- **Passed locally:** the fresh signed Apple Silicon app received a real
+  640×480 camera frame and microphone signal (peak 0.008) through Blanc's
+  actual permission flow. No recordings were saved; the harness closed the
+  tracks/app and removed its temporary profiles. Production hashes are unchanged.
+- **Open:** actual Windows updater handoff, unmuted native Intel acceptance,
+  unmuted Mac updater successors, Mac CDM lifecycle, native passkey/1Password
+  acceptance, final runtime/uBO source/license/security review and supported
+  matrix, final PR checks, and the public pipeline/version/What's New gates.
+  No waiver, merge, publication or production-runtime switch is implied.
+
+Windows run `40009588876` fully passed the CDM lifecycle: first install,
+4.10.3050.0 baseline, genuine vendor update to 4.10.3112.0, and controlled
+old-cache rollback advanced unmuted protected playback by 4.941/4.941/4.932/
+4.927 seconds respectively. Each stage verified production VMP, exact DLL
+digest and signature, the `media.mojom.CdmServiceBroker` role, restricted token,
+job membership and untrusted integrity (`S-1-16-0`), with no media errors.
+Cached offline readiness and profile cleanup passed. This is not an automatic
+vendor-downgrade claim. The same run failed before clicking Restart Now:
+Windows exposes that native task-dialog command link as a focusable `Pane`,
+not a UIA `Button`. The test now binds the action to the real native dialog
+HWND/class and process, exact staged-version message, Later choice, and exact
+focused control. It does not bypass the updater or replace its trust checks.
+
+Mac matrix `40006057550` passed Apple Silicon acceptance: production VMP,
+unmuted CENC advancing 5.029 seconds, sandboxed CDM, real uBO lifecycle,
+offline (1890/2310 ms), local HTML/frame/worker/WebRTC boundaries and cleanup.
+One aborted storage request remains recorded, not silently discarded.
+Its Apple Silicon updater cell proved actual Restart Now, exact replacement,
+automatic relaunch, Apple trust and encrypted playback, but the report exposed
+`muted: true`. That is **not** unmuted successor acceptance. The harness now
+explicitly requests and asserts unmuted playback; both native Mac updater
+cells must rerun against the existing immutable signed fixtures. The two Intel
+cells of the original run are still pending and its muted updater result, if
+successful, cannot close the unmuted gate.
+
+The upstream check confirms the selected `v44.9.3+wvcus` is the latest ECS
+release and matches the latest Electron 44 patch `v44.9.3` (which includes
+ANGLE/Chromium/PDFium/Skia/V8 backports). Electron 45 is available separately;
+this patch-version check is not a completed fork/source/security review or a
+reason to skip the remaining compatibility gates. Sources:
+[ECS release](https://github.com/castlabs/electron-releases/releases/tag/v44.9.3%2Bwvcus),
+[Electron 44.9.3](https://github.com/electron/electron/releases/tag/v44.9.3).
+
 ## Build and signing boundaries
 
 `npm run dist:ecs -- --mac --arm64 --dir` builds the normal Blanc entrypoint,
