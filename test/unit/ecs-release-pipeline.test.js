@@ -90,3 +90,29 @@ test('release.sh refuses an ECS release the native workflow cannot build before 
     assert(releaseScript.indexOf(message) < tagPush, `${message} precedes the tag`);
   }
 });
+
+test('mandatory browser regressions run before any release upload or attestation, on both platforms', () => {
+  for (const job of ['windows', 'linux']) {
+    const names = workflow.jobs[job].steps.map(step => step.name || step.uses);
+    const regression = names.indexOf('Packaged browser and Settings regressions');
+    assert(regression >= 0, job);
+    assert(regression < names.indexOf('Upload to release'), `${job}: regression precedes upload`);
+    assert(regression < names.findIndex(name => /^Attest /.test(name || '')), `${job}: regression precedes attestation`);
+    assert.equal(workflow.jobs[job].steps[regression].if, undefined, `${job}: the regression is unconditional`);
+  }
+});
+
+test('Linux ECS regressions go through the AppImage launcher; official Linux keeps its unpacked binary', () => {
+  const step = workflow.jobs.linux.steps.find(s => s.name === 'Packaged browser and Settings regressions');
+  assert.match(step.run, /if \[ "\$RELEASE_RUNTIME" = ecs \]; then[\s\S]*BLANC_PACKAGED_EXECUTABLE="\$PWD\/dist\/\$PRODUCT_NAME-\$VERSION\.AppImage"[\s\S]*dbus-run-session -- xvfb-run -a npm run test:packaged:browser-compatibility/);
+  assert.match(step.run, /else\n\s+BLANC_PACKAGED_EXECUTABLE="\$PWD\/dist\/linux-unpacked\/blanc" \\\n\s+xvfb-run -a npm run test:packaged:browser-compatibility\n\s*fi/);
+});
+
+test('the browser regression smoke keeps the official lock check and expects the pinned ECS version only for a verified ECS package', () => {
+  const smoke = fs.readFileSync(path.join(root, 'test/desktop/packaged-browser-compatibility-smoke.mjs'), 'utf8');
+  assert.match(smoke, /let expected = runtime\.lockedElectronVersion\(\);/);
+  assert.match(smoke, /if \(process\.env\.BLANC_ECS_PACKAGE_ROOT\) \{/);
+  for (const check of ["assert.equal(metadata.blancRuntime, 'ecs');", 'assert.equal(metadata.blancEcsRuntime, pin.version);',
+    'assert.equal(metadata.blancEcsArchiveSha256, pin.archives[metadata.blancEcsTarget]);']) assert(smoke.includes(check), check);
+  assert.match(smoke, /assert\.equal\(info\.appInfo\.electronVersion, expected, 'actual packaged runtime matches the lock'\);/);
+});

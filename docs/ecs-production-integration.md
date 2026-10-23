@@ -9,6 +9,23 @@ that source update and do not by themselves qualify the merged result.
 
 ## Current gate status — October 23
 
+**Linux public-ECS validation `40041114105` (d96f7426d): not passed overall.**
+Public-package acceptance passed: unmuted protected playback advanced 4.961 s
+with no media errors (Linux reports `PLATFORM_UNVERIFIED`, as expected), the
+CDM sandbox held (seccomp 2, NoNewPrivs, isolated user and PID namespaces),
+installed uBO passed 12/12 and file isolation passed. Both launches' traces
+were complete and recorded no gate refusal, so the earlier refusal in
+`40038238250` remains unattributed; startup reported ready 23 ms before the
+gate opened in the second launch. The run failed only at the packaged browser
+and Settings regression, which launched the raw `linux-unpacked/blanc`;
+Linux ECS refuses to start without its launcher, and that check also expected
+the official 44.8.0. The regression now runs public ECS through the AppImage
+and, with the job's `BLANC_ECS_PACKAGE_ROOT`, verifies the package's pinned ECS
+runtime and archive before expecting its version; official runs keep their
+binary and the locked-version check. In both platform jobs the mandatory
+regression now runs before release upload and attestation, for official and
+ECS runs alike.
+
 **Linux public-ECS validation `40038238250` (dc51ebeda): not passed.** Installed
 uBO passed all twelve checks on the marker-free public package (renderer
 sandbox after restarts, relaunch persistence) and file isolation passed. DRM

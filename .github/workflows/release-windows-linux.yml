@@ -399,6 +399,15 @@ jobs:
             -Version $version `
             -ProgId 'BlancURL'
 
+      # Mandatory regression: it must pass before anything is uploaded to the
+      # release or attested.
+      - name: Packaged browser and Settings regressions
+        shell: pwsh
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = "$pwd/dist/win-unpacked/Blanc.exe"
+          npm run test:packaged:browser-compatibility
+          if ($LASTEXITCODE -ne 0) { throw "Packaged browser regression failed." }
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         shell: bash
@@ -423,13 +432,6 @@ jobs:
             dist/Blanc-Setup-*.exe.blockmap
             dist/windows-signature.json
             dist/latest.yml
-
-      - name: Packaged browser and Settings regressions
-        shell: pwsh
-        run: |
-          $env:BLANC_PACKAGED_EXECUTABLE = "$pwd/dist/win-unpacked/Blanc.exe"
-          npm run test:packaged:browser-compatibility
-          if ($LASTEXITCODE -ne 0) { throw "Packaged browser regression failed." }
 
       - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
@@ -916,6 +918,22 @@ jobs:
             output/ecs-production/*.json
             dist/ublock-installed-linux.json
 
+      # Mandatory regression: it must pass before anything is uploaded to the
+      # release or attested. Linux ECS refuses to start without its launcher,
+      # so public ECS runs it through the AppImage; the job-level
+      # BLANC_ECS_PACKAGE_ROOT makes the smoke expect the pinned ECS version.
+      - name: Packaged browser and Settings regressions
+        run: |
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            VERSION=$(node -p "require('./package.json').version")
+            PRODUCT_NAME=$(node -p "require('./package.json').productName")
+            BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+              dbus-run-session -- xvfb-run -a npm run test:packaged:browser-compatibility
+          else
+            BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/blanc" \
+              xvfb-run -a npm run test:packaged:browser-compatibility
+          fi
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -935,11 +953,6 @@ jobs:
           subject-path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
-
-      - name: Packaged browser and Settings regressions
-        run: |
-          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/blanc" \
-            xvfb-run -a npm run test:packaged:browser-compatibility
 
       - name: Preserve Linux candidate scripting-policy evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}

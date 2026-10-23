@@ -3,11 +3,26 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import { createRequire } from 'node:module';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import polling from './support/poll.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { waitForValue: wait } = polling;
-const expected = runtime.lockedElectronVersion();
+const require = createRequire(import.meta.url);
+// Official packages must match the locked Electron. A public ECS package
+// (BLANC_ECS_PACKAGE_ROOT) must carry the pinned ECS runtime and archive and
+// report that runtime's Electron version instead, as in the workspace smoke.
+let expected = runtime.lockedElectronVersion();
+if (process.env.BLANC_ECS_PACKAGE_ROOT) {
+  const root = path.resolve(process.env.BLANC_ECS_PACKAGE_ROOT);
+  const metadata = JSON.parse(require('@electron/asar').extractFile(path.join(root,
+    process.platform === 'darwin' ? 'Contents/Resources/app.asar' : 'resources/app.asar'), 'package.json'));
+  const pin = require('../../build/ecs-runtime.json');
+  assert.equal(metadata.blancRuntime, 'ecs');
+  assert.equal(metadata.blancEcsRuntime, pin.version);
+  assert.equal(metadata.blancEcsArchiveSha256, pin.archives[metadata.blancEcsTarget]);
+  expected = pin.version.split('+')[0];
+}
 const executablePath = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-browser-'));
 fs.writeFileSync(path.join(scratch, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, usagePing: false, searchSuggestions: false }));
