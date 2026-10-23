@@ -3,7 +3,7 @@
 Reuse the existing native output; do not run the Electron release builder.
 
 ```
-python3 preview/package.py --source '/path/Blanc Prototype.app' --assets generated --blocker /path/pinned-blocker-assets --output '/new/path/Blanc Chromium Preview.app'
+python3 preview/package.py --source '/path/Blanc Prototype.app' --assets generated --blocker /path/pinned-blocker-assets --output '/new/path/Blanc Chromium Preview.app' --source-revision <reviewed-40-character-commit>
 python3 preview/test_launcher.py
 ```
 
@@ -14,3 +14,9 @@ This is local candidate preparation, not distribution approval. Developer ID sig
 The launcher and outer bundle now explicitly target macOS 26, the approved preview minimum, instead of inheriting the build host's SDK default. Native Chromium's own deployment target remains unchanged.
 
 `sign.py --app <staged-preview.app> --identity <Developer-ID-fingerprint> --entitlements <Chromium-chrome/app> --report <json>` signs a staged preview inside-out using Chromium's app/renderer/GPU entitlements. Run through the signing Mac's desktop security session when SSH lacks private-key access. It does not export a key, build Electron, notarize, publish or qualify a release. Preserve failed attempts and verify the final signed bundle before notarizing.
+
+The Start Page’s **Version & security** notice is bundled for offline use. Its version is read from the input app; the packager stamps the exact reviewed source revision and UTC packaging time into both the Start Page and Island metadata. Missing metadata markers, malformed versions/revisions, unreviewed link destinations and unsupported release-status claims fail packaging. `preview-build.json` records the same metadata inside the signed resources.
+
+The explicit **Current status, updates & withdrawal notice** link opens the permanent [PR #1028 status section](https://github.com/bnfy/blanc/pull/1028). It performs no background fetch. The maintainer updates that section on withdrawal even after the PR is closed; it must remain accessible while any preview is supported. The packaged status is a snapshot and does not claim the app remains safe indefinitely. The operator procedure is in [manual maintenance and withdrawal](../preview-manual-maintenance-policy.md).
+
+Run `python3 preview/test_notice.py` for metadata destination/escaping/fail-closed tests, and verify the actual signed notice, keyboard close/focus return, responsive layout and live link before accepting a new artifact. Changing bundled UI resources requires a new signature and notarization; never edit an installed signed app in place.

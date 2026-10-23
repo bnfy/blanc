@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "status": "not-released",
+  "statusUrl": "https://github.com/bnfy/blanc/pull/1028",
+  "supportUrl": "mailto:support@blanc.day?subject=Blanc%20Chromium%20Preview",
+  "maintainer": "Anthony Loria",
+  "supportedPlatform": "Apple Silicon · macOS 27 (tested on 27.2)"
+}
