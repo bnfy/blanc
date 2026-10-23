@@ -1,46 +1,48 @@
 'use strict';
 
 // Sunrise Spectrum and Sunrise Amber, the glass colorways. The Sunrise is
-// redrawn here in heavy rounded strokes (seven rays, a half disc, three water
-// lines) so it carries Icon Composer glass; the shipped Sunrise artwork stays
-// the source of every other surface. Each colorway yields:
-//   - four Icon Composer layers on the full-bleed 1024 canvas: the sun, rays
-//     and water in color with a soft gloss baked along each stroke's top, and
-//     the white rim drawn behind them;
+// redrawn here as a half disc and seven heavy rounded rays, with no water
+// lines (the shipped artwork's own proportions, below), so the mark can be drawn large and carry Icon Composer glass; the
+// shipped Sunrise artwork stays the source of every other surface. Each
+// colorway yields:
+//   - three Icon Composer layers on the full-bleed 1024 canvas: the sun and
+//     rays in color with a soft gloss baked along each stroke's top, and the
+//     white rim drawn behind them;
 //   - flat Dock fallbacks for Light and Dark on the 824px visible tile, with
 //     the glass approximated (glow, rim, gloss) and tile colors sampled from
 //     Icon Composer's own renders.
 
 const CX = 512;
-const HORIZON = 548;
-// Vertical middle of the drawn mark, from the top ray's cap to the last
-// water line's, before scaling.
-const MARK_CENTER = 492;
+// Proportions follow the Sunrise's native layer (sunrise-mark.png): the sun is
+// a 210px half disc on the horizon, and each ray's tip reaches the same
+// distance from the sun's center as there, so the middle ray stands tallest.
+// Rays here are heavier than the artwork's, and start a little further out so
+// their white rims stay clear of the sun's.
+const HORIZON = 654;
+const SUN_RADIUS = 210;
+const RAY_WIDTH = 52;
+const RAY_START = 252;
+const RAY_REACH = [[0, 545], [28, 470], [52.5, 455], [76, 394]];
+const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
+  .map((a) => [a, RAY_START + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
+const RIM = 14;
+// Vertical middle of the drawn mark, from the middle ray's tip to the sun's
+// flat base, before scaling.
+const MARK_CENTER = HORIZON - RAY_REACH[0][1] / 2;
 // macOS paints the native tile full-bleed; the flat copy draws an 824px tile,
 // so its mark takes the same share of the visible tile.
-const NATIVE_SCALE = 1.27;
+const NATIVE_SCALE = 1.04;
 const FLAT_SCALE = NATIVE_SCALE * (824 / 1024);
-const RAYS = [
-  [0, 205, 330], [-34, 200, 300], [34, 200, 300],
-  [-62, 195, 275], [62, 195, 275], [-86, 190, 250], [86, 190, 250],
-];
-const WATER = [[614, 250], [690, 170], [766, 92]];
-const RAY_WIDTH = 44;
-const WATER_WIDTH = 46;
-const SUN_RADIUS = 140;
-const RIM = 15;
 
 const COLORWAYS = {
   spectrum: {
     rays: [[0, '#2F55FF'], [0.3, '#7C3BFF'], [0.58, '#F0409A'], [0.8, '#FF5A72'], [1, '#FF8C7A']],
     sun: [[0, '#9A3BF5'], [0.45, '#F0409A'], [1, '#FF6A6A']],
-    water: [[0, '#2F55FF'], [0.5, '#6A3CFF'], [1, '#B23CE8']],
     tile: ['#FAFAFC', '#EFECEF'],
   },
   amber: {
     rays: [[0, '#F28A3A'], [0.3, '#F5AC3C'], [0.5, '#F8C64E'], [0.7, '#F5AC3C'], [1, '#F28A3A']],
     sun: [[0, '#F7A52E'], [0.6, '#F2803A'], [1, '#EC6248']],
-    water: [[0, '#C9762A'], [0.5, '#B0571E'], [1, '#9A3F2A']],
     tile: ['#FEF8ED', '#F3EBDF'],
   },
 };
@@ -57,8 +59,6 @@ function ray([angle, inner, outer]) {
   ];
 }
 
-const waterLine = ([y, half]) => [CX - half, y, CX + half, y];
-
 function line([x1, y1, x2, y2], paint, width) {
   return `<line x1="${fixed(x1)}" y1="${fixed(y1)}" x2="${fixed(x2)}" y2="${fixed(y2)}" stroke="${paint}" `
     + `stroke-width="${fixed(width)}" stroke-linecap="round"/>`;
@@ -74,8 +74,6 @@ function sun(paint, grow = 0) {
 
 const rays = (paint, grow = 0) =>
   RAYS.map((r) => line(ray(r), paint, RAY_WIDTH + 2 * grow)).join('');
-const water = (paint, grow = 0) =>
-  WATER.map((w) => line(waterLine(w), paint, WATER_WIDTH + 2 * grow)).join('');
 
 // A highlight riding the upper edge of a stroke.
 function gloss(points, width) {
@@ -89,20 +87,17 @@ function gloss(points, width) {
 }
 
 const RAY_GLOSS = RAYS.map((r) => gloss(ray(r), RAY_WIDTH)).join('');
-const WATER_GLOSS = WATER.map((w) => gloss(waterLine(w), WATER_WIDTH)).join('');
-const SUN_GLOSS = `<path d="${arcPath(SUN_RADIUS * 0.78, 22)}" fill="none" stroke="#FFFFFF" `
+const SUN_GLOSS = `<path d="${arcPath(SUN_RADIUS * 0.78, SUN_RADIUS * 0.16)}" fill="none" stroke="#FFFFFF" `
   + `stroke-width="${fixed(SUN_RADIUS * 0.16)}" stroke-linecap="round"/>`;
 
-function gradient(id, stops, x1 = 210, x2 = 814) {
+function gradient(id, stops, x1 = CX - 390, x2 = CX + 390) {
   return `<linearGradient id="${id}" x1="${x1}" y1="0" x2="${x2}" y2="0" gradientUnits="userSpaceOnUse">`
     + stops.map(([offset, color]) => `<stop offset="${offset}" stop-color="${color}"/>`).join('')
     + '</linearGradient>';
 }
 
 function paints(colorway) {
-  return gradient('rays', colorway.rays)
-    + gradient('sun', colorway.sun, 372, 652)
-    + gradient('water', colorway.water, 262, 762);
+  return gradient('rays', colorway.rays) + gradient('sun', colorway.sun, CX - SUN_RADIUS, CX + SUN_RADIUS);
 }
 
 function placed(body, scale, centerY) {
@@ -120,7 +115,6 @@ function nativePart(colorway, part) {
   const [shape, highlight, paint] = {
     sun: [sun, SUN_GLOSS, 'url(#sun)'],
     rays: [rays, RAY_GLOSS, 'url(#rays)'],
-    water: [water, WATER_GLOSS, 'url(#water)'],
   }[part];
   const defs = paints(colorway)
     + `<mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">${shape('#FFFFFF')}</mask>`
@@ -131,7 +125,7 @@ function nativePart(colorway, part) {
 
 function nativeRim() {
   const white = '#FFFFFF';
-  return svg('', placed(rays(white, RIM) + sun(white, RIM) + water(white, RIM), NATIVE_SCALE, 512));
+  return svg('', placed(rays(white, RIM) + sun(white, RIM), NATIVE_SCALE, 512));
 }
 
 // The flat Dock copy: the tile clipped to the flat 824px rounded rect with the
@@ -149,10 +143,10 @@ function flatIcon(colorway, [top, bottom], dark) {
     + paints(colorway);
   const rim = dark ? '#F4EEF8' : '#FFFFFF';
   const mark = `<g filter="url(#glow)" opacity="${dark ? 0.7 : 0.55}">`
-      + `${rays('url(#rays)', 5)}${sun('url(#sun)')}${water('url(#water)', 5)}</g>`
-    + `<g filter="url(#lift)" opacity="0.92">${rays(rim, RIM)}${sun(rim, RIM)}${water(rim, RIM)}</g>`
-    + `<g opacity="0.92">${rays('url(#rays)')}${sun('url(#sun)')}${water('url(#water)')}</g>`
-    + `<g filter="url(#soft)" opacity="0.55">${RAY_GLOSS}${SUN_GLOSS}${WATER_GLOSS}</g>`;
+      + `${rays('url(#rays)', 5)}${sun('url(#sun)')}</g>`
+    + `<g filter="url(#lift)" opacity="0.92">${rays(rim, RIM)}${sun(rim, RIM)}</g>`
+    + `<g opacity="0.92">${rays('url(#rays)')}${sun('url(#sun)')}</g>`
+    + `<g filter="url(#soft)" opacity="0.55">${RAY_GLOSS}${SUN_GLOSS}</g>`;
   const body = '<rect x="100" y="100" width="824" height="824" rx="184" fill="url(#tile)" filter="url(#shadow)"/>'
     + placed(mark, FLAT_SCALE, 512);
   return svg(defs, body);
@@ -165,7 +159,7 @@ function flatIcon(colorway, [top, bottom], dark) {
 function colorwaySources() {
   const sources = {};
   for (const [prefix, colorway] of Object.entries(COLORWAYS)) {
-    for (const part of ['sun', 'rays', 'water']) {
+    for (const part of ['sun', 'rays']) {
       sources[`build/app-icons/colorways/${prefix}-${part}.png`] = nativePart(colorway, part);
     }
     sources[`build/app-icons/colorways/${prefix}-rim.png`] = nativeRim();

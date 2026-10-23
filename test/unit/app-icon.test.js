@@ -105,7 +105,7 @@ test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', ()
   for (const layer of tiles.layers) assert.equal(layer.glass, false);
 });
 
-test('Sunrise Spectrum and Amber stack three glass parts over a white rim', () => {
+test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', () => {
   for (const [id, nativeName, prefix] of [
     ['sunrise-spectrum', 'SunriseSpectrum', 'spectrum'],
     ['sunrise-amber', 'SunriseAmber', 'amber'],
@@ -120,7 +120,7 @@ test('Sunrise Spectrum and Amber stack three glass parts over a white rim', () =
     const [mark, rim] = document.groups;
     assert.deepEqual(
       mark.layers.map((layer) => [layer.name, layer['image-name'], layer.glass]),
-      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true], ['Water', `${prefix}-water.png`, true]],
+      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true]],
     );
     assert.equal(mark.specular, true);
     assert.equal(mark.lighting, 'individual');
@@ -749,7 +749,7 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
   for (const prefix of ['spectrum', 'amber']) {
     const layer = (part) => path.join(root, `build/app-icons/colorways/${prefix}-${part}.png`);
     let native = null;
-    for (const part of ['sun', 'rays', 'water']) {
+    for (const part of ['sun', 'rays']) {
       const meta = await sharp(layer(part)).metadata();
       assert.deepEqual([meta.width, meta.height, meta.hasAlpha], [CANVAS, CANVAS, true]);
       const bounds = await markBoundsOf(sharp(layer(part)), visible);
@@ -758,8 +758,19 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
         minY: Math.min(native.minY, bounds.minY), maxY: Math.max(native.maxY, bounds.maxY),
       } : bounds;
     }
+    // With no water lines the mark is wide and short; its width is what fills the tile.
     const nativeHeight = native.maxY - native.minY + 1;
-    assert.ok(nativeHeight > 730 && nativeHeight < 790, `${prefix} artwork stays large within the safe area`);
+    const nativeWidth = native.maxX - native.minX + 1;
+    assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
+    assert.ok(nativeHeight > 550 && nativeHeight < 590, `${prefix} artwork is the sun and rays alone`);
+    // Like the Sunrise artwork, the middle ray stands tallest: the topmost
+    // pixels are its tip, centered on the canvas.
+    const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);
+    const tip = await markBoundsOf(
+      sharp(layer('rays')).extract({ left: 0, top: raysBounds.minY, width: CANVAS, height: 30 }),
+      visible,
+    );
+    assert.ok(Math.abs((tip.minX + tip.maxX) / 2 - (CANVAS - 1) / 2) < 6, `${prefix} middle ray is the tallest`);
 
     const { data, info } = await sharp(layer('rim')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     for (let offset = 0; offset < data.length; offset += info.channels) {

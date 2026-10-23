@@ -63,7 +63,7 @@ function createIconDocument({
       }],
     } : {}),
     groups: [{
-      // Further parts of a mark drawn in pieces (sun, rays, water), each its
+      // Further parts of a mark drawn in pieces (a sun and its rays), each its
       // own glass layer so macOS lights them one by one.
       layers: [layer, ...extraLayers.map((extra) => ({
         glass,
