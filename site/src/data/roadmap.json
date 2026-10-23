@@ -16,6 +16,13 @@
       "link": { "href": "/mail", "label": "Join the waitlist" }
     },
     {
+      "id": "blanc-for-teams",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Blanc for Teams",
+      "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
+    },
+    {
       "id": "crash-reports",
       "stage": "next",
       "product": "Blanc Browser",
