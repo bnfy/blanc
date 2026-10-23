@@ -17,6 +17,10 @@ struct AddressNormalizer {
         case .google:     base = "https://www.google.com/search?q=\(q)"
         case .bing:       base = "https://www.bing.com/search?q=\(q)"
         case .brave:      base = "https://search.brave.com/search?q=\(q)"
+        case .kagi:       base = "https://kagi.com/search?q=\(q)"
+        // iOS doesn't offer a custom address yet (no `searchEngineTemplate`
+        // field), so a stored `custom` searches the default engine.
+        case .custom:     base = "https://duckduckgo.com/?q=\(q)"
         }
         return URL(string: base)!
     }
