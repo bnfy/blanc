@@ -1,0 +1,14 @@
+{
+  "gate": "L2 Isolation",
+  "status": "accepted",
+  "date": "2026-10-22",
+  "os": "macOS 27.2",
+  "architecture": "Apple Silicon",
+  "candidateNativeCommit": "78f92ceb",
+  "automatedEvidenceCommit": "04a88217",
+  "artifactSha256": "18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f",
+  "appleNotaryId": "f527392f-6720-4974-b831-53f5ffa49c8b",
+  "ownerFinalReply": "Passed",
+  "scope": "Side-by-side preview using representative disposable profiles; no automatic migration or updater handoff approval",
+  "remainingLaunchGates": 10
+}

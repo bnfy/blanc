@@ -1,6 +1,6 @@
 # Side-by-side Mac Chromium preview release checklist
 
-> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest October 22 measured footprint is 61 files/150 hunks; see [signed keychain repair evidence](evidence/preview-keychain-repair-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest October 22 measured footprint is 62 files/156 hunks; see [pending-read repair evidence](evidence/pending-read-quit-repair-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
 Working release plan — October 21, 2026. Status: **not release-ready**.
 
@@ -10,18 +10,18 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 ## Running Mac preview RC readiness
 
-**Baseline: October 22, 2026; source/evidence checkpoint `7c5d6bb5`.**
+**Current acceptance: October 22, 2026; native checkpoint `78f92ceb`, automated isolation `04a88217`, and the [L2 owner record](evidence/l2-owner-acceptance-20261022/README.md).**
 
-`[■□□□□□□□□□□□] 1/12 launch gates cleared (8.3%) · Δ +1 L1`
+`[■■□□□□□□□□□□] 2/12 launch gates cleared (16.7%) · Δ +1 L2`
 
-This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, but L1 has its explicit owner decision; artifact-bound rows remain open. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
+This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, L1 scope and L2 signed isolation are accepted; the other ten rows remain open. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
 
 Scoring: one filled cell per fully accepted L-row, no partial credit for code written, test/checkpoint counts, CI jobs or repeated stress runs. A row requires the exit-record evidence below, including applicable candidate/artifact identity and approval. Reopen a cell if a relevant regression or candidate change invalidates its evidence. Any owner-approved scope/denominator change must be recorded explicitly, never used silently to inflate progress. This tracking-only metric supersedes the former blanket restriction on showing a percentage; it does not waive any gate or authorize new builds.
 
 | Gate | Current acceptance status | Next evidence or decision |
 | --- | --- | --- |
 | L1 Scope/identity | **Accepted October 22** | [Owner approval](mac-preview-scope-approval-20261022.md); implementation verified under L2/L8 |
-| L2 Isolation | Open — current signed artifact passes automated isolation; owner hand check pending | Candidate install/coexist/restart/uninstall with original data unchanged |
+| L2 Isolation | **Accepted October22 — signed artifact plus owner hand check** | [Evidence and artifact identity](evidence/l2-owner-acceptance-20261022/README.md); reopen if a candidate change invalidates this acceptance |
 | L3 Security/maintenance | Open — rebase evidence exists | Supported baseline, patch/dependency review and maintenance commitment |
 | L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |
 | L5 Physical input/accessibility | Open — owner confirmed Island labels/navigation | Complete packaged controls and matched visual session |
@@ -39,7 +39,8 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 
 | Date / checkpoint | Gates cleared | Change | Evidence and remaining blockers |
 | --- | --- | --- | --- |
-| October 22 / `9772330a` | 0/12 | Initial baseline | Latest private-only cross-profile cancellation evidence is recorded in the primary plan; all L1–L12 acceptance rows remain open |
+| October22 / owner final confirmation | 2/12 | +1 L2 | [Signed isolation acceptance](evidence/l2-owner-acceptance-20261022/README.md); L1 remains accepted, ten other gates open |
+| October 22 / `9772330a` | 0/12 | Initial baseline | Latest private-only cross-profile cancellation evidence is recorded in the primary plan; all L1–L12 acceptance rows remained open at that checkpoint |
 
 For every future implementation update, include the bar and delta, link the new evidence, and name the next launch-blocking milestone. If only supporting tests improve, report `Δ 0 gates` and explain the specific progress. Update this table and the primary plan whenever a gate changes. A flat bar must not be disguised by changing weights or counting additional tests.
 
@@ -60,7 +61,7 @@ All rows remain open until attached evidence identifies the candidate commit, ar
 | Priority / ID | Deliverable and acceptance criterion | Current evidence / next action | Responsible |
 | --- | --- | --- | --- |
 | P0 / L1 | Approve preview scope, supported macOS versions and Apple Silicon-only distribution; choose separate app/profile/channel identities. Explicitly record the relationship to Decision 2 and existing beta gates. | Accepted: [scope approval](mac-preview-scope-approval-20261022.md). Apple Silicon/macOS 27 (acceptance on 27.2), fresh separate profile, manual signed updates. | Owner decision, agent prepares scope |
-| P0 / L2 | Prove isolation: install alongside shipping Blanc, run both, open/close/restart each, remove preview; original app, settings, tabs and update ownership remain unchanged. Use controlled representative profiles, not the owner's permanent data. | Separate disposable tests exist; distributable identity/isolation is not yet signed off. | Agent + owner hand check |
+| P0 / L2 | Prove isolation: install alongside shipping Blanc, run both, open/close/restart each, remove preview; original app, settings, tabs and update ownership remain unchanged. Use controlled representative profiles, not the owner's permanent data. | Accepted for artifact18272ab548d0: automated12checks plus owner tab/settings/restart/removal confirmation. See [L2 record](evidence/l2-owner-acceptance-20261022/README.md). | Agent + owner hand check |
 | P0 / L3 | Establish supported Chromium security baseline and maintenance owner. Record upstream version/channel, relevant security fixes, patch inventory, dependency exceptions and a rehearsed incremental rebase/update path. | Rebase ledger exists; real Google upgrade gate remains open. Current developer build version alone is not release/security approval. | Agent + owner maintenance decision |
 | P0 / L4 | Complete real Google-endpoint extension upgrade gate: authentic installed old version → offered newer version, native update, Google network evidence, enabled state, restart persistence and popup focus. Install, permission Cancel/accept and removal also pass on candidate. | Existing Bitwarden baseline/monitor must be preserved. A no-change callback or replacement install is not an upgrade. If no offer arrives, keep gate open; no mechanism-only fallback without separate owner decision. | Agent; owner only if consent/unlock required |
 | P0 / L5 | Native physical-input and accessibility acceptance on packaged app: Island focus/typing, keyboard navigation/shortcuts, context menus, extension popup focus, permission dialogs, close/cancel, Split pane focus/divider and VoiceOver labels/order. No stuck focus or inaccessible destructive controls. | CDP/native automation is extensive but physical input remains pending. Schedule one bounded owner session after candidate stabilizes. | Owner physical check + agent evidence |
@@ -179,3 +180,13 @@ October22 [signed recovery UI/teardown](evidence/signed-recovery-ui-20261022/REA
 October22 [pending-read Quit repair](evidence/pending-read-quit-repair-20261022/README.md): traced watchdog to opening a FIFO as a session record on BLOCK_SHUTDOWN storage sequence. POSIX nonblocking open plus descriptor fstat rejects nonregular records before reading, retaining write durability and regular encrypted format. Replacement Developer ID candidate passes16assertions (pipe/no-watchdog/exit0, regular encrypted restart, loading close, failed-write retry/crash). Incremental31.97s/6steps, finalguard0, fresh62/156 under standing owner authorization. Apple Acceptedf527392f-6720-4974-b831-53f5ffa49c8b, stapled/strict/Gatekeeperpass, final ZIP18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f; L6 remains open for actual provider and remaining teardown acceptance. Prior68px layout assertion fails in unchanged source, retained separately. Google/dev processes remain alive with empty current target lists; no relaunch.1/12delta0, latency/Electron pending.
 
 October22 published pending-read Quit repair/signed evidence78f92ceb to#1028, Google baseline excluded. Next L2 [current signed isolation](evidence/current-signed-isolation-20261022/README.md) passes12coexistence/restart/rendering/removal checks on notarized18272ab548d0 candidate. Distinct identities, no preview URL/document registration/update feed and installed shipping code equality verified. Disposable profiles only; owner visual hand check and wider settings/update handoff claims not implied. No build;1/12delta0. Latency deferred/Electron pending.
+
+October22 signed isolation evidence published04a88217 to#1028; Google baseline excluded. Owner L2 hand check prepared at /private/tmp/blanc-l2-owner-check with exact18272ab548d0 signed candidate and shipping1.42.1 in disposable app/profile copies. Both labeled test windows observed via native AX; shipping test onboarding skipped. Await owner identification/tab independence/preview-quit observation before restart/settings/removal stages. No owner pass or L2 closure claimed;1/12delta0. No build, latency/Electron pending.
+
+October22 L2 owner walkthrough: owner reports initial app identification, tab independence and Preview quit/shipping survival passed. Process inspection still found original test Preview alive, so a separate controlled exit0/restart was recorded; exact three tabs/selection restored. Settings-separation and explicit native-menu quit stage now pending; owner restart/removal sign-off not yet recorded. L2 remains open,1/12delta0; Google baseline separate, no build, latency/Electron pending.
+
+October22 L2 owner stage2 passed: owner selected Shelf only in preview and reported shipping remained Billboard, then native-menu Preview quit produced exit0. Agent restarted exact test candidate; protocol and native AX confirm Shelf, shipping stays Billboard, and four tabs in each (original3 + owner-addedNewTab). Await owner Shipping quit/preview-survival, then shipping restart and test-preview removal. L2 stillopen;1/12delta0. No build; Google separate, latency/Electronpending.
+
+October22 L2 owner stage3 passed: Shipping quit while Preview remained usable with Shelf/four tabs. Shipping exit0 and restart preserve all four tabs/Billboard; preview remains Shelf. Final test Preview native-menu quit exits0; only disposable app bundle removed, profile and master signed artifact preserved. Shipping remains running with four tabs/Billboard verified by protocol and native AX. Await final owner visual confirmation before L2 closure;1/12delta0. No build; Google separate, latency/Electronpending.
+
+October22 owner final Passed closesL2 on signed18272ab548d0 candidate: independent settings/tabs, reciprocal quit/restart, app removal with profile/master preserved. Test controller finished; no builds. Progress2/12, delta+1L2. No release approval; Google separate, latency/Electron pending.
