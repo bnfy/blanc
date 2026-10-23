@@ -2498,7 +2498,7 @@
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       else if (archiveNotice) rows.push(archiveNoticeBand(archiveNotice));
       rows.push(pinned.length
-        ? dragSection('pinned', [pinnedHeaderRow(pinned.length), ...pinned.map(tabRow)])
+        ? dragSection('pinned', [pinnedHeaderRow(TabSections.rowsOf(pinned.map((t) => t.id), state.tabs).length), ...tabRowsFor(pinned)])
         : dragEmptyZone('pinned'));
 
       const clusters = clusterTabs();

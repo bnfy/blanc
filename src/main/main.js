@@ -189,7 +189,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -328,7 +328,7 @@ const {
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
-const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, captureSplits, restoreSplits } = require('./split-model');
+const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, splitPinned, captureSplits, restoreSplits } = require('./split-model');
 const {
   computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout,
   cornerTabBounds, cornerTabHit, cornerTabSite, PANE_RADIUS, PANE_BORDER,
@@ -4497,19 +4497,23 @@ function createSplitFromTabs(initiatorId, otherIds, { layout = null, announced =
   const initiator = tabs.get(initiatorId);
   const others = otherIds.map((id) => tabs.get(id));
   const all = [initiator, ...others];
-  if (all.some((tab) => !tab || tab.pinned || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
+  if (all.some((tab) => !tab || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
   if (all.length < 2 || new Set(all.map((tab) => tab.id)).size !== all.length) return null;
   const { split, groupId } = createSplit({ initiator, others, layout });
   if (runtime.glanceTabId) closeGlance({ focusContent: false, announce: !announced });
+  const pinned = splitPinned(all);
   for (const tab of all) {
     tab.groupId = groupId;
     tab.splitId = split.id;
+    if (pinned) markPinned(tab);
   }
   runtime.splits = [...(runtime.splits ?? []), split];
   pruneEmptyGroups();
   syncTabLayout(runtime);
   if (all.some((tab) => tab.id === runtime.activeTabId)) showActiveSplit(runtime);
   broadcastTabs();
+  // The View menu's Pin item now names the split (Pin Split / Unpin Split).
+  scheduleMenuRebuild();
   persistSession();
   return split;
 }
@@ -4543,10 +4547,11 @@ function savedWindowSplits(runtime, entries) {
 function applyRestoredSplits(runtime, saved, restoredIds) {
   const rebuilt = restoreSplits(saved?.splits, saved?.splitIds, restoredIds);
   for (const split of rebuilt) {
-    for (const id of split.tabIds) {
-      const tab = tabs.get(id);
-      if (tab) tab.splitId = split.id;
-    }
+    const members = split.tabIds.map((id) => tabs.get(id)).filter(Boolean);
+    for (const tab of members) tab.splitId = split.id;
+    // A split is pinned as a whole: a saved or hand-edited entry whose panes
+    // disagree comes back pinned.
+    if (splitPinned(members)) members.forEach(markPinned);
   }
   runtime.splits = [...(runtime.splits ?? []), ...rebuilt];
   syncTabLayout(runtime);
@@ -4660,7 +4665,8 @@ function closeSplit(splitId) {
   const entry = buildSplitEntry({
     layout: split.layout,
     focusedIndex: split.focusedIndex,
-    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId),
+    // A pinned split in the Pinned shelf is no item (shelf pins lead): 0.
+    index: Math.max(0, itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId)),
     groupId: tabs.get(ids[0])?.groupId ?? null,
   }, ids.map(closedMemberRecord), Date.now());
   const wasShowing = ids.includes(runtime.activeTabId);
@@ -4689,7 +4695,7 @@ function reopenSplitEntry(entry) {
     : null;
   const ids = entry.tabs.map((member) => {
     const id = createTab(member.url, {
-      groupId, muted: member.muted,
+      groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
@@ -4726,7 +4732,7 @@ function reopenSplitEntry(entry) {
 /** Split with ▸ choices for a tab's menu: this window's other eligible tabs
  *  with their groups; the menu model sorts them by group (spec §3.1). */
 function splitCandidatesFor(tab, owner) {
-  if (!tab || tab.pinned || tab.splitId) return [];
+  if (!tab || tab.splitId) return [];
   return owner.tabOrder
     .map((id) => tabs.get(id))
     .filter((other) => other && other.id !== tab.id && splitEligible(other))
@@ -8000,29 +8006,38 @@ function undoRemoveNamedWorkspace(id) {
   return result;
 }
 
+/** Pin a tab that isn't yet, homing it on its current page. */
+function markPinned(tab) {
+  if (tab.pinned) return;
+  tab.pinned = true;
+  tab.pinnedHomeUrl = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+}
+
 function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
-  // A split never holds a pinned tab: pinning takes it out first (D7).
-  if (!tab.pinned && tab.splitId) {
-    const owner = windowRuntimes.runtimeForTab(id) ?? rt();
-    const wasShown = owner.activeTabId === id;
-    removeTabFromSplit(id);
-    if (wasShown) withWindowRuntime(owner, () => setActiveTab(id));
+  const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
+  // A split is pinned or not as a whole (D7): pinning or unpinning one pane
+  // does the same to every pane, and each keeps its own pinned home.
+  const memberIds = splitForTab(runtime.splits, id)?.tabIds ?? [id];
+  const members = memberIds.map((tabId) => tabs.get(tabId)).filter(Boolean);
+  const pinned = !tab.pinned;
+  for (const member of members) {
+    if (pinned) markPinned(member);
+    else {
+      member.pinned = false;
+      member.pinnedHomeUrl = null;
+    }
   }
-  tab.pinned = !tab.pinned;
-  tab.pinnedHomeUrl = tab.pinned
-    ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
-    : null;
   // Ungrouped pins sit first in the tab order; an unpinned one goes to the
   // bottom with the other new ungrouped tabs, not above every group.
-  if (!tab.pinned && !tab.groupId) {
-    const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
-    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => tabId !== id), id];
+  if (!pinned && !tab.groupId) {
+    const moved = members.map((member) => member.id);
+    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => !moved.includes(tabId)), ...moved];
   }
   broadcastTabs();
   scheduleMenuRebuild();
-  return tab.pinned;
+  return pinned;
 }
 
 function toggleTabMuted(id) {
@@ -11394,7 +11409,7 @@ function buildMenuForRuntime(runtime) {
         { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
         { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
-        { label: t(tabs.get(rt().activeTabId)?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
+        { label: t(pinLabelKey(tabs.get(rt().activeTabId))), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
         { label: t(tabs.get(rt().activeTabId)?.muted ? 'tabMenu.unmute' : 'tabMenu.mute'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
         {

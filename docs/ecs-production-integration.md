@@ -3,6 +3,9 @@
 This is the integration follow-up to #1061, based on merged main
 `b514ff64caa4b6a4954bbf5dddedbd78ca2ff2e4`. It is not shipping approval.
 Nothing here installs over the public app or updates the public feed.
+Main's subsequent Split View update (`33da400fe`) is now merged into this
+integration branch. Earlier signed binaries and native evidence below predate
+that source update and do not by themselves qualify the merged result.
 
 ## Build and signing boundaries
 
@@ -93,6 +96,13 @@ refresh the approved secret through the same protected procedure.
   denied; process-exec introspection was unavailable, not counted as a pass.
 - Earlier main-based candidate Spotify/Netflix results remain regression
   references, not proof for this newly integrated package.
+- Linux run `39978942203` passed on integration head `a2e90734c`: package/fuse
+  verification, uBO and three restarts, offline startup and file denial,
+  encrypted video, exact CDM role with seccomp/NoNewPrivs and separate user/PID
+  namespaces, workspace recovery and synthetic media permissions. VMP reports
+  `PLATFORM_UNVERIFIED` on Linux, where VMP is not supported; this is not claimed
+  as Windows/macOS production VMP verification. The later main merge requires
+  fresh validation.
 
 Evidence files from preparation are under
 `/private/tmp/blanc-ecs-production-XN2ipC/`; hosted evidence must be bound to the

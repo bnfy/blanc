@@ -491,6 +491,8 @@
     <string name="tab_menu_return_pinned_home">Back to Pinned Page</string>
     <string name="tab_menu_set_pinned_home">Replace Pinned Page with Current</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
+    <string name="tab_menu_pin_split">Pin Split</string>
+    <string name="tab_menu_unpin_split">Unpin Split</string>
     <string name="tab_menu_mute">Mute Tab</string>
     <string name="tab_menu_unmute">Unmute Tab</string>
     <string name="tab_menu_new_tab_below">New Tab Below</string>
@@ -504,7 +506,6 @@
     <string name="tab_menu_unpin_start_page">Unpin from Start Page</string>
     <string name="tab_menu_move_to_group">Move to Group</string>
     <string name="tab_menu_split_with">Split with</string>
-    <string name="tab_menu_split_pinned_refused">Pinned tabs can\'t join a split</string>
     <string name="tab_menu_remove_from_split">Remove from Split</string>
     <string name="tab_menu_close_split">Close Split</string>
     <string name="split_group_move_into">Moves %1$s into %2$s</string>
