@@ -163,6 +163,11 @@ final class PagesBridgeTests: XCTestCase {
                        [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
         XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
     }
+    func testNativeCopyReadsBundledCatalog() {
+        XCTAssertNotEqual(SyncCopy.text("footer.devices"), "footer.devices")
+        XCTAssertNotEqual(SyncCopy.text("settings.sync.createOnComputer"), "settings.sync.createOnComputer")
+    }
+
     func testGuardedScriptChecksLiveDocumentOriginBeforeDelivery() throws {
         for (scheme, host, expected) in [("blanc:", "newtab", 1), ("https:", "example.com", 0), ("blanc:", "bookmarks", 0)] {
             let context = try XCTUnwrap(JSContext())

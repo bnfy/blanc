@@ -173,7 +173,9 @@ final class TabsManager {
 
         if let enabled = patch["adblockEnabled"] as? Bool {
             adblockUpdate = enabled
-            applyAdblockToggle(enabled)
+            // Foreground sync re-applies the full settings payload. An unchanged
+            // blocker preference must preserve the page and its in-memory state.
+            if enabled != settingsStore.adblockEnabled { applyAdblockToggle(enabled) }
         }
 
         // One validated mutation that also schedules the debounced save.

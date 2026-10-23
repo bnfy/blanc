@@ -29,7 +29,7 @@ M7a is implemented but unreleased. This does not complete M7: Send to device is 
 
 ## Pending release gates
 
-- Run the entire native XCTest suite on an installed iOS simulator runtime. The machine initially had Xcode 27.1 and its SDK but no simulator runtime; a runtime download was started during implementation.
+- Run the entire native XCTest suite on an installed iOS simulator runtime. The runtime was installed and the test app installed, but the local runner did not complete a usable native test result. Native execution and the unchanged-blocking/no-reload regression remain pending; compile checks passed. The baseline app launched in the same simulator, so this is not claimed as an environment-only failure. The owner then prioritized disk cleanup; disposable simulator devices and build caches were removed, and source was preserved.
 - Pair the simulator with an isolated test sync account using all three join paths against a packaged desktop build; check live tabs, theme, Favorites, renaming and retraction.
 - Repeat code pairing on a physical iPhone, including device-only Keychain persistence. No iPhone was available to the connected-device tooling.
 - Hand-check compact and regular-width page/palette layouts and desktop Settings/Favorites after the shared-page change.
