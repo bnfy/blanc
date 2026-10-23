@@ -69,18 +69,20 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   assert.equal(linkedHome.status, 0);
   assert.equal(linkedHome.stdout.split('\n')[0], path.join(home, '.config/Blanc-ECS-Candidate'));
 
-  // Real loader regression: only the pinned core zygote loads the CDM; neither
-  // it nor a later external handler retains the preload environment.
+  // Real loader regression: only the pinned core zygote loads the CDM. Keep
+  // Chromium's initial argv/environ layout intact for service-role titles;
+  // a subsequent foreign exec strips the startup environment and never loads CDM.
   fs.unlinkSync(current);
   execFileSync('cc', ['-shared', '-fPIC', '-x', 'c', '-', '-o', old], { input:
-    '#include <stdio.h>\n#include <stdlib.h>\n__attribute__((constructor)) static void loaded(void) { fputs("CDM_LOADED\\n", stderr); if(getenv("LD_PRELOAD") || getenv("BLANC_ECS_CDM_PRELOAD_PATH")) abort(); }\n' });
+    '#include <stdio.h>\n#include <stdlib.h>\n__attribute__((constructor)) static void loaded(void) { fputs("CDM_LOADED\\n", stderr); if(!getenv("LD_PRELOAD") || !getenv("BLANC_ECS_CDM_PRELOAD_PATH")) abort(); }\n' });
   execFileSync('cc', ['-shared', '-fPIC', '-Wall', '-Wextra', '-Werror', path.resolve('scripts/ecs-linux-cdm-preload.c'), '-o', path.join(app, 'blanc-cdm-preload.so'), '-ldl']);
   const core = path.join(app, 'blanc-ecs-full-candidate');
   fs.unlinkSync(core);
   execFileSync('cc', ['-x', 'c', '-', '-o', core], { input:
-    '#include <unistd.h>\nint main(void) { execl("/usr/bin/env", "env", (char*)0); return 1; }\n' });
+    '#include <unistd.h>\n#include <stdio.h>\n#include <string.h>\nextern char **environ;\nint main(int argc, char **argv) { char *p=argv[0]; for(int i=0;i<argc;i++) { if(p!=argv[i]) return 91; p+=strlen(p)+1; } for(int i=0;environ[i];i++) { if(p!=environ[i]) return 92; p+=strlen(p)+1; } fputs("ENV_LAYOUT_OK\\n", stderr); execl("/usr/bin/env", "env", (char*)0); return 1; }\n' });
   const zygote = run(['--type=zygote']);
   assert.equal(zygote.status, 0); assert.match(zygote.stderr, /CDM_LOADED/);
+  assert.match(zygote.stderr, /ENV_LAYOUT_OK/, 'Chromium can safely initialize its process-title storage');
   assert.doesNotMatch(zygote.stdout, /LD_PRELOAD=|BLANC_ECS_CDM_PRELOAD_PATH=|BLANC_ECS_CDM_EXECUTABLE=/);
   const unsandboxed = spawnSync(core, ['--type=zygote', '--no-zygote-sandbox'], { encoding: 'utf8', env: {
     ...process.env, LD_PRELOAD: path.join(app, 'blanc-cdm-preload.so'),

@@ -54,9 +54,12 @@ extract-and-run mode. The normal unpacked Electron executable is not the entry
 point for this candidate.
 
 PR #1061 review hardening (October 23): the shim verifies the exact core
-executable, preloads the CDM only in its sandboxed generic zygote, and strips
-loader settings from every child and foreign executable. The browser retains
-them only through native initialization; the bootstrap clears them at app-ready
+executable and preloads the CDM only in its sandboxed generic zygote. Foreign
+executables strip loader settings without loading the CDM. Core zygotes keep
+their original contiguous argv/environment layout until Chromium initializes
+process titles; constructor-time `unsetenv` prevented service-role attribution
+in run `39960956052`. The browser retains the settings only through native
+initialization; the bootstrap clears them at app-ready
 before the main browser's UI starts. The synthetic smoke also verifies that a
 real external shell has neither loader variables nor the shim mapped. Chromium's
 zygote command-prefix hook was tried in `ac6e79d91`, but the packaged ECS runtime

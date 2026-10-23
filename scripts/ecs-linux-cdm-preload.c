@@ -35,10 +35,14 @@ __attribute__((constructor)) static void preload_cdm_in_zygote(void) {
     if (!strcmp(args + at, "--type=zygote")) zygote = 1;
     if (!strcmp(args + at, "--no-zygote-sandbox") || !strcmp(args + at, "--no-sandbox")) unsandboxed = 1;
   }
-  // Native browser initialization creates the zygotes before app-ready. Only
-  // the browser retains these variables until the ready-time JS cleanup.
+  // Do not unset environment entries in this core's constructor. Chromium's
+  // base/process/set_process_title_linux.cc requires the original contiguous
+  // argv/environ layout; changing it here leaves forked service titles stuck
+  // at "zygote" and prevents reliable process-role/sandbox attribution.
+  // The browser clears its environment at app-ready before exposing UI. Core
+  // zygotes retain their startup environment; any foreign exec is separately
+  // identity-checked and sanitized above, without ever loading its CDM.
   if (!child) { free(library); return; }
-  unsetenv("LD_PRELOAD"); unsetenv("BLANC_ECS_CDM_PRELOAD_PATH"); unsetenv("BLANC_ECS_CDM_EXECUTABLE");
   if (!zygote || unsandboxed) { free(library); return; }
   if (!library || !*library) { free(library); return; }
   if (library[0] != '/' || !dlopen(library, RTLD_NOW | RTLD_LOCAL)) {
