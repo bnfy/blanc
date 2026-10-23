@@ -205,6 +205,22 @@
     box.dataset.mode = geometry?.mode || '';
     if (!split) return;
     box.style.left = '0';
+    const frames = (geometry?.frames || []).filter(r => r.width > 0 && r.height > 0);
+    if (frames.length) {
+      const left = Math.min(...frames.map(r => r.x)) - 8, top = Math.min(...frames.map(r => r.y)) - 8;
+      const right = Math.max(...frames.map(r => r.x + r.width)) + 8;
+      const bottom = Math.max(...frames.map(r => r.y + r.height)) + 8;
+      const surround = document.createElement('div'); surround.className = 'split-card-surround';
+      surround.setAttribute('aria-hidden', 'true');
+      Object.assign(surround.style, {left:left+'px',top:top+'px',width:(right-left)+'px',height:(bottom-top)+'px'});
+      box.append(surround);
+      const gutter = geometry.divider;
+      if (gutter?.width && gutter?.height) {
+        const gap = document.createElement('div'); gap.className = 'split-card-gap'; gap.setAttribute('aria-hidden', 'true');
+        Object.assign(gap.style, {left:gutter.x+'px',top:gutter.y+'px',width:gutter.width+'px',height:gutter.height+'px'});
+        box.append(gap);
+      }
+    }
     for (const [index, tab] of tabs.entries()) {
       const frameRect = geometry?.frames?.[index];
       const r = geometry?.headers?.[index];

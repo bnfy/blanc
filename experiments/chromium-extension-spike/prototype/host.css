@@ -32,6 +32,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #splitHeaders { position:absolute; inset:0; height:100%; pointer-events:none; --split-bg:#fff; --split-line:#dedede; --split-ink:#6b6b6b; }
 @media (prefers-color-scheme:dark) { #splitHeaders { --split-bg:#0e0e0e; --split-line:#2e2e2e; --split-ink:#9c9c9c; } }
 #splitHeaders[data-private="true"] { --split-bg:#0a0a0a; --split-line:#333; --split-ink:#9c9c9c; }
+.split-card-surround { position:absolute; box-sizing:border-box; border:8px solid var(--split-bg); pointer-events:none; }
+.split-card-gap { position:absolute; background:var(--split-bg); pointer-events:none; }
 .split-pane-frame, .split-pane-header { position:absolute; box-sizing:border-box; --split-edge:var(--split-line); }
 .split-pane-frame[data-active="true"], .split-pane-header[data-active="true"] { --split-edge:var(--split-ink); }
 .split-pane-frame { border:1px solid var(--split-edge); border-radius:8px; box-shadow:0 0 0 8px var(--split-bg); pointer-events:none; transition:border-color 120ms ease; }
