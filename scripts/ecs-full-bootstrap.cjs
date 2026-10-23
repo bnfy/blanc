@@ -25,7 +25,8 @@ const { components } = require('electron');
 app.setName('Blanc ECS Candidate');
 const graphics = applyCandidateGraphicsPolicy({ app, metadata });
 app.setPath('userData', profile);
-const chromiumProfile = path.join(profile, 'chromium');
+const chromiumProfile = process.platform === 'linux' && process.env.BLANC_ECS_SHARED_PROFILE_TRIAL === '1'
+  ? profile : path.join(profile, 'chromium');
 fs.mkdirSync(chromiumProfile, { recursive: true });
 app.setPath('sessionData', chromiumProfile);
 app.setAppLogsPath(path.join(profile, 'logs'));
@@ -37,7 +38,7 @@ app.setAsDefaultProtocolClient = () => false;
 const stateFile = path.join(profile, 'ecs-runtime.json');
 const state = { candidate: true, electron: process.versions.electron, chrome: process.versions.chrome,
   profile, productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
-const writeState = () => fs.writeFileSync(stateFile, JSON.stringify(state, null, 2), { mode: 0o600 });
+const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);
 const protectedSessions = new WeakSet();
 function protectSession(ses) {
   if (protectedSessions.has(ses)) return;

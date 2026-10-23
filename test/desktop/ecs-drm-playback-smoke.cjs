@@ -49,6 +49,7 @@ async function run(appPath, output) {
   const earlySandbox = process.platform === 'linux' && process.env.BLANC_ECS_EARLY_SANDBOX_TRIAL === '1';
   const earlyArgs = earlySandbox ? ['--enable-sandbox'] : [];
   evidence.earlySandboxTrial = earlySandbox;
+  evidence.sharedProfileTrial = process.platform === 'linux' && process.env.BLANC_ECS_SHARED_PROFILE_TRIAL === '1';
   try {
     await withDiagnosticProfile(async profile => {
       evidence.profile = profile;

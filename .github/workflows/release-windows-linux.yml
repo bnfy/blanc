@@ -817,14 +817,14 @@ jobs:
         run: |
           APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm.json
-      - name: Diagnose early command-line sandbox enforcement
+      - name: Diagnose aligned native and session profile
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
         shell: bash
         env:
-          BLANC_ECS_EARLY_SANDBOX_TRIAL: '1'
+          BLANC_ECS_SHARED_PROFILE_TRIAL: '1'
         run: |
           APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
-          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm-early-sandbox.json
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm-shared-profile.json
       - name: Upload sanitized evidence only, never installers or profiles
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
