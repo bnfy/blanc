@@ -12,13 +12,20 @@ const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 assert(executable);
 assert.equal(process.env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-production-drm-'));
-const report = { platform: process.platform, arch: process.arch, passed: false, mediaErrors: [], players: {} };
+const report = { platform: process.platform, arch: process.arch, passed: false, mediaErrors: [], players: {}, networkFailures: [] };
 await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
 let app;
 const launch = () => launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
   args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '' }, timeoutMs: 30000 });
 try {
   app = await launch();
+  app.context.on('requestfailed', request => {
+    let host; try { host = new URL(request.url()).hostname; } catch { return; }
+    report.networkFailures.push({ host, error: request.failure()?.errorText });
+  });
+  app.context.on('response', response => {
+    if (response.status() >= 400) report.networkFailures.push({ host: new URL(response.url()).hostname, status: response.status() });
+  });
   // ECS downloads its actual component through normal startup. Linux must then
   // re-enter the native launcher to load that component before sandboxing.
   const installed = await waitFor(async () => {
@@ -39,7 +46,15 @@ try {
   const start = await waitFor(() => app.pages().find(p => p.url() === 'blanc://newtab/'), 'restored start page');
   await waitFor(async () => (await start.evaluate(async () => (await window.bowserPages?.start.data())?.startup?.phase)) === 'ready', 'completed browser startup');
   await chrome.evaluate(() => window.browserAPI.createTab('https://castlabs.github.io/wv-vmp-lab/'));
-  const page = await waitFor(() => app.pages().find(p => p.url().startsWith('https://castlabs.github.io/wv-vmp-lab/')), 'production VMP Lab');
+  const page = await waitFor(() => {
+    for (const p of app.pages()) {
+      const url = new URL(p.url());
+      if (url.protocol === 'blanc:' && url.hostname === 'error' && url.searchParams.get('url') === 'https://castlabs.github.io/wv-vmp-lab/') {
+        throw Error(`VMP navigation failed: ${url.searchParams.get('desc')} (${url.searchParams.get('code')})`);
+      }
+    }
+    return app.pages().find(p => p.url().startsWith('https://castlabs.github.io/wv-vmp-lab/'));
+  }, 'production VMP Lab');
   const media = await app.context.newCDPSession(page);
   media.on('Media.playerErrorsRaised', event => {
     for (const error of event.errors) report.mediaErrors.push({ code: error.code, type: error.errorType });
@@ -86,13 +101,23 @@ try {
   report.passed = true;
 } catch (error) {
   report.failure = { name: error.name, message: error.message.slice(0, 300) };
-  report.pageOrigins = app?.pages().map(page => { try { return new URL(page.url()).origin; } catch { return 'unknown'; } });
+  report.pages = await Promise.all((app?.pages() || []).map(async page => {
+    const url = new URL(page.url());
+    return { page: `${url.protocol}//${url.hostname}${url.pathname}`, ...await page.evaluate(() => ({
+      title: document.title, shakaType: typeof shaka,
+      error: document.getElementById('errorDetail')?.textContent?.slice(0, 120),
+      contentControl: !!document.getElementById('loadContentBtn'),
+    })).catch(() => ({})) };
+  }));
   throw error;
 } finally {
-  if (app) await app.close();
-  await fs.rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
-  report.profileRemoved = !(await fs.stat(root).catch(() => null));
-  await fs.mkdir('output/ecs-production', { recursive: true });
-  await fs.writeFile(`output/ecs-production/drm-${process.platform}-${process.arch}.json`, JSON.stringify(report, null, 2));
+  try { if (app) await app.close(); }
+  catch (error) { report.passed = false; throw error; }
+  finally {
+    await fs.rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    report.profileRemoved = !(await fs.stat(root).catch(() => null));
+    await fs.mkdir('output/ecs-production', { recursive: true });
+    await fs.writeFile(`output/ecs-production/drm-${process.platform}-${process.arch}.json`, JSON.stringify(report, null, 2));
+  }
 }
 console.log(JSON.stringify(report));
