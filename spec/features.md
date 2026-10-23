@@ -417,9 +417,9 @@ From the desktop `DEFAULTS`:
 
 - macOS Settings offers five Dock colorways: `sunrise` (default, follows the
   system appearance), `sunrise-dark`, `sunrise-gold` (soft gold in Light,
-  polished gold in Dark), `sunrise-spectrum` (a glass sun and rays from blue to
-  coral) and `sunrise-amber` (the same from gold to orange); the last two sit on
-  a pale tile that darkens in Dark. Older ids, including the monogram `gold`, are
+  polished gold in Dark), `sunrise-spectrum` (a glass sun and rays from deep blue
+  and indigo to coral) and `sunrise-amber` (the same in bronze); the last two sit
+  on a pale tile that darkens in Dark. Older ids, including the monogram `gold`, are
   retired; any stale or hand-set retired id falls back to `sunrise`.
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
