@@ -2215,4 +2215,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="default_browser_reminder_set">Definir como padrão</string>
     <string name="default_browser_reminder_later">Agora não</string>
     <string name="ws_editor_retry">Tentar de novo</string>
+    <string name="favorites_read_only_note">Os favoritos são sincronizados do seu computador. Por enquanto, edite-os por lá.</string>
+    <string name="favorites_edit_on_computer">Por enquanto, edite os favoritos no seu computador.</string>
+    <string name="settings_sync_create_on_computer">Inicie a sincronização no seu computador e adicione este telefone com um código.</string>
 </resources>

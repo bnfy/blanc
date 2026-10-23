@@ -160,6 +160,7 @@ if (window.location.protocol === 'blanc:') {
     api = {
       surface,
       bookmarks: {
+        capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
         remove: (id) => invoke('pages:bookmarks:remove', id),
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),

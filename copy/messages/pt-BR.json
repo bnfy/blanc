@@ -7720,5 +7720,17 @@
   "ws.editor.retry": {
     "message": "Tentar de novo",
     "source": "sha256:ab2341248d6702836c2e7982bf70f75cdfb57d31f69323e993225bdc89d0ba31"
+  },
+  "favorites.readOnlyNote": {
+    "message": "Os favoritos são sincronizados do seu computador. Por enquanto, edite-os por lá.",
+    "source": "sha256:2b4c87fd07365a888f45d027f22bf1aca4c4c5c4bc0f1371a2bbf4b165a890c4"
+  },
+  "favorites.editOnComputer": {
+    "message": "Por enquanto, edite os favoritos no seu computador.",
+    "source": "sha256:94193c3e471074a08a6c2bd221296750ac60e31086057002efb0775db7290d40"
+  },
+  "settings.sync.createOnComputer": {
+    "message": "Inicie a sincronização no seu computador e adicione este telefone com um código.",
+    "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
   }
 }

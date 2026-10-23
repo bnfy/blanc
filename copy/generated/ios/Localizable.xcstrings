@@ -87516,6 +87516,132 @@
           }
         }
       }
+    },
+    "favorites.readOnlyNote": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites sync from your computer. Edit them there for now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten werden von deinem Computer synchronisiert. Bearbeite sie vorerst dort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les favoris sont synchronisés depuis votre ordinateur. Modifiez-les là-bas pour le moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I preferiti si sincronizzano dal computer. Per ora, modificali lì."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os favoritos são sincronizados do seu computador. Por enquanto, edite-os por lá."
+          }
+        }
+      }
+    },
+    "favorites.editOnComputer": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Favorites on your computer for now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeite Favoriten vorerst auf deinem Computer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por ahora, edita los favoritos en tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifiez les favoris sur votre ordinateur pour le moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per ora, modifica i preferiti sul computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por enquanto, edite os favoritos no seu computador."
+          }
+        }
+      }
+    },
+    "settings.sync.createOnComputer": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your sync on your computer, then add this phone with a code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte die Synchronisierung auf deinem Computer und füge dann dieses Telefon mit einem Code hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia la sincronización en tu ordenador y después añade este teléfono con un código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia la sincronizzazione sul computer, poi aggiungi questo telefono con un codice."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie a sincronização no seu computador e adicione este telefone com um código."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

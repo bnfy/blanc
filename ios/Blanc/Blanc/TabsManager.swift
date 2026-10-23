@@ -8,6 +8,24 @@ final class TabsManager {
     var activeTabId: UUID?
 
     let settingsStore: SettingsStore
+    private let syncDirectory: URL
+    @ObservationIgnored private var applyingRemoteSettings = false
+    @ObservationIgnored lazy var syncEngine: SyncEngine = {
+        let engine = SyncEngine(state: SyncStateStore(directory: syncDirectory), secrets: KeychainSyncSecretStore(), client: SyncWorkerClient(),
+            settingsSink: { [weak self] settings in
+                guard let self else { return }
+                self.applyingRemoteSettings = true
+                defer { self.applyingRemoteSettings = false }
+                let values = settings.payload()["values"]
+                var patch: [String: Any] = [:]
+                if let theme = values?["theme"]?.text { patch["theme"] = theme }
+                if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
+                if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
+                self.applySettingsPatch(patch)
+            }, tabsSource: { [weak self] in self?.tabs.map { ($0.currentURL.absoluteString, $0.pageTitle) } ?? [] })
+        engine.onChanged = { [weak self] in self?.bridge.emitSyncChanges() }
+        return engine
+    }()
     var normalizer: AddressNormalizer
 
     @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
@@ -28,6 +46,7 @@ final class TabsManager {
     }
 
     init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
+        syncDirectory = settingsDirectory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
         self.sessionStore = SessionStore(directory: sessionDirectory)
@@ -73,6 +92,7 @@ final class TabsManager {
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
         }
+        tab.navigationDelegate.onTitleChange = { [weak self] in self?.syncEngine.tabsChanged() }
         tabs.append(tab)
         activeTabId = tab.id
         persistSession()
@@ -123,6 +143,7 @@ final class TabsManager {
         let urls = tabs.map { $0.currentURL.absoluteString }
         let activeIdx = tabs.firstIndex(where: { $0.id == activeTabId }) ?? 0
         sessionStore.save(urls: urls, activeIndex: activeIdx)
+        syncEngine.tabsChanged()
     }
 
     /// Test seam: collapse the 250ms session-save debounce to disk immediately.
@@ -156,7 +177,15 @@ final class TabsManager {
         }
 
         // One validated mutation that also schedules the debounced save.
+        let oldTheme = settingsStore.theme
+        let oldEngine = settingsStore.searchEngine
+        let oldBlocking = settingsStore.adblockEnabled
         settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
+        if !applyingRemoteSettings {
+            if let themeUpdate, themeUpdate != oldTheme { syncEngine.localSettingChanged(key: "theme", value: .string(themeUpdate.rawValue)) }
+            if let engineUpdate, engineUpdate != oldEngine { syncEngine.localSettingChanged(key: "searchEngine", value: .string(engineUpdate.rawValue)) }
+            if let adblockUpdate, adblockUpdate != oldBlocking { syncEngine.localSettingChanged(key: "adblockEnabled", value: .bool(adblockUpdate)) }
+        }
     }
 
     private func applyAdblockToggle(_ enabled: Bool) {

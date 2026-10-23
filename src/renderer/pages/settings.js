@@ -1518,6 +1518,20 @@
       const switchNotice = document.getElementById('syncSwitchNotice');
       const recoveryCopy = document.getElementById('syncRecoveryCopy');
       const recoveryNote = document.getElementById('syncRecoveryNote');
+      const canCreate = supports('syncCreate');
+      const canWipeRemote = supports('syncWipeRemote');
+      pathStart.hidden = !canCreate;
+      startNewBtn.hidden = !canCreate;
+      for (const anchor of [pathStart, startNewBtn]) {
+        if (canCreate) continue;
+        const note = document.createElement('p');
+        note.className = 'section-hint';
+        note.dataset.i18n = 'settings.sync.createOnComputer';
+        note.textContent = t('settings.sync.createOnComputer');
+        anchor.after(note);
+      }
+      wipeEl.closest('label').hidden = !canWipeRemote;
+      switchWipe.closest('label').hidden = !canWipeRemote;
       let currentHandle = '';
 
       // On-state: one row per category; the error lives ONLY in its own row.
@@ -1694,7 +1708,7 @@
         switchNotice.textContent = t('settings.sync.turningOn');
         let res;
         try {
-          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: effect.wipeRemote });
+          res = await window.bowserPages.settings.syncSwitchCode({ code: effect.code, wipeRemote: canWipeRemote && effect.wipeRemote });
         } catch {
           res = { ok: false, message: t('settings.sync.checkFailed') };
         }
@@ -1729,7 +1743,7 @@
         recoveryNote.textContent = res.ok ? t('settings.sync.recovery.copied') : (res.error === 'cancelled' ? '' : (res.message ?? ''));
       });
 
-      pathStart.addEventListener('click', () => { dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
+      pathStart.addEventListener('click', () => { if (!canCreate) return; dispatch({ type: 'choose', path: 'start' }); handleEl.focus(); });
       pathCode.addEventListener('click', () => { dispatch({ type: 'choose', path: 'code' }); codeEl.focus(); });
       backBtn.addEventListener('click', () => dispatch({ type: 'back' }));
       codeBack.addEventListener('click', () => dispatch({ type: 'back' }));
@@ -1741,7 +1755,7 @@
       passEl.addEventListener('input', onInput);
       form.addEventListener('submit', (e) => { e.preventDefault(); dispatch({ type: 'submit' }); });
       tryAgainBtn.addEventListener('click', () => { dispatch({ type: 'input', handle: handleEl.value, passphrase: passEl.value }); passEl.focus(); });
-      startNewBtn.addEventListener('click', () => dispatch({ type: 'start-new' }));
+      startNewBtn.addEventListener('click', () => { if (canCreate) dispatch({ type: 'start-new' }); });
 
       window.bowserPages.settings.syncGet().then((status) => {
         renderStatus(status);
@@ -1759,7 +1773,7 @@
       });
 
       disableBtn.addEventListener('click', async () => {
-        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: wipeEl.checked });
+        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: canWipeRemote && wipeEl.checked });
         // A failed remote wipe keeps sync ON (the accountId is the only handle
         // on the server copy) — leave the checkbox set for the retry and say why.
         wipeEl.checked = res.ok ? false : wipeEl.checked;

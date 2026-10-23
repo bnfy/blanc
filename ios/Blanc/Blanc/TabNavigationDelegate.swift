@@ -5,6 +5,7 @@ import UIKit
 final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var tab: TabModel?
     private var lastRequested: URL?
+    var onTitleChange: (() -> Void)?
     var onURLChange: ((URL) -> Void)?
 
     func load(_ url: URL, in webView: WKWebView) {
@@ -53,7 +54,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab.isLoading = webView.isLoading
         tab.canGoBack = webView.canGoBack
         tab.canGoForward = webView.canGoForward
+        let oldTitle = tab.pageTitle
         tab.pageTitle = webView.title ?? ""
+        if oldTitle != tab.pageTitle { onTitleChange?() }
         if let u = webView.url {
             lastRequested = u
             applyURL(u, to: tab)

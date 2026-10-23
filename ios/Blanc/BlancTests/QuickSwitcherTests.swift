@@ -77,4 +77,23 @@ final class QuickSwitcherTests: XCTestCase {
         let hostResults = QuickSwitcher.search(query: "auth", tabs: [tab])
         XCTAssertEqual(hostResults.count, 1)
     }
+    func testFuzzyLocalAndFavoriteMatchesStayWeakDespiteSourceRanking() {
+        let local = makeTab(title: "Gmail", url: "https://mail.google.com")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Gmail", favicon: nil, folder: nil)
+        let results = QuickSwitcher.search(query: "gml", tabs: [local], remote: [], favorites: [favorite])
+        XCTAssertEqual(results.count, 2)
+        XCTAssertTrue(results.allSatisfy { $0.score >= QuickSwitcher.strongMatchScore })
+        XCTAssertTrue(results.allSatisfy { $0.strength < QuickSwitcher.strongMatchScore })
+        XCTAssertEqual(results.first?.localTabID, local.id)
+    }
+    func testSubstringStrengthDoesNotDependOnSource() {
+        let local = makeTab(title: "Gmail", url: "https://mail.google.com")
+        let favorite = Favorite(id: "saved", url: "https://saved.example/", title: "Gmail", favicon: nil, folder: nil)
+        let remote = RemoteDevice(id: "laptop", name: "Laptop", platform: "darwin", updatedAt: 1, tabs: [RemoteTab(url: "https://remote.example/", title: "Gmail", groupId: nil, pinned: false)])
+        let results = QuickSwitcher.search(query: "gmail", tabs: [local], remote: [remote], favorites: [favorite])
+        XCTAssertEqual(results.count, 3)
+        XCTAssertTrue(results.allSatisfy { $0.strength == QuickSwitcher.strongMatchScore })
+        XCTAssertEqual(results.map(\.id).map { $0.split(separator: ":").first! }, ["local", "favorite", "remote"])
+    }
+
 }

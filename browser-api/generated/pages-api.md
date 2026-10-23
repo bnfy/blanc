@@ -14,6 +14,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `pins.pin` | invoke | `pages:pins:pin` | newtab, bookmarks | Pin an http(s) page to the Start Page; refused from private start pages and past the cap. |
 | `pins.unpin` | invoke | `pages:pins:unpin` | newtab, bookmarks | Unpin a page from the Start Page; refused from private start pages. |
 | `pins.onChanged` | event | `pages:pins:changed` | newtab, bookmarks | The Start Page pins changed; read them again. |
+| `bookmarks.capabilities` | invoke | `pages:bookmarks:capabilities` | bookmarks | Whether this host permits editing Favorites. |
 | `bookmarks.list` | invoke | `pages:bookmarks:list` | newtab, bookmarks | List Favorites (internal name: bookmarks). |
 | `bookmarks.clearFavicon` | invoke | `pages:bookmarks:clear-favicon` | newtab, bookmarks | Drop a Favorite's cached favicon after it failed to load. |
 | `bookmarks.browserSources` | invoke | `pages:bookmarks:browser-sources` | newtab, bookmarks | List installed browsers Favorites can be imported from. |

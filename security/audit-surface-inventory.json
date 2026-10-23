@@ -482,7 +482,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "fcfdc4360cab2d8c2c43b7595e12c8da2eb1592528a8e8058e04d0b30595ac49",
+      "sha256": "1c00a43119fadb7fc5884821d92bb422b97778ebc7f390bb2dbb3afc15ba8668",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -498,6 +498,7 @@
         "pages:blocking:retry",
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
+        "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
@@ -854,7 +855,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "8c298b3bf97278ebb7328810184f5cda9a3c4e52b06eec027c9feed13c12e115",
+      "sha256": "73622eba3d7be85fbbd3ed3b1db58a82ada47e7f9af98e1bda3b5d9ebd418d17",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -870,6 +871,7 @@
         "pages:blocking:retry",
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
+        "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",

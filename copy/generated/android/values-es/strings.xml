@@ -2215,4 +2215,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="default_browser_reminder_set">Usar por defecto</string>
     <string name="default_browser_reminder_later">Ahora no</string>
     <string name="ws_editor_retry">Reintentar</string>
+    <string name="favorites_read_only_note">Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí.</string>
+    <string name="favorites_edit_on_computer">Por ahora, edita los favoritos en tu ordenador.</string>
+    <string name="settings_sync_create_on_computer">Inicia la sincronización en tu ordenador y después añade este teléfono con un código.</string>
 </resources>
