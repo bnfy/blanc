@@ -25,6 +25,17 @@ async function main() {
   for (const [key, name] of Object.entries(names)) assert.equal(wire[FuseV1Options[name]], info.candidateFuses[key] ? 49 : 48, name);
   const report = { platform: process.platform, arch: process.arch, version: metadata.version, runtime: info.runtime, sourceCommit: info.sourceCommit,
     fusesVerified: true, productionUpdater: false, vmpSigned: false, releaseQualified: false, samples: [] };
+  // AppImageUpdater intentionally disables itself for the loose executable.
+  // Launch the actual image so its runtime supplies APPIMAGE naturally; the
+  // supported extract-and-run mode avoids granting a hosted runner FUSE access.
+  let launchExecutable = executable;
+  if (!mac && !win) {
+    const images = (await fs.readdir(info.dist)).filter(name => name.endsWith('.AppImage'));
+    assert.equal(images.length, 1, 'one native AppImage required');
+    launchExecutable = path.join(info.dist, images[0]);
+    await fs.chmod(launchExecutable, 0o755);
+    report.appImageLaunch = 'extract-and-run';
+  }
   let usedProfile;
   const requests = [];
   const server = http.createServer((req, res) => {
@@ -39,8 +50,9 @@ async function main() {
     const fixture = path.join(profile, 'fixture.html');
     await fs.writeFile(fixture, '<h1 id="canary">Original</h1><script>document.querySelector("h1").textContent="SCRIPT RAN"</script>');
     for (const iteration of [0, 1]) {
-      const child = spawn(executable, ['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
+      const child = spawn(launchExecutable, ['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
         env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: fixture,
+          ...(!mac && !win ? { APPIMAGE_EXTRACT_AND_RUN: '1' } : {}),
           BLANC_UPDATE_CHANNEL: iteration ? 'staging' : 'production', BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/`,
           BLANC_UPDATE_STAGING_ALLOW_HTTP: '1', BLANC_UPDATE_STAGING_AUTO_INSTALL: '1', BLANC_UPDATE_STAGING_STATUS_FILE: path.join(profile, 'staging-status.json') }, stdio: ['ignore', 'pipe', 'pipe'] });
       let text = '', endpoint;
@@ -50,6 +62,7 @@ async function main() {
       let page;
       try {
         const runtime = await waitFor(async () => {
+          if (child.exitCode !== null) throw Error(`Native launch failed (${child.exitCode}): ${text.slice(-3000)}`);
           const state = await fs.readFile(path.join(profile, 'ecs-runtime.json'), 'utf8').then(JSON.parse, () => null);
           return state?.browserReady && Array.isArray(state.contents) && endpoint && state;
         }, 'candidate native startup', 90000);
