@@ -244,6 +244,12 @@ TestFlight build is the companion, not a generic browser.
 | Later (Duo-3) | The side list from synced groups and Spaces, tabletop video, multiple windows | F28, F32, D30 | After the beta |
 | Out | iPad-specific work (an iPad gets the regular layout for free), Android, an in-app Patron purchase | D7, D11, F17 | Until the indicators below are met |
 
+**User feedback (2026-10-23).** A mobile user's wish list was mapped onto this
+ladder ([plan](2026-10-23-ios-user-feedback-plan.md)): Tab Sync on iPhone and
+an explicit Send to device stay in M7; M10's Spaces need a desktop Spaces sync
+step first (opt-in, end-to-end encrypted, reversing F41's "never sync"); a
+Pill position Bottom/Top setting joins *Later*; AI summaries are declined.
+
 ### M6.5: the re-baseline
 
 Done in this PR:
