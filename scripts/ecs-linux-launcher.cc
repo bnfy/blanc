@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cctype>
+#include <cstdlib>
 #include <cerrno>
 #include <cstring>
 #ifdef __linux__
@@ -119,6 +120,21 @@ static Json readJson(const fs::path& file) {
 }
 static std::string env(const char* key) { const char* result = getenv(key); return result ? result : ""; }
 static void set(const char* key, const std::string& value) { if (setenv(key, value.c_str(), 1)) throw std::runtime_error("setenv failed"); }
+static void clearInheritedChromeEnvironment() {
+  // The previous browser can export its own executable/helper selectors.
+  // Replaying those CHROME_* values reproduces a pre-window zygote failure;
+  // clearing just this family restores the same installed ECS bytes. Let the
+  // new runtime initialize its own selectors, including on the first update
+  // from an official-Electron build that cannot run our outgoing cleanup.
+  std::vector<std::string> keys;
+  for (char** entry = environ; *entry; ++entry) {
+    if (std::strncmp(*entry, "CHROME_", 7) == 0) {
+      const char* equals = std::strchr(*entry, '=');
+      if (equals) keys.emplace_back(*entry, static_cast<size_t>(equals - *entry));
+    }
+  }
+  for (const auto& key : keys) if (unsetenv(key.c_str())) throw std::runtime_error("cannot clear inherited Chromium selector");
+}
 static bool version(const std::string& text) {
   unsigned dots = 0, digits = 0;
   for (char c : text) { if (c == '.') { if (!digits) return false; ++dots; digits = 0; } else if (c >= '0' && c <= '9' && ++digits <= 9) {} else return false; }
@@ -254,6 +270,7 @@ int main(int argc, char** argv) {
         << " parent_death_signal=" << deathSignal << " sigchld_ignored=" << (action.sa_handler == SIG_IGN) << '\n';
     }
 #endif
+    clearInheritedChromeEnvironment();
     std::vector<char*> raw; for (auto& arg : args) raw.push_back(arg.data()); raw.push_back(nullptr);
     execv(core.c_str(), raw.data());
     throw std::runtime_error(std::string("candidate exec failed: ") + strerror(errno));
