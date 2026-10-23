@@ -755,14 +755,15 @@ jobs:
         if: runner.os == 'Linux'
         run: bash scripts/ci-enable-linux-sandbox.sh
       - name: Build pinned native ECS candidate, never publish
+        id: ecs-build
         env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
-          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
-          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
-          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+          AZURE_TENANT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_TENANT_ID || '' }}
+          AZURE_CLIENT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_ID || '' }}
+          AZURE_CLIENT_SECRET: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_SECRET || '' }}
+          AZURE_ENDPOINT: ${{ runner.os == 'Windows' && vars.AZURE_TRUSTED_SIGNING_ENDPOINT || '' }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ runner.os == 'Windows' && vars.AZURE_CODE_SIGNING_ACCOUNT_NAME || '' }}
+          AZURE_CERT_PROFILE: ${{ runner.os == 'Windows' && vars.AZURE_CERTIFICATE_PROFILE_NAME || '' }}
+          AZURE_PUBLISHER_NAME: ${{ runner.os == 'Windows' && vars.AZURE_PUBLISHER_NAME || '' }}
         run: node scripts/ecs-native-validation.cjs
       - name: Native startup, restart, profile cleanup and static HTML guard
         shell: bash
@@ -803,12 +804,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Updater trust unit tests failed' }
           node test/desktop/windows-update-trust-smoke.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Updater trust native smoke failed' }
-      - name: Linux protected playback and full local HTML isolation
-        if: runner.os == 'Linux'
+      - name: Linux full local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
         shell: bash
         run: |
           APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/local-html.json
+      - name: Linux protected playback and kernel CDM sandbox
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm.json
       - name: Upload sanitized evidence only, never installers or profiles
         if: always()

@@ -32,7 +32,7 @@ async function connect(target, onEvent = () => {}) {
   };
   const send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++seq;
-    const timer = setTimeout(() => { pending.delete(id); reject(Error(`CDP timeout: ${method}`)); }, 10000);
+    const timer = setTimeout(() => { pending.delete(id); reject(Error(`CDP timeout: ${method}`)); }, method === 'Page.captureScreenshot' ? 30000 : 10000);
     pending.set(id, { resolve, reject, timer }); ws.send(JSON.stringify({ id, method, params }));
   });
   return { send, close: () => ws.close(), evaluate: async (fn, arg) => {
@@ -199,6 +199,7 @@ async function run(appPath, output) {
           assert.ok(report.visibleDocument && report.scriptMutationAbsent && report.rtcCanaryPresent);
           assert.ok(report.workerCanaryPresent && !report.readableFileFrame);
           if (!round) {
+            if (process.platform === 'linux') await page.send('Page.bringToFront');
             const screenshot = await page.send('Page.captureScreenshot', { format: 'png' });
             await fs.mkdir(path.dirname(output), { recursive: true });
             await fs.writeFile(path.join(path.dirname(output), 'local-preview.png'), Buffer.from(screenshot.data, 'base64'));
