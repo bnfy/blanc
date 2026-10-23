@@ -1,3 +1,5 @@
+> October 23 current checkpoint: [signed Split View visual parity with shipping 1.42.1](evidence/l5-split-visual-parity-20261023/README.md). 75 regression + 56 layout checks and native pointer/menu/divider checks pass. Owner visual/VoiceOver and L6 acknowledgement stay open: 6/12, delta 0.
+
 # Side-by-side Mac Chromium preview release checklist
 
 > October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Latest October 22 measured footprint is 62 files/156 hunks; see [pending-read repair evidence](evidence/pending-read-quit-repair-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
@@ -12,7 +14,7 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 **Current acceptance: October 23, 2026; [L10 functional smoke](evidence/l10-functional-smoke-20261023/README.md), [L3 baseline/maintenance](evidence/l3-closeout-20261023/README.md), [L7 owner approval](evidence/l7-owner-acceptance-20261023/README.md), L9 [signed notice and live route](evidence/preview-notice-20261023/README.md), and the [L2 owner record](evidence/l2-owner-acceptance-20261022/README.md).**
 
-`[■■■■■■□□□□□□] 6/12 launch gates cleared (50%) · Δ -1 L6 acknowledgement review`
+`[■■■■■■□□□□□□] 6/12 launch gates cleared (50%) · Δ 0 gates`
 
 This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, L1 scope, L2 signed isolation, L3 baseline/maintenance, L7 security/privacy, L9 manual update/withdrawal and L10 functional smoke have accepted records; L6 is reopened for the owner-observed history acknowledgement warning, and the other five rows remain open. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
 
@@ -39,6 +41,7 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 
 | Date / checkpoint | Gates cleared | Change | Evidence and remaining blockers |
 | --- | --- | --- | --- |
+| October 23 / current shipping visual parity | 6/12 | 0 | [Signed 1.42.1 card/corner-tab parity; L5/L6 remain open](evidence/l5-split-visual-parity-20261023/README.md) |
 | October23 / native pointer owner check | 6/12 | -1 L6 | [Pane clicks repaired and owner-confirmed; close-history warning remains](evidence/l5-native-pointer-20261023/README.md) |
 | October23 / L5 theme action repair | 7/12 | 0 | [Signed AX/keyboard repair and 75 focused runtime checks](evidence/l5-theme-accessibility-20261023/README.md); full owner L5 remains open |
 | October23 / L10 functional smoke | 7/12 | +1 L10 | [Current core/Store/theme/import/password checks pass](evidence/l10-functional-smoke-20261023/README.md); separate L5 AX defect recorded |

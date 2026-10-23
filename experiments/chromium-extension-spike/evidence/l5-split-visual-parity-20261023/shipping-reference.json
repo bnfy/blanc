@@ -1,0 +1,23 @@
+{
+  "version": "1.42.1",
+  "app": "/Applications/Blanc.app",
+  "appAsarSha256": "35b3ee16358ce874bc3b52ffd0fd471057be16c448fbd9d1b24541c19e71a841",
+  "comparison": "temporary window in installed shipping app with local /left and /right; comparison tabs/window closed; original window remains",
+  "visualContract": {
+    "outerInset": 8,
+    "gap": 8,
+    "cardBorder": 1,
+    "cardRadius": 8,
+    "cornerTabHeight": 36,
+    "cornerFillet": 8,
+    "maxCornerWidth": 240,
+    "font": "Instrument Sans 12px",
+    "active": "stronger outline and close-only corner",
+    "inactive": "host/favicon and remove button",
+    "divider": "4x32 grip on hover/active/keyboard focus"
+  },
+  "ownerPriorStage2": "Passed divider drag/double-click reset, pane actions/Escape and narrow/wide on ca69ff73; not new-candidate owner acceptance",
+  "scope": "two-pane visual parity; native fork does not acquire shipping 3/4-pane support",
+  "remaining": "full L5 owner/VoiceOver and independent L6 acknowledgement warning stay open",
+  "permanentTabs": "all pre-existing shipping tabs retained; local comparison contributes ordinary history/recently-closed entries only"
+}
