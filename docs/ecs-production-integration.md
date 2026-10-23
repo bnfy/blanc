@@ -391,6 +391,16 @@ replacement jobs are temporary and must be removed with that draft after their
 final consumers finish. The reusable acceptance harnesses and strict unmuted
 protected-playback checks remain.
 
+Intel codec follow-up `40004110864` completed successfully, with all individual
+trials and native-clock evidence inspected. Both official Electron and ECS
+44.9.3 passed local unencrypted AAC at 44.1/48 kHz: unmuted audio advanced
+5.017/5.000 seconds and 5.028/4.999 seconds respectively. The six original
+PCM/Web Audio trials per runtime were retained, with no media errors, and the
+native clock advanced at both input rates. Temporary profiles were removed.
+This does not reproduce a generic ECS AAC failure or prove the virtual output
+device faulty. It still does not qualify full Blanc's unmuted DRM path; fresh
+native signed-package acceptance remains required.
+
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
 2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify
