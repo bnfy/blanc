@@ -4,7 +4,7 @@ Date: 2026-10-23. Status: approved; Mac only.
 
 ## Intent
 
-Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue through red to light pink) and **Sunrise Amber** (bronze). Both redraw the Sunrise's sun and rays, on the shipped artwork's proportions, in heavy rounded strokes and with no water lines. The sun and rays are colored Icon Composer glass over a thick white rim with a drop shadow, on a light tile: Arc's graded gray for Spectrum, cream for Amber. Users choose them in Settings → General → App icon, after Sunrise Gold.
+Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue through red to light pink) and **Sunrise Amber** (bronze). Both redraw the Sunrise as a bolder sunburst, after Arc's heavy strokes: a risen sun and five thick rounded rays, with no water lines. The sun and rays are colored Icon Composer glass over a thick white rim with a drop shadow, on a light tile: Arc's graded gray for Spectrum, cream for Amber. Users choose them in Settings → General → App icon, after Sunrise Gold.
 
 ## What the owner decided
 
@@ -21,6 +21,7 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 - **Arc's red middle.** With P2 the owner missed Arc's brighter red and pink. Two more rounds followed: more coral (`spectrum-pink-options.png`), then Arc's order of blue, red, then light pink (`spectrum-red-options.png`). The owner chose **S2**: blue left rays, Arc's deeper red at the center ray and the middle of the sun, fading to light pink on the right. Amber stays Q2.
 - **Arc's gray tile.** The owner then asked for Spectrum's tile to use the gray Arc's icon sits on in the Dock, in place of near-white. Amber keeps its cream, and Dark is unchanged.
 - **Arc's outline, shadow and graded tile.** The owner asked for thicker white outlines and a drop shadow closer to Arc's design. Arc's outline is about 3.2% of the tile, against our 1.4%, and Arc's shadow is a soft gray close around it. From three options (`outline-shadow-options.png`) the owner chose **O3**: Arc's outline thickness and a stronger drawn shadow, with the rays moved out so every outline stays separate. The owner also asked for the middle ray to stand taller still, and for Spectrum's tile to follow Arc's gradient from darker gray at the top to lighter below, rather than one flat gray.
+- **Five bold rays.** The owner still disliked the result and asked for a simpler mark with fewer, thicker rays like Arc's strokes. Three rays (`three-ray-options.png`) no longer read as a sun. Of three bolder sunbursts (`bold-sunburst-options.png`), the owner chose **F3**: five thick rays (76 wide) at 0°, ±38° and ±76°, with their outlines kept separate. The owner also decided the names stay Sunrise Spectrum and Sunrise Amber, with no reference to Arc.
 
 ## Goals
 
@@ -38,12 +39,12 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 
 `scripts/app-icon-colorways.js` draws everything from one geometry, and `brand:build` renders it.
 
-- **Mark:** a risen sun and 7 rays with rounded caps, no water lines.
-  - **Rays:** measured from the Browser's native layer. They sit at 0°, ±28°, ±52.5° and ±76°, and the side rays' tips reach 470, 455 and 394 from the sun's center, as in the artwork. The middle ray reaches 615, past the artwork's 545, so it stands well above the rest.
+- **Mark:** a risen sun and 5 rays with rounded caps, no water lines.
+  - **Rays:** at 0°, ±38° and ±76°. Their tips reach 640, 560 and 470 from the sun's center, so the middle ray stands well above the rest. The outer pair sits at the artwork's lowest angle.
   - **Sun:** where the artwork has a 210 half disc, the sun here has a radius of 225 and its center stands 80 above its flat base. More than half the disc shows, so it reads larger and taller against the heavy rays.
 
   Two more things differ from the shipped artwork:
-  - the rays are 52 wide, against the artwork's 22, so the glass reads at Dock size;
+  - the rays are 76 wide, against the artwork's 22, for Arc's bolder weight and so the glass reads at Dock size;
   - they start 66 beyond the sun's edge, so their thick white rims stay clear of the sun's.
 
   The mark is centered on the 1024 canvas and scaled so that, rim included, its longer side is 800 px in the native layers. It is a deliberate redraw, so it is the one Sunrise surface not derived from `assets/sunrise-mark.svg`.
