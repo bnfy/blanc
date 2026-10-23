@@ -51,6 +51,15 @@ every shipped architecture. Recheck the exact CDM service/sandbox tuple and
 ordinary-helper library validation if using the candidate dispatcher. Previous
 runtime approval and vendor correspondence do not replace these checks.
 
+For Linux, additionally require cold and cached offline startup, active-CDM
+selection through updates/rollbacks, and kernel CDM isolation after each
+transition. Synthetic cache metadata is not proof of a signed CDM binary
+upgrade or rollback. Test actual AppImage Restart Now replacement and repeated
+ECS updater continuity without a development launcher or a helper from an old
+unpacked build. The preload setup and native profile must survive a standalone
+relaunch. See [Linux production qualification](ecs-linux-production-qualification-2026-10-22.md)
+for the current evidence and open blockers.
+
 Keep production entitlement restrictions unchanged unless a separate change is
 explicitly reviewed and approved. Missing security/native evidence blocks
 release absent an explicit recorded owner waiver. A vendor email response is

@@ -28,6 +28,13 @@ test('preload is opt-in to a packaged shim and marked isolated profile', () => {
       oimompecagnajdejgnnjijobebaeigek: { pv: '4.10.9.0', max_pv: '4.10.11.0' },
     } } }));
     assert.ok(linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH.includes('/4.10.9.0/'));
+    fs.mkdirSync(path.join(profile, 'chromium'));
+    const sessionState = path.join(profile, 'chromium/Local State');
+    fs.writeFileSync(sessionState, JSON.stringify({ updateclientdata: { apps: {
+      oimompecagnajdejgnnjijobebaeigek: { pv: '4.10.11.0' },
+    } } }));
+    assert.equal(linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH, latest);
+    fs.unlinkSync(sessionState);
     const hint = path.join(profile, 'WidevineCdm/latest-component-updated-widevine-cdm');
     fs.writeFileSync(hint, JSON.stringify({ Path: path.join(profile, 'WidevineCdm/4.10.11.0') }));
     assert.equal(linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH, latest);

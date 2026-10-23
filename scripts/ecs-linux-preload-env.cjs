@@ -19,11 +19,14 @@ function linuxPreloadEnv(appDir, profile) {
   });
   // Chromium's component installer prefers its persisted registration over
   // the highest directory, including on a rollback. Mirror that selection.
-  const stateFile = path.join(profile, 'Local State');
-  if (fs.existsSync(stateFile)) {
+  // The full candidate separates sessionData; older/simple profiles store
+  // the same registration at their root. Prefer the actual sessionData path.
+  for (const stateFile of [path.join(profile, 'chromium/Local State'), path.join(profile, 'Local State')]) {
+    if (!fs.existsSync(stateFile)) continue;
     const registered = JSON.parse(fs.readFileSync(stateFile, 'utf8'))?.updateclientdata?.apps?.[WIDEVINE_ID]?.pv;
     if (validVersion(registered) && versions.includes(registered)) {
       versions.splice(versions.indexOf(registered), 1); versions.unshift(registered);
+      break;
     }
   }
   const hintFile = path.join(root, 'latest-component-updated-widevine-cdm');

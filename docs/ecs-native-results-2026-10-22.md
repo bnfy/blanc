@@ -70,6 +70,10 @@ or machine before that rehearsal can safely run.
 2. Real staged N-1 **Restart Now** handoffs and subsequent ECS updater continuity
    on the supported platforms. Metadata discovery, trust tests and direct
    installer launches are not substitutes. Verify real-profile/cookie continuity.
+   The [Linux production-qualification follow-up](ecs-linux-production-qualification-2026-10-22.md)
+   now proves download and byte-exact replacement but fails automatic relaunch;
+   the Linux candidate remains blocked. Fresh/cached offline startup and
+   synthetic CDM activation checks pass, with actual binary rollover pending.
 3. uBO's reviewed ECS runtime/platform and CodeQL acceptance. This candidate
    excludes uBO; that is an unresolved shipped-feature compatibility gap, not
    permission to remove it from production.
