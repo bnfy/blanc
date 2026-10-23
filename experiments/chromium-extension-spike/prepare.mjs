@@ -3,6 +3,7 @@ import { addPreviewNotice } from './preview/notice.mjs';
 import { hardenMarkup } from './trusted-markup.mjs';
 import { prepareSessionRecovery } from './session-recovery.mjs';
 import { preparePendingNavigation } from './pending-navigation.mjs';
+import { prepareNativeHitTest } from './native-hit-test.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -799,6 +800,7 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
     present: "// Do not stack Chromium's rounded page outlines beneath those headers." },
 ]);
 
+prepareNativeHitTest(edit);
 preparePendingNavigation(edit);
 prepareSessionRecovery(edit);
 
