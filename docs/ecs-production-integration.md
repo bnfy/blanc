@@ -132,8 +132,12 @@ file/frame/worker denial and temporary-profile cleanup. It did **not** pass
 protected playback. Run `39986448419` reproduced the failure despite more than
 ten seconds buffered: production VMP verified, MediaKeys were present and the
 video was unpaused without a media error, but the clock advanced only 0.1 s in
-five seconds. Focus/mute comparisons are diagnostic only; they must never turn
-that strict unmuted failure into a pass.
+five seconds. Run `39987596722` then isolated the audio path: foreground focus
+did not restore advancement, but muting advanced protected video about 4.97 s in
+five seconds. The Intel runner reports a virtual CoreAudio input/output device.
+This is not proof of working unmuted audio on a physical Intel Mac, and the
+strict unmuted check remains failed. Focus/mute comparisons must never turn
+that failure into a pass.
 
 The same run verified the unchanged Apple stapled-ticket and Gatekeeper checks
 over HTTPS/TCP in CI. The temporary runner firewall anchor works around the
@@ -141,12 +145,34 @@ documented macOS Intel runner HTTP/3 failure and is removed on exit; it does not
 disable certificate or ticket verification.
 
 Linux updater attempts downloaded through the loopback staging feed, accepted
-the ordinary Restart Now prompt, replaced a versionless AppImage with the exact
-expected bytes and automatically started the ECS successor. The harness has
-not yet reached protected playback in that successor because its X11 window
-selection failed. Neither this partial replacement evidence nor a separately
-launched app counts as a completed handoff. Both successive handoffs, protected
-playback, kernel-sandbox checks and final offline/local-HTML checks remain gates.
+the ordinary Restart Now prompt and replaced a versionless AppImage with the
+exact expected bytes. Window inventory and native logs showed that the
+successor then exited during the sandboxed-zygote handshake, not a window
+selector failure. Replaying the inherited environment reproduced the failure;
+cleaning it or using an ordinary fresh launch opened the same installed bytes.
+Run `39992102538` narrowed this to the inherited `CHROME_*` family: clearing
+only loader, Electron, or path variables did not fix it. The candidate launcher
+now discards inherited Chromium executable/helper selectors before `exec`,
+allowing the new runtime to initialize its own values, including on the first
+hop from the unmodified public app. Native run `39992749821` on `4fbac7dc6`
+passed: CENC video advanced about 4.94 s with MediaKeys and no media errors;
+the CDM retained seccomp 2, NoNewPrivs 1, separate user/PID namespaces and no
+sandbox-disable flag. Offline starts took 1278/1197 ms; file/frame/worker reads
+were denied, uBO and compatibility checks passed, and profiles were removed.
+Run `39993714147` then passed both real versionless AppImage handoffs:
+`1.42.1 -> 1.43.0-staging.1 -> 1.43.0-staging.2`. Each automatic successor
+played encrypted media for about five seconds with MediaKeys, no media errors,
+and the same kernel-sandbox properties. Disposable profiles were removed.
+Final offline/web-file checks passed (1578/1398 ms). That workflow still failed
+because it additionally invoked the macOS-only LaunchServices test on Linux;
+the corrected workflow uses the cross-platform file/frame/worker probe and
+adds a file-origin service-worker denial assertion. Its complete rerun remains
+required. Run `39994393460` completed that rerun successfully: both handoffs
+advanced protected media about 4.96 s, both retained the required CDM sandbox,
+and the final offline starts took 1780/1141 ms with file/frame/worker/service-
+worker access denied. Its disposable profile was removed. Neither partial
+replacement evidence nor a separately launched app counts as a completed
+handoff; these passing results came from the actual automatic successors.
 The rehearsal explicitly warms a real CDM first; first-ever CDM restart UX is
 still a separate, unqualified gate.
 
@@ -154,9 +180,10 @@ still a separate, unqualified gate.
 
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
-2. Rebuild the final integrated Mac packages from committed source, sign and
-   notarize both architectures; repeat Gatekeeper/profile/entitlement checks.
-   Native Intel startup/uBO acceptance is still missing; Rosetta is not a waiver.
+2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify
+   when the packaged application changes. Native Intel startup/uBO acceptance
+   passed, but unmuted protected audio acceptance remains unresolved; muted
+   video and Rosetta are not substitutes.
 3. Fresh protected playback and sandbox evidence on the integrated package for
    each platform, plus Spotify/Netflix on the final signed Mac candidate. Prior
    candidate playback alone does not close this gate.
