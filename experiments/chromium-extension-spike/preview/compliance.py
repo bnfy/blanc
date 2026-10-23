@@ -2,6 +2,7 @@
 import argparse
 import ast
 import hashlib
+import html
 import json
 import pathlib
 import shutil
@@ -28,6 +29,29 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
+def render_credits(spdx):
+    """Render the reachable inventory, never the optional GN placeholder page."""
+    packages = spdx.get('packages', [])
+    licenses = {item['licenseId']: item['extractedText']
+                for item in spdx.get('hasExtractedLicensingInfos', [])}
+    if not packages or not licenses:
+        raise ValueError('Chromium license inventory is empty')
+    sections = []
+    for package in packages:
+        text = licenses.get(package['licenseConcluded'], '')
+        if not text.strip():
+            raise ValueError('Missing full license text for ' + package['name'])
+        sections.append('<section><h2>' + html.escape(package['name']) + '</h2><pre>'
+                        + html.escape(text) + '</pre></section>')
+    return ('<!doctype html><html lang="en"><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<title>Chromium third-party notices</title>'
+            '<style>body{font:16px system-ui;max-width:80rem;margin:2rem auto;padding:1rem}'
+            'pre{white-space:pre-wrap;overflow-wrap:anywhere}section{margin:2rem 0}</style>'
+            '<h1>Chromium third-party notices</h1><p>Full license texts from the '
+            'GN-reachable shipped component inventory.</p>' + ''.join(sections) + '</html>\n')
+
+
 def validate(payload, assets, blocker, version, revision):
     payload, assets, blocker = map(pathlib.Path, (payload, assets, blocker))
     manifest = json.loads((payload / 'manifest.json').read_text())
@@ -48,6 +72,9 @@ def validate(payload, assets, blocker, version, revision):
         p = pathlib.PurePosixPath(name)
         if p.is_absolute() or '..' in p.parts or digest(payload / name) != sha:
             raise ValueError('Compliance payload digest/path mismatch: ' + name)
+    spdx = json.loads((payload / 'chromium.spdx.json').read_text())
+    if (payload / 'chromium-credits.html').read_text() != render_credits(spdx):
+        raise ValueError('Chromium credits do not contain the inventoried full license texts')
     for name, sha in manifest['fontInputs'].items():
         if digest(assets / 'pages' / name) != sha:
             raise ValueError('Font differs from the licensed input: ' + name)
@@ -75,8 +102,6 @@ def prepare(repo, source, assets, blocker, output, revision):
     for name in ['LICENSE', 'ASSET-LICENSE.md']:
         shutil.copyfile(repo / name, output / name)
     shutil.copyfile(source / 'LICENSE', output / 'LICENSE.chromium')
-    credits = source / 'out/BlancPrototype/gen/components/resources/about_credits.html'
-    shutil.copyfile(credits, output / 'chromium-credits.html')
     subprocess.run(['python3', str(source / 'tools/licenses/licenses.py'), 'license_file',
                     '--target-os', 'mac', '--gn-out-dir', 'out/BlancPrototype',
                     '--gn-target', '//chrome:chrome', '--format', 'spdx',
@@ -127,6 +152,7 @@ def prepare(repo, source, assets, blocker, output, revision):
                        'hashes': [{'alg': 'SHA-256', 'content': digest(resources)}],
                        'licenses': [{'expression': 'MPL-2.0'}]})
     spdx = json.loads((output / 'chromium.spdx.json').read_text())
+    (output / 'chromium-credits.html').write_text(render_credits(spdx))
     for package in spdx['packages']:
         components.append({'type': 'library', 'bom-ref': 'upstream:' + package['SPDXID'],
                            'name': package['name'],

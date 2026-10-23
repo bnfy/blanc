@@ -2,7 +2,7 @@ import json
 import pathlib
 import tempfile
 import unittest
-from compliance import FONTS, digest, validate, write_json
+from compliance import FONTS, digest, render_credits, validate, write_json
 
 class ComplianceTests(unittest.TestCase):
     def setUp(self):
@@ -16,6 +16,11 @@ class ComplianceTests(unittest.TestCase):
         names += ['licenses/' + x[2] for x in FONTS.values()]
         for name in names:
             (self.payload / name).write_text('fixture ' + name)
+        self.spdx = {'packages': [{'name': 'Chromium', 'licenseConcluded': 'LicenseRef-Test'}],
+                     'hasExtractedLicensingInfos': [{'licenseId': 'LicenseRef-Test',
+                                                    'extractedText': 'Copyright and full license terms'}]}
+        write_json(self.payload / 'chromium.spdx.json', self.spdx)
+        (self.payload / 'chromium-credits.html').write_text(render_credits(self.spdx))
         write_json(self.payload / 'runtime-sbom.cdx.json', {'bomFormat': 'CycloneDX', 'specVersion': '1.6',
             'metadata': {'component': {'version': '157.0.8103.15'}}, 'components': [{'name': 'fixture'}]})
         for _, filename, _ in FONTS.values():
@@ -57,5 +62,20 @@ class ComplianceTests(unittest.TestCase):
     def test_parent_path_rejected(self):
         self.manifest['files']['../outside']='0' * 64; self.save()
         with self.assertRaises(ValueError): self.check()
+    def test_placeholder_credits_rejected_even_with_matching_hash(self):
+        (self.payload / 'chromium-credits.html').write_text('This is sample credits page.')
+        self.manifest['files']['chromium-credits.html'] = digest(self.payload / 'chromium-credits.html')
+        self.save()
+        with self.assertRaises(ValueError): self.check()
+    def test_missing_full_license_rejected(self):
+        self.spdx['hasExtractedLicensingInfos'][0]['extractedText'] = ''
+        with self.assertRaises(ValueError): render_credits(self.spdx)
+    def test_credit_text_is_escaped(self):
+        self.spdx['packages'][0]['name'] = '<script>package</script>'
+        self.spdx['hasExtractedLicensingInfos'][0]['extractedText'] = '<img src=x onerror=alert(1)>'
+        rendered = render_credits(self.spdx)
+        self.assertIn('&lt;script&gt;package&lt;/script&gt;', rendered)
+        self.assertIn('&lt;img src=x onerror=alert(1)&gt;', rendered)
+        self.assertNotIn('<script>', rendered)
 
 if __name__ == '__main__': unittest.main()
