@@ -22,13 +22,16 @@ on:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
       runtime:
-        description: "Release runtime: official Electron, or castLabs ECS with Widevine (release mode only)"
+        description: "Runtime: official Electron, or castLabs ECS with Widevine (public package)"
         required: false
         default: official
         type: choice
         options:
           - official
           - ecs
+      source_sha:
+        description: "ECS only: the exact approved source commit; the checkout must resolve to it before building"
+        required: false
       ublock_candidate:
         description: "Include uBO in a private candidate (requires completed distribution clearance)"
         required: false
@@ -77,11 +80,22 @@ jobs:
           ECS_PRODUCTION: ${{ inputs.ecs_production }}
           ECS_WINDOWS_LIFECYCLE: ${{ inputs.ecs_windows_lifecycle }}
           RELEASE_RUNTIME: ${{ inputs.runtime }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
           VALIDATION_REF: ${{ github.ref }}
         run: |
           case "$RELEASE_RUNTIME" in official|ecs) ;; *) echo "Unknown release runtime" >&2; exit 1 ;; esac
-          if [ "$RELEASE_RUNTIME" = ecs ] && { [ "$RELEASE_MODE" != release ] || [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ] || [ "$ECS_PRODUCTION" = true ] || [ "$ECS_WINDOWS_LIFECYCLE" = true ]; }; then
-            echo "The ECS release runtime is release-mode only and excludes every candidate/qualification input" >&2
+          # Public ECS packages: release mode uploads to the draft; validation
+          # mode builds the same marker-free package as a private artifact.
+          if [ "$RELEASE_RUNTIME" = ecs ] && { [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ] || [ "$ECS_PRODUCTION" = true ] || [ "$ECS_WINDOWS_LIFECYCLE" = true ]; }; then
+            echo "The public ECS runtime excludes every candidate/qualification input" >&2
+            exit 1
+          fi
+          if [ "$RELEASE_RUNTIME" = ecs ] && ! [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "An ECS run must name the exact approved source commit (source_sha)" >&2
+            exit 1
+          fi
+          if [ "$RELEASE_RUNTIME" != ecs ] && [ -n "$SOURCE_SHA" ]; then
+            echo "source_sha is only accepted for ECS runs" >&2
             exit 1
           fi
           # A Windows ECS release needs EVS (VMP) signing in the public release
@@ -635,6 +649,17 @@ jobs:
         with:
           ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
 
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -654,7 +679,7 @@ jobs:
         run: npm run ublock:check
 
       - name: Require uBlock distribution clearance for public release
-        if: ${{ inputs.mode == 'release' }}
+        if: ${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}
         run: npm run ublock:distribution
 
       - name: Verify tag matches package version
@@ -913,7 +938,7 @@ jobs:
 
   linux-sandbox:
     needs: validate-inputs
-    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && inputs.runtime != 'ecs' && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     strategy:
       fail-fast: false
       matrix:

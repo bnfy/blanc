@@ -1,5 +1,6 @@
 'use strict';
-// The ECS release runtime is opt-in, release-mode only, and fails closed
+// The public ECS runtime is opt-in, bound to an exact approved source commit,
+// buildable as a private validation artifact or a release, and fails closed
 // before any tag where its signing access is not yet approved (Windows).
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -21,16 +22,22 @@ test('the native workflow offers official and ECS runtimes, official by default'
 const validate = workflow.jobs['validate-inputs'].steps.find(step => step.name === 'Validate trusted workflow inputs before use').run;
 const run = env => spawnSync('bash', ['-e', '-c', validate], { env: { PATH: process.env.PATH, ...env }, encoding: 'utf8' });
 const base = { RELEASE_MODE: 'release', RELEASE_TAG: 'v1.43.0', RELEASE_PLATFORM: 'all', UBLOCK_CANDIDATE: 'false',
-  ECS_CANDIDATE: 'false', ECS_PRODUCTION: 'false', ECS_WINDOWS_LIFECYCLE: 'false', RELEASE_RUNTIME: 'official', VALIDATION_REF: 'refs/heads/main' };
+  ECS_CANDIDATE: 'false', ECS_PRODUCTION: 'false', ECS_WINDOWS_LIFECYCLE: 'false', RELEASE_RUNTIME: 'official', SOURCE_SHA: '', VALIDATION_REF: 'refs/heads/main' };
+const sha = 'a'.repeat(40);
+const ecsLinux = { ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'linux', SOURCE_SHA: sha };
 test('input validation keeps official releases and refuses unapproved ECS combinations', { skip: process.platform === 'win32' }, () => {
   assert.equal(run(base).status, 0, 'official release');
-  assert.equal(run({ ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'linux' }).status, 0, 'ECS Linux release');
+  assert.equal(run(ecsLinux).status, 0, 'ECS Linux release');
+  assert.equal(run({ ...ecsLinux, RELEASE_MODE: 'validation', RELEASE_TAG: '' }).status, 0, 'non-publishing ECS Linux validation');
   for (const [label, env] of [
-    ['ECS with Windows', { ...base, RELEASE_RUNTIME: 'ecs' }],
-    ['ECS Windows only', { ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'windows' }],
-    ['ECS validation mode', { ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'linux', RELEASE_MODE: 'validation', RELEASE_TAG: '' }],
-    ['ECS with internal uBO candidate', { ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'linux', UBLOCK_CANDIDATE: 'true' }],
-    ['ECS with qualification build', { ...base, RELEASE_RUNTIME: 'ecs', RELEASE_PLATFORM: 'linux', ECS_PRODUCTION: 'true' }],
+    ['ECS with Windows', { ...ecsLinux, RELEASE_PLATFORM: 'all' }],
+    ['ECS Windows only', { ...ecsLinux, RELEASE_PLATFORM: 'windows' }],
+    ['ECS validation with Windows', { ...ecsLinux, RELEASE_PLATFORM: 'all', RELEASE_MODE: 'validation', RELEASE_TAG: '' }],
+    ['ECS without a source commit', { ...ecsLinux, SOURCE_SHA: '' }],
+    ['ECS with a short source commit', { ...ecsLinux, SOURCE_SHA: 'abc1234' }],
+    ['official with a source commit', { ...base, SOURCE_SHA: sha }],
+    ['ECS with internal uBO candidate', { ...ecsLinux, UBLOCK_CANDIDATE: 'true' }],
+    ['ECS with qualification build', { ...ecsLinux, ECS_PRODUCTION: 'true' }],
     ['unknown runtime', { ...base, RELEASE_RUNTIME: 'nightly' }],
   ]) assert.notEqual(run(env).status, 0, label);
 });
@@ -47,10 +54,24 @@ test('the Windows release job has no new signing access; the Linux job builds an
   assert.match(steps, /FUSE_ARGS=\(--ecs\)/);
   assert.equal(linux.env.RELEASE_RUNTIME, "${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}");
   assert.doesNotMatch(JSON.stringify(linux), /secrets\.EVS|ecs-signing/);
+  // The source binding runs right after checkout, before dependencies or build.
+  const names = linux.steps.map(step => step.name || step.run || step.uses);
+  const bind = names.indexOf('Bind the ECS build to the exact approved source commit');
+  assert.equal(bind, 1);
+  assert(bind < names.indexOf('npm ci') && bind < names.indexOf('Build'));
+  assert.match(linux.steps[bind].run, /\[ "\$ACTUAL" = "\$SOURCE_SHA" \]/);
+  assert.equal(linux.steps[bind].if, "${{ inputs.runtime == 'ecs' }}");
+  // A public ECS validation run still requires uBO distribution clearance and
+  // never starts the official-only sandbox job.
+  assert.equal(linux.steps.find(step => step.name === 'Require uBlock distribution clearance for public release').if, "${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}");
+  assert.match(workflow.jobs['linux-sandbox'].if, /inputs\.runtime != 'ecs'/);
+  assert.equal(linux.steps.find(step => step.name === 'Upload to release').if, "${{ inputs.mode == 'release' }}");
 });
 
 test('release.sh refuses an ECS release the native workflow cannot build before tagging', () => {
   const tagPush = releaseScript.indexOf('git push origin "refs/tags/$TAG"');
+  assert.match(releaseScript, /DISPATCH_RUNTIME_ARGS=\(-f runtime=ecs -f source_sha="\$\(git rev-parse HEAD\)"\)/);
+  assert.match(releaseScript, /!inputs\.source_sha\) process\.exit\(1\)/);
   for (const message of ['does not accept runtime=ecs', 'needs the separately approved EVS signing access in the release workflow']) {
     assert(releaseScript.includes(message), message);
     assert(releaseScript.indexOf(message) < tagPush, `${message} precedes the tag`);

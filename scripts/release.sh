@@ -177,8 +177,8 @@ case "$RELEASE_RUNTIME" in
     node -e '
       const yaml = require("js-yaml");
       const workflow = yaml.load(require("fs").readFileSync(".github/workflows/release-windows-linux.yml", "utf8"));
-      const input = workflow?.on?.workflow_dispatch?.inputs?.runtime;
-      if (!Array.isArray(input?.options) || !input.options.includes("ecs")) process.exit(1);
+      const inputs = workflow?.on?.workflow_dispatch?.inputs;
+      if (!Array.isArray(inputs?.runtime?.options) || !inputs.runtime.options.includes("ecs") || !inputs.source_sha) process.exit(1);
     ' || {
       echo "The native release workflow does not accept runtime=ecs; an ECS release cannot dispatch Windows/Linux builds." >&2
       exit 1
@@ -203,7 +203,9 @@ ECS_FUSE_ARGS=()
 [ "$RELEASE_RUNTIME" = ecs ] && ECS_FUSE_ARGS=(--ecs)
 # Official releases dispatch exactly as before: no runtime input is sent.
 DISPATCH_RUNTIME_ARGS=()
-[ "$RELEASE_RUNTIME" = ecs ] && DISPATCH_RUNTIME_ARGS=(-f runtime=ecs)
+# The native ECS jobs build only if their checkout resolves to this exact
+# commit; LOCAL_HEAD is checked against origin/main before anything is tagged.
+[ "$RELEASE_RUNTIME" = ecs ] && DISPATCH_RUNTIME_ARGS=(-f runtime=ecs -f source_sha="$(git rev-parse HEAD)")
 
 HOST_ARCH="$(uname -m)"
 case "$HOST_ARCH" in

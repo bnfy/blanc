@@ -390,7 +390,7 @@ test('an ECS release is opt-in, needs the EVS account and the reviewed uBO recor
   // Official releases send no runtime input; only ECS does, and only after
   // a pre-tag check that the native workflow accepts it.
   assert.doesNotMatch(releaseScript, /-f runtime="\$RELEASE_RUNTIME"/);
-  assert.match(releaseScript, /\[ "\$RELEASE_RUNTIME" = ecs \] && DISPATCH_RUNTIME_ARGS=\(-f runtime=ecs\)/);
+  assert.match(releaseScript, /\[ "\$RELEASE_RUNTIME" = ecs \] && DISPATCH_RUNTIME_ARGS=\(-f runtime=ecs -f source_sha=/);
   assert.match(releaseScript, /\$\{DISPATCH_RUNTIME_ARGS\[@\]\+"\$\{DISPATCH_RUNTIME_ARGS\[@\]\}"\}/);
   assert.match(releaseScript, /does not accept runtime=ecs/);
   assert(releaseScript.indexOf('does not accept runtime=ecs') < releaseScript.indexOf('git push origin "refs/tags/$TAG"'));

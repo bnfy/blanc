@@ -30,6 +30,14 @@ allowed branches, a persistent access-policy change that is a separate owner
 decision (proposed patch kept outside the repository). No signing,
 credential use, environment change or release run was performed.
 
+Every ECS native run must name `source_sha`, the exact approved commit; the
+job refuses to build unless its checkout resolves to it, because the
+environment's branch policy controls which workflow ref runs, not which code a
+tag selects. `mode=validation runtime=ecs platform=linux` builds the same
+marker-free public package as a private three-day artifact without uploading
+to any release, for example:
+`gh workflow run release-windows-linux.yml --ref <branch> -f mode=validation -f runtime=ecs -f source_sha=<sha> -f platform=linux`.
+
 **uBO on public ECS builds (owner-approved October 23):**
 `src/main/ublock-platforms.json` adds `ecsRuntime: 44.9.3+wvcus` with its
 evidence for the four previously qualified platform records; Rosetta stays
