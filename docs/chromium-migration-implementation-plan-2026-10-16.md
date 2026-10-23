@@ -8,11 +8,17 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■□□□□□□□□□] 3/12 launch gates cleared (25%) · Δ +1 L9 — October 23, 2026`
+`[■■■□□□□□□□□□] 3/12 launch gates cleared (25%) · Δ 0 — L7 review October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### L7 review outcome — October 23
+
+[Signed-candidate security review](../experiments/chromium-extension-spike/evidence/l7-security-review-20261023/README.md) finishes the current finite dispatch/private-store/permissions/packaging review. The current `f177e0b5` candidate has two reproduced blockers: L7-S1, locally enabled experimental uBO/diagnostic hooks remain in the distribution binary; L7-S2, the separate worker-update diagnostic writer records private service-worker URL/scope/storage-key metadata when explicitly enabled. Neither is enabled by default; no remote-content privilege escalation was demonstrated. The ordinary blocker private-log exclusion still passes and is distinct from L7-S2.
+
+Fifty-two core runtime checks pass on this signed artifact; default security flags/no browser listener, all 17 Mach-O hashes, strict signature, stapling and Gatekeeper verify. The review also inventories 67 dispatch-comparison names and user-data/removal behavior. No build or artifact change. **Next priority: remove diagnostic/admission hooks from distribution, independently suppress private worker diagnostics, then incrementally rebuild and re-sign/notarize once and run the targeted replacement-artifact checks.** Owner security/privacy acceptance remains after those repairs. This replaces further open-ended security stress expansion. **3/12 (25%), delta 0 gates.** Google baseline stays separate; latency deferred; Electron build pending approval.
 
 ### Current execution status
 

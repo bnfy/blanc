@@ -1,0 +1,12 @@
+experiments/chromium-extension-spike/ubo-component.mjs:12:      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-component-probe"))
+experiments/chromium-extension-spike/ubo-component.mjs:19:  if (probe_command->HasSwitch("blanc-ubo-component-probe") &&
+experiments/chromium-extension-spike/ubo-component.mjs:21:    CHECK(probe_command->HasSwitch("blanc-ubo-offline-probe"));
+experiments/chromium-extension-spike/ubo-component.mjs:25:    const auto root = probe_command->GetSwitchValuePath("blanc-ubo-component-probe");
+experiments/chromium-extension-spike/native/blocker/update_identity.inc:19:  const auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-worker-update-log");
+experiments/chromium-extension-spike/native/blocker/update_identity.inc:75:  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-worker-update-log")) return target;
+experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc:69:  auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-log");
+experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc:373:  return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-reload-probe");
+experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc:771:      command->HasSwitch("blanc-ubo-component-probe")) return;
+experiments/chromium-extension-spike/native/blocker/write-file-test.mjs:9: const root=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-write-test-'));
+experiments/chromium-extension-spike/native/blocker/write-file-test.mjs:20: const root=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-write-test-'));
+experiments/chromium-extension-spike/native/blocker/failure-probe.mjs:16:  context=await chromium.launchPersistentContext(profile,{executablePath,headless:false,chromiumSandbox:true,args:[`--blanc-prototype-assets=${uiAssets}`,`--blanc-blocker-assets=${assets}`,`--blanc-blocker-log=${log}`,'--use-mock-keychain','--no-first-run','--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1','--proxy-server=http://127.0.0.1:1','--proxy-bypass-list=127.0.0.1']});
