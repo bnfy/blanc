@@ -1,3 +1,5 @@
+> October23 L10 update: [signed functional smoke accepted](evidence/l10-functional-smoke-20261023/README.md); current readiness 7/12. Theme-action AX defect keeps L5 open.
+
 > October23 L6 update: [49 signed checkpoints and owner mapped-UI acceptance](evidence/l6-signed-acceptance-20261023/README.md) close L6; current readiness 6/12.
 
 > October23 prior closeout: [L3 accepted](evidence/l3-closeout-20261023/README.md) and [owner L7 accepted](evidence/l7-owner-acceptance-20261023/README.md); 5/12 gates. Historical starting-state rows below retain their date.

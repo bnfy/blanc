@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-23T16:22:12.513472+00:00",
+  "removedOwnedPaths": [
+    "core/profile",
+    "core/profile-final",
+    "core/downloads",
+    "store/profile"
+  ],
+  "fixtureServerStopped": 92572,
+  "storeBrowserExit": {
+    "code": 0,
+    "signal": null
+  },
+  "GoogleBaselineChanged": false,
+  "permanentProfilesChanged": false,
+  "masterAppPreserved": true
+}

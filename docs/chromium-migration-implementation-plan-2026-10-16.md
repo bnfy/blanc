@@ -8,11 +8,17 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■□□□□□□] 6/12 launch gates cleared (50%) · Δ +1 L6 — October 23, 2026`
+`[■■■■■■■□□□□□] 7/12 launch gates cleared (58.3%) · Δ +1 L10 — October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### L10 functional smoke accepted — October 23
+
+[Current signed-candidate smoke](../experiments/chromium-extension-spike/evidence/l10-functional-smoke-20261023/README.md) passes 17 core checkpoints, six theme phases and native extension/import/local-password persistence checks. Official Store theme install/Undo/removal, Bitwarden install Cancel/accept/native popup/restart/removal, exact-byte downloads, audio, navigation/find/zoom, favorites/history, Shelf/wallpaper/rail and restart behavior are verified. Native HTML import uses only a synthetic file; password save/fill uses only a local nonfunctional credential. Current L6 evidence covers windows/private/Spaces/Split. No build or candidate change; 17 executable and three asset hashes match. **L10 accepted for the bounded scope: 7/12 (58.3%), delta +1.**
+
+The run found a separate L5 defect: installed-theme Apply/Remove controls work in the DOM but are flattened out of the macOS accessibility tree inside an option. Repair their accessible semantics and requalify on the signed app before closing L5. This is not a new VoiceOver pass. L4 real upgrade, L8 distribution/provenance, L11 exact-head CI and L12 go/no-go remain open. Google baseline stays separate; latency and Electron remain pending.
 
 ### L6 signed recovery acceptance — October 23
 
