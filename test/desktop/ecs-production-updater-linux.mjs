@@ -145,6 +145,27 @@ try {
   assert.equal(report.handoffs.length,2);assert(report.handoffs.every(h=>h.passed));assert(report.requests.every(r=>r.path!=='unexpected'));report.passed=true;
 }catch(error){
   report.failure=error.message;report.logs=output;
+  // An existing PID does not prove that Electron reached app-ready. Keep
+  // bounded native state when no X11 window appears, without dumping the
+  // runner's environment (which can contain credentials).
+  if(previous){
+    try{
+      const base=`/proc/${previous.pid}`;
+      const status=await fs.readFile(`${base}/status`,'utf8');
+      const environment=Object.fromEntries((await fs.readFile(`${base}/environ`,'utf8')).split('\0').flatMap(entry=>{
+        const at=entry.indexOf('=');const key=entry.slice(0,at);
+        return ['DISPLAY','XAUTHORITY','DBUS_SESSION_BUS_ADDRESS','APPDIR','APPIMAGE','LD_LIBRARY_PATH','APPIMAGE_SILENT_INSTALL','APPIMAGE_EXIT_AFTER_INSTALL'].includes(key)?[[key,entry.slice(at+1)]]:[];
+      }));
+      report.successorNativeState={
+        status:status.split('\n').filter(line=>/^(Name|State|PPid|Threads|SigIgn|SigCgt|NoNewPrivs|Seccomp):/.test(line)),
+        waitChannel:(await fs.readFile(`${base}/wchan`,'utf8')).trim(),environment,
+        threads:await Promise.all((await fs.readdir(`${base}/task`)).slice(0,40).map(async tid=>({tid,
+          name:(await fs.readFile(`${base}/task/${tid}/comm`,'utf8').catch(()=>'' )).trim(),
+          wait:(await fs.readFile(`${base}/task/${tid}/wchan`,'utf8').catch(()=>'' )).trim(),
+        }))),
+      };
+    }catch{report.successorNativeStateUnavailable=true;}
+  }
   try{report.windowTree=execFileSync('xwininfo',['-root','-tree'],{encoding:'utf8'}).slice(-10000);}catch{}
   try{
     report.visibleWindows=x(['search','--onlyvisible','--name','.*']).split(/\s+/).map(id=>{

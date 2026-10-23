@@ -108,6 +108,48 @@ Evidence files from preparation are under
 `/private/tmp/blanc-ecs-production-XN2ipC/`; hosted evidence must be bound to the
 exact PR head. Never carry passing results forward across runtime/package changes.
 
+### October 23 native Intel and updater qualification
+
+The current signed application source is `562ec1c87`. Later qualification-only
+commits change the harness/workflows, not those signed application bytes.
+Windows and Linux integrated-package run `39980371624` passed on that source.
+Both Mac architectures were rebuilt, production EVS/Developer ID signed,
+notarized and stapled; strict signatures, embedded profile, Gatekeeper and final
+VMP verification passed. The native Intel transfer pins the archive, executable
+and `app.asar` hashes independently.
+
+The owner approved a temporary **unpublished** draft solely to transfer the
+notarized Intel app to the ephemeral native Intel runner. They separately
+approved a signed/notarized updater fixture with staging-only version/build
+metadata in a disposable build copy. These approvals do not permit publication,
+a public tag, a production version bump, an installed-app replacement or a
+production-feed change. Delete the transfer draft/assets and remove the
+temporary elevated-permission intake jobs when their tests finish.
+
+Native Intel run `39983595705` passed uBO UI/blocking/private separation, three
+provider restarts, reopen/native Quit, two offline starts (6882/5106 ms), local
+file/frame/worker denial and temporary-profile cleanup. It did **not** pass
+protected playback. Run `39986448419` reproduced the failure despite more than
+ten seconds buffered: production VMP verified, MediaKeys were present and the
+video was unpaused without a media error, but the clock advanced only 0.1 s in
+five seconds. Focus/mute comparisons are diagnostic only; they must never turn
+that strict unmuted failure into a pass.
+
+The same run verified the unchanged Apple stapled-ticket and Gatekeeper checks
+over HTTPS/TCP in CI. The temporary runner firewall anchor works around the
+documented macOS Intel runner HTTP/3 failure and is removed on exit; it does not
+disable certificate or ticket verification.
+
+Linux updater attempts downloaded through the loopback staging feed, accepted
+the ordinary Restart Now prompt, replaced a versionless AppImage with the exact
+expected bytes and automatically started the ECS successor. The harness has
+not yet reached protected playback in that successor because its X11 window
+selection failed. Neither this partial replacement evidence nor a separately
+launched app counts as a completed handoff. Both successive handoffs, protected
+playback, kernel-sandbox checks and final offline/local-HTML checks remain gates.
+The rehearsal explicitly warms a real CDM first; first-ever CDM restart UX is
+still a separate, unqualified gate.
+
 ## Remaining shipping gates
 
 1. All PR checks and new native integration jobs pass on the final head, including
