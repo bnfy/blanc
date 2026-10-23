@@ -13,20 +13,20 @@
 //     Icon Composer's own renders.
 
 const CX = 512;
-// A bolder sunburst than the Sunrise artwork, after Arc's heavy strokes: five
-// rays about as thick as Arc's (as heavy as they go before neighbors touch),
-// long enough to fill the tile, the middle one reaching furthest. The sun is
-// drawn larger than the artwork's 210px half disc and risen above its flat
-// base, and the rays start just clear of it so their rims join the sun's.
+// A bolder sunburst than the Sunrise artwork, after Arc's heavy strokes, on
+// the artwork's own geometry: a half-disc sun on the horizon, and five thick
+// rays fanning from its center like the artwork's (at its outer angle, and
+// the middle one reaching furthest). The rays start just clear of the sun so
+// their rims join its rim.
 const HORIZON = 654;
-const SUN_RADIUS = 260;
+const SUN_RADIUS = 280;
 // How far the sun's center stands above its flat base; 0 is a half disc.
-const SUN_RISE = 90;
+const SUN_RISE = 0;
 const SUN_Y = HORIZON - SUN_RISE;
-const RAY_WIDTH = 165;
+const RAY_WIDTH = 150;
 // Clear space between the sun and the rays' caps.
-const RAY_GAP = 20;
-const RAY_REACH = [[0, 720], [40, 670], [75, 500]];
+const RAY_GAP = 24;
+const RAY_REACH = [[0, 780], [38, 680], [76, 560]];
 const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
   .map((a) => [a, SUN_RADIUS + RAY_GAP + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
 const RIM = 30;
@@ -50,7 +50,8 @@ const FLAT_SCALE = NATIVE_SCALE * (824 / 1024);
 
 const COLORWAYS = {
   spectrum: {
-    rays: [[0, '#1A007F'], [0.24, '#1942CD'], [0.4, '#2C39B9'], [0.48, '#E23A55'], [0.6, '#F95B6E'], [0.8, '#FF7F88'], [1, '#FFA3A8']],
+    // The blue turns red just left of the middle ray, so that ray is all red.
+    rays: [[0, '#1A007F'], [0.22, '#1942CD'], [0.36, '#2C39B9'], [0.41, '#E23A55'], [0.58, '#F95B6E'], [0.8, '#FF7F88'], [1, '#FFA3A8']],
     sun: [[0, '#1942CD'], [0.28, '#2C39B9'], [0.46, '#E23A55'], [0.7, '#FF5F73'], [1, '#FF8F96']],
     // Arc's Dock tile: darker gray at the top, lighter below. Drawn as a tile
     // image, since an Icon Composer fill takes a single color.
@@ -93,14 +94,16 @@ function sun(paint, grow = 0) {
 const rays = (paint, grow = 0) =>
   RAYS.map((r) => line(ray(r), paint, RAY_WIDTH + 2 * grow)).join('');
 
-// A highlight riding the upper edge of a stroke.
+// A highlight lit from above: it rides a stroke's upper edge as far as that
+// edge faces up, so a flat ray's sits along its top and an upright ray's down
+// its middle.
 function gloss(points, width) {
   const [x1, y1, x2, y2] = points;
   const length = Math.hypot(x2 - x1, y2 - y1) || 1;
   let nx = (y2 - y1) / length;
   let ny = -(x2 - x1) / length;
   if (ny > 0) [nx, ny] = [-nx, -ny];
-  const o = width * 0.26;
+  const o = width * 0.26 * -ny;
   return line([x1 + nx * o, y1 + ny * o, x2 + nx * o, y2 + ny * o], '#FFFFFF', width * 0.34);
 }
 

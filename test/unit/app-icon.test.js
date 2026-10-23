@@ -784,11 +784,11 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
     assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 650 && nativeHeight < 700, `${prefix} artwork is the sun and rays alone`);
-    // The sun has risen: more than half its disc shows, so it stands taller
-    // than a half disc's height of half its width.
+    assert.ok(nativeHeight > 560 && nativeHeight < 610, `${prefix} artwork is the sun and rays alone`);
+    // Like the Sunrise artwork's, the sun is a half disc on the horizon: half
+    // as tall as it is wide.
     const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
-    assert.ok(sunBounds.height / sunBounds.width > 0.6, `${prefix} sun is risen above its base`);
+    assert.ok(Math.abs(sunBounds.height / sunBounds.width - 0.5) < 0.02, `${prefix} sun is a half disc`);
     // Like the Sunrise artwork, the middle ray stands tallest: the topmost
     // pixels are its tip, centered on the canvas.
     const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);
@@ -825,6 +825,31 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
       assert.ok(Math.abs(ratio - nativeHeight / CANVAS) < 0.015, `${prefix}${suffix}: flat ${ratio} vs native ${nativeHeight / CANVAS}`);
     }
   }
+});
+
+test('Sunrise Spectrum\'s middle ray is all red, with its highlight down the middle', async () => {
+  const { data, info } = await sharp(path.join(root, 'build/app-icons/colorways/spectrum-rays.png'))
+    .ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const at = (x, y) => Array.from(data.subarray(((y * info.width) + x) * info.channels, ((y * info.width) + x) * info.channels + 4));
+  const bounds = await markBoundsOf(sharp(path.join(root, 'build/app-icons/colorways/spectrum-rays.png')), (_r, _g, _b, a) => a > 24);
+  // A row through the middle ray, a third of the way down from its tip.
+  const y = bounds.minY + 120;
+  let left = 512;
+  let right = 512;
+  while (at(left - 1, y)[3] > 200) left -= 1;
+  while (at(right + 1, y)[3] > 200) right += 1;
+  const half = (right - left) / 2;
+  assert.ok(half > 50, 'the row crosses the middle ray');
+  for (const x of [left + 4, Math.round(left + half), right - 4]) {
+    const [r, , b] = at(x, y);
+    assert.ok(r > b + 60, `the middle ray is red at x=${x}, not split with blue`);
+  }
+  // The highlight brightens the ray symmetrically about its center line.
+  const brightness = (x) => at(x, y).slice(0, 3).reduce((sum, c) => sum + c, 0);
+  const center = Math.round(left + half);
+  const offset = Math.round(half * 0.4);
+  assert.ok(Math.abs(brightness(center - offset) - brightness(center + offset)) < 45, 'the highlight is centered');
+  assert.ok(brightness(center) > brightness(left + 6), 'the highlight runs down the middle');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {
