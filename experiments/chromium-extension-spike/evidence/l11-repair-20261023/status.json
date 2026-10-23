@@ -1,0 +1,15 @@
+{
+  "sourceBase": "ccaa5a96b44a5f36b9dde6900bcd601c645b3cff",
+  "dependencyAudit": "all four workspaces no unsuppressed high/critical findings; existing companion VEXs unchanged",
+  "electron": "44.9.1",
+  "zod": "4.6.7",
+  "nativePatch": "Eight fingerprint-matched compromised SPKIs in built-in CRLSet; downloaded updates remain enabled.",
+  "nativeVerification": "16 CheckSPKI=REVOKED checks plus unlisted-key control; six TLS CA certificates revoked in builtin verification, two code-signing CAs invalid for TLS. Unrelated TLS certificate control passes.",
+  "codeql": "48 prior alerts mapped to source repairs; hosted exact-head clearance pending",
+  "unitTests": 4175,
+  "newSignedArtifact": "not created or promoted; previous signed artifact remains preserved and does not contain this blocklist patch",
+  "L11": "open pending exact repaired-head hosted CI and final candidate disposition",
+  "googleBaselineSeparate": true,
+  "latency": "deferred",
+  "electronDiagnosticBuild": "pending approval; unstarted"
+}

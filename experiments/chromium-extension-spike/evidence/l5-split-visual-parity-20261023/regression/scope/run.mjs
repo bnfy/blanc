@@ -1,3 +1,4 @@
+import {callFunction} from '../../../../cdp-function.mjs';
 import fs from 'node:fs';
 import http from 'node:http';
 import {spawn} from 'node:child_process';
@@ -11,8 +12,11 @@ const list=()=>fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());
 async function wait(fn){for(let i=0;i<150;i++){try{const x=await fn();if(x)return x}catch{}await pause(100)}throw Error('readiness timeout')}
 async function client(t){const c=await connect(t);clients.push(c);return c}
 async function raw(c,method,args=[],channel='blancPrototype'){
- const expression=`new Promise(resolve=>{const name=${JSON.stringify(channel==='blancPrototype'?'blancPrototypeReply':'blancNewTabReply')},previous=window[name],id='l7-'+Math.random();let timer;window[name]=(replyId,ok,value)=>{if(replyId!==id)return previous?.(replyId,ok,value);clearTimeout(timer);window[name]=previous;resolve({ok,value})};timer=setTimeout(()=>{window[name]=previous;resolve({noReply:true})},1500);chrome.send(${JSON.stringify(channel)},[id,${JSON.stringify(method)},${JSON.stringify(args)}])})`;
- const r=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:false});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;
+ return callFunction(c,function(channel,method,args){return new Promise(resolve=>{
+  const name=channel==='blancPrototype'?'blancPrototypeReply':'blancNewTabReply',previous=window[name],id='l7-'+Math.random();let timer;
+  window[name]=(replyId,ok,value)=>{if(replyId!==id)return previous?.(replyId,ok,value);clearTimeout(timer);window[name]=previous;resolve({ok,value})};
+  timer=setTimeout(()=>{window[name]=previous;resolve({noReply:true})},1500);chrome.send(channel,[id,method,args]);
+ })},[channel,method,args]);
 }
 try{
  const fd=fs.openSync(root+'/launch.log','w');child=spawn(app+'/Contents/MacOS/Blanc Preview Launcher',['--user-data-dir='+root+'/profile','--remote-debugging-port='+port,'--no-first-run'],{stdio:['ignore',fd,fd]});child.on('exit',()=>child.done=true);

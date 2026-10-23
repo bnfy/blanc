@@ -1,3 +1,4 @@
+import {callFunction} from '../../cdp-function.mjs';
 import fs from 'node:fs';import http from 'node:http';import dgram from 'node:dgram';import {spawn,execFileSync} from 'node:child_process';import {createHash} from 'node:crypto';import {connect,pause} from './cdp.mjs';
 const root=import.meta.dirname,app=root+'/Blanc Chromium Preview.app',dir=root+'/transport';fs.mkdirSync(dir,{recursive:true});
 execFileSync('openssl',['req','-x509','-newkey','ec','-pkeyopt','ec_paramgen_curve:prime256v1','-nodes','-keyout',dir+'/key.pem','-out',dir+'/cert.pem','-days','2','-subj','/CN=page.blanc-fixture.test'],{stdio:'ignore'});
@@ -18,8 +19,8 @@ try{await until(()=>rows.some(x=>x.event==='ready'));for(const enabled of [false
  const page=await connect(await until(async()=>(await list()).find(x=>x.url==='http://127.0.0.1:9894/')));await until(()=>page.eval("document.title==='Signed HTTP3 control'"));
  for(const hostname of ['page.blanc-fixture.test','000491b06a.com']){
   const before=rows.length,url=`https://${hostname}:${quicPort}/transport`;
-  const expression=`(async()=>{const t=new WebTransport(${JSON.stringify(url)},{serverCertificateHashes:[{algorithm:'sha-256',value:new Uint8Array(${JSON.stringify(fingerprint)})}]});t.closed.catch(()=>{});try{await Promise.race([t.ready,new Promise((_,j)=>setTimeout(()=>j(Error('timeout')),10000))]);const w=t.datagrams.writable.getWriter();await w.write(new TextEncoder().encode('blanc-http3-proof'));const r=t.datagrams.readable.getReader();const echo=await r.read();return {ready:true,echo:new TextDecoder().decode(echo.value)}}catch(e){return {ready:false,error:String(e)}}finally{t.close()}})()`;
-  const result=await page.eval(expression);await pause(500);const arrivals=rows.slice(before),blocked=enabled&&hostname==='000491b06a.com';report.controls.push({enabled,mode,hostname,result,arrivals});
+  const requestTransport=async function(url,fingerprint){const t=new WebTransport(url,{serverCertificateHashes:[{algorithm:'sha-256',value:new Uint8Array(fingerprint)}]});t.closed.catch(()=>{});try{await Promise.race([t.ready,new Promise((_,j)=>setTimeout(()=>j(Error('timeout')),10000))]);const w=t.datagrams.writable.getWriter();await w.write(new TextEncoder().encode('blanc-http3-proof'));const r=t.datagrams.readable.getReader();const echo=await r.read();return {ready:true,echo:new TextDecoder().decode(echo.value)}}catch(e){return {ready:false,error:String(e)}}finally{t.close()}};
+  const result=await callFunction(page,requestTransport,[url,fingerprint],true);await pause(500);const arrivals=rows.slice(before),blocked=enabled&&hostname==='000491b06a.com';report.controls.push({enabled,mode,hostname,result,arrivals});
   check(`${enabled?'enforced':'baseline'} ${mode} ${hostname}`,blocked?!result.ready&&!arrivals.some(x=>x.event==='connect'):result.ready&&result.echo==='blanc-http3-proof'&&arrivals.some(x=>x.event==='alpn'&&x.value==='h3')&&arrivals.some(x=>x.event==='connect'&&x.accepted),result);
  }
  page.close();host.close();await browser.send('Browser.close').catch(()=>{});browser.close();await until(()=>child.done);child=null;browser=null;

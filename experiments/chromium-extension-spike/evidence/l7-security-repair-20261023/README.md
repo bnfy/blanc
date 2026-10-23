@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # L7 distribution and private-diagnostic repair — October 23, 2026
 
 **Both findings from the [L7 review](../l7-security-review-20261023/README.md) are repaired and the replacement signed candidate passes the targeted security checks.** Technical L7 review has no remaining finding from this scope. The checklist still requires owner security/privacy acceptance; no public release or Decision 2 approval is inferred.

@@ -1,7 +1,8 @@
+import {callFunction} from '../../../../../cdp-function.mjs';
 import fs from 'node:fs';import http from 'node:http';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {connect,pause} from './cdp.mjs';
 const root=import.meta.dirname,app=process.argv[2],port=9953,origin='http://127.0.0.1:9952';
 const report={app,checks:[],mode:process.argv[3]};const save=()=>fs.writeFileSync(root+'/verification-'+process.argv[3]+'.json',JSON.stringify(report,null,2));let child,host,browser;const clients=[];
-const server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end(`<title>Startup ${q.url}</title><h1>Startup ${q.url}</h1>`)});await new Promise((res,rej)=>server.once('error',rej).listen(9952,'127.0.0.1',res));
+const server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end(`<title>Startup </title><h1>Startup </h1><script>const label=location.pathname;document.title+=label;document.querySelector("h1").textContent+=label;</script>`)});await new Promise((res,rej)=>server.once('error',rej).listen(9952,'127.0.0.1',res));
 const list=()=>fetch(`http://127.0.0.1:${port}/json/list`,{signal:AbortSignal.timeout(1000)}).then(r=>r.json());
 const wait=async(fn,test)=>{for(let i=0;i<200;i++){let v=await fn().catch(()=>null);if(test(v))return v;await pause(100)}throw Error('Readiness deadline')};
 const attach=async t=>{const c=await connect(t);clients.push(c);return c};
@@ -14,8 +15,8 @@ async function setStartupPrefs(values){
  const target=await wait(async()=>(await list()).find(t=>t.id===targetId),Boolean);const c=await attach(target);
  await wait(()=>c.eval('typeof chrome.settingsPrivate?.setPref'),x=>x==='function');
  for(const [name,value]of Object.entries(values)){
-  const result=await c.eval(`new Promise((r,j)=>chrome.settingsPrivate.setPref(${JSON.stringify(name)},${JSON.stringify(value)},'',ok=>chrome.runtime.lastError?j(Error(chrome.runtime.lastError.message)):r(ok)))`);assert.equal(result,true);
-  const actual=await c.eval(`new Promise(r=>chrome.settingsPrivate.getPref(${JSON.stringify(name)},r))`);assert.deepEqual(actual.value,value);
+  const result=await callFunction(c,function(name,value){return new Promise((r,j)=>chrome.settingsPrivate.setPref(name,value,'',ok=>chrome.runtime.lastError?j(Error(chrome.runtime.lastError.message)):r(ok)))},[name,value],true);assert.equal(result,true);
+  const actual=await callFunction(c,function(name){return new Promise(r=>chrome.settingsPrivate.getPref(name,r))},[name],true);assert.deepEqual(actual.value,value);
  }
  await browser.send('Target.closeTarget',{targetId});await wait(state,s=>!s.tabs.some(t=>t.url.startsWith('chrome://settings')));c.close();
 }

@@ -1,3 +1,4 @@
+import { prepareCertificateRevocation } from './certificate-revocation.mjs';
 import { writeResearchPolicy, guardResearchHooks } from './research-build.mjs';
 import { addPreviewNotice } from './preview/notice.mjs';
 import { hardenMarkup } from './trusted-markup.mjs';
@@ -818,6 +819,7 @@ prepareNativeHitTest(edit);
 preparePendingNavigation(edit);
 prepareSessionRecovery(edit);
 prepareStartupSession(edit);
+prepareCertificateRevocation(edit);
 
 writeResearchPolicy(chromium, process.argv.includes('--research-hooks'));
 guardResearchHooks(chromium);

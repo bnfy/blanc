@@ -1,12 +1,16 @@
+import {callFunction} from '../../cdp-function.mjs';
 import fs from 'node:fs';import http from 'node:http';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';
 import {connect,pause} from '/private/tmp/blanc-l5-owner/cdp.mjs';
 const root=import.meta.dirname, mode=process.argv[2]||'regular',port=9875,base='http://127.0.0.1:9874',report={mode,checks:[]};let child,browser;const clients=[];
 const check=(name,pass,details)=>{report.checks.push({name,pass:!!pass,details});assert(pass,name)};
-const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end(`<title>Pane ${q.url}</title><h1>Pane ${q.url}</h1><input id="typing" aria-label="Pane input"><button id="button" onclick="this.textContent='Clicked'">Click test</button><p style="height:2000px">Scroll area</p>`)});await new Promise(r=>server.listen(9874,'127.0.0.1',r));
+const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end(`<title>Pane </title><h1>Pane </h1><script>const label=location.pathname;document.title+=label;document.querySelector("h1").textContent+=label;</script><input id="typing" aria-label="Pane input"><button id="button" onclick="this.textContent='Clicked'">Click test</button><p style="height:2000px">Scroll area</p>`)});await new Promise(r=>server.listen(9874,'127.0.0.1',r));
 const list=()=>fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());
 async function wait(f){for(let i=0;i<150;i++){try{const v=await f();if(v)return v}catch{}await pause(100)}throw Error('readiness timeout')}
 async function client(t){const c=await connect(t);clients.push(c);return c}
-async function invoke(host,method,args=[]){return host.eval(`new Promise((resolve,reject)=>{const id='pane-'+Math.random(),old=window.blancPrototypeReply;const timer=setTimeout(()=>{window.blancPrototypeReply=old;reject(Error('native request timeout'))},15000);window.blancPrototypeReply=(got,ok,value)=>{if(got!==id)return old?.(got,ok,value);clearTimeout(timer);window.blancPrototypeReply=old;ok?resolve(value):reject(Error(value))};chrome.send('blancPrototype',[id,${JSON.stringify(method)},${JSON.stringify(args)}])})`)}
+async function invoke(host,method,args=[]){return callFunction(host,function(method,args){return new Promise((resolve,reject)=>{
+   const id='pane-'+Math.random(),old=window.blancPrototypeReply;const timer=setTimeout(()=>{window.blancPrototypeReply=old;reject(Error('native request timeout'))},15000);
+   window.blancPrototypeReply=(got,ok,value)=>{if(got!==id)return old?.(got,ok,value);clearTimeout(timer);window.blancPrototypeReply=old;ok?resolve(value):reject(Error(value))};chrome.send('blancPrototype',[id,method,args]);
+  })},[method,args],true);}
 try{
  const app=process.env.BLANC_PANE_APP||'/private/tmp/blanc-chromium157-update/src/out/BlancPrototype/Blanc Prototype.app';
  const binary=app+(process.env.BLANC_PANE_APP?'/Contents/MacOS/Blanc Preview Launcher':'/Contents/MacOS/Blanc Prototype');

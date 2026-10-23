@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # Normal Preview startup recovery — October 23
 
 **Normal-startup repair confirmed by the owner. A separate intermittent recovery wait keeps L6/L8 open. Readiness 7/12, delta 0 for this confirmation.**

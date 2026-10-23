@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # L5 theme action accessibility repair — October 23, 2026
 
 The installed-theme rows were nested inside `role=option` elements. macOS flattened their Apply/Remove controls into option text. The repair separates installed themes into a labelled section with individually labelled groups and native buttons, while preserving the list-box/combobox contract for extension search. Theme button focus survives re-render, moves from Apply to Remove when Apply becomes disabled, and returns to search after removal.

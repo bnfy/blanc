@@ -1,5 +1,5 @@
 {
-  "README.md": "71319d43d7273b7c7357fdd349cd1a6b7bfc7aafecd9bb34031812de2672d071",
+  "README.md": "27b794280222375e37a91326843976e392545f9f9abc052d91adf40cf80bbc5a",
   "artifact-storage.json": "f63f17528b4743d7a52006328ebf6f284a09bbd45eb61cdc0595751a0a3fde78",
   "audit-candidate.py": "d31336c8654937049946512f34d8d616acb49905b5e71a1fcaaa493e5d2c611b",
   "audit-storage.log.gz": "8d68dff523943e20bbf7ea7d8c6c540ff6e4936ce5ea04e78a1dff3945d6626d",
@@ -23,7 +23,7 @@
   "hooks-regular/worker.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "hooks-report.json": "146ea7ae8effa263ff36930c0d375510fee9104a4f35f128f7dfcb6ada685b0d",
   "hooks.log.gz": "dbd6efc2d8333b81211c92b91210cc30a35c8e745c946dfee6759fb696f134b2",
-  "hooks.mjs": "13a25b8646e308199e848d07666b712151bc6d0456d446508b5438e60f07adbf",
+  "hooks.mjs": "35db9bcb58f3bc8dd7b62de23a80998832dc1faf2f678b6e0ebb9d5e5c3a9f0a",
   "inventory-final.json": "a172d72b3bf52b43699d3ce3c3f7784a0d4acfb39e04721d9e3500fe54a5e189",
   "inventory-tests-final.log.gz": "3af06bef7c8ed561e2778173ce3c0b7fbc3794c7c5e03ca959e7a858397bd8f4",
   "inventory-tests.log.gz": "d4cd4aeb284757fc67152fe641efd46b855b5bd105f906283719364983f141e1",
@@ -61,7 +61,7 @@
   "scope/launch.log.gz": "8e5433627eeb50083abd86f9234d60351dc5d32d52f20448558f7cc0a9a8479e",
   "scope/report.json": "c22112305d7c6da6976f63229c2e0c2a0eed9b81449e4eeedc9b6c8f582d0363",
   "scope/run.log.gz": "10bf149f63066b342699faccae9ad90ae843c441ce49f5947721bf52fdaec433",
-  "scope/run.mjs": "54379ae308ddf1e0aed61d5d89008f047c076e784046f5c203dcd7a0f5f6af30",
+  "scope/run.mjs": "b2c122cc93286cd7b1671fb3f48e12f842f53cc23a65a692b4465e435726930e",
   "sign.py": "853a0cd964dc2a19cc39ba47ad15dca89cae01361239dd1aa9090ea4b43574e3",
   "signed-candidate-audit.json": "219ed6df5a122e3a403abe1d07227174da03eaf4bc7063b71cc6613f49420e9e",
   "signing-desktop.log.gz": "3000adc20cdeedc08282b4c35a38a48228e9230ec7e595ce6ad9e4f7bd683211",
@@ -69,7 +69,7 @@
   "transport/cert.pem": "a440cf16e2355e1088832609518f5c4dab3d96eabdcc5198f8b2f31aab98b5fc",
   "transport/report.json": "b48d181098750f605ad19cc970cfd41649ce5bb039eb10f3a7055ef3e2c0ad3b",
   "transport.log.gz": "e4a24207aaf0d0fbc431d05529b5b87b427a1cb00d47fa23eb401e3c6f80d0d0",
-  "transport.mjs": "4b9dc6e56a94e4a3681e25346e553e058a1f7d91c934ed3a334e79ec29e93fb8",
+  "transport.mjs": "575b956f84800e359f4f6dfec0afac9d18778206e8bb0da4d12b29aa20980d17",
   "verification.log.gz": "7f619b28bf8b177642f71271e2a0dd34142de6c9ed6a54859f12e2877ea7a637",
   "webtransport-server.py": "ed1a29bcbbb83409d3c69122abc5d8213c4da01d35605f02a670dfbbe073dff1"
 }

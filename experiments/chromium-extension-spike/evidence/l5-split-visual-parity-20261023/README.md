@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # Split View visual parity with shipping Blanc 1.42.1 — October 23, 2026
 
 The owner passed the prior signed candidate's divider drag/reset, pane menus/Escape and narrow/wide checks, then requested parity with the currently shipping Electron build. This checkpoint uses the actual installed `/Applications/Blanc.app` **1.42.1**, its packaged CSS/layout and a live local-page Split View comparison. [Reference identity](shipping-reference.json) records the app.asar digest. Comparison tabs/window were closed; all pre-existing shipping tabs remained. No Electron build ran. The local comparison contributes normal history/recently-closed entries only.

@@ -1,7 +1,7 @@
 import fs from 'node:fs';import http from 'node:http';import {spawn} from 'node:child_process';import assert from 'node:assert/strict';import {connect,pause} from './cdp.mjs';
 const root=import.meta.dirname,app='/private/tmp/blanc-l8-notices-final/Blanc Chromium Preview.app',port=9953,origin='http://127.0.0.1:9952';
 const report={app,checks:[]};const save=()=>fs.writeFileSync(root+'/diagnosis.json',JSON.stringify(report,null,2));let child,host,browser;const clients=[];
-const server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end(`<title>Startup ${q.url}</title><h1>Startup ${q.url}</h1>`)});await new Promise((res,rej)=>server.once('error',rej).listen(9952,'127.0.0.1',res));
+const server=http.createServer((q,r)=>{r.writeHead(200,{'content-type':'text/html'});r.end(`<title>Startup </title><h1>Startup </h1><script>const label=location.pathname;document.title+=label;document.querySelector("h1").textContent+=label;</script>`)});await new Promise((res,rej)=>server.once('error',rej).listen(9952,'127.0.0.1',res));
 const list=()=>fetch(`http://127.0.0.1:${port}/json/list`,{signal:AbortSignal.timeout(1000)}).then(r=>r.json());
 const wait=async(fn,test)=>{for(let i=0;i<200;i++){let v=await fn().catch(()=>null);if(test(v))return v;await pause(100)}throw Error('Readiness deadline')};
 const attach=async t=>{const c=await connect(t);clients.push(c);return c};

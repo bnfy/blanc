@@ -1,8 +1,12 @@
+import {callFunction} from '../../cdp-function.mjs';
 import fs from 'node:fs';import assert from 'node:assert/strict';import {connect,pause} from '/private/tmp/blanc-l5-owner/cdp.mjs';
 const root=import.meta.dirname,port=9875,checks=[];const list=()=>fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());
 const ts=await list(),host=await connect(ts.find(t=>t.url.endsWith('/host.html'))),browser=await connect(await fetch(`http://127.0.0.1:${port}/json/version`).then(r=>r.json()));
 function check(name,value,data){checks.push({name,pass:!!value,data});assert(value,name)}
-async function rpc(method,args=[]){return host.eval(`new Promise((resolve,reject)=>{const id='visual-'+Math.random(),old=window.blancPrototypeReply;window.blancPrototypeReply=(got,ok,v)=>{if(got!==id)return old?.(got,ok,v);window.blancPrototypeReply=old;ok?resolve(v):reject(Error(v))};chrome.send('blancPrototype',[id,${JSON.stringify(method)},${JSON.stringify(args)}])})`)}
+async function rpc(method,args=[]){return callFunction(host,function(method,args){return new Promise((resolve,reject)=>{
+   const id='pane-'+Math.random(),old=window.blancPrototypeReply;const timer=setTimeout(()=>{window.blancPrototypeReply=old;reject(Error('native request timeout'))},15000);
+   window.blancPrototypeReply=(got,ok,value)=>{if(got!==id)return old?.(got,ok,value);clearTimeout(timer);window.blancPrototypeReply=old;ok?resolve(value):reject(Error(value))};chrome.send('blancPrototype',[id,method,args]);
+  })},[method,args],true);}
 const wid=(await browser.send('Browser.getWindowForTarget',{targetId:ts.find(t=>t.url.endsWith('/left')).id})).windowId;
 try {for(const [width,height,mode]of [[1280,800,'columns'],[620,800,'rows'],[620,380,'focus'],[1280,800,'columns']]){
  await browser.send('Browser.setWindowBounds',{windowId:wid,bounds:{windowState:'normal',width,height}}); await pause(800);

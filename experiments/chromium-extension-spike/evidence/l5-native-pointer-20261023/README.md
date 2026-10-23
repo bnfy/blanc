@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # Native Split View input and framing repair — October 23, 2026
 
 The owner found that clicking page content neither activated a pane nor allowed typing unless its header was clicked first. The full-height transparent Island NSView intercepted AppKit hits. A first attempt observing page interaction passed protocol-injected clicks but failed the owner's physical test; it is removed from the final source. The correction makes in-process hosted Cocoa views consult the enclosing Views hit target and return no hit when another view owns the point. AppKit then routes the click to the visible page. There is no new renderer IPC, permission or network surface. Remote app-shim views retain their prior fallback and are not newly qualified.

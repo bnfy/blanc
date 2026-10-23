@@ -1,3 +1,5 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
 # L6 startup restoration repair and signed acceptance — October 23, 2026
 
 **L6 is accepted again for the replacement candidate. `[■■■■■■■■□□□□] 8/12 (66.7%) · Δ +1 L6`.** The repair removes the pre-main-loop restoration entry observed in the retained failure. A deterministic event-order negative control rejects the older candidate and passes the replacement. All **125 frozen signed-candidate checkpoints** pass, including 92 recovery/startup checkpoints. The prior owner-approved recovery UI maps through unchanged source and assets. L8 remains open for distribution acceptance of these new bytes; no release or merge is approved.

@@ -28,7 +28,7 @@ try{for(const mode of ['regular','private']){
  check(mode+' HTTP allow/block preserved',httpResult[0].ok&&!httpResult[1].ok,httpResult);
  const socketResult=await page.eval("Promise.all(['ws://127.0.0.1:9892/socket','ws://000491b06a.com:9892/socket'].map(url=>new Promise(resolve=>{const s=new WebSocket(url);const timer=setTimeout(()=>{s.close();resolve('timeout')},5000);s.onmessage=e=>{clearTimeout(timer);s.close();resolve(e.data)};s.onerror=()=>{clearTimeout(timer);resolve('blocked')}})))");
  check(mode+' WebSocket allow/block preserved',socketResult[0]==='ok'&&socketResult[1]==='blocked',socketResult);
- check(mode+' denied hosts never reach fixture',hits.every(x=>!x.host.startsWith('000491b06a.com'))&&upgrades.every(x=>!x.startsWith('000491b06a.com')),{hits,upgrades});
+ check(mode+' denied hosts never reach fixture',hits.every(x=>new URL('http://'+x.host).hostname!=='000491b06a.com')&&upgrades.every(x=>new URL('http://'+x).hostname!=='000491b06a.com'),{hits,upgrades});
  await page.eval("navigator.serviceWorker.register('/sw.js').then(()=>navigator.serviceWorker.ready).then(r=>r.update()).then(()=>true)");
  await pause(500);check(mode+' worker diagnostic remains disabled',fs.readFileSync(d+'/worker.jsonl','utf8')==='');check(mode+' blocker diagnostic remains disabled',fs.readFileSync(d+'/blocker.jsonl','utf8')==='');
  page.close();host.close();await browser.send('Browser.close').catch(()=>{});browser.close();await until(()=>child.done);check(mode+' native instance exits cleanly',child.done);report.runs.push({mode,hits,upgrades});child=null;browser=null;
