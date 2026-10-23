@@ -8,20 +8,29 @@
     "Source tree/SBOM/materials/provenance subject binding",
     "Complete license and readable credits payload",
     "Strict signature, Apple ticket and Gatekeeper on locally extracted copy",
-    "12compliance and7artifact-verifier tests"
+    "12compliance and7artifact-verifier tests",
+    "Pinned Sigstore identity/issuer authentication of manifest",
+    "Actual changed-manifest and changed-artifact refusal",
+    "Independent release-Mac packet authentication",
+    "Six unpublished hosted assets match exact digests",
+    "Six fresh anonymous HTTPS downloads and downloaded-packet authentication",
+    "Read-only Shipping hashes unchanged and Store Bitwarden2026.10.0 present"
   ],
   "pending": [
-    "Sigstore pinned-identity manifest authentication; local Mac locked, owner unlock requested",
-    "Unpublished hosted six-asset packet and actual hosted-byte verification",
-    "Second-Mac native Safari quarantine/download and ordinary launch/restart/extension integration on these replacement bytes"
+    "Native Safari MacBook download: actual quarantine and exact app-byte verification before first launch",
+    "Ordinary MacBook launch, tab/selection/Shelf/Bitwarden popup persistence across two clean restarts; Shipping preserved"
   ],
   "noNativeOrElectronBuild": true,
   "googleBaselineSeparate": true,
   "noReleaseApproval": true,
   "authenticationAttempt": {
-    "result": "timed out before authentication completed",
-    "causeObserved": "Computer-use tool reported this Mac locked; owner unlock requested",
-    "authenticatedManifestCreated": false,
-    "staleOAuthUrlWillNotBeReused": true
+    "initialFailure": "OAuth expired while Mac was locked; retained separately in initial-status.json",
+    "freshAttemptAfterOwnerUnlock": "Completed in Safari; callback succeeded; signature verifies pinned anthony@bnfy.me / https://github.com/login/oauth",
+    "oldOAuthUrlReused": false
+  },
+  "draft": {
+    "id": 422364839,
+    "url": "https://github.com/bnfy/blanc/releases/tag/untagged-afa6366dc2ff7daedc2d",
+    "published": false
   }
 }
