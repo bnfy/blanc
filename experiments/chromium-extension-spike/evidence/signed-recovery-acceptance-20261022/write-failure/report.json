@@ -1,0 +1,40 @@
+{
+  "app": "/private/tmp/blanc-restored-renderer-repair/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-full-recovery/write-failure/isolated-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [
+    {
+      "name": "only disposable session stores made immutable",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "failed filesystem save is refused",
+      "pass": true,
+      "details": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Tab closed, but history persistence failed or timed out.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"66\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Tab closed, but history persistence failed or timed out.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-7479005974639810480.1.1\"}}"
+    },
+    {
+      "name": "retry close acknowledged",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a"
+        ],
+        "selected": 1
+      }
+    },
+    {
+      "name": "retry survives immediate crash",
+      "pass": false,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    }
+  ],
+  "error": "Error: retry survives immediate crash",
+  "forcedCleanup": true
+}
