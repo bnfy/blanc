@@ -30,9 +30,9 @@ This is the companion pitch ("your Blanc, in your pocket"). It is what the
 **In M7:**
 
 1. **Sync on the phone:** join an existing sync with the eight-character
-   device code, the recovery code, or name and passphrase; create a new sync
-   from the phone (the same flow as desktop); turn sync off; switch to another
-   sync with a code; show a code so another device can join.
+   device code, the recovery code, or name and passphrase; turn sync off;
+   switch to another sync with a code; show a code so another device can join.
+   **The phone joins only:** a sync is started on desktop (decision §9).
 2. **Settings** sync both ways for the keys the phone uses (theme,
    searchEngine, adblockEnabled), and the phone carries every other synced key
    through unchanged.
@@ -189,6 +189,14 @@ out at most 60 s after the first unpublished change.
   `syncSwitchWipe`) only when the bridge advertises a new **`syncWipeRemote`**
   capability. Desktop sends no capability list, so it keeps them; the phone
   doesn't advertise it, so they're hidden there.
+- **Join only.** The page's two ways to start a new sync, the "Start a new
+  sync" path (`syncPathStart`) and "Start a new sync with these" after a
+  not-found check (`syncStartNew`), show only when the bridge advertises a new
+  **`syncCreate`** capability, which the phone doesn't. In their place the
+  phone shows "Start your sync on your computer, then add this phone with a
+  code." (new catalog key `settings.sync.createOnComputer`, all six
+  languages). `syncEnable` on the phone joins only: when the probe finds no
+  sync it returns `ok: false` with that message and writes nothing.
 - **Start page:** `start.data` returns `remoteDevices`, and the bridge emits
   `start.onRemoteTabs` after a pull changes them, so the page's Other devices
   section appears. Favorites appear where desktop shows them.
@@ -257,14 +265,17 @@ out at most 60 s after the first unpublished change.
   with a packaged desktop build using each of the three join paths; see tabs
   both ways; change the theme on each side; turn sync off on the phone.
 
-## 9. Open questions for the owner
+## 9. Decisions (owner, 2026-10-23)
 
-A reviewer's recommendations are noted; none is an owner decision yet.
+Taken as a reviewer recommended:
 
-1. The phone can **create** a new sync (desktop's flow). Keep it, or make the
-   phone join-only, matching "pair with your desktop"? *Reviewer: join-only at
-   first.*
-2. Should M7a's Favorites page be visible read-only (this spec), or hidden
-   until M8? *Reviewer: visible read-only.*
-3. The phone's published name is `iPhone`. Fine, or use the model name
-   (`iPhone 17 Pro`)? *Reviewer: `iPhone`, renamable.*
+1. **The phone joins only.** A sync is started on desktop; the phone hides
+   both ways to start one and refuses to create one (§5). Revisit if testers
+   without desktop Blanc ask for it, which the companion positioning doesn't
+   expect.
+2. **Favorites are visible, read-only**, on the phone's Favorites page, start
+   page and Quick Switcher, with a note saying where to edit them (§5).
+   Editing comes in M8.
+3. **The phone publishes `iPhone`**, never the model name, and the person can
+   rename it from either device (the existing `deviceNames` setting; Settings
+   → Sync on the phone, or Rename Device… on desktop).
