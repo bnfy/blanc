@@ -25,15 +25,15 @@ await fs.mkdir(profile,{recursive:true,mode:0o700});
 await fs.writeFile(path.join(profile,'ecs-handoff-owner'),marker);
 await fs.writeFile(path.join(profile,'settings.json'),JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
 const bytes=await fs.readFile(archive),sha512=crypto.createHash('sha512').update(bytes).digest('base64');
-const report={passed:false,targetVersion,sourceVersion:null,nativeRestartNow:false,automaticRelaunch:false,publicFeed:false};
+const report={passed:false,targetVersion,sourceVersion:null,nativeRestartNow:false,automaticRelaunch:false,publicFeed:false,probeRequests:0};
 let downloaded=false,ready=false,playback=null,child,successorPid;
 const server=http.createServer(async(request,response)=>{
  const url=new URL(request.url,'http://127.0.0.1');
  if(url.pathname==='/staging-mac.yml')return response.end(`version: ${targetVersion}\nfiles:\n  - url: update.zip\n    sha512: ${sha512}\n    size: ${bytes.length}\npath: update.zip\nsha512: ${sha512}\n`);
  if(url.pathname==='/update.zip'){response.on('finish',()=>{downloaded=true;});response.setHeader('Content-Length',bytes.length);return response.end(bytes);}
- if(url.pathname==='/') {response.setHeader('Content-Type','text/html');return response.end(protectedPage(marker));}
+ if(url.pathname==='/') {report.probeRequests++;response.setHeader('Content-Type','text/html');return response.end(protectedPage(marker));}
  if(url.pathname==='/favicon.ico')return response.writeHead(204).end();
- if(['/ready','/result'].includes(url.pathname)&&request.headers['x-blanc-probe']===marker){let body='';for await(const chunk of request){body+=chunk;if(body.length>4096)return response.writeHead(413).end();}const data=JSON.parse(body);if(url.pathname==='/ready')ready=data.ready===true;else playback=data;return response.end('ok');}
+ if(['/ready','/result'].includes(url.pathname)&&request.headers['x-blanc-probe']===marker){let body='';for await(const chunk of request){body+=chunk;if(body.length>4096)return response.writeHead(413).end();}const data=JSON.parse(body);if(url.pathname==='/ready'){ready=data.ready===true;report.probeReady=data.ready===true;}else playback=data;return response.end('ok');}
  response.writeHead(404).end();
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -86,13 +86,32 @@ end tell`;
  });
  // The same loopback page used for Linux proves protected media in the
  // automatic successor, not in an independently relaunched test process.
- run('/usr/bin/osascript',['-e',`tell application "System Events" to tell first application process whose unix id is ${successorPid} to set frontmost to true`]);
- run('/usr/bin/osascript',['-e',`tell application "System Events"
- keystroke "l" using command down
- keystroke ${JSON.stringify(origin+'/')}
- key code 36
-end tell`]);
- await wait('updated protected page',()=>ready);
+ for(let attempt=1;attempt<=3;attempt++){
+  report.navigationAttempts=attempt;
+  const before=report.probeRequests;
+  run('/usr/bin/osascript',['-e',`tell application "System Events"
+   tell first application process whose unix id is ${successorPid}
+    set frontmost to true
+    repeat 20 times
+     if frontmost is true and (count of windows) > 0 then exit repeat
+     delay 0.1
+    end repeat
+    keystroke "l" using command down
+    delay 0.2
+    keystroke "a" using command down
+    keystroke ${JSON.stringify(origin+'/')}
+    key code 36
+   end tell
+  end tell`]);
+  try{await wait('updated probe navigation request',()=>report.probeRequests>before,15000);break;}
+  catch(error){if(attempt===3)throw error;}
+ }
+ // Retry only input that produced no request. An actual page/player failure
+ // must remain a failure, not be hidden by reloading or restarting the app.
+ await wait('updated protected page',()=>{
+  if(report.probeReady===false)throw Error('Updated protected page loaded without its player');
+  return ready;
+ });
  run('/usr/bin/osascript',['-e','tell application "System Events" to key code 36']);
  const media=await wait('updated protected playback',()=>playback);
  assert.equal(media.failure,undefined);assert.equal(media.status,2);assert.equal(media.mediaKeys,true);

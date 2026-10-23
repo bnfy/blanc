@@ -15,6 +15,10 @@ test('Mac ECS handoff requires a disposable native Intel host and the normal Res
  assert.match(source,/const root=await fs.realpath\(await fs.mkdtemp\(/);
  assert.match(source,/assert.equal\(media.status,2\)/);
  assert.match(source,/ecs-handoff-owner/);
+ assert.match(source,/probeRequests\+\+/);
+ assert.match(source,/updated probe navigation request/);
+ assert.match(source,/keystroke "a" using command down/);
+ assert.match(source,/if\(report.probeReady===false\)throw Error/);
  assert.doesNotMatch(source,/quitAndInstall\(|AUTO_INSTALL:\s*'1'|\bHOME:\s*|--no-sandbox/);
 });
 test('Mac updater intake is opt-in, pinned and cannot publish',()=>{
