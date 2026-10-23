@@ -111,8 +111,35 @@ test('Linux ECS regressions go through the AppImage launcher; official Linux kee
 test('the browser regression smoke keeps the official lock check and expects the pinned ECS version only for a verified ECS package', () => {
   const smoke = fs.readFileSync(path.join(root, 'test/desktop/packaged-browser-compatibility-smoke.mjs'), 'utf8');
   assert.match(smoke, /let expected = runtime\.lockedElectronVersion\(\);/);
-  assert.match(smoke, /if \(process\.env\.BLANC_ECS_PACKAGE_ROOT\) \{/);
-  for (const check of ["assert.equal(metadata.blancRuntime, 'ecs');", 'assert.equal(metadata.blancEcsRuntime, pin.version);',
-    'assert.equal(metadata.blancEcsArchiveSha256, pin.archives[metadata.blancEcsTarget]);']) assert(smoke.includes(check), check);
+  // Both smokes use the strict shared verifier for ECS packages.
+  for (const file of ['packaged-browser-compatibility-smoke.mjs', 'packaged-workspace-recovery-smoke.mjs']) {
+    assert.match(fs.readFileSync(path.join(root, 'test/desktop', file), 'utf8'), /require\('\.\/support\/ecs-package-version\.cjs'\)\.expectedEcsElectron\(process\.env\.BLANC_ECS_PACKAGE_ROOT\)/, file);
+  }
   assert.match(smoke, /assert\.equal\(info\.appInfo\.electronVersion, expected, 'actual packaged runtime matches the lock'\);/);
+});
+
+test('the ECS package verifier rejects missing, unknown or mismatched metadata instead of comparing undefined', () => {
+  const { verifyEcsPackageMetadata } = require('../desktop/support/ecs-package-version.cjs');
+  const pin = { version: '44.9.3+wvcus', archives: { 'linux-x64': 'a'.repeat(64), 'darwin-arm64': 'b'.repeat(64) } };
+  const good = { blancRuntime: 'ecs', blancEcsRuntime: '44.9.3+wvcus', blancEcsTarget: 'linux-x64', blancEcsArchiveSha256: 'a'.repeat(64) };
+  assert.equal(verifyEcsPackageMetadata(good, pin), '44.9.3');
+  const { blancEcsTarget: _t, ...noTarget } = good;
+  const { blancEcsArchiveSha256: _d, ...noDigest } = good;
+  for (const [label, metadata, testPin = pin] of [
+    ['missing target and digest', { blancRuntime: 'ecs', blancEcsRuntime: '44.9.3+wvcus' }],
+    ['missing target', noTarget],
+    ['unknown target with no digest', { ...noDigest, blancEcsTarget: 'win32-arm64' }],
+    ['unknown target', { ...good, blancEcsTarget: 'win32-arm64' }],
+    ['inherited key as target', { ...good, blancEcsTarget: 'toString' }],
+    ['missing digest', noDigest],
+    ['malformed digest', { ...good, blancEcsArchiveSha256: 'xyz' }],
+    ['digest for another target', { ...good, blancEcsArchiveSha256: 'b'.repeat(64) }],
+    ['invalid pinned digest', good, { ...pin, archives: { 'linux-x64': '' } }],
+    ['different ECS runtime', { ...good, blancEcsRuntime: '44.9.4+wvcus' }],
+    ['not ECS', { ...good, blancRuntime: undefined }],
+    ['no metadata', undefined],
+  ]) assert.throws(() => verifyEcsPackageMetadata(metadata, testPin), assert.AssertionError, label);
+  // The real pin is well formed for every target.
+  const real = require('../../build/ecs-runtime.json');
+  for (const [target, digest] of Object.entries(real.archives)) assert.match(digest, /^[a-f0-9]{64}$/, target);
 });
