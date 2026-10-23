@@ -7,16 +7,20 @@ nonisolated struct SyncedSettings: Equatable, Sendable {
   var tieBreakers: [String: String]
   private var metaOrder: [String]
   private var tieOrder: [String]
+  private var invalidClockKeys: Set<String>
   init(payload: JSONValue) {
     values = payload["values"] ?? .object([])
     meta = [:]
     tieBreakers = [:]
     metaOrder = []
     tieOrder = []
+    invalidClockKeys = []
     for (k, v) in payload["meta"]?.pairs ?? [] {
       if let n = v.number, n.rounded() == n, n > 0, n < Double(Self.maxClock) {
         meta[k] = Int64(n)
         metaOrder.append(k)
+      } else {
+        invalidClockKeys.insert(k)
       }
     }
     for (k, v) in payload["tieBreakers"]?.pairs ?? [] {
@@ -59,7 +63,7 @@ nonisolated struct SyncedSettings: Equatable, Sendable {
       guard let rt = remote.meta[key] else {
         // Desktop exports untouched defaults without clocks. Carry them through
         // when no local value exists; they must not erase a clocked local edit.
-        if values[key] == nil { values[key] = value }
+        if values[key] == nil && !remote.invalidClockKeys.contains(key) { values[key] = value }
         continue
       }
       let lt = meta[key] ?? 0

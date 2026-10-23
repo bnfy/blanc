@@ -23,6 +23,21 @@ final class SyncedSettingsTests: XCTestCase {
     XCTAssertEqual(
       SyncedSettings(payload: try JSONValue(data: Data(wire.utf8))).payload().jsStringify(), wire)
   }
+  func testUnclockedDefaultsCarriedOnlyWhenLocalValueAbsent() {
+    var local = SyncedSettings(payload: .object([]))
+    let defaults = SyncedSettings(
+      payload: .object([
+        ("values", .object([("theme", .string("dark")), ("futureKey", .string("kept"))]))
+      ]))
+    local.merge(remote: defaults)
+    XCTAssertEqual(local.values["theme"]?.string, "dark")
+    XCTAssertEqual(local.values["futureKey"]?.string, "kept")
+    XCTAssertNil(local.meta["theme"])
+    local.stampLocal(key: "theme", value: .string("light"), now: 100, tie: "local")
+    local.merge(remote: defaults)
+    XCTAssertEqual(local.values["theme"]?.string, "light")
+    XCTAssertEqual(local.meta["theme"], 100)
+  }
   func testStampLocalAdvancesPastPrevious() {
     var s = SyncedSettings(payload: .object([]))
     s.stampLocal(key: "theme", value: .string("dark"), now: 5000, tie: "a")

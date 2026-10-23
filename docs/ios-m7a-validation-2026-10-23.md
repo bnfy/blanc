@@ -13,7 +13,7 @@ M7a is implemented but unreleased. This does not complete M7: Send to device is 
 
 - Full Node unit suite: 4,266 passed, one skipped, no failures (4,267 tests).
 - Real Chromium shared-page suite: seven passed.
-- Standalone macOS XCTest of the actual pure Swift protocol files: 33 passed, including desktop-generated vectors and RFC 7914 vectors.
+- Standalone macOS XCTest of the actual pure Swift protocol files: 34 passed, including desktop-generated vectors and RFC 7914 vectors.
 - Portable macOS XCTest of the actual engine and transport: 23 passed. Only the UI catalog adapter is substituted in this host harness; it does not claim iOS Keychain or WebKit validation.
 - Portable UI checks: 14 passed (actual extracted native JavaScript guards in JavaScriptCore and Quick Switcher logic).
 - Xcode 27.1 arm64 iOS Simulator app and test target: `build-for-testing` passed.
