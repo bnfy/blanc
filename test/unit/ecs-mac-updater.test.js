@@ -40,7 +40,8 @@ test('fresh Mac intake binds both native architectures to private signed bytes',
  assert.match(job,/inputs.ecs_fresh_mac/);
  assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
  assert.match(job,/arch: \[arm64, x64\]/);
- assert.match(job,/mode: \$\{\{ inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater"\]'\) \}\}/);
+ assert.match(job,/inputs.ecs_fresh_mac_audio_only && fromJSON\('\["audio"\]'\)/);
+ assert.match(job,/inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater"\]'\)/);
  assert.match(job,/os: macos-15\n/);
  assert.match(job,/os: macos-15-intel/);
  assert.match(job,/fail-fast: false/);

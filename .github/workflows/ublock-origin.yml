@@ -44,6 +44,10 @@ on:
         description: "Rerun only the two fresh signed Mac updater rehearsals"
         type: boolean
         default: false
+      ecs_fresh_mac_audio_only:
+        description: "Diagnose PCM, AAC, Web Audio and protected playback in the exact signed Mac apps"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -160,7 +164,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [arm64, x64]
-        mode: ${{ inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
+        mode: ${{ inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
         include:
           - arch: arm64
             os: macos-15
@@ -246,6 +250,11 @@ jobs:
           node test/desktop/packaged-workspace-recovery-smoke.mjs
           node test/desktop/packaged-media-smoke.mjs
           node test/desktop/ecs-production-drm-smoke.mjs
+      - name: Compare audio controls inside the unchanged signed full browser
+        if: matrix.mode == 'audio'
+        run: |
+          swiftc test/desktop/native-audio-clock.swift -o "$RUNNER_TEMP/native-audio-clock"
+          NATIVE_AUDIO_PROBE="$RUNNER_TEMP/native-audio-clock" node test/desktop/ecs-signed-audio-controls.mjs
       - name: Fetch the public baseline without modifying any public asset
         if: matrix.mode == 'updater'
         env:

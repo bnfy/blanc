@@ -65,6 +65,17 @@ architectures using the same signed bytes. Owner-approved Windows retry
 `40011311276` is on the same head and its protected signing approval has been
 submitted. No new signing authority extends to any later replacement run.
 
+The next audio diagnostic uses the unchanged signed full Mac application,
+with fresh profiles and the normal entrypoint, on each native architecture.
+It compares local PCM and AAC at 44.1/48 kHz, muted and unmuted controls,
+Web Audio clocks, and an unmuted controlled player using the same public
+CENC media and license server as VMP Lab. A native output-clock probe runs
+on that same host. Results retain individual trials, media errors and decoder
+properties. Diagnostic completion is not an acceptance pass; the original
+Intel failure and both updater gates remain open until native evidence resolves
+them. This mode uses the existing authorized transfer assets and needs no new
+signatures, application changes, acceleration changes or sandbox exemptions.
+
 The upstream check confirms the selected `v44.9.3+wvcus` is the latest ECS
 release and matches the latest Electron 44 patch `v44.9.3` (which includes
 ANGLE/Chromium/PDFium/Skia/V8 backports). Electron 45 is available separately;
