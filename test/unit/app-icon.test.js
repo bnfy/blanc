@@ -114,10 +114,9 @@ test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', (
     assert.equal(definition.nativeName, nativeName);
     assert.equal(definition.darkFlatIcon, `${id}-dark`);
     const document = createIconDocument(definition);
-    // A light fill that Icon Composer darkens itself in Dark, unlike Gold's tiles.
+    // A light fill that Icon Composer darkens itself in Dark.
     assert.equal(document['fill-specializations'][0].appearance, 'dark');
-    assert.equal(document.groups.length, 2);
-    const [mark, rim] = document.groups;
+    const [mark, rim, tiles] = document.groups;
     assert.deepEqual(
       mark.layers.map((layer) => [layer.name, layer['image-name'], layer.glass]),
       [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true]],
@@ -130,7 +129,30 @@ test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', (
       name: 'Rim',
       'hidden-specializations': [{ appearance: 'tinted', value: true }],
     }]);
+    // Spectrum's graded gray tile is too much for a one-color fill, so it is
+    // drawn as tile images over the fill, with a near-black one in Dark.
+    if (prefix === 'spectrum') {
+      assert.deepEqual(
+        tiles.layers.map((layer) => layer['image-name']).sort(),
+        ['spectrum-tile-dark.png', 'spectrum-tile.png'],
+      );
+    } else {
+      assert.equal(tiles, undefined);
+    }
   }
+});
+
+test('Sunrise Spectrum\'s tile grades from darker gray at the top to lighter below, as Arc\'s does', async () => {
+  const tile = path.join(root, 'build/app-icons/colorways/spectrum-tile.png');
+  const { data, info } = await sharp(tile).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const luminance = (y) => {
+    const offset = ((y * info.width) + 512) * info.channels;
+    return (data[offset] + data[offset + 1] + data[offset + 2]) / 3;
+  };
+  assert.ok(luminance(1000) - luminance(20) > 30, 'the bottom of the tile is clearly lighter than the top');
+  const offset = (512 * info.width + 512) * info.channels;
+  const [r, g, b] = data.subarray(offset, offset + 3);
+  assert.ok(b > r && Math.abs(r - g) < 12, 'the tile is a cool, near-neutral gray');
 });
 
 test('other colorways keep a single-group stack with the default shadow', () => {
@@ -761,8 +783,8 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
     // With no water lines the mark is wider than tall; its width fills the tile.
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
-    assert.ok(nativeWidth > 750 && nativeWidth < 800, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 610 && nativeHeight < 650, `${prefix} artwork is the sun and rays alone`);
+    assert.ok(nativeWidth > 720 && nativeWidth < 770, `${prefix} artwork stays large within the safe area`);
+    assert.ok(nativeHeight > 650 && nativeHeight < 700, `${prefix} artwork is the sun and rays alone`);
     // The sun has risen: more than half its disc shows, so it stands taller
     // than a half disc's height of half its width.
     const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
@@ -777,10 +799,20 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
     assert.ok(Math.abs((tip.minX + tip.maxX) / 2 - (CANVAS - 1) / 2) < 6, `${prefix} middle ray is the tallest`);
 
     const { data, info } = await sharp(layer('rim')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    // The rim is plain white (its edge blends a little into the shadow under
+    // it); the only other pixels are that soft, dark drop shadow, which stays
+    // well short of opaque.
+    let shadowPixels = 0;
     for (let offset = 0; offset < data.length; offset += info.channels) {
-      if (data[offset + 3] <= 24) continue;
-      assert.ok(data[offset] > 250 && data[offset + 1] > 250 && data[offset + 2] > 250, 'the rim is plain white');
+      const alpha = data[offset + 3];
+      if (alpha <= 24) continue;
+      if (alpha > 200) {
+        assert.ok(data[offset] >= 230 && data[offset + 1] >= 230 && data[offset + 2] >= 230, 'the rim is plain white');
+      } else if (data[offset] < 60) {
+        shadowPixels += 1;
+      }
     }
+    assert.ok(shadowPixels > 10_000, `${prefix} rim carries a drop shadow`);
     const rim = await markBoundsOf(sharp(layer('rim')), visible);
     assert.ok(rim.minY < native.minY && rim.maxY > native.maxY, 'the rim outlines every part');
 

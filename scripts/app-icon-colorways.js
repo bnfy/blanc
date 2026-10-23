@@ -13,12 +13,13 @@
 //     Icon Composer's own renders.
 
 const CX = 512;
-// Proportions follow the Sunrise's native layer (sunrise-mark.png): each ray's
-// tip reaches the same distance from the sun's center as there, so the middle
-// ray stands tallest. Rays here are heavier than the artwork's, so the sun is
-// drawn a little larger than its 210px half disc and risen above its flat
-// base, or the heavy rays and rims swamp it; the rays start far enough out for
-// their white rims to stay clear of the sun's.
+// Proportions follow the Sunrise's native layer (sunrise-mark.png): the side
+// rays' tips reach as far from the sun's center as there, and the middle ray
+// reaches further still, so it stands well above the rest. Rays here are
+// heavier than the artwork's, so the sun is drawn a little larger than its
+// 210px half disc and risen above its flat base, or the heavy rays and rims
+// swamp it; the rays start far enough out for their thick white rims to stay
+// clear of the sun's.
 const HORIZON = 654;
 const SUN_RADIUS = 225;
 // How far the sun's center stands above its flat base; 0 is a half disc.
@@ -26,11 +27,15 @@ const SUN_RISE = 80;
 const SUN_Y = HORIZON - SUN_RISE;
 const RAY_WIDTH = 52;
 // Clear space between the sun and the rays' caps.
-const RAY_GAP = 42;
-const RAY_REACH = [[0, 545], [28, 470], [52.5, 455], [76, 394]];
+const RAY_GAP = 66;
+const RAY_REACH = [[0, 615], [28, 470], [52.5, 455], [76, 394]];
 const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
   .map((a) => [a, SUN_RADIUS + RAY_GAP + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
-const RIM = 14;
+const RIM = 30;
+// A soft drop shadow drawn under the white rim, as Arc's icon has one.
+const SHADOW_DY = 12;
+const SHADOW_BLUR = 18;
+const SHADOW_OPACITY = 0.42;
 // Vertical middle of the drawn mark, from the middle ray's tip to the sun's
 // flat base, before scaling.
 const MARK_TOP = SUN_Y - RAY_REACH[0][1];
@@ -47,16 +52,19 @@ const COLORWAYS = {
   spectrum: {
     rays: [[0, '#1A007F'], [0.24, '#1942CD'], [0.4, '#2C39B9'], [0.48, '#E23A55'], [0.6, '#F95B6E'], [0.8, '#FF7F88'], [1, '#FFA3A8']],
     sun: [[0, '#1942CD'], [0.28, '#2C39B9'], [0.46, '#E23A55'], [0.7, '#FF5F73'], [1, '#FF8F96']],
-    tile: ['#C4C9D3', '#BABFC8'],
+    // Arc's Dock tile: darker gray at the top, lighter below. Drawn as a tile
+    // image, since an Icon Composer fill takes a single color.
+    tile: [[0, '#A9B0BA'], [0.3, '#B3B9C2'], [0.85, '#CED3DB'], [1, '#D2D7DE']],
+    tileLayer: true,
   },
   amber: {
     rays: [[0, '#B8692A'], [0.3, '#CD8530'], [0.5, '#D9A040'], [0.7, '#CD8530'], [1, '#B8692A']],
     sun: [[0, '#D08A2C'], [0.55, '#B9652A'], [1, '#9E4A2A']],
-    tile: ['#FEF8ED', '#F3EBDF'],
+    tile: [[0, '#FEF8ED'], [1, '#F3EBDF']],
   },
 };
 // Icon Composer renders both Dark tiles this near-black, whatever the fill.
-const DARK_TILE = ['#1F1F1E', '#100F0F'];
+const DARK_TILE = [[0, '#1F1F1E'], [1, '#100F0F']];
 
 const fixed = (n) => Number(n.toFixed(1));
 
@@ -103,11 +111,14 @@ const SUN_GLOSS = `<path d="M${fixed(CX - GLOSS_RADIUS)} ${fixed(GLOSS_Y)} A${fi
   + `${fixed(CX + GLOSS_RADIUS)} ${fixed(GLOSS_Y)}" fill="none" stroke="#FFFFFF" `
   + `stroke-width="${fixed(SUN_RADIUS * 0.16)}" stroke-linecap="round"/>`;
 
-function gradient(id, stops, x1 = CX - 390, x2 = CX + 390) {
-  return `<linearGradient id="${id}" x1="${x1}" y1="0" x2="${x2}" y2="0" gradientUnits="userSpaceOnUse">`
+function linearGradient(id, stops, [x1, y1, x2, y2]) {
+  return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="userSpaceOnUse">`
     + stops.map(([offset, color]) => `<stop offset="${offset}" stop-color="${color}"/>`).join('')
     + '</linearGradient>';
 }
+
+const gradient = (id, stops, x1 = CX - 390, x2 = CX + 390) => linearGradient(id, stops, [x1, 0, x2, 0]);
+const verticalGradient = (id, stops, y1, y2) => linearGradient(id, stops, [0, y1, 0, y2]);
 
 function paints(colorway) {
   return gradient('rays', colorway.rays) + gradient('sun', colorway.sun, CX - SUN_RADIUS, CX + SUN_RADIUS);
@@ -138,20 +149,28 @@ function nativePart(colorway, part) {
 
 function nativeRim() {
   const white = '#FFFFFF';
-  return svg('', placed(rays(white, RIM) + sun(white, RIM), NATIVE_SCALE, 512));
+  const defs = '<filter id="drop" x="-20%" y="-20%" width="140%" height="160%">'
+    + `<feDropShadow dx="0" dy="${SHADOW_DY}" stdDeviation="${SHADOW_BLUR}" flood-color="#000000" `
+    + `flood-opacity="${SHADOW_OPACITY}"/></filter>`;
+  return svg(defs, placed(`<g filter="url(#drop)">${rays(white, RIM)}${sun(white, RIM)}</g>`, NATIVE_SCALE, 512));
+}
+
+// A full-bleed tile image, for a tile that needs more than the single color an
+// Icon Composer fill takes.
+function nativeTile(stops) {
+  return svg(verticalGradient('tile', stops, 0, 1024), '<rect width="1024" height="1024" fill="url(#tile)"/>');
 }
 
 // The flat Dock copy: the tile clipped to the flat 824px rounded rect with the
 // flat icons' drop shadow, then the glass approximated in layers: a soft glow
 // of the colors, the white rim with its own shadow, the strokes, the gloss.
-function flatIcon(colorway, [top, bottom], dark) {
-  const defs = `<linearGradient id="tile" x1="0" y1="100" x2="0" y2="924" gradientUnits="userSpaceOnUse">
-      <stop stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+function flatIcon(colorway, tile, dark) {
+  const defs = verticalGradient('tile', tile, 100, 924)
+    + `<filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
       <feDropShadow dx="0" dy="15" stdDeviation="18" flood-color="#000000" flood-opacity="${dark ? 0.5 : 0.24}"/></filter>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="26"/></filter>
     <filter id="lift" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.16"/></filter>
+      <feDropShadow dx="0" dy="${SHADOW_DY}" stdDeviation="${SHADOW_BLUR}" flood-color="#000000" flood-opacity="${SHADOW_OPACITY}"/></filter>
     <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="4"/></filter>`
     + paints(colorway);
   const rim = dark ? '#F4EEF8' : '#FFFFFF';
@@ -176,6 +195,10 @@ function colorwaySources() {
       sources[`build/app-icons/colorways/${prefix}-${part}.png`] = nativePart(colorway, part);
     }
     sources[`build/app-icons/colorways/${prefix}-rim.png`] = nativeRim();
+    if (colorway.tileLayer) {
+      sources[`build/app-icons/colorways/${prefix}-tile.png`] = nativeTile(colorway.tile);
+      sources[`build/app-icons/colorways/${prefix}-tile-dark.png`] = nativeTile(DARK_TILE);
+    }
     sources[`src/renderer/pages/icon-sunrise-${prefix}.png`] = flatIcon(colorway, colorway.tile, false);
     sources[`src/renderer/pages/icon-sunrise-${prefix}-dark.png`] = flatIcon(colorway, DARK_TILE, true);
   }
