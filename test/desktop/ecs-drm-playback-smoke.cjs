@@ -208,7 +208,7 @@ async function run(appPath, output) {
     });
     evidence.profileRemoved = await fs.stat(evidence.profile).then(() => false, () => true);
     assert.equal(evidence.profileRemoved, true); evidence.passed = true;
-  } catch (error) { evidence.error = error.stack; throw error; }
+  } catch (error) { evidence.error = error.stack; evidence.sandboxFailure = error.sandboxEvidence; throw error; }
   finally {
     if (evidence.profile) evidence.profileRemoved = await fs.stat(evidence.profile).then(() => false, () => true);
     await fs.mkdir(path.dirname(output), { recursive: true }); await fs.writeFile(output, JSON.stringify(evidence, null, 2));

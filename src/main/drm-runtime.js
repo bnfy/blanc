@@ -52,7 +52,13 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
             const results = await components.whenReady([components.WIDEVINE_CDM_ID]);
             const result = Array.isArray(results) ? results.find(item => item?.id === components.WIDEVINE_CDM_ID) : null;
             completionStatus = typeof result?.status === 'string' ? result.status.slice(0, 80) : null;
-            return platform === 'linux' && !before?.version ? 'restart-required' : 'ready';
+            // ECS registers existing components asynchronously. Its `new`
+            // result means newly registered in this process, not downloaded.
+            // On the pinned Linux runtime this is available before sandbox
+            // startup, unlike `updated` (first install/update needs restart).
+            const registeredInstalled = result?.status === 'new'
+              && typeof result.version === 'string' && /^\d+(?:\.\d+){1,3}$/.test(result.version);
+            return platform === 'linux' && !before?.version && !registeredInstalled ? 'restart-required' : 'ready';
           })(),
           new Promise(resolve => { timer = setTimeout(() => resolve('timed-out'), timeoutMs); }),
         ]).then(value => { state = value; });

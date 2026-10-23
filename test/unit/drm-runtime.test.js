@@ -38,6 +38,21 @@ test('Linux first install requests restart; existing component does not', async 
     assert.equal((await runtime.prepare()).state, version ? 'ready' : 'restart-required');
   }
 });
+test('Linux asynchronous registration uses the required component result, not the early snapshot', async () => {
+  for (const [status, version, expected] of [
+    ['new', '4.10.3112.0', 'ready'], ['updated', '4.10.3112.0', 'restart-required'],
+    ['new', null, 'restart-required'], ['new', '/untrusted/path', 'restart-required'],
+    ['unknown', '4.10.3112.0', 'restart-required'],
+  ]) {
+    const runtime = createDrmRuntime({ app, platform: 'linux', components: components({
+      status: () => ({}), whenReady: async () => [{ id: 'other', status: 'new', version: '1.0' }, { id: 'widevine', status, version }],
+    }) });
+    assert.equal((await runtime.prepare()).state, expected);
+    const inspected = await runtime.inspect();
+    assert.equal(inspected.registrationStatus, null);
+    assert.equal(inspected.completionStatus, status);
+  }
+});
 test('timeout ignores late completion and never launches overlapping installs', async () => {
   let finish;
   let calls = 0;

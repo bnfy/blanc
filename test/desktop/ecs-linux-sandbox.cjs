@@ -13,25 +13,35 @@ async function inspectLinuxCdm(rootPid) {
     catch { return execFileSync('sudo', ['-n', 'cat', `/proc/${pid}/${name}`], { encoding: 'utf8' }); }
   };
   const found = [];
+  const roles = [];
   for (const pid of owned) {
     let command;
     try { command = await read(pid, 'cmdline'); } catch { continue; }
-    if (!command.includes('--type=utility') || !command.includes('media.mojom.CdmServiceBroker')) continue;
+    const args = command.split('\0');
+    if (!args.includes('--type=utility') && !args.includes('--type=renderer')) continue;
+    const status = await read(pid, 'status');
+    roles.push({ role: args.includes('--type=renderer') ? 'renderer' : args.find(arg => arg.startsWith('--utility-sub-type='))?.split('=')[1],
+      sandboxType: args.find(arg => arg.startsWith('--service-sandbox-type='))?.split('=')[1],
+      seccomp: Number(status.match(/^Seccomp:\s*(\d+)/m)?.[1]), noNewPrivs: Number(status.match(/^NoNewPrivs:\s*(\d+)/m)?.[1]),
+      noSandboxFlag: args.includes('--no-sandbox') });
+    if (!command.includes('media.mojom.CdmServiceBroker')) continue;
     const maps = await read(pid, 'maps');
     if (!maps.includes('libwidevinecdm.so')) continue;
-    const status = await read(pid, 'status');
     const seccomp = Number(status.match(/^Seccomp:\s*(\d+)/m)?.[1]);
     const noNewPrivs = Number(status.match(/^NoNewPrivs:\s*(\d+)/m)?.[1]);
     const namespace = kind => execFileSync('sudo', ['-n', 'readlink', `/proc/${pid}/ns/${kind}`], { encoding: 'utf8' }).trim();
     const parentNamespace = kind => execFileSync('sudo', ['-n', 'readlink', `/proc/${rootPid}/ns/${kind}`], { encoding: 'utf8' }).trim();
     const isolatedUserNamespace = namespace('user') !== parentNamespace('user');
     const isolatedPidNamespace = namespace('pid') !== parentNamespace('pid');
-    assert.equal(seccomp, 2); assert.equal(noNewPrivs, 1);
-    assert.ok(isolatedUserNamespace && isolatedPidNamespace, 'CDM must have separate user and PID namespaces');
-    assert.ok(!command.includes('--no-sandbox') && !command.includes('--disable-sandbox'));
-    found.push({ loadedWidevine: true, seccomp, noNewPrivs, isolatedUserNamespace, isolatedPidNamespace });
+    found.push({ loadedWidevine: true, seccomp, noNewPrivs, isolatedUserNamespace, isolatedPidNamespace,
+      sandboxType: roles.at(-1).sandboxType, noSandboxFlag: roles.at(-1).noSandboxFlag });
   }
-  assert.equal(found.length, 1, 'exactly one owned sandboxed CDM service must load Widevine');
+  try {
+    assert.equal(found.length, 1, 'exactly one owned sandboxed CDM service must load Widevine');
+    assert.equal(found[0].seccomp, 2); assert.equal(found[0].noNewPrivs, 1);
+    assert.ok(found[0].isolatedUserNamespace && found[0].isolatedPidNamespace, 'CDM must have separate user and PID namespaces');
+    assert.equal(found[0].noSandboxFlag, false);
+  } catch (error) { error.sandboxEvidence = { cdm: found, roles }; throw error; }
   return found[0];
 }
 module.exports = { inspectLinuxCdm };
