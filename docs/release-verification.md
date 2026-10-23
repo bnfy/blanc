@@ -32,6 +32,32 @@ public release.
 
 ## Release-operator runbook
 
+### Electron ECS maintenance gate
+
+For every ECS release preparation, check the official
+[castLabs stable releases](https://github.com/castlabs/electron-releases/releases)
+and their security changes. Repeat before signing if a newer security release
+appears during preparation. Record the check date, exact ECS tag/publication
+date, per-platform download URLs and published/independently computed SHA-256
+hashes. Pin the same verified bytes in local and CI builds, and verify the
+packaged and executing Electron, Chromium and Node versions. Never substitute
+a floating download or silently downgrade to make another gate pass.
+
+Every ECS update reopens runtime-sensitive acceptance: local HTML, nested file
+frames, service workers and WebRTC; offline/online CDM startup; final-fuse EVS
+and platform signatures; protected Spotify/Netflix playback and Mac flicker;
+uBO, 1Password and passkeys; profile migration and real updater handoffs on
+every shipped architecture. Recheck the exact CDM service/sandbox tuple and
+ordinary-helper library validation if using the candidate dispatcher. Previous
+runtime approval and vendor correspondence do not replace these checks.
+
+Keep production entitlement restrictions unchanged unless a separate change is
+explicitly reviewed and approved. Missing security/native evidence blocks
+release absent an explicit recorded owner waiver. A vendor email response is
+not itself a release prerequisite. See [ECS native qualification](ecs-native-qualification.md)
+for the isolated validation workflow, signing limitations and staging-only
+updater boundary; its successful tests do not authorize publication.
+
 When preparing `docs/press/release-notes/v<version>.md`, review the
 [unreleased notes](press/release-notes/unreleased.md) and include only changes
 present in the selected release commit. For the Linux setup-guide buttons,
