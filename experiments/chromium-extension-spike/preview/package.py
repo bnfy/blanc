@@ -3,12 +3,14 @@
 import argparse, hashlib, json, pathlib, plistlib, shutil, subprocess
 from notice import build_metadata, stamp_html
 from distribution import verify_distribution
+from compliance import validate as validate_compliance
 p=argparse.ArgumentParser()
 p.add_argument('--source',type=pathlib.Path,required=True)
 p.add_argument('--assets',type=pathlib.Path,required=True)
 p.add_argument('--blocker',type=pathlib.Path,required=True)
 p.add_argument('--output',type=pathlib.Path,required=True)
 p.add_argument('--source-revision',required=True,help='Exact reviewed source commit for the bundled notice')
+p.add_argument('--compliance',type=pathlib.Path,required=True,help='Source-bound license/SBOM payload from compliance.py')
 a=p.parse_args()
 if a.output.exists(): raise SystemExit('Output already exists; refusing overwrite')
 for f in [a.source/'Contents/MacOS/Blanc Prototype',a.assets/'index.html',a.assets/'pages/newtab.html',a.blocker/'engine.js']:
@@ -18,12 +20,14 @@ engine_hash=hashlib.sha256((a.blocker/'engine.js').read_bytes()).hexdigest()
 engine_manifest=json.loads((a.blocker/'manifest.json').read_text())
 if engine_hash != engine_manifest['bundleSha256']: raise SystemExit('Blocker manifest digest mismatch')
 version = plistlib.loads((a.source/'Contents/Info.plist').read_bytes())['CFBundleShortVersionString']
+validate_compliance(a.compliance, a.assets, a.blocker, version, a.source_revision)
 metadata = build_metadata(version, a.source_revision)
 notice_pages = {name: stamp_html((a.assets/name).read_text(), metadata)
                 for name in ['pages/newtab.html', 'overlay.html']}
 a.output.parent.mkdir(parents=True,exist_ok=True)
 subprocess.run(['cp','-cR',str(a.source),str(a.output)],check=True)
 resources=a.output/'Contents/Resources'
+shutil.copytree(a.compliance,resources/'Compliance')
 shutil.copytree(a.assets,resources/'BlancAssets')
 for name, source in notice_pages.items():
  (resources/'BlancAssets'/name).write_text(source)

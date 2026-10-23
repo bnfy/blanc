@@ -3,11 +3,16 @@
 Reuse the existing native output; do not run the Electron release builder.
 
 ```
-python3 preview/package.py --source '/path/Blanc Prototype.app' --assets generated --blocker /path/pinned-blocker-assets --output '/new/path/Blanc Chromium Preview.app' --source-revision <reviewed-40-character-commit>
+PYTHONDONTWRITEBYTECODE=1 python3 preview/compliance.py --repo ../.. --source /path/chromium/src --assets generated --blocker /path/pinned-blocker-assets --output /new/path/compliance --revision <reviewed-40-character-commit>
+python3 preview/package.py --source '/path/Blanc Prototype.app' --assets generated --blocker /path/pinned-blocker-assets --compliance /new/path/compliance --output '/new/path/Blanc Chromium Preview.app' --source-revision <reviewed-40-character-commit>
 python3 preview/test_launcher.py
 ```
 
 Run from the spike directory. Output must not exist. The packager compiles only its small arm64 entrypoint, copies resources, rewrites helper/framework bundle identifiers and ad-hoc signs/strict-verifies the staged app. It never overwrites source output or profiles. Default launch uses a separate preview profile. Chromium's explicit user-data-dir override remains available for disposable testing. Assets cannot be overridden through this launcher.
+
+`compliance.py` reads the existing native GN graph; it does not build or regenerate it. The payload includes Blanc's license/asset statement, four font OFL texts, full Chromium credits and its GN-reachable SPDX license inventory, blocker package licenses, a combined CycloneDX SBOM and observed source/dependency/build materials. Upstream license inventory entries do not supply every dependency version; those omissions are explicit, with resolved pins recorded separately. The packager refuses mismatched source/version/font/blocker inputs and missing or altered payload members before staging. These files live inside the final signed app under `Contents/Resources/Compliance`.
+
+The packaged materials are a record of a local incremental build, not a claim of independent hermetic reproduction or a hosted build. Final artifact checksums and their authenticated manifest must be produced after signing/notarization to avoid a self-hash cycle. Run `PYTHONDONTWRITEBYTECODE=1 python3 preview/test_compliance.py` for the tamper/mismatch checks. L8 still requires the actual signed download/installation and final provenance acceptance.
 
 This is local candidate preparation, not distribution approval. Developer ID signing, hardened runtime/entitlements, notarization, native keychain/service namespaces and quarantined acceptance require separate qualification. Never publish this ad-hoc artifact as a public preview. See evidence/preview-package-20261022 for retained failures and bounded acceptance.
 
