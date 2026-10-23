@@ -466,6 +466,7 @@ jobs:
           BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
         run: |
           $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist-ecs/win-unpacked/Blanc.exe).Path
+          $env:BLANC_ECS_PACKAGE_ROOT = (Resolve-Path dist-ecs/win-unpacked).Path
           $env:BLANC_UBLOCK_EVIDENCE = "$PWD/output/ecs-production/ublock-windows.json"
           node scripts/verify-ecs-production-package.cjs dist-ecs/win-unpacked
           if ($LASTEXITCODE -ne 0) { throw 'Final package verification failed' }
@@ -473,6 +474,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'uBO acceptance failed' }
           node test/desktop/ecs-production-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Offline startup or file access isolation failed' }
+          node test/desktop/ecs-production-drm-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Protected playback failed' }
           node test/desktop/packaged-workspace-recovery-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Workspace recovery failed' }
           node test/desktop/packaged-media-smoke.mjs
@@ -512,10 +515,12 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: |
           export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          export BLANC_ECS_PACKAGE_ROOT="$PWD/dist-ecs/linux-unpacked"
           export BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-linux.json"
           node scripts/verify-ecs-production-package.cjs dist-ecs/linux-unpacked
           dbus-run-session -- xvfb-run -a node test/desktop/packaged-ublock-acceptance.mjs
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
           dbus-run-session -- xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
           dbus-run-session -- xvfb-run -a node test/desktop/packaged-media-smoke.mjs
       - name: Upload sanitized evidence only

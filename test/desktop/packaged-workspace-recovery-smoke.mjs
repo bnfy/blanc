@@ -9,6 +9,17 @@ import fixtures from './support/workspace-fixtures.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
+let expectedElectron = pkg.devDependencies.electron.replace(/^[~^]/, '');
+if (process.env.BLANC_ECS_PACKAGE_ROOT) {
+  const root = path.resolve(process.env.BLANC_ECS_PACKAGE_ROOT);
+  const metadata = JSON.parse(require('@electron/asar').extractFile(path.join(root,
+    process.platform === 'darwin' ? 'Contents/Resources/app.asar' : 'resources/app.asar'), 'package.json'));
+  const pin = require('../../build/ecs-runtime.json');
+  assert.equal(metadata.blancRuntime, 'ecs');
+  assert.equal(metadata.blancEcsRuntime, pin.version);
+  assert.equal(metadata.blancEcsArchiveSha256, pin.archives[metadata.blancEcsTarget]);
+  expectedElectron = pin.version.split('+')[0];
+}
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 assert.ok(fs.existsSync(executable), 'Set BLANC_PACKAGED_EXECUTABLE to a packaged Blanc executable');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-workspace-restart-'));
@@ -46,7 +57,7 @@ async function launch() {
   const settings = await wait(() => Promise.resolve(app.pages().find(page => page.url().startsWith('blanc://settings/'))), Boolean, 'packaged settings');
   const info = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
   assert.equal(info.blancVersion, pkg.version);
-  assert.equal(info.electronVersion, pkg.devDependencies.electron.replace(/^[~^]/, ''));
+  assert.equal(info.electronVersion, expectedElectron);
   assert.equal(info.platform, process.platform);
   await settings.evaluate(() => window.bowserPages.surface.close());
   return info;

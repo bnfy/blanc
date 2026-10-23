@@ -220,4 +220,4 @@ async function run(appPath, output) {
   console.log(JSON.stringify(evidence, null, 2));
 }
 if (require.main === module) run(process.argv[2], path.resolve(process.argv[3] || 'output/playwright/ecs-local-html/drm.json')).catch(error => { console.error(error); process.exitCode = 1; });
-module.exports = { run };
+module.exports = { run, inspectCdmProcess, waitFor };

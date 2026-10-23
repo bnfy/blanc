@@ -54,8 +54,8 @@ were explicitly authorized by the owner on October 23. Required reviewer is
 `bnfy`, administrator bypass is disabled, and the only permitted branch is
 `codex/ecs-production-integration`. Each run needs the owner's environment
 approval. Submit an approval on the owner's behalf only when they explicitly
-authorize that exact run. Authentication-cache
-refreshes exist only on the ephemeral runner; if the saved refresh token expires,
+authorize that exact run. Authentication-cache refreshes exist only on the
+ephemeral runner; if the saved refresh token expires,
 refresh the approved secret through the same protected procedure.
 
 ## Evidence gathered while preparing this PR
@@ -77,7 +77,20 @@ refresh the approved secret through the same protected procedure.
   launcher/profile unit tests, but provider restart failed. Its normal app
   relaunch retained the old AppImage loader environment; the follow-up scopes
   cleanup to ECS and to irreversible quit, retaining the captured outer image.
-  Fresh native evidence is required before considering that fix verified.
+  The follow-up native run passed all three provider restarts, renderer kernel
+  sandbox checks and subsequent launch with persisted filters. That run then
+  exposed an offline-test cleanup problem: disconnecting CDP was killing the
+  AppImage wrapper before its browser exited. The harness now requests normal
+  browser termination first; fresh offline evidence is still required.
+- Windows run `39976383333` passed streaming VMP signing/verification and final
+  timestamped, exact-publisher Authenticode verification for app and installer.
+  Its uBO and two offline/file-boundary runs passed; the workspace test then
+  rejected ECS's 44.9.3 because it still expected the ordinary 44.8.0 runtime.
+  The corrected expectation is bound to the verified package's ECS archive pin.
+- The integrated Apple Silicon package passed fresh production VMP Lab with
+  `PLATFORM_SOFTWARE_VERIFIED`, actual CENC video, advancing playback, no media
+  errors and a sandboxed Plugin CDM process. File reads and process forks were
+  denied; process-exec introspection was unavailable, not counted as a pass.
 - Earlier main-based candidate Spotify/Netflix results remain regression
   references, not proof for this newly integrated package.
 
