@@ -91,7 +91,8 @@ function browserWindow() {
   }catch{}}
   return null;
 }
-const env={...process.env,XDG_CONFIG_HOME:path.join(root,'config'),XDG_CACHE_HOME:path.join(root,'cache'),XDG_DATA_HOME:path.join(root,'data'),APPIMAGE_EXTRACT_AND_RUN:'1',BLANC_UPDATE_CHANNEL:'ecs-qualification-disabled'};
+const nativeLog=path.join(root,'native-startup.log');
+const env={...process.env,XDG_CONFIG_HOME:path.join(root,'config'),XDG_CACHE_HOME:path.join(root,'cache'),XDG_DATA_HOME:path.join(root,'data'),APPIMAGE_EXTRACT_AND_RUN:'1',BLANC_UPDATE_CHANNEL:'ecs-qualification-disabled',ELECTRON_ENABLE_LOGGING:'1',ELECTRON_LOG_FILE:nativeLog};
 for(const key of ['ELECTRON_RUN_AS_NODE','LD_PRELOAD','BLANC_ECS_FULL_PROFILE','BLANC_ECS_CDM_PRELOAD_PATH','BLANC_ECS_LAUNCHER_ROOT','BLANC_UPDATE_STAGING_AUTO_INSTALL','BLANC_UPDATE_STAGING_STATUS_FILE'])delete env[key];
 let warm, previous, baseline, output='';
 const hiddenTrees=[];
@@ -145,10 +146,13 @@ try {
   assert.equal(report.handoffs.length,2);assert(report.handoffs.every(h=>h.passed));assert(report.requests.every(r=>r.path!=='unexpected'));report.passed=true;
 }catch(error){
   report.failure=error.message;report.logs=output;
+  report.nativeLog=(await fs.readFile(nativeLog,'utf8').catch(()=>'' )).slice(-12000);
+  report.updaterLog=(await fs.readFile(path.join(profile,'logs/updater.log'),'utf8').catch(()=>'' )).slice(-6000);
   // An existing PID does not prove that Electron reached app-ready. Keep
   // bounded native state when no X11 window appears, without dumping the
   // runner's environment (which can contain credentials).
   if(previous){
+    report.successorAlive=await alive(previous.pid);
     try{
       const base=`/proc/${previous.pid}`;
       const status=await fs.readFile(`${base}/status`,'utf8');
