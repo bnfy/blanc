@@ -2802,3 +2802,5 @@ This closes the regular-anchor limitation for this two-private-window cancellati
 Evidence: `evidence/f12-prefetch-private-only-cross-profile-20261022/README.md`.
 
 October 22 restored-renderer repair: standing owner authorization permits recording 62 upstream files / 153 zero-context hunks (previous61/150). Added narrow legacy pending-GET PageState normalization and excluded uncommitted PageState at save. Consolidation remains planned; no cold build, latency or Electron build authorized.
+
+October22 pending-read repair: standing owner authorization records62upstreamfiles/156zero-contexthunks (prior62/153); descriptor validation adds3hunks in the already-patched session backend. Consolidation remains planned. Incremental builds only; latency/Electron pending.
