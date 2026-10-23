@@ -32,6 +32,10 @@ on:
         description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
         type: boolean
         default: false
+      ecs_signed_intel:
+        description: "Owner-authorized temporary draft intake of the exact signed ECS Intel candidate"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -40,7 +44,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -54,7 +58,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel) }}
     strategy:
       fail-fast: false
       matrix:
@@ -99,6 +103,71 @@ jobs:
             npm run test:ublock-noscript:desktop
             npm run test:ublock-slow-install:desktop
           fi
+
+  ecs-signed-intel:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_signed_intel && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    # Temporary, explicitly owner-approved: GitHub requires write permission
+    # to download an unpublished draft. No publishing or mutation step exists.
+    permissions:
+      contents: write
+    env:
+      BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Fetch exact notarized package from temporary private draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ecs-intake"
+          gh release download ecs-private-intel-562ec1c87 -R "$GITHUB_REPOSITORY" \
+            -p Blanc-ECS-Intel-562ec1c87.zip -D "$RUNNER_TEMP/ecs-intake"
+          cd "$RUNNER_TEMP/ecs-intake"
+          echo '43a8cf88f6b88244d85804747372dba4d6e342d4a42257053d70e6f8dbe96d3a  Blanc-ECS-Intel-562ec1c87.zip' | shasum -a 256 -c -
+          ditto -x -k Blanc-ECS-Intel-562ec1c87.zip .
+          echo "BLANC_PACKAGED_EXECUTABLE=$PWD/Blanc.app/Contents/MacOS/Blanc" >> "$GITHUB_ENV"
+          echo "BLANC_PACKAGED_ASAR=$PWD/Blanc.app/Contents/Resources/app.asar" >> "$GITHUB_ENV"
+          echo "BLANC_ECS_PACKAGE_ROOT=$PWD/Blanc.app" >> "$GITHUB_ENV"
+      - name: Verify native hardware, exact payload, Apple trust and unchanged restrictions
+        run: |
+          test "$(uname -m)" = x86_64
+          test "$(node -p 'process.arch')" = x64
+          test "$(sysctl -in sysctl.proc_translated 2>/dev/null || echo 0)" != 1
+          echo "214105f60808638fef064332f2f5f0ca80ccb8f94af2ee84ad315bb9ad02e03e  $BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
+          echo "c94ad5d6a834f79463f847a59b3f493838f08dc2e946c42bfaae2e7d4755c8c9  $BLANC_PACKAGED_ASAR" | shasum -a 256 -c -
+          test "$(lipo -archs "$BLANC_PACKAGED_EXECUTABLE")" = x86_64
+          codesign --verify --deep --strict "$BLANC_ECS_PACKAGE_ROOT"
+          xcrun stapler validate "$BLANC_ECS_PACKAGE_ROOT"
+          spctl --assess --type execute --verbose=4 "$BLANC_ECS_PACKAGE_ROOT"
+          node scripts/verify-ecs-production-package.cjs "$BLANC_ECS_PACKAGE_ROOT"
+          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-intake",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
+      - name: Native Intel uBO controls, real restarts, reopen and Quit
+        env:
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/output/ecs-production/ublock-intel.json
+        run: node test/desktop/support/installed-mac-native-quit.mjs
+      - name: Native Intel offline startup and protected playback
+        run: |
+          node test/desktop/ecs-production-smoke.mjs
+          node test/desktop/ecs-production-drm-smoke.mjs
+      - name: Native Intel local HTML and browser compatibility
+        run: |
+          node test/desktop/ecs-local-html-smoke.cjs "$BLANC_ECS_PACKAGE_ROOT" output/ecs-production/local-html-intel.json
+          node test/desktop/packaged-workspace-recovery-smoke.mjs
+          node test/desktop/packaged-media-smoke.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: signed-ecs-native-intel-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
 
   installed-intel:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}

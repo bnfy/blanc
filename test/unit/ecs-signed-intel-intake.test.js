@@ -1,0 +1,20 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+test('signed ECS Intel intake is exact-byte pinned, native, branch-scoped and non-publishing', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '../../.github/workflows/ublock-origin.yml'), 'utf8');
+  const job = workflow.slice(workflow.indexOf('  ecs-signed-intel:'), workflow.indexOf('  installed-intel:'));
+  assert.match(job, /github\.event_name == 'workflow_dispatch'/);
+  assert.match(job, /refs\/heads\/codex\/ecs-production-integration/);
+  assert.match(job, /runs-on: macos-15-intel/);
+  assert.match(job, /persist-credentials: false/);
+  assert.match(job, /43a8cf88f6b88244d85804747372dba4d6e342d4a42257053d70e6f8dbe96d3a/);
+  assert.match(job, /214105f60808638fef064332f2f5f0ca80ccb8f94af2ee84ad315bb9ad02e03e/);
+  assert.match(job, /c94ad5d6a834f79463f847a59b3f493838f08dc2e946c42bfaae2e7d4755c8c9/);
+  assert.match(job, /sysctl\.proc_translated/);
+  assert.match(job, /spctl --assess/);
+  assert.match(job, /ecs-production-drm-smoke\.mjs/);
+  assert.doesNotMatch(job, /gh release (?:create|upload|edit)|EVS_CONFIG|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|--no-sandbox/);
+});
