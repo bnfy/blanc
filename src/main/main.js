@@ -1608,6 +1608,8 @@ let activeTabHandoffRequest = null;
 // offline filter failure always has a usable recovery surface.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
+// Default-off gate diagnostics (BLANC_NAVIGATION_TRACE); never alters a decision.
+const { navigationTrace } = require('./navigation-trace');
 const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
   coordinator: blockingCoordinator, queued: startupQueuedNavigations,
   resolveContents: id => {
@@ -1618,6 +1620,7 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   ready: profileId => blockingProviders?.status(profileId).phase === 'ready',
   enabled: () => settings.getSettings().adblockEnabled,
   startupActive: () => startupNavigationGateActive,
+  trace: navigationTrace,
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1630,9 +1633,12 @@ function installStartupNavigationGate(sessions) {
     ) {
       return false;
     }
+    let queued = false;
     if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
+      queued = true;
     }
+    navigationTrace.record('startup-gate-cancel', { webContentsId: details.webContentsId, url: details.url, method: details.method, queued });
     return true;
   };
   for (const browsingSession of sessions) {
@@ -1641,6 +1647,7 @@ function installStartupNavigationGate(sessions) {
 }
 
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
+  navigationTrace.record('startup-gate-release', { count: startupQueuedNavigations.size, outcome: blockerAttached ? 'blocker-attached' : 'continued-without-blocker' });
   startupNavigationGateActive = false;
   for (const browsingSession of sessions) blockingCoordinator.setGate(browsingSession, null);
   // A successful blocker attachment has already replaced the temporary
@@ -1661,7 +1668,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 
   const queued = [...startupQueuedNavigations.entries()];
   for (const [webContentsId, url] of queued) {
-    if (profileNavigationGates.owns(webContentsId)) continue;
+    if (profileNavigationGates.owns(webContentsId)) {
+      navigationTrace.record('startup-gate-replay', { webContentsId, outcome: 'profile-gate-owns' });
+      continue;
+    }
     startupQueuedNavigations.delete(webContentsId);
     // A throwing predicate does not skip an entry — it propagates out of find
     // and leaves every queued tab behind the startup gate. This two-step read
@@ -1670,7 +1680,11 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
       (candidate) => liveContents(candidate)?.id === webContentsId
     );
     const wc = liveContents(tab);
-    if (!wc) continue;
+    if (!wc) {
+      navigationTrace.record('startup-gate-replay', { webContentsId, outcome: 'no-live-tab' });
+      continue;
+    }
+    navigationTrace.record('startup-gate-replay', { webContentsId, url, outcome: 'replayed' });
     wc.loadURL(url).catch(() => {});
   }
 }
@@ -8276,6 +8290,7 @@ initTabView({
   certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
+  navigationTrace,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,

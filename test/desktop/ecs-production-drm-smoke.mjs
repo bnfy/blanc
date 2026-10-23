@@ -16,12 +16,31 @@ const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-production-drm-'));
 const report = { platform: process.platform, arch: process.arch, passed: false, mediaErrors: [], players: {}, networkFailures: [] };
 await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
 let app, playbackPage;
-const launch = () => launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
-  args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '' }, timeoutMs: 30000 });
+// Default-off app diagnostics (src/main/navigation-trace.js): one trace file
+// per launch, read back into the report. Times share this machine's clock.
+const traceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-navigation-trace-'));
+const traceFiles = [];
+report.timeline = {};
+const launch = () => {
+  const trace = path.join(traceDir, `launch-${traceFiles.length + 1}.jsonl`);
+  traceFiles.push(trace);
+  return launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
+    args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_NAVIGATION_TRACE: trace }, timeoutMs: 30000 });
+};
+async function readTraces() {
+  return Promise.all(traceFiles.map(async (file, index) => {
+    const text = await fs.readFile(file, 'utf8').catch(() => null);
+    if (text === null) return { launch: index + 1, active: false };
+    const events = text.split('\n').filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
+    // The VMP page's own events plus every gate release and replay.
+    const relevant = events.filter(event => event.host === 'castlabs.github.io' || /^startup-gate-(release|replay)$|^profile-gate-replay$/.test(event.event));
+    return { launch: index + 1, active: true, totalEvents: events.length, events: relevant.slice(0, 200) };
+  }));
+}
 function observeNetwork(context) {
   context.on('requestfailed', request => {
     let host; try { host = new URL(request.url()).hostname; } catch { return; }
-    report.networkFailures.push({ host, error: request.failure()?.errorText });
+    report.networkFailures.push({ host, error: request.failure()?.errorText, at: Date.now() });
   });
   context.on('response', response => {
     if (response.status() >= 400) report.networkFailures.push({ host: new URL(response.url()).hostname, status: response.status() });
@@ -51,12 +70,15 @@ try {
   // The bridge exists before session restoration completes. A tab opened in
   // that gap can be replaced by startup restoration on a slower native host.
   await waitFor(() => browserStartupReady(app), 'completed browser startup');
+  report.timeline.startupReadyAt = Date.now();
   report.stage = 'vmp-navigation';
+  report.timeline.createTabAt = Date.now();
   await chrome.evaluate(() => window.browserAPI.createTab('https://castlabs.github.io/wv-vmp-lab/'));
   const page = await waitFor(() => {
     for (const p of app.pages()) {
       let url; try { url = new URL(p.url()); } catch { continue; }
       if (url.protocol === 'blanc:' && url.hostname === 'error' && url.searchParams.get('url') === 'https://castlabs.github.io/wv-vmp-lab/') {
+        report.timeline.errorPageAt = Date.now();
         throw Error(`VMP navigation failed: ${url.searchParams.get('desc')} (${url.searchParams.get('code')})`);
       }
     }
@@ -168,6 +190,8 @@ try {
   try { if (app) await app.close(); }
   catch (error) { report.passed = false; throw error; }
   finally {
+    report.navigationTrace = await readTraces().catch(error => ({ unavailable: error.message.slice(0, 120) }));
+    await fs.rm(traceDir, { recursive: true, force: true });
     await fs.rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
     report.profileRemoved = !(await fs.stat(root).catch(() => null));
     await fs.mkdir('output/ecs-production', { recursive: true });

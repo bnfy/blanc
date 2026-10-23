@@ -9,6 +9,28 @@ that source update and do not by themselves qualify the merged result.
 
 ## Current gate status — October 23
 
+**Linux public-ECS validation `40038238250` (dc51ebeda): not passed.** Installed
+uBO passed all twelve checks on the marker-free public package (renderer
+sandbox after restarts, relaunch persistence) and file isolation passed. DRM
+playback never started: the VMP Lab navigation failed with
+`ERR_BLOCKED_BY_CLIENT` then `ERR_ABORTED` and an error page, after Widevine
+4.10.3112.0 installed. No playback measurement exists; this is neither a CDM
+failure nor a DRM pass.
+
+**Startup-gate race, reproduced locally (pre-existing, not ECS-specific).** A
+default-off trace (`BLANC_NAVIGATION_TRACE`, `src/main/navigation-trace.js`)
+records gate refusals, gate release and replays, coordinator cancel sources and
+the tab's handling of each main-frame load failure, with URLs reduced to host.
+In the official-Electron development build, a tab opened during startup was
+refused and queued by the startup gate (+0 ms), released and replayed (+40 ms),
+and its `-20` failure event then arrived with the gate inactive and the queue
+empty (+115 ms), so the error page was shown although the replayed page also
+loaded. Startup reports `ready` before the gate opens, and the tab handler's
+suppression requires an active gate. This reproduces the mechanism; whether run
+`40038238250` took this path needs the traced validation. No fix or workaround
+has been applied. The DRM smoke now embeds each launch's trace (and whether it
+was active) and a same-clock timeline in its report.
+
 **Owner waiver (22:06 UTC):** the runtime security (Node 24.22.0) and native
 source/redistribution gates are waived for shipping today, with the missing
 evidence, accepted risk and owed follow-up recorded in

@@ -5,7 +5,9 @@ const OBSERVE_EVENTS = ['onSendHeaders', 'onResponseStarted', 'onBeforeRedirect'
 
 // One owner for native listeners. Providers may be replaced or disposed without
 // removing independent browser policies or another provider's listeners.
-function createBlockingCoordinator() {
+// trace (optional, src/main/navigation-trace.js) observes which layer cancelled
+// a main-frame request; it never changes a decision.
+function createBlockingCoordinator({ trace } = {}) {
   const sessions = new WeakMap();
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
@@ -15,7 +17,9 @@ function createBlockingCoordinator() {
       session.webRequest[event]({ urls: ['<all_urls>'] }, (details, callback) => {
         let settled = false;
         const respond = value => { if (!settled) { settled = true; callback(value || {}); } };
-        if (event === 'onBeforeRequest' && state.gate?.(details)) return respond({ cancel: true });
+        const mainFrame = event === 'onBeforeRequest' && details.resourceType === 'mainFrame';
+        const traced = source => { if (mainFrame) trace?.record('coordinator-cancel', { source, webContentsId: details.webContentsId, url: details.url, method: details.method }); };
+        if (event === 'onBeforeRequest' && state.gate?.(details)) { traced('gate'); return respond({ cancel: true }); }
         const run = async () => {
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders
             ? state.beforeSendHeaders(details) : {};
@@ -23,7 +27,7 @@ function createBlockingCoordinator() {
           const decision = await state.provider?.decide(event, details) || {};
           return { ...policy, ...decision };
         };
-        run().then(respond, () => respond({ cancel: true }));
+        run().then(value => { if (value?.cancel) traced('provider'); respond(value); }, () => { traced('policy-exception'); respond({ cancel: true }); });
       });
     }
     return state;

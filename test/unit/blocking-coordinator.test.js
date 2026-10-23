@@ -59,3 +59,31 @@ test('an observer throwing synchronously does not escape a native callback', asy
   assert.doesNotThrow(() => f.handlers.get('onCompleted')({ id: 2 }));
   await new Promise(resolve => setImmediate(resolve));
 });
+
+test('the optional trace observes which layer cancelled a main-frame request without changing any decision', async () => {
+  const run = async trace => {
+    const handlers = new Map();
+    const session = { webRequest: Object.fromEntries([...CALLBACK_EVENTS, ...OBSERVE_EVENTS].map(event => [event, (_filter, listener) => handlers.set(event, listener)])) };
+    const coordinator = createBlockingCoordinator(trace ? { trace } : undefined);
+    const request = (event, details) => new Promise(resolve => handlers.get(event)(details, resolve));
+    const main = { resourceType: 'mainFrame', url: 'https://castlabs.github.io/wv-vmp-lab/?q=1', webContentsId: 5, method: 'GET' };
+    const out = [];
+    coordinator.setGate(session, () => true);
+    out.push(await request('onBeforeRequest', main));
+    coordinator.setGate(session, null);
+    coordinator.setProvider(session, { decide: () => ({ cancel: true }) });
+    out.push(await request('onBeforeRequest', main));
+    out.push(await request('onBeforeRequest', { ...main, resourceType: 'script' }));
+    coordinator.setProvider(session, { decide: async () => { throw new Error('lost'); } });
+    out.push(await request('onBeforeRequest', main));
+    coordinator.setProvider(session, { decide: () => ({}) });
+    out.push(await request('onBeforeRequest', main));
+    return out;
+  };
+  const records = [];
+  const traced = await run({ record: (event, fields) => records.push([event, fields.source, fields.webContentsId]) });
+  assert.deepEqual(traced, await run(null));
+  assert.deepEqual(traced, [{ cancel: true }, { cancel: true }, { cancel: true }, { cancel: true }, {}]);
+  // Main-frame cancellations only: the script cancel is not recorded.
+  assert.deepEqual(records, [['coordinator-cancel', 'gate', 5], ['coordinator-cancel', 'provider', 5], ['coordinator-cancel', 'policy-exception', 5]]);
+});
