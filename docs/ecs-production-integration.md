@@ -186,8 +186,8 @@ The seven messages are translated in every supported interface language.
 These application changes require fresh platform packaging/signature/acceptance
 evidence; the signed `562ec1c87` binaries above do not contain this new UI.
 
-The new `ecs-cdm-lifecycle.yml` validation is Linux-only, branch-scoped,
-read-only and unpublished. It starts without a CDM, checks the restart UI,
+The new lifecycle gate in `release-windows-linux.yml` is Linux-only,
+ECS-validation-only, read-only and unpublished. It starts without a CDM, checks the restart UI,
 requires an automatic relaunch from that button, and exercises unmuted CENC
 playback. Real 4.10.3050.0 and 4.10.3112.0 Google CRX packages are pinned to
 Mozilla's immutable upstream SHA-512 records. The test then checks the vendor

@@ -523,12 +523,22 @@ jobs:
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
           dbus-run-session -- xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
           dbus-run-session -- xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+      - name: Real CDM lifecycle and first-install restart
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-cdm-lifecycle.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
       - name: Upload sanitized evidence only
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ecs-production-linux-${{ github.run_id }}
-          path: output/ecs-production/*.json
+          path: |
+            output/ecs-production/*.json
+            output/playwright/cdm-*.png
           if-no-files-found: error
           retention-days: 3
 

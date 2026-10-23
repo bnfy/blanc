@@ -27,7 +27,8 @@ test('lifecycle run preserves signature and sandbox checks and requires real res
   assert.match(script,/automaticVendorRollback:false/);
   assert.match(script,/initial-delay=1/);
   assert.doesNotMatch(script,/disable-cup|--no-sandbox|--disable-web-security|components\.updatesEnabled\s*=/);
-  const workflow=fs.readFileSync('.github/workflows/ecs-cdm-lifecycle.yml','utf8');
-  assert.match(workflow,/contents: read/);assert.match(workflow,/refs\/heads\/codex\/ecs-production-integration/);
+  const workflow=fs.readFileSync('.github/workflows/release-windows-linux.yml','utf8').split('  ecs-production-linux:')[1].split('\n  linux:')[0];
+  assert.match(workflow,/contents: read/);assert.match(workflow,/inputs.mode == 'validation'/);
+  assert.match(workflow,/inputs.ecs_production/);
   assert.doesNotMatch(workflow,/gh release|EVS_|APPLE_|contents: write/);
 });

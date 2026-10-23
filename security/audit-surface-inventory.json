@@ -295,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a10b9c3e4cbdc98777a1de34dea8deb4c3757c0f0547fff388e748d2da6742bc",
+      "sha256": "2d86fbd5d8204058173fad99b6b9e005655483d056acefcc9ac2f320248fd137",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -527,7 +527,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "b89e5ea010146abda34eefeecadfeba9277a1669d3b0ecc805e5d948009f8859",
+      "sha256": "a80892db8506a5fa20fe8cadf6dac8d79a9326bc617e35a2fd9ad9b7e944a42d",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -580,6 +580,8 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
@@ -899,7 +901,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "8c298b3bf97278ebb7328810184f5cda9a3c4e52b06eec027c9feed13c12e115",
+      "sha256": "565efcd2be91f1f923885ef3c058fd1f3074787771a353fe9bc1e2590c1f86b6",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -954,6 +956,8 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
