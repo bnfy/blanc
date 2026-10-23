@@ -7,9 +7,24 @@ Main's subsequent Split View update (`33da400fe`) is now merged into this
 integration branch. Earlier signed binaries and native evidence below predate
 that source update and do not by themselves qualify the merged result.
 
-## Current gate status — October 23, 20:32 UTC
+## Current gate status — October 23
 
 Newest evidence supersedes the historical running/pending notes below:
+
+- **Runtime security freshness remains an explicit blocker.** The signed
+  `fd8654147` Apple Silicon framework contains Node `24.22.0` version
+  identifiers. Node's October 21 security release is `24.22.1`, including
+  high-severity fixes. Electron merged its Node update in
+  [#55162](https://github.com/electron/electron/pull/55162) on October 22;
+  the latest available ECS release remains `44.9.3+wvcus`. Matching Electron's
+  latest published 44.x version is therefore not sufficient security evidence.
+  Confirm applicable fixes/backports in the exact ECS binary, or obtain and
+  requalify a vendor build containing them, before closing this gate. The
+  version string alone does not prove which individual fixes are absent or
+  that a vulnerable operation is reachable in Blanc. Sources:
+  [Node security release](https://nodejs.org/en/blog/release/v24.22.1),
+  [security advisory](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
+  No runtime or signed package was changed during this review.
 
 - **Apple Silicon CDM lifecycle now passes** in the unchanged signed
   `fd8654147` candidate. First UI took 1743 ms. First install, old 4.10.3050.0,
@@ -51,8 +66,8 @@ Newest evidence supersedes the historical running/pending notes below:
   resolves its created temporary directory with native `fs.realpath` before
   deriving the NSIS destination and exact executable comparison, and records
   the expected path/canonicalization evidence. It keeps the same narrow process
-  ownership checks. This test fix still needs native updater/playback/cleanup
-  validation; the prior run does not close the handoff gate.
+  ownership checks. The later `40018661753` result above validates the fix;
+  this earlier failed run is retained as diagnostic evidence.
 - Apple Silicon updater attempt 2 of `40011188375` passed actual Restart Now,
   automatic relaunch, unmuted protected playback advancing 4.9425 seconds with
   VMP 2 and no media errors, and profile/installation cleanup. Its updater gate
@@ -115,7 +130,7 @@ source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
   actual permission flow. No recordings were saved; the harness closed the
   tracks/app and removed its temporary profiles. Production hashes are unchanged.
 - **Open:** unmuted native Intel acceptance and updater successor playback,
-  Mac CDM lifecycle, native passkey/1Password
+  Intel Mac CDM lifecycle, native passkey/1Password
   acceptance, final runtime/uBO source/license/security review and supported
   matrix, final PR checks, and the public pipeline/version/What's New gates.
   No waiver, merge, publication or production-runtime switch is implied.
