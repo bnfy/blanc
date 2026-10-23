@@ -34,6 +34,10 @@ try {
   app = await launch();
   const chrome = await waitFor(() => app.pages().find(p => p.url() === 'blanc-chrome://index/'), 'normal browser chrome');
   await chrome.waitForFunction(() => !!window.browserAPI);
+  // The bridge exists before session restoration completes. A tab opened in
+  // that gap can be replaced by startup restoration on a slower native host.
+  const start = await waitFor(() => app.pages().find(p => p.url() === 'blanc://newtab/'), 'restored start page');
+  await waitFor(async () => (await start.evaluate(async () => (await window.bowserPages?.start.data())?.startup?.phase)) === 'ready', 'completed browser startup');
   await chrome.evaluate(() => window.browserAPI.createTab('https://castlabs.github.io/wv-vmp-lab/'));
   const page = await waitFor(() => app.pages().find(p => p.url().startsWith('https://castlabs.github.io/wv-vmp-lab/')), 'production VMP Lab');
   const media = await app.context.newCDPSession(page);
@@ -82,6 +86,7 @@ try {
   report.passed = true;
 } catch (error) {
   report.failure = { name: error.name, message: error.message.slice(0, 300) };
+  report.pageOrigins = app?.pages().map(page => { try { return new URL(page.url()).origin; } catch { return 'unknown'; } });
   throw error;
 } finally {
   if (app) await app.close();
