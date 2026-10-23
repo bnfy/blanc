@@ -24,7 +24,7 @@ function patchMain(source) {
     "  Menu.setApplicationMenu(Menu.buildFromTemplate(require('./ecs-full-bootstrap.cjs').decorateMenu(template)));", 'candidate menu');
 }
 
-async function buildFull(runtimeDir, { qualification = false, nativeValidation = false, stagingUpdater = false } = {}) {
+async function buildFull(runtimeDir, { qualification = false, nativeValidation = false, stagingUpdater = false, nativeSecurityPatch = null } = {}) {
   const platform = process.platform, arch = process.arch;
   if (!['darwin', 'win32', 'linux'].includes(platform) || !['arm64', 'x64'].includes(arch)) throw Error('Unsupported native target');
   if (qualification && platform !== 'darwin') throw Error('Production VMP signing is currently configured for macOS only');
@@ -148,7 +148,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
     };
   }
   const manifest = { sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-    baseVersion: base.version, runtime: version, frameworkHash, patches, productionFuses: base.build.electronFuses,
+    baseVersion: base.version, runtime: version, frameworkHash, nativeSecurityPatch, patches, productionFuses: base.build.electronFuses,
     candidateFuses: config.electronFuses, graphicsPolicy: metadata.blancEcsGraphicsPolicy, qualification, nativeValidation, platform, arch,
     stagingUpdater, productionUpdater: false, vmpSigned: qualification,
     cdmDispatcher: platform === 'darwin' && (qualification || nativeValidation) ? { source: 'scripts/ecs-cdm-dispatch.c', sha256: hash(await fs.readFile(path.join(__dirname, 'ecs-cdm-dispatch.c'))),

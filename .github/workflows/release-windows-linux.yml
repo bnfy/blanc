@@ -748,7 +748,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p output
-          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js
           npm run adblock:check
           npm run compliance:check
       - name: Enable Linux sandbox on this disposable runner
@@ -757,6 +757,7 @@ jobs:
       - name: Build pinned native ECS candidate, never publish
         id: ecs-build
         env:
+          BLANC_ECS_CDM_ZYGOTE_TRIAL: ${{ runner.os == 'Linux' && '1' || '' }}
           AZURE_TENANT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_TENANT_ID || '' }}
           AZURE_CLIENT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_ID || '' }}
           AZURE_CLIENT_SECRET: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_SECRET || '' }}

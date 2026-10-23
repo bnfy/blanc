@@ -26,7 +26,17 @@ async function main() {
   await fs.writeFile(archive, bytes); await fs.mkdir(runtime);
   const { extract } = await import('@electron-internal/extract-zip');
   await extract(archive, { dir: runtime });
-  await buildFull(runtime, { nativeValidation: true, stagingUpdater: true });
+  let nativeSecurityPatch = null;
+  if (process.env.BLANC_ECS_CDM_ZYGOTE_TRIAL === '1') {
+    if (target !== 'linux-x64') throw Error('CDM zygote trial is Linux x64 only');
+    const executable = path.join(runtime, 'electron');
+    const patched = require('./ecs-linux-cdm-zygote-trial.cjs').patchVerifiedRuntime(await fs.readFile(executable));
+    await fs.writeFile(executable, patched.bytes);
+    nativeSecurityPatch = patched.receipt;
+    await fs.mkdir('output/ecs-native', { recursive: true });
+    await fs.writeFile('output/ecs-native/native-patch.json', JSON.stringify(nativeSecurityPatch, null, 2));
+  }
+  await buildFull(runtime, { nativeValidation: true, stagingUpdater: true, nativeSecurityPatch });
 }
 if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });
 module.exports = { pins };
