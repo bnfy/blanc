@@ -57,7 +57,7 @@ on:
         type: boolean
         default: false
       ecs_fresh_mac_intel_finish:
-        description: "Finish only native Intel acceptance, updater and CDM lifecycle on the same signed bytes"
+        description: "Finish only native Intel acceptance, updater and CDM lifecycle on the same signed bytes (with updater-only: just the Intel updater)"
         type: boolean
         default: false
       linux_native_diagnostics:
@@ -176,7 +176,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: ${{ inputs.ecs_fresh_mac_intel_finish && fromJSON('["x64"]') || fromJSON('["arm64", "x64"]') }}
-        mode: ${{ inputs.ecs_fresh_mac_intel_finish && fromJSON('["acceptance", "updater", "lifecycle"]') || inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
+        mode: ${{ inputs.ecs_fresh_mac_intel_finish && (inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater", "lifecycle"]')) || inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
     runs-on: ${{ matrix.arch == 'x64' && 'macos-15-intel' || 'macos-15' }}
     timeout-minutes: 25
     # Temporary owner-approved draft access, removed after all intake runs.

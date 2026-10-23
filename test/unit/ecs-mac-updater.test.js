@@ -22,6 +22,11 @@ test('Mac ECS handoff requires a disposable native Mac host and the normal Resta
  assert.match(source,/updated probe navigation request/);
  assert.match(source,/keystroke "a" using command down/);
  assert.match(source,/if\(report.probeReady===false\)throw Error/);
+ assert.match(source,/const method=attempt<3\?'keystrokes':'launch-services'/);
+ assert.match(source,/run\('\/usr\/bin\/open',\['-a',app,origin\+'\/'\]\)/);
+ assert.match(source,/report.navigation.push\(evidence\)/);
+ assert.match(source,/successor remains the only Blanc process/);
+ assert.match(source,/pids.length===1&&pids\[0\]===successorPid/);
  assert.match(source,/if\(process.arch==='x64'\)run\('bash'/);
  assert.match(source,/ci-intel-apple-tickets.sh'\),app\],120000\)/);
  assert.match(source,/run\('xcrun',\['stapler','validate',app\],120000\)/);
@@ -41,6 +46,7 @@ test('fresh Mac intake binds both native architectures to private signed bytes',
  assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
  assert.match(job,/arch: \$\{\{ inputs.ecs_fresh_mac_intel_finish && fromJSON\('\["x64"\]'\) \|\| fromJSON\('\["arm64", "x64"\]'\) \}\}/);
  assert.match(job,/inputs.ecs_fresh_mac_audio_only && fromJSON\('\["audio"\]'\)/);
+ assert.match(job,/inputs.ecs_fresh_mac_intel_finish && \(inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater", "lifecycle"\]'\)\)/);
  assert.match(job,/inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater"\]'\)/);
  assert.match(job,/runs-on: \$\{\{ matrix.arch == 'x64' && 'macos-15-intel' \|\| 'macos-15' \}\}/);
  assert.match(job,/fail-fast: false/);

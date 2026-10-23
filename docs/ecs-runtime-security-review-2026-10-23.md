@@ -42,13 +42,27 @@ This is a runtime defect, not proof that an arbitrary web page can access Node.
 Blanc's page Node isolation remains mandatory. Its reviewed favicon transport
 (`src/main/favicon-network.js:53`) canonicalizes URLs, rejects private addresses,
 pins resolved peers, and disables the HTTP agent; these controls must not be
-removed and reduce applicability of several advisory scenarios. Other native
+removed and reduce applicability of several advisory scenarios. A follow-up offline
+probe in the same extracted framework showed its WHATWG URL parser (Ada
+4.0.0) canonicalizing hexadecimal, octal, shortened, plain-decimal and
+fullwidth IPv4 spellings to dotted-decimal, so that transport, which takes its
+host from `new URL(...)`, never presents a non-canonical IP to the defective
+check. electron-updater downloads through Electron's `net` session, that is
+Chromium's TLS, not Node's, and no first-party main-process module uses Node's
+Brotli or zlib decoders. These findings narrow the applicability of the
+reproduced defect to Blanc; they do not close the gate, because the embedded
+runtime still carries the unfixed code and the other advisories. Other native
 dependencies and engine paths have not been comprehensively cleared by this
 limited review. The Brotli and remaining Node advisories were not dynamically
 tested here, and no absence of those defects is claimed.
 
 **Required remediation:** obtain a supported ECS build carrying Node 24.22.1
-or equivalent verified fixes, pin all intended platform archives, then rebuild,
+or equivalent verified fixes. As of October 23, none exists: Electron's
+`DEPS` pins Node `v24.22.0` at tag `v44.9.3` and `v24.22.1` only on the
+unreleased `44-x-y` branch head (no `v44.9.4` tag), and castLabs' newest 44.x
+release is still `v44.9.3+wvcus` (October 22). The path is therefore an
+Electron 44.x release carrying the bump, the matching ECS release, then a new
+pin of all four archives, rebuild, signing and requalification; pin all intended platform archives, then rebuild,
 sign and requalify the affected packages. A newer version string alone is not
 enough: repeat the relevant regression controls. Do not replace TLS validation,
 disable verification, hide the defect behind an allowlist, or update the public

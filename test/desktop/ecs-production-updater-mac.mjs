@@ -91,10 +91,24 @@ end tell`;
  });
  // The same loopback page used for Linux proves protected media in the
  // automatic successor, not in an independently relaunched test process.
+ // Attempts 1-2 type the address as a person would. Attempt 3 hands the URL
+ // to the running successor through LaunchServices, as a link clicked in
+ // another app would (Blanc's normal open-url handoff). Every attempt keeps
+ // read-only focus evidence so an input failure is diagnosable afterwards.
+ const successorState=()=>{try{return run('/usr/bin/osascript',['-e',`tell application "System Events"
+   set frontName to name of first application process whose frontmost is true
+   set frontPid to unix id of first application process whose frontmost is true
+   tell first application process whose unix id is ${successorPid}
+    return frontName & "|" & frontPid & "|" & (count of windows) & "|" & ((name of windows) as text)
+   end tell
+  end tell`]);}catch(error){return 'error|'+String(error.stderr||error.message).trim().slice(0,200);}};
+ report.navigation=[];
  for(let attempt=1;attempt<=3;attempt++){
   report.navigationAttempts=attempt;
   const before=report.probeRequests;
-  run('/usr/bin/osascript',['-e',`tell application "System Events"
+  const method=attempt<3?'keystrokes':'launch-services';
+  const evidence={attempt,method,before:successorState()};
+  if(method==='keystrokes')run('/usr/bin/osascript',['-e',`tell application "System Events"
    tell first application process whose unix id is ${successorPid}
     set frontmost to true
     repeat 20 times
@@ -108,9 +122,17 @@ end tell`;
     key code 36
    end tell
   end tell`]);
-  try{await wait('updated probe navigation request',()=>report.probeRequests>before,15000);break;}
-  catch(error){if(attempt===3)throw error;}
+  else run('/usr/bin/open',['-a',app,origin+'/']);
+  evidence.after=successorState();
+  report.navigation.push(evidence);
+  try{await wait('updated probe navigation request',()=>report.probeRequests>before,15000);evidence.result='request';report.navigationMethod=method;break;}
+  catch(error){evidence.result='no request';if(attempt===3)throw error;}
  }
+ // The page must be served by the automatic successor alone. LaunchServices
+ // targets the running bundle; a second instance would only hand its URL to
+ // the first and exit, so the successor must remain the only Blanc process.
+ await wait('successor remains the only Blanc process',()=>{const pids=processIds();return pids.length===1&&pids[0]===successorPid;},10000);
+ report.successorOnly=true;
  // Retry only input that produced no request. An actual page/player failure
  // must remain a failure, not be hidden by reloading or restarting the app.
  await wait('updated protected page',()=>{

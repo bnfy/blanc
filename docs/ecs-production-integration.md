@@ -57,7 +57,24 @@ Newest evidence supersedes the historical running/pending notes below:
   first install, old 3050, genuine vendor 3112 update and controlled rollback
   advanced unmuted by 2.402/5.336/4.944/4.949 seconds. Each stage verified the
   exact mapped signed library and sandbox; offline readiness and profile
-  cleanup passed. Intel updater acceptance remains pending.
+  cleanup passed. The same run's Intel updater cell completed the native
+  Restart Now, old-process exit, exact target payload, automatic successor,
+  codesign, Apple ticket and Widevine component installation, then failed
+  with `Timed out: updated probe navigation request`: three synthesized
+  Command-L/type/Return attempts reached a frontmost successor window but
+  produced no loopback request (`probeRequests` 0, `navigationAttempts` 3).
+  The earlier Intel cells needed one (`40006057550`) and two
+  (`40011188375`) such attempts, while every Apple Silicon cell needed one,
+  so this is an input-injection defect of the harness on the slow Intel
+  runner, not a demonstrated updater or playback defect; the run recorded no
+  microphone dialog, so the permission handler never acted in that cell. The
+  harness now records read-only focus evidence for every attempt, keeps two
+  keystroke attempts, hands the URL to the running successor through
+  LaunchServices on the third (Blanc's ordinary open-url path, as a link from
+  another app), and then requires the successor to remain the only Blanc
+  process before the unchanged unmuted-playback assertions. The Intel finish
+  mode can now run only its updater cell. Intel updater successor playback
+  therefore remains open until that cell passes with the recorded evidence.
 
 - **Apple Silicon CDM lifecycle now passes** in the unchanged signed
   `fd8654147` candidate. First UI took 1743 ms. First install, old 4.10.3050.0,

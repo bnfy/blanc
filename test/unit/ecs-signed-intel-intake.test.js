@@ -15,7 +15,7 @@ test('fresh signed ECS Intel intake is exact-byte pinned, native, branch-scoped 
   assert.match(job, /0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb/);
   assert.match(job, /\$ECS_EXECUTABLE_SHA/);
   assert.match(job, /inputs.ecs_fresh_mac_intel_finish && fromJSON\('\["x64"\]'\)/);
-  assert.match(job, /inputs.ecs_fresh_mac_intel_finish && fromJSON\('\["acceptance", "updater", "lifecycle"\]'\)/);
+  assert.match(job, /inputs.ecs_fresh_mac_intel_finish && \(inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater", "lifecycle"\]'\)\)/);
   assert.match(job, /sysctl\.proc_translated/);
   assert.match(job, /ci-intel-apple-tickets\.sh/);
   assert.match(job, /ecs-production-drm-smoke\.mjs/);
