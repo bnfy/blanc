@@ -209,7 +209,19 @@ try {
     try{
       if(inheritedHandoffEnv){
         report.environmentComparisons=[];
-        for(const [name,diagnosticEnv] of [['inherited',inheritedHandoffEnv],['cleaned',cleanRelaunchEnvironment(inheritedHandoffEnv)],['original',env]]){
+        const cleaned=cleanRelaunchEnvironment(inheritedHandoffEnv);
+        const groups=[['inherited',inheritedHandoffEnv],['cleaned',cleaned],['original',env]];
+        for(const [name,select] of [
+          ['without-ld',key=>key.startsWith('LD_')],
+          ['without-electron',key=>key.startsWith('ELECTRON_')],
+          ['without-chrome',key=>key.startsWith('CHROME_')],
+          ['without-paths',key=>['PATH','XDG_DATA_DIRS','APPDIR','ARGV0','OWD','GSETTINGS_SCHEMA_DIR'].includes(key)],
+        ]){
+          const scoped={...inheritedHandoffEnv};
+          for(const key of Object.keys(scoped))if(select(key)){if(Object.hasOwn(cleaned,key))scoped[key]=cleaned[key];else delete scoped[key];}
+          groups.push([name,scoped]);
+        }
+        for(const [name,diagnosticEnv] of groups){
           const attempt={name,window:false};report.environmentComparisons.push(attempt);
           const child=spawn(install,[],{env:diagnosticEnv,detached:true,stdio:'ignore'});
           try{
