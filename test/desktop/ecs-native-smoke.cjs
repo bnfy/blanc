@@ -53,6 +53,7 @@ async function main() {
       const child = spawn(launchExecutable, [`--user-data-dir=${profile}`, '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
         env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: fixture,
           ...(!mac && !win ? { APPIMAGE_EXTRACT_AND_RUN: '1' } : {}),
+          ...(!mac && !win ? require('../../scripts/ecs-linux-preload-env.cjs').linuxPreloadEnv(appDir, profile) : {}),
           BLANC_UPDATE_CHANNEL: iteration ? 'staging' : 'production', BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/`,
           BLANC_UPDATE_STAGING_ALLOW_HTTP: '1', BLANC_UPDATE_STAGING_AUTO_INSTALL: '1', BLANC_UPDATE_STAGING_STATUS_FILE: path.join(profile, 'staging-status.json') }, stdio: ['ignore', 'pipe', 'pipe'] });
       let text = '', endpoint;

@@ -42,7 +42,7 @@ async function inspectCdmProcess(mainPid, app) {
 async function run(appPath, output) {
   const app = await fs.realpath(appPath);
   if (process.platform === 'darwin') execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
-  const { full, executable, fuseExecutable, launchEnv } = candidatePaths(app);
+  const { full, executable, fuseExecutable, launchEnv, profileEnv = () => ({}) } = candidatePaths(app);
   const wire = await getCurrentFuseWire(fuseExecutable || executable);
   assert.equal(wire[7], 49);
   const evidence = { app, wire, backend: 'Production', mediaErrors: [], players: {} };
@@ -60,7 +60,7 @@ async function run(appPath, output) {
       const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_LOCAL_HTML: ignoredFixture, ...env } = process.env;
       void ignored; void ignoredFixture;
       if (process.platform === 'linux') {
-        const warm = spawn(executable, [...earlyArgs, `--user-data-dir=${profile}`], { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
+        const warm = spawn(executable, [...earlyArgs, `--user-data-dir=${profile}`], { env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
         const warmExit = new Promise(resolve => warm.once('exit', code => resolve(code)));
         try {
           evidence.initialInstall = await waitFor(async () => {
@@ -78,7 +78,7 @@ async function run(appPath, output) {
       }
       const port = 55822;
       const child = spawn(executable, [...earlyArgs, `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
-        env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
       });
       const exited = new Promise(resolve => child.once('exit', resolve));
       let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });

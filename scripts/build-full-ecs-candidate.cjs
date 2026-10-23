@@ -26,6 +26,9 @@ function patchMain(source) {
 
 async function buildFull(runtimeDir, { qualification = false, nativeValidation = false, stagingUpdater = false, nativeSecurityPatch = null } = {}) {
   const platform = process.platform, arch = process.arch;
+  if (nativeSecurityPatch && (platform !== 'linux' || arch !== 'x64' || !nativeValidation || qualification)) {
+    throw Error('Native CDM experiment is restricted to isolated Linux x64 validation');
+  }
   if (!['darwin', 'win32', 'linux'].includes(platform) || !['arm64', 'x64'].includes(arch)) throw Error('Unsupported native target');
   if (qualification && platform !== 'darwin') throw Error('Production VMP signing is currently configured for macOS only');
   const runtime = await fs.realpath(runtimeDir);
@@ -99,6 +102,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   // staged SBOM's framework component with the actual verified ECS artifact.
   const framework = path.join(runtime, platform === 'darwin' ? 'Electron.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework' : platform === 'win32' ? 'electron.exe' : 'electron');
   const frameworkHash = hash(await fs.readFile(framework));
+  if (nativeSecurityPatch && frameworkHash !== nativeSecurityPatch.patchedSha256) throw Error('Native patch receipt does not match runtime');
   await patch('scripts/compliance-model.js', source => replaceExactly(source,
     "  component.type = 'framework';", `  component.name = 'electron-castlabs';\n  component.version = ${JSON.stringify(version)};\n  component['bom-ref'] = 'framework:electron-castlabs:' + component.version;\n  delete component.purl;\n  component.hashes = [{ alg: 'SHA-256', content: ${JSON.stringify(frameworkHash)} }];\n  component.externalReferences = [{ type: 'distribution', url: 'https://github.com/castlabs/electron-releases' }];\n  component.type = 'framework';`, 'actual ECS SBOM component'));
   const stagedRequire = require('node:module').createRequire(path.join(project, 'package.json'));
@@ -107,6 +111,11 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   // The hook bypasses only release-specific runtime pin/default-browser/icon
   // steps; its payload, capture and license checks still execute and fail closed.
   config.afterPack = async context => {
+    if (nativeSecurityPatch) {
+      const shim = path.join(runtime, 'blanc-cdm-preload.so');
+      if (hash(await fs.readFile(shim)) !== nativeSecurityPatch.preloadShimSha256) throw Error('CDM preload shim hash mismatch');
+      await fs.copyFile(shim, path.join(context.appOutDir, 'blanc-cdm-preload.so'));
+    }
     const resources = path.join(context.appOutDir, platform === 'darwin' ? `${productName}.app/Contents/Resources` : 'resources');
     const asar = path.join(resources, 'app.asar');
     stagedRequire('./scripts/verify-packaged-adblock').verifyPackagedAdblock(asar);

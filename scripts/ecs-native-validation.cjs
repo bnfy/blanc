@@ -33,6 +33,11 @@ async function main() {
     const patched = require('./ecs-linux-cdm-zygote-trial.cjs').patchVerifiedRuntime(await fs.readFile(executable));
     await fs.writeFile(executable, patched.bytes);
     nativeSecurityPatch = patched.receipt;
+    const shim = path.join(runtime, 'blanc-cdm-preload.so');
+    require('node:child_process').execFileSync('cc', ['-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-fvisibility=hidden',
+      '-Wl,-z,relro,-z,now', path.join(__dirname, 'ecs-linux-cdm-preload.c'), '-o', shim, '-ldl'], { stdio: 'inherit' });
+    nativeSecurityPatch.preloadShimSha256 = createHash('sha256').update(await fs.readFile(shim)).digest('hex');
+    nativeSecurityPatch.preloadSourceSha256 = createHash('sha256').update(await fs.readFile(path.join(__dirname, 'ecs-linux-cdm-preload.c'))).digest('hex');
     await fs.mkdir('output/ecs-native', { recursive: true });
     await fs.writeFile('output/ecs-native/native-patch.json', JSON.stringify(nativeSecurityPatch, null, 2));
   }
