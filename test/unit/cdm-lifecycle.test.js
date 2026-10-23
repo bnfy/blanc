@@ -24,7 +24,7 @@ test('lifecycle run preserves signature and sandbox checks and requires real res
   assert.match(script,/locator\('#drmRestart'\)\.click/);
   assert.match(script,/result\.muted,false/);
   assert.match(script,/inspectLinuxCdm\(await processId\(\),expectedBinary\)/);
-  assert.match(script,/automaticVendorRollback:false/);
+  assert.match(script,/automaticVendorRollback=false/);
   assert.match(script,/initial-delay=1/);
   assert.match(script,/new CDM must not exist before the vendor update/);
   assert.doesNotMatch(script,/disable-cup|--no-sandbox|--disable-web-security|components\.updatesEnabled\s*=/);

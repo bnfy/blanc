@@ -27,6 +27,13 @@ const createProfile=async()=>{
 await createProfile();
 const token = crypto.randomBytes(16).toString('hex');
 const report = { passed:false, scope:'real first-install/restart, vendor update and test-only real-binary cache rollback', stages:[] };
+const checkpoint=async name=>{
+  const stage={name};report.stages.push(stage);
+  await fs.mkdir('output/ecs-production',{recursive:true});
+  await fs.writeFile('output/ecs-production/cdm-lifecycle-linux.json',JSON.stringify(report,null,2));
+  console.log(`CDM lifecycle: ${name}`);
+  return stage;
+};
 const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
 const wait = async (name, read, timeout=60000) => {
   const end=Date.now()+timeout;
@@ -48,6 +55,7 @@ const origin=`http://127.0.0.1:${server.address().port}/`;
 const socket=net.createServer();await new Promise(resolve=>socket.listen(0,'127.0.0.1',resolve));
 const port=socket.address().port;await new Promise(resolve=>socket.close(resolve));
 let app, browser, context, settings;
+const launches=[];
 const pages=()=>context.pages();
 const alive=async pid=>{
   const state=await fs.readFile(`/proc/${pid}/status`,'utf8').catch(()=>null);
@@ -71,14 +79,16 @@ const start=async(extra=[])=>{
   app=await launchPackagedOverCdp({executablePath:process.env.BLANC_PACKAGED_EXECUTABLE,
     args:[`--user-data-dir=${profile}`,...extra],debugPort:port,timeoutMs:30000,
     env:{...process.env,ELECTRON_RUN_AS_NODE:'',APPIMAGE_EXTRACT_AND_RUN:'1'}});
+  launches.push(app);
   browser=app.browser;context=app.context;await openSettings();
 };
 const close=async()=>{
   if(!browser)return;
   const pid=await processId();
   const session=await browser.newBrowserCDPSession();
-  await session.send('Browser.close').catch(()=>{});await session.detach().catch(()=>{});
-  await browser.close().catch(()=>{});browser=null;
+  await Promise.race([session.send('Browser.close').catch(()=>{}),sleep(1000)]);
+  await session.detach().catch(()=>{});
+  await Promise.race([browser.close().catch(()=>{}),sleep(1000)]);browser=null;
   await wait('owned browser exit',async()=>!await alive(pid),15000);
   if(app){await app.close();app=null;}
 };
@@ -124,7 +134,7 @@ try{
   const fixtureRoot=path.join(root,'fixtures');await fs.mkdir(fixtureRoot);
   const fixtures=await prepareCdmFixtures(fixtureRoot);
   report.fixtures=Object.fromEntries(Object.entries(fixtures).map(([name,f])=>[name,{version:f.version,sha256:f.sha256,archiveSha512:f.archiveSha512}]));
-  const first={name:'first-install'};report.stages.push(first);
+  const first=await checkpoint('first-install');
   const started=Date.now();await start(['--component-updater=initial-delay=100000']);
   first.browserReadyMs=Date.now()-started;assert(first.browserReadyMs<15000);
   first.installed=await wait('first install restart state',async()=>{const s=await status();assert.notEqual(s.state,'ready','fresh Linux process cannot preload a newly downloaded CDM');return s.state==='restart-required'&&s;},90000);
@@ -136,7 +146,7 @@ try{
   // update gate cannot pass by simply reactivating our first-install cache.
   profile=path.join(root,'legacy-profile');await createProfile();
   currentBinary=path.join(profile,'WidevineCdm',fixtures.current.version,'_platform_specific/linux_x64/libwidevinecdm.so');
-  const baseline={name:'older-baseline'};report.stages.push(baseline);
+  const baseline=await checkpoint('older-baseline');
   const previousBinary=await stageCdm(profile,fixtures.previous);
   await start(['--component-updater=initial-delay=100000']);
   baseline.status=await wait('older cache registered',async()=>{const s=await status();return s.state==='ready'&&s;});
@@ -144,13 +154,13 @@ try{
   await play(baseline,previousBinary);await close();
   // Only the schedule changes. Real vendor URLs, CRX verification and the
   // sandbox stay enabled; no fabricated component-update response is used.
-  const update={name:'vendor-update'};report.stages.push(update);
+  const update=await checkpoint('vendor-update');
   assert.equal(await fs.stat(currentBinary).catch(()=>null),null,'new CDM must not exist before the vendor update');
   await start(['--component-updater=initial-delay=1']);
   update.downloaded=await wait('vendor update requiring restart',async()=>{const s=await status();return s.state==='restart-required'&&s.version===fixtures.current.version&&s;},120000);
   assert.equal(digest(await fs.readFile(currentBinary)),fixtures.current.sha256);
   await restart(update);await play(update,currentBinary);await close();
-  const rollback={name:'cache-rollback',automaticVendorRollback:false};report.stages.push(rollback);
+  const rollback=await checkpoint('cache-rollback');rollback.automaticVendorRollback=false;
   await stageCdm(profile,fixtures.previous);await start(['--component-updater=initial-delay=100000']);
   rollback.status=await wait('rollback cache registered',async()=>{const s=await status();return s.state==='ready'&&s;});
   assert.equal(rollback.status.version,fixtures.previous.version);
@@ -162,6 +172,10 @@ try{
 }catch(error){report.failure=error.message;report.sandboxFailure=error.sandboxEvidence;throw error;}
 finally{
   try{await close();}finally{
+    // AppImage restart successors can inherit the original wrapper's pipes.
+    // Once the owned browsers have exited, those diagnostic streams must not
+    // keep the harness alive through an unrelated crash-handler lifetime.
+    for(const launch of launches){launch.process.stdout?.destroy();launch.process.stderr?.destroy();}
     server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
     await fs.rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:200});
     report.profileRemoved=!(await fs.stat(root).catch(()=>null));

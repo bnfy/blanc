@@ -496,6 +496,7 @@ jobs:
     needs: validate-inputs
     if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
