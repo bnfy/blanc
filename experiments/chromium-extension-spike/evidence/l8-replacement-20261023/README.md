@@ -1,0 +1,11 @@
+# L8 replacement packet checkpoint — October 23, 2026
+
+**L8 remains open: 8/12 gates, delta 0.** Source `6b9a05a00f321bfbde617c181103d5a455ff45f3`, ZIP SHA-256 `a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca`.
+
+The independently extracted local ZIP matches all 458 regular files and five symlinks, with no extra members. All four artifact digests, committed source tree, SBOM/version, source materials and provenance archive subject agree. The payload validates 340 components, including 323 native components and 320 full license texts; readable credits are generated from that exact license inventory. Strict signature, Apple staple and Gatekeeper pass on the extracted copy. No app is launched or profile modified. Twelve compliance and seven artifact-verifier tests pass. [Audit](packet-audit.json), [executable check](audit-packet.py), [exact status](status.json).
+
+The final candidate's [125 frozen signed checks and L6 acceptance](../l6-restore-scheduling-20261023/README.md) remain credited. This checkpoint does not rerun or reopen L6. Local extraction is not native Safari download/quarantine acceptance. The materials statement records a local incremental build; no independent/hermetic or hosted-build attestation is claimed.
+
+Sigstore authentication is waiting for this Mac to be unlocked so Safari can complete the normal GitHub sign-in. The owner was asked once. The first OAuth wait expired before authentication, so its URL will not be reused; a fresh flow will start after unlock. No authenticated manifest, hosted asset upload or second-Mac acceptance is claimed yet. Older `7065f9c0` download/restart evidence belongs to those older bytes. The existing release Mac tool was copied into this task's temporary directory and its exact checksum verified; no global installation or signing-key export.
+
+Next: finish pinned `anthony@bnfy.me` / `https://github.com/login/oauth` verification and real tamper controls; stage an unpublished draft; verify every hosted asset digest and anonymous HTTPS transport; then verify the native Safari download before ordinary MacBook launch/restart and Bitwarden integration. Do not publish, merge or bypass Gatekeeper. Google baseline/ledger and permanent tabs remain separate; latency deferred and Electron diagnostic build pending/unstarted. No build was run.
