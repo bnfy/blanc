@@ -196,7 +196,19 @@ followed by a stopped-process cache rollback and offline startup. The rollback
 is a controlled cache operation, not a claim that Google's service offered a
 downgrade. Only the component-check schedule changes in this disposable test;
 signatures, production update endpoints and sandbox checks are not disabled.
-This gate remains pending until its native run passes.
+Linux lifecycle run `39998789399` passed on `d4076c82f`. First-install UI
+was ready in 1238 ms, showed the restart guidance, and the actual button caused
+an automatic successor reporting `ready`. Unmuted CENC advanced about 4.93 s
+after that restart. A separate profile containing only 4.10.3050.0 then took a
+real vendor update to 4.10.3112.0; its button-triggered successor advanced about
+4.93 s. Controlled rollback to the genuine older binary advanced about 4.91 s
+and remained ready offline. Every playback mapped the expected SHA-256 and
+retained CDM seccomp 2, NoNewPrivs 1, separate user/PID namespaces and no
+sandbox-disable flag. All media error lists were empty. Profiles were removed.
+The captured first-install and update guidance rendered correctly. Follow-up
+offline starts took 1099/1141 ms with file/frame/worker/service-worker/Node
+access denied. This qualifies Linux's real-binary lifecycle and restart UI,
+not automatic vendor downgrade policy or the other platforms' lifecycle.
 
 Run `39997559037` exercises the lifecycle on application/test source
 `ba502510b`. It supersedes queued run `39997387455`; the replacement requires
@@ -205,6 +217,15 @@ the vendor update. Local validation passed 4,292 unit tests (two existing
 platform skips), lint, copy/bridge checks and the complete substrate gate.
 The new settings status and restart IPC also reject websites, other internal
 pages, unowned surfaces and subframes in direct handler tests.
+
+Intel updater run `39994442871` verified the exact replacement, normal Restart
+Now, automatic relaunch, strict signatures and Gatekeeper. It then timed out
+before the loopback protected test page became ready; no playback pass is
+claimed. Its report removed both disposable profile and installation. The
+harness now records probe GET/readiness, waits for the successor window, selects
+the address field explicitly and retries only input producing no navigation
+request. Actual page/player errors remain fatal. Retry `39999246654` uses the
+same signed bytes; Intel audio comparison `39996278144` is still separate.
 
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
@@ -218,11 +239,11 @@ pages, unowned surfaces and subframes in direct handler tests.
 4. Actual production-to-ECS updater handoffs in disposable installs, including
    two renamed Linux AppImage replacements, profile migration and rollback.
    The installed production app and public metadata must remain untouched.
-5. Actual CDM binary rollover/rollback and offline cache behavior, not only
-   synthetic metadata changes; verify exact CDM process role, seccomp,
-   NoNewPrivs and namespaces on Linux.
-6. Expose localized DRM status and safe restart guidance for Linux's first CDM
-   install/update. Readiness is not proof of VMP licensing or successful playback.
+5. Linux real-binary CDM update/cache rollback and offline behavior passed in
+   `39998789399`, including exact library hashes and kernel sandbox evidence.
+   Other platforms' lifecycle checks remain separate.
+6. Linux localized first-install/update guidance and the actual restart action
+   passed in that run. Readiness alone still does not prove licensing/playback.
 7. Finish native passkey/1Password/device compatibility and runtime/uBO security,
    corresponding-source, license and CodeQL review before updating the supported
    runtime matrix. The internal uBO override must never become a public shortcut.
