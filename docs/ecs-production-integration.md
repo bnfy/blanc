@@ -259,7 +259,11 @@ The new Intel bundle is notarized but native acceptance remains pending.
 Its local Rosetta checks are not native Intel evidence: the first offline
 launch exceeded the existing 15-second CDP deadline, and uBO correctly hit its
 explicit unsupported-Rosetta guard. The subsequent ready-status UI and local
-HTML isolation checks passed. Neither the timeout nor the guard was relaxed.
+HTML isolation checks passed. Workspace recovery, synthetic media permissions
+and protected playback subsequently passed too: VMP verified, unmuted CENC
+advanced about 5.04 seconds without media errors, and the Plugin helper stayed
+sandboxed. One blocked network request remains in that playback report even
+though the playback gate passed. Neither the timeout nor the guard was relaxed.
 The pending native Intel audio/updater runs still exercise older immutable
 signed bytes, not this new UI. Final-package Spotify/Netflix, native Intel and
 updater/lifecycle checks below remain separate shipping gates.
