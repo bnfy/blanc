@@ -1,0 +1,10 @@
+{
+  "previousSource": "8439cabc865167f0e70cddedd22b390a3bec4438",
+  "candidateSource": "f4996df4e88c775bc1947a574b2bd7a0f9ad7539",
+  "selectedSevenUiAssetHashesUnchanged": true,
+  "bundleIdentifiersAndVersionsUnchanged": true,
+  "reviewedNativeDiff": "native-review.diff",
+  "changeScope": "Read pinned state and recognize the existing native exclusion of a one-entry unpinned New Tab; no layout, hit testing, focus, accessibility, host API or permission policy change.",
+  "L5": "Owner acceptance mapped from unchanged controls; no new physical or spoken VoiceOver pass claimed.",
+  "L2L7": "Identity/entitlement audit passes; no keychain, profile namespace, dispatch authority or private-persistence change. Other prior acceptance remains bounded by its recorded scope."
+}
