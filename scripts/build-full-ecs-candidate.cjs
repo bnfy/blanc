@@ -56,7 +56,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   await patch('src/main/main.js', patchMain);
   await patch('src/main/pages.js', source => {
     source = replaceExactly(source, '  protocol.registerSchemesAsPrivileged([',
-      "  protocol.registerSchemesAsPrivileged([\n    { scheme: 'blanc-local-preview', privileges: { standard: true, secure: true, supportFetchAPI: true, allowServiceWorkers: false, bypassCSP: false, corsEnabled: true } },", 'local preview scheme');
+      "  protocol.registerSchemesAsPrivileged([\n    require('./ecs-local-html.cjs').LOCAL_HTML_SCHEME,", 'local preview scheme');
     source = replaceExactly(source, 'net.fetch(pathToFileURL(branding).toString())',
       'net.fetch(pathToFileURL(branding).toString(), { bypassCustomProtocolHandlers: true })', 'trusted branding loader');
     return replaceExactly(source, 'net.fetch(pathToFileURL(resource).toString())',
@@ -66,7 +66,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
     'net.fetch(pathToFileURL(resource).href)', 'net.fetch(pathToFileURL(resource).href, { bypassCustomProtocolHandlers: true })', 'trusted chrome loader'));
   if (!stagingUpdater) await patch('src/main/updater.js', () => "'use strict';\nmodule.exports = { setupAutoUpdater() {}, checkForUpdatesManually: async () => ({ enabled: false, reason: 'Isolated ECS candidate never updates' }) };\n");
   await patch('src/main/default-browser-status.js', () => "'use strict';\nmodule.exports = { canSetDefaultBrowser: () => false, createDefaultBrowserStatus: () => () => ({ isDefault: false, canSet: false }), requestDefaultBrowser: () => false };\n");
-  for (const name of ['ecs-full-bootstrap.cjs', 'ecs-local-html.cjs', 'ecs-graphics-policy.cjs', 'ecs-drm-startup.cjs', 'ecs-updater-policy.cjs', 'ecs-profile-policy.cjs', 'ecs-runtime-state.cjs', 'ecs-appimage-relaunch.cjs']) await fs.copyFile(path.join(__dirname, name), path.join(project, 'src/main', name));
+  for (const name of ['drm-runtime.js', 'ecs-full-bootstrap.cjs', 'ecs-local-html.cjs', 'ecs-graphics-policy.cjs', 'ecs-drm-startup.cjs', 'ecs-updater-policy.cjs', 'ecs-profile-policy.cjs', 'ecs-runtime-state.cjs', 'ecs-appimage-relaunch.cjs']) await fs.copyFile(path.join(__dirname, name), path.join(project, 'src/main', name));
   // Every adaptation is confined to this private tree. The original lockfile,
   // production runtime declaration, reviewed uBO matrix and entitlements stay untouched.
   const config = {

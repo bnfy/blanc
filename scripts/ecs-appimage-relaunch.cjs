@@ -10,7 +10,7 @@ function cleanRelaunchEnvironment(source) {
   const result = {};
   for (const [key, value] of Object.entries(source)) {
     if (/^(?:LD_|ELECTRON_|CHROME_)/.test(key)
-      || ['APPDIR', 'APPIMAGE', 'ARGV0', 'OWD', 'GSETTINGS_SCHEMA_DIR', 'BLANC_ECS_CDM_PRELOAD_PATH', 'BLANC_ECS_LAUNCHER_ROOT'].includes(key)) continue;
+      || ['APPDIR', 'APPIMAGE', 'ARGV0', 'OWD', 'GSETTINGS_SCHEMA_DIR', 'BLANC_ECS_CDM_PRELOAD_PATH', 'BLANC_ECS_CDM_EXECUTABLE', 'BLANC_ECS_LAUNCHER_ROOT'].includes(key)) continue;
     if (key === 'PATH' || key === 'XDG_DATA_DIRS') {
       const kept = String(value).split(':').filter(entry => path.posix.isAbsolute(entry) && !insideMount(entry));
       if (kept.length) result[key] = kept.join(':');

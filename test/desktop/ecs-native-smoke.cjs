@@ -39,7 +39,8 @@ async function main() {
   let usedProfile;
   const requests = [];
   const server = http.createServer((req, res) => {
-    requests.push(req.url.split('?')[0]);
+    const requested = req.url.split('?')[0];
+    requests.push(['/staging.yml', '/staging-mac.yml', '/staging-linux.yml'].find(value => value === requested) || 'unexpected');
     res.setHeader('Content-Type', 'text/yaml');
     res.end(`version: ${metadata.version}\nfiles:\n  - url: unused.zip\n    sha512: ${Buffer.alloc(64).toString('base64')}\n    size: 1\npath: unused.zip\nsha512: ${Buffer.alloc(64).toString('base64')}\n`);
   });
@@ -76,7 +77,7 @@ async function main() {
             if (value?.phase === 'error') throw Error(`Staging updater: ${JSON.stringify(value)}`);
             return value?.phase === 'not-available' && value;
           }, 'real staging metadata check', 90000);
-          report.stagingCheck = { phase: status.phase, requestedPaths: [...requests], handoffTested: false };
+          report.stagingCheck = { phase: 'not-available', requestedPaths: [...requests], handoffTested: false };
           assert.ok(requests.some(url => /^\/staging(?:-mac|-linux)?\.yml$/.test(url)));
           assert.ok(requests.every(url => !url.includes('latest')));
         } else assert.deepEqual(requests, []);
@@ -86,7 +87,8 @@ async function main() {
         const html = (await page.send('DOM.getOuterHTML', { nodeId: dom.root.nodeId })).outerHTML;
         assert.ok(html.includes('<h1 id="canary">Original</h1>'), 'untrusted script must not run');
         assert.ok(runtime.contents.every(c => c.sandbox !== false && c.nodeIntegration !== true && c.contextIsolation !== false));
-        report.samples.push({ iteration, browserReady: true, nativeSandboxPreferences: true, localHtmlScriptBlocked: true, updaterMode: runtime.updaterMode, drm: runtime.drm?.state });
+        report.samples.push({ iteration, browserReady: true, nativeSandboxPreferences: true, localHtmlScriptBlocked: true,
+          stagingUpdater: runtime.updaterMode === 'staging', drmReady: runtime.drm?.state === 'ready' });
       } finally {
         page?.close();
         await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');

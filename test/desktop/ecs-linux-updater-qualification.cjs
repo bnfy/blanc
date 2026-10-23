@@ -68,7 +68,8 @@ async function main() {
   let child, currentPid, logs = '', hiddenUnpacked;
   const launched = [];
   try {
-    const install = path.join(root, assets[0].name);
+    const install = path.join(root, 'blanc'); // Explicit no-extension rename regression.
+    report.renamedAppImage = true;
     await fs.copyFile(assets[0].file, install); await fs.chmod(install, 0o755);
     const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_FULL_PROFILE: ignoredProfile, LD_PRELOAD: ignoredPreload,
       BLANC_ECS_CDM_PRELOAD_PATH: ignoredCdm, BLANC_UPDATE_STAGING_AUTO_INSTALL: ignoredAuto,
@@ -85,7 +86,7 @@ async function main() {
     capture(child.stdout); capture(child.stderr);
     await checkpoint('standalone cold startup');
     let initial = await waitReady(assets[0].version); currentPid = initial.pid;
-    assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.preloadInsideCurrentImage, true);
+    assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.scopedZygotePreload, true);
     report.coldSelfContainedStartup = true;
     await checkpoint('initial CDM installation');
     const component = await waitFor(async () => (await state())?.component, 'initial component install');
@@ -119,16 +120,17 @@ async function main() {
       execFileSync('xdotool', ['windowfocus', prompt]); execFileSync('xdotool', ['key', '--clearmodifiers', 'Return']);
       handoff.restartNowAccepted = true;
       await waitFor(() => !alive(oldPid), 'old candidate exit', 30000); handoff.oldExited = true;
-      const installed = path.join(root, next.name);
+      const installed = install;
       await waitFor(() => fs.stat(installed).then(() => true, () => false), 'replacement image');
       handoff.installedHash = await hash(installed); handoff.expectedHash = await hash(next.file);
       assert.equal(handoff.installedHash, handoff.expectedHash);
-      assert.equal(await fs.stat(path.join(root, previous.name)).then(() => true, () => false), false);
+      assert.equal(await fs.stat(path.join(root, next.name)).then(() => true, () => false), false,
+        'updater preserves the custom versionless filename');
       await checkpoint(`relaunch ${next.version}`);
       const relaunched = await waitReady(next.version); currentPid = relaunched.pid;
       handoff.relaunchedVersion = relaunched.version;
       assert.equal(relaunched.productionUpdater, false); assert.equal(relaunched.selfContainedLauncher, true);
-      assert.equal(relaunched.preloadInsideCurrentImage, true); assert.equal(relaunched.profile, profile);
+      assert.equal(relaunched.scopedZygotePreload, true); assert.equal(relaunched.profile, profile);
       const launch = JSON.parse(await fs.readFile(path.join(profile, 'ecs-launch-attempt.json')));
       assert.equal(launch.nativeProfileMatches, true);
       await checkpoint(`protected playback ${next.version}`);

@@ -53,6 +53,23 @@ On machines without FUSE, `APPIMAGE_EXTRACT_AND_RUN=1` uses the runtime's
 extract-and-run mode. The normal unpacked Electron executable is not the entry
 point for this candidate.
 
+PR #1061 review hardening (October 23): the native launcher applies preload
+only through Chromium's zygote command prefix, not the browser's global
+environment. The shim verifies the exact core executable and clears its loader
+variables before loading the CDM. JavaScript diagnostics query this same native
+selector rather than implementing a second selection policy. Home/config
+ancestor symlinks are canonicalized; redirected profile leaves remain refused.
+The updater qualification uses a versionless image named `blanc` to cover
+renamed AppImages. These changes require a fresh native validation run; older
+qualification evidence does not validate the revised launch path.
+
+The DRM adapter lives under `scripts/` and is explicitly copied only into ECS
+staging. A production package-filter test proves it and the candidate bootstrap
+remain excluded. Local previews allocate to document size, revoke document
+bytes and handlers on close, and reuse cleaned in-memory sessions. Electron
+does not expose a session-destruction API; session reuse avoids accumulating a
+new cached partition for every sequential preview.
+
 Without an explicit test profile, the launcher creates the owner-only
 `$XDG_CONFIG_HOME/Blanc-ECS-Candidate` directory (or
 `$HOME/.config/Blanc-ECS-Candidate`). It refuses to adopt an existing unmarked

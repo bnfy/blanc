@@ -34,7 +34,7 @@ async function buildCandidate(runtimeDir, { control = false } = {}) {
   for (const [source, destination] of [
     [path.join(__dirname, 'ecs-drm-candidate-main.cjs'), 'main.cjs'],
     [path.join(__dirname, 'ecs-local-html.cjs'), 'ecs-local-html.cjs'],
-    [path.join(root, 'src/main/drm-runtime.js'), 'drm-runtime.js'],
+    [path.join(root, 'scripts/drm-runtime.js'), 'drm-runtime.js'],
     [path.join(runtime, 'LICENSE'), 'LICENSE'],
     [path.join(runtime, 'LICENSES.chromium.html'), 'LICENSES.chromium.html'],
   ]) await fs.copyFile(source, path.join(project, destination));

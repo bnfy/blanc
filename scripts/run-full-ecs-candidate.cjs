@@ -30,7 +30,10 @@ async function run(appPath, { debug = false, graphics = 'candidate' } = {}) {
   await fs.mkdir(profile, { recursive: true, mode: 0o700 });
   if ((await fs.lstat(profile)).isSymbolicLink()) throw Error('Profile must not be a symlink');
   const marker = path.join(profile, 'ecs-candidate-profile.json');
-  if (!(await fs.stat(marker).catch(() => null))) {
+  try {
+    await fs.readFile(marker, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
     if ((await fs.readdir(profile)).length) throw Error('Refusing to adopt a non-empty unmarked profile');
     await fs.writeFile(marker, JSON.stringify({ candidate: true }), { mode: 0o600, flag: 'wx' });
   }

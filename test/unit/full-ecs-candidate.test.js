@@ -61,4 +61,11 @@ test('production does not load full candidate bootstrap and retains off file fus
   assert.ok(!metadata.blancEcsFullCandidate);
   assert.ok(!metadata.blancEcsGraphicsPolicy);
   assert.ok(!fs.existsSync(path.join(root, 'src/main/ecs-graphics-policy.cjs')));
+  assert.ok(!fs.existsSync(path.join(root, 'src/main/drm-runtime.js')));
+  const { FileMatcher } = require('app-builder-lib/out/fileMatcher');
+  const filter = new FileMatcher(root, '/unused', value => value, metadata.build.files).createFilter();
+  for (const name of ['drm-runtime.js', 'ecs-full-bootstrap.cjs', 'ecs-local-html.cjs']) {
+    const file = path.join(root, 'scripts', name);
+    assert.equal(filter(file, fs.statSync(file)), false, `${name} excluded from production payload`);
+  }
 });

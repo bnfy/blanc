@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createDrmRuntime } = require('../../src/main/drm-runtime');
+const { createDrmRuntime } = require('../../scripts/drm-runtime');
 const app = { whenReady: async () => {} };
 function components(overrides = {}) {
   return { WIDEVINE_CDM_ID: 'widevine', updatesEnabled: true,
@@ -70,6 +70,9 @@ test('Linux notices a later version change without starting another component in
   }) });
   assert.equal((await runtime.prepare()).state, 'ready');
   assert.equal((await runtime.inspect()).state, 'ready');
+  for (version of [undefined, '', 'not-a-version']) {
+    assert.equal((await runtime.inspect()).state, 'ready', 'transient or invalid status is not a CDM replacement');
+  }
   version = '4.10.11.0';
   assert.equal((await runtime.inspect()).state, 'restart-required');
   assert.equal((await runtime.prepare()).state, 'restart-required');
@@ -89,9 +92,12 @@ test('timeout ignores late completion and never launches overlapping installs', 
   const runtime = createDrmRuntime({ app, timeoutMs: 10, components: components({
     whenReady: () => { calls++; return new Promise(resolve => { finish = resolve; }); } }) });
   assert.equal((await runtime.prepare()).state, 'timed-out');
-  finish([]);
+  finish([{ id: 'widevine', status: 'updated', version: '4.10.99.0' }]);
   await new Promise(resolve => setImmediate(resolve));
   assert.equal((await runtime.prepare()).state, 'timed-out');
+  const status = await runtime.inspect();
+  assert.equal(status.registrationStatus, null);
+  assert.equal(status.completionStatus, null);
   assert.equal(calls, 1);
 });
 test('vendor errors and status data do not leak paths or license details', async () => {

@@ -23,7 +23,9 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
     await app.whenReady();
     try {
       const status = components.status()?.[components.WIDEVINE_CDM_ID];
-      if (platform === 'linux' && state === 'ready' && preparedVersion && status?.version !== preparedVersion) {
+      if (platform === 'linux' && state === 'ready' && preparedVersion
+        && typeof status?.version === 'string' && /^\d+(?:\.\d+){1,3}$/.test(status.version)
+        && status.version !== preparedVersion) {
         state = 'restart-required';
       }
       return { ...snapshot(), updatesEnabled: components.updatesEnabled === true,
@@ -47,16 +49,16 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
       state = 'preparing';
       let timer;
       try {
-        await Promise.race([
+        const outcome = await Promise.race([
           (async () => {
             await app.whenReady();
-            if (!components.updatesEnabled) return 'updates-disabled';
+            if (!components.updatesEnabled) return { state: 'updates-disabled' };
             const before = components.status()?.[components.WIDEVINE_CDM_ID];
-            registrationStatus = typeof before?.status === 'string' ? before.status.slice(0, 80) : null;
+            const registered = typeof before?.status === 'string' ? before.status.slice(0, 80) : null;
             const results = await components.whenReady([components.WIDEVINE_CDM_ID]);
             const result = Array.isArray(results) ? results.find(item => item?.id === components.WIDEVINE_CDM_ID) : null;
-            completionStatus = typeof result?.status === 'string' ? result.status.slice(0, 80) : null;
-            preparedVersion = linuxPreloadedVersion !== undefined ? linuxPreloadedVersion
+            const completed = typeof result?.status === 'string' ? result.status.slice(0, 80) : null;
+            const prepared = linuxPreloadedVersion !== undefined ? linuxPreloadedVersion
               : typeof result?.version === 'string' ? result.version
                 : typeof before?.version === 'string' ? before.version : null;
             // ECS registers existing components asynchronously. Its `new`
@@ -65,13 +67,19 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
             // component; `updated` denotes installation and needs a restart.
             const registeredInstalled = result?.status === 'new'
               && typeof result.version === 'string' && /^\d+(?:\.\d+){1,3}$/.test(result.version);
-            return platform === 'linux' && (result?.status === 'updated'
+            const nextState = platform === 'linux' && (result?.status === 'updated'
               || (linuxPreloadedVersion !== undefined && result?.version !== linuxPreloadedVersion)
               || (!before?.version && !registeredInstalled))
               ? 'restart-required' : 'ready';
+            return { state: nextState, registered, completed, prepared };
           })(),
-          new Promise(resolve => { timer = setTimeout(() => resolve('timed-out'), timeoutMs); }),
-        ]).then(value => { state = value; });
+          new Promise(resolve => { timer = setTimeout(() => resolve({ state: 'timed-out' }), timeoutMs); }),
+        ]);
+        // Only the race winner may publish state or component metadata.
+        state = outcome.state;
+        registrationStatus = outcome.registered ?? null;
+        completionStatus = outcome.completed ?? null;
+        preparedVersion = outcome.prepared ?? null;
       } catch {
         // Vendor errors may contain URLs, filesystem paths or license details.
         state = 'installation-failed';

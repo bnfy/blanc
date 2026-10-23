@@ -56,7 +56,7 @@ if (process.platform === 'linux') {
   const updater = require('electron-updater').autoUpdater;
   const originalSpawn = updater.spawnLog.bind(updater);
   updater.spawnLog = function (command, args, env, stdio) {
-    if (!path.isAbsolute(command) || !command.endsWith('.AppImage')) throw Error('Candidate updater requires an absolute AppImage path');
+    if (!path.isAbsolute(command)) throw Error('Candidate updater requires an absolute AppImage path');
     const cleanEnv = require('./ecs-appimage-relaunch.cjs').cleanRelaunchEnvironment(env);
     if (process.env.BLANC_ECS_FULL_SMOKE !== '1') return originalSpawn(command, args, cleanEnv, stdio);
     // Same real updater path, with stderr captured only for synthetic tests.
@@ -74,7 +74,8 @@ if (process.platform === 'linux') {
 }
 const state = { candidate: true, pid: process.pid, version: metadata.version, electron: process.versions.electron, chrome: process.versions.chrome,
   profile, selfContainedLauncher: Boolean(process.env.BLANC_ECS_LAUNCHER_ROOT),
-  preloadInsideCurrentImage: process.env.LD_PRELOAD === path.join(process.env.BLANC_ECS_LAUNCHER_ROOT || '', 'blanc-cdm-preload.so'),
+  scopedZygotePreload: Boolean(process.env.BLANC_ECS_LAUNCHER_ROOT) && !process.env.LD_PRELOAD
+    && app.commandLine.getSwitchValue('zygote-cmd-prefix') === `${path.join(process.env.BLANC_ECS_LAUNCHER_ROOT, 'blanc-ecs-launcher')} --ecs-zygote`,
   productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
 const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);
 const protectedSessions = new WeakSet();
@@ -93,6 +94,8 @@ app.on('web-contents-created', (_event, wc) => {
 });
 const cdmPrefix = path.join(profile, 'WidevineCdm') + path.sep;
 const cdmPath = process.env.BLANC_ECS_CDM_PRELOAD_PATH || '';
+delete process.env.BLANC_ECS_CDM_PRELOAD_PATH;
+delete process.env.BLANC_ECS_CDM_EXECUTABLE;
 const preloadedVersion = cdmPath.startsWith(cdmPrefix) ? cdmPath.slice(cdmPrefix.length).split(path.sep)[0] : null;
 const drm = createDrmRuntime({ app, components,
   ...(process.platform === 'linux' && metadata.blancEcsPreloadRequired

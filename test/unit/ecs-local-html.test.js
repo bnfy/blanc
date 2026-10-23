@@ -5,6 +5,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const { snapshotLocalHtml, registerLocalHtmlScheme, SCHEME, MAX_BYTES } = require('../../scripts/ecs-local-html.cjs');
+const { EventEmitter } = require('node:events');
 
 async function fixture(run) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-local-unit-'));
@@ -34,6 +35,9 @@ test('local preview snapshots only selected HTML; no filesystem path resolver', 
   assert.equal(doc.respond({ url: doc.url, method: 'POST' }).status, 403);
   assert.equal(doc.permits(doc.url + '#section'), true);
   assert.notEqual((await snapshotLocalHtml(file)).url, doc.url);
+  doc.dispose();
+  assert.equal(doc.permits(doc.url), false);
+  assert.equal(doc.respond({ url: doc.url, method: 'GET' }).status, 403);
 }));
 
 test('response enforces opaque sandbox and denies egress, frames, workers, forms and base URL changes', async () => fixture(async ({ file }) => {
@@ -57,6 +61,37 @@ test('local document JavaScript is disabled in native WebContents preferences', 
   const source = await fs.readFile(path.join(__dirname, '../../scripts/ecs-local-html.cjs'), 'utf8');
   assert.match(source, /javascript:\s*false/);
 });
+
+test('small previews allocate to file size and recycle cleaned session handlers', async t => fixture(async ({ file }) => {
+  const { openIsolatedLocalHtml } = require('../../scripts/ecs-local-html.cjs');
+  const alloc = Buffer.alloc;
+  const sizes = [];
+  t.mock.method(Buffer, 'alloc', (...args) => { sizes.push(args[0]); return alloc(...args); });
+  let created = 0, handler, requestHandler;
+  const ses = new EventEmitter();
+  Object.assign(ses, {
+    protocol: { handle: (_scheme, fn) => { handler = fn; }, unhandle: () => { handler = null; } },
+    webRequest: { onBeforeRequest: (...args) => { requestHandler = args.at(-1); } },
+    setPermissionRequestHandler() {}, setPermissionCheckHandler() {},
+    clearStorageData: async () => {}, clearCache: async () => {}, closeAllConnections: async () => {},
+  });
+  class Window extends EventEmitter {
+    constructor() { super(); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; }
+    async loadURL() {}
+    destroy() { this.emit('closed'); }
+  }
+  const session = { fromPartition: () => { created++; return ses; } };
+  for (let i = 0; i < 50; i++) {
+    const win = await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
+    assert.equal(typeof handler, 'function');
+    win.destroy();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(handler, null); assert.equal(requestHandler, null);
+    assert.equal(ses.listenerCount('will-download'), 0);
+  }
+  assert.equal(created, 1, 'one cleaned partition reused for serial previews');
+  assert.ok(sizes.every(size => size < 1024), 'small documents do not allocate 8 MiB');
+}));
 
 test('selection rejects relative paths, directories, non-HTML and oversized files', async () => fixture(async ({ dir }) => {
   await assert.rejects(snapshotLocalHtml('relative.html'));

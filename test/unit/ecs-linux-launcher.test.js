@@ -20,10 +20,14 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   assert.equal(run().status, 126);
   fs.writeFileSync(marker, '{"candidate":true}');
   const good = run(); assert.equal(good.status, 0); assert.equal(good.stdout.split('\n')[1], '');
+  assert.equal(good.stdout.split('\n')[2], '', 'browser and external handlers never inherit preload');
+  assert.ok(good.stdout.includes(`--zygote-cmd-prefix=${launcher} --ecs-zygote`));
   assert.ok(good.stdout.includes(`--user-data-dir=${profile}`));
   assert.equal(run(['--user-data-dir=/somewhere-else']).status, 126);
   assert.equal(run(['--user-data-dir', profile]).status, 0);
   for (const flag of ['--no-sandbox', '--no-zygote-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox']) assert.equal(run([flag]).status, 126);
+  assert.equal(run(['--zygote-cmd-prefix=/untrusted']).status, 126);
+  assert.equal(run(['--ecs-zygote', '/bin/echo', '--type=zygote']).status, 126);
   const install = version => {
     const dir = path.join(profile, 'WidevineCdm', version);
     fs.mkdirSync(path.join(dir, '_platform_specific/linux_x64'), { recursive: true });
@@ -32,6 +36,7 @@ test('self-contained Linux launcher selects owned components and fails closed wi
     fs.writeFileSync(lib, 'fixture'); return lib;
   };
   const old = install('4.10.9.0'), current = install('4.10.11.0');
+  assert.equal(run(['--ecs-query-cdm']).stdout, current + '\n');
   assert.equal(run().stdout.split('\n')[1], current);
   fs.mkdirSync(path.join(profile, 'chromium'));
   const stateFile = path.join(profile, 'chromium/Local State');
@@ -54,6 +59,37 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   const automatic = run([], { BLANC_ECS_FULL_PROFILE: '', XDG_CONFIG_HOME: config });
   assert.equal(automatic.status, 0); assert.equal(automatic.stdout.split('\n')[0], path.join(config, 'Blanc-ECS-Candidate'));
   assert.equal(fs.statSync(path.join(config, 'Blanc-ECS-Candidate')).mode & 0o777, 0o700);
+  const configAlias = path.join(root, 'config-alias'); fs.symlinkSync(config, configAlias);
+  const linkedConfig = run([], { BLANC_ECS_FULL_PROFILE: '', XDG_CONFIG_HOME: configAlias });
+  assert.equal(linkedConfig.status, 0);
+  assert.equal(linkedConfig.stdout.split('\n')[0], path.join(config, 'Blanc-ECS-Candidate'));
+  const home = path.join(root, 'home'); fs.mkdirSync(home);
+  const homeAlias = path.join(root, 'home-alias'); fs.symlinkSync(home, homeAlias);
+  const linkedHome = run([], { BLANC_ECS_FULL_PROFILE: '', XDG_CONFIG_HOME: '', HOME: homeAlias });
+  assert.equal(linkedHome.status, 0);
+  assert.equal(linkedHome.stdout.split('\n')[0], path.join(home, '.config/Blanc-ECS-Candidate'));
+
+  // Real loader regression: only the pinned core zygote loads the CDM; neither
+  // it nor a later external handler retains the preload environment.
+  fs.unlinkSync(current);
+  execFileSync('cc', ['-shared', '-fPIC', '-x', 'c', '-', '-o', old], { input:
+    '#include <stdio.h>\n#include <stdlib.h>\n__attribute__((constructor)) static void loaded(void) { fputs("CDM_LOADED\\n", stderr); if(getenv("LD_PRELOAD") || getenv("BLANC_ECS_CDM_PRELOAD_PATH")) abort(); }\n' });
+  execFileSync('cc', ['-shared', '-fPIC', '-Wall', '-Wextra', '-Werror', path.resolve('scripts/ecs-linux-cdm-preload.c'), '-o', path.join(app, 'blanc-cdm-preload.so'), '-ldl']);
+  const core = path.join(app, 'blanc-ecs-full-candidate');
+  fs.unlinkSync(core);
+  execFileSync('cc', ['-x', 'c', '-', '-o', core], { input:
+    '#include <unistd.h>\nint main(void) { execl("/usr/bin/env", "env", (char*)0); return 1; }\n' });
+  const zygote = run(['--ecs-zygote', core, '--type=zygote']);
+  assert.equal(zygote.status, 0); assert.match(zygote.stderr, /CDM_LOADED/);
+  assert.doesNotMatch(zygote.stdout, /LD_PRELOAD=|BLANC_ECS_CDM_PRELOAD_PATH=|BLANC_ECS_CDM_EXECUTABLE=/);
+  const unsandboxed = run(['--ecs-zygote', core, '--type=zygote', '--no-zygote-sandbox']);
+  assert.equal(unsandboxed.status, 0); assert.doesNotMatch(unsandboxed.stderr, /CDM_LOADED/);
+  const foreign = spawnSync('/bin/true', ['--type=zygote', 'X'.repeat(70000)], { encoding: 'utf8', env: {
+    ...process.env, LD_PRELOAD: path.join(app, 'blanc-cdm-preload.so'),
+    BLANC_ECS_CDM_PRELOAD_PATH: '/inaccessible/cdm.so', BLANC_ECS_CDM_EXECUTABLE: core,
+  } });
+  assert.equal(foreign.status, 0, 'foreign long command lines never enter the CDM parser');
+  assert.doesNotMatch(foreign.stderr, /CDM_LOADED|pre-sandbox preload failed/);
 });
 
 test('AppImage entrypoint uses its own launcher, never an inherited mount or sandbox bypass', () => {

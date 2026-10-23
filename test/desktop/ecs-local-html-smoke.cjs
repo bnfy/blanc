@@ -170,7 +170,10 @@ async function run(appPath, output) {
       collect: `http://127.0.0.1:${server.address().port}/collect`,
       stun: `stun:127.0.0.1:${udp.address().port}`,
     };
-    await fs.writeFile(html, `<!doctype html><title>Isolated HTML canary</title><h1 id="visible">Selected document renders</h1><a id="file-link" href="${urls.frame}">File</a><a id="network-link" href="${urls.collect}">Network</a><iframe src="${urls.frame}"></iframe><iframe sandbox="allow-scripts allow-same-origin" src="${urls.frame}"></iframe><img src="${urls.collect}"><script>window.inlineScriptRan=true;document.querySelector('#visible').textContent='SCRIPT RAN';for(const url of ${JSON.stringify(urls.reads)})fetch(url).catch(()=>{});navigator.serviceWorker.register(${JSON.stringify(urls.worker)}).catch(()=>{});(async()=>{const p=new RTCPeerConnection({iceServers:[{urls:'${urls.stun}'}]});p.createDataChannel('canary');await p.setLocalDescription(await p.createOffer());})()</script>`);
+    const attribute = value => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    const probeData = Buffer.from(JSON.stringify(urls)).toString('base64');
+    const probeScript = `const urls=JSON.parse(atob(document.currentScript.dataset.probe));window.inlineScriptRan=true;document.querySelector('#visible').textContent='SCRIPT RAN';for(const url of urls.reads)fetch(url).catch(()=>{});navigator.serviceWorker.register(urls.worker).catch(()=>{});(async()=>{const p=new RTCPeerConnection({iceServers:[{urls:urls.stun}]});p.createDataChannel('canary');await p.setLocalDescription(await p.createOffer());})()`;
+    await fs.writeFile(html, `<!doctype html><title>Isolated HTML canary</title><h1 id="visible">Selected document renders</h1><a id="file-link" href="${attribute(urls.frame)}">File</a><a id="network-link" href="${attribute(urls.collect)}">Network</a><iframe src="${attribute(urls.frame)}"></iframe><iframe sandbox="allow-scripts allow-same-origin" src="${attribute(urls.frame)}"></iframe><img src="${attribute(urls.collect)}"><script data-probe="${probeData}">${probeScript}</script>`);
     await withDiagnosticProfile(async profile => {
       evidence.profile = profile;
       if (full) {

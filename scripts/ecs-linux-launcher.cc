@@ -176,22 +176,50 @@ int main(int argc, char** argv) {
       }
     }
     struct stat info{};
-    if (!profile.is_absolute() || fs::canonical(profile) != profile || stat(profile.c_str(), &info) || info.st_uid != getuid() || (info.st_mode & 0022)
+    if (!profile.is_absolute() || fs::is_symlink(fs::symlink_status(profile))) throw std::runtime_error("marked owned candidate profile required");
+    // Home/config ancestors may be symlinks. Never adopt a redirected profile
+    // leaf, but use one canonical identity for every later check and relaunch.
+    profile = fs::canonical(profile);
+    if (stat(profile.c_str(), &info) || info.st_uid != getuid() || (info.st_mode & 0022)
       || !readJson(profile / "ecs-candidate-profile.json").get("candidate").boolean) throw std::runtime_error("marked owned candidate profile required");
-    std::vector<std::string> args{core.string(), "--user-data-dir=" + profile.string()};
-    for (int i = 1; i < argc; ++i) {
-      const std::string arg = argv[i];
-      if (arg == "--user-data-dir") { if (++i >= argc || argv[i] != profile.string()) throw std::runtime_error("conflicting profile argument"); continue; }
-      if (arg.rfind("--user-data-dir=", 0) == 0) { if (arg.substr(16) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
-      if (arg == "--no-sandbox" || arg == "--no-zygote-sandbox" || arg == "--disable-setuid-sandbox" || arg == "--disable-seccomp-filter-sandbox") throw std::runtime_error("sandbox weakening refused");
-      args.push_back(arg);
-    }
     std::string cdm;
     try { cdm = component(profile).string(); }
     catch (const std::exception&) { std::cerr << "Candidate CDM metadata invalid; protected playback disabled for this launch\n"; }
+    if (argc == 2 && std::string(argv[1]) == "--ecs-query-cdm") { std::cout << cdm << '\n'; return 0; }
+    unsetenv("LD_PRELOAD");
+    unsetenv("BLANC_ECS_CDM_PRELOAD_PATH");
+    unsetenv("BLANC_ECS_CDM_EXECUTABLE");
+    if (argc > 1 && std::string(argv[1]) == "--ecs-zygote") {
+      if (argc < 4 || std::string(argv[2]) != core.string()) throw std::runtime_error("unexpected zygote executable");
+      bool zygote = false, unsandboxed = false;
+      for (int i = 3; i < argc; ++i) {
+        const std::string arg = argv[i];
+        zygote |= arg == "--type=zygote";
+        unsandboxed |= arg == "--no-zygote-sandbox" || arg == "--no-sandbox";
+      }
+      if (!zygote) throw std::runtime_error("zygote-only entrypoint");
+      if (!unsandboxed && !cdm.empty()) {
+        set("LD_PRELOAD", shim.string());
+        set("BLANC_ECS_CDM_PRELOAD_PATH", cdm);
+        set("BLANC_ECS_CDM_EXECUTABLE", core.string());
+      }
+      execv(core.c_str(), argv + 2);
+      throw std::runtime_error("zygote exec failed");
+    }
+    std::vector<std::string> args{core.string(), "--user-data-dir=" + profile.string()};
+    for (int i = 1; i < argc; ++i) {
+      const std::string arg = argv[i];
+      if (arg == "--user-data-dir") { if (++i >= argc || fs::canonical(argv[i]) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
+      if (arg.rfind("--user-data-dir=", 0) == 0) { if (fs::canonical(arg.substr(16)) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
+      if (arg.rfind("--zygote-cmd-prefix", 0) == 0 || arg.rfind("--ecs-", 0) == 0) throw std::runtime_error("reserved launcher argument");
+      if (arg == "--no-sandbox" || arg == "--no-zygote-sandbox" || arg == "--disable-setuid-sandbox" || arg == "--disable-seccomp-filter-sandbox") throw std::runtime_error("sandbox weakening refused");
+      args.push_back(arg);
+    }
+    // Chromium applies this wrapper only to zygote exec, before its existing
+    // sandbox: content/common/zygote/zygote_communication_linux.cc::Init.
+    args.push_back("--zygote-cmd-prefix=" + (appDir / "blanc-ecs-launcher").string() + " --ecs-zygote");
     set("BLANC_ECS_FULL_PROFILE", profile.string());
     set("BLANC_ECS_CDM_PRELOAD_PATH", cdm);
-    set("LD_PRELOAD", shim.string());
     set("BLANC_ECS_LAUNCHER_ROOT", appDir.string());
     unsetenv("APPIMAGE_EXIT_AFTER_INSTALL");
     // A replacement must not retain the previous image's disappearing cwd.

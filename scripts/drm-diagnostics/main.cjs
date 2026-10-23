@@ -5,7 +5,7 @@
 const { app, BrowserWindow, ipcMain, components } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { createDrmRuntime } = require('../../src/main/drm-runtime');
+const { createDrmRuntime } = require('../drm-runtime');
 
 const profile = process.env.BLANC_DRM_DIAGNOSTIC_PROFILE;
 if (!profile) throw new Error('Launch with node scripts/drm-diagnostics.cjs');

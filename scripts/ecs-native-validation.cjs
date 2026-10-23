@@ -18,12 +18,14 @@ async function main() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-ecs-vendor-'));
   const name = `electron-v44.9.3+wvcus-${target}.zip`;
   const url = `https://github.com/castlabs/electron-releases/releases/download/v44.9.3%2Bwvcus/${encodeURIComponent(name)}`;
-  const response = await fetch(url);
-  if (!response.ok) throw Error(`ECS download HTTP ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (createHash('sha256').update(bytes).digest('hex') !== pins[target]) throw Error('ECS archive checksum mismatch');
-  const archive = path.join(dir, name), runtime = path.join(dir, 'runtime');
-  await fs.writeFile(archive, bytes); await fs.mkdir(runtime);
+  const { downloadArtifact } = await import('@electron/get');
+  const archive = await downloadArtifact({ version: '44.9.3+wvcus', artifactName: 'electron',
+    platform: process.platform, arch: process.arch, checksums: { [name]: pins[target] },
+    mirrorOptions: { resolveAssetURL: async () => url } });
+  // Independently recheck the reviewed pin, including cached downloads.
+  if (createHash('sha256').update(await fs.readFile(archive)).digest('hex') !== pins[target]) throw Error('ECS archive checksum mismatch');
+  const runtime = path.join(dir, 'runtime');
+  await fs.mkdir(runtime);
   const { extract } = await import('@electron-internal/extract-zip');
   await extract(archive, { dir: runtime });
   let nativeSecurityPatch = null;
