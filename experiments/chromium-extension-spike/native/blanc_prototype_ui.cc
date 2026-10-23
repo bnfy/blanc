@@ -533,6 +533,41 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
 
 void UpdatePersistentSplitFocus(BrowserWindowInterface* browser);
 
+// Native page input can arrive without a WebView focus-change notification on
+// macOS (the Island remains the focused view). Select only another visible
+// member of the currently displayed persistent split, never a background tab.
+class SplitPaneInput : public base::SupportsUserData::Data,
+                       public content::WebContentsObserver {
+ public:
+  explicit SplitPaneInput(content::WebContents* contents)
+      : content::WebContentsObserver(contents) {}
+  static void ObserveTab(content::WebContents* contents) {
+    static constexpr char key[] = "blanc-split-pane-input";
+    if (!contents->GetUserData(key))
+      contents->SetUserData(key, std::make_unique<SplitPaneInput>(contents));
+  }
+  void DidGetUserInteraction(const blink::WebInputEvent& event) override {
+    if (event.GetType() != blink::WebInputEvent::Type::kMouseDown &&
+        event.GetType() != blink::WebInputEvent::Type::kTouchStart) return;
+    auto* source = web_contents();
+    if (!source || source->GetVisibility() != content::Visibility::VISIBLE ||
+        !source->GetUserData(kPersistentSplitKey)) return;
+    GlobalBrowserCollection::GetInstance()->ForEach([source](BrowserWindowInterface* browser) {
+      if (!IsIslandWindow(browser)) return true;
+      auto* model = browser->GetTabStripModel();
+      const int index = model->GetIndexOfWebContents(source);
+      const int active = model->active_index();
+      if (index < 0 || active < 0 || index == active) return true;
+      const auto split = model->GetSplitForTab(index);
+      if (!split || split != model->GetSplitForTab(active)) return true;
+      auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+      if (!view || !view->GetWidget() || !view->GetWidget()->IsVisible()) return true;
+      model->ActivateTabAt(index);
+      return false;
+    });
+  }
+};
+
 // Session repair belongs to the profile, not the window that observed a
 // cancelled batch close. Generations prevent an older save clearing newer work.
 class ClosedSessionRepair : public base::SupportsUserData::Data {
@@ -811,8 +846,11 @@ class Owner : public base::SupportsUserData::Data,
   }
   void OnTabStripModelChanged(TabStripModel*, const TabStripModelChange&,
                               const TabStripSelectionChange& selection) override {
-    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i)
-      SiteMuteTab::Get(browser->GetTabStripModel()->GetWebContentsAt(i));
+    for (int i = 0; i < browser->GetTabStripModel()->count(); ++i) {
+      auto* tab = browser->GetTabStripModel()->GetWebContentsAt(i);
+      SiteMuteTab::Get(tab);
+      SplitPaneInput::ObserveTab(tab);
+    }
     if (!selection.active_tab_changed()) return;
     UpdatePersistentSplitFocus(browser);
     SyncActive();
@@ -1611,6 +1649,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   for (int index = 0; index < model->count(); ++index) {
     auto* contents = model->GetWebContentsAt(index);
     auto* audio = SiteMuteTab::Get(contents);
+    SplitPaneInput::ObserveTab(contents);
     auto& controller = contents->GetController();
     const int tab_id = sessions::SessionTabHelper::IdForTab(contents).id();
     live_tab_ids.insert(tab_id);
