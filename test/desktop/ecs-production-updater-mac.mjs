@@ -53,15 +53,17 @@ try{
  if (count of matches) is 0 then return "waiting"
  tell item 1 of matches
   set frontmost to true
-  repeat with w in windows
-   repeat with itemRef in (entire contents of w)
-    if class of itemRef is button then
-     if name of itemRef is "Restart Now" then
-      click itemRef
-      return "clicked"
-     end if
+  repeat with windowIndex from 1 to count of windows
+   if exists button "Restart Now" of window windowIndex then
+    click button "Restart Now" of window windowIndex
+    return "clicked"
+   end if
+   if exists sheet 1 of window windowIndex then
+    if exists button "Restart Now" of sheet 1 of window windowIndex then
+     click button "Restart Now" of sheet 1 of window windowIndex
+     return "clicked"
     end if
-   end repeat
+   end if
   end repeat
  end tell
  return "waiting"

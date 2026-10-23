@@ -8,7 +8,8 @@ test('Mac ECS handoff requires a disposable native Intel host and the normal Res
  assert.match(source,/assert.equal\(process.arch,'x64'\)/);
  assert.match(source,/assert.equal\(process.env.GITHUB_ACTIONS,'true'\)/);
  assert.match(source,/BLANC_ECS_DISPOSABLE_HOST/);
- assert.match(source,/name of itemRef is "Restart Now"/);
+ assert.match(source,/click button "Restart Now" of sheet 1 of window windowIndex/);
+ assert.match(source,/click button "Restart Now" of window windowIndex/);
  assert.match(source,/automatic updated process/);
  assert.match(source,/exact updated app payload/);
  assert.match(source,/assert.equal\(media.status,2\)/);
