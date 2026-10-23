@@ -75,6 +75,19 @@ const mainProcess = async version => {
   return null;
 };
 const x = args => execFileSync('xdotool',args,{stdio:['ignore','pipe','pipe'],encoding:'utf8'}).trim();
+async function processState(pid) {
+  const base=`/proc/${pid}`;
+  const status=await fs.readFile(`${base}/status`,'utf8');
+  const rawEnvironment=(await fs.readFile(`${base}/environ`,'utf8')).split('\0');
+  const environment=Object.fromEntries(rawEnvironment.flatMap(entry=>{
+    const at=entry.indexOf('=');const key=entry.slice(0,at);
+    return ['DISPLAY','XAUTHORITY','APPDIR','APPIMAGE','LD_LIBRARY_PATH','APPIMAGE_SILENT_INSTALL','APPIMAGE_EXIT_AFTER_INSTALL'].includes(key)?[[key,entry.slice(at+1)]]:[];
+  }));
+  return {
+    status:status.split('\n').filter(line=>/^(Name|State|PPid|Threads|SigIgn|SigCgt|NoNewPrivs|Seccomp):/.test(line)),environment,
+    inheritedRuntimeKeys:rawEnvironment.map(entry=>entry.slice(0,entry.indexOf('='))).filter(key=>/^(?:LD_|ELECTRON_|CHROME_|BLANC_ECS_)/.test(key)),
+  };
+}
 function prompt() {
   let ids;try{ids=x(['search','--onlyvisible','--name','.*']).split(/\s+/);}catch{return null;}
   for(const id of ids){try{const g=x(['getwindowgeometry','--shell',id]);const width=Number(g.match(/^WIDTH=(\d+)/m)?.[1]),height=Number(g.match(/^HEIGHT=(\d+)/m)?.[1]);if(width>=200&&width<=1000&&height>=50&&height<=400)return id;}catch{}}
@@ -128,10 +141,14 @@ try {
     assert.equal(await fs.stat(path.join(root,next.name)).catch(()=>null),null);
     const successor=await wait('automatic ECS successor',()=>mainProcess(next.version));previous=successor;
     handoff.automaticSuccessorPid=successor.pid;
+    handoff.initialNativeState=await processState(successor.pid).catch(()=>({unavailable:true}));
     ready=false;playback=null;
     // The display belongs solely to this rehearsal. X11 may attribute a
     // Chromium window to its GPU process rather than the verified browser PID.
-    const window=await wait('successor window',browserWindow);handoff.window=window;
+    const window=await wait('successor window',async()=>{
+      assert(await alive(successor.pid),'ECS successor exited before opening its window');
+      return browserWindow();
+    });handoff.window=window;
     x(['windowfocus',window.id]);x(['key','--clearmodifiers','ctrl+l']);
     x(['type','--clearmodifiers',`${origin}/`]);x(['key','Return']);
     await wait('protected-page readiness',()=>ready);x(['key','Return']);
