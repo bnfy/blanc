@@ -7,6 +7,7 @@ const { getCurrentFuseWire, FuseV1Options } = require('@electron/fuses');
 const { withDiagnosticProfile } = require('../../scripts/drm-diagnostics.cjs');
 const { connect, targets, waitFor } = require('./ecs-local-html-smoke.cjs');
 const { spawn } = require('node:child_process');
+const http = require('node:http');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function main() {
   const info = JSON.parse(await fs.readFile(process.env.BLANC_ECS_BUILD_RESULT, 'utf8'));
@@ -25,7 +26,14 @@ async function main() {
   const report = { platform: process.platform, arch: process.arch, version: metadata.version, runtime: info.runtime, sourceCommit: info.sourceCommit,
     fusesVerified: true, productionUpdater: false, vmpSigned: false, releaseQualified: false, samples: [] };
   let usedProfile;
-  await withDiagnosticProfile(async profile => {
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    requests.push(req.url.split('?')[0]);
+    res.setHeader('Content-Type', 'text/yaml');
+    res.end(`version: ${metadata.version}\nfiles:\n  - url: unused.zip\n    sha512: ${Buffer.alloc(64).toString('base64')}\n    size: 1\npath: unused.zip\nsha512: ${Buffer.alloc(64).toString('base64')}\n`);
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try { await withDiagnosticProfile(async profile => {
     usedProfile = profile;
     await fs.writeFile(path.join(profile, 'ecs-candidate-profile.json'), JSON.stringify({ candidate: true }));
     const fixture = path.join(profile, 'fixture.html');
@@ -33,7 +41,8 @@ async function main() {
     for (const iteration of [0, 1]) {
       const child = spawn(executable, ['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
         env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: fixture,
-          BLANC_UPDATE_CHANNEL: 'production' }, stdio: ['ignore', 'pipe', 'pipe'] });
+          BLANC_UPDATE_CHANNEL: iteration ? 'staging' : 'production', BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/`,
+          BLANC_UPDATE_STAGING_ALLOW_HTTP: '1', BLANC_UPDATE_STAGING_AUTO_INSTALL: '1', BLANC_UPDATE_STAGING_STATUS_FILE: path.join(profile, 'staging-status.json') }, stdio: ['ignore', 'pipe', 'pipe'] });
       let text = '', endpoint;
       child.stdout.on('data', b => { text += b; });
       child.stderr.on('data', b => { text += b; endpoint = text.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//)?.[1]; });
@@ -42,11 +51,21 @@ async function main() {
       try {
         const runtime = await waitFor(async () => {
           const state = await fs.readFile(path.join(profile, 'ecs-runtime.json'), 'utf8').then(JSON.parse, () => null);
-          return state?.browserReady && endpoint && state;
+          return state?.browserReady && Array.isArray(state.contents) && endpoint && state;
         }, 'candidate native startup', 90000);
-        assert.equal(runtime.electron, info.runtime);
+        assert.equal(runtime.electron, info.runtime.split('+')[0]);
         assert.equal(runtime.productionUpdater, false);
-        assert.equal(runtime.updaterMode, 'disabled');
+        assert.equal(runtime.updaterMode, iteration ? 'staging' : 'disabled');
+        if (iteration) {
+          const status = await waitFor(async () => {
+            const value = await fs.readFile(path.join(profile, 'staging-status.json'), 'utf8').then(JSON.parse, () => null);
+            if (value?.phase === 'error') throw Error(`Staging updater: ${JSON.stringify(value)}`);
+            return value?.phase === 'not-available' && value;
+          }, 'real staging metadata check', 90000);
+          report.stagingCheck = { phase: status.phase, requestedPaths: [...requests], handoffTested: false };
+          assert.ok(requests.some(url => /^\/staging(?:-mac|-linux)?\.yml$/.test(url)));
+          assert.ok(requests.every(url => !url.includes('latest')));
+        } else assert.deepEqual(requests, []);
         const local = await waitFor(async () => (await targets(Number(endpoint))).find(t => t.url.startsWith('blanc-local-preview:')), 'local preview');
         page = await connect(local);
         const dom = await page.send('DOM.getDocument');
@@ -63,7 +82,7 @@ async function main() {
       }
       await fs.unlink(path.join(profile, 'ecs-runtime.json'));
     }
-  });
+  }); } finally { await new Promise(resolve => server.close(resolve)); }
   report.profileRemoved = await fs.stat(usedProfile).then(() => false, () => true);
   assert.equal(report.profileRemoved, true);
   await fs.mkdir('output/ecs-native', { recursive: true });

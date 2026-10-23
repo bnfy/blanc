@@ -159,6 +159,12 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   const targetPlatform = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX }[platform];
   const targets = { darwin: ['dir'], win32: ['nsis'], linux: ['AppImage'] }[platform];
   await build({ projectDir: project, config, publish: 'never', targets: targetPlatform.createTarget(targets, Arch[arch]) });
+  if (nativeValidation && platform === 'darwin') {
+    // Fuses and the dispatcher invalidate the vendor ad-hoc seal. This seal
+    // permits local/native smoke only; it is not Developer ID or notarization.
+    const app = path.join(staging, 'dist', arch === 'arm64' ? 'mac-arm64' : 'mac', `${productName}.app`);
+    execFileSync('codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'inherit' });
+  }
   if (process.env.BLANC_ECS_BUILD_RESULT) await fs.writeFile(process.env.BLANC_ECS_BUILD_RESULT, JSON.stringify({ staging, project, dist: path.join(staging, 'dist'), ...manifest }, null, 2));
   console.log(`Full candidate built: ${staging}/dist (${platform}/${arch})`);
   return staging;
