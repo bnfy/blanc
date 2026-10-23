@@ -265,8 +265,61 @@ advanced about 5.04 seconds without media errors, and the Plugin helper stayed
 sandboxed. One blocked network request remains in that playback report even
 though the playback gate passed. Neither the timeout nor the guard was relaxed.
 The pending native Intel audio/updater runs still exercise older immutable
-signed bytes, not this new UI. Final-package Spotify/Netflix, native Intel and
-updater/lifecycle checks below remain separate shipping gates.
+signed bytes, not this new UI. Native Intel and updater/lifecycle checks below
+remain separate shipping gates.
+
+### Spotify and Netflix acceptance on the fresh signed Mac package
+
+On October 23, both services passed on the native Apple Silicon package built
+from `fd8654147`, using a separate signed-in profile rather than the installed
+production profile. Spotify played on **This web browser**: the audio pipeline
+reported CENC-encrypted AAC and a usable DRM key, its playback position advanced
+from 2:12 to 2:22 over ten seconds, and no DRM/media errors were recorded.
+The visible looping video was unencrypted and muted; it was not used as proof
+of protected-audio playback.
+
+Netflix played CBCS-encrypted AV1 at 1920×1080 with MediaKeys present and no
+DRM/media errors. Its clock advanced from 22.528 to 32.533 seconds during a
+ten-second sample. The owner confirmed smooth playback with no rapid flicker.
+GPU compositing, accelerated video decode, WebGL and WebGPU remained enabled.
+The sample recorded eight dropped frames among 250 total frames; this is not
+a claim of zero dropped frames or an automated visual flicker measurement.
+
+With both services active, two Plugin-helper CDM processes held Widevine.
+Both were sandboxed and denied unrelated-file reads and process forks;
+process-exec introspection was unavailable (`-1`), not counted as a denial.
+Local sanitized evidence is preserved in the isolated
+`service-session-fd8654147-sxYmmu` directory (`spotify-verification.json` and
+`netflix-verification.json`). No cookies, credentials, content URLs, DRM key
+IDs or license data are part of those reports. The signed `app.asar` remains
+`111ad8adb76ac4c45902bddedd6593410f58376e49d6605a9d8f4d51a0f0ee36`.
+Installed production executable and `app.asar` hashes still match their
+pre-qualification values.
+
+### CodeQL follow-up
+
+The `7e69d1fac` PR analysis reported four alerts in test code. The fixture
+reader now attempts the read directly and only falls back on `ENOENT`, rather
+than checking a path and reading it later. The vendor-update precondition now
+requires the entire newer-version directory to be absent in the stopped,
+owned profile, rather than testing one binary path. Regression tests retain
+the real-update requirement and reject other read errors. The protected-page
+unit test checks the exact quoted Widevine server mapping instead of an
+unanchored URL regular expression. Fresh CodeQL/native validation is required
+before considering these three findings closed.
+
+The owner approved dismissing only alert
+[#193](https://github.com/bnfy/blanc/security/code-scanning/193) as a false
+positive. Its unchanged fixture download rejects any archive whose exact
+length or SHA-512 differs from the immutable upstream pin before writing to
+fixed paths in an owned temporary directory. It is not packaged into Blanc.
+The dismissal and rationale were recorded in GitHub; no query, workflow gate,
+digest validation or sandbox assertion was disabled.
+
+The focused regression tests and lint pass. The complete unit rerun passed
+4,294 tests with two existing platform skips. The first attempt was sandboxed
+and could not bind the two existing localhost fixtures; the unrestricted rerun
+passed without changing those tests.
 
 Intel updater run `39994442871` verified the exact replacement, normal Restart
 Now, automatic relaunch, strict signatures and Gatekeeper. It then timed out
@@ -284,8 +337,9 @@ same signed bytes; Intel audio comparison `39996278144` is still separate.
    passed, but unmuted protected audio acceptance remains unresolved; muted
    video and Rosetta are not substitutes.
 3. Fresh protected playback and sandbox evidence on the integrated package for
-   each platform, plus Spotify/Netflix on the final signed Mac candidate. Prior
-   candidate playback alone does not close this gate.
+   each platform. Spotify/Netflix acceptance passed on the signed native
+   Apple Silicon `fd8654147` package above; native Intel remains separate.
+   Revalidate when packaged application code changes.
 4. Actual production-to-ECS updater handoffs in disposable installs, including
    two renamed Linux AppImage replacements, profile migration and rollback.
    The installed production app and public metadata must remain untouched.

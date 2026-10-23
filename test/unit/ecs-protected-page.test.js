@@ -10,7 +10,7 @@ test('updater playback page extracts only the license platform enum', () => {
 test('updater playback probe is token-scoped and uses production Widevine', () => {
   assert.throws(() => protectedPage('../other'), /token/);
   const page = protectedPage('a'.repeat(32));
-  assert.match(page, /https:\/\/proxy\.widevine\.com\/proxy/);
+  assert(page.includes("'com.widevine.alpha':'https://proxy.widevine.com/proxy'"));
   assert.match(page, /encryptedEvents/);
   assert.match(page, /video\.mediaKeys/);
   assert.doesNotMatch(page, /proxy\.uat|--no-sandbox|request\.body|response\.data.*send/);

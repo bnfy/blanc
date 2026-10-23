@@ -15,6 +15,21 @@ function crxZip(bytes, pin) {
   assert.equal(bytes.readUInt32LE(offset), 0x04034b50);
   return bytes.subarray(offset);
 }
+async function readCdmBinary(directory) {
+  let binary = path.join(directory, '_platform_specific/linux_x64/libwidevinecdm.so');
+  try { return { binary, bytes: await fs.readFile(binary) }; }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    binary = path.join(directory, 'libwidevinecdm.so');
+    return { binary, bytes: await fs.readFile(binary) };
+  }
+}
+async function assertCdmVersionAbsent(profile, version) {
+  // Snapshot the owned, stopped profile's cache directory. Requiring the whole
+  // version directory to be absent is stronger than checking one binary path.
+  const versions = await fs.readdir(path.join(profile, 'WidevineCdm'));
+  assert(!versions.includes(version), 'new CDM must not exist before the vendor update');
+}
 async function prepareCdmFixtures(root) {
   const { extract } = await import('@electron-internal/extract-zip');
   const results = {};
@@ -26,9 +41,7 @@ async function prepareCdmFixtures(root) {
     await fs.mkdir(directory);
     await extract(zip, { dir: directory });
     assert.equal(JSON.parse(await fs.readFile(path.join(directory, 'manifest.json'), 'utf8')).version, pin.version);
-    let binary = path.join(directory, '_platform_specific/linux_x64/libwidevinecdm.so');
-    if (!(await fs.stat(binary).catch(() => null))) binary = path.join(directory, 'libwidevinecdm.so');
-    const bytes = await fs.readFile(binary);
+    const { binary, bytes } = await readCdmBinary(directory);
     assert.equal(bytes.subarray(0, 4).toString('hex'), '7f454c46', 'actual ELF CDM required');
     assert.equal(bytes[4], 2, '64-bit CDM');
     assert.equal(bytes.readUInt16LE(18), 62, 'x86-64 CDM');
@@ -61,4 +74,4 @@ async function stageCdm(profile, fixture) {
   }
   return binary;
 }
-module.exports = { pins, digest, crxZip, prepareCdmFixtures, stageCdm };
+module.exports = { pins, digest, crxZip, readCdmBinary, assertCdmVersionAbsent, prepareCdmFixtures, stageCdm };

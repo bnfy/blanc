@@ -11,7 +11,7 @@ import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 const require = createRequire(import.meta.url);
-const { prepareCdmFixtures, stageCdm, digest } = require('./support/cdm-lifecycle.cjs');
+const { prepareCdmFixtures, stageCdm, digest, assertCdmVersionAbsent } = require('./support/cdm-lifecycle.cjs');
 const { inspectLinuxCdm } = require('./ecs-linux-sandbox.cjs');
 const { protectedPage } = require('./support/ecs-protected-page.cjs');
 const { browserStartupReady } = require('./support/ecs-startup.cjs');
@@ -155,7 +155,7 @@ try{
   // Only the schedule changes. Real vendor URLs, CRX verification and the
   // sandbox stay enabled; no fabricated component-update response is used.
   const update=await checkpoint('vendor-update');
-  assert.equal(await fs.stat(currentBinary).catch(()=>null),null,'new CDM must not exist before the vendor update');
+  await assertCdmVersionAbsent(profile, fixtures.current.version);
   await start(['--component-updater=initial-delay=1']);
   update.downloaded=await wait('vendor update requiring restart',async()=>{const s=await status();return s.state==='restart-required'&&s.version===fixtures.current.version&&s;},120000);
   assert.equal(digest(await fs.readFile(currentBinary)),fixtures.current.sha256);
