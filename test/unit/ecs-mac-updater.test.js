@@ -3,9 +3,10 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-test('Mac ECS handoff requires a disposable native Intel host and the normal Restart Now action',()=>{
+test('Mac ECS handoff requires a disposable native Mac host and the normal Restart Now action',()=>{
  const source=fs.readFileSync(path.join(__dirname,'../desktop/ecs-production-updater-mac.mjs'),'utf8');
- assert.match(source,/assert.equal\(process.arch,'x64'\)/);
+ assert.match(source,/assert\(\['x64','arm64'\]\.includes\(process.arch\)\)/);
+ assert.match(source,/assert.equal\(process.env.RUNNER_ARCH,\{x64:'X64',arm64:'ARM64'\}\[process.arch\]/);
  assert.match(source,/assert.equal\(process.env.GITHUB_ACTIONS,'true'\)/);
  assert.match(source,/BLANC_ECS_DISPOSABLE_HOST/);
  assert.match(source,/click button "Restart Now" of sheet 1 of window windowIndex/);
@@ -19,6 +20,9 @@ test('Mac ECS handoff requires a disposable native Intel host and the normal Res
  assert.match(source,/updated probe navigation request/);
  assert.match(source,/keystroke "a" using command down/);
  assert.match(source,/if\(report.probeReady===false\)throw Error/);
+ assert.match(source,/if\(process.arch==='x64'\)run\('bash'/);
+ assert.match(source,/run\('xcrun',\['stapler','validate',app\]\)/);
+ assert.match(source,/run\('spctl',\['--assess','--type','execute','--verbose=4',app\]\)/);
  assert.doesNotMatch(source,/quitAndInstall\(|AUTO_INSTALL:\s*'1'|\bHOME:\s*|--no-sandbox/);
 });
 test('Mac updater intake is opt-in, pinned and cannot publish',()=>{

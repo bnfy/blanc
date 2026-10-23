@@ -349,7 +349,27 @@ to separate codec behavior from full Blanc/DRM integration. It requires no
 signing credentials, private transfer assets or device-setting changes.
 The expanded comparison passed focused tests, lint and the complete local
 unit suite (4,295 passed, two existing platform skips); native results remain
-pending.
+pending in [run 40004110864](https://github.com/bnfy/blanc/actions/runs/40004110864).
+
+The CodeQL fixes passed analysis on `920fe9cf9`. The real Linux lifecycle
+rerun [40003504389](https://github.com/bnfy/blanc/actions/runs/40003504389)
+also passed with the stronger no-current-version-directory precondition.
+First-install UI was available in 1446 ms. Fresh install, older baseline,
+real vendor update and controlled rollback each played unmuted CENC about
+4.9 seconds with no media errors, the exact expected binary digest and all
+kernel-sandbox checks intact. Offline startup took 1259/1292 ms, all tested
+file/worker boundaries remained closed, and temporary profiles were removed.
+
+The owner approved new Apple Silicon and Intel staging-only updater fixtures
+from application source `fd8654147`, with version `1.43.0-staging.2` and bundle
+build `1432` changed only in a disposable build copy. Signing/notarization is
+in progress; do not count these as completed handoffs. A second unpublished,
+hash-pinned draft transfer and cleanup were also approved, leaving the older
+queued Intel run's assets untouched. Fresh native acceptance and public
+baseline-to-ECS handoffs must run on disposable native Mac hosts, never the
+installed production profile. The test harness now admits both native Mac
+architectures, requires the matching GitHub runner architecture, and retains
+the actual Restart Now, signature, ticket and protected-successor checks.
 
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.

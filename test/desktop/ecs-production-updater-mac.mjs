@@ -1,4 +1,4 @@
-// Native Squirrel handoff in a disposable GitHub Intel account only.
+// Native Squirrel handoff in a disposable GitHub Mac account only.
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -9,7 +9,8 @@ import {spawn,execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const {protectedPage}=require('./support/ecs-protected-page.cjs');
-assert.equal(process.platform,'darwin');assert.equal(process.arch,'x64');
+assert.equal(process.platform,'darwin');assert(['x64','arm64'].includes(process.arch));
+assert.equal(process.env.RUNNER_ARCH,{x64:'X64',arm64:'ARM64'}[process.arch],'native runner architecture required');
 assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.BLANC_ECS_DISPOSABLE_HOST,'1');
 const [sourceApp,archive,targetVersion,targetAsarHash,evidence]=process.argv.slice(2);
 for(const file of [sourceApp,archive,evidence])assert(path.isAbsolute(file));
@@ -25,7 +26,7 @@ await fs.mkdir(profile,{recursive:true,mode:0o700});
 await fs.writeFile(path.join(profile,'ecs-handoff-owner'),marker);
 await fs.writeFile(path.join(profile,'settings.json'),JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
 const bytes=await fs.readFile(archive),sha512=crypto.createHash('sha512').update(bytes).digest('base64');
-const report={passed:false,targetVersion,sourceVersion:null,nativeRestartNow:false,automaticRelaunch:false,publicFeed:false,probeRequests:0};
+const report={passed:false,arch:process.arch,targetVersion,sourceVersion:null,nativeRestartNow:false,automaticRelaunch:false,publicFeed:false,probeRequests:0};
 let downloaded=false,ready=false,playback=null,child,successorPid;
 const server=http.createServer(async(request,response)=>{
  const url=new URL(request.url,'http://127.0.0.1');
@@ -77,7 +78,9 @@ end tell`;
  successorPid=await wait('automatic updated process',()=>processIds().find(pid=>pid!==child.pid));
  report.automaticRelaunch=true;
  assert.equal(run('plutil',['-extract','CFBundleShortVersionString','raw',path.join(app,'Contents/Info.plist')]),targetVersion);
- run('codesign',['--verify','--deep','--strict',app]);run('bash',[path.resolve('scripts/ci-intel-apple-tickets.sh'),app]);
+ run('codesign',['--verify','--deep','--strict',app]);
+ if(process.arch==='x64')run('bash',[path.resolve('scripts/ci-intel-apple-tickets.sh'),app]);
+ else{run('xcrun',['stapler','validate',app]);run('spctl',['--assess','--type','execute','--verbose=4',app]);}
  await wait('actual Widevine component installation',async()=>{
   for(const version of await fs.readdir(path.join(profile,'WidevineCdm')).catch(()=>[])){
    if(/^\d+(?:\.\d+){3}$/.test(version)&&await fs.stat(path.join(profile,'WidevineCdm',version,'manifest.json')).catch(()=>null))return true;
