@@ -1175,6 +1175,8 @@ runtime in Electron; any public claim about the fork; Decision 2 itself.
 
 ## 7. Kill criteria that apply during this tranche
 
+October 23 L7 repair inventory: **62 upstream files / 162 hunks**, recorded under the owner's standing authorization to update the ceiling without another request. The counter uses 62/162; counting rules, dependency checks, incremental-build guard and latency/Electron restrictions are unchanged. The new generated research-policy header is accounted separately as a copied Blanc module.
+
 **Patch budget, amended October 22 under standing owner authorization:** **61 upstream files
 and 150 hunks**, counted as follows. A *file* is an existing upstream file
 that `prepare.mjs` (or, later, the `patches/` set) modifies; Blanc-owned
