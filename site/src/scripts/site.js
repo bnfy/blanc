@@ -202,6 +202,13 @@ try {
     window.gtag('consent', 'default', { analytics_storage: 'granted' });
     window.gtag('js', new Date());
     window.gtag('config', GA_ID);
+    // Record only the current consented page, never replay earlier visits.
+    window.gtag('event', 'landing_page_view', {
+      source_page: document.body.dataset.page || location.pathname,
+    });
+    if (location.pathname.replace(/\/$/, '') === '/download') {
+      window.gtag('event', 'download_page_view', { source_page: '/download' });
+    }
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
@@ -268,9 +275,17 @@ try {
   });
   document.addEventListener('click', event => {
     if (event.defaultPrevented || !allowed() || typeof window.gtag !== 'function') return;
-    const target = event.target.closest('[data-track]');
+    const target = event.target.closest('[data-track], a[href]');
     if (!target) return;
     let eventName = target.dataset.track;
+    let feature = target.dataset.feature;
+    if (!eventName) {
+      let url;
+      try { url = new URL(target.href, location.href); } catch { return; }
+      if (url.origin !== location.origin || !/^\/features\/[a-z0-9-]+\/?$/.test(url.pathname)) return;
+      eventName = 'feature_cta_click';
+      feature = url.pathname.split('/')[2];
+    }
     let platform = target.dataset.platform;
     if (eventName === 'download_click') {
       // The same CTA can open /download on Mac/mobile or request a Windows/
@@ -291,7 +306,7 @@ try {
       source_page: document.body.dataset.page || location.pathname,
       cta_position: target.dataset.ctaPosition || undefined,
       platform: platform || undefined,
-      feature: target.dataset.feature || undefined,
+      feature: feature || undefined,
     });
   });
   try { loadMeasurement(); } catch { /* Measurement never blocks browsing. */ }

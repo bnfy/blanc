@@ -222,7 +222,7 @@ test('homepage navigation is not an installer conversion and remains consent gat
       href: new URL(attributes.href, 'https://blancbrowser.com').href,
       dataset: Object.fromEntries(Object.entries(attributes).filter(([key]) => key.startsWith('data-')).map(([key, value]) => [key.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), value])),
       closest(selector) {
-        if (selector === '[data-track]') return attributes['data-track'] ? this : null;
+        if (selector === '[data-track], a[href]') return this;
         return /\bdata-download-cta\b/.test(tag) ? this : null;
       },
     };
@@ -239,6 +239,7 @@ test('homepage navigation is not an installer conversion and remains consent gat
     assert.ok(anchor, `${position}: missing conversion hook`);
     for (const consent of [undefined, 'denied', 'granted']) {
       const p = page(consent);
+      if (p.context.window.dataLayer) p.context.window.dataLayer.length = 0;
       p.context.document.body.dataset.page = 'home';
       p.click(anchor);
       const events = Array.from(p.context.window.dataLayer || []).filter(item => item[0] === 'event');
@@ -257,6 +258,7 @@ test('only supported same-origin installer requests dispatch download_click', ()
   for (const platform of ['mac-arm64', 'mac-x64', 'win', 'linux']) {
     const p = page('granted');
     p.links[0].href = `https://blancbrowser.com/dl/${platform}?keep=yes`;
+    p.context.window.dataLayer.length = 0;
     p.click();
     const events = Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event');
     assert.equal(events.length, 1);
@@ -266,6 +268,7 @@ test('only supported same-origin installer requests dispatch download_click', ()
   for (const href of ['https://example.com/dl/win', '/dl/mac', '/dl/unknown', '/privacy', '/dl/win/extra']) {
     const p = page('granted');
     p.links[0].href = href;
+    p.context.window.dataLayer.length = 0;
     p.click();
     assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0, href);
   }
@@ -274,6 +277,7 @@ test('only supported same-origin installer requests dispatch download_click', ()
 test('direct Windows and Linux hero requests count, canceled navigation does not', () => {
   for (const userAgent of ['Windows', 'Linux']) {
     const p = page('granted', { userAgent });
+    p.context.window.dataLayer.length = 0;
     p.click(p.ctas[0], { defaultPrevented: true });
     assert.equal(Array.from(p.context.window.dataLayer).filter(item => item[0] === 'event').length, 0);
     p.click(p.ctas[0]);
@@ -281,4 +285,20 @@ test('direct Windows and Linux hero requests count, canceled navigation does not
     assert.equal(events.length, 1);
     assert.equal(events[0][1], 'download_click');
   }
+});
+
+test('funnel views start once after Allow and feature links respect withdrawal', () => {
+  const p = page();
+  assert.equal(p.context.window.dataLayer, undefined);
+  p.allow();
+  const names = () => Array.from(p.context.window.dataLayer || []).filter(item => item[0] === 'event').map(item => item[1]);
+  assert.deepEqual(names(), ['landing_page_view', 'download_page_view']);
+  p.allow();
+  assert.deepEqual(names(), ['landing_page_view', 'download_page_view']);
+  const link = { href: '/features/glance', dataset: {}, closest() { return this; } };
+  p.click(link);
+  assert.equal(names().at(-1), 'feature_cta_click');
+  p.deny();
+  p.click(link);
+  assert.deepEqual(names(), []);
 });
