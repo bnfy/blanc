@@ -7,7 +7,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const http = require('node:http');
 const { spawn, execFileSync } = require('node:child_process');
-const { connect, targets, waitFor } = require('./ecs-local-html-smoke.cjs');
+const { waitFor } = require('./ecs-local-html-smoke.cjs');
 const { updatedPlayback } = require('./ecs-updated-playback.cjs');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const hash = async file => crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
@@ -87,18 +87,13 @@ async function main() {
     for (let index = 1; index < assets.length; index++) {
       const previous = assets[index - 1], next = assets[index]; offered = next;
       const handoff = { from: previous.version, to: next.version }; report.handoffs.push(handoff);
-      if (index > 1) {
-        const chrome = await connect((await targets(55822)).find(t => t.url === 'blanc-chrome://index/'));
-        try { await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/')); } finally { chrome.close(); }
-        const settings = await connect(await waitFor(async () => (await targets(55822)).find(t => t.url.startsWith('blanc://settings/')), 'settings'));
-        try { await waitFor(() => settings.evaluate(() => !!window.bowserPages?.settings?.checkForUpdates), 'settings bridge');
-          void settings.evaluate(() => window.bowserPages.settings.checkForUpdates()).catch(() => {});
-        } finally { await delay(1000); settings.close(); }
-      }
       await waitFor(() => report.requests.some(r => r.path === `/${next.name}` && r.complete), 'real staged download', 90000);
       handoff.downloadVerified = true;
       const prompt = await waitFor(promptWindow, 'Restart Now prompt', 20000);
       await fs.unlink(stateFile); const oldPid = currentPid;
+      // The replacement's ordinary startup check discovers the following
+      // staged update. No private updater API or forced install is invoked.
+      if (assets[index + 1]) offered = assets[index + 1];
       execFileSync('xdotool', ['windowfocus', prompt]); execFileSync('xdotool', ['key', '--clearmodifiers', 'Return']);
       handoff.restartNowAccepted = true;
       await waitFor(() => !alive(oldPid), 'old candidate exit', 30000); handoff.oldExited = true;

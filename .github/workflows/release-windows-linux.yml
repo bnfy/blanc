@@ -841,6 +841,12 @@ jobs:
         shell: bash
         run: |
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json output/ecs-third-build.json
+      - name: Linux final successor local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync("output/ecs-third-build.json")).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/successor-local-html.json
       - name: Diagnose aligned native and session profile
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
         shell: bash

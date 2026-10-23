@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
         if (fd < 0) throw std::runtime_error("cannot initialize candidate profile");
         const char marker[] = "{\"candidate\":true}";
         const auto written = write(fd, marker, sizeof(marker) - 1); close(fd);
-        if (written != sizeof(marker) - 1) throw std::runtime_error("cannot mark candidate profile");
+        if (written != static_cast<ssize_t>(sizeof(marker) - 1)) throw std::runtime_error("cannot mark candidate profile");
       }
     }
     struct stat info{};
