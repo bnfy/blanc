@@ -43,6 +43,23 @@ const updaterMode = require('./ecs-updater-policy.cjs').applyCandidateUpdaterPol
 });
 app.setAsDefaultProtocolClient = () => false;
 const stateFile = path.join(profile, 'ecs-runtime.json');
+if (process.platform === 'linux' && process.env.BLANC_ECS_FULL_SMOKE === '1') {
+  // Candidate-only diagnostics: preserve the real updater's argv/environment
+  // and capture its otherwise-discarded native startup errors.
+  const updater = require('electron-updater').autoUpdater;
+  const originalSpawn = updater.spawnLog.bind(updater);
+  updater.spawnLog = function (command, args, env, stdio) {
+    const fd = fs.openSync(path.join(profile, 'ecs-updater-child.log'), 'a', 0o600);
+    fs.writeFileSync(path.join(profile, 'ecs-updater-launch.json'), JSON.stringify({
+      args, appDirExists: fs.existsSync(env.APPDIR || ''),
+      exitAfterInstall: env.APPIMAGE_EXIT_AFTER_INSTALL || null,
+      silentInstall: env.APPIMAGE_SILENT_INSTALL || null,
+      preloadExists: fs.existsSync(env.LD_PRELOAD || ''),
+    }));
+    try { return originalSpawn(command, args, env, stdio || ['ignore', fd, fd]); }
+    finally { fs.closeSync(fd); }
+  };
+}
 const state = { candidate: true, pid: process.pid, version: metadata.version, electron: process.versions.electron, chrome: process.versions.chrome,
   profile, productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
 const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);

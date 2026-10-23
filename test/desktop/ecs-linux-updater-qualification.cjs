@@ -98,6 +98,8 @@ async function main() {
         report.passed = true;
       } finally {
         report.logs = logs;
+        report.updaterLaunch = await fs.readFile(path.join(profile, 'ecs-updater-launch.json'), 'utf8').then(JSON.parse, () => null);
+        report.childLog = await fs.readFile(path.join(profile, 'ecs-updater-child.log'), 'utf8').then(value => value.slice(-8000), () => null);
         if (child.exitCode === null || newPid) {
           await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
           await Promise.race([exited, delay(5000)]);
