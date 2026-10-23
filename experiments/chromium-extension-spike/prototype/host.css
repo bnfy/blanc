@@ -28,8 +28,8 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #overlay[data-mode="find"] { top: 68px; height: 160px; }
 
 #splitHeaders { position:absolute; top:68px; right:0; height:30px; display:grid; background:var(--header-fallback); color:CanvasText; }
-.split-pane-header { display:flex; min-width:0; border-bottom:1px solid #8885; border-right:1px solid #8885; }
-.split-pane-header[data-active="true"] { border-bottom:2px solid #ad8241; }
+.split-pane-header { display:flex; min-width:0; border:0; }
+
 .split-pane-header button { font:12px system-ui; color:inherit; background:transparent; border:0; padding:0 8px; cursor:pointer; }
 .split-pane-header .split-pane-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; }
 .split-pane-header button:focus-visible { outline:2px solid #ad8241; outline-offset:-2px; }
@@ -47,11 +47,13 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #splitPaneMenu button:hover, #splitPaneMenu button:focus { background:#ad824130; outline:2px solid #ad8241; outline-offset:-2px; }
 
 #splitHeaders { inset:0; height:100%; display:block; background:transparent; pointer-events:none; }
-.split-pane-header { box-sizing:border-box; background:var(--header-fallback); pointer-events:auto; }
+.split-pane-header { box-sizing:border-box; --split-header-bg:var(--header-fallback); background:var(--split-header-bg); pointer-events:auto; }
 #splitHeaders[data-private="true"] { background:transparent; }
-#splitHeaders[data-private="true"] .split-pane-header { background:#0a0a0a; }
+#splitHeaders[data-private="true"] .split-pane-header { --split-header-bg:#0a0a0a; }
 
 :root[data-store-theme] #extensionsPanel { background:var(--surface); color:var(--text); --extension-muted:var(--text-dim); --extension-border:var(--border); }
 :root[data-store-theme] .extension-row[aria-selected="true"] { background:var(--accent-dim); }
 :root[data-store-theme] .extensions-footer button { color:var(--text); }
-:root[data-store-theme] .split-pane-header, :root[data-store-theme] #splitPaneMenu { background:var(--surface); color:var(--text); }
+:root[data-store-theme] .split-pane-header { --split-header-bg:var(--surface); color:var(--text); }
+:root[data-store-theme] #splitPaneMenu { background:var(--surface); color:var(--text); }
+#splitHeaders .split-pane-header[data-active="true"] { background:color-mix(in srgb, var(--split-header-bg) 94%, currentColor 6%); }

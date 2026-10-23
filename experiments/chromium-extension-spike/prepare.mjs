@@ -783,6 +783,20 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
   { anchor: '  layouts.host_size = gfx::Size(width, height);\n  return layouts;',
     replacement: '  layouts.host_size = gfx::Size(width, height);\n  blanc_prototype::AdjustSplitLayout(this, &layouts);\n  return layouts;',
     present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
+  { anchor: 'void MultiContentsView::UpdateContentsBorderAndOverlay() {\n  const bool is_in_split = IsInSplitView();',
+    replacement: `void MultiContentsView::UpdateContentsBorderAndOverlay() {
+  // Persistent Island panes use their own headers and visible keyboard focus.
+  // Do not stack Chromium's rounded page outlines beneath those headers.
+  if (blanc_prototype::IsEnabled() && IsInSplitView() &&
+      blanc_prototype::IsPersistentSplitTab(GetActiveContentsView()->web_contents())) {
+    for (auto& container : contents_container_views_) {
+      container->SetRoundedCorners(gfx::RoundedCornersF());
+      container->UpdateBorderAndOverlay(false, false, false);
+    }
+    return;
+  }
+  const bool is_in_split = IsInSplitView();`,
+    present: "// Do not stack Chromium's rounded page outlines beneath those headers." },
 ]);
 
 preparePendingNavigation(edit);
