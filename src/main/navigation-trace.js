@@ -10,9 +10,11 @@
 // - BLANC_NAVIGATION_TRACE_HOSTS: a comma-separated list of fixture hostnames.
 // Events about any other host, and any event for a private tab, are dropped.
 // Fields are allowlisted; URLs are reduced to host, never path, query or page
-// content. The file starts with a trace-start marker and ends with a
-// trace-truncated marker if the per-process cap is reached, so a reader can
-// tell complete evidence from partial evidence.
+// content. Completeness is provable from the file alone: every line carries a
+// sequence number; trace-start is written when tracing is enabled; on normal
+// exit trace-end records how many event lines were written and how many writes
+// failed; trace-truncated marks the per-process cap. A crash or a failed write
+// leaves the trace visibly incomplete.
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -38,7 +40,7 @@ function fixtureHostname(url) {
   }
 }
 
-function createNavigationTrace(env = process.env, { now = () => Date.now(), write } = {}) {
+function createNavigationTrace(env = process.env, { now = () => Date.now(), write, onExit = handler => process.once('exit', handler) } = {}) {
   const target = env.BLANC_NAVIGATION_TRACE;
   const hosts = new Set(String(env.BLANC_NAVIGATION_TRACE_HOSTS || '').split(',')
     .map(host => host.trim().toLowerCase()).filter(host => /^[a-z0-9.-]+$/.test(host)));
@@ -46,16 +48,22 @@ function createNavigationTrace(env = process.env, { now = () => Date.now(), writ
     return { enabled: false, record() {} };
   }
   let fd = null;
-  let count = 0;
-  let started = false;
+  let seq = 0;
+  let written = 0;
+  let failed = 0;
+  let accepted = 0;
   let truncated = false;
   const sink = write || (line => {
     if (fd === null) fd = fs.openSync(target, 'wx', 0o600);
     fs.writeSync(fd, line);
   });
   const emit = entry => {
-    try { sink(`${JSON.stringify(entry)}\n`); } catch { /* never affects navigation */ }
+    try { sink(`${JSON.stringify({ seq: seq++, ...entry })}\n`); return true; } catch { return false; }
   };
+  emit({ t: now(), event: 'trace-start', maxEvents: MAX_EVENTS, hosts: [...hosts].sort() });
+  try {
+    onExit(() => { emit({ t: now(), event: 'trace-end', written, failed, truncated }); });
+  } catch { /* without an end marker the trace reads as incomplete */ }
   return {
     enabled: true,
     record(event, fields = {}) {
@@ -63,25 +71,21 @@ function createNavigationTrace(env = process.env, { now = () => Date.now(), writ
       if (fields.private === true) return;
       if (typeof fields.url === 'string' && !hosts.has(fixtureHostname(fields.url))) return;
       try {
-        if (!started) {
-          started = true;
-          emit({ t: now(), event: 'trace-start', maxEvents: MAX_EVENTS, hosts: [...hosts].sort() });
-        }
-        if (count >= MAX_EVENTS) {
+        if (accepted >= MAX_EVENTS) {
           truncated = true;
-          emit({ t: now(), event: 'trace-truncated', count });
+          emit({ t: now(), event: 'trace-truncated', count: accepted });
           return;
         }
-        count += 1;
+        accepted += 1;
         const entry = { t: now(), event };
         if (typeof fields.url === 'string') entry.host = traceHost(fields.url);
         for (const key of FIELDS) {
           const value = fields[key];
           if (['string', 'number', 'boolean'].includes(typeof value)) entry[key] = value;
         }
-        emit(entry);
+        if (emit(entry)) written += 1; else failed += 1;
       } catch {
-        // Diagnostics never affect navigation or blocking.
+        failed += 1;
       }
     },
   };

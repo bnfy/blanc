@@ -30,12 +30,17 @@ suppression requires an active gate. This reproduces the mechanism; whether run
 `40038238250` took this path needs the traced validation. No fix or workaround
 has been applied. The trace runs only when `BLANC_NAVIGATION_TRACE` (a new
 absolute file) and `BLANC_NAVIGATION_TRACE_HOSTS` (fixture hostnames) are both
-set; other hosts and private tabs are never recorded. Coordinator records
+set; other hosts, private tabs and (at the coordinator, which cannot see the
+tab) every non-persistent session are never recorded. Every line carries a
+sequence number, `trace-start` is written when tracing is enabled, and normal
+exit writes `trace-end` with the written and failed counts; the shared reader
+(`test/desktop/support/navigation-trace-reader.cjs`) calls a trace complete only
+when both markers are present, the sequence is unbroken, the counts reconcile
+and no write failed, so a crash or a failed write reads as incomplete. Coordinator records
 cover main-frame cancellations at every callback stage with Chromium's request
 ID; gate and failure records carry the tab's navigation generation. The file
 starts with a `trace-start` marker and ends with `trace-truncated` at its cap,
-and the DRM smoke reports each launch's trace as complete only with the start
-marker, no malformed lines, no cap and no retained-event truncation. A traced
+and the DRM smoke reports each launch's trace with that reader. A traced
 local repeat linked the sequence by request and generation: request 50 refused
 and queued at generation 1 (+0 ms), replayed (+23 ms), and a `-20` failure
 during the replayed generation 2 with the gate inactive (+99 ms). Electron's
