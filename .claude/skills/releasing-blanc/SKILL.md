@@ -170,7 +170,9 @@ before another release.
   `BLANC_RELEASE_RESUME_FROM=<step>` and
   `BLANC_RELEASE_RESUME_REASON='<failure and passing rerun>'`. Steps are
   `fuses`, `blocker-payloads`, `compliance`, `first-run`, `regressions`,
-  `workspaces`, `favicons-primary`, `favicons-additional` and `migration`.
+  `workspaces`, `favicons-primary`, `favicons-additional`, `migration` and
+  `ecs-acceptance` (ECS releases only: installed uBO, file isolation and
+  protected playback on the signed app).
   This reuses the stamped build instead of rebuilding and re-notarizing.
   Press-gate and build failures can't be resumed this way.
 - **Before the tag push, real bug:** stop and ask the user. Fix it in its own

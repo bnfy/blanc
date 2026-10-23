@@ -66,6 +66,17 @@ test('the Windows release job has no new signing access; the Linux job builds an
   assert.equal(linux.steps.find(step => step.name === 'Require uBlock distribution clearance for public release').if, "${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}");
   assert.match(workflow.jobs['linux-sandbox'].if, /inputs\.runtime != 'ecs'/);
   assert.equal(linux.steps.find(step => step.name === 'Upload to release').if, "${{ inputs.mode == 'release' }}");
+  // The exact public package's installed uBO, file isolation and protected
+  // playback are checked before any release upload.
+  const lnames = linux.steps.map(step => step.name);
+  const upload = lnames.indexOf('Upload to release');
+  const ubo = lnames.indexOf('Verify candidate uBO installed AppImage controls and restart');
+  const drm = lnames.indexOf('Verify public ECS file isolation and protected playback');
+  assert(ubo >= 0 && drm >= 0 && ubo < upload && drm < upload);
+  assert.match(linux.steps[ubo].if, /inputs\.runtime == 'ecs'/);
+  assert.equal(linux.steps[drm].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
+  assert.match(linux.steps[drm].run, /ecs-production-drm-smoke\.mjs/);
+  assert.match(linux.steps[drm].run, /ecs-production-smoke\.mjs/);
 });
 
 test('release.sh refuses an ECS release the native workflow cannot build before tagging', () => {

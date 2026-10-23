@@ -369,7 +369,7 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
   // Only the packaged checks between the build and the tag push are resumable,
   // each behind should_run, and nothing from the tag push onward is gated.
   const steps = releaseScript.match(/^RESUME_STEPS=\(([^)]*)\)/m)[1].split(/\s+/);
-  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration']);
+  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration', 'ecs-acceptance']);
   let previous = fullBranch;
   for (const step of steps) {
     const gate = at(`if should_run ${step}; then`);
@@ -399,4 +399,14 @@ test('an ECS release is opt-in, needs the EVS account and the reviewed uBO recor
   assert.match(releaseScript, /\$\{ECS_FUSE_ARGS\[@\]\+"\$\{ECS_FUSE_ARGS\[@\]\}"\}/);
   // The internal uBO qualification build can never enter the pipeline.
   assert.match(releaseScript, /Internal uBlock validation packages cannot enter the release pipeline/);
+});
+
+test('an ECS release checks installed uBO, file isolation and protected playback on the signed Mac app before tagging', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  const block = releaseScript.slice(releaseScript.indexOf('if should_run ecs-acceptance; then'), releaseScript.indexOf('git push origin "refs/tags/$TAG"'));
+  assert.match(block, /if \[ "\$RELEASE_RUNTIME" = ecs \]; then/);
+  for (const check of ['support/installed-mac-native-quit.mjs', 'ecs-production-smoke.mjs', 'ecs-local-html-smoke.cjs', 'ecs-production-drm-smoke.mjs']) assert.match(block, new RegExp(check.replace('.', '\\.')));
+  // The uBO suite waits for a native Quit; only its wrapper sends one.
+  assert.doesNotMatch(block, /node test\/desktop\/packaged-ublock-acceptance\.mjs/);
+  assert.equal((block.match(/BLANC_UPDATE_CHANNEL=ecs-qualification-disabled/g) || []).length, 3);
 });

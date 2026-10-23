@@ -336,7 +336,7 @@ fi
 # resumed; every preflight above still runs. The build stamp written after a
 # successful build must match this commit, version and Mac architectures, and
 # every stamped file in dist/ must still match its recorded SHA-256.
-RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration)
+RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration ecs-acceptance)
 RESUME_FROM="${BLANC_RELEASE_RESUME_FROM:-}"
 BUILD_STAMP="dist/.release-build-stamp"
 BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV runtime=$RELEASE_RUNTIME"
@@ -514,6 +514,28 @@ if should_run migration; then
     npm run test:packaged:migration
   rm -rf "$MIGRATION_DIR"
   trap - EXIT
+fi
+
+if should_run ecs-acceptance; then
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    # The public package enables uBO through its reviewed ECS record and must
+    # play protected media; check both on the exact signed app before tagging.
+    # The uBO suite ends with a real native Quit, which its wrapper sends.
+    echo "==> Public ECS acceptance: uBO provider and restarts, file isolation, protected playback"
+    ECS_APP="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app"
+    mkdir -p output/ecs-production
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-installed-mac.json" \
+      node test/desktop/support/installed-mac-native-quit.mjs
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      node test/desktop/ecs-production-smoke.mjs
+    node test/desktop/ecs-local-html-smoke.cjs "$ECS_APP" output/ecs-production/local-html-mac.json
+    BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
+      BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
+      node test/desktop/ecs-production-drm-smoke.mjs
+  fi
 fi
 
 # A draft release's requested tag is not exposed as a Git ref. Publish the

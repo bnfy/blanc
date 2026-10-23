@@ -859,8 +859,11 @@ jobs:
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
+      # Public ECS packages enable uBO through the reviewed ECS runtime
+      # record, so the installed provider, controls and restarts are checked
+      # on the exact package before any upload.
       - name: Verify candidate uBO installed AppImage controls and restart
-        if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
+        if: ${{ (inputs.mode == 'validation' && inputs.ublock_candidate) || inputs.runtime == 'ecs' }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
@@ -885,6 +888,28 @@ jobs:
             BLANC_PACKAGED_ASAR="$UBLOCK_EXTRACT/squashfs-root/resources/app.asar" \
             BLANC_UBLOCK_EVIDENCE="$UBLOCK_EVIDENCE" \
             dbus-run-session -- xvfb-run -a node "$UBLOCK_PROBE"
+
+      - name: Verify public ECS file isolation and protected playback
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
+
+      - name: Preserve public ECS acceptance evidence
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Linux-public-ECS-evidence-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            output/ecs-production/*.json
+            dist/ublock-installed-linux.json
 
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
