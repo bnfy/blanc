@@ -9,6 +9,12 @@ that source update and do not by themselves qualify the merged result.
 
 ## Current gate status — October 23
 
+**Owner waiver (22:06 UTC):** the runtime security (Node 24.22.0) and native
+source/redistribution gates are waived for shipping today, with the missing
+evidence, accepted risk and owed follow-up recorded in
+[the runtime review](ecs-runtime-security-review-2026-10-23.md). Waived is not
+passed; every other gate below still applies.
+
 Newest evidence supersedes the historical running/pending notes below:
 
 - **Intel audio now passes after the normal OS permission flow.** In

@@ -1,5 +1,31 @@
 # ECS runtime security review — October 23, 2026
 
+## Owner waiver — October 23, 2026, 22:06 UTC
+
+**R1 and R2 are waived by the owner, not passed.** In chat, after being shown
+that no supported ECS build carries Node 24.22.1 and that the native-source
+review cannot be completed today, the owner selected "Waive and ship today":
+waive in writing the Node 24.22.0 TLS defects and the native source review,
+record the risk, wire and validate the ECS release path, and publish only after
+the press gate passes and the owner signs off on What's New.
+
+- **Missing evidence:** a vendor runtime with the Node 24.22.1 fixes (none
+  exists: Electron pins it only on the unreleased `44-x-y` head; castLabs'
+  newest 44.x is `44.9.3+wvcus`), dynamic checks of the other October Node
+  advisories, and the exact native source or backport manifest with its
+  redistribution notices.
+- **Accepted risk:** the shipped main process embeds Node 24.22.0, whose
+  `tls.checkServerIdentity` accepts non-canonical IP spellings against numeric
+  DNS SANs, plus the untested HTTP agent, DNS, permission-model, crypto and
+  Brotli advisories fixed in 24.22.1. Known Blanc Node-TLS use is narrow (the
+  canonicalizing favicon transport); no exploitable Blanc path is claimed or
+  ruled out. The vendor's native changes are unaudited.
+- **Conditions:** no TLS validation is weakened or patched around; the
+  regression probe stays in the evidence; every other release gate still runs.
+- **Follow-up owed:** when Electron 44.9.4+ and its `+wvcus` release exist, pin
+  all four archives, rerun the TLS probe, rebuild, sign and requalify, and ship
+  that as the next release. This waiver covers this runtime pin only.
+
 ## Decision
 
 **Not cleared for release.** The selected ECS engine reproduces upstream Node
