@@ -231,7 +231,7 @@
     },
     {
       "file": "src/main/drm-support.js",
-      "sha256": "9b50506fcceb58e06a93b20911baf9a05d1513e84eeeecde741df44e6e69fa62",
+      "sha256": "e6881ec845c9aa9870c2a7c5e8e79113899417566bcb44f08ac6a93651482eae",
       "literalChannels": [
         "file",
         "session-created",
@@ -295,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "faba4f6677fc4404ce2bb1f645c129690abbb204f7485c19f479b25d1fca0035",
+      "sha256": "e251f319176adca84cf54e99b9b922d4c87b5640fe9fbe5bd8a06c1bd525b238",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

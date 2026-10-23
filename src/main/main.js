@@ -6329,7 +6329,7 @@ let isQuitting = false;
 // pages it lost. A new main window clears it: Blanc did not quit after all.
 let sessionHeldForQuit = false;
 let sessionPersistenceSuspended = false;
-const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
+const restartApp = createAppRestarter({ app, webContents, beforeRelaunch: drmSupport.beforeRelaunch, onCancelled: () => {
   isQuitting = false;
   for (const runtime of windowRuntimes.all()) {
     if (runtime.window && !runtime.window.isDestroyed()) { runtime.closing = false; runtime.window.show(); }

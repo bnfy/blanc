@@ -72,3 +72,15 @@ test('Linux updater strips the old image environment before starting its success
   assert.deepEqual(calls[0], ['/new/renamed-image', ['--arg'], { PATH: '/usr/bin', KEEP: 'yes' }, undefined]);
   assert.throws(() => updater.spawnLog('relative', [], {}), /absolute AppImage/);
 });
+test('only ECS Linux relaunch removes old mount paths and preserves profile identity', () => {
+  const f = fixture();
+  const env = { BLANC_ECS_LAUNCHER_ROOT: '/old/image', BLANC_ECS_FULL_PROFILE: '/fixture/profile',
+    APPIMAGE: '/path/Blanc', APPDIR: '/old/image', LD_LIBRARY_PATH: '/old/image/lib', PATH: '/old/image/bin:/usr/bin' };
+  const support = createDrmSupport({ ...f, platform: 'linux', env, updater: { spawnLog() {} } });
+  assert.equal(env.APPDIR, '/old/image');
+  support.beforeRelaunch();
+  assert.equal(env.APPDIR, undefined);
+  assert.equal(env.LD_LIBRARY_PATH, undefined);
+  assert.equal(env.PATH, '/usr/bin');
+  assert.equal(env.BLANC_ECS_FULL_PROFILE, '/fixture/profile');
+});

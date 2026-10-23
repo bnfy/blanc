@@ -53,7 +53,8 @@ Windows signing uses the `ecs-signing` GitHub environment. Its two EVS secrets
 were explicitly authorized by the owner on October 23. Required reviewer is
 `bnfy`, administrator bypass is disabled, and the only permitted branch is
 `codex/ecs-production-integration`. Each run needs the owner's environment
-approval. Do not approve that gate on the owner's behalf. Authentication-cache
+approval. Submit an approval on the owner's behalf only when they explicitly
+authorize that exact run. Authentication-cache
 refreshes exist only on the ephemeral runner; if the saved refresh token expires,
 refresh the approved secret through the same protected procedure.
 
@@ -72,6 +73,11 @@ refresh the approved secret through the same protected procedure.
   denied, HTTP/STUN canaries received zero requests, and temporary profiles were
   removed. An initial harness attempt incorrectly used command-line file input
   on Mac; it was corrected to exercise the existing OS Open File boundary.
+- The first Linux integration CI run built successfully and passed the native
+  launcher/profile unit tests, but provider restart failed. Its normal app
+  relaunch retained the old AppImage loader environment; the follow-up scopes
+  cleanup to ECS and to irreversible quit, retaining the captured outer image.
+  Fresh native evidence is required before considering that fix verified.
 - Earlier main-based candidate Spotify/Netflix results remain regression
   references, not proof for this newly integrated package.
 

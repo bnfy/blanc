@@ -70,6 +70,12 @@ function createDrmSupport({ app, session, BrowserWindow, components, metadata,
   });
   app.once('will-quit', () => processEvents.removeListener('unhandledRejection', onRejection));
   return { enabled: true, ready, inspect: async () => ({ ...state, ...await drm.inspect() }),
+    beforeRelaunch() {
+      if (platform !== 'linux') return;
+      const clean = cleanRelaunchEnvironment(env);
+      for (const key of Object.keys(env)) if (!Object.hasOwn(clean, key)) delete env[key];
+      Object.assign(env, clean);
+    },
     async openLocalFiles(paths) {
       await ready;
       for (const file of paths || []) await openIsolatedLocalHtml({ BrowserWindow, session, title: app.getName() }, file);
