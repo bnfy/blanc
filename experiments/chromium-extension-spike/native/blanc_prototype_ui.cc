@@ -3759,6 +3759,10 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
 }
+bool HasSplitPresentation(content::WebContents* tab) {
+  // Presentation markers also exist in private windows; this performs no I/O.
+  return IsEnabled() && tab && tab->GetUserData(kPersistentSplitKey);
+}
 std::string TabIdentity(content::WebContents* tab) {
   if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return "";
   auto* data = static_cast<TabIdentityData*>(tab->GetUserData(kTabIdentityKey));

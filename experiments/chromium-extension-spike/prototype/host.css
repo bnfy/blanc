@@ -34,7 +34,7 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #splitHeaders[data-private="true"] { --split-bg:#0a0a0a; --split-line:#333; --split-ink:#9c9c9c; }
 .split-pane-frame, .split-pane-header { position:absolute; box-sizing:border-box; --split-edge:var(--split-line); }
 .split-pane-frame[data-active="true"], .split-pane-header[data-active="true"] { --split-edge:var(--split-ink); }
-.split-pane-frame { border:1px solid var(--split-edge); border-radius:8px; pointer-events:none; transition:border-color 120ms ease; }
+.split-pane-frame { border:1px solid var(--split-edge); border-radius:8px; box-shadow:0 0 0 8px var(--split-bg); pointer-events:none; transition:border-color 120ms ease; }
 .split-pane-header { color:var(--split-ink); pointer-events:none; font:12px "Instrument Sans",sans-serif; }
 .split-corner-tab { position:absolute; left:7px; top:7px; right:0; bottom:0; box-sizing:border-box; display:flex; align-items:center; gap:6px; padding:0 3px 0 10px; border:1px solid var(--split-edge); border-radius:8px 0 8px 0; background:var(--split-bg); pointer-events:auto; }
 .split-pane-header[data-active="true"] .split-corner-tab { padding-left:3px; }

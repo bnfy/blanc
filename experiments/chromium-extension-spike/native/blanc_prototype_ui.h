@@ -43,6 +43,7 @@ void RestoreWindowIdentity(BrowserWindowInterface* browser,
 inline constexpr char kPersistentSplitKey[] = "blanc.split.persistent.v1";
 std::string PersistentSplitState(content::WebContents* tab);
 bool IsPersistentSplitTab(content::WebContents* tab);
+bool HasSplitPresentation(content::WebContents* tab);
 inline constexpr char kTabIdentityKey[] = "blanc.tab.identity.v1";
 std::string TabIdentity(content::WebContents* tab);
 void RestoreTabIdentity(content::WebContents* tab,
