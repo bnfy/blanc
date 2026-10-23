@@ -19,8 +19,12 @@ assert.equal(process.platform, 'linux'); assert.equal(process.arch, 'x64');
 assert.equal(process.env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
 assert(path.isAbsolute(process.env.BLANC_PACKAGED_EXECUTABLE || ''));
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-real-cdm-'));
-const profile = path.join(root, 'profile'); await fs.mkdir(profile);
-await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
+let profile = path.join(root, 'profile');
+const createProfile=async()=>{
+  await fs.mkdir(profile);
+  await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
+};
+await createProfile();
 const token = crypto.randomBytes(16).toString('hex');
 const report = { passed:false, scope:'real first-install/restart, vendor update and test-only real-binary cache rollback', stages:[] };
 const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
@@ -125,9 +129,13 @@ try{
   first.browserReadyMs=Date.now()-started;assert(first.browserReadyMs<15000);
   first.installed=await wait('first install restart state',async()=>{const s=await status();assert.notEqual(s.state,'ready','fresh Linux process cannot preload a newly downloaded CDM');return s.state==='restart-required'&&s;},90000);
   assert.equal(first.installed.version,fixtures.current.version);
-  const currentBinary=path.join(profile,'WidevineCdm',fixtures.current.version,'_platform_specific/linux_x64/libwidevinecdm.so');
+  let currentBinary=path.join(profile,'WidevineCdm',fixtures.current.version,'_platform_specific/linux_x64/libwidevinecdm.so');
   assert.equal(digest(await fs.readFile(currentBinary)),fixtures.current.sha256,'vendor-installed bytes match independently pinned package');
   await restart(first);await play(first,currentBinary);await close();
+  // A separate legacy profile has never cached the current binary. The
+  // update gate cannot pass by simply reactivating our first-install cache.
+  profile=path.join(root,'legacy-profile');await createProfile();
+  currentBinary=path.join(profile,'WidevineCdm',fixtures.current.version,'_platform_specific/linux_x64/libwidevinecdm.so');
   const baseline={name:'older-baseline'};report.stages.push(baseline);
   const previousBinary=await stageCdm(profile,fixtures.previous);
   await start(['--component-updater=initial-delay=100000']);
@@ -137,6 +145,7 @@ try{
   // Only the schedule changes. Real vendor URLs, CRX verification and the
   // sandbox stay enabled; no fabricated component-update response is used.
   const update={name:'vendor-update'};report.stages.push(update);
+  assert.equal(await fs.stat(currentBinary).catch(()=>null),null,'new CDM must not exist before the vendor update');
   await start(['--component-updater=initial-delay=1']);
   update.downloaded=await wait('vendor update requiring restart',async()=>{const s=await status();return s.state==='restart-required'&&s.version===fixtures.current.version&&s;},120000);
   assert.equal(digest(await fs.readFile(currentBinary)),fixtures.current.sha256);
