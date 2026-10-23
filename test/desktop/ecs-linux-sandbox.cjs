@@ -2,6 +2,13 @@
 const fs = require('node:fs/promises');
 const { execFileSync } = require('node:child_process');
 const assert = require('node:assert/strict');
+function processRole(command) {
+  // Chromium's process-title writer can flatten argv into one NUL-terminated
+  // string. Accept both kernel argv separators and its space-separated title.
+  const option = key => command.match(new RegExp(`(?:^|[\\s\\0])--${key}=([^\\s\\0]+)`))?.[1];
+  return { type: option('type'), subtype: option('utility-sub-type'), sandboxType: option('service-sandbox-type'),
+    noSandboxFlag: /(?:^|[\s\0])--no-sandbox(?:[\s\0=]|$)/.test(command) };
+}
 async function inspectLinuxCdm(rootPid) {
   const rows = execFileSync('ps', ['-eo', 'pid=,ppid='], { encoding: 'utf8' }).trim().split('\n')
     .map(row => row.trim().split(/\s+/).map(Number));
@@ -17,13 +24,13 @@ async function inspectLinuxCdm(rootPid) {
   for (const pid of owned) {
     let command;
     try { command = await read(pid, 'cmdline'); } catch { continue; }
-    const args = command.split('\0');
-    if (!args.includes('--type=utility') && !args.includes('--type=renderer')) continue;
+    const role = processRole(command);
+    if (role.type !== 'utility' && role.type !== 'renderer') continue;
     const status = await read(pid, 'status');
-    roles.push({ role: args.includes('--type=renderer') ? 'renderer' : args.find(arg => arg.startsWith('--utility-sub-type='))?.split('=')[1],
-      sandboxType: args.find(arg => arg.startsWith('--service-sandbox-type='))?.split('=')[1],
+    roles.push({ role: role.type === 'renderer' ? 'renderer' : role.subtype,
+      sandboxType: role.sandboxType,
       seccomp: Number(status.match(/^Seccomp:\s*(\d+)/m)?.[1]), noNewPrivs: Number(status.match(/^NoNewPrivs:\s*(\d+)/m)?.[1]),
-      noSandboxFlag: args.includes('--no-sandbox') });
+      noSandboxFlag: role.noSandboxFlag });
     if (!command.includes('media.mojom.CdmServiceBroker')) continue;
     const maps = await read(pid, 'maps');
     if (!maps.includes('libwidevinecdm.so')) continue;
@@ -41,7 +48,7 @@ async function inspectLinuxCdm(rootPid) {
     assert.equal(found[0].seccomp, 2); assert.equal(found[0].noNewPrivs, 1);
     assert.ok(found[0].isolatedUserNamespace && found[0].isolatedPidNamespace, 'CDM must have separate user and PID namespaces');
     assert.equal(found[0].noSandboxFlag, false);
-  } catch (error) { error.sandboxEvidence = { cdm: found, roles }; throw error; }
+  } catch (error) { error.sandboxEvidence = { cdm: found, roles, ownedCount: owned.size }; throw error; }
   return found[0];
 }
-module.exports = { inspectLinuxCdm };
+module.exports = { inspectLinuxCdm, processRole };
