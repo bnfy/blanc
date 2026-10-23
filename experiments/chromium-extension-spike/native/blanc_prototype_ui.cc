@@ -3850,7 +3850,9 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
   auto* source =
       content::WebUIDataSource::CreateAndAdd(Profile::FromWebUI(web_ui), kHost);
   source->DisableDenyXFrameOptions();
-  source->DisableTrustedTypesCSP();
+  source->OverrideContentSecurityPolicy(
+      network::mojom::CSPDirectiveName::TrustedTypes,
+      "trusted-types blanc-static-renderer blanc-static-overlay blanc-static-vertical-tabs;");
   source->OverrideContentSecurityPolicy(
       network::mojom::CSPDirectiveName::FrameSrc, "frame-src 'self';");
   source->SetRequestFilter(

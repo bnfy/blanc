@@ -1,3 +1,4 @@
+import { hardenMarkup } from './trusted-markup.mjs';
 import { prepareSessionRecovery } from './session-recovery.mjs';
 import { preparePendingNavigation } from './pending-navigation.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
@@ -254,6 +255,10 @@ overlaySource = overlaySource.replace(commandsAnchor,
   "  ].filter((command) => ['/find', '/downloads', '/new', '/close', '/save', '/favorites', '/history', '/clear', '/pin', '/mute', '/group', '/ungroup', '/close-group', '/reopen'].includes(command.cmd));\n\n  function runCommand(command) {");
 assets.set(overlayScript, overlaySource);
 
+for (const name of ['renderer', 'overlay', 'vertical-tabs']) {
+  const target = path.join(generated, name + '.js');
+  assets.set(target, hardenMarkup(assets.get(target), name));
+}
 for (const [target, value] of assets) writeIfChanged(target, value);
 if (assetsOnly) {
   console.log(`Updated prototype assets: ${generated}. Reload the page or relaunch the browser; no native files changed.`);

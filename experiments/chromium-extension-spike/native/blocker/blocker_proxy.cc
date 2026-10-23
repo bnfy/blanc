@@ -61,6 +61,9 @@ namespace {
 using DecisionCallback = base::OnceCallback<void(int)>;
 
 void Record(base::DictValue value) {
+  // Private events never reach diagnostic serialization or the disk writer.
+  const auto* kind = value.FindString("profile_kind");
+  if (value.FindBool("private").value_or(false) || (kind && *kind == "private")) return;
   // Disabled by default, including in private profiles. The acceptance harness
   // explicitly opts its disposable instance into local, ordered observations.
   auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-blocker-log");
@@ -207,7 +210,7 @@ class SocketDecision {
     event.Set("event", stage);
     event.Set("request_id", request_id_);
     event.Set("url", url_.spec());
-    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
     Record(std::move(event));
   }
   void Abandon() { Lifecycle("websocket-abandoned"); delete this; }
@@ -223,7 +226,7 @@ class SocketDecision {
     event.Set("initiator_origin", origin_);
     event.Set("source_contract", "websocket-initiator-origin");
     event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
-    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
     event.Set("context_alive", !!context_);
     event.Set("engine_result", result);
     event.Set("decision", result == 0 ? "allow" : "block");
@@ -278,7 +281,7 @@ class TransportDecision {
     event.Set("event", stage);
     event.Set("request_id", request_id_);
     event.Set("url", url_.spec());
-    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
     Record(std::move(event));
   }
   void Abandon() { Lifecycle("webtransport-abandoned"); delete this; }
@@ -299,7 +302,7 @@ class TransportDecision {
     event.Set("initiator_origin", origin_);
     event.Set("source_contract", "webtransport-initiator-origin");
     event.Set("owner", document_scoped_ ? "document-or-dedicated-worker" : "frame-less-worker");
-    event.Set("private", context_ ? context_->IsOffTheRecord() : false);
+    event.Set("private", context_ ? context_->IsOffTheRecord() : true);
     event.Set("context_alive", !!context_);
     event.Set("profile_unavailable", profile_unavailable);
     event.Set("engine_result", result);

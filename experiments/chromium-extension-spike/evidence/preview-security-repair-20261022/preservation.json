@@ -1,0 +1,17 @@
+{
+  "googleBeforeAfter": {
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0
+  },
+  "devBeforeAfter": {
+    "urls": [
+      "blanc://newtab/",
+      "blanc://newtab/"
+    ],
+    "selected": 1
+  },
+  "disposableProfilesRemoved": 4,
+  "signingAccessRetained": true
+}
