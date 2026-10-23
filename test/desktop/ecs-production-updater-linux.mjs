@@ -199,6 +199,20 @@ try {
   // handoff. Compare the same installed bytes/profile after the successor dies.
   if(previous && !(await alive(previous.pid))){
     try{
+      const direct=spawn(install,[],{env,detached:true,stdio:['ignore','pipe','pipe']});
+      let logs='';direct.stdout.on('data',b=>{logs=(logs+b).slice(-3000);});direct.stderr.on('data',b=>{logs=(logs+b).slice(-3000);});
+      try{
+        const next=assets[report.handoffs.length-1];
+        const process=await wait('diagnostic direct process',()=>mainProcess(next.version),15000);
+        previous=process;
+        const window=await wait('diagnostic direct window',async()=>{assert(await alive(process.pid),'Direct successor exited');return browserWindow();},15000);
+        report.directNoCdpDiagnostic={window,passed:true};
+        x(['windowfocus',window.id]);x(['key','ctrl+q']);
+        await wait('diagnostic direct exit',async()=>!(await alive(process.pid)),10000);
+      }catch(diagnosticError){
+        report.directNoCdpDiagnostic={failure:diagnosticError.message.slice(0,200),logs};
+        if(previous&&await alive(previous.pid))process.kill(previous.pid,'SIGTERM');
+      }finally{direct.stdout.destroy();direct.stderr.destroy();}
       warm=await launchPackagedOverCdp({executablePath:install,env,timeoutMs:30000});
       report.directRelaunchDiagnostic={cdpReady:true};
       await wait('diagnostic browser page',()=>warm.pages().some(page=>page.url().startsWith('blanc://newtab')),30000);
