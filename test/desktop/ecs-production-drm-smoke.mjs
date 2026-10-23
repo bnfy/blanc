@@ -90,7 +90,17 @@ try {
   if (process.platform !== 'linux') assert(statuses.includes('PLATFORM_SOFTWARE_VERIFIED'), 'production VMP must verify');
   await page.locator('video').evaluate(video => video.play());
   const sample = () => page.locator('video').evaluate(video => ({ time: video.currentTime, paused: video.paused,
-    error: video.error?.code ?? null, mediaKeys: !!video.mediaKeys, seeking: video.seeking }));
+    error: video.error?.code ?? null, mediaKeys: !!video.mediaKeys, seeking: video.seeking,
+    readyState: video.readyState, bufferedAhead: video.buffered.length ? video.buffered.end(video.buffered.length - 1) - video.currentTime : 0,
+    decodedFrames: video.getVideoPlaybackQuality().totalVideoFrames }));
+  const warmingAt = Date.now();
+  await waitFor(async () => {
+    const state = await sample();
+    report.buffering = state;
+    if (state.error) throw Error(`Media error during buffering: ${state.error}`);
+    return state.readyState >= 3 && state.bufferedAhead >= 6;
+  }, 'six seconds of protected playback buffered', 60000);
+  report.bufferWarmupMs = Date.now() - warmingAt;
   report.first = await sample();
   await new Promise(resolve => setTimeout(resolve, 5000));
   report.second = await sample();
@@ -111,6 +121,14 @@ try {
   report.stage = 'complete';
 } catch (error) {
   report.failure = { name: error.name, message: error.message.slice(0, 300) };
+  if (process.platform === 'darwin' && process.env.GITHUB_ACTIONS === 'true') {
+    try {
+      const { execFileSync } = require('node:child_process');
+      const audio = JSON.parse(execFileSync('system_profiler', ['SPAudioDataType', '-json'], { encoding: 'utf8', timeout: 15000 }));
+      report.hostAudio = { containers: audio.SPAudioDataType?.length || 0,
+        devices: (audio.SPAudioDataType || []).reduce((count, item) => count + (item._items?.length || 0), 0) };
+    } catch { report.hostAudio = { unavailable: true }; }
+  }
   report.pages = await Promise.all((app?.pages() || []).map(async page => {
     const url = new URL(page.url());
     return { page: `${url.protocol}//${url.hostname}${url.pathname}`, ...await page.evaluate(() => ({
