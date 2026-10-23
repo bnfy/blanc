@@ -36,6 +36,11 @@ isolated profile, restarts that profile, verifies advancing CENC/CBCS media, and
 checks the owned CDM process's kernel seccomp, no-new-privileges and namespace
 state. A `ready` label or successful decryption cannot bypass that security
 gate. See the [Linux follow-up](ecs-linux-drm-readiness-2026-10-22.md).
+The candidate's [native CDM restoration experiment](ecs-linux-cdm-sandbox-2026-10-22.md)
+adds a hash-guarded Linux x64 patch and a pre-sandbox preload helper. A new ECS
+binary deliberately fails that guard until separately reviewed. Passing its
+native test is not approval to ship the experimental mechanism or skip CDM
+update/offline and installed-package qualification.
 
 ## Staging-only updater
 

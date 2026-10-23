@@ -62,9 +62,11 @@ or machine before that rehearsal can safely run.
    reviewed CDM helper routing, library validation and final-fuse signing order.
    The [Linux DRM follow-up](ecs-linux-drm-readiness-2026-10-22.md) fixes the
    repeated `restart-required` warning and verifies CENC-encrypted playback.
-   Linux still fails the kernel CDM sandbox gate; playback alone does not
-   qualify it for release. The earlier startup/preferences and metadata tests
-   remain narrower evidence, not proof of OS-level sandboxing.
+   The subsequent [Linux kernel sandbox experiment](ecs-linux-cdm-sandbox-2026-10-22.md)
+   passes encrypted playback and actual CDM kernel isolation together, using
+   an exact-hash native patch and pre-sandbox preload helper. This experimental
+   mechanism still needs production integration/review and update/offline
+   lifecycle qualification; it is not an ordinary unmodified ECS package.
 2. Real staged N-1 **Restart Now** handoffs and subsequent ECS updater continuity
    on the supported platforms. Metadata discovery, trust tests and direct
    installer launches are not substitutes. Verify real-profile/cookie continuity.

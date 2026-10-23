@@ -18,11 +18,13 @@ function graphicsArgs(mode = 'candidate') {
 }
 async function run(appPath, { debug = false, graphics = 'candidate' } = {}) {
   const graphicsSwitches = graphicsArgs(graphics);
+  const linux = process.platform === 'linux';
+  if (!linux && process.platform !== 'darwin') throw Error('This isolated launcher supports macOS and Linux');
   const app = await fs.realpath(appPath);
-  const metadata = JSON.parse(extractFile(path.join(app, 'Contents/Resources/app.asar'), 'package.json'));
+  const metadata = JSON.parse(extractFile(path.join(app, linux ? 'resources/app.asar' : 'Contents/Resources/app.asar'), 'package.json'));
   if (metadata.name !== 'blanc-ecs-full-candidate' || metadata.blancEcsFullCandidate !== true) throw Error('Not a full isolated ECS candidate');
-  execFileSync('codesign', ['--verify', '--deep', '--strict', app], { stdio: 'inherit' });
-  const staging = path.resolve(app, '../../..');
+  if (!linux) execFileSync('codesign', ['--verify', '--deep', '--strict', app], { stdio: 'inherit' });
+  const staging = path.resolve(app, linux ? '../..' : '../../..');
   if (!path.basename(staging).startsWith('blanc-ecs-full-')) throw Error('Candidate is outside its isolated staging directory');
   const profile = path.join(staging, 'profile');
   await fs.mkdir(profile, { recursive: true, mode: 0o700 });
@@ -39,8 +41,11 @@ async function run(appPath, { debug = false, graphics = 'candidate' } = {}) {
   const args = [`--user-data-dir=${profile}`, ...(graphics === 'candidate' ? [] : ['--blanc-ecs-original-graphics']), ...graphicsSwitches,
     ...(debug ? ['--remote-debugging-port=55824', '--remote-debugging-address=127.0.0.1'] : [])];
   if (typeof metadata.productName !== 'string' || path.basename(metadata.productName) !== metadata.productName) throw Error('Invalid candidate executable name');
-  const child = spawn(path.join(app, 'Contents/MacOS', metadata.productName), args, {
-    env: { ...env, BLANC_ECS_FULL_PROFILE: profile }, stdio: 'inherit',
+  if (typeof metadata.version !== 'string' || !/^\d+\.\d+\.\d+-ecs\.\d+$/.test(metadata.version)) throw Error('Invalid candidate version');
+  const executable = linux ? path.join(staging, 'dist', `Blanc-${metadata.version}.AppImage`) : path.join(app, 'Contents/MacOS', metadata.productName);
+  const launchEnv = linux ? { APPIMAGE_EXTRACT_AND_RUN: '1', ...require('./ecs-linux-preload-env.cjs').linuxPreloadEnv(app, profile) } : {};
+  const child = spawn(executable, args, {
+    env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile }, stdio: 'inherit',
   });
   await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', code => code === 0 ? resolve() : reject(Error(`Candidate exited ${code}`))); });
 }

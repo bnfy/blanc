@@ -61,6 +61,11 @@ gates so one failure cannot hide the other result.
 
 ### Final native rerun: warning fixed, release blocked
 
+Historical result: the sandbox failure below is superseded for the experimental
+patched candidate by the [native sandbox follow-up](ecs-linux-cdm-sandbox-2026-10-22.md),
+which verifies protected playback and kernel isolation together. The unmodified
+vendor runtime remains affected; do not erase or relabel this failed result.
+
 [Run 39896011341](https://github.com/bnfy/blanc/actions/runs/39896011341),
 source `db55a2bbd`, exercised the actual x64 AppImage on native Linux. The
 aggregate run deliberately fails because the required kernel CDM assertion
