@@ -36,7 +36,7 @@ const metadata = response => response.end(`version: ${offer.version}\nfiles:\n  
 const server = http.createServer(async (request,response) => {
   const url = new URL(request.url,'http://127.0.0.1');
   if (url.pathname === '/favicon.ico') return response.writeHead(204).end();
-  if (url.pathname === '/') { response.setHeader('Content-Type','text/html'); return response.end(protectedPage(token)); }
+  if (url.pathname === '/') { report.probeRequests=(report.probeRequests||0)+1; response.setHeader('Content-Type','text/html'); return response.end(protectedPage(token)); }
   if (['/ready','/result'].includes(url.pathname) && request.method === 'POST' && request.headers['x-blanc-probe']===token) {
     let body = ''; for await (const chunk of request) { body += chunk; if (body.length > 4096) return response.writeHead(413).end(); }
     try { const data = JSON.parse(body); if (url.pathname.endsWith('/ready')) ready = data.ready === true; else playback = data; }
@@ -82,7 +82,13 @@ function prompt() {
 }
 function browserWindow() {
   let ids;try{ids=x(['search','--onlyvisible','--name','.*']).split(/\s+/);}catch{return null;}
-  for(const id of ids){try{const g=x(['getwindowgeometry','--shell',id]);const width=Number(g.match(/^WIDTH=(\d+)/m)?.[1]),height=Number(g.match(/^HEIGHT=(\d+)/m)?.[1]);if(width>=800&&height>=500)return {id,width,height};}catch{}}
+  for(const id of ids){try{
+    // Xvfb's root also matches .* and is large; it has no Blanc WM_CLASS.
+    const wmClass=execFileSync('xprop',['-id',id,'WM_CLASS'],{encoding:'utf8'});
+    if(!/"blanc"/i.test(wmClass))continue;
+    const g=x(['getwindowgeometry','--shell',id]);const width=Number(g.match(/^WIDTH=(\d+)/m)?.[1]),height=Number(g.match(/^HEIGHT=(\d+)/m)?.[1]);
+    if(width>=800&&height>=500)return {id,width,height,blancClass:true};
+  }catch{}}
   return null;
 }
 const env={...process.env,XDG_CONFIG_HOME:path.join(root,'config'),XDG_CACHE_HOME:path.join(root,'cache'),XDG_DATA_HOME:path.join(root,'data'),APPIMAGE_EXTRACT_AND_RUN:'1',BLANC_UPDATE_CHANNEL:'ecs-qualification-disabled'};

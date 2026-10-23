@@ -59,7 +59,7 @@ jobs:
       - run: npm ci
       - run: bash scripts/ci-enable-linux-sandbox.sh
       - name: Install isolated UI test dependencies
-        run: sudo apt-get update && sudo apt-get install --yes xvfb xdotool dbus-x11
+        run: sudo apt-get update && sudo apt-get install --yes xvfb xdotool x11-utils dbus-x11
       - name: Resolve and verify current public baseline
         id: baseline
         env:

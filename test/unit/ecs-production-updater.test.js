@@ -13,6 +13,7 @@ test('production updater qualification uses normal prompts and automatic success
   assert.match(source,/result.encryptedEvents>0/);
   assert.match(source,/preinstalledCdm:true/);
   assert.match(source,/looseInstallationsUnavailable=true/);
+  assert.match(source,/'xprop',\['-id',id,'WM_CLASS'\]/);
   assert.doesNotMatch(source,/\bHOME:\s*|--no-sandbox|\.quitAndInstall\(|BLANC_TEST:\s*'1'/);
 });
 test('production updater CI never publishes candidates or uses signing credentials',()=>{
