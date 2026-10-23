@@ -8,11 +8,15 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ 0 L8 packet ready, October 23, 2026`
+`[■■■■■■■■□□□□] 7/12 launch gates cleared (58.3%) · Δ -1 L6 normal-startup finding, October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### October 23 — owner normal-restart failure, L6 reopened
+
+[Normal-startup diagnosis](../experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/README.md) reproduces the MacBook report: without an explicit startup setting or restore flag, the signed app opens only New Tab; the same closed session restores all tabs/selection with the flag. Prior scripted tests supplied that flag. L6 is reopened and L8 remains unaccepted: **7/12 (58.3%), delta -1**. A scoped registered-default repair is in progress, preserving explicit user/managed preferences. The owner profile and Google baseline remain unchanged. Latency deferred; Electron diagnostic build pending.
 
 ### October 23 — L8 readable credits repair; final acceptance pending
 

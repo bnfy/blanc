@@ -1,3 +1,5 @@
+> October23 normal restart finding: [owner report and controlled diagnosis](evidence/l8-normal-startup-20261023/README.md). L6 reopened, L8 stays open; **7/12, delta -1** until the signed replacement and normal MacBook restart are requalified.
+
 > October23 L8 progress: [source-bound signed packet and manifest verification](evidence/l8-signed-distribution-20261023/README.md) complete; second-Mac native download/quarantine/launch and extension checks remain. **8/12, delta 0; L8 stays open.**
 
 > October23 current acceptance: [L6 close-history repair](evidence/l6-close-warning-repair-20261023/README.md), 70 signed checks and mapped unchanged owner-approved recovery UI reinstate L6. **8/12 (66.7%), delta +1 L6.** L4/L8/L11/L12 and Decision 2 remain open. Earlier dated records below retain their historical scope.
