@@ -1,3 +1,5 @@
+> October 23 current acceptance: [L8 replacement distribution](evidence/l8-replacement-20261023/README.md) is accepted after native MacBook Safari/download/two-restart/Shelf/Bitwarden-popup and Shipping checks, supported by exact running-app hashes. **9/12 (75%), delta +1 L8.** L4/L11/L12 and Decision 2 remain open. Historical rows below retain their dates/scope; no public release/merge approval. Google separate; latency/Electron pending.
+
 > October 23 current acceptance: [startup restoration scheduling repair](evidence/l6-restore-scheduling-20261023/README.md) passes 125 frozen signed checks and an old/new functional event-order negative control. Prior owner-approved recovery UI maps unchanged. **L6 accepted again: 8/12 (66.7%), delta +1.** L4, replacement-artifact L8, L11, L12 and Decision 2 remain open. Earlier dated reconciliation rows are historical. Google baseline separate; latency/Electron pending.
 
 > October23 normal restart finding: [owner report and controlled diagnosis](evidence/l8-normal-startup-20261023/README.md). L6 reopened, L8 stays open; **7/12, delta -1** until the signed replacement and normal MacBook restart are requalified.

@@ -18,6 +18,12 @@ f=read('fresh-hosted-byte-verification.json');assert len(f)==6 and all(x['anonym
 assert read('owner-state-replacement-before.json')['shippingFilesUnchanged']
 n=read('native-download.json');assert n['source']==expected['source'] and n['regularFilesVerified']==458 and n['symlinksVerified']==5 and 'Safari' in n['quarantine']['stdout'] and all(n[k]['exitCode']==0 for k in ['quarantine','codesign','gatekeeper','stapler'])
 assert read('native-prelaunch.json')['downloadedPreviewProcesses']==[]
-s=read('status.json');assert s['gate']=='L8 remains open' and len(s['pending'])==1 and not s['draft']['published']
+s=read('status.json');assert s['gate']=='L8 accepted' and s['pending']==[] and not s['draft']['published'] and s['readiness']=='9/12,delta+1L8'
+o=read('owner-acceptance.json');assert o['answer']=='All checks passed' and all(o['criteria'].values()) and o['sourceRevision']==expected['source'] and o['archiveSha256']==expected['archiveSha256']
+p=read('native-post-owner.json')['runtimeBinding'];assert p['runtimeBytesMatchAuthenticatedDownloadedCandidate'] and p['sourceRevision']==expected['source'] and p['allRegularFilesVerified']==458 and p['allSymlinksVerified']==5
+assert read('owner-state-replacement-owner-passed.json')['shippingFilesUnchanged']
+m=read('prior-controls-source-map.json');assert m['allSevenUIBlockerAssetsUnchanged'] and m['allTenBundleIdentitiesUnchanged'] and m['sameDeveloperIDAuthorityAndTeam'] and m['runtimeRecipeChanges']==['experiments/chromium-extension-spike/startup-session.mjs']
+fresh=read('fresh-profile-smoke.json');assert fresh['complete'] and len(fresh['checks'])==3 and all(c['pass'] for c in fresh['checks'])
+cleanup=read('fresh-profile-cleanup.json');assert cleanup['disposableProfileRemoved'] and not cleanup['permanentProfilesCopiedOrReset'] and not cleanup['googleProfileTouched'] and cleanup['sourceRevision']==expected['source']
 if args.cosign:subprocess.run([args.cosign,'verify-blob','--bundle',str(r/'artifact/SHA256SUMS.sigstore.json'),'--certificate-identity',expected['signer'],'--certificate-oidc-issuer',expected['issuer'],str(r/'artifact/SHA256SUMS')],check=True)
-print(json.dumps({'evidenceMembers':len(entries),'hostedFiles':6,'pinnedAuthenticationVerified':True,'actualTamperControlsReject':True,'readiness':'8/12,delta0','L8':'native Safari download verified;owner launch/restarts/popup acceptance pending'}))
+print(json.dumps({'evidenceMembers':len(entries),'hostedFiles':6,'pinnedAuthenticationVerified':True,'actualTamperControlsReject':True,'readiness':'9/12,delta+1L8','L8':'accepted for exact signed candidate;no release approval'}))

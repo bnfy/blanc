@@ -1,0 +1,26 @@
+{
+  "purpose": "One current-candidate fresh-profile start on the second physical Mac; no permanent profile copied",
+  "checks": [
+    {
+      "name": "empty isolated profile starts with one fresh New Tab",
+      "pass": true,
+      "details": [
+        "blanc://newtab/"
+      ]
+    },
+    {
+      "name": "fresh Default profile exists without a permanent-profile copy",
+      "pass": true,
+      "details": true
+    },
+    {
+      "name": "fresh isolated process quits cleanly",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "complete": true
+}

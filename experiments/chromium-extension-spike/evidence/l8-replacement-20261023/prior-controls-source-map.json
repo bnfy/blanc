@@ -1,0 +1,16 @@
+{
+  "fromOwnerConfirmedSource": "7065f9c04f0a0493f172a6e67b389ac742e37f6f",
+  "toCurrentSource": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "sameNativeUpstreamRevision": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "allSevenUIBlockerAssetsUnchanged": true,
+  "allTenBundleIdentitiesUnchanged": true,
+  "sameDeveloperIDAuthorityAndTeam": true,
+  "nativeUIFile": "chrome/browser/ui/blanc_prototype_ui.cc",
+  "nativeUISha256": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+  "runtimeRecipeChanges": [
+    "experiments/chromium-extension-spike/startup-session.mjs"
+  ],
+  "priorPermissionEvidence": "../l5-owner-acceptance-20261023/README.md",
+  "priorMacBookInstallEvidence": "../l8-normal-startup-20261023/owner-report.json",
+  "scope": "Prior actual native installation-permission Cancel/retry evidence credited through unchanged controls/identity; no new installation-permission, VoiceOver, vault-login or real version-upgrade pass claimed. Current candidate native download, ordinary launch, restarts and popup are separately owner-confirmed."
+}
