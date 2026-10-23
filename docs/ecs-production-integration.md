@@ -218,6 +218,52 @@ platform skips), lint, copy/bridge checks and the complete substrate gate.
 The new settings status and restart IPC also reject websites, other internal
 pages, unowned surfaces and subframes in direct handler tests.
 
+The superseded run was canceled after its 18:05 UTC deadline. Its retained
+logs and artifact confirm baseline checks passed, but its lifecycle step hung
+without a final report. It is not a lifecycle pass; the bounded replacement
+`39998789399` provides that evidence.
+
+### Fresh signed packages with the DRM UI (October 23)
+
+Fresh Apple Silicon, Intel Mac and Windows packages were built from
+`fd865414726d703ce07a50594deeb189665efe10`, including the new Protected media
+status/restart UI. Both Mac bundles passed Developer ID, embedded profile,
+strict-deep signature, exact fuse and EVS verification, followed by Apple
+notarization, stapling and Gatekeeper acceptance. Their signed payloads are
+preserved locally under `signed-fd8654147`; notarization did not change either
+`app.asar`. No installed app, default runtime, production entitlements or feed
+was changed.
+
+The fresh native Apple Silicon package passed offline startup (3299/914 ms),
+web and local-HTML file/frame/worker/service-worker boundaries, zero HTTP/STUN
+egress from the local preview, uBO controls and real restarts/reopen/native
+Quit, workspace recovery, and synthetic camera/microphone permission checks.
+The actual settings card displayed the localized ready message with its
+restart button hidden. A first DRM probe failed before playback with
+`ERR_BLOCKED_BY_CLIENT`; preserve this initial failure. A diagnostic fresh-profile
+probe and a repeat of the unchanged acceptance test both subsequently passed
+production VMP (`PLATFORM_SOFTWARE_VERIFIED`), unmuted CENC playback advancing
+about 4.95 seconds, no media errors, and sandboxed Plugin-helper restrictions.
+The initial navigation failure has not been root-caused or silently waived.
+
+Fresh Windows validation [39999763727](https://github.com/bnfy/blanc/actions/runs/39999763727)
+passed with final exact-publisher, timestamped Authenticode and EVS signatures.
+VMP reported `PLATFORM_SOFTWARE_VERIFIED`; protected CENC playback advanced
+4.98 seconds with MediaKeys and no media errors. Offline starts took 1178/1053
+ms; web file/frame/worker/service-worker/Node access was denied. uBO restarts,
+workspace recovery and synthetic media permission checks passed. Temporary
+profiles and signing credentials were removed. CI retained sanitized reports,
+not public installers.
+
+The new Intel bundle is notarized but native acceptance remains pending.
+Its local Rosetta checks are not native Intel evidence: the first offline
+launch exceeded the existing 15-second CDP deadline, and uBO correctly hit its
+explicit unsupported-Rosetta guard. The subsequent ready-status UI and local
+HTML isolation checks passed. Neither the timeout nor the guard was relaxed.
+The pending native Intel audio/updater runs still exercise older immutable
+signed bytes, not this new UI. Final-package Spotify/Netflix, native Intel and
+updater/lifecycle checks below remain separate shipping gates.
+
 Intel updater run `39994442871` verified the exact replacement, normal Restart
 Now, automatic relaunch, strict signatures and Gatekeeper. It then timed out
 before the loopback protected test page became ready; no playback pass is
