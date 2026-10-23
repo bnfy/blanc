@@ -42,7 +42,7 @@ const shortDate = humanDate?.replace(/,\s*\d{4}$/, '');
     {h.steps && <ol class="wn-steps">{h.steps.map((step) => <li>{rich(step).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</li>)}</ol>}
     {h.note && <p class="wn-note">{rich(h.note).map((s) => (s.chip ? <kbd class="bang-chip">{s.chip}</kbd> : s.text))}</p>}
     <div class="wn-actions">
-      <button type="button" class="cta wn-next">next</button>
+      <button type="button" class="cta wn-next">Next</button>
       {h.learnMore && <a class="text-link wn-learn-more" href={h.learnMore}>learn more <span aria-hidden="true">›</span></a>}
     </div>
   </div>
