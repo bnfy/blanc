@@ -93,6 +93,7 @@
   divider.setAttribute('aria-label', 'Resize Split View');
   divider.setAttribute('aria-orientation', 'vertical');
   divider.setAttribute('aria-valuemin', '20'); divider.setAttribute('aria-valuemax', '80');
+  divider.append(document.createElement('span'));
   document.body.append(divider);
   function visibleSplit() { return snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId)); }
   let resizeQueue = Promise.resolve();
@@ -136,7 +137,7 @@
     if (!paneMenu) return;
     const id = paneMenu.dataset.tabId; paneMenu.remove(); paneMenu = null;
     await request('height', [68]); reportGeometry();
-    if (returnFocus) document.querySelector(`[data-pane-menu="${id}"]`)?.focus();
+    if (returnFocus) [...document.querySelectorAll(`[data-pane-menu="${id}"]`)].find(button => !button.hidden)?.focus();
   }
   async function openPaneMenu(tab, anchor) {
     const pair = [...(visibleSplit()?.tabIds ?? [])];
@@ -180,12 +181,14 @@
     if (paneMenu && !paneMenu.contains(event.target)) dismissPaneMenu();
   });
   window.addEventListener('blur', () => { if (paneMenu) dismissPaneMenu(); });
+  const splitCornerWidths = [240, 240];
+  document.fonts.ready.then(() => { splitHeaderKey = ''; refresh(); });
   function paintSplitHeaders() {
     const box = document.getElementById('splitHeaders');
     const split = snapshot?.splits?.find(s => s.tabIds.includes(snapshot.activeTabId));
     const tabs = split?.tabIds.map(id => snapshot.tabs.find(t => t.id === id)) ?? [];
     const geometry = snapshot?.splitGeometry;
-    const key = JSON.stringify([split, tabs, layout, railWidth, geometry]);
+    const key = JSON.stringify([split, tabs, snapshot?.activeTabId, layout, railWidth, geometry]);
     divider.hidden = !split || geometry?.mode !== 'columns';
     if (split && geometry?.divider) {
       const r = geometry.divider;
@@ -199,35 +202,72 @@
     box.hidden = !split;
     box.dataset.private = String(tabs.some(t => t?.private));
     box.replaceChildren();
+    box.dataset.mode = geometry?.mode || '';
     if (!split) return;
     box.style.left = '0';
     for (const [index, tab] of tabs.entries()) {
-      const pane = document.createElement('div');
-      pane.className = 'split-pane-header';
+      const frameRect = geometry?.frames?.[index];
       const r = geometry?.headers?.[index];
-      if (r) Object.assign(pane.style, {position:'absolute',left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
-      pane.dataset.active = String(tab.id === snapshot.activeTabId);
+      if (!r?.width || !r?.height || !frameRect?.width) continue;
+      const active = tab.id === snapshot.activeTabId;
+      const frame = document.createElement('div'); frame.className = 'split-pane-frame';
+      frame.dataset.active = String(active); frame.setAttribute('aria-hidden', 'true');
+      Object.assign(frame.style, {left:frameRect.x+'px',top:frameRect.y+'px',width:frameRect.width+'px',height:frameRect.height+'px'});
+      box.append(frame);
+      const pane = document.createElement('div'); pane.className = 'split-pane-header';
+      Object.assign(pane.style, {left:r.x+'px',top:r.y+'px',width:r.width+'px',height:r.height+'px'});
+      pane.dataset.active = String(active);
+      for (const edge of ['top', 'left']) {
+        const fillet = document.createElement('span'); fillet.className = 'split-corner-fillet '+edge;
+        fillet.setAttribute('aria-hidden', 'true'); pane.append(fillet);
+      }
+      const corner = document.createElement('div'); corner.className = 'split-corner-tab';
+      let site = tab.title || tab.url || 'New Tab';
+      try { const url = new URL(tab.url); if (['http:', 'https:'].includes(url.protocol)) site = url.host; } catch { /* title fallback */ }
+      const focus = document.createElement('button'); focus.className = 'split-pane-title';
+      focus.setAttribute('aria-label', `Focus ${tab.title || site}; pane actions with Shift+F10`);
+      focus.title = `${tab.title || site} — right-click for pane actions`;
+      let icon;
       if (tab.favicon?.startsWith('data:image/')) {
-        const icon = document.createElement('img'); icon.src = tab.favicon; icon.alt = ''; pane.append(icon);
+        icon = document.createElement('img'); icon.alt = ''; icon.src = tab.favicon;
+      } else {
+        icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 16 16'); icon.setAttribute('aria-hidden', 'true');
+        const circle = document.createElementNS(icon.namespaceURI, 'circle');
+        for (const [k,v] of Object.entries({cx:8,cy:8,r:6})) circle.setAttribute(k,v);
+        const path = document.createElementNS(icon.namespaceURI, 'path');
+        path.setAttribute('d', 'M2 8h12M8 2c1.7 1.6 2.5 3.6 2.5 6S9.7 12.4 8 14C6.3 12.4 5.5 10.4 5.5 8S6.3 3.6 8 2z');
+        icon.append(circle,path);
       }
-      for (const [label, title, action, disabled] of [
-        ['←', `Back in ${tab.title}`, () => request('goBack', [nativeId(tab.id)]), !tab.canGoBack],
-        [tab.title || tab.url, `Focus ${tab.title}`, () => request('switchTab', [nativeId(tab.id)]), false],
-        ['↻', `Reload ${tab.title}`, () => request('reload', [nativeId(tab.id)]), false],
-        ['⋯', `Actions for ${tab.title}`, null, false],
-        ['×', `Remove ${tab.title} from Split View`, () => request('removeFromSplit', [nativeId(tab.id)]), false],
-      ]) {
-        const button = document.createElement('button');
-        button.textContent = label; button.title = title;
-        button.setAttribute('aria-label', title); button.disabled = disabled;
-        if (title.startsWith('Focus ')) button.className = 'split-pane-title';
-        if (!action) {
-          button.dataset.paneMenu = tab.id; button.setAttribute('aria-haspopup', 'menu');
-          button.addEventListener('click', () => openPaneMenu(tab, button).catch(e => notice(e.message)));
-        } else button.addEventListener('click', () => action().then(refresh).catch(e => notice(e.message)));
-        pane.append(button);
+      const label = document.createElement('span'); label.textContent = site;
+      focus.append(icon, label); focus.hidden = active;
+      focus.addEventListener('click', () => request('switchTab', [nativeId(tab.id)]).then(refresh).catch(e => notice(e.message)));
+      const closeButton = document.createElement('button'); closeButton.className = 'split-corner-close';
+      const closeIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      closeIcon.setAttribute('viewBox', '0 0 16 16'); closeIcon.setAttribute('aria-hidden', 'true');
+      const cross = document.createElementNS(closeIcon.namespaceURI, 'path');
+      cross.setAttribute('d', 'M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5');
+      closeIcon.append(cross); closeButton.append(closeIcon);
+      closeButton.setAttribute('aria-label', `Remove ${tab.title || site} from Split View`);
+      closeButton.title = 'Remove from Split View';
+      closeButton.addEventListener('click', () => request('removeFromSplit', [nativeId(tab.id)]).then(refresh).catch(e => notice(e.message)));
+      corner.append(focus, closeButton); pane.append(corner); box.append(pane);
+      // Context actions retain the same validated native commands without a toolbar.
+      for (const button of [focus, closeButton]) {
+        button.dataset.paneMenu = tab.id;
+        button.setAttribute('aria-haspopup', 'menu');
+        button.addEventListener('keydown', event => {
+          if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+            event.preventDefault(); openPaneMenu(tab, button).catch(e => notice(e.message));
+          }
+        });
       }
-      box.append(pane);
+      corner.addEventListener('contextmenu', event => {
+        event.preventDefault(); openPaneMenu(tab, active ? closeButton : focus).catch(e => notice(e.message));
+      });
+      pane.classList.add('measuring');
+      splitCornerWidths[index] = Math.max(36, Math.min(240, Math.ceil(corner.getBoundingClientRect().width + 7)));
+      pane.classList.remove('measuring');
     }
   }
 
@@ -294,7 +334,7 @@
       ? { x: 0, y: 0, width: innerWidth, height: innerHeight }
       : panel.getBoundingClientRect();
     const offsetY = opened && overlayMode === 'find' ? 68 : 0;
-    const values = [a.x, a.y, a.width, a.height, b.x, b.y + offsetY, b.width, b.height].map(Math.round);
+    const values = [a.x, a.y, a.width, a.height, b.x, b.y + offsetY, b.width, b.height, ...splitCornerWidths].map(Math.round);
     const next = JSON.stringify(values);
     if (next !== geometry) {
       geometry = next;

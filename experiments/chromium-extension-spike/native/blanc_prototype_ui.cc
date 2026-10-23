@@ -611,6 +611,7 @@ class Owner : public base::SupportsUserData::Data,
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
   base::DictValue split_geometry;
+  std::array<int, 2> split_corner_widths = {240, 240};
   std::vector<gfx::Rect> split_hit_regions;
   std::string page_tint;
 
@@ -3134,8 +3135,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
-    if (method == "geometry" && args.size() == 8 &&
+    if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      if (args.size() == 10) {
+        for (int i = 0; i < 2; ++i)
+          owner->split_corner_widths[i] = std::clamp(args[8 + i].GetInt(), 36, 240);
+      }
       owner->extension_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
           std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
       owner->interactive_bounds = gfx::Rect(args[4].GetInt(), args[5].GetInt(),
@@ -4040,31 +4045,46 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
   const auto& containers = view->contents_container_views();
   if (containers.size() != 2) return;
   const int width = layout->host_size.width(), height = layout->host_size.height();
-  const bool columns = width >= 612;
-  const bool rows = !columns && height >= 392;
-  const int first = columns ? std::clamp(static_cast<int>(std::round((width - 12) * view->GetSplitRatio())), 300, width - 312)
-      : rows ? (height - 12) / 2 : (view->GetActiveIndex() == 0 ? std::max(30, height - 30) : 30);
+  // Shipping Blanc's card contract: 8px around and between panes, 1px border.
+  const int card_width = std::max(0, width - 16);
+  const int card_height = std::max(0, height - 16);
+  const bool columns = card_width >= 608;
+  const bool rows = !columns && card_height >= 388;
+  const int first = columns ? std::clamp(static_cast<int>(std::round((card_width - 8) * view->GetSplitRatio())), 300, card_width - 308)
+      : rows ? (card_height - 8) / 2 : 0;
   std::array<gfx::Rect, 2> panes;
   gfx::Rect gutter;
   if (columns) {
-    panes[0] = gfx::Rect(0, 0, first, height);
-    gutter = gfx::Rect(first, 0, 12, height);
-    panes[1] = gfx::Rect(first + 12, 0, width - first - 12, height);
+    panes[0] = gfx::Rect(8, 8, first, card_height);
+    gutter = gfx::Rect(8 + first, 8, 8, card_height);
+    panes[1] = gfx::Rect(16 + first, 8, card_width - first - 8, card_height);
+  } else if (rows) {
+    panes[0] = gfx::Rect(8, 8, card_width, first);
+    gutter = gfx::Rect(8, 8 + first, card_width, 8);
+    panes[1] = gfx::Rect(8, 16 + first, card_width, card_height - first - 8);
   } else {
-    panes[0] = gfx::Rect(0, 0, width, first);
-    gutter = gfx::Rect(0, first, width, rows ? 12 : 0);
-    panes[1] = gfx::Rect(0, first + gutter.height(), width, std::max(30, height - first - gutter.height()));
+    panes[view->GetActiveIndex()] = gfx::Rect(8, 8, card_width, card_height);
   }
   gfx::Point origin;
   views::View::ConvertPointToTarget(view, browser_view, &origin);
   if (auto* island = browser_view->GetViewByID(kIslandViewId)) origin.Offset(-island->x(), -island->y());
   auto encode = [](const gfx::Rect& r) { return base::DictValue().Set("x", r.x()).Set("y", r.y()).Set("width", r.width()).Set("height", r.height()); };
-  base::ListValue headers;
+  base::ListValue headers, frames;
   std::vector<gfx::Rect> hit_regions;
   for (int i = 0; i < 2; ++i) {
-    gfx::Rect header = panes[i]; header.set_height(30); header.Offset(origin.x(), origin.y());
-    hit_regions.push_back(header); headers.Append(encode(header));
-    auto page = panes[i]; page.Inset(gfx::Insets::TLBR(30, 0, 0, 0));
+    auto frame = panes[i]; frame.Offset(origin.x(), origin.y());
+    frames.Append(encode(frame));
+    gfx::Rect header;
+    if (!panes[i].IsEmpty()) {
+      const int w = std::min(panes[i].width(), i == view->GetActiveIndex() ? 37 : owner->split_corner_widths[i]);
+      const int h = std::min(36, panes[i].height());
+      header = gfx::Rect(frame.right() - w, frame.bottom() - h, w, h);
+      // Only the actual corner tab owns input, never its transparent fillets.
+      hit_regions.emplace_back(header.x() + 7, header.y() + 7,
+          std::max(0, w - 7), std::max(0, h - 7));
+    }
+    headers.Append(encode(header));
+    auto page = panes[i]; page.Inset(gfx::Insets(1));
     for (auto& child : layout->child_layouts) {
       if (child.child_view == containers[i]) { child.bounds = page; child.visible = true; }
     }
@@ -4073,13 +4093,12 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
     if (std::string(child.child_view->GetClassName()) == "MultiContentsResizeArea") child.bounds = gfx::Rect();
   gutter.Offset(origin.x(), origin.y());
   if (columns) hit_regions.push_back(gutter);
-  // Preferred-size probes also call this method with zero/non-current bounds.
-  // Only applied-size geometry may own input regions or renderer metadata.
+  // Preferred-size probes cannot replace applied input regions or metadata.
   if (width <= 0 || width != view->width() || height != view->height()) return;
   owner->split_hit_regions = std::move(hit_regions);
   owner->split_geometry = base::DictValue().Set("mode", columns ? "columns" : rows ? "rows" : "focus")
-      .Set("headers", std::move(headers)).Set("divider", encode(gutter))
-      .Set("originX", origin.x()).Set("usableWidth", std::max(1, width - 12));
+      .Set("headers", std::move(headers)).Set("frames", std::move(frames)).Set("divider", encode(gutter))
+      .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
 void LayoutIsland(views::View* parent, int top) {

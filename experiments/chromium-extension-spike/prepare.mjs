@@ -777,6 +777,17 @@ console.log(`Assets: ${generated}`);
 prepareWindowIdentity(edit);
 prepareSaveAcknowledgement(edit);
 
+// Upgrade a previously prepared header-bar hook before applying the current one.
+const splitViewPath = path.join(chromium, 'chrome/browser/ui/views/frame/multi_contents_view.cc');
+const previousSplitHook = fs.readFileSync(splitViewPath, 'utf8');
+if (previousSplitHook.includes("// Do not stack Chromium's rounded page outlines beneath those headers.")) {
+  writeIfChanged(splitViewPath, previousSplitHook
+    .replace("// Persistent Island panes use their own headers and visible keyboard focus.\n  // Do not stack Chromium's rounded page outlines beneath those headers.",
+      '// Persistent Island panes paint one shipping-style card outline in the Island.\n  // Native pages keep the matching inner radius without a second outline.')
+    .replace('container->SetRoundedCorners(gfx::RoundedCornersF());\n      container->UpdateBorderAndOverlay(false, false, false);',
+      'container->UpdateBorderAndOverlay(false, false, false);\n      container->SetRoundedCorners(gfx::RoundedCornersF(7));'));
+}
+
 edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
   { anchor: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n',
     replacement: '#include "chrome/browser/ui/views/frame/multi_contents_view.h"\n#include "chrome/browser/ui/blanc_prototype_ui.h"\n',
@@ -786,18 +797,18 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
     present: '  blanc_prototype::AdjustSplitLayout(this, &layouts);' },
   { anchor: 'void MultiContentsView::UpdateContentsBorderAndOverlay() {\n  const bool is_in_split = IsInSplitView();',
     replacement: `void MultiContentsView::UpdateContentsBorderAndOverlay() {
-  // Persistent Island panes use their own headers and visible keyboard focus.
-  // Do not stack Chromium's rounded page outlines beneath those headers.
+  // Persistent Island panes paint one shipping-style card outline in the Island.
+  // Native pages keep the matching inner radius without a second outline.
   if (blanc_prototype::IsEnabled() && IsInSplitView() &&
       blanc_prototype::IsPersistentSplitTab(GetActiveContentsView()->web_contents())) {
     for (auto& container : contents_container_views_) {
-      container->SetRoundedCorners(gfx::RoundedCornersF());
       container->UpdateBorderAndOverlay(false, false, false);
+      container->SetRoundedCorners(gfx::RoundedCornersF(7));
     }
     return;
   }
   const bool is_in_split = IsInSplitView();`,
-    present: "// Do not stack Chromium's rounded page outlines beneath those headers." },
+    present: "// Native pages keep the matching inner radius without a second outline." },
 ]);
 
 prepareNativeHitTest(edit);
