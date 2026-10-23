@@ -1,3 +1,5 @@
+> October23 L8 progress: [readable native license notices repaired](evidence/l8-signed-distribution-20261023/README.md), source `57fc3b13`, twelve compliance tests. Initial signed packet is superseded. **L8 open; 8/12, delta 0.** Replacement notarization/authentication pass; second-Mac acceptance remains.
+
 > October23 current checkpoint: [L6 warning repair and signed recovery acceptance](evidence/l6-close-warning-repair-20261023/README.md). **70 signed checks pass; 8/12 (66.7%), delta +1 L6.** Prior owner-approved recovery UI maps unchanged. L4/L8/L11/L12 and Decision 2 remain open. Earlier dated checkpoints retain their historical scope.
 
 # Side-by-side Mac Chromium preview release checklist
@@ -14,7 +16,7 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 **Current acceptance: October 23, 2026; [L6 signed repair/requalification](evidence/l6-close-warning-repair-20261023/README.md), [L5 owner acceptance](evidence/l5-owner-acceptance-20261023/README.md), [L10 functional smoke](evidence/l10-functional-smoke-20261023/README.md), [L3 baseline/maintenance](evidence/l3-closeout-20261023/README.md), [L7 owner approval](evidence/l7-owner-acceptance-20261023/README.md), L9 [signed notice and live route](evidence/preview-notice-20261023/README.md), and the [L2 owner record](evidence/l2-owner-acceptance-20261022/README.md).**
 
-`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ +1 L6`
+`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ 0 L8 packet ready`
 
 This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, L1 scope, L2 signed isolation, L3 baseline/maintenance, L5 physical input/accessibility, L6 recovery, L7 security/privacy, L9 manual update/withdrawal and L10 functional smoke have accepted records. Four rows remain open: L4, L8, L11 and L12. The L6 close-history regression is repaired and requalified on the replacement signed candidate with previously approved unchanged recovery UI mapped explicitly. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
 
@@ -29,7 +31,7 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 | L5 Physical input/accessibility | **Accepted October23 — current signed artifact plus owner hand check** | [Visual/input/VoiceOver, theme, permission Cancel/retry and popup-focus record](evidence/l5-owner-acceptance-20261023/README.md), candidate `8439cabc`, archive `8783c93501a1`; [unchanged-control mapping in the L6 replacement](evidence/l6-close-warning-repair-20261023/README.md) |
 | L6 Recovery | **Accepted again October23 — warning repaired and signed recovery requalified** | [70 current signed checks and mapped unchanged owner-approved UI](evidence/l6-close-warning-repair-20261023/README.md); source `f4996df4`, archive `bc145e5ea412` |
 | L7 Security/privacy | **Accepted October23 — exact signed candidate** | [Owner acceptance](evidence/l7-owner-acceptance-20261023/README.md), candidate `4c86c89e7ec8`; requalify relevant changes |
-| L8 Signed distribution | Open — signed/notarized/stapled; native quarantined launch passed on macOS 27.2 | Fresh-machine/public-download, signed extension integration and final provenance acceptance remain |
+| L8 Signed distribution | Open — initial authenticated packet superseded; complete readable credits repaired | [SBOM/source provenance, initial checks and notice repair](evidence/l8-signed-distribution-20261023/README.md); second-Mac native download/quarantine/launch and extension integration remain; unpublished fixture is not public release |
 | L9 Update/retreat | **Accepted October 23 — signed update/rollback, visible notice and live withdrawal route** | [Notice and route evidence](evidence/preview-notice-20261023/README.md), [43-check rehearsal](evidence/signed-update-rollback-20261023/README.md); maintain live status while previews reference it |
 | L10 Functional smoke | **Accepted October23 — bounded signed-candidate scope** | [Core, Store, theme, import and local-password checks](evidence/l10-functional-smoke-20261023/README.md); exclusions remain explicit |
 | L11 CI/audits | Open — no RC head frozen | Exact candidate checks/alerts/audits and runtime blocker disposition; no current CI claim here |
@@ -41,6 +43,7 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 
 | Date / checkpoint | Gates cleared | Change | Evidence and remaining blockers |
 | --- | --- | --- | --- |
+| October23 / L8 authenticated packet | 8/12 | 0 | [Packaging notices, SBOM, source provenance, real signature verification and 39 signed checks](evidence/l8-signed-distribution-20261023/README.md); second-Mac native acceptance remains |
 | October23 / L6 warning repair | 8/12 | +1 L6 | [Native exclusion fix, 70 signed checks and unchanged owner-approved recovery UI](evidence/l6-close-warning-repair-20261023/README.md); L4/L8/L11/L12 remain open |
 | October23 / L5 owner acceptance | 7/12 | +1 L5 | [Current signed visual/VoiceOver, theme, permission Cancel/retry and popup focus accepted](evidence/l5-owner-acceptance-20261023/README.md); independent L6 warning remains open |
 | October 23 / current shipping visual parity | 6/12 | 0 | [Signed 1.42.1 card/corner-tab parity; L5/L6 remain open](evidence/l5-split-visual-parity-20261023/README.md) |

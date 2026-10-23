@@ -1,3 +1,5 @@
+> October23 L8 progress: [source-bound signed packet and manifest verification](evidence/l8-signed-distribution-20261023/README.md) complete; second-Mac native download/quarantine/launch and extension checks remain. **8/12, delta 0; L8 stays open.**
+
 > October23 current acceptance: [L6 close-history repair](evidence/l6-close-warning-repair-20261023/README.md), 70 signed checks and mapped unchanged owner-approved recovery UI reinstate L6. **8/12 (66.7%), delta +1 L6.** L4/L8/L11/L12 and Decision 2 remain open. Earlier dated records below retain their historical scope.
 
 > October23 current acceptance: [L5 owner hand check](evidence/l5-owner-acceptance-20261023/README.md) passes the signed candidate’s visual/physical/VoiceOver, theme and Bitwarden permission Cancel/retry/popup-focus requirements. **7/12 (58.3%), delta +1 L5.** L6 acknowledgement remains open. The following earlier dated checkpoints and October22 table are historical.

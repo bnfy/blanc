@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-419b8276-arm64.zip",
+    "apiStatus": 302,
+    "anonymousMethod": "HEAD",
+    "anonymousStatus": 200,
+    "host": "release-assets.githubusercontent.com",
+    "authenticatedHeadersSentToAssetHost": false,
+    "contentLength": "243693108"
+  },
+  {
+    "name": "SHA256SUMS",
+    "apiStatus": 302,
+    "anonymousMethod": "GET",
+    "anonymousStatus": 200,
+    "host": "release-assets.githubusercontent.com",
+    "authenticatedHeadersSentToAssetHost": false,
+    "contentLength": "494",
+    "sha256": "0be55f415b4356330ffb04d00507452cb9074b8f99e76319e57f55600c7a5c81"
+  }
+]

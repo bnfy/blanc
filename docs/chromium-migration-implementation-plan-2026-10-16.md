@@ -8,11 +8,19 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ +1 L6, October 23, 2026`
+`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ 0 L8 packet ready, October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### October 23 — L8 readable credits repair; final acceptance pending
+
+[Current L8 work](../experiments/chromium-extension-spike/evidence/l8-signed-distribution-20261023/README.md) prepares a 340-component SBOM, source/build materials, final inventory and authenticated checksum manifest. Initial packet `419b8276` passed Apple notarization, real signature verification, tamper rejection and 39 runtime checks, but the final audit found its readable Chromium Credits HTML was the upstream placeholder. Its full license texts exist in SPDX; the initial packet is superseded and does not close L8.
+
+Source `57fc3b13` now generates readable notices for all 323 native components from 320 complete license texts and fails closed on missing text or placeholder HTML. Twelve compliance tests pass. The replacement is Developer ID signed, Apple Accepted (`47535090`), stapled and manifest-authenticated; 39 signed checks and zero-action native guard pass. Second-Mac exact-file download/launch/extension integration remains pending. The initial native Safari downloads have quarantine and Gatekeeper evidence, not replacement-artifact acceptance. No Chromium compilation; packaging launcher only.
+
+**L8 remains open; 8/12 (66.7%), delta 0.** The fixture is an unpublished draft, with no public release approval or permanent public-download claim. Google baseline remains separate. Latency deferred; Electron diagnostic build pending approval/unstarted.
 
 ### L6 close-history regression repaired and acceptance reinstated — October 23
 
@@ -151,6 +159,8 @@ Companion documents:
   bridge contract and test vectors the Chromium build must replay.
 - `AGENTS.md` and `CLAUDE.md`, platform-direction paragraph: the current
   authorization boundary.
+
+
 
 ## 1. October 16 prototype baseline (historical)
 
