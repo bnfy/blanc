@@ -1,0 +1,3 @@
+body { font: 16px system-ui; max-width: 740px; margin: 32px auto; padding: 0 20px; line-height: 1.5; }
+button { font: inherit; padding: 8px 12px; margin: 4px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: #eee; color: #111; }

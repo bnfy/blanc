@@ -26,6 +26,11 @@ on:
         required: false
         default: false
         type: boolean
+      ecs_candidate:
+        description: "Candidate-only native ECS validation, no release or installer upload"
+        required: false
+        default: false
+        type: boolean
       platform:
         description: "Platform jobs to run"
         required: true
@@ -50,9 +55,14 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_PLATFORM: ${{ inputs.platform }}
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
+          ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
         run: |
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
+            exit 1
+          fi
+          if [ "$ECS_CANDIDATE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ]; }; then
+            echo "ECS requires validation mode and excludes unqualified uBO" >&2
             exit 1
           fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
@@ -75,7 +85,7 @@ jobs:
 
   windows:
     needs: validate-inputs
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
+    if: ${{ !inputs.ecs_candidate && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
@@ -393,7 +403,7 @@ jobs:
 
   linux:
     needs: validate-inputs
-    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -672,7 +682,7 @@ jobs:
 
   linux-sandbox:
     needs: validate-inputs
-    if: ${{ inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     strategy:
       fail-fast: false
       matrix:
@@ -711,3 +721,80 @@ jobs:
           name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
           path: sandbox-evidence/*.json
           retention-days: 14
+
+  ecs-native:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_candidate }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    env:
+      BLANC_ECS_BUILD_RESULT: ${{ github.workspace }}/output/ecs-build.json
+    steps:
+      - name: Preserve verified source bytes
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Candidate unit and input guards
+        shell: bash
+        run: |
+          mkdir -p output
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js
+          npm run adblock:check
+          npm run compliance:check
+      - name: Enable Linux sandbox on this disposable runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - name: Build pinned native ECS candidate, never publish
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+        run: node scripts/ecs-native-validation.cjs
+      - name: Native startup, restart, profile cleanup and static HTML guard
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            dbus-run-session -- xvfb-run -a node test/desktop/ecs-native-smoke.cjs
+          else
+            node test/desktop/ecs-native-smoke.cjs
+          fi
+      - name: Verify Windows Authenticode and updater trust gates
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $build = Get-Content $env:BLANC_ECS_BUILD_RESULT | ConvertFrom-Json
+          $installer = @(Get-ChildItem "$($build.dist)/*.exe")
+          if ($installer.Count -ne 1) { throw 'Expected one NSIS installer' }
+          foreach ($file in @($installer[0].FullName, "$($build.dist)/win-unpacked/Blanc.exe")) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER -or -not $signature.TimeStamperCertificate) {
+              throw 'Invalid publisher, signature or timestamp'
+            }
+          }
+          node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust unit tests failed' }
+          node test/desktop/windows-update-trust-smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust native smoke failed' }
+      - name: Upload sanitized evidence only, never installers or profiles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-native-evidence-${{ matrix.os }}-${{ github.run_id }}
+          path: output/ecs-native/*.json
+          if-no-files-found: error
+          retention-days: 3
