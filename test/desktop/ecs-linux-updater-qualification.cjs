@@ -40,13 +40,21 @@ async function main() {
     return { name, file, version: b.candidateVersion, size: bytes.length, sha512: crypto.createHash('sha512').update(bytes).digest('base64') };
   }));
   let offered = assets[0];
+  let holdMetadata = false;
+  const heldMetadata = [];
+  const sendMetadata = res => {
+    if (!res.destroyed) res.end(`version: ${offered.version}\nfiles:\n  - url: ${offered.name}\n    sha512: ${offered.sha512}\n    size: ${offered.size}\npath: ${offered.name}\nsha512: ${offered.sha512}\n`);
+  };
   const server = http.createServer((req, res) => {
     const pathname = new URL(req.url, 'http://127.0.0.1').pathname;
     const asset = assets.find(a => pathname === `/${a.name}`);
     const known = pathname === '/staging-linux.yml' || !!asset;
     const entry = { path: known ? pathname : 'unexpected', method: req.method }; report.requests.push(entry);
     res.on('finish', () => { entry.complete = true; });
-    if (pathname === '/staging-linux.yml') return res.end(`version: ${offered.version}\nfiles:\n  - url: ${offered.name}\n    sha512: ${offered.sha512}\n    size: ${offered.size}\npath: ${offered.name}\nsha512: ${offered.sha512}\n`);
+    if (pathname === '/staging-linux.yml') {
+      if (holdMetadata) heldMetadata.push(res); else sendMetadata(res);
+      return;
+    }
     if (!asset) return res.writeHead(404).end();
     res.setHeader('Content-Length', asset.size); syncFs.createReadStream(asset.file).pipe(res);
   });
@@ -58,6 +66,7 @@ async function main() {
     const value = await state(); return value?.browserReady && value.version === version && value;
   }, `candidate ${version} ready`, 45000);
   let child, currentPid, logs = '', hiddenUnpacked;
+  const launched = [];
   try {
     const install = path.join(root, assets[0].name);
     await fs.copyFile(assets[0].file, install); await fs.chmod(install, 0o755);
@@ -66,10 +75,12 @@ async function main() {
       BLANC_UPDATE_STAGING_STATUS_FILE: ignoredStatus, ...env } = process.env;
     void ignored; void ignoredProfile; void ignoredPreload; void ignoredCdm; void ignoredAuto; void ignoredStatus;
     const appEnv = { ...env, APPIMAGE_EXTRACT_AND_RUN: '1', BLANC_ECS_FULL_SMOKE: '1',
-      BLANC_ECS_TEST_DEBUG_PORT: '55822', XDG_CONFIG_HOME: path.join(root, 'config'), XDG_CACHE_HOME: path.join(root, 'cache') };
+      BLANC_ECS_TEST_DEBUG_PORT_BASE: '55820', XDG_CONFIG_HOME: path.join(root, 'config'), XDG_CACHE_HOME: path.join(root, 'cache') };
+    delete appEnv.BLANC_ECS_TEST_DEBUG_PORT;
     // No repository launcher, profile argument, or preload environment. The
     // image must create only its own profile before native Electron starts.
     child = spawn(install, [], { env: appEnv, stdio: ['ignore', 'pipe', 'pipe'] });
+    launched.push(child);
     const capture = stream => stream.on('data', b => { logs = (logs + b).slice(-8000); });
     capture(child.stdout); capture(child.stderr);
     await checkpoint('standalone cold startup');
@@ -86,6 +97,7 @@ async function main() {
     offered = assets[1];
     child = spawn(install, [], { env: { ...appEnv, BLANC_UPDATE_CHANNEL: 'staging', BLANC_UPDATE_STAGING_ALLOW_HTTP: '1',
       BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/` }, stdio: ['ignore', 'pipe', 'pipe'] });
+    launched.push(child);
     capture(child.stdout); capture(child.stderr);
     initial = await waitReady(assets[0].version); currentPid = initial.pid;
     hiddenUnpacked = path.join(builds[0].dist, 'linux-unpacked.unavailable');
@@ -101,7 +113,9 @@ async function main() {
       await fs.unlink(stateFile); const oldPid = currentPid;
       // The replacement's ordinary startup check discovers the following
       // staged update. No private updater API or forced install is invoked.
-      if (assets[index + 1]) offered = assets[index + 1];
+      // Hold the next startup metadata response until playback is verified,
+      // so a second native update dialog cannot obstruct the playback probe.
+      if (assets[index + 1]) holdMetadata = true;
       execFileSync('xdotool', ['windowfocus', prompt]); execFileSync('xdotool', ['key', '--clearmodifiers', 'Return']);
       handoff.restartNowAccepted = true;
       await waitFor(() => !alive(oldPid), 'old candidate exit', 30000); handoff.oldExited = true;
@@ -118,7 +132,11 @@ async function main() {
       const launch = JSON.parse(await fs.readFile(path.join(profile, 'ecs-launch-attempt.json')));
       assert.equal(launch.nativeProfileMatches, true);
       await checkpoint(`protected playback ${next.version}`);
-      handoff.protectedPlayback = await updatedPlayback(55822, currentPid); handoff.passed = true;
+      handoff.protectedPlayback = await updatedPlayback(55820 + Number(next.version.match(/-ecs\.(\d+)$/)[1]), currentPid); handoff.passed = true;
+      if (assets[index + 1]) {
+        offered = assets[index + 1]; holdMetadata = false;
+        for (const res of heldMetadata.splice(0)) sendMetadata(res);
+      }
       await checkpoint(`verified ${next.version}`);
     }
     report.passed = report.handoffs.length === 2 && report.handoffs.every(h => h.passed);
@@ -132,6 +150,10 @@ async function main() {
     const finalState = await state(); if (finalState?.pid) currentPid = finalState.pid;
     if (alive(currentPid)) { await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit'); await waitFor(() => !alive(currentPid), 'final normal shutdown', 15000).catch(() => process.kill(currentPid, 'SIGKILL')); }
     if (child?.exitCode === null) { child.kill('SIGTERM'); await delay(1000); if (child.exitCode === null) child.kill('SIGKILL'); }
+    // A detached updater successor/crash handler can retain an ancestor's
+    // pipe after the browser has exited. Do not let diagnostic pipes keep the
+    // Node harness alive after the owned process and filesystem checks finish.
+    for (const process of launched) { process.stdout?.destroy(); process.stderr?.destroy(); }
     if (hiddenUnpacked) await fs.rename(hiddenUnpacked, path.join(builds[0].dist, 'linux-unpacked'));
     server.closeAllConnections();
     await new Promise(resolve => server.close(resolve)); await fs.rm(root, { recursive: true, force: true });

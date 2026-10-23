@@ -14,8 +14,11 @@ const { applyCandidateGraphicsPolicy } = require('./ecs-graphics-policy.cjs');
 const { startCandidateDrm, isWidevineComponentError } = require('./ecs-drm-startup.cjs');
 const metadata = require('../../package.json');
 const profile = process.env.BLANC_ECS_FULL_PROFILE;
-if (process.env.BLANC_ECS_FULL_SMOKE === '1' && /^\d{4,5}$/.test(process.env.BLANC_ECS_TEST_DEBUG_PORT || '')) {
-  const port = Number(process.env.BLANC_ECS_TEST_DEBUG_PORT);
+const testDebugBase = Number(process.env.BLANC_ECS_TEST_DEBUG_PORT_BASE);
+const testDebugPort = process.env.BLANC_ECS_TEST_DEBUG_PORT
+  || (Number.isSafeInteger(testDebugBase) && testDebugBase > 0 ? String(testDebugBase + Number(metadata.version.match(/-ecs\.(\d+)$/)?.[1])) : '');
+if (process.env.BLANC_ECS_FULL_SMOKE === '1' && /^\d{4,5}$/.test(testDebugPort)) {
+  const port = Number(testDebugPort);
   if (port < 1024 || port > 65535) throw Error('Invalid candidate test port');
   app.commandLine.appendSwitch('remote-debugging-port', String(port));
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
