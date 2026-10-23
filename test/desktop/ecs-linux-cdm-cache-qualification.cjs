@@ -22,6 +22,7 @@ function run() {
     }
     for (const [name, selected] of [['registered-update', '4.10.11.0'], ['registered-rollback', '4.10.10.0']]) {
       fs.writeFileSync(path.join(profile, 'Local State'), JSON.stringify({ updateclientdata: { apps: { [id]: { pv: selected, max_pv: '4.10.11.0' } } } }));
+      fs.writeFileSync(path.join(profile, 'WidevineCdm/latest-component-updated-widevine-cdm'), JSON.stringify({ Path: path.join(profile, 'WidevineCdm', selected) }));
       const actual = linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH;
       report.cases.push({ name, expected: selected, actual: path.basename(path.dirname(path.dirname(path.dirname(actual)))),
         passed: actual.includes(`/WidevineCdm/${selected}/`) });

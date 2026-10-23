@@ -53,6 +53,36 @@ test('Linux asynchronous registration uses the required component result, not th
     assert.equal(inspected.completionStatus, status);
   }
 });
+test('Linux CDM updates require restart even when a previous version is installed', async () => {
+  for (const platform of ['linux', 'darwin']) {
+    const runtime = createDrmRuntime({ app, platform, components: components({
+      status: () => ({ widevine: { status: 'new', version: '4.10.10.0' } }),
+      whenReady: async () => [{ id: 'widevine', status: 'updated', version: '4.10.11.0' }],
+    }) });
+    assert.equal((await runtime.prepare()).state, platform === 'linux' ? 'restart-required' : 'ready');
+  }
+});
+test('Linux notices a later version change without starting another component installation', async () => {
+  let version = '4.10.10.0', installs = 0;
+  const runtime = createDrmRuntime({ app, platform: 'linux', components: components({
+    status: () => ({ widevine: { status: 'new', version } }),
+    whenReady: async () => { installs++; return [{ id: 'widevine', status: 'new', version }]; },
+  }) });
+  assert.equal((await runtime.prepare()).state, 'ready');
+  assert.equal((await runtime.inspect()).state, 'ready');
+  version = '4.10.11.0';
+  assert.equal((await runtime.inspect()).state, 'restart-required');
+  assert.equal((await runtime.prepare()).state, 'restart-required');
+  assert.equal(installs, 1);
+});
+test('Linux registration cannot claim readiness for a different or missing preloaded CDM', async () => {
+  for (const preloaded of [null, '4.10.10.0', '4.10.11.0']) {
+    const runtime = createDrmRuntime({ app, platform: 'linux', linuxPreloadedVersion: preloaded,
+      components: components({ status: () => ({ widevine: { version: '4.10.11.0' } }),
+        whenReady: async () => [{ id: 'widevine', status: 'new', version: '4.10.11.0' }] }) });
+    assert.equal((await runtime.prepare()).state, preloaded === '4.10.11.0' ? 'ready' : 'restart-required');
+  }
+});
 test('timeout ignores late completion and never launches overlapping installs', async () => {
   let finish;
   let calls = 0;

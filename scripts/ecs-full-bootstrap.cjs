@@ -60,7 +60,13 @@ app.on('web-contents-created', (_event, wc) => {
   wc.on('will-frame-navigate', event => { if (/^(?:file:|view-source:file:)/i.test(event.url)) event.preventDefault(); });
   wc.on('will-redirect', event => { if (/^(?:file:|view-source:file:)/i.test(event.url)) event.preventDefault(); });
 });
-const drm = createDrmRuntime({ app, components });
+const cdmPrefix = path.join(profile, 'WidevineCdm') + path.sep;
+const cdmPath = process.env.BLANC_ECS_CDM_PRELOAD_PATH || '';
+const preloadedVersion = cdmPath.startsWith(cdmPrefix) ? cdmPath.slice(cdmPrefix.length).split(path.sep)[0] : null;
+const drm = createDrmRuntime({ app, components,
+  ...(process.platform === 'linux' && metadata.blancEcsPreloadRequired
+    ? { linuxPreloadedVersion: /^\d+(?:\.\d+){3}$/.test(preloadedVersion || '') ? preloadedVersion : null } : {}),
+});
 const ready = app.whenReady().then(() => {
   protectSession(session.defaultSession);
   // Do not hold startup for a download, offline error, or missing component.
@@ -120,6 +126,15 @@ ready.then(() => {
     writeState();
   }, 1000);
   timer.unref(); app.once('will-quit', () => clearInterval(timer));
+  const componentTimer = setInterval(() => {
+    void drm.inspect().then(component => {
+      if (state.drm?.state === 'ready' && component.state === 'restart-required') {
+        state.drm = { state: component.state, supported: component.supported, playbackVerified: false };
+        state.component = component; writeState();
+      }
+    }).catch(() => {});
+  }, 30000);
+  componentTimer.unref(); app.once('will-quit', () => clearInterval(componentTimer));
   // Fixture access is explicit and candidate-only; ordinary HTML enters via
   // the native menu above or the existing OS open-file event.
   if (process.env.BLANC_ECS_LOCAL_HTML) openLocalFiles([process.env.BLANC_ECS_LOCAL_HTML]);

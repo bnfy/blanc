@@ -26,6 +26,15 @@ function linuxPreloadEnv(appDir, profile) {
       versions.splice(versions.indexOf(registered), 1); versions.unshift(registered);
     }
   }
+  const hintFile = path.join(root, 'latest-component-updated-widevine-cdm');
+  if (fs.existsSync(hintFile)) {
+    const selected = JSON.parse(fs.readFileSync(hintFile, 'utf8'))?.Path;
+    if (typeof selected !== 'string' || path.dirname(selected) !== root || !versions.includes(path.basename(selected))) {
+      throw Error('CDM preload refuses an invalid active-component hint');
+    }
+    const version = path.basename(selected);
+    versions.splice(versions.indexOf(version), 1); versions.unshift(version);
+  }
   let library = '';
   for (const version of versions) {
     const dir = path.join(root, version);

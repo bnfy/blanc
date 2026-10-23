@@ -91,7 +91,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   const [major, minor] = base.version.split('.').map(Number);
   const metadata = { ...base, version: `${major}.${minor + 1}.0-ecs.${candidateSequence}`, name: 'blanc-ecs-full-candidate', productName,
     main: 'src/main/ecs-full-bootstrap.cjs', blancEcsFullCandidate: true, blancEcsQualification: qualification,
-    blancEcsStagingUpdater: stagingUpdater, blancEcsGraphicsPolicy: 'copy-video-frames', blancUblockBundled: false, build: config };
+    blancEcsStagingUpdater: stagingUpdater, blancEcsPreloadRequired: Boolean(nativeSecurityPatch), blancEcsGraphicsPolicy: 'copy-video-frames', blancUblockBundled: false, build: config };
   await fs.writeFile(path.join(project, 'package.json'), JSON.stringify(metadata, null, 2));
   // Resolve the lock in the isolated tree, never mutate the working checkout's
   // dependencies and never run npm package lifecycle scripts. The packaged
