@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "name": "footer-wide",
+      "pass": true,
+      "details": {
+        "width": 1000,
+        "height": 632,
+        "notice": {
+          "x": 344.9140625,
+          "y": 594.453125,
+          "right": 543.8828125,
+          "bottom": 619.8515625
+        },
+        "customize": {
+          "x": 460.3203125,
+          "y": 556.1484375,
+          "right": 539.6796875,
+          "bottom": 584.1484375
+        }
+      }
+    },
+    {
+      "name": "footer-minimum",
+      "pass": true,
+      "details": {
+        "width": 500,
+        "height": 632,
+        "notice": {
+          "x": 94.9140625,
+          "y": 594.453125,
+          "right": 293.8828125,
+          "bottom": 619.8515625
+        },
+        "customize": {
+          "x": 210.3203125,
+          "y": 556.1484375,
+          "right": 289.6796875,
+          "bottom": 584.1484375
+        }
+      }
+    }
+  ],
+  "complete": true,
+  "cleanExit": true
+}
