@@ -5,14 +5,22 @@ const { extractFile } = require('@electron/asar');
 const { getCurrentFuseWire, FuseV1Options } = require('@electron/fuses');
 const base = require('../package.json');
 const pin = require('../build/ecs-runtime.json');
-async function verify(app) {
+async function verify(app, { release = false } = {}) {
   const mac = process.platform === 'darwin';
   const resources = path.join(app, mac ? 'Contents/Resources' : 'resources');
   const metadata = JSON.parse(extractFile(path.join(resources, 'app.asar'), 'package.json'));
   assert.equal(metadata.blancRuntime, 'ecs');
   assert.equal(metadata.blancEcsRuntime, pin.version);
-  assert.equal(metadata.blancEcsUblockQualification, true);
-  assert.equal(metadata.blancUblockInternalValidation, true);
+  if (release) {
+    // Public ECS: no internal markers; uBO only under distribution clearance
+    // and the reviewed ECS runtime record.
+    assert.equal(metadata.blancEcsUblockQualification, undefined);
+    assert.equal(metadata.blancUblockInternalValidation, undefined);
+    assert.equal(require('../src/main/ublock-platforms.json').ecsRuntime, pin.version);
+  } else {
+    assert.equal(metadata.blancEcsUblockQualification, true);
+    assert.equal(metadata.blancUblockInternalValidation, true);
+  }
   assert.equal(metadata.blancUblockBundled, true);
   assert.equal(metadata.name, base.name);
   assert.equal(metadata.main, base.main);
@@ -32,5 +40,11 @@ async function verify(app) {
   require('./verify-packaged-compliance').verifyPackagedCompliance(resources);
   console.log('ECS integration identity, archive pin, uBO payload, runtime SBOM and final fuse wire verified.');
 }
-if (require.main === module) verify(path.resolve(process.argv[2])).catch(error => { console.error(error); process.exitCode = 1; });
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  const release = args[0] === '--release';
+  const target = release ? args[1] : args[0];
+  if (!target || args.length !== (release ? 2 : 1)) { console.error('usage: verify-ecs-production-package.cjs [--release] <app>'); process.exitCode = 1; }
+  else verify(path.resolve(target), { release }).catch(error => { console.error(error); process.exitCode = 1; });
+}
 module.exports = { verify };

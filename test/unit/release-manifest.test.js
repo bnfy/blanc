@@ -363,7 +363,7 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
   // A resume needs a reason, a stamp for this exact commit/version/arch set,
   // and unchanged stamped bytes.
   assert.match(releaseScript, /BLANC_RELEASE_RESUME_REASON/);
-  assert.match(releaseScript, /BUILD_STAMP_HEADER="commit=\$LOCAL_HEAD version=\$VERSION mac=\$MAC_ARCH_CSV"/);
+  assert.match(releaseScript, /BUILD_STAMP_HEADER="commit=\$LOCAL_HEAD version=\$VERSION mac=\$MAC_ARCH_CSV runtime=\$RELEASE_RUNTIME"/);
   assert.match(releaseScript, /shasum -a 256 -c --quiet -/);
   assert.match(releaseScript, /Contents\/MacOS\/Blanc" "\$app\/Contents\/Resources\/app\.asar"/);
   // Only the packaged checks between the build and the tag push are resumable,
@@ -377,4 +377,26 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
     previous = gate;
   }
   assert.doesNotMatch(releaseScript.slice(tagPush), /should_run|RESUME_FROM/);
+});
+
+test('an ECS release is opt-in, needs the EVS account and the reviewed uBO record, and verifies its own package', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  assert.match(releaseScript, /RELEASE_RUNTIME="\$\{BLANC_RELEASE_RUNTIME:-official\}"/);
+  assert.match(releaseScript, /for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE/);
+  assert.match(releaseScript, /matrix\.ecsRuntime !== pin\.version/);
+  assert.match(releaseScript, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production\.cjs --release --mac/);
+  assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac-arm64\/Blanc\.app"/);
+  assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac\/Blanc\.app"/);
+  // Official releases send no runtime input; only ECS does, and only after
+  // a pre-tag check that the native workflow accepts it.
+  assert.doesNotMatch(releaseScript, /-f runtime="\$RELEASE_RUNTIME"/);
+  assert.match(releaseScript, /\[ "\$RELEASE_RUNTIME" = ecs \] && DISPATCH_RUNTIME_ARGS=\(-f runtime=ecs\)/);
+  assert.match(releaseScript, /\$\{DISPATCH_RUNTIME_ARGS\[@\]\+"\$\{DISPATCH_RUNTIME_ARGS\[@\]\}"\}/);
+  assert.match(releaseScript, /does not accept runtime=ecs/);
+  assert(releaseScript.indexOf('does not accept runtime=ecs') < releaseScript.indexOf('git push origin "refs/tags/$TAG"'));
+  // macOS bash 3.2 aborts on an empty "${A[@]}" under set -u.
+  assert.doesNotMatch(releaseScript, /[^+]"\$\{(?:ECS_FUSE_ARGS|WORKSPACE_ENV)\[@\]\}"\}?(?!\})/);
+  assert.match(releaseScript, /\$\{ECS_FUSE_ARGS\[@\]\+"\$\{ECS_FUSE_ARGS\[@\]\}"\}/);
+  // The internal uBO qualification build can never enter the pipeline.
+  assert.match(releaseScript, /Internal uBlock validation packages cannot enter the release pipeline/);
 });

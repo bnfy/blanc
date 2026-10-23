@@ -21,6 +21,14 @@ on:
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
+      runtime:
+        description: "Release runtime: official Electron, or castLabs ECS with Widevine (release mode only)"
+        required: false
+        default: official
+        type: choice
+        options:
+          - official
+          - ecs
       ublock_candidate:
         description: "Include uBO in a private candidate (requires completed distribution clearance)"
         required: false
@@ -68,8 +76,21 @@ jobs:
           ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
           ECS_PRODUCTION: ${{ inputs.ecs_production }}
           ECS_WINDOWS_LIFECYCLE: ${{ inputs.ecs_windows_lifecycle }}
+          RELEASE_RUNTIME: ${{ inputs.runtime }}
           VALIDATION_REF: ${{ github.ref }}
         run: |
+          case "$RELEASE_RUNTIME" in official|ecs) ;; *) echo "Unknown release runtime" >&2; exit 1 ;; esac
+          if [ "$RELEASE_RUNTIME" = ecs ] && { [ "$RELEASE_MODE" != release ] || [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ] || [ "$ECS_PRODUCTION" = true ] || [ "$ECS_WINDOWS_LIFECYCLE" = true ]; }; then
+            echo "The ECS release runtime is release-mode only and excludes every candidate/qualification input" >&2
+            exit 1
+          fi
+          # A Windows ECS release needs EVS (VMP) signing in the public release
+          # job. That signing access is a separate owner decision and is not
+          # wired here, so the Windows ECS release fails closed.
+          if [ "$RELEASE_RUNTIME" = ecs ] && [ "$RELEASE_PLATFORM" != linux ]; then
+            echo "A Windows ECS release needs the separately approved EVS signing access in the release job" >&2
+            exit 1
+          fi
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
             exit 1
@@ -600,6 +621,11 @@ jobs:
     needs: validate-inputs
     if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
+    env:
+      RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
+      # Read by the workspace smoke: an ECS package reports its pinned ECS
+      # Electron version. Empty (the official path) for official builds.
+      BLANC_ECS_PACKAGE_ROOT: ${{ inputs.runtime == 'ecs' && format('{0}/dist/linux-unpacked', github.workspace) || '' }}
     permissions:
       contents: write
       id-token: write
@@ -645,7 +671,16 @@ jobs:
       - name: Build
         env:
           BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && inputs.ublock_candidate && '1' || '0' }}
-        run: npx electron-builder --linux --publish never
+        run: |
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --linux --x64
+          else
+            npx electron-builder --linux --publish never
+          fi
+
+      - name: Verify ECS release identity, archive pin, native patch and uBO record
+        if: ${{ inputs.runtime == 'ecs' }}
+        run: node scripts/verify-ecs-production-package.cjs --release dist/linux-unpacked
 
       - name: Verify build artifacts
         run: |
@@ -683,7 +718,8 @@ jobs:
       - name: Verify hardened Electron fuses
         run: |
           EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
-          node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
+          FUSE_ARGS=(); [ "$RELEASE_RUNTIME" = ecs ] && FUSE_ARGS=(--ecs)
+          node scripts/verify-electron-fuses.mjs "${FUSE_ARGS[@]}" "dist/linux-unpacked/$EXECUTABLE"
 
       - name: Install AppImage smoke runtime
         run: |

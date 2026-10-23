@@ -15,6 +15,29 @@ evidence, accepted risk and owed follow-up recorded in
 [the runtime review](ecs-runtime-security-review-2026-10-23.md). Waived is not
 passed; every other gate below still applies.
 
+**Release pipeline (code only, owner-approved October 23):** `scripts/release.sh`
+gains `BLANC_RELEASE_RUNTIME=ecs` (default `official`, unchanged). It requires
+the existing EVS account files and the reviewed uBO record, builds both Mac
+architectures in one `build-ecs-production.cjs --release` build, verifies each
+public package (`verify-ecs-production-package.cjs --release`,
+`verify-electron-fuses.mjs --ecs`), and sends `runtime=ecs` to the native
+workflow only for ECS releases, after a pre-tag check that the workflow
+accepts it. The native workflow's Linux release job builds and verifies ECS;
+no credentials are involved. The **Windows** ECS release is refused by the
+workflow and, before any tag, by `release.sh`: it needs EVS signing access in
+the public Windows release job plus `main` in the `ecs-signing` environment's
+allowed branches, a persistent access-policy change that is a separate owner
+decision (proposed patch kept outside the repository). No signing,
+credential use, environment change or release run was performed.
+
+**uBO on public ECS builds (owner-approved October 23):**
+`src/main/ublock-platforms.json` adds `ecsRuntime: 44.9.3+wvcus` with its
+evidence for the four previously qualified platform records; Rosetta stays
+excluded. `blocking-providers.js` honors it only for a packaged public ECS build
+whose metadata names exactly that runtime and whose Electron is its base
+version; anything else selects Blanc Blocker at startup. Blanc Blocker remains
+the default and an available uBO's failures stay fail closed.
+
 Newest evidence supersedes the historical running/pending notes below:
 
 - **Intel audio now passes after the normal OS permission flow.** In

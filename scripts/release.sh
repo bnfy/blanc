@@ -144,6 +144,67 @@ if ! { $HAS_MAC_ARM64 && $HAS_MAC_X64; } && [ -z "$MAC_ARCH_WAIVER" ]; then
 fi
 [ -z "$MAC_ARCH_WAIVER" ] || echo "==> Mac architecture waiver: $MAC_ARCH_WAIVER"
 
+# Empty arrays below use ${A[@]+"${A[@]}"}: macOS bash 3.2 aborts on an
+# empty "${A[@]}" under set -u.
+# Runtime: official Electron (default) or castLabs' Electron for Content
+# Security (Widevine DRM). ECS builds every platform from the pinned, hashed
+# archives in build/ecs-runtime.json, VMP-signs them through the existing EVS
+# account, and enables uBO only through its reviewed ECS runtime record.
+RELEASE_RUNTIME="${BLANC_RELEASE_RUNTIME:-official}"
+case "$RELEASE_RUNTIME" in
+  official) ;;
+  ecs)
+    for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE; do
+      [ -n "${!var:-}" ] || {
+        echo "An ECS release requires $var for the existing EVS account (VMP signing)." >&2
+        exit 1
+      }
+    done
+    [ -x "$BLANC_EVS_PYTHON" ] && [ -f "$EVS_CONFIG_FILE" ] && [ -f "$EVS_CACHE_FILE" ] || {
+      echo "The EVS client or account files named by BLANC_EVS_PYTHON/EVS_CONFIG_FILE/EVS_CACHE_FILE are missing." >&2
+      exit 1
+    }
+    node -e '
+      const matrix = require("./src/main/ublock-platforms.json");
+      const pin = require("./build/ecs-runtime.json");
+      if (matrix.ecsRuntime !== pin.version) process.exit(1);
+    ' || {
+      echo "An ECS release requires the reviewed uBO runtime record for $(node -p 'require("./build/ecs-runtime.json").version')." >&2
+      exit 1
+    }
+    # Checked before any tag or draft exists: the native workflow must accept
+    # the ECS runtime, or the dispatch would fail after publication began.
+    node -e '
+      const yaml = require("js-yaml");
+      const workflow = yaml.load(require("fs").readFileSync(".github/workflows/release-windows-linux.yml", "utf8"));
+      const input = workflow?.on?.workflow_dispatch?.inputs?.runtime;
+      if (!Array.isArray(input?.options) || !input.options.includes("ecs")) process.exit(1);
+    ' || {
+      echo "The native release workflow does not accept runtime=ecs; an ECS release cannot dispatch Windows/Linux builds." >&2
+      exit 1
+    }
+    # Windows ECS needs EVS signing in the public release job, a separate
+    # owner decision; the workflow refuses it, so refuse before any tag.
+    if $HAS_WINDOWS && ! node -e '
+      const yaml = require("js-yaml");
+      const workflow = yaml.load(require("fs").readFileSync(".github/workflows/release-windows-linux.yml", "utf8"));
+      if (!String(workflow?.jobs?.windows?.environment ?? "").includes("ecs-signing")) process.exit(1);
+    '; then
+      echo "A Windows ECS release needs the separately approved EVS signing access in the release workflow." >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "BLANC_RELEASE_RUNTIME must be official or ecs." >&2
+    exit 1
+    ;;
+esac
+ECS_FUSE_ARGS=()
+[ "$RELEASE_RUNTIME" = ecs ] && ECS_FUSE_ARGS=(--ecs)
+# Official releases dispatch exactly as before: no runtime input is sent.
+DISPATCH_RUNTIME_ARGS=()
+[ "$RELEASE_RUNTIME" = ecs ] && DISPATCH_RUNTIME_ARGS=(-f runtime=ecs)
+
 HOST_ARCH="$(uname -m)"
 case "$HOST_ARCH" in
   arm64)
@@ -212,7 +273,7 @@ if ! OP_BIOMETRIC_UNLOCK_ENABLED=true op signin; then
   exit 1
 fi
 
-echo "==> Preparing Blanc $VERSION ($TAG), mode=$MODE, platforms=$PLATFORM_CSV, mac=$MAC_ARCH_CSV"
+echo "==> Preparing Blanc $VERSION ($TAG), mode=$MODE, runtime=$RELEASE_RUNTIME, platforms=$PLATFORM_CSV, mac=$MAC_ARCH_CSV"
 
 # Released and staged versions are immutable. A failed draft remains evidence
 # of that attempt; fix forward with a new rc.N/version rather than overwriting.
@@ -276,7 +337,7 @@ fi
 RESUME_STEPS=(fuses blocker-payloads compliance first-run regressions workspaces favicons-primary favicons-additional migration)
 RESUME_FROM="${BLANC_RELEASE_RESUME_FROM:-}"
 BUILD_STAMP="dist/.release-build-stamp"
-BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV"
+BUILD_STAMP_HEADER="commit=$LOCAL_HEAD version=$VERSION mac=$MAC_ARCH_CSV runtime=$RELEASE_RUNTIME"
 step_index() {
   local i
   for i in "${!RESUME_STEPS[@]}"; do
@@ -326,11 +387,23 @@ else
   MAC_BUILD_ARGS=()
   $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
   $HAS_MAC_X64 && MAC_BUILD_ARGS+=(--x64)
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    # One build for both architectures so latest-mac.yml lists both. EVS
+    # signs before Apple signing and verifies after it (ecs-production-packaging).
+    MAC_BUILD=(env BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --mac "${MAC_BUILD_ARGS[@]}")
+  else
+    MAC_BUILD=(npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never)
+  fi
   if ! OP_BIOMETRIC_UNLOCK_ENABLED=true \
     op run --env-file=.env.1password --no-masking -- \
-    npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never; then
+    "${MAC_BUILD[@]}"; then
     echo "Signed/notarized macOS build failed. Nothing has been published." >&2
     exit 1
+  fi
+  if [ "$RELEASE_RUNTIME" = ecs ]; then
+    echo "==> Verifying ECS release identity, archive pin, uBO record and fuse wire"
+    $HAS_MAC_ARM64 && node scripts/verify-ecs-production-package.cjs --release "dist/mac-arm64/Blanc.app"
+    $HAS_MAC_X64 && node scripts/verify-ecs-production-package.cjs --release "dist/mac/Blanc.app"
   fi
   # Stamp the build so a later resume can prove it reuses exactly these bytes:
   # every top-level artifact plus each packaged app's executable and app.asar.
@@ -345,9 +418,9 @@ fi
 
 if should_run fuses; then
   echo "==> Verifying hardened Electron fuses in packaged binaries"
-  $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
+  $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs ${ECS_FUSE_ARGS[@]+"${ECS_FUSE_ARGS[@]}"} \
     "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc"
-  $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
+  $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs ${ECS_FUSE_ARGS[@]+"${ECS_FUSE_ARGS[@]}"} \
     "dist/mac/Blanc.app/Contents/MacOS/Blanc"
 fi
 
@@ -402,7 +475,12 @@ fi
 
 if should_run workspaces; then
   echo "==> Verifying packaged Workspace quit/restart recovery"
-  BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  # The smoke checks the reported Electron version; an ECS package reports
+  # its pinned ECS version, read from the package root.
+  WORKSPACE_ENV=()
+  [ "$RELEASE_RUNTIME" = ecs ] && WORKSPACE_ENV=("BLANC_ECS_PACKAGE_ROOT=$PWD/dist/$NATIVE_MAC_DIR/Blanc.app")
+  env ${WORKSPACE_ENV[@]+"${WORKSPACE_ENV[@]}"} \
+    BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
     npm run test:packaged:workspaces
 fi
 
@@ -478,6 +556,7 @@ if [ -n "$WORKFLOW_PLATFORM" ]; then
     --repo "$REPO" \
     -f mode=release \
     -f tag="$TAG" \
+    ${DISPATCH_RUNTIME_ARGS[@]+"${DISPATCH_RUNTIME_ARGS[@]}"} \
     -f platform="$WORKFLOW_PLATFORM"
 
   RUN_ID=""

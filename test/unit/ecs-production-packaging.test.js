@@ -34,3 +34,21 @@ test('VMP signing is before Apple signing and after Windows signing', () => {
   assert.match(afterSign, /evs\('verify-pkg'/);
   assert.doesNotMatch(source, /--force/);
 });
+
+test('ECS release mode drops internal markers, needs the pipeline and the reviewed uBO record', () => {
+  const build = read('scripts/build-ecs-production.cjs');
+  const hooks = read('scripts/ecs-production-packaging.cjs');
+  const verify = read('scripts/verify-ecs-production-package.cjs');
+  const fuses = read('scripts/verify-electron-fuses.mjs');
+  assert.match(build, /release \? \{ blancRuntime: 'ecs', blancEcsRuntime: pin.version \}/);
+  assert.match(build, /process.env.BLANC_ECS_RELEASE_PIPELINE !== '1'/);
+  assert.match(build, /Internal uBlock validation cannot enter an ECS release build/);
+  assert.match(build, /release \? '..\/dist' : '..\/dist-ecs'/);
+  assert.match(hooks, /if \(release === internal\) throw Error/);
+  assert.match(hooks, /ecsRuntime !== pin.version\) throw Error\('ECS release runtime lacks a reviewed uBO runtime record'\)/);
+  assert.match(verify, /assert.equal\(metadata.blancUblockInternalValidation, undefined\)/);
+  assert.match(fuses, /\[FuseV1Options.GrantFileProtocolExtraPrivileges, ecs\]/);
+  assert.match(fuses, /--ecs requires a package built on the ECS runtime/);
+  // VMP signing order and publication refusal are unchanged.
+  assert.match(build, /publish: 'never'/);
+});

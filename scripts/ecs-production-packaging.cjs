@@ -13,7 +13,10 @@ function evs(command, directory) {
 async function beforePack(context) {
   require('./preflight-electron-runtime').verifyElectronRuntime({ root: context.packager.projectDir });
   if (context.packager.info.framework.version !== pin.version) throw Error('Unexpected ECS framework version');
-  if (process.env.BLANC_UBLOCK_INTERNAL_BUILD !== '1') throw Error('ECS integration is not yet release-qualified; internal qualification required');
+  const release = process.env.BLANC_ECS_RELEASE === '1';
+  const internal = process.env.BLANC_UBLOCK_INTERNAL_BUILD === '1';
+  if (release === internal) throw Error('An ECS build is exactly one of internal qualification or the release pipeline');
+  if (release && context.packager.config.extraMetadata.blancEcsUblockQualification) throw Error('Internal uBO qualification marker forbidden in an ECS release');
   const runtime = await prepareEcsRuntime(context.electronPlatformName, archName(context));
   Object.assign(context.packager.config.extraMetadata, { blancEcsArchiveSha256: runtime.archiveSha256,
     blancEcsFrameworkSha256: runtime.frameworkSha256, blancEcsTarget: `${runtime.platform}-${runtime.arch}`,
@@ -22,6 +25,8 @@ async function beforePack(context) {
   require('./before-pack-ublock')(context, { runtimeCheck: version => {
     require('./check-ublock-runtime.cjs').checkRuntime();
     if (version !== pin.version) throw Error('ECS uBO qualification runtime differs from the reviewed input');
+    // A public ECS build enables uBO only through its own reviewed record.
+    if (release && require('../src/main/ublock-platforms.json').ecsRuntime !== pin.version) throw Error('ECS release runtime lacks a reviewed uBO runtime record');
   } });
 }
 async function afterPack(context) {
