@@ -9,7 +9,9 @@ enum SyncCopy {
         forResource: "strings.\(locale)", withExtension: "js", subdirectory: "pages"),
       let source = try? String(contentsOf: url, encoding: .utf8),
       let start = source.range(of: "{\"locale\":"),
-      let end = source.range(of: "});", options: .backwards),
+      // The file ends `…"fallback":{}});`: the object closes on the `}` before
+      // `);`, so cut at `);`, not `});`, or the last brace is lost.
+      let end = source.range(of: ");", options: .backwards),
       let data = source[start.lowerBound..<end.lowerBound].data(using: .utf8),
       let catalog = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
       let result = catalog["messages"] as? [String: String]
