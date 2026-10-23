@@ -72,6 +72,9 @@ test('Windows updater requires native Restart Now and exact automatic successor'
  assert.match(source,/GITHUB_ACTIONS,'true'/);assert.match(source,/BLANC_ECS_DISPOSABLE_HOST,'1'/);
  assert.match(source,/native Restart Now/);assert.match(source,/exact installed target payload/);
  assert.match(source,/automatic successor/);assert.match(source,/playback.status,2/);assert.match(source,/playback.muted,false/);
+ assert.match(source,/report.exactTargetInstalled=true/);assert.match(source,/report.oldBrowserExited=true/);
+ assert.match(source,/report.processEvidence=processEvidence\(\)/);
+ assert.match(source,/processPath:\$process.Path|processPath=\$process.Path/);
  assert.match(source,/profileRemoved,true/);assert.match(source,/installationRemoved,true/);
  assert.doesNotMatch(source,/quitAndInstall\(|STAGING_AUTO_INSTALL:'1'|--no-sandbox/);
  const ui=fs.readFileSync('test/desktop/support/windows-owned-ui.ps1','utf8');

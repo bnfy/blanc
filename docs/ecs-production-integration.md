@@ -7,7 +7,43 @@ Main's subsequent Split View update (`33da400fe`) is now merged into this
 integration branch. Earlier signed binaries and native evidence below predate
 that source update and do not by themselves qualify the merged result.
 
-## Current gate status — October 23, 19:37 UTC
+## Current gate status — October 23, 20:00 UTC
+
+Newest evidence supersedes the historical running/pending notes below:
+
+- Windows `40013400671` passed baseline DRM, uBO, offline isolation and the
+  complete CDM lifecycle again (first UI 1747 ms; four unmuted stages advanced
+  4.941/4.938/4.929/4.935 seconds, verified VMP, exact signed DLLs and restricted
+  sandbox tokens). Its updater now records **Restart Now clicked**, but times
+  out waiting for an automatic successor after the exact-target-payload wait.
+  Cleanup still finds locked profile and installation files despite the exact
+  executable query returning no processes. This is not an updater pass.
+  The next diagnostic records bounded, read-only CIM/Get-Process evidence and
+  milestones; it does not adopt or kill processes at other paths.
+- Intel updater `40011188375` attempt 1 completed native Restart Now, exact
+  replacement, automatic relaunch and Apple trust, then failed unmuted
+  controlled-player advancement. Numerical samples were not retained by that
+  harness on assertion failure. Both disposable profile/installation were
+  removed. The original VMP Lab page is therefore not the sole cause.
+- Signed audio diagnostic `40012023427` completed, **not passed acceptance**:
+  Apple Silicon's ten controls and both protected trials advanced (4.954/4.959
+  seconds, VMP 2, no media errors; two aborted storage requests retained).
+  Intel's PCM/AAC trials timed out, both Web Audio clocks remained at zero,
+  protected playback stalled before and after controls, and the native probe
+  returned an undifferentiated process error. Profiles were removed. The host
+  audio path is suspect, not proven faulty hardware or an ECS-only regression.
+  The follow-up records native exit/signal/timeout evidence before opening
+  Blanc, during the tests and after closing it, plus timed-out media state.
+  A preliminary native probe can itself warm audio; this remains diagnosis,
+  not a substitute for cold unmuted acceptance.
+- Apple Silicon updater attempt 1 failed on Apple's CloudKit ticket-service
+  connection loss (`-1005`, stapler 68), before testing. Only that job was
+  retried as attempt 2 after the matrix terminated. Keep the transfer assets
+  for that retry and the follow-up audio diagnosis. No trust check is waived.
+
+These diagnostic changes do not alter application code, signed packages,
+acceleration, entitlements, TCC, devices or drivers. A new Windows signed run
+still requires fresh owner authorization; no approval is inherited.
 
 This summary supersedes historical pending-status notes below. Application
 source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.

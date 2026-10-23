@@ -38,6 +38,14 @@ const quote=s=>"'"+s.replaceAll("'","''")+"'";
 const ui=(pid,action,url='')=>ps(`& ${quote(path.resolve('test/desktop/support/windows-owned-ui.ps1'))} -TargetProcessId ${pid} -Action ${action} -Url ${quote(url)} -ExpectedVersion ${quote(targetVersion)}`);
 const pids=()=>JSON.parse(ps(`ConvertTo-Json -InputObject @((Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} -and $_.CommandLine -notmatch '--type=' }).ProcessId) -Compress`)).filter(Number.isInteger);
 const ownedPids=()=>JSON.parse(ps(`ConvertTo-Json -InputObject @((Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} }).ProcessId) -Compress`)).filter(Number.isInteger);
+// Read-only inventory: diagnose invisible/elevated or differently located
+// successors without adopting or terminating any unverified process.
+const processEvidence=()=>JSON.parse(ps(`ConvertTo-Json -Depth 4 -InputObject @(Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Select-Object -First 40 | ForEach-Object {
+ $row=$_; $process=Get-Process -Id $row.ProcessId -ErrorAction SilentlyContinue
+ @{ pid=$row.ProcessId; parent=$row.ParentProcessId; executable=$row.ExecutablePath;
+    processPath=$process.Path; session=$row.SessionId; fixture=($row.ExecutablePath -eq ${quote(executable)});
+    helper=($row.CommandLine -match '--type='); commandReadable=($null -ne $row.CommandLine) }
+}) -Compress`));
 const alive=pid=>{try{process.kill(pid,0);return true;}catch{return false;}};
 const wait=async(name,read,timeout=120000)=>{const end=Date.now()+timeout;while(Date.now()<end){const v=await read();if(v)return v;await new Promise(r=>setTimeout(r,250));}throw Error('Timed out: '+name);};
 const verify=file=>{
@@ -65,7 +73,9 @@ try{
  await wait('download from owned staging feed',()=>downloaded);
  await wait('native Restart Now',()=>ui(oldPid,'restart')==='clicked');report.nativeRestartNow=true;
  await wait('old browser exit',()=>!alive(oldPid));
+ report.oldBrowserExited=true;
  await wait('exact installed target payload',async()=>{try{return await hash(path.join(install,'resources/app.asar'))===expectedAsar;}catch{return false;}});
+ report.exactTargetInstalled=true;
  newPid=await wait('automatic successor',()=>pids().find(pid=>pid!==oldPid));report.automaticRelaunch=true;
  report.installedSignature=verify(executable);report.installedAsarSha256=await hash(path.join(install,'resources/app.asar'));
  await wait('automatic successor first CDM installation',async()=>{
@@ -90,6 +100,7 @@ try{
  assert(playback.encryptedEvents>0);assert(playback.second-playback.first>2);report.passed=true;
 }catch(error){
  report.failure=String(error.message).slice(0,600);
+ try{report.processEvidence=processEvidence();}catch(error){report.processEvidenceFailure=error.code||error.name;}
  try{const pid=pids()[0];if(pid)report.nativeUi=JSON.parse(ui(pid,'inspect'));}catch{}
  throw error;
 }
@@ -103,6 +114,7 @@ finally{
    ps(`Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`);
    await wait('all fixture process handles released',()=>ownedPids().length===0,30000);
    report.processesRemoved=true;
+   report.processEvidenceAfterCleanup=processEvidence();
   }],
   ['loopback-server',async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));}],
   ['owned-profile',async()=>{

@@ -14,6 +14,7 @@ const {wav, advances} = require('./support/audio-fixture.cjs');
 const {protectedPage} = require('./support/ecs-protected-page.cjs');
 const {browserStartupReady} = require('./support/ecs-startup.cjs');
 const {waitFor} = require('./ecs-drm-playback-smoke.cjs');
+const {nativeProbe} = require('./support/native-probe.cjs');
 assert.equal(process.platform, 'darwin');
 assert.equal(process.env.GITHUB_ACTIONS, 'true');
 assert.equal(process.env.RUNNER_ARCH, {x64:'X64', arm64:'ARM64'}[process.arch]);
@@ -26,6 +27,9 @@ const token = crypto.randomBytes(16).toString('hex');
 const report = {completed:false, arch:process.arch, trials:[], players:{}, mediaErrors:[], networkFailures:[]};
 let app, server, protectedResult;
 try {
+  // Check the same host before Blanc opens any audio stream. A failure here
+  // cannot be attributed to the signed app or its CDM.
+  if(process.env.NATIVE_AUDIO_PROBE)report.nativeBeforeBrowser=nativeProbe(process.env.NATIVE_AUDIO_PROBE);
   await fs.mkdir(profile);
   await fs.writeFile(path.join(profile,'settings.json'), JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
   report.executableSha256 = crypto.createHash('sha256').update(await fs.readFile(executable)).digest('hex');
@@ -102,7 +106,14 @@ try {
       await page.locator('#start').click();
       await page.waitForFunction(()=>window.result!==null,undefined,{timeout:15000});
       report.trials.push({...spec,...await page.evaluate(()=>window.result)});
-    } catch(error) {report.trials.push({...spec,failure:error.name});}
+    } catch(error) {
+      const state=await page.evaluate(()=>{
+        const audio=document.querySelector('audio');
+        return audio?{time:audio.currentTime,paused:audio.paused,muted:audio.muted,
+          readyState:audio.readyState,networkState:audio.networkState,error:audio.error?.code??null}:null;
+      }).catch(()=>null);
+      report.trials.push({...spec,failure:error.name,state});
+    }
   }
   // Same public encrypted media/server as VMP Lab, but our small controlled
   // player: isolate page/player differences without changing signed bytes.
@@ -116,8 +127,7 @@ try {
   report.protectedAdvancesAfterControls=protectedAdvances(report.protectedAfterControls);
   report.completed=report.trials.length===10;
   if (process.env.NATIVE_AUDIO_PROBE) {
-    try {report.native=JSON.parse(execFileSync(process.env.NATIVE_AUDIO_PROBE,[],{encoding:'utf8',timeout:20000}));}
-    catch(error) {report.native={failure:error.name};}
+    report.native=nativeProbe(process.env.NATIVE_AUDIO_PROBE);
   }
   await media.detach();
 } catch(error) {report.failure={name:error.name,message:error.message.slice(0,300)};throw error;}
@@ -126,6 +136,7 @@ finally {
     try {await app.close();}
     catch(error) {report.cleanupFailure=error.name;report.completed=false;}
   }
+  if(process.env.NATIVE_AUDIO_PROBE)report.nativeAfterBrowser=nativeProbe(process.env.NATIVE_AUDIO_PROBE);
   if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   await fs.rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:200});
   report.profilesRemoved=!(await fs.stat(root).catch(()=>null));
