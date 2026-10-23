@@ -14,7 +14,7 @@ test('signed ECS Intel intake is exact-byte pinned, native, branch-scoped and no
   assert.match(job, /214105f60808638fef064332f2f5f0ca80ccb8f94af2ee84ad315bb9ad02e03e/);
   assert.match(job, /c94ad5d6a834f79463f847a59b3f493838f08dc2e946c42bfaae2e7d4755c8c9/);
   assert.match(job, /sysctl\.proc_translated/);
-  assert.match(job, /spctl --assess/);
+  assert.match(job, /ci-intel-apple-tickets\.sh/);
   assert.match(job, /ecs-production-drm-smoke\.mjs/);
   assert.doesNotMatch(job, /gh release (?:create|upload|edit)|EVS_CONFIG|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|--no-sandbox/);
 });

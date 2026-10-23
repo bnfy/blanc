@@ -147,12 +147,7 @@ jobs:
           for KIND in old target; do
             APP="$RUNNER_TEMP/ecs-update-$KIND/Blanc.app"
             codesign --verify --deep --strict "$APP"
-            for ATTEMPT in 1 2 3; do
-              xcrun stapler validate "$APP" && break
-              test "$ATTEMPT" -lt 3 || exit 1
-              sleep 5
-            done
-            spctl --assess --type execute "$APP"
+            bash scripts/ci-intel-apple-tickets.sh "$APP"
           done
           npm version 1.43.0-staging.1 --no-git-tag-version
           npm run compliance:build
@@ -215,12 +210,7 @@ jobs:
           echo "c94ad5d6a834f79463f847a59b3f493838f08dc2e946c42bfaae2e7d4755c8c9  $BLANC_PACKAGED_ASAR" | shasum -a 256 -c -
           test "$(lipo -archs "$BLANC_PACKAGED_EXECUTABLE")" = x86_64
           codesign --verify --deep --strict "$BLANC_ECS_PACKAGE_ROOT"
-          for ATTEMPT in 1 2 3; do
-            xcrun stapler validate "$BLANC_ECS_PACKAGE_ROOT" && break
-            test "$ATTEMPT" -lt 3 || exit 1
-            sleep 5
-          done
-          spctl --assess --type execute --verbose=4 "$BLANC_ECS_PACKAGE_ROOT"
+          bash scripts/ci-intel-apple-tickets.sh "$BLANC_ECS_PACKAGE_ROOT"
           node scripts/verify-ecs-production-package.cjs "$BLANC_ECS_PACKAGE_ROOT"
           node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-intake",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
       - name: Native Intel uBO controls, real restarts, reopen and Quit

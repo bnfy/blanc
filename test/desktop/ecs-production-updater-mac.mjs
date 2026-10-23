@@ -73,7 +73,7 @@ end tell`;
  successorPid=await wait('automatic updated process',()=>processIds().find(pid=>pid!==child.pid));
  report.automaticRelaunch=true;
  assert.equal(run('plutil',['-extract','CFBundleShortVersionString','raw',path.join(app,'Contents/Info.plist')]),targetVersion);
- run('codesign',['--verify','--deep','--strict',app]);run('xcrun',['stapler','validate',app]);run('spctl',['--assess','--type','execute',app]);
+ run('codesign',['--verify','--deep','--strict',app]);run('bash',[path.resolve('scripts/ci-intel-apple-tickets.sh'),app]);
  await wait('actual Widevine component installation',async()=>{
   for(const version of await fs.readdir(path.join(profile,'WidevineCdm')).catch(()=>[])){
    if(/^\d+(?:\.\d+){3}$/.test(version)&&await fs.stat(path.join(profile,'WidevineCdm',version,'manifest.json')).catch(()=>null))return true;
