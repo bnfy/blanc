@@ -509,6 +509,9 @@ with two existing skips, lint, and PowerShell parsing/native declaration
 compilation. All signature, mapped-DLL, token, integrity and playback checks
 remain mandatory in the next run.
 
+Retry `40009588876` uses test source `e8d4f7b5b`; the owner approved that exact
+signing run and the approval was submitted. Its native results remain pending.
+
 The fresh Mac matrix `40006057550` remains separate and queued; this Windows
 work does not replace its acceptance requirements.
 
