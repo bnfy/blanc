@@ -13,6 +13,10 @@
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#ifdef __linux__
+#include <sys/prctl.h>
+#include <signal.h>
+#endif
 namespace fs = std::filesystem;
 struct Json {
   std::string text;
@@ -190,6 +194,18 @@ int main(int argc, char** argv) {
     set("LD_PRELOAD", shim.string());
     set("BLANC_ECS_LAUNCHER_ROOT", appDir.string());
     unsetenv("APPIMAGE_EXIT_AFTER_INSTALL");
+    // A replacement must not retain the previous image's disappearing cwd.
+    if (chdir(profile.c_str())) throw std::runtime_error("cannot enter candidate profile");
+#ifdef __linux__
+    if (env("BLANC_ECS_FULL_SMOKE") == "1") {
+      int deathSignal = 0; prctl(PR_GET_PDEATHSIG, &deathSignal);
+      struct sigaction action{}; sigaction(SIGCHLD, nullptr, &action);
+      std::cerr << "ECS_NATIVE_ENTRY cached_cdm=" << !cdm.empty()
+        << " no_new_privs=" << prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0)
+        << " seccomp=" << prctl(PR_GET_SECCOMP, 0, 0, 0, 0)
+        << " parent_death_signal=" << deathSignal << " sigchld_ignored=" << (action.sa_handler == SIG_IGN) << '\n';
+    }
+#endif
     std::vector<char*> raw; for (auto& arg : args) raw.push_back(arg.data()); raw.push_back(nullptr);
     execv(core.c_str(), raw.data());
     throw std::runtime_error(std::string("candidate exec failed: ") + strerror(errno));

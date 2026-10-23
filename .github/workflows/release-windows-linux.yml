@@ -748,7 +748,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p output
-          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js test/unit/ecs-linux-launcher.test.js
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js test/unit/ecs-linux-launcher.test.js test/unit/ecs-appimage-relaunch.test.js
           npm run adblock:check
           npm run compliance:check
       - name: Enable Linux sandbox on this disposable runner
