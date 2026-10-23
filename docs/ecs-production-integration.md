@@ -47,9 +47,23 @@ Its Apple Silicon updater cell proved actual Restart Now, exact replacement,
 automatic relaunch, Apple trust and encrypted playback, but the report exposed
 `muted: true`. That is **not** unmuted successor acceptance. The harness now
 explicitly requests and asserts unmuted playback; both native Mac updater
-cells must rerun against the existing immutable signed fixtures. The two Intel
-cells of the original run are still pending and its muted updater result, if
-successful, cannot close the unmuted gate.
+cells must rerun against the existing immutable signed fixtures. The original
+Intel updater also completed replacement/relaunch/trust with muted playback;
+it cannot close the unmuted gate. Original native Intel acceptance reproduced
+the unmuted stall: 0.083333→0.183333 seconds over five seconds, with 12 seconds
+buffered, VMP verified and no media/network errors. Foreground focus did not
+help; muting advanced 0.198913→6.486855 seconds. Native uBO, restarts, offline
+(2694/2586 ms), HTML isolation, workspace and synthetic media passed. The
+runner reports a virtual CoreAudio device. Prior equal-runtime PCM/AAC/native
+controls passed, so this is still a full-Blanc/protected-playback blocker,
+not evidence of generally broken ECS audio or proven faulty hardware.
+
+Test-only fix `d2e4a0842` passed all 4,303 unit tests (two existing skips),
+lint, focused tests and PowerShell/native declaration compilation. Replacement
+Mac updater-only run `40011188375` requires unmuted playback on both native
+architectures using the same signed bytes. Owner-approved Windows retry
+`40011311276` is on the same head and its protected signing approval has been
+submitted. No new signing authority extends to any later replacement run.
 
 The upstream check confirms the selected `v44.9.3+wvcus` is the latest ECS
 release and matches the latest Electron 44 patch `v44.9.3` (which includes
