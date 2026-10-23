@@ -48,6 +48,10 @@ on:
         description: "Diagnose PCM, AAC, Web Audio and protected playback in the exact signed Mac apps"
         type: boolean
         default: false
+      ecs_fresh_mac_audio_permission:
+        description: "Owner-approved native Blanc microphone dialog on disposable Intel only"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -192,6 +196,7 @@ jobs:
       contents: write
     env:
       BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+      BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT: ${{ inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64' && '1' || '0' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -254,7 +259,14 @@ jobs:
         if: matrix.mode == 'audio'
         run: |
           swiftc test/desktop/native-audio-clock.swift -o "$RUNNER_TEMP/native-audio-clock"
-          NATIVE_AUDIO_PROBE="$RUNNER_TEMP/native-audio-clock" node test/desktop/ecs-signed-audio-controls.mjs
+          WRAPPER=()
+          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
+            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
+          fi
+          NATIVE_AUDIO_PROBE="$RUNNER_TEMP/native-audio-clock" node "${WRAPPER[@]}" test/desktop/ecs-signed-audio-controls.mjs
+      - name: Strict native Intel protected playback after OS permission exercise
+        if: matrix.mode == 'audio' && matrix.arch == 'x64' && inputs.ecs_fresh_mac_audio_permission
+        run: node test/desktop/support/run-with-mac-audio-permission.mjs test/desktop/ecs-production-drm-smoke.mjs
       - name: Fetch the public baseline without modifying any public asset
         if: matrix.mode == 'updater'
         env:
@@ -285,7 +297,11 @@ jobs:
           npm run compliance:build
           node scripts/verify-ecs-production-package.cjs "$RUNNER_TEMP/ecs-fresh/target/Blanc.app"
           node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-fresh/target",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
-          node test/desktop/ecs-production-updater-mac.mjs \
+          WRAPPER=()
+          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
+            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
+          fi
+          node "${WRAPPER[@]}" test/desktop/ecs-production-updater-mac.mjs \
             "$RUNNER_TEMP/ecs-fresh/old/Blanc.app" \
             "$RUNNER_TEMP/ecs-fresh/download/Blanc-ECS-${{ matrix.arch }}-updater.zip" \
             1.43.0-staging.2 '${{ matrix.update_asar }}' \

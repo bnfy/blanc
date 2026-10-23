@@ -53,7 +53,8 @@ test('fresh Mac intake binds both native architectures to private signed bytes',
  assert.equal([...job.matchAll(/(?:archive_sha|app_sha|update_sha|update_asar): [a-f0-9]{64}\n/g)].length,8);
  assert.match(job,/node test\/desktop\/ecs-production-drm-smoke.mjs/);
  assert.match(job,/node test\/desktop\/ecs-local-html-smoke.cjs/);
- assert.match(job,/node test\/desktop\/ecs-production-updater-mac.mjs/);
+ assert.match(job,/node "\$\{WRAPPER\[@\]\}" test\/desktop\/ecs-production-updater-mac.mjs/);
+ assert.match(job,/WRAPPER=\(test\/desktop\/support\/run-with-mac-audio-permission.mjs\)/);
  assert.match(job,/BLANC_ECS_DISPOSABLE_HOST: '1'/);
  assert.match(job,/BLANC_UPDATE_CHANNEL: ecs-qualification-disabled/);
  assert.doesNotMatch(job,/gh release (?:create|upload|edit)|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|continue-on-error|--no-sandbox/);

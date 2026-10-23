@@ -18,5 +18,17 @@ test('fresh signed ECS Intel intake is exact-byte pinned, native, branch-scoped 
   assert.match(job, /sysctl\.proc_translated/);
   assert.match(job, /ci-intel-apple-tickets\.sh/);
   assert.match(job, /ecs-production-drm-smoke\.mjs/);
+  assert.match(job, /inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64'/);
   assert.doesNotMatch(job, /gh release (?:create|upload|edit)|EVS_CONFIG|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|--no-sandbox/);
+});
+test('owner-approved Intel audio permission is confined to system dialogs and fixed tests',()=>{
+  const wrapper=fs.readFileSync('test/desktop/support/run-with-mac-audio-permission.mjs','utf8');
+  const script=fs.readFileSync('test/desktop/support/approve-mac-audio-dialog.applescript','utf8');
+  assert.match(wrapper,/process\.arch,'x64'/);assert.match(wrapper,/process\.env\.GITHUB_ACTIONS,'true'/);
+  assert.match(wrapper,/process\.env\.BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT,'1'/);
+  assert.match(wrapper,/only the fixed qualification scripts may run/);
+  assert.match(script,/application processes whose bundle identifier/);
+  assert.match(script,/promptText contains "Blanc" and promptText contains "microphone"/);
+  assert.match(script,/denyCount is 1/);assert.match(script,/\(count of candidates\) is not 1/);
+  assert.doesNotMatch(wrapper+script,/sqlite3|tccutil|killall|launchctl|chmod|codesign/);
 });

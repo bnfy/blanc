@@ -7,9 +7,31 @@ Main's subsequent Split View update (`33da400fe`) is now merged into this
 integration branch. Earlier signed binaries and native evidence below predate
 that source update and do not by themselves qualify the merged result.
 
-## Current gate status — October 23, 20:00 UTC
+## Current gate status — October 23, 20:32 UTC
 
 Newest evidence supersedes the historical running/pending notes below:
+
+- Intel `40017380935` produced a concrete system stack: `coreaudiod` waits in
+  `CheckTCCAndThrow` → `TCCAccessCheckAuditToken` → `TCCAccessRequest` →
+  synchronous `tccd` IPC while serving the runner's combined Null Audio Device.
+  It passed native audio before Blanc and then hung in this permission check.
+  The owner approved exercising the normal Blanc microphone OS dialog on the
+  disposable Intel runner. A separate, default-off qualification input now
+  permits only an unambiguous system-owned dialog naming Blanc and microphone,
+  with both Allow and Don't Allow controls. It does not modify TCC databases,
+  drivers or application policy. The same signed bytes then run the original
+  strict unmuted DRM test; permission handling alone is not acceptance.
+
+- **Windows native qualification is now passing:** `40018661753` on
+  `0a9d381eb` succeeded after canonicalizing the temporary installation path.
+  Its report confirms the path expanded, actual Restart Now, old-process exit,
+  exact target replacement, automatic successor, timestamped exact-publisher
+  signatures and unmuted VMP-verified playback advancing 4.939 seconds.
+  All fixture processes, profile and installation were removed. The same run
+  passed CDM first install (UI 920 ms), genuine vendor update, controlled cache
+  rollback, cached offline readiness, exact DLL/sandbox-token checks, uBO and
+  offline local-file isolation (845/732 ms). One aborted storage request in the
+  baseline playback report is retained. No updater or lifecycle waiver was used.
 
 - Windows `40016447078` identifies a fixture ownership-path mismatch: after
   Restart Now, the exact target was installed and a live successor plus five
@@ -75,14 +97,15 @@ source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
 
 - **Passed:** Linux native playback, sandbox, CDM lifecycle and both real
   versionless AppImage updater handoffs; Windows real first CDM install,
-  vendor update, controlled cache rollback and offline readiness; native
-  Apple Silicon signed-package acceptance and Spotify/Netflix playback.
+  vendor update, controlled cache rollback, offline readiness and actual
+  production-to-ECS updater handoff; native Apple Silicon signed-package
+  acceptance, updater handoff and Spotify/Netflix playback.
 - **Passed locally:** the fresh signed Apple Silicon app received a real
   640×480 camera frame and microphone signal (peak 0.008) through Blanc's
   actual permission flow. No recordings were saved; the harness closed the
   tracks/app and removed its temporary profiles. Production hashes are unchanged.
-- **Open:** actual Windows updater handoff, unmuted native Intel acceptance,
-  unmuted Mac updater successors, Mac CDM lifecycle, native passkey/1Password
+- **Open:** unmuted native Intel acceptance and updater successor playback,
+  Mac CDM lifecycle, native passkey/1Password
   acceptance, final runtime/uBO source/license/security review and supported
   matrix, final PR checks, and the public pipeline/version/What's New gates.
   No waiver, merge, publication or production-runtime switch is implied.
@@ -187,7 +210,7 @@ qualification; that marker is not public-distribution clearance. Default
 Electron. The official dependency/lockfile, production fuse configuration and
 macOS entitlement files are unchanged.
 
-`build/ecs-runtime.json` pins the exact ECS tag, vendor source commit, Chromium
+`build/ecs-runtime.json` pins the exact ECS tag, vendor release-metadata commit, Chromium
 version and four archive digests. Packaging verifies the downloaded bytes and
 records the selected archive and framework hashes in package metadata and the
 runtime SBOM. Linux additionally records its exact native patch receipt. The
