@@ -748,7 +748,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p output
-          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js test/unit/ecs-linux-launcher.test.js
           npm run adblock:check
           npm run compliance:check
       - name: Enable Linux sandbox on this disposable runner
@@ -833,13 +833,14 @@ jobs:
         shell: bash
         run: |
           BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-third-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json" 3
           sudo apt-get update
           sudo apt-get install --yes xdotool
       - name: Linux real staged Restart Now handoff
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
         shell: bash
         run: |
-          dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json output/ecs-third-build.json
       - name: Diagnose aligned native and session profile
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
         shell: bash

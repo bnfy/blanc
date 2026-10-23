@@ -43,7 +43,8 @@ async function run(appPath, { debug = false, graphics = 'candidate' } = {}) {
   if (typeof metadata.productName !== 'string' || path.basename(metadata.productName) !== metadata.productName) throw Error('Invalid candidate executable name');
   if (typeof metadata.version !== 'string' || !/^\d+\.\d+\.\d+-ecs\.\d+$/.test(metadata.version)) throw Error('Invalid candidate version');
   const executable = linux ? path.join(staging, 'dist', `Blanc-${metadata.version}.AppImage`) : path.join(app, 'Contents/MacOS', metadata.productName);
-  const launchEnv = linux ? { APPIMAGE_EXTRACT_AND_RUN: '1', ...require('./ecs-linux-preload-env.cjs').linuxPreloadEnv(app, profile) } : {};
+  const selfContained = linux && await fs.stat(path.join(app, 'blanc-ecs-launcher')).then(() => true, () => false);
+  const launchEnv = linux ? { APPIMAGE_EXTRACT_AND_RUN: '1', ...(!selfContained ? require('./ecs-linux-preload-env.cjs').linuxPreloadEnv(app, profile) : {}) } : {};
   const child = spawn(executable, args, {
     env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile }, stdio: 'inherit',
   });

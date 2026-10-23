@@ -6,6 +6,6 @@ async function main() {
   const first = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
   if (!first.nativeValidation || !first.nativeSecurityPatch || first.productionUpdater) throw Error('Not an isolated patched native candidate');
   await buildFull(first.runtimeDir, { nativeValidation: true, stagingUpdater: true,
-    nativeSecurityPatch: first.nativeSecurityPatch, candidateSequence: 2 });
+    nativeSecurityPatch: first.nativeSecurityPatch, candidateSequence: Number(process.argv[3] || 2) });
 }
 if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

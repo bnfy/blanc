@@ -117,6 +117,12 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
       const shim = path.join(runtime, 'blanc-cdm-preload.so');
       if (hash(await fs.readFile(shim)) !== nativeSecurityPatch.preloadShimSha256) throw Error('CDM preload shim hash mismatch');
       await fs.copyFile(shim, path.join(context.appOutDir, 'blanc-cdm-preload.so'));
+      // Override the generated launcher through the AppDir payload copy. The
+      // real Electron binary stays intact for fuse/provenance verification.
+      execFileSync('c++', ['-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Wl,-z,relro,-z,now',
+        path.join(project, 'scripts/ecs-linux-launcher.cc'), '-o', path.join(context.appOutDir, 'blanc-ecs-launcher')], { stdio: 'inherit' });
+      await fs.copyFile(path.join(project, 'scripts/ecs-linux-apprun.sh'), path.join(context.appOutDir, 'AppRun'));
+      await fs.chmod(path.join(context.appOutDir, 'AppRun'), 0o755);
     }
     const resources = path.join(context.appOutDir, platform === 'darwin' ? `${productName}.app/Contents/Resources` : 'resources');
     const asar = path.join(resources, 'app.asar');
@@ -161,6 +167,9 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
   const manifest = { sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     baseVersion: base.version, runtime: version, frameworkHash, nativeSecurityPatch, patches, productionFuses: base.build.electronFuses,
     candidateFuses: config.electronFuses, graphicsPolicy: metadata.blancEcsGraphicsPolicy, qualification, nativeValidation, platform, arch,
+    linuxStartup: nativeSecurityPatch ? { selfContained: true,
+      launcherSourceSha256: hash(await fs.readFile(path.join(__dirname, 'ecs-linux-launcher.cc'))),
+      appRunSha256: hash(await fs.readFile(path.join(__dirname, 'ecs-linux-apprun.sh'))) } : null,
     stagingUpdater, productionUpdater: false, vmpSigned: qualification,
     cdmDispatcher: platform === 'darwin' && (qualification || nativeValidation) ? { source: 'scripts/ecs-cdm-dispatch.c', sha256: hash(await fs.readFile(path.join(__dirname, 'ecs-cdm-dispatch.c'))),
       subtype: 'media.mojom.CdmServiceBroker', target: 'existing-plugin-helper', entitlementChanges: false } : null,

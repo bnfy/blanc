@@ -15,6 +15,6 @@ function candidatePaths(app) {
   const images = fs.readdirSync(path.dirname(app)).filter(file => file === `Blanc-${metadata.version}.AppImage`);
   if (images.length !== 1) throw Error('Exact candidate AppImage is required');
   return { full, asar, fuseExecutable, executable: path.join(path.dirname(app), images[0]), launchEnv: { APPIMAGE_EXTRACT_AND_RUN: '1' },
-    profileEnv: profile => require('../../scripts/ecs-linux-preload-env.cjs').linuxPreloadEnv(app, profile) };
+    profileEnv: profile => fs.existsSync(path.join(app, 'blanc-ecs-launcher')) ? {} : require('../../scripts/ecs-linux-preload-env.cjs').linuxPreloadEnv(app, profile) };
 }
 module.exports = { candidatePaths };

@@ -14,6 +14,12 @@ const { applyCandidateGraphicsPolicy } = require('./ecs-graphics-policy.cjs');
 const { startCandidateDrm, isWidevineComponentError } = require('./ecs-drm-startup.cjs');
 const metadata = require('../../package.json');
 const profile = process.env.BLANC_ECS_FULL_PROFILE;
+if (process.env.BLANC_ECS_FULL_SMOKE === '1' && /^\d{4,5}$/.test(process.env.BLANC_ECS_TEST_DEBUG_PORT || '')) {
+  const port = Number(process.env.BLANC_ECS_TEST_DEBUG_PORT);
+  if (port < 1024 || port > 65535) throw Error('Invalid candidate test port');
+  app.commandLine.appendSwitch('remote-debugging-port', String(port));
+  app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
+}
 if (!metadata.blancEcsFullCandidate || !profile || !path.isAbsolute(profile)
   || !fs.statSync(profile).isDirectory()
   || JSON.parse(fs.readFileSync(path.join(profile, 'ecs-candidate-profile.json'), 'utf8')).candidate !== true) {
@@ -61,7 +67,9 @@ if (process.platform === 'linux' && process.env.BLANC_ECS_FULL_SMOKE === '1') {
   };
 }
 const state = { candidate: true, pid: process.pid, version: metadata.version, electron: process.versions.electron, chrome: process.versions.chrome,
-  profile, productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
+  profile, selfContainedLauncher: Boolean(process.env.BLANC_ECS_LAUNCHER_ROOT),
+  preloadInsideCurrentImage: process.env.LD_PRELOAD === path.join(process.env.BLANC_ECS_LAUNCHER_ROOT || '', 'blanc-cdm-preload.so'),
+  productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
 const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);
 const protectedSessions = new WeakSet();
 function protectSession(ses) {

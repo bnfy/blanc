@@ -1,14 +1,14 @@
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
+const syncFs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const http = require('node:http');
 const { spawn, execFileSync } = require('node:child_process');
-const { withDiagnosticProfile } = require('../../scripts/drm-diagnostics.cjs');
-const { linuxPreloadEnv } = require('../../scripts/ecs-linux-preload-env.cjs');
-const { waitFor } = require('./ecs-local-html-smoke.cjs');
+const { connect, targets, waitFor } = require('./ecs-local-html-smoke.cjs');
+const { updatedPlayback } = require('./ecs-updated-playback.cjs');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const hash = async file => crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
 function promptWindow() {
@@ -23,99 +23,111 @@ function promptWindow() {
 }
 async function main() {
   assert.equal(process.platform, 'linux');
-  const first = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
-  const second = JSON.parse(await fs.readFile(process.argv[3], 'utf8'));
-  for (const info of [first, second]) assert.ok(info.nativeValidation && info.nativeSecurityPatch && !info.productionUpdater);
-  assert.notEqual(first.candidateVersion, second.candidateVersion);
+  const files = [process.argv[2], process.argv[3], process.argv[5]].filter(Boolean);
+  const builds = await Promise.all(files.map(async file => JSON.parse(await fs.readFile(file, 'utf8'))));
+  for (const info of builds) assert.ok(info.nativeValidation && info.nativeSecurityPatch && !info.productionUpdater);
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-ecs-update-'));
-  const report = { from: first.candidateVersion, to: second.candidateVersion, publicFeed: false, requests: [] };
-  const firstName = `Blanc-${first.candidateVersion}.AppImage`, nextName = `Blanc-${second.candidateVersion}.AppImage`;
-  const nextSource = path.join(second.dist, nextName);
-  const nextSize = (await fs.stat(nextSource)).size;
-  const sha512 = crypto.createHash('sha512').update(await fs.readFile(nextSource)).digest('base64');
-  const metadata = `version: ${second.candidateVersion}\nfiles:\n  - url: ${nextName}\n    sha512: ${sha512}\n    size: ${nextSize}\npath: ${nextName}\nsha512: ${sha512}\n`;
-  const server = http.createServer(async (req, res) => {
+  const profile = path.join(root, 'config/Blanc-ECS-Candidate');
+  const report = { from: builds[0].candidateVersion, versions: builds.map(b => b.candidateVersion), publicFeed: false, requests: [], handoffs: [], profile };
+  const assets = await Promise.all(builds.map(async b => {
+    const name = `Blanc-${b.candidateVersion}.AppImage`, file = path.join(b.dist, name);
+    const bytes = await fs.readFile(file);
+    return { name, file, version: b.candidateVersion, size: bytes.length, sha512: crypto.createHash('sha512').update(bytes).digest('base64') };
+  }));
+  let offered = assets[0];
+  const server = http.createServer((req, res) => {
     const pathname = new URL(req.url, 'http://127.0.0.1').pathname;
-    const known = pathname === '/staging-linux.yml' || pathname === `/${nextName}`;
+    const asset = assets.find(a => pathname === `/${a.name}`);
+    const known = pathname === '/staging-linux.yml' || !!asset;
     const entry = { path: known ? pathname : 'unexpected', method: req.method }; report.requests.push(entry);
-    if (!known) return res.writeHead(404).end();
     res.on('finish', () => { entry.complete = true; });
-    if (pathname === '/staging-linux.yml') return res.end(metadata);
-    res.setHeader('Content-Length', nextSize);
-    require('node:fs').createReadStream(nextSource).pipe(res);
+    if (pathname === '/staging-linux.yml') return res.end(`version: ${offered.version}\nfiles:\n  - url: ${offered.name}\n    sha512: ${offered.sha512}\n    size: ${offered.size}\npath: ${offered.name}\nsha512: ${offered.sha512}\n`);
+    if (!asset) return res.writeHead(404).end();
+    res.setHeader('Content-Length', asset.size); syncFs.createReadStream(asset.file).pipe(res);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  let child, newPid;
+  const stateFile = path.join(profile, 'ecs-runtime.json');
+  const state = () => fs.readFile(stateFile, 'utf8').then(JSON.parse, () => null);
+  const alive = pid => Number.isSafeInteger(pid) && syncFs.existsSync(`/proc/${pid}/exe`);
+  const waitReady = version => waitFor(async () => {
+    const value = await state(); return value?.browserReady && value.version === version && value;
+  }, `candidate ${version} ready`, 45000);
+  let child, currentPid, logs = '', hiddenUnpacked;
   try {
-    await withDiagnosticProfile(async profile => {
-      report.profile = profile;
-      await fs.writeFile(path.join(profile, 'ecs-candidate-profile.json'), '{"candidate":true}');
-      await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({ onboardingVersion: 1, firstRunCompletedAt: Date.now(), usagePing: false, searchSuggestions: false }));
-      const install = path.join(root, firstName);
-      await fs.copyFile(path.join(first.dist, firstName), install); await fs.chmod(install, 0o755);
-      const { ELECTRON_RUN_AS_NODE: ignored, BLANC_UPDATE_STAGING_AUTO_INSTALL: ignoredAuto,
-        BLANC_UPDATE_STAGING_STATUS_FILE: ignoredStatus, ...env } = process.env;
-      void ignored; void ignoredAuto; void ignoredStatus;
-      const appEnv = { ...env, ...linuxPreloadEnv(path.join(first.dist, 'linux-unpacked'), profile),
-        APPIMAGE_EXTRACT_AND_RUN: '1', BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1',
-        XDG_CACHE_HOME: path.join(root, 'cache'), BLANC_UPDATE_CHANNEL: 'staging',
-        BLANC_UPDATE_STAGING_ALLOW_HTTP: '1', BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/` };
-      let logs = '';
-      child = spawn(install, [`--user-data-dir=${profile}`], { env: appEnv, stdio: ['ignore', 'pipe', 'pipe'] });
-      child.stdout.on('data', b => { logs = (logs + b).slice(-8000); }); child.stderr.on('data', b => { logs = (logs + b).slice(-8000); });
-      const exited = new Promise(resolve => child.once('exit', code => resolve(code)));
-      const stateFile = path.join(profile, 'ecs-runtime.json');
-      const state = async () => fs.readFile(stateFile, 'utf8').then(JSON.parse, () => null);
-      try {
-        await waitFor(async () => (await state())?.browserReady, 'old candidate ready', 30000);
-        report.oldReady = true;
-        await waitFor(() => report.requests.some(r => r.path === `/${nextName}` && r.complete), 'real staged download', 90000);
-        report.downloadVerified = true;
-        const prompt = await waitFor(promptWindow, 'Restart Now prompt', 20000);
-        await fs.unlink(stateFile);
-        execFileSync('xdotool', ['windowfocus', prompt]);
-        execFileSync('xdotool', ['key', '--clearmodifiers', 'Return']);
-        report.restartNowAccepted = true;
-        report.oldExit = await Promise.race([exited, delay(30000).then(() => { throw Error('Old candidate did not quit after Restart Now'); })]);
-        const installed = path.join(root, nextName);
-        await waitFor(async () => fs.stat(installed).then(() => true, () => false), 'AppImage replacement', 15000);
-        report.installedHash = await hash(installed); report.expectedHash = await hash(nextSource);
-        assert.equal(report.installedHash, report.expectedHash);
-        report.fileReplaced = !(await fs.stat(install).then(() => true, () => false));
-        assert.equal(report.fileReplaced, true);
-        const relaunched = await waitFor(async () => {
-          const launch = await fs.readFile(path.join(profile, 'ecs-launch-attempt.json'), 'utf8').then(JSON.parse, () => null);
-          if (launch?.version === second.candidateVersion) {
-            newPid = launch.pid; report.relaunchAttempt = launch;
-            if (!launch.nativeProfileMatches) throw Error('Updater relaunch dropped native --user-data-dir; isolated profile guard refused startup');
-          }
-          const value = await state();
-          if (value?.pid) newPid = value.pid;
-          return value?.browserReady && value.version === second.candidateVersion && value;
-        }, 'updated candidate self-relaunch with isolated profile', 30000);
-        report.relaunchedVersion = relaunched.version;
-        assert.equal(relaunched.productionUpdater, false);
-        report.passed = true;
-      } finally {
-        report.logs = logs;
-        report.updaterLaunch = await fs.readFile(path.join(profile, 'ecs-updater-launch.json'), 'utf8').then(JSON.parse, () => null);
-        report.childLog = await fs.readFile(path.join(profile, 'ecs-updater-child.log'), 'utf8').then(value => value.slice(-8000), () => null);
-        if (child.exitCode === null || newPid) {
-          await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
-          await Promise.race([exited, delay(5000)]);
-        }
-        if (newPid && Number.isSafeInteger(newPid)) { try { process.kill(newPid, 'SIGTERM'); } catch {} }
-        if (child.exitCode === null) { child.kill('SIGTERM'); await Promise.race([exited, delay(3000)]); }
-        if (child.exitCode === null) child.kill('SIGKILL');
-        await exited;
+    const install = path.join(root, assets[0].name);
+    await fs.copyFile(assets[0].file, install); await fs.chmod(install, 0o755);
+    const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_FULL_PROFILE: ignoredProfile, LD_PRELOAD: ignoredPreload,
+      BLANC_ECS_CDM_PRELOAD_PATH: ignoredCdm, BLANC_UPDATE_STAGING_AUTO_INSTALL: ignoredAuto,
+      BLANC_UPDATE_STAGING_STATUS_FILE: ignoredStatus, ...env } = process.env;
+    void ignored; void ignoredProfile; void ignoredPreload; void ignoredCdm; void ignoredAuto; void ignoredStatus;
+    const appEnv = { ...env, APPIMAGE_EXTRACT_AND_RUN: '1', BLANC_ECS_FULL_SMOKE: '1',
+      BLANC_ECS_TEST_DEBUG_PORT: '55822', XDG_CONFIG_HOME: path.join(root, 'config'), XDG_CACHE_HOME: path.join(root, 'cache') };
+    // No repository launcher, profile argument, or preload environment. The
+    // image must create only its own profile before native Electron starts.
+    child = spawn(install, [], { env: appEnv, stdio: ['ignore', 'pipe', 'pipe'] });
+    const capture = stream => stream.on('data', b => { logs = (logs + b).slice(-8000); });
+    capture(child.stdout); capture(child.stderr);
+    let initial = await waitReady(assets[0].version); currentPid = initial.pid;
+    assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.preloadInsideCurrentImage, true);
+    report.coldSelfContainedStartup = true;
+    const component = await waitFor(async () => (await state())?.component, 'initial component install');
+    assert.equal(component.state, 'restart-required');
+    await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
+    await waitFor(() => child.exitCode !== null, 'warmup normal shutdown'); assert.equal(child.exitCode, 0);
+    await fs.unlink(stateFile);
+    await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({ onboardingVersion: 1, firstRunCompletedAt: Date.now(), usagePing: false, searchSuggestions: false }));
+    offered = assets[1];
+    child = spawn(install, [], { env: { ...appEnv, BLANC_UPDATE_CHANNEL: 'staging', BLANC_UPDATE_STAGING_ALLOW_HTTP: '1',
+      BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/` }, stdio: ['ignore', 'pipe', 'pipe'] });
+    capture(child.stdout); capture(child.stderr);
+    initial = await waitReady(assets[0].version); currentPid = initial.pid;
+    hiddenUnpacked = path.join(builds[0].dist, 'linux-unpacked.unavailable');
+    await fs.rename(path.join(builds[0].dist, 'linux-unpacked'), hiddenUnpacked);
+    report.oldLooseInstallationUnavailable = true;
+    for (let index = 1; index < assets.length; index++) {
+      const previous = assets[index - 1], next = assets[index]; offered = next;
+      const handoff = { from: previous.version, to: next.version }; report.handoffs.push(handoff);
+      if (index > 1) {
+        const chrome = await connect((await targets(55822)).find(t => t.url === 'blanc-chrome://index/'));
+        try { await chrome.evaluate(() => window.browserAPI.createTab('blanc://settings/')); } finally { chrome.close(); }
+        const settings = await connect(await waitFor(async () => (await targets(55822)).find(t => t.url.startsWith('blanc://settings/')), 'settings'));
+        try { await waitFor(() => settings.evaluate(() => !!window.bowserPages?.settings?.checkForUpdates), 'settings bridge');
+          void settings.evaluate(() => window.bowserPages.settings.checkForUpdates()).catch(() => {});
+        } finally { await delay(1000); settings.close(); }
       }
-    });
-  } catch (error) { report.error = error.message; throw error; }
+      await waitFor(() => report.requests.some(r => r.path === `/${next.name}` && r.complete), 'real staged download', 90000);
+      handoff.downloadVerified = true;
+      const prompt = await waitFor(promptWindow, 'Restart Now prompt', 20000);
+      await fs.unlink(stateFile); const oldPid = currentPid;
+      execFileSync('xdotool', ['windowfocus', prompt]); execFileSync('xdotool', ['key', '--clearmodifiers', 'Return']);
+      handoff.restartNowAccepted = true;
+      await waitFor(() => !alive(oldPid), 'old candidate exit', 30000); handoff.oldExited = true;
+      const installed = path.join(root, next.name);
+      await waitFor(() => fs.stat(installed).then(() => true, () => false), 'replacement image');
+      handoff.installedHash = await hash(installed); handoff.expectedHash = await hash(next.file);
+      assert.equal(handoff.installedHash, handoff.expectedHash);
+      assert.equal(await fs.stat(path.join(root, previous.name)).then(() => true, () => false), false);
+      const relaunched = await waitReady(next.version); currentPid = relaunched.pid;
+      handoff.relaunchedVersion = relaunched.version;
+      assert.equal(relaunched.productionUpdater, false); assert.equal(relaunched.selfContainedLauncher, true);
+      assert.equal(relaunched.preloadInsideCurrentImage, true); assert.equal(relaunched.profile, profile);
+      const launch = JSON.parse(await fs.readFile(path.join(profile, 'ecs-launch-attempt.json')));
+      assert.equal(launch.nativeProfileMatches, true);
+      handoff.protectedPlayback = await updatedPlayback(55822, currentPid); handoff.passed = true;
+    }
+    report.passed = report.handoffs.length === 2 && report.handoffs.every(h => h.passed);
+    assert.equal(report.passed, true, 'two consecutive automatic handoffs required');
+  } catch (error) { report.error = error.message; report.sandboxFailure = error.sandboxEvidence; throw error; }
   finally {
-    await new Promise(resolve => server.close(resolve));
-    await fs.rm(root, { recursive: true, force: true });
-    report.profileRemoved = !report.profile || await fs.stat(report.profile).then(() => false, () => true);
-    report.installationRemoved = await fs.stat(root).then(() => false, () => true);
+    report.logs = logs;
+    report.updaterLaunch = await fs.readFile(path.join(profile, 'ecs-updater-launch.json'), 'utf8').then(JSON.parse, () => null);
+    report.childLog = await fs.readFile(path.join(profile, 'ecs-updater-child.log'), 'utf8').then(value => value.slice(-8000), () => null);
+    const finalState = await state(); if (finalState?.pid) currentPid = finalState.pid;
+    if (alive(currentPid)) { await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit'); await waitFor(() => !alive(currentPid), 'final normal shutdown', 15000).catch(() => process.kill(currentPid, 'SIGKILL')); }
+    if (child?.exitCode === null) { child.kill('SIGTERM'); await delay(1000); if (child.exitCode === null) child.kill('SIGKILL'); }
+    if (hiddenUnpacked) await fs.rename(hiddenUnpacked, path.join(builds[0].dist, 'linux-unpacked'));
+    await new Promise(resolve => server.close(resolve)); await fs.rm(root, { recursive: true, force: true });
+    report.profileRemoved = !syncFs.existsSync(profile); report.installationRemoved = !syncFs.existsSync(root);
     await fs.writeFile(process.argv[4], JSON.stringify(report, null, 2));
   }
 }
