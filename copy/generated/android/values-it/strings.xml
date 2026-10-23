@@ -505,6 +505,8 @@
     <string name="tab_menu_return_pinned_home">Torna alla pagina fissata</string>
     <string name="tab_menu_set_pinned_home">Sostituisci la pagina fissata con quella attuale</string>
     <string name="tab_menu_unpin">Rilascia la scheda</string>
+    <string name="tab_menu_pin_split">Fissa la vista divisa</string>
+    <string name="tab_menu_unpin_split">Rilascia la vista divisa</string>
     <string name="tab_menu_mute">Disattiva l’audio della scheda</string>
     <string name="tab_menu_unmute">Riattiva l’audio della scheda</string>
     <string name="tab_menu_new_tab_below">Nuova scheda sotto</string>
@@ -518,7 +520,6 @@
     <string name="tab_menu_unpin_start_page">Rilascia dalla pagina iniziale</string>
     <string name="tab_menu_move_to_group">Sposta nel gruppo</string>
     <string name="tab_menu_split_with">Dividi con</string>
-    <string name="tab_menu_split_pinned_refused">Le schede fissate non possono far parte di una vista divisa</string>
     <string name="tab_menu_remove_from_split">Rimuovi dalla vista divisa</string>
     <string name="tab_menu_close_split">Chiudi vista divisa</string>
     <string name="split_group_move_into">Sposta %1$s in %2$s</string>

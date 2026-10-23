@@ -1798,6 +1798,14 @@
     "message": "Desafixar aba",
     "source": "sha256:40251613e30f182261988b473510203a1f8ac40239ccc606593cb2d5ffbb79fe"
   },
+  "tabMenu.pinSplit": {
+    "message": "Fixar visualização dividida",
+    "source": "sha256:8ae6b2d5d740e8d04aba4e8aa0d449ae0d80f36a1a79f0879d5e3c4763f7015e"
+  },
+  "tabMenu.unpinSplit": {
+    "message": "Desafixar visualização dividida",
+    "source": "sha256:f2da89024d6936b5dc7bc4a94fc872d800e6a3f37caba4b4a84cce7b72b8d14f"
+  },
   "tabMenu.mute": {
     "message": "Silenciar aba",
     "source": "sha256:5f41ef1d2970f37a646c04c9876a11601833ac6ffc512a8a9d184fc77782c472"
@@ -1849,10 +1857,6 @@
   "tabMenu.splitWith": {
     "message": "Dividir com",
     "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"
-  },
-  "tabMenu.splitPinnedRefused": {
-    "message": "Abas fixadas não podem entrar em uma visualização dividida",
-    "source": "sha256:c2a6099a8019b08c63bc85326cef22fe78126914feb00fd186b99d9963a3509d"
   },
   "tabMenu.removeFromSplit": {
     "message": "Remover da visualização dividida",

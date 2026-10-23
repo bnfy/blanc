@@ -258,9 +258,36 @@ When('I pin the first split tab', async function () {
   await this.call('runTabMenuItem', this.splitA, 'toggle-pin');
 });
 
-Then('there is no split and the first tab is pinned', async function () {
-  const state = await this.waitForState((s) => s.splits.length === 0);
-  assert.equal(state.tabs.find((t) => t.id === this.splitA).pinned, true);
+const splitPinnedAs = (world, pinned) => world.waitForState((s) => s.splits.some((split) => split.tabIds.join() === [world.splitA, world.splitB].join())
+  && [world.splitA, world.splitB].every((id) => s.tabs.find((t) => t.id === id)?.pinned === pinned));
+
+Then('the split stays and both its tabs are pinned', async function () {
+  await splitPinnedAs(this, true);
+});
+
+Then('the split stays and neither of its tabs is pinned', async function () {
+  await splitPinnedAs(this, false);
+});
+
+Given('a pinned loaded tab and an ordinary loaded tab', async function () {
+  this.splitA = await openLoaded(this, 'split-a');
+  await this.call('pinTab', this.splitA);
+  this.splitB = await openLoaded(this, 'split-b');
+  await this.waitForState((s) => s.tabs.find((t) => t.id === this.splitA)?.pinned === true);
+});
+
+When('I split the pinned tab with the ordinary one', async function () {
+  assert.ok(await this.call('makeSplit', this.splitA, [this.splitB]), 'the split was made');
+});
+
+Then('the pinned shelf shows the split as one row', async function () {
+  await this.call('activateTab', this.splitA);
+  await openOverlaySurface(this, 'openPanel', 'panel');
+  const page = await overlayPage();
+  await waitForValue(() => page.evaluate(() => document.querySelectorAll('[data-drag-section="pinned"] .split-row').length),
+    (count) => count === 1, 'one split row in the pinned shelf');
+  const looseSplitTabs = await page.evaluate((ids) => ids.filter((id) => document.querySelector(`.tab-row[data-tab-id="${id}"]:not(.in-split)`)).length, [this.splitA, this.splitB]);
+  assert.equal(looseSplitTabs, 0, 'its tabs are not listed as separate rows');
 });
 
 // ---- Pane headers and the divider (F53-11) ----
@@ -523,9 +550,8 @@ Then('Blanc announces that {string} moves into {string}', async function (title,
 });
 
 Then('the first split tab is the active tab', async function () {
-  const state = await this.waitForState((s) => s.splits.length === 0);
+  const state = await splitPinnedAs(this, true);
   assert.equal(state.activeTabId, this.splitA);
-  assert.equal(state.tabs.find((t) => t.id === this.splitA).pinned, true);
 });
 
 // ---- The floating Island over a split (F53-22) ----

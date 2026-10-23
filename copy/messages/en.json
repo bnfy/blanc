@@ -1856,6 +1856,14 @@
     "message": "Unpin Tab",
     "note": "Tab context menu command."
   },
+  "tabMenu.pinSplit": {
+    "message": "Pin Split",
+    "note": "Tab context menu command on a Split View tab: pins every tab of the split."
+  },
+  "tabMenu.unpinSplit": {
+    "message": "Unpin Split",
+    "note": "Tab context menu command on a pinned Split View tab: unpins every tab of the split."
+  },
   "tabMenu.mute": {
     "message": "Mute Tab",
     "note": "Tab context menu command."
@@ -1907,10 +1915,6 @@
   "tabMenu.splitWith": {
     "message": "Split with",
     "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
-  },
-  "tabMenu.splitPinnedRefused": {
-    "message": "Pinned tabs can't join a split",
-    "note": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View."
   },
   "tabMenu.removeFromSplit": {
     "message": "Remove from Split",

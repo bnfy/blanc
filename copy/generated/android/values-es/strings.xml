@@ -505,6 +505,8 @@
     <string name="tab_menu_return_pinned_home">Volver a la página fijada</string>
     <string name="tab_menu_set_pinned_home">Reemplazar la página fijada por la actual</string>
     <string name="tab_menu_unpin">Soltar pestaña</string>
+    <string name="tab_menu_pin_split">Fijar vista dividida</string>
+    <string name="tab_menu_unpin_split">Soltar vista dividida</string>
     <string name="tab_menu_mute">Silenciar pestaña</string>
     <string name="tab_menu_unmute">Activar el sonido de la pestaña</string>
     <string name="tab_menu_new_tab_below">Nueva pestaña debajo</string>
@@ -518,7 +520,6 @@
     <string name="tab_menu_unpin_start_page">Soltar de la página de inicio</string>
     <string name="tab_menu_move_to_group">Mover al grupo</string>
     <string name="tab_menu_split_with">Dividir con</string>
-    <string name="tab_menu_split_pinned_refused">Las pestañas fijadas no pueden unirse a una vista dividida</string>
     <string name="tab_menu_remove_from_split">Quitar de la vista dividida</string>
     <string name="tab_menu_close_split">Cerrar vista dividida</string>
     <string name="split_group_move_into">Mueve %1$s a %2$s</string>

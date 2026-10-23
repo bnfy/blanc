@@ -414,7 +414,7 @@
     count.textContent = String(tabs.length);
     heading.appendChild(count);
     section.appendChild(heading);
-    for (const tab of tabs) section.appendChild(tabRow(tab, activeTabId));
+    for (const row of rowsFor(tabs, activeTabId)) section.appendChild(row);
     return section;
   }
 
@@ -611,8 +611,7 @@
     if (!group.collapsed) {
       const pinned = members.filter((tab) => tab.pinned);
       const regular = members.filter((tab) => !tab.pinned);
-      for (const tab of pinned) section.appendChild(tabRow(tab, activeTabId));
-      for (const row of rowsFor(regular, activeTabId)) section.appendChild(row);
+      for (const row of rowsFor([...pinned, ...regular], activeTabId)) section.appendChild(row);
     }
     return section;
   }
