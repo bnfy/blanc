@@ -16,6 +16,8 @@ u=read('draft-uploaded.json');assert u['draft'] and u['target_commitish']==expec
 assert len(read('uploaded-byte-verification.json'))==6 and all(x['matched'] for x in read('uploaded-byte-verification.json'))
 f=read('fresh-hosted-byte-verification.json');assert len(f)==6 and all(x['anonymousAssetGET']==200 and not x['accountAuthorizationForwarded'] for x in f)
 assert read('owner-state-replacement-before.json')['shippingFilesUnchanged']
-s=read('status.json');assert s['gate']=='L8 remains open' and len(s['pending'])==2 and not s['draft']['published']
+n=read('native-download.json');assert n['source']==expected['source'] and n['regularFilesVerified']==458 and n['symlinksVerified']==5 and 'Safari' in n['quarantine']['stdout'] and all(n[k]['exitCode']==0 for k in ['quarantine','codesign','gatekeeper','stapler'])
+assert read('native-prelaunch.json')['downloadedPreviewProcesses']==[]
+s=read('status.json');assert s['gate']=='L8 remains open' and len(s['pending'])==1 and not s['draft']['published']
 if args.cosign:subprocess.run([args.cosign,'verify-blob','--bundle',str(r/'artifact/SHA256SUMS.sigstore.json'),'--certificate-identity',expected['signer'],'--certificate-oidc-issuer',expected['issuer'],str(r/'artifact/SHA256SUMS')],check=True)
-print(json.dumps({'evidenceMembers':len(entries),'hostedFiles':6,'pinnedAuthenticationVerified':True,'actualTamperControlsReject':True,'readiness':'8/12,delta0','L8':'native replacement download and owner acceptance pending'}))
+print(json.dumps({'evidenceMembers':len(entries),'hostedFiles':6,'pinnedAuthenticationVerified':True,'actualTamperControlsReject':True,'readiness':'8/12,delta0','L8':'native Safari download verified;owner launch/restarts/popup acceptance pending'}))

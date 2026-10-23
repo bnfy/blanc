@@ -14,11 +14,12 @@
     "Independent release-Mac packet authentication",
     "Six unpublished hosted assets match exact digests",
     "Six fresh anonymous HTTPS downloads and downloaded-packet authentication",
-    "Read-only Shipping hashes unchanged and Store Bitwarden2026.10.0 present"
+    "Read-only Shipping hashes unchanged and Store Bitwarden2026.10.0 present",
+    "Actual MacBook Safari download verifies all458files/5symlinks, Safari quarantine, strict signature, Apple ticket and Gatekeeper",
+    "Downloaded Preview copies confirmed closed before first launch; actual MacBookmacOS27.2/arm64 recorded"
   ],
   "pending": [
-    "Native Safari MacBook download: actual quarantine and exact app-byte verification before first launch",
-    "Ordinary MacBook launch, tab/selection/Shelf/Bitwarden popup persistence across two clean restarts; Shipping preserved"
+    "Owner ordinary launch of verified Preview-2 app, tabs/selection/Shelf/Bitwarden popup persistence across two clean restarts; Shipping tabs preserved"
   ],
   "noNativeOrElectronBuild": true,
   "googleBaselineSeparate": true,
@@ -32,5 +33,6 @@
     "id": 422364839,
     "url": "https://github.com/bnfy/blanc/releases/tag/untagged-afa6366dc2ff7daedc2d",
     "published": false
-  }
+  },
+  "nativeDownloadedApp": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview-2.app"
 }

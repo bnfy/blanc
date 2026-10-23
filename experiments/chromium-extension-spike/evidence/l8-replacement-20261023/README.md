@@ -1,6 +1,6 @@
 # L8 replacement distribution/provenance — October 23, 2026
 
-**L8 remains open: 8/12 gates, delta 0.** Authentication and hosted-byte acceptance are complete. The native Safari download and ordinary MacBook launch/restart/extension walkthrough on this replacement remain pending. L6's [125 frozen signed checkpoints](../l6-restore-scheduling-20261023/README.md) remain accepted.
+**L8 remains open: 8/12 gates, delta 0.** Authentication and hosted-byte acceptance are complete. The native Safari download now verifies. The ordinary MacBook launch/restart/extension walkthrough on this replacement remains pending. L6's [125 frozen signed checkpoints](../l6-restore-scheduling-20261023/README.md) remain accepted.
 
 ## Exact packet
 
@@ -19,10 +19,12 @@ The packet independently [verifies on the release Mac](remote-manifest-verificat
 
 The [archive inventory, CycloneDX SBOM, in-toto provenance, checksums and Sigstore bundle](artifact/) are retained. The materials statement explicitly records a local incremental build; no independent/hermetic reproduction, hosted-build attestation or SLSA level is claimed. The exact ZIP is retained outside Git; its hosted/digest binding is recorded here. An unpublished draft does not establish a stable public-release permalink or authorize publication.
 
-## Native acceptance still required
+## Native download verified; owner launch/restart acceptance pending
 
 The read-only [MacBook preflight](owner-state-replacement-before.json) preserves Shipping's three app hashes and records Store-installed Bitwarden 2026.10.0 with no disable reasons. It is not a fresh enabled-state/popup pass. Older `7065f9c0` download and owner-restart evidence remains credited for those older bytes, not substituted for this replacement.
 
-The owner has been asked to quit the current Preview normally, download the exact new ZIP through Safari **on the MacBook**, and leave the extracted app closed. Before first launch, verify every app file/symlink against the authenticated inventory, actual Safari quarantine, strict signature, ticket and Gatekeeper. Then perform ordinary launch, tabs/selection, Shelf and Bitwarden popup-focus checks plus two clean Cmd+Q/reopen cycles, with Shipping preserved. Stop on a macOS security block or startup stall; never bypass Gatekeeper. This is a second physical supported Mac, not a factory-clean OS or a new production-profile migration claim.
+The owner quit the prior Preview and downloaded the exact replacement through Safari on the MacBook. [Actual native download verification](native-download.json) checks all 458 regular files/five symlinks against the authenticated inventory, with no extra members; actual quarantine records Safari. Strict deep signature, stapled ticket and Gatekeeper all pass. The verified app is `/Users/anthonyjloria/Downloads/Blanc Chromium Preview-2.app`. [Prelaunch verification](native-prelaunch.json) records macOS27.2/arm64 and no running downloaded Preview process before first launch. The app remains closed at that checkpoint. Safari's expanded app is bound to the authenticated file inventory; the independently fetched hosted ZIP supplies the archive-byte binding.
+
+The owner is now asked to open that exact Preview-2 app normally, confirm Shelf/Bitwarden, load example.com/example.org and select example.org, then perform two Cmd+Q/reopen cycles. Each must preserve tabs/selection/Shelf and a functioning Bitwarden popup with keyboard focus, while Shipping's existing tabs remain intact. Stop on a security rejection or startup stall; never bypass Gatekeeper. No owner launch/restart/popup pass is claimed yet. This is a second physical supported Mac, not a factory-clean OS or a production-profile migration claim.
 
 **L8 stays open until that native evidence is complete.** Current progress is 8/12, delta 0. L4, L11, L12 and Decision 2 remain independent. Google baseline/ledger and permanent tabs stay separate. Latency is deferred; Electron diagnostic build is pending approval/unstarted. No native or Electron build, merge or public release was performed. Run `python3 validate.py` for archived integrity/accounting; pass `--cosign /path/to/cosign` to additionally verify the archived checksum manifest against the pinned identity.
