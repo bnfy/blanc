@@ -2,7 +2,7 @@
 .preview-notice-button:focus-visible { outline:2px solid var(--accent,#8a6530); outline-offset:3px; border-radius:4px; }
 #previewStatusLink { display:block; width:100%; margin-top:10px; padding:9px 0 0; border-top:1px solid var(--border,#7775); font-size:12px; }
 #previewNoticeButton { max-width:100%; }
-.preview-notice { box-sizing:border-box; width:min(600px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; padding:24px; overflow:auto; border:1px solid var(--border,#7775); border-radius:14px; background:var(--surface,#fffdf8); color:var(--text,#24211d); box-shadow:0 14px 60px #0005; font-family:var(--font-text,'Instrument Sans',sans-serif); font-size:14px; line-height:1.5; }
+.preview-notice { box-sizing:border-box; width:min(600px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); margin:auto; padding:24px; overflow:auto; border:1px solid var(--border,#7775); border-radius:14px; background:var(--surface-raised,#fffdf8); background:rgb(from var(--surface,#fffdf8) r g b / 1); color:var(--text,#24211d); box-shadow:0 14px 60px #0005; font-family:var(--font-text,'Instrument Sans',sans-serif); font-size:14px; line-height:1.5; }
 .preview-notice::backdrop { background:#0008; }
 .preview-notice-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .preview-notice-heading h2 { margin:0; font-size:24px; line-height:1.2; }

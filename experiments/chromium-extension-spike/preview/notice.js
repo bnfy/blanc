@@ -28,9 +28,9 @@
       dialog.dataset.status = info.status;
       document.getElementById('previewLiveStatus').href = statusUrl;
       document.getElementById('previewSupport').href = supportUrl;
-      trigger.addEventListener('click', () => dialog.showModal());
+      trigger.addEventListener('click', () => { dialog.setAttribute('aria-modal', 'true'); dialog.showModal(); });
       document.getElementById('previewNoticeClose').addEventListener('click', () => dialog.close());
-      dialog.addEventListener('close', () => trigger.focus());
+      dialog.addEventListener('close', () => { dialog.removeAttribute('aria-modal'); trigger.focus(); });
     }
     const island = document.getElementById('previewStatusLink');
     if (island) {
