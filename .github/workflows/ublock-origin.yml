@@ -52,6 +52,10 @@ on:
         description: "Owner-approved native Blanc microphone dialog on disposable Intel only"
         type: boolean
         default: false
+      ecs_fresh_mac_cdm_only:
+        description: "Qualify native Mac CDM install, vendor update and controlled cache rollback"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -168,7 +172,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [arm64, x64]
-        mode: ${{ inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
+        mode: ${{ inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
         include:
           - arch: arm64
             os: macos-15
@@ -197,6 +201,7 @@ jobs:
     env:
       BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
       BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT: ${{ inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64' && '1' || '0' }}
+      BLANC_EXPECTED_ASAR_SHA256: ${{ matrix.app_sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -267,6 +272,14 @@ jobs:
       - name: Strict native Intel protected playback after OS permission exercise
         if: matrix.mode == 'audio' && matrix.arch == 'x64' && inputs.ecs_fresh_mac_audio_permission
         run: node test/desktop/support/run-with-mac-audio-permission.mjs test/desktop/ecs-production-drm-smoke.mjs
+      - name: Native Mac CDM installation update rollback and offline qualification
+        if: matrix.mode == 'lifecycle'
+        run: |
+          WRAPPER=()
+          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
+            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
+          fi
+          node "${WRAPPER[@]}" test/desktop/ecs-cdm-lifecycle-mac.mjs
       - name: Fetch the public baseline without modifying any public asset
         if: matrix.mode == 'updater'
         env:

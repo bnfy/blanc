@@ -10,7 +10,7 @@ assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.RUNNER_
 assert.equal(process.env.GITHUB_REF,'refs/heads/codex/ecs-production-integration');
 assert.equal(process.env.BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT,'1','explicit owner-authorized CI mode required');
 const [script,...args]=process.argv.slice(2);
-const allowed=['ecs-signed-audio-controls.mjs','ecs-production-drm-smoke.mjs','ecs-production-updater-mac.mjs'];
+const allowed=['ecs-signed-audio-controls.mjs','ecs-production-drm-smoke.mjs','ecs-production-updater-mac.mjs','ecs-cdm-lifecycle-mac.mjs'];
 const desktop=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 assert(allowed.some(name=>path.resolve(script)===path.join(desktop,name)),'only the fixed qualification scripts may run');
 const report={scope:'Blanc microphone OS dialog on disposable Intel runner',approved:false,observations:[]};

@@ -11,6 +11,16 @@ that source update and do not by themselves qualify the merged result.
 
 Newest evidence supersedes the historical running/pending notes below:
 
+- **Apple Silicon CDM lifecycle now passes** in the unchanged signed
+  `fd8654147` candidate. First UI took 1743 ms. First install, old 4.10.3050.0,
+  genuine vendor update to 4.10.3112.0 and controlled rollback each played
+  unmuted for about 4.92 seconds with production VMP. Every stage verified the
+  exact mapped library hash, valid signature, Plugin CDM helper sandbox and
+  denied unrelated-file/fork probes. Exec introspection was unavailable (-1),
+  not a proved denial. Cached offline readiness and all temporary-profile
+  cleanup passed. The same harness is available for native Intel after its
+  audio permission issue is resolved; this ARM result does not qualify Intel.
+
 - Intel `40017380935` produced a concrete system stack: `coreaudiod` waits in
   `CheckTCCAndThrow` → `TCCAccessCheckAuditToken` → `TCCAccessRequest` →
   synchronous `tccd` IPC while serving the runner's combined Null Audio Device.

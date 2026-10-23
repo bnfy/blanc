@@ -16,14 +16,25 @@ function crxZip(bytes, pin) {
   return bytes.subarray(offset);
 }
 function binaryRelative(platform) {
-  assert(['linux-x64', 'win32-x64'].includes(platform), 'supported CDM fixture platform');
-  return platform === 'linux-x64' ? '_platform_specific/linux_x64/libwidevinecdm.so' : '_platform_specific/win_x64/widevinecdm.dll';
+  const paths={
+    'linux-x64':'_platform_specific/linux_x64/libwidevinecdm.so',
+    'win32-x64':'_platform_specific/win_x64/widevinecdm.dll',
+    'darwin-x64':'_platform_specific/mac_x64/libwidevinecdm.dylib',
+    'darwin-arm64':'_platform_specific/mac_arm64/libwidevinecdm.dylib',
+  };
+  assert(Object.hasOwn(paths,platform), 'supported CDM fixture platform');
+  return paths[platform];
 }
 function validateBinary(bytes, platform) {
   if (platform === 'linux-x64') {
     assert.equal(bytes.subarray(0, 4).toString('hex'), '7f454c46', 'actual ELF CDM required');
     assert.equal(bytes[4], 2, '64-bit CDM');
     assert.equal(bytes.readUInt16LE(18), 62, 'x86-64 CDM');
+  } else if (platform.startsWith('darwin-')) {
+    const expected={'darwin-x64':0x01000007,'darwin-arm64':0x0100000c}[platform];
+    assert(expected,'supported Mach-O architecture');
+    assert.equal(bytes.readUInt32LE(0),0xfeedfacf,'64-bit little-endian Mach-O CDM');
+    assert.equal(bytes.readUInt32LE(4),expected,'native CDM architecture');
   } else {
     assert.equal(platform, 'win32-x64');
     assert.equal(bytes.subarray(0, 2).toString(), 'MZ', 'actual PE CDM required');
@@ -50,7 +61,9 @@ async function assertCdmVersionAbsent(profile, version) {
 }
 async function prepareCdmFixtures(root, platform = 'linux-x64') {
   binaryRelative(platform);
-  const selectedPins = platform === 'linux-x64' ? pins : require('../fixtures/cdm-lifecycle-windows.json');
+  const selectedPins = platform === 'linux-x64' ? pins : platform === 'win32-x64'
+    ? require('../fixtures/cdm-lifecycle-windows.json')
+    : require('../fixtures/cdm-lifecycle-mac.json')[platform.slice('darwin-'.length)];
   const { extract } = await import('@electron-internal/extract-zip');
   const results = {};
   for (const [kind, pin] of Object.entries({ previous: selectedPins.previous, current: selectedPins.current })) {
