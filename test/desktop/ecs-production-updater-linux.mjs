@@ -159,8 +159,18 @@ try {
       assert(await alive(successor.pid),'ECS successor exited before opening its window');
       return browserWindow();
     });handoff.window=window;
-    x(['windowfocus',window.id]);x(['key','--clearmodifiers','ctrl+l']);
-    x(['type','--clearmodifiers',`${origin}/`]);x(['key','Return']);
+    // A native window can exist before its chrome has completed startup.
+    // Use normal UI input and require an actual probe GET; retry only when
+    // that input produced no navigation, never after a playback error.
+    const priorRequests=report.probeRequests||0;
+    for(let attempt=1;attempt<=3;attempt++){
+      handoff.navigationAttempts=attempt;
+      x(['windowfocus','--sync',window.id]);
+      x(['key','--clearmodifiers','ctrl+l']);x(['key','--clearmodifiers','ctrl+a']);
+      x(['type','--clearmodifiers',`${origin}/`]);x(['key','Return']);
+      try{await wait('probe navigation request',()=>report.probeRequests>priorRequests,15000);break;}
+      catch(error){if(attempt===3)throw error;}
+    }
     await wait('protected-page readiness',()=>ready);x(['key','Return']);
     const result=await wait('protected-page result',()=>playback);
     assert.equal(result.failure,undefined);assert.equal(result.error,null);assert.equal(result.paused,false);
