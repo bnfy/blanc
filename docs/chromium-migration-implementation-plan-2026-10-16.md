@@ -8,11 +8,19 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■■□□□□□] 7/12 launch gates cleared (58.3%) · Δ 0 — L5 repair, October 23, 2026`
+`[■■■■■■□□□□□□] 6/12 launch gates cleared (50%) · Δ -1 L6 review, October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### L5 native page input corrected; L6 acknowledgement reopened — October 23
+
+[Owner-session evidence](../experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/README.md) records a real pointer-routing failure: the transparent full-height Island NSView intercepted clicks intended for pages. The initial page-observer workaround passed protocol injection but failed the owner test and is removed. The final Cocoa/Views hit-test correction passes native clicking and typing in both panes; the owner confirms “Yes, both panes activate and typing works.” Requested header/frame border simplification is included, with subtle active fill and keyboard focus rings retained. Remaining full L5 owner/VoiceOver checks stay open.
+
+Source `006ccda1`, signed ZIP `ca69ff73efc85f8daeefbc782d3f8793b29fcd7ae5248d984b1ea6c91567ab44`, Apple accepted `29ec9c3c-9623-4b79-bd7d-7f7d7348dc83`; 75 signed runtime, 16 source, seven capture and 11 counter tests pass, as do strict signature and final hash checks. Final incremental guard: zero actions; footprint: 70 files/173 hunks under standing authorization. Earlier failed approach, compiler/fixture failures and its superseded notarization are retained separately.
+
+The same owner session exposed “Tab closed, but history persistence failed or timed out.” after close/cancel/leave. This is an unresolved history-save acknowledgement finding, not proof of lost tabs. **Reopen L6 pending disposition; current readiness 6/12 (50%), delta -1.** Preserve the historical 49-check/owner-mapped-UI record without overriding this newer observation. Google baseline remains separate, latency deferred, Electron diagnostic build pending. No release/merge implied.
 
 ### L5 theme accessibility repair verified — October 23
 

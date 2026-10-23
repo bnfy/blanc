@@ -1,0 +1,10 @@
+{
+  "completedRegressionProfilesRemoved": true,
+  "oldOwnerBrowser9861": "closed, diagnostic profile retained",
+  "oldVisualBrowser9863": "closed, profile retained",
+  "currentSignedOwner9873": "open, profile preserved",
+  "GoogleBaseline": "untouched",
+  "permanentProfiles": "untouched",
+  "signingKey": "retained as authorized",
+  "remoteStaging": "both signing jobs and staging directories removed"
+}

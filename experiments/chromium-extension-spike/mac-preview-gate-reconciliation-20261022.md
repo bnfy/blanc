@@ -1,3 +1,5 @@
+> October23 owner input: [native pane clicks repaired, border stack removed](evidence/l5-native-pointer-20261023/README.md). Owner confirms pane clicking/typing; full L5 remains open. Close-history acknowledgement warning reopens L6:6/12, delta-1.
+
 > October23 L5 repair: [theme actions exposed as native buttons](evidence/l5-theme-accessibility-20261023/README.md); signed keyboard, AX and focused regression checks pass. Full owner input/VoiceOver acceptance remains open; 7/12, delta 0.
 
 > October23 L10 update: [signed functional smoke accepted](evidence/l10-functional-smoke-20261023/README.md); current readiness 7/12. Theme-action AX defect keeps L5 open.
