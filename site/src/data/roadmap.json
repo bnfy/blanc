@@ -23,6 +23,13 @@
       "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
     },
     {
+      "id": "chrome-web-store",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Chrome Web Store extensions",
+      "line": "Coming soon: add extensions from the Chrome Web Store to Blanc."
+    },
+    {
       "id": "protected-video",
       "stage": "next",
       "product": "Blanc Browser",
