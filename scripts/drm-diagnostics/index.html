@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; media-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Blanc DRM diagnostics</title>
+<link rel="stylesheet" href="style.css">
+<h1>DRM diagnostics</h1>
+<p>This developer tool uses a disposable profile. Checks run only when requested.</p>
+<p>Prepare may download Widevine from Google's component service on ECS. Official Electron reports unsupported. The launcher removes its temporary profile after Electron exits.</p>
+<button id="inspect">Inspect runtime</button>
+<button id="prepare">Prepare Widevine</button>
+<button id="probe">Check encrypted-media support</button>
+<pre id="result" role="status" aria-live="polite">Choose a check.</pre>
+<p>Component readiness and key-system access do not prove VMP certification, license acceptance or Spotify playback. This tool requests no media license and plays no protected content.</p>
+<script src="page.js"></script>
+</html>

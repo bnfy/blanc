@@ -34,11 +34,18 @@ const metadata = inspectUpdateMetadata(fs.readFileSync(metadataPath, 'utf8'));
 const expectedVersion = process.env.BLANC_EXPECTED_UPDATE_VERSION || metadata.version;
 assert.equal(metadata.version, expectedVersion, 'staging metadata version mismatch');
 
+const ecsCandidate = process.env.BLANC_ECS_UPDATE_CANDIDATE === '1';
+if (ecsCandidate && process.env.BLANC_ECS_DISPOSABLE_HOST !== '1') {
+  throw new Error('ECS replacement rehearsal requires a disposable account or host; the public macOS updater uses an account-wide cache');
+}
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-n-minus-one-update-'));
 const appPath = path.join(tempDir, 'Blanc.app');
 const executablePath = path.join(appPath, 'Contents', 'MacOS', 'Blanc');
 const userDataDir = path.join(tempDir, 'profile');
 const statusFile = path.join(tempDir, 'updater-status.json');
+// Explicit test-harness opt-in only: the production source ignores this
+// marker; the replacement ECS copy requires it instead of adopting a profile.
+const ecsEnvironment = ecsCandidate ? { BLANC_ECS_FULL_PROFILE: userDataDir } : {};
 let packagedApp = null;
 let server = null;
 
@@ -152,6 +159,7 @@ function serveFeed(directory) {
 try {
   execFileSync('/usr/bin/ditto', [path.resolve(sourceApp), appPath]);
   fs.mkdirSync(userDataDir, { recursive: true });
+  if (ecsCandidate) fs.writeFileSync(path.join(userDataDir, 'ecs-candidate-profile.json'), JSON.stringify({ candidate: true }), { flag: 'wx', mode: 0o600 });
   const oldVersion = appVersion();
   assert.notEqual(oldVersion, expectedVersion, 'N-1 app already has the feed version');
   server = await serveFeed(path.resolve(feedDir));
@@ -162,6 +170,7 @@ try {
     args: [`--user-data-dir=${userDataDir}`],
     env: {
       ...process.env,
+      ...ecsEnvironment,
       BLANC_TEST: '0',
       BLANC_UPDATE_CHANNEL: 'staging',
       BLANC_UPDATE_STAGING_URL: feedUrl,
@@ -207,7 +216,7 @@ try {
   packagedApp = await launchPackagedOverCdp({
     executablePath,
     args: [`--user-data-dir=${userDataDir}`],
-    env: { ...process.env, BLANC_TEST: '0', BLANC_UPDATE_CHANNEL: 'smoke-complete' },
+    env: { ...process.env, ...ecsEnvironment, BLANC_TEST: '0', BLANC_UPDATE_CHANNEL: 'smoke-complete' },
   });
   const relaunchExit = new Promise((_, reject) => packagedApp.process.once(
     'exit',
