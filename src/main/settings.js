@@ -230,6 +230,9 @@ const DEFAULTS = {
   // Off keeps it on the theme background. Device-local, not Profile Synced.
   islandSiteColors: true,
   islandHoverOpen: false,
+  // Search suggestions lead the Island's typed results instead of a strong
+  // local match. Device-local, not Profile Synced.
+  searchPriorityResults: false,
   // Page fills the window; the Island strip returns at the top edge.
   // Device-local, not Profile Synced.
   islandAutoHide: false,
@@ -504,6 +507,7 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (typeof data.islandSiteColors !== 'boolean') data.islandSiteColors = DEFAULTS.islandSiteColors;
   if (typeof data.islandHoverOpen !== 'boolean') data.islandHoverOpen = DEFAULTS.islandHoverOpen;
+  if (typeof data.searchPriorityResults !== 'boolean') data.searchPriorityResults = DEFAULTS.searchPriorityResults;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
@@ -625,6 +629,7 @@ function sanitize(partial) {
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
+  if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;

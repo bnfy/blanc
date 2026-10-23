@@ -491,6 +491,8 @@
     <string name="tab_menu_return_pinned_home">Back to Pinned Page</string>
     <string name="tab_menu_set_pinned_home">Replace Pinned Page with Current</string>
     <string name="tab_menu_unpin">Unpin Tab</string>
+    <string name="tab_menu_pin_split">Pin Split</string>
+    <string name="tab_menu_unpin_split">Unpin Split</string>
     <string name="tab_menu_mute">Mute Tab</string>
     <string name="tab_menu_unmute">Unmute Tab</string>
     <string name="tab_menu_new_tab_below">New Tab Below</string>
@@ -504,7 +506,6 @@
     <string name="tab_menu_unpin_start_page">Unpin from Start Page</string>
     <string name="tab_menu_move_to_group">Move to Group</string>
     <string name="tab_menu_split_with">Split with</string>
-    <string name="tab_menu_split_pinned_refused">Pinned tabs can\'t join a split</string>
     <string name="tab_menu_remove_from_split">Remove from Split</string>
     <string name="tab_menu_close_split">Close Split</string>
     <string name="split_group_move_into">Moves %1$s into %2$s</string>
@@ -934,6 +935,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_theme_dark">Dark</string>
     <string name="settings_general_island_site_colors_label">Match site colors</string>
     <string name="settings_general_island_site_colors_hint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</string>
+    <string name="settings_general_search_priority_results_label">Search priority results</string>
+    <string name="settings_general_search_priority_results_hint">As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history.</string>
     <string name="settings_general_island_hover_open_label">Open the Island on hover</string>
     <string name="settings_general_island_hover_open_hint">Rest the pointer on the Island’s address to open it without clicking.</string>
     <string name="settings_general_island_auto_hide_label">Auto-hide the Island</string>

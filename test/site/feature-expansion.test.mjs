@@ -25,7 +25,8 @@ test('new feature breadcrumbs stay lowercase and native corners have no black ba
       await page.goto(`${baseURL}/features/${route}`);
       const crumbs = await page.locator('.breadcrumb').innerText();
       assert.equal(crumbs, crumbs.toLowerCase(), `${route}: lowercase breadcrumbs`);
-      const backgrounds = await page.locator('.released-capture img').evaluateAll(images => images.map(image => getComputedStyle(image).backgroundColor));
+      // The Start Page's hero fan (components/StartPageGallery.astro) counts as its native capture.
+      const backgrounds = await page.locator(':is(.released-capture, .design-fan-card) img').evaluateAll(images => images.map(image => getComputedStyle(image).backgroundColor));
       assert.ok(backgrounds.length, `${route}: native product capture`);
       assert.ok(backgrounds.every(color => color === 'rgba(0, 0, 0, 0)'), `${route}: transparent corners blend into the frame`);
     }
@@ -78,8 +79,9 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
       assert.equal(await page.locator('.feature-close [data-track="feature_cta_click"]').getAttribute('data-feature'), feature);
       await page.locator('.breadcrumb a').last().focus();
       await page.keyboard.press(linkTab);
-      assert.ok(await page.locator('.released-capture > a').first().evaluate(link => document.activeElement === link), `${route}: image link follows breadcrumb in keyboard order`);
-      assert.notEqual(await page.locator('.released-capture > a').first().evaluate(link => getComputedStyle(link).outlineStyle), 'none');
+      const capture = page.locator(':is(.released-capture, .design-fan-card:not([aria-hidden])) > a').first();
+      assert.ok(await capture.evaluate(link => document.activeElement === link), `${route}: image link follows breadcrumb in keyboard order`);
+      assert.notEqual(await capture.evaluate(link => getComputedStyle(link).outlineStyle), 'none');
     }
     assert.equal(titles.size, 5);
     assert.equal(descriptions.size, 5);

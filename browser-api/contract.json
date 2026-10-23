@@ -989,6 +989,10 @@
           "type": "Rect | null",
           "doc": "The resting pill in the overlay's coordinates; absent when replayed after the overlay loads.",
           "optional": true
+        },
+        "searchPriorityResults": {
+          "type": "boolean",
+          "doc": "Settings → Search priority results: search suggestions lead typed results."
         }
       }
     },
@@ -1606,7 +1610,11 @@
       "fields": {
         "chrome": {
           "type": "Rect",
-          "doc": "The card's chrome view: the card plus its 8 px resize ring."
+          "doc": "The card's chrome view: the card plus its resize ring (12 px above, less where the card meets the top of the page area; 20 px at the sides; 28 px below)."
+        },
+        "frame": {
+          "type": "Rect",
+          "doc": "The card itself, border included."
         },
         "header": {
           "type": "Rect",
@@ -1614,7 +1622,7 @@
         },
         "page": {
           "type": "Rect",
-          "doc": "The Glance page's view, inside the side and bottom borders."
+          "doc": "The Glance page's view, inset 6 px in the card's frame below the header."
         }
       }
     },

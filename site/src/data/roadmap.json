@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-22",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -14,6 +14,13 @@
       "line": "A native Gmail app from the makers of Blanc.",
       "icon": "/blanc-mail-icon.webp?v=80583d44",
       "link": { "href": "/mail", "label": "Join the waitlist" }
+    },
+    {
+      "id": "blanc-for-teams",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Blanc for Teams",
+      "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
     },
     {
       "id": "crash-reports",

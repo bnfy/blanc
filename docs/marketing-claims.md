@@ -422,6 +422,13 @@ original reports:
   private Start Pages show them read-only. Icons come only from the profile's
   own Favorites or history; nothing is fetched. Not yet hand-checked on
   Windows or Linux.
+- **Search priority results:** Since v1.42.0 an opt-in, device-local setting
+  (Settings → General, under Island; off by default, never synced) puts the
+  search for what was typed and the search engine's suggestions above open
+  tabs, groups, Spaces, Favorites and history as you type, and Enter searches.
+  It reorders results only; suggestions still follow the Search suggestions
+  setting. Hand-checked on Mac and Windows; the Linux check was waived by the
+  owner, not passed.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

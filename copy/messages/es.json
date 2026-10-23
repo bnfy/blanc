@@ -1798,6 +1798,14 @@
     "message": "Soltar pestaña",
     "source": "sha256:40251613e30f182261988b473510203a1f8ac40239ccc606593cb2d5ffbb79fe"
   },
+  "tabMenu.pinSplit": {
+    "message": "Fijar vista dividida",
+    "source": "sha256:8ae6b2d5d740e8d04aba4e8aa0d449ae0d80f36a1a79f0879d5e3c4763f7015e"
+  },
+  "tabMenu.unpinSplit": {
+    "message": "Soltar vista dividida",
+    "source": "sha256:f2da89024d6936b5dc7bc4a94fc872d800e6a3f37caba4b4a84cce7b72b8d14f"
+  },
   "tabMenu.mute": {
     "message": "Silenciar pestaña",
     "source": "sha256:5f41ef1d2970f37a646c04c9876a11601833ac6ffc512a8a9d184fc77782c472"
@@ -1849,10 +1857,6 @@
   "tabMenu.splitWith": {
     "message": "Dividir con",
     "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"
-  },
-  "tabMenu.splitPinnedRefused": {
-    "message": "Las pestañas fijadas no pueden unirse a una vista dividida",
-    "source": "sha256:c2a6099a8019b08c63bc85326cef22fe78126914feb00fd186b99d9963a3509d"
   },
   "tabMenu.removeFromSplit": {
     "message": "Quitar de la vista dividida",
@@ -3354,6 +3358,16 @@
   "settings.general.islandSiteColors.hint": {
     "message": "Tiñe la barra de la Island con el color de la página en la que estás. Si está desactivado, mantiene el fondo de tu tema.",
     "source": "sha256:78d7d211d0d40ad09c99bc03626c7ba30ce3b94cd37749872d38aaf2b2bc0bc4"
+  },
+  "settings.general.searchPriorityResults.label": {
+    "message": "Priorizar resultados de búsqueda",
+    "note": "Settings → General: setting name.",
+    "source": "sha256:b83f999a3cabc8754725b2ca8a05ac6e616a671ba91d65bb1e1154aa5efa8400"
+  },
+  "settings.general.searchPriorityResults.hint": {
+    "message": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, grupos, Spaces, Favoritos e Historial.",
+    "note": "Settings → General: explanation under a setting.",
+    "source": "sha256:1eeea61707c6c07ced234f1ca744789c464b810ed189defbaeb2cdff6705a22d"
   },
   "settings.general.islandHoverOpen.label": {
     "message": "Abrir la Island al pasar el cursor",

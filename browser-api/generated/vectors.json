@@ -2238,6 +2238,12 @@
                   "width": 1,
                   "height": 1
                 },
+                "frame": {
+                  "x": 1,
+                  "y": 1,
+                  "width": 1,
+                  "height": 1
+                },
                 "header": {
                   "x": 1,
                   "y": 1,
@@ -2260,6 +2266,12 @@
               {
                 "card": {
                   "chrome": {
+                    "x": 1,
+                    "y": 1,
+                    "width": 1,
+                    "height": 1
+                  },
+                  "frame": {
                     "x": 1,
                     "y": 1,
                     "width": 1,
@@ -5988,7 +6000,8 @@
             {
               "mode": "panel",
               "prefill": "overlay-show-payload-1",
-              "purpose": "example"
+              "purpose": "example",
+              "searchPriorityResults": true
             }
           ],
           "callbacks": [
@@ -5996,7 +6009,8 @@
               {
                 "mode": "panel",
                 "prefill": "overlay-show-payload-1",
-                "purpose": "example"
+                "purpose": "example",
+                "searchPriorityResults": true
               }
             ]
           ]
@@ -6012,7 +6026,8 @@
                 "y": 1,
                 "width": 1,
                 "height": 1
-              }
+              },
+              "searchPriorityResults": true
             }
           ],
           "callbacks": [
@@ -6026,7 +6041,8 @@
                   "y": 1,
                   "width": 1,
                   "height": 1
-                }
+                },
+                "searchPriorityResults": true
               }
             ]
           ]

@@ -8,3 +8,11 @@
 /private/ /features/private-tabs 301
 /press /media 301
 /press/ /media 301
+# Blanc Mail became one page on October 22, 2026: Pricing, Download and
+# Support are sections of /mail now.
+/mail/pricing /mail#pricing 301
+/mail/pricing/ /mail#pricing 301
+/mail/download /mail#download 301
+/mail/download/ /mail#download 301
+/mail/support /mail#support 301
+/mail/support/ /mail#support 301

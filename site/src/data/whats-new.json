@@ -1,6 +1,6 @@
 {
   "firstRelease": "1.36",
-  "noPage": [],
+  "noPage": ["1.42"],
   "pages": [
     {
       "release": "1.41",

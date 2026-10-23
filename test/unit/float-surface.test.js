@@ -79,7 +79,10 @@ test('the float surface shows one element, slides the whole view height and drop
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="pill"\] #islandPill/);
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="controls"\] #windowControls/);
   assert.match(css, /html\[data-surface="float"\]\[data-float-role="menu"\] #mainMenuButton/);
-  assert.match(css, /html\[data-surface="float"\] #islandPill \{[^}]*box-shadow: var\(--shadow-island-float\);/);
+  // One shadow, on the surface: a second one on the pill box (1px inside it)
+  // drew a ridge along the bottom.
+  assert.match(css, /html\[data-surface="float"\] #islandPill::after \{[^}]*box-shadow: var\(--shadow-island-float\);/);
+  assert.doesNotMatch(css, /html\[data-surface="float"\] #islandPill \{[^}]*box-shadow/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*html\[data-surface="float"\] #chrome \{ transition: none; \}/);
 });
 

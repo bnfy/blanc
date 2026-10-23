@@ -1,10 +1,9 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/mail-subpages.test.mjs
 //
-// The five Blanc Mail subpages after the redesign
+// The two Blanc Mail subpages, Privacy and Terms
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §5):
-// Privacy and Terms as documents with an "On this page" list, Pricing that
-// says purchases are not open before any price, Download beside its
-// requirements, and Support that opens with its address.
+// documents with an "On this page" list. Pricing, Download and Support became
+// sections of /mail on October 22, 2026 (test/site/mail-overview.test.mjs).
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -107,63 +106,5 @@ test('below 1024px the list folds into a closed "On this page" disclosure', asyn
     await page.locator('.mail-contents-compact summary').click();
     assert.equal(await page.evaluate(() => document.querySelector('.mail-contents-compact').open), true);
     assert.equal(await page.locator('.mail-contents-compact a').count(), state.headings);
-  } finally { await context.close(); }
-});
-
-test('Pricing says purchases are not open before any price, and recommends neither plan', async () => {
-  const { page, context } = await openPage('/mail/pricing');
-  try {
-    const pricing = await page.evaluate(() => {
-      const callout = document.querySelector('.mail-pricing .mail-callout');
-      const plans = document.querySelector('.mail-plans');
-      return {
-        text: callout.textContent.trim(),
-        first: Boolean(callout.compareDocumentPosition(plans) & Node.DOCUMENT_POSITION_FOLLOWING),
-        plans: document.querySelectorAll('.mail-plan').length,
-        tabular: [...document.querySelectorAll('.mail-plan-price')].every(p => getComputedStyle(p).fontVariantNumeric.includes('tabular-nums')),
-        badge: /recommended|best value|most popular/i.test(plans.textContent),
-      };
-    });
-    assert.match(pricing.text, /^Purchases are not open yet\./);
-    assert.ok(pricing.first, 'the status comes before the plans');
-    assert.equal(pricing.plans, 2);
-    assert.ok(pricing.tabular, 'prices use tabular figures');
-    assert.equal(pricing.badge, false);
-  } finally { await context.close(); }
-});
-
-test('Download puts the waitlist beside its requirements on wide screens and above them on phones', async () => {
-  for (const [width, beside] of [[1440, true], [390, false]]) {
-    const { page, context } = await openPage('/mail/download', width);
-    try {
-      const layout = await page.evaluate(() => {
-        const main = document.querySelector('.mail-download-main').getBoundingClientRect();
-        const requirements = document.querySelector('.mail-requirements').getBoundingClientRect();
-        return {
-          beside: requirements.left >= main.right - 1 && requirements.top < main.bottom,
-          below: requirements.top >= main.bottom - 1,
-        };
-      });
-      assert.equal(beside ? layout.beside : layout.below, true, `${width}px`);
-      assert.equal(await page.locator('form#download-waitlist').count(), 1);
-    } finally { await context.close(); }
-  }
-});
-
-test('Support opens with its address, then three topics', async () => {
-  const { page, context } = await openPage('/mail/support');
-  try {
-    const support = await page.evaluate(() => {
-      const contact = document.querySelector('.mail-contact');
-      const topics = document.querySelector('.mail-topics');
-      return {
-        address: contact.querySelector('a[href^="mailto:"]').getAttribute('href'),
-        first: Boolean(contact.compareDocumentPosition(topics) & Node.DOCUMENT_POSITION_FOLLOWING),
-        cards: [...topics.querySelectorAll('.mail-card h2')].map(h => h.textContent.trim()),
-      };
-    });
-    assert.equal(support.address, 'mailto:support@blanc.day');
-    assert.ok(support.first);
-    assert.deepEqual(support.cards, ['Accounts and data', 'Uninstalling', 'Updates and licensing']);
   } finally { await context.close(); }
 });

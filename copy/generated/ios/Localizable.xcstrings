@@ -20161,6 +20161,90 @@
         }
       }
     },
+    "tabMenu.pinSplit": {
+      "comment": "Tab context menu command on a Split View tab: pins every tab of the split.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa la vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar visualização dividida"
+          }
+        }
+      }
+    },
+    "tabMenu.unpinSplit": {
+      "comment": "Tab context menu command on a pinned Split View tab: unpins every tab of the split.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia la vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar visualização dividida"
+          }
+        }
+      }
+    },
     "tabMenu.mute": {
       "comment": "Tab context menu command.",
       "extractionState": "manual",
@@ -20703,48 +20787,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dividir com"
-          }
-        }
-      }
-    },
-    "tabMenu.splitPinnedRefused": {
-      "comment": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pinned tabs can't join a split"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Angeheftete Tabs können nicht geteilt werden"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las pestañas fijadas no pueden unirse a una vista dividida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les onglets épinglés ne peuvent pas rejoindre une vue partagée"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le schede fissate non possono far parte di una vista divisa"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abas fixadas não podem entrar em uma visualização dividida"
           }
         }
       }
@@ -37839,6 +37881,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema."
+          }
+        }
+      }
+    },
+    "settings.general.searchPriorityResults.label": {
+      "comment": "Settings → General: setting name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search priority results"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchergebnisse priorisieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorizar resultados de búsqueda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorité aux résultats de recherche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai priorità ai risultati di ricerca"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorizar resultados de pesquisa"
+          }
+        }
+      }
+    },
+    "settings.general.searchPriorityResults.hint": {
+      "comment": "Settings → General: explanation under a setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As you type, show search suggestions above your tabs, groups, Spaces, Favorites and history."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt beim Tippen Suchvorschläge über deinen Tabs, Gruppen, Spaces, Favoriten und dem Verlauf an."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al escribir, muestra las sugerencias de búsqueda por encima de tus pestañas, grupos, Spaces, Favoritos e Historial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentre scrivi, mostra i suggerimenti di ricerca sopra le tue schede, i gruppi, gli Spaces, i Preferiti e la Cronologia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico."
           }
         }
       }

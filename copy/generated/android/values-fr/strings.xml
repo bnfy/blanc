@@ -505,6 +505,8 @@
     <string name="tab_menu_return_pinned_home">Revenir à la page épinglée</string>
     <string name="tab_menu_set_pinned_home">Remplacer la page épinglée par l’actuelle</string>
     <string name="tab_menu_unpin">Détacher l’onglet</string>
+    <string name="tab_menu_pin_split">Épingler la vue partagée</string>
+    <string name="tab_menu_unpin_split">Détacher la vue partagée</string>
     <string name="tab_menu_mute">Couper le son de l’onglet</string>
     <string name="tab_menu_unmute">Rétablir le son de l’onglet</string>
     <string name="tab_menu_new_tab_below">Nouvel onglet en dessous</string>
@@ -518,7 +520,6 @@
     <string name="tab_menu_unpin_start_page">Détacher de la page d’accueil</string>
     <string name="tab_menu_move_to_group">Déplacer dans le groupe</string>
     <string name="tab_menu_split_with">Partager avec</string>
-    <string name="tab_menu_split_pinned_refused">Les onglets épinglés ne peuvent pas rejoindre une vue partagée</string>
     <string name="tab_menu_remove_from_split">Retirer de la vue partagée</string>
     <string name="tab_menu_close_split">Fermer la vue partagée</string>
     <string name="split_group_move_into">Déplace %1$s dans %2$s</string>
@@ -962,6 +963,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_theme_dark">Sombre</string>
     <string name="settings_general_island_site_colors_label">Reprendre les couleurs du site</string>
     <string name="settings_general_island_site_colors_hint">Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème.</string>
+    <string name="settings_general_search_priority_results_label">Priorité aux résultats de recherche</string>
+    <string name="settings_general_search_priority_results_hint">Pendant la saisie, affiche les suggestions de recherche au-dessus de vos onglets, groupes, Spaces, Favoris et Historique.</string>
     <string name="settings_general_island_hover_open_label">Ouvrir l’Island au survol</string>
     <string name="settings_general_island_hover_open_hint">Laissez le pointeur sur l’adresse de l’Island pour l’ouvrir sans cliquer.</string>
     <string name="settings_general_island_auto_hide_label">Masquer automatiquement l’Island</string>

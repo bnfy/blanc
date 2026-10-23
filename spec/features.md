@@ -1521,8 +1521,8 @@ that survives relaunch and Spaces (spec
 step: **Keep as split** in its header turns the current Glance into a split.
 
 - **Making one.** Keep as split (from Glance), or a tab's **Split with ▸**
-  menu. Pinned tabs never join a split. The initiating tab's group wins: every
-  other tab moves into it, or out of its group (D1).
+  menu. A pinned tab can join, and the split is then pinned. The initiating
+  tab's group wins: every other tab moves into it, or out of its group (D1).
 - **Layout.** Two or three columns; four panes are a 2×2 grid with one shared
   cross. Narrow windows fall back in a fixed order (rows, then focus only;
   for four panes, four columns first). Fallbacks are never saved (D3).
@@ -1534,8 +1534,9 @@ step: **Keep as split** in its header turns the current Glance into a split.
 - **In the tab list.** One row per split in the ⌘L panel and the rail; its
   tabs stay real tabs. ⌘1–9 count a split once (D4).
 - **Leaving.** Remove from Split lands the tab directly below the split's row
-  (D8); a split left with one tab dissolves. Pinning a split tab removes it
-  first (D7). Close Split is one Recently closed entry that reopens it whole.
+  (D8); a split left with one tab dissolves. A split is pinned as a whole:
+  Pin Split on any pane pins every pane (D7). Close Split is one Recently
+  closed entry that reopens it whole.
 - **Persistence.** Saved in `session.json` v2 windows and in Spaces
   (`splits`, `splitIds`), never in the flat rollback mirror, never synced.
   Private tabs are never saved; a split with fewer than two saved tabs is

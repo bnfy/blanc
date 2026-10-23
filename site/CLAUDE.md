@@ -25,7 +25,9 @@ plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (bundled + hashed). **Every page is set in Blubird** since October 15, 2026
 (owner direction: the fonts roll out across the whole site, not only the
 redesigned homepage): headings in Blubird Display at regular weight and 0
-tracking (`--site-font-display` and `--site-font-patron`), text in Blubird
+tracking (`--site-font-display` and `--site-font-patron`); a small Display title, 24px
+and under, may open up to +0.03em (owner, October 22, 2026), never
+negative, and headlines stay at 0. Text in Blubird
 Text (the `html, body` stack and the site's own labels and controls); see
 *Blubird and the lockup* below. Mockups of the app's own UI (the Island
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
@@ -190,8 +192,8 @@ law needs), and offers Patrons priority feature requests: requests emailed to
 support@blanc.day from the checkout address are read and answered first.
 Patron still unlocks no browser features.
 
-**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail` and
-`/mail/download`) posts `{email, website}` to the same Worker's
+**Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail`, twice,
+and in the Mail bar) posts `{email, website}` to the same Worker's
 `/mail-waitlist` route. It is a separate double opt-in list under its own
 `mailwait*` KV prefixes, never joins the newsletter, and is purged after the
 Mail launch announcement (runbook in the Worker README). The form copy, the

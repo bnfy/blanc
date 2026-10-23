@@ -26,6 +26,11 @@ on:
         required: false
         default: false
         type: boolean
+      ecs_candidate:
+        description: "Candidate-only native ECS validation, no release or installer upload"
+        required: false
+        default: false
+        type: boolean
       platform:
         description: "Platform jobs to run"
         required: true
@@ -50,9 +55,14 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_PLATFORM: ${{ inputs.platform }}
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
+          ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
         run: |
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
+            exit 1
+          fi
+          if [ "$ECS_CANDIDATE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ]; }; then
+            echo "ECS requires validation mode and excludes unqualified uBO" >&2
             exit 1
           fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
@@ -75,7 +85,7 @@ jobs:
 
   windows:
     needs: validate-inputs
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
+    if: ${{ !inputs.ecs_candidate && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
@@ -393,7 +403,7 @@ jobs:
 
   linux:
     needs: validate-inputs
-    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -672,7 +682,7 @@ jobs:
 
   linux-sandbox:
     needs: validate-inputs
-    if: ${{ inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     strategy:
       fail-fast: false
       matrix:
@@ -711,3 +721,146 @@ jobs:
           name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
           path: sandbox-evidence/*.json
           retention-days: 14
+
+  ecs-native:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_candidate }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.platform == 'windows' && '["windows-latest"]' || inputs.platform == 'linux' && '["ubuntu-latest"]' || '["windows-latest","ubuntu-latest","macos-15","macos-15-intel"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    env:
+      BLANC_ECS_BUILD_RESULT: ${{ github.workspace }}/output/ecs-build.json
+    steps:
+      - name: Preserve verified source bytes
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Candidate unit and input guards
+        shell: bash
+        run: |
+          mkdir -p output
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js test/unit/ecs-linux-launcher.test.js test/unit/ecs-appimage-relaunch.test.js
+          npm run adblock:check
+          npm run compliance:check
+      - name: Enable Linux sandbox on this disposable runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - name: Build pinned native ECS candidate, never publish
+        id: ecs-build
+        env:
+          BLANC_ECS_CDM_ZYGOTE_TRIAL: ${{ runner.os == 'Linux' && '1' || '' }}
+          AZURE_TENANT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_TENANT_ID || '' }}
+          AZURE_CLIENT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_ID || '' }}
+          AZURE_CLIENT_SECRET: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_SECRET || '' }}
+          AZURE_ENDPOINT: ${{ runner.os == 'Windows' && vars.AZURE_TRUSTED_SIGNING_ENDPOINT || '' }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ runner.os == 'Windows' && vars.AZURE_CODE_SIGNING_ACCOUNT_NAME || '' }}
+          AZURE_CERT_PROFILE: ${{ runner.os == 'Windows' && vars.AZURE_CERTIFICATE_PROFILE_NAME || '' }}
+          AZURE_PUBLISHER_NAME: ${{ runner.os == 'Windows' && vars.AZURE_PUBLISHER_NAME || '' }}
+        run: node scripts/ecs-native-validation.cjs
+      - name: Native startup, restart, profile cleanup and static HTML guard
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            dbus-run-session -- xvfb-run -a node test/desktop/ecs-native-smoke.cjs
+          else
+            node test/desktop/ecs-native-smoke.cjs
+          fi
+      - name: Verify Windows Authenticode and updater trust gates
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $build = Get-Content $env:BLANC_ECS_BUILD_RESULT | ConvertFrom-Json
+          $installer = @(Get-ChildItem "$($build.dist)/*.exe")
+          if ($installer.Count -ne 1) { throw 'Expected one NSIS installer' }
+          foreach ($file in @($installer[0].FullName, "$($build.dist)/win-unpacked/Blanc.exe")) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER -or -not $signature.TimeStamperCertificate) {
+              throw 'Invalid publisher, signature or timestamp'
+            }
+          }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item $installer[0].FullName dist/
+          $evidence = [ordered]@{
+            artifact = $installer[0].Name
+            sha256 = (Get-FileHash -Algorithm SHA256 $installer[0].FullName).Hash.ToLowerInvariant()
+            publisher = $env:EXPECTED_WINDOWS_PUBLISHER
+            signed = $true
+            timestamped = $true
+            vmpSigned = $false
+          }
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM output/ecs-native/windows-signature.json
+          node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust unit tests failed' }
+          node test/desktop/windows-update-trust-smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust native smoke failed' }
+      - name: Linux full local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/local-html.json
+      - name: Linux protected playback and kernel CDM sandbox
+        id: linux-drm
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm.json
+      - name: Linux fresh and cached offline startup
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-offline-startup-smoke.cjs "$APP_DIR" output/ecs-native/offline.json
+      - name: Linux cached update and rollback selection
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        run: node test/desktop/ecs-linux-cdm-cache-qualification.cjs output/ecs-native/cdm-cache.json
+      - name: Build next isolated Linux updater candidate
+        id: ecs-next
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-third-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json" 3
+          sudo apt-get update
+          sudo apt-get install --yes xdotool
+      - name: Linux real staged Restart Now handoff
+        timeout-minutes: 6
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json output/ecs-third-build.json
+      - name: Linux final successor local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync("output/ecs-third-build.json")).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/successor-local-html.json
+      - name: Diagnose aligned native and session profile
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
+        shell: bash
+        env:
+          BLANC_ECS_SHARED_PROFILE_TRIAL: '1'
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm-shared-profile.json
+      - name: Upload sanitized evidence only, never installers or profiles
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-native-evidence-${{ matrix.os }}-${{ github.run_id }}
+          path: output/ecs-native/*.json
+          if-no-files-found: error
+          retention-days: 3

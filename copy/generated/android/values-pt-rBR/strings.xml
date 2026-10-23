@@ -505,6 +505,8 @@
     <string name="tab_menu_return_pinned_home">Voltar à página fixada</string>
     <string name="tab_menu_set_pinned_home">Substituir a página fixada pela atual</string>
     <string name="tab_menu_unpin">Desafixar aba</string>
+    <string name="tab_menu_pin_split">Fixar visualização dividida</string>
+    <string name="tab_menu_unpin_split">Desafixar visualização dividida</string>
     <string name="tab_menu_mute">Silenciar aba</string>
     <string name="tab_menu_unmute">Reativar o som da aba</string>
     <string name="tab_menu_new_tab_below">Nova aba abaixo</string>
@@ -518,7 +520,6 @@
     <string name="tab_menu_unpin_start_page">Desafixar da página inicial</string>
     <string name="tab_menu_move_to_group">Mover para o grupo</string>
     <string name="tab_menu_split_with">Dividir com</string>
-    <string name="tab_menu_split_pinned_refused">Abas fixadas não podem entrar em uma visualização dividida</string>
     <string name="tab_menu_remove_from_split">Remover da visualização dividida</string>
     <string name="tab_menu_close_split">Fechar visualização dividida</string>
     <string name="split_group_move_into">Move %1$s para %2$s</string>
@@ -962,6 +963,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_theme_dark">Escuro</string>
     <string name="settings_general_island_site_colors_label">Usar as cores do site</string>
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
+    <string name="settings_general_search_priority_results_label">Priorizar resultados de pesquisa</string>
+    <string name="settings_general_search_priority_results_hint">Ao digitar, mostra as sugestões de pesquisa acima das suas abas, grupos, Spaces, Favoritos e Histórico.</string>
     <string name="settings_general_island_hover_open_label">Abrir a Island ao passar o cursor</string>
     <string name="settings_general_island_hover_open_hint">Deixe o ponteiro sobre o endereço da Island para abri-la sem clicar.</string>
     <string name="settings_general_island_auto_hide_label">Ocultar a Island automaticamente</string>

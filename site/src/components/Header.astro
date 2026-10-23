@@ -1,4 +1,5 @@
 ---
+import SiteSearch from "./SiteSearch.astro";
 import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
 // variant "minimal" (the What's New pages) keeps only the lockup: the page
 // Blanc opens after an update has its own way forward and needs no site nav.
@@ -91,6 +92,9 @@ const hrefFor = (href) =>
         ))
       }
     </div>
+    <button class="site-search-trigger" type="button" data-site-search aria-label="Search Blanc" aria-keyshortcuts="Meta+K Control+K" aria-haspopup="dialog" aria-controls="site-search" aria-expanded="false" title="Search Blanc (⌘K / Ctrl+K)" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+    </button>
     <a
       class="site-nav-cta"
       href={current === "download" ? "#download-options" : "/download"}
@@ -117,6 +121,7 @@ const hrefFor = (href) =>
   </nav>
   {onHome && <div class="site-progress" aria-hidden="true" />}
 </header>
+{!minimal && <SiteSearch />}
 <script is:inline>
   // Runs right after the bar, before first paint, so a phone never flashes the
   // full link row. Without scripting the links wrap onto a second row instead.

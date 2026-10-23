@@ -763,6 +763,7 @@ Sent when main shows the overlay.
 | `prefill` | `string \| null` | Initial input text. |
 | `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
 | `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
+| `searchPriorityResults` | `boolean` | Settings → Search priority results: search suggestions lead typed results. |
 
 ### `OverlayHidePayload`
 
@@ -1125,9 +1126,10 @@ The card's views' bounds in window coordinates (cardGeometry() in glance-card.js
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `chrome` | `Rect` | The card's chrome view: the card plus its 8 px resize ring. |
+| `chrome` | `Rect` | The card's chrome view: the card plus its resize ring (12 px above, less where the card meets the top of the page area; 20 px at the sides; 28 px below). |
+| `frame` | `Rect` | The card itself, border included. |
 | `header` | `Rect` | The card's header, top border included. |
-| `page` | `Rect` | The Glance page's view, inside the side and bottom borders. |
+| `page` | `Rect` | The Glance page's view, inset 6 px in the card's frame below the header. |
 
 ### `GlanceCardMove`
 
