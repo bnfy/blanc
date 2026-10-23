@@ -137,7 +137,7 @@ test('the Browser menu opens on click with Download and Features, and closes wit
       assert.equal(open.expanded, 'true');
       assert.equal(open.inBounds, true, `${width}px: panel inside the viewport`);
       assert.equal(new URL(page.url()).pathname, '/trust', 'the trigger does not navigate');
-      assert.deepEqual(open.links.map(([label]) => label), ['macOS', 'Windows', 'Linux', 'The Island', 'Blanc Spaces', 'Tab groups', 'Ad and tracker blocking', 'Private tabs', 'Glance', 'Start Page', 'All features', 'Blanc vs. Chrome']);
+      assert.deepEqual(open.links.map(([label]) => label), ['macOS', 'Windows', 'Linux', 'The Island', 'Blanc Spaces', 'Tab groups', 'Ad and tracker blocking', 'Private tabs', 'Glance', 'Start Page', 'All features', 'Blanc vs. Chrome', 'Switching from Arc']);
       await page.keyboard.press('Escape');
       assert.equal((await browserPanel(page)).open, false, 'Escape closes it');
       assert.equal(await page.evaluate(() => document.activeElement?.hasAttribute('data-browser-trigger')), true, 'focus returns to Browser');
