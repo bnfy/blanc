@@ -14,22 +14,22 @@ M7a is implemented but unreleased. This does not complete M7: Send to device is 
 - Full Node unit suite: 4,266 passed, one skipped, no failures (4,267 tests).
 - Real Chromium shared-page suite: seven passed.
 - Standalone macOS XCTest of the actual pure Swift protocol files: 34 passed, including desktop-generated vectors and RFC 7914 vectors.
-- Portable macOS XCTest of the actual engine and transport: 23 passed. Only the UI catalog adapter is substituted in this host harness; it does not claim iOS Keychain or WebKit validation.
+- Follow-up portable macOS XCTest of the actual engine and transport: 30 passed after `2e6217c`, including the new conflict-retry deletion regression for both settings and session stores. Removing the deleted-store guard in a temporary copy made that test fail for both stores. Only the UI catalog adapter is substituted in this host harness; it does not claim iOS Keychain or WebKit validation.
 - Portable UI checks: 14 passed (actual extracted native JavaScript guards in JavaScriptCore and Quick Switcher logic).
 - Xcode 27.1 arm64 iOS Simulator app and test target: `build-for-testing` passed.
-- Lint, copy catalog, bridge contract and audit inventory checks passed.
+- Lint, copy catalog, bridge contract and audit inventory checks passed. Follow-up vector freshness and iOS bridge tests: six passed.
 
 ## Implementation decisions
 
 - Keychain updates use update-or-add, rather than delete-then-add, so a rejected write does not first destroy the previous account's key.
 - Sync state/data writes are atomic and immediate instead of debounced. Credential transitions and local edit clocks must be durable before reporting success.
-- A failed retraction leaves sharing/sync enabled with an error rather than claiming the phone was removed remotely. The user can retry when connected.
+- Retraction is best-effort when turning sync off or switching accounts, so offline service or a missing device-only key cannot trap the phone in its old sync. It never creates a missing tab store.
 - Upload budgeting never replaces the full local tab cache. Missing clocks on untouched remote settings do not erase those wire values.
 - The Swift models take raw device maps; the engine wraps them in the existing `devices` envelope at storage/network boundaries.
 
 ## Pending release gates
 
-- Run the entire native XCTest suite on an installed iOS simulator runtime. The runtime was installed and the test app installed, but the local runner did not complete a usable native test result. Native execution and the unchanged-blocking/no-reload regression remain pending; compile checks passed. The baseline app launched in the same simulator, so this is not claimed as an environment-only failure. The owner then prioritized disk cleanup; disposable simulator devices and build caches were removed, and source was preserved.
+- Native execution is complete for `2e6217c`: the follow-up operator reported the full 202-test suite passing on iPhone 17 Pro / iOS 27.0, including the native catalog and unchanged-blocking/no-reload tests. The ten review regression tests failed against the previous production code as a positive control. This supersedes the earlier local launch blocker; the disposable simulator and 204 MB build output were removed afterward. Subsequent test-only changes still require head-matched CI.
 - Pair the simulator with an isolated test sync account using all three join paths against a packaged desktop build; check live tabs, theme, Favorites, renaming and retraction.
 - Repeat code pairing on a physical iPhone, including device-only Keychain persistence. No iPhone was available to the connected-device tooling.
 - Hand-check compact and regular-width page/palette layouts and desktop Settings/Favorites after the shared-page change.

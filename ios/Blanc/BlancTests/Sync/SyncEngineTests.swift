@@ -152,6 +152,34 @@ actor MemorySyncTransport: SyncTransport {
         XCTAssertEqual(f.state.state.lastError, "rate-limited")
         XCTAssertNil(f.state.load(.settings))
     }
+    func testConflictRetryDoesNotRecreateDeletedStores() async throws {
+        for store in [SyncStore.settings, .session] {
+            let f = try await make(sharing: store == .session)
+            let path = "v1/blob/\(accountA)/\(store.rawValue)"
+            if store == .settings {
+                f.engine.localSettingChanged(key: "theme", value: .string("dark"))
+            } else {
+                try await f.transport.install(accountA, .session, session("desktop-a"), key: f.key)
+            }
+            await f.transport.fail("PUT", path, statuses: [409])
+            await f.transport.suspendNext("PUT", path)
+            let pass = Task { await f.engine.syncNow() }
+            try await waitSuspended(f.transport)
+            // The account is deleted after our initial GET but before the
+            // conflicting PUT completes. Its retry must not create fresh data.
+            await f.transport.remove(accountA, .settings)
+            await f.transport.remove(accountA, store)
+            await f.transport.release()
+            await pass.value
+            XCTAssertEqual(f.state.state.lastError, "account-gone", store.rawValue)
+            let writes = await f.transport.records().filter { $0.method == "PUT" && $0.path == path }
+            XCTAssertEqual(writes.count, 1, "a missing retry GET must stop before a second PUT")
+            let remote = try await SyncWorkerClient(transport: f.transport).get(accountA, store)
+            XCTAssertNil(remote, "the deleted store must stay deleted")
+            _ = await f.engine.disable()
+        }
+    }
+
     func testConflictRetriesThreeTimesAndThenStops() async throws {
         let f = try await make()
         let path = "v1/blob/\(accountA)/settings"
