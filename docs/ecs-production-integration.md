@@ -43,6 +43,21 @@ Newest evidence supersedes the historical running/pending notes below:
   [Node security release](https://nodejs.org/en/blog/release/v24.22.1),
   [security advisory](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
   No runtime or signed package was changed during this review.
+  A subsequent offline probe of the exact pinned vendor archive confirmed
+  Node `24.22.0` and reproduced the published TLS hostname-validation defect
+  classes with pure API inputs. This does not establish Blanc exploitability.
+  See [the scoped runtime review](ecs-runtime-security-review-2026-10-23.md).
+  The npm production-dependency audit is clean, but does not cover the engine.
+
+- **Native Intel acceptance and CDM lifecycle now pass** in `40023852344`.
+  Acceptance recorded muted=false and volume=1 throughout 4.908 seconds of
+  VMP-verified protected playback, with no media errors and the CDM sandbox
+  intact. uBO, native Quit/restarts, offline (3027/5826 ms), local HTML and
+  workspace/media checks passed. The CDM lifecycle's first UI took 9760 ms;
+  first install, old 3050, genuine vendor 3112 update and controlled rollback
+  advanced unmuted by 2.402/5.336/4.944/4.949 seconds. Each stage verified the
+  exact mapped signed library and sandbox; offline readiness and profile
+  cleanup passed. Intel updater acceptance remains pending.
 
 - **Apple Silicon CDM lifecycle now passes** in the unchanged signed
   `fd8654147` candidate. First UI took 1743 ms. First install, old 4.10.3050.0,
@@ -149,8 +164,7 @@ source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
   640×480 camera frame and microphone signal (peak 0.008) through Blanc's
   actual permission flow. No recordings were saved; the harness closed the
   tracks/app and removed its temporary profiles. Production hashes are unchanged.
-- **Open:** unmuted native Intel acceptance and updater successor playback,
-  Intel Mac CDM lifecycle, native passkey/1Password
+- **Open:** Intel updater successor playback, native passkey/1Password
   acceptance, final runtime/uBO source/license/security review and supported
   matrix, final PR checks, and the public pipeline/version/What's New gates.
   No waiver, merge, publication or production-runtime switch is implied.
