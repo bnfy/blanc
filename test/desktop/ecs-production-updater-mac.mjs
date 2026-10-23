@@ -14,7 +14,9 @@ assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.BLANC_E
 const [sourceApp,archive,targetVersion,targetAsarHash,evidence]=process.argv.slice(2);
 for(const file of [sourceApp,archive,evidence])assert(path.isAbsolute(file));
 assert.match(targetVersion,/^\d+\.\d+\.\d+-staging\.\d+$/);assert.match(targetAsarHash,/^[a-f0-9]{64}$/);
-const root=await fs.mkdtemp(path.join(os.tmpdir(),'ecs-mac-update-'));
+// macOS reports executable paths through /private/var even when tmpdir is
+// /var. Use one canonical path for launching and identifying the successor.
+const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'ecs-mac-update-')));
 const app=path.join(root,'Blanc.app'),executable=path.join(app,'Contents/MacOS/Blanc');
 const profile=path.join(os.homedir(),'Library/Application Support/Blanc');
 assert.equal(await fs.stat(profile).catch(()=>null),null,'disposable runner must not have a Blanc profile');
@@ -96,7 +98,11 @@ end tell`]);
  assert.equal(media.failure,undefined);assert.equal(media.status,2);assert.equal(media.mediaKeys,true);
  assert(media.encryptedEvents>0);assert.deepEqual(media.mediaErrors,[]);assert.equal(media.error,null);assert.equal(media.paused,false);assert(media.second-media.first>2&&media.second-media.first<8);
  report.protectedPlayback=media;report.passed=true;
-}catch(error){report.failure=error.message.slice(0,600);throw error;}
+}catch(error){
+ report.failure=error.message.slice(0,600);
+ try{report.blancProcesses=run('ps',['-axo','pid=,comm=']).split('\n').filter(line=>line.includes('/Blanc.app/')).slice(0,30);}catch{}
+ throw error;
+}
 finally{
  for(const pid of processIds()){try{run('/usr/bin/osascript',['-e',`tell application ${JSON.stringify(app)} to quit`]);await wait('owned app quit',()=>!alive(pid),10000);}catch{try{process.kill(pid,'SIGTERM');}catch{}}}
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));

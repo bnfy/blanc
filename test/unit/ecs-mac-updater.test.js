@@ -12,6 +12,7 @@ test('Mac ECS handoff requires a disposable native Intel host and the normal Res
  assert.match(source,/click button "Restart Now" of window windowIndex/);
  assert.match(source,/automatic updated process/);
  assert.match(source,/exact updated app payload/);
+ assert.match(source,/const root=await fs.realpath\(await fs.mkdtemp\(/);
  assert.match(source,/assert.equal\(media.status,2\)/);
  assert.match(source,/ecs-handoff-owner/);
  assert.doesNotMatch(source,/quitAndInstall\(|AUTO_INSTALL:\s*'1'|\bHOME:\s*|--no-sandbox/);
