@@ -5,6 +5,7 @@ import { prepareSessionRecovery } from './session-recovery.mjs';
 import { preparePendingNavigation } from './pending-navigation.mjs';
 import { prepareNativeHitTest } from './native-hit-test.mjs';
 import { prepareSaveAcknowledgement } from './save-ack.mjs';
+import { prepareStartupSession } from './startup-session.mjs';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -816,6 +817,7 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
 prepareNativeHitTest(edit);
 preparePendingNavigation(edit);
 prepareSessionRecovery(edit);
+prepareStartupSession(edit);
 
 writeResearchPolicy(chromium, process.argv.includes('--research-hooks'));
 guardResearchHooks(chromium);
