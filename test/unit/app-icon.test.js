@@ -758,11 +758,15 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
         minY: Math.min(native.minY, bounds.minY), maxY: Math.max(native.maxY, bounds.maxY),
       } : bounds;
     }
-    // With no water lines the mark is wide and short; its width is what fills the tile.
+    // With no water lines the mark is wider than tall; its width fills the tile.
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
-    assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 550 && nativeHeight < 590, `${prefix} artwork is the sun and rays alone`);
+    assert.ok(nativeWidth > 750 && nativeWidth < 800, `${prefix} artwork stays large within the safe area`);
+    assert.ok(nativeHeight > 610 && nativeHeight < 650, `${prefix} artwork is the sun and rays alone`);
+    // The sun has risen: more than half its disc shows, so it stands taller
+    // than a half disc's height of half its width.
+    const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
+    assert.ok(sunBounds.height / sunBounds.width > 0.6, `${prefix} sun is risen above its base`);
     // Like the Sunrise artwork, the middle ray stands tallest: the topmost
     // pixels are its tip, centered on the canvas.
     const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);

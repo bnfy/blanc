@@ -13,25 +13,34 @@
 //     Icon Composer's own renders.
 
 const CX = 512;
-// Proportions follow the Sunrise's native layer (sunrise-mark.png): the sun is
-// a 210px half disc on the horizon, and each ray's tip reaches the same
-// distance from the sun's center as there, so the middle ray stands tallest.
-// Rays here are heavier than the artwork's, and start a little further out so
-// their white rims stay clear of the sun's.
+// Proportions follow the Sunrise's native layer (sunrise-mark.png): each ray's
+// tip reaches the same distance from the sun's center as there, so the middle
+// ray stands tallest. Rays here are heavier than the artwork's, so the sun is
+// drawn a little larger than its 210px half disc and risen above its flat
+// base, or the heavy rays and rims swamp it; the rays start far enough out for
+// their white rims to stay clear of the sun's.
 const HORIZON = 654;
-const SUN_RADIUS = 210;
+const SUN_RADIUS = 225;
+// How far the sun's center stands above its flat base; 0 is a half disc.
+const SUN_RISE = 80;
+const SUN_Y = HORIZON - SUN_RISE;
 const RAY_WIDTH = 52;
-const RAY_START = 252;
+// Clear space between the sun and the rays' caps.
+const RAY_GAP = 42;
 const RAY_REACH = [[0, 545], [28, 470], [52.5, 455], [76, 394]];
 const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
-  .map((a) => [a, RAY_START + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
+  .map((a) => [a, SUN_RADIUS + RAY_GAP + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
 const RIM = 14;
 // Vertical middle of the drawn mark, from the middle ray's tip to the sun's
 // flat base, before scaling.
-const MARK_CENTER = HORIZON - RAY_REACH[0][1] / 2;
-// macOS paints the native tile full-bleed; the flat copy draws an 824px tile,
-// so its mark takes the same share of the visible tile.
-const NATIVE_SCALE = 1.04;
+const MARK_TOP = SUN_Y - RAY_REACH[0][1];
+const MARK_CENTER = (MARK_TOP + HORIZON) / 2;
+// The mark, rim included, fills 800px of the full-bleed 1024 canvas in its
+// longer direction. macOS paints the native tile full-bleed; the flat copy
+// draws an 824px tile, so its mark takes the same share of the visible tile.
+const MARK_WIDTH = 2 * (Math.max(...RAY_REACH.map(([a, reach]) => reach * Math.sin((a * Math.PI) / 180))) + RIM);
+const MARK_HEIGHT = HORIZON - MARK_TOP + 2 * RIM;
+const NATIVE_SCALE = Number((800 / Math.max(MARK_WIDTH, MARK_HEIGHT)).toFixed(3));
 const FLAT_SCALE = NATIVE_SCALE * (824 / 1024);
 
 const COLORWAYS = {
@@ -54,8 +63,8 @@ const fixed = (n) => Number(n.toFixed(1));
 function ray([angle, inner, outer]) {
   const a = (angle * Math.PI) / 180;
   return [
-    CX + inner * Math.sin(a), HORIZON - inner * Math.cos(a),
-    CX + outer * Math.sin(a), HORIZON - outer * Math.cos(a),
+    CX + inner * Math.sin(a), SUN_Y - inner * Math.cos(a),
+    CX + outer * Math.sin(a), SUN_Y - outer * Math.cos(a),
   ];
 }
 
@@ -64,12 +73,13 @@ function line([x1, y1, x2, y2], paint, width) {
     + `stroke-width="${fixed(width)}" stroke-linecap="round"/>`;
 }
 
-const arcPath = (r, lift = 0) =>
-  `M${CX - r} ${HORIZON - lift} A${r} ${r} 0 0 1 ${CX + r} ${HORIZON - lift}`;
-
+// The sun: the part of its disc above the flat base, more than half when it
+// has risen.
 function sun(paint, grow = 0) {
+  const half = Math.sqrt(SUN_RADIUS ** 2 - SUN_RISE ** 2);
   const stroke = grow ? ` stroke="${paint}" stroke-width="${2 * grow}" stroke-linejoin="round"` : '';
-  return `<path d="${arcPath(SUN_RADIUS)} Z" fill="${paint}"${stroke}/>`;
+  return `<path d="M${fixed(CX - half)} ${HORIZON} A${SUN_RADIUS} ${SUN_RADIUS} 0 ${SUN_RISE > 0 ? 1 : 0} 1 `
+    + `${fixed(CX + half)} ${HORIZON} Z" fill="${paint}"${stroke}/>`;
 }
 
 const rays = (paint, grow = 0) =>
@@ -87,7 +97,10 @@ function gloss(points, width) {
 }
 
 const RAY_GLOSS = RAYS.map((r) => gloss(ray(r), RAY_WIDTH)).join('');
-const SUN_GLOSS = `<path d="${arcPath(SUN_RADIUS * 0.78, SUN_RADIUS * 0.16)}" fill="none" stroke="#FFFFFF" `
+const GLOSS_RADIUS = SUN_RADIUS * 0.78;
+const GLOSS_Y = SUN_Y - SUN_RADIUS * 0.16;
+const SUN_GLOSS = `<path d="M${fixed(CX - GLOSS_RADIUS)} ${fixed(GLOSS_Y)} A${fixed(GLOSS_RADIUS)} ${fixed(GLOSS_RADIUS)} 0 0 1 `
+  + `${fixed(CX + GLOSS_RADIUS)} ${fixed(GLOSS_Y)}" fill="none" stroke="#FFFFFF" `
   + `stroke-width="${fixed(SUN_RADIUS * 0.16)}" stroke-linecap="round"/>`;
 
 function gradient(id, stops, x1 = CX - 390, x2 = CX + 390) {
