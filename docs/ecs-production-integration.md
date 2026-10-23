@@ -463,6 +463,11 @@ with two existing skips, lint, PowerShell parsing and native declaration
 compilation. Native Windows results are still pending; none of these gates
 are cleared by local source checks.
 
+Run `40006965040` on `3c9d2c17d` passed workflow-input validation and is waiting
+for the owner's run-specific `ecs-signing` approval. No credentials have been
+released to that job yet. The fresh Mac matrix `40006057550` remains separate
+and queued; this Windows work does not replace its acceptance requirements.
+
 ## ECS maintenance in every release runbook
 
 Before each release, check upstream ECS and Electron security releases. Compare
