@@ -81,10 +81,10 @@ async function processState(pid) {
   const rawEnvironment=(await fs.readFile(`${base}/environ`,'utf8')).split('\0');
   const environment=Object.fromEntries(rawEnvironment.flatMap(entry=>{
     const at=entry.indexOf('=');const key=entry.slice(0,at);
-    return ['DISPLAY','XAUTHORITY','APPDIR','APPIMAGE','LD_LIBRARY_PATH','APPIMAGE_SILENT_INSTALL','APPIMAGE_EXIT_AFTER_INSTALL'].includes(key)?[[key,entry.slice(at+1)]]:[];
+    return ['DISPLAY','XAUTHORITY','APPDIR','APPIMAGE','LD_LIBRARY_PATH','CHROME_DEVEL_SANDBOX','CHROME_DESKTOP','APPIMAGE_SILENT_INSTALL','APPIMAGE_EXIT_AFTER_INSTALL'].includes(key)?[[key,entry.slice(at+1)]]:[];
   }));
   return {
-    status:status.split('\n').filter(line=>/^(Name|State|PPid|Threads|SigIgn|SigCgt|NoNewPrivs|Seccomp):/.test(line)),environment,
+    status:status.split('\n').filter(line=>/^(Name|State|PPid|Threads|SigBlk|SigIgn|SigCgt|NoNewPrivs|Seccomp):/.test(line)),environment,
     inheritedRuntimeKeys:rawEnvironment.map(entry=>entry.slice(0,entry.indexOf('='))).filter(key=>/^(?:LD_|ELECTRON_|CHROME_|BLANC_ECS_)/.test(key)),
   };
 }
@@ -142,6 +142,8 @@ try {
     const successor=await wait('automatic ECS successor',()=>mainProcess(next.version));previous=successor;
     handoff.automaticSuccessorPid=successor.pid;
     handoff.initialNativeState=await processState(successor.pid).catch(()=>({unavailable:true}));
+    const parentPid=Number(handoff.initialNativeState.status?.find(line=>line.startsWith('PPid:'))?.split(':')[1]);
+    if(parentPid)handoff.parentNativeState=await processState(parentPid).catch(()=>({unavailable:true}));
     ready=false;playback=null;
     // The display belongs solely to this rehearsal. X11 may attribute a
     // Chromium window to its GPU process rather than the verified browser PID.
@@ -193,6 +195,16 @@ try {
       try{return {id,name:x(['getwindowname',id]),geometry:x(['getwindowgeometry','--shell',id]),wmClass:execFileSync('xprop',['-id',id,'WM_CLASS'],{encoding:'utf8'}).trim()};}catch{return {id};}
     });
   }catch{}
+  // Diagnostic only: a later explicit launch never qualifies an automatic
+  // handoff. Compare the same installed bytes/profile after the successor dies.
+  if(previous && !(await alive(previous.pid))){
+    try{
+      warm=await launchPackagedOverCdp({executablePath:install,env,timeoutMs:30000});
+      report.directRelaunchDiagnostic={cdpReady:true};
+      await wait('diagnostic browser page',()=>warm.pages().some(page=>page.url().startsWith('blanc://newtab')),30000);
+      report.directRelaunchDiagnostic.browserPage=true;
+    }catch(diagnosticError){report.directRelaunchDiagnostic={failure:diagnosticError.message.slice(0,400)};}
+  }
   throw error;
 }
 finally{
