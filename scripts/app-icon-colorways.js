@@ -14,20 +14,19 @@
 
 const CX = 512;
 // A bolder sunburst than the Sunrise artwork, after Arc's heavy strokes: five
-// thick rays rather than seven fine ones, the middle one reaching furthest so
-// it stands well above the rest. The sun is drawn a little larger than the
-// artwork's 210px half disc and risen above its flat base, or the heavy rays
-// and rims swamp it; the rays start far enough out for their thick white rims
-// to stay clear of the sun's.
+// rays about as thick as Arc's (as heavy as they go before neighbors touch),
+// long enough to fill the tile, the middle one reaching furthest. The sun is
+// drawn larger than the artwork's 210px half disc and risen above its flat
+// base, and the rays start just clear of it so their rims join the sun's.
 const HORIZON = 654;
-const SUN_RADIUS = 225;
+const SUN_RADIUS = 260;
 // How far the sun's center stands above its flat base; 0 is a half disc.
-const SUN_RISE = 80;
+const SUN_RISE = 90;
 const SUN_Y = HORIZON - SUN_RISE;
-const RAY_WIDTH = 76;
+const RAY_WIDTH = 165;
 // Clear space between the sun and the rays' caps.
-const RAY_GAP = 66;
-const RAY_REACH = [[0, 640], [38, 560], [76, 470]];
+const RAY_GAP = 20;
+const RAY_REACH = [[0, 720], [40, 670], [75, 500]];
 const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
   .map((a) => [a, SUN_RADIUS + RAY_GAP + RAY_WIDTH / 2, reach - RAY_WIDTH / 2]));
 const RIM = 30;
@@ -39,13 +38,14 @@ const SHADOW_OPACITY = 0.42;
 // flat base, before scaling.
 const MARK_TOP = SUN_Y - RAY_REACH[0][1];
 const MARK_CENTER = (MARK_TOP + HORIZON) / 2;
-// The mark, rim included, fills 800px of the full-bleed 1024 canvas in its
-// longer direction. macOS paints the native tile full-bleed; the flat copy
+// The mark, rim included, fills MARK_FILL px of the full-bleed 1024 canvas in
+// its longer direction. macOS paints the native tile full-bleed; the flat copy
 // draws an 824px tile, so its mark takes the same share of the visible tile.
 const MARK_WIDTH = 2 * (Math.max(SUN_RADIUS, ...RAY_REACH.map(([a, reach]) =>
   (reach - RAY_WIDTH / 2) * Math.sin((a * Math.PI) / 180) + RAY_WIDTH / 2)) + RIM);
 const MARK_HEIGHT = HORIZON - MARK_TOP + 2 * RIM;
-const NATIVE_SCALE = Number((800 / Math.max(MARK_WIDTH, MARK_HEIGHT)).toFixed(3));
+const MARK_FILL = 860;
+const NATIVE_SCALE = Number((MARK_FILL / Math.max(MARK_WIDTH, MARK_HEIGHT)).toFixed(3));
 const FLAT_SCALE = NATIVE_SCALE * (824 / 1024);
 
 const COLORWAYS = {

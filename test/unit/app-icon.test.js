@@ -783,8 +783,8 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
     // With no water lines the mark is wider than tall; its width fills the tile.
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
-    assert.ok(nativeWidth > 720 && nativeWidth < 770, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 570 && nativeHeight < 620, `${prefix} artwork is the sun and rays alone`);
+    assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
+    assert.ok(nativeHeight > 650 && nativeHeight < 700, `${prefix} artwork is the sun and rays alone`);
     // The sun has risen: more than half its disc shows, so it stands taller
     // than a half disc's height of half its width.
     const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
