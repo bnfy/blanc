@@ -362,14 +362,34 @@ file/worker boundaries remained closed, and temporary profiles were removed.
 
 The owner approved new Apple Silicon and Intel staging-only updater fixtures
 from application source `fd8654147`, with version `1.43.0-staging.2` and bundle
-build `1432` changed only in a disposable build copy. Signing/notarization is
-in progress; do not count these as completed handoffs. A second unpublished,
+build `1432` changed only in a disposable build copy. Both fixtures now pass
+Developer ID/EVS verification, notarization, stapling and Gatekeeper. Comparing
+all 2,067 packaged files against each architecture's verified candidate found
+only the expected `package.json` version difference. These are not yet
+completed handoffs. A second unpublished,
 hash-pinned draft transfer and cleanup were also approved, leaving the older
 queued Intel run's assets untouched. Fresh native acceptance and public
 baseline-to-ECS handoffs must run on disposable native Mac hosts, never the
 installed production profile. The test harness now admits both native Mac
 architectures, requires the matching GitHub runner architecture, and retains
 the actual Restart Now, signature, ticket and protected-successor checks.
+
+The older Intel updater retry `39999246654` again completed native Restart Now,
+exact replacement and automatic relaunch, but the harness's generic 15-second
+command timeout interrupted the successor's Gatekeeper assessment (stapler had
+passed). It did not reach protected playback. The Apple trust commands now have
+a bounded 120-second allowance; all signature, ticket and acceptance assertions
+remain mandatory. That run removed its disposable profile and app. Its final
+consumer finished, so the owner-authorized `ecs-private-intel-562ec1c87` draft
+and both assets were deleted; release absence and no public Git tag were
+verified. The two retired elevated-permission intake jobs were removed.
+
+Fresh native Mac intake uses separate Apple Silicon/Intel acceptance and updater
+jobs, exact archive and app.asar hashes, and the owner-authorized temporary
+`ecs-private-mac-fd8654147` draft. No signing credentials are transferred. The
+replacement jobs are temporary and must be removed with that draft after their
+final consumers finish. The reusable acceptance harnesses and strict unmuted
+protected-playback checks remain.
 
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.

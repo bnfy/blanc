@@ -36,12 +36,8 @@ on:
         description: "Compare official Electron, ECS and native output clocks on disposable Intel"
         type: boolean
         default: false
-      ecs_signed_intel:
-        description: "Owner-authorized temporary draft intake of the exact signed ECS Intel candidate"
-        type: boolean
-        default: false
-      ecs_intel_updater:
-        description: "Owner-authorized signed ECS Intel updater rehearsal on a disposable runner"
+      ecs_fresh_mac:
+        description: "Owner-authorized private fresh signed Mac acceptance and updater rehearsals"
         type: boolean
         default: false
       linux_native_diagnostics:
@@ -52,7 +48,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel && !inputs.ecs_intel_updater && !inputs.intel_audio) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio && !inputs.ecs_fresh_mac) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -66,7 +62,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel && !inputs.ecs_intel_updater && !inputs.intel_audio) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio && !inputs.ecs_fresh_mac) }}
     strategy:
       fail-fast: false
       matrix:
@@ -154,74 +150,36 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-  ecs-updater-intel:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_intel_updater && github.ref == 'refs/heads/codex/ecs-production-integration' }}
-    runs-on: macos-15-intel
+  ecs-fresh-mac:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_fresh_mac && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, x64]
+        mode: [acceptance, updater]
+        include:
+          - arch: arm64
+            os: macos-15
+            cpu: arm64
+            baseline: Blanc-1.42.1-arm64.dmg
+            archive_sha: f8157115c45489dae30be684773b6ec9fd532e8fc6ad384478e1c8f8429b482b
+            app_sha: 111ad8adb76ac4c45902bddedd6593410f58376e49d6605a9d8f4d51a0f0ee36
+            executable_sha: 88fb243dfc277b035aeced478b2df125a9b0f2853fae7470abbfc53c56e66bb5
+            update_sha: 6f1a1778cd5b15e6216365acd1d1dad81eee7e35385bc41d85083a317f6aeafa
+            update_asar: 7900995e3f2e4feee2b70324ff699b4d61ca4c62dab46576a36eb06c7e957117
+          - arch: x64
+            os: macos-15-intel
+            cpu: x86_64
+            baseline: Blanc-1.42.1.dmg
+            archive_sha: af08d30687db5d52bd6931f5b3372194d3e52f08a7adc87111066372fdfc257f
+            app_sha: 0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb
+            executable_sha: 5545cf32167daf6cde48cf9ee69fa7aea1cc2245f514db065d0b69d264889378
+            update_sha: 4b26a99cbb8532b2be79a41049afc55d8fd2a9f46d8612b6fcb4c0c4395db2a3
+            update_asar: 1f832abb111f96c9d11671a8331a9d98fa70b697653d82467f14818bbc32ccc4
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 25
-    # Same temporary owner-approved private draft read permission as intake.
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-      - run: npm ci --no-audit --no-fund
-      - name: Fetch verified public baseline and private staging update
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/ecs-update-download" "$RUNNER_TEMP/ecs-update-old" "$RUNNER_TEMP/ecs-update-target" "$RUNNER_TEMP/ecs-update-mount"
-          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p Blanc-1.42.1.dmg -p SHA256SUMS -D "$RUNNER_TEMP/ecs-update-download"
-          gh release download ecs-private-intel-562ec1c87 -R "$GITHUB_REPOSITORY" -p Blanc-ECS-Intel-updater.zip -D "$RUNNER_TEMP/ecs-update-download"
-          cd "$RUNNER_TEMP/ecs-update-download"
-          awk '$2 == "Blanc-1.42.1.dmg"' SHA256SUMS > baseline.sha256
-          test -s baseline.sha256
-          shasum -a 256 -c baseline.sha256
-          echo '7821125f69463194041bdccef112ae6f498c229d70411a7517bd751f5bf23e24  Blanc-ECS-Intel-updater.zip' | shasum -a 256 -c -
-          hdiutil attach Blanc-1.42.1.dmg -mountpoint "$RUNNER_TEMP/ecs-update-mount" -readonly -nobrowse
-          ditto "$RUNNER_TEMP/ecs-update-mount/Blanc.app" "$RUNNER_TEMP/ecs-update-old/Blanc.app"
-          hdiutil detach "$RUNNER_TEMP/ecs-update-mount"
-          ditto -x -k Blanc-ECS-Intel-updater.zip "$RUNNER_TEMP/ecs-update-target"
-      - name: Verify signed inputs before any updater runs
-        run: |
-          test "$(uname -m)" = x86_64
-          test "$(node -p 'process.arch')" = x64
-          echo "200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8  $RUNNER_TEMP/ecs-update-target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
-          for KIND in old target; do
-            APP="$RUNNER_TEMP/ecs-update-$KIND/Blanc.app"
-            codesign --verify --deep --strict "$APP"
-            bash scripts/ci-intel-apple-tickets.sh "$APP"
-          done
-          npm version 1.43.0-staging.1 --no-git-tag-version
-          npm run compliance:build
-          node scripts/verify-ecs-production-package.cjs "$RUNNER_TEMP/ecs-update-target/Blanc.app"
-          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-update-target",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
-      - name: Exercise the actual native Restart Now handoff and protected successor
-        env:
-          BLANC_ECS_DISPOSABLE_HOST: '1'
-        run: |
-          node test/desktop/ecs-production-updater-mac.mjs \
-            "$RUNNER_TEMP/ecs-update-old/Blanc.app" \
-            "$RUNNER_TEMP/ecs-update-download/Blanc-ECS-Intel-updater.zip" \
-            1.43.0-staging.1 200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8 \
-            "$PWD/output/ecs-production/updater-intel.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: signed-ecs-updater-intel-${{ github.run_id }}
-          path: output/ecs-production/*.json
-          if-no-files-found: error
-          retention-days: 3
-
-  ecs-signed-intel:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_signed_intel && github.ref == 'refs/heads/codex/ecs-production-integration' }}
-    runs-on: macos-15-intel
-    timeout-minutes: 25
-    # Temporary, explicitly owner-approved: GitHub requires write permission
-    # to download an unpublished draft. No publishing or mutation step exists.
+    # Temporary owner-approved draft access, removed after all intake runs.
+    # GitHub requires this permission to download an unpublished draft.
     permissions:
       contents: write
     env:
@@ -234,48 +192,95 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --no-audit --no-fund
-      - name: Fetch exact notarized package from temporary private draft
+      - name: Fetch exact fresh signed packages from the temporary draft
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p "$RUNNER_TEMP/ecs-intake"
-          gh release download ecs-private-intel-562ec1c87 -R "$GITHUB_REPOSITORY" \
-            -p Blanc-ECS-Intel-562ec1c87.zip -D "$RUNNER_TEMP/ecs-intake"
-          cd "$RUNNER_TEMP/ecs-intake"
-          echo '43a8cf88f6b88244d85804747372dba4d6e342d4a42257053d70e6f8dbe96d3a  Blanc-ECS-Intel-562ec1c87.zip' | shasum -a 256 -c -
-          ditto -x -k Blanc-ECS-Intel-562ec1c87.zip .
-          echo "BLANC_PACKAGED_EXECUTABLE=$PWD/Blanc.app/Contents/MacOS/Blanc" >> "$GITHUB_ENV"
-          echo "BLANC_PACKAGED_ASAR=$PWD/Blanc.app/Contents/Resources/app.asar" >> "$GITHUB_ENV"
-          echo "BLANC_ECS_PACKAGE_ROOT=$PWD/Blanc.app" >> "$GITHUB_ENV"
-      - name: Verify native hardware, exact payload, Apple trust and unchanged restrictions
-        run: |
-          test "$(uname -m)" = x86_64
-          test "$(node -p 'process.arch')" = x64
+          test "$(uname -m)" = '${{ matrix.cpu }}'
+          test "$(node -p 'process.arch')" = '${{ matrix.arch }}'
           test "$(sysctl -in sysctl.proc_translated 2>/dev/null || echo 0)" != 1
-          echo "214105f60808638fef064332f2f5f0ca80ccb8f94af2ee84ad315bb9ad02e03e  $BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
-          echo "c94ad5d6a834f79463f847a59b3f493838f08dc2e946c42bfaae2e7d4755c8c9  $BLANC_PACKAGED_ASAR" | shasum -a 256 -c -
-          test "$(lipo -archs "$BLANC_PACKAGED_EXECUTABLE")" = x86_64
-          codesign --verify --deep --strict "$BLANC_ECS_PACKAGE_ROOT"
-          bash scripts/ci-intel-apple-tickets.sh "$BLANC_ECS_PACKAGE_ROOT"
+          test "$(gh release view ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true
+          test "$(gh release view ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)" = fd865414726d703ce07a50594deeb189665efe10
+          mkdir -p "$RUNNER_TEMP/ecs-fresh/download" "$RUNNER_TEMP/ecs-fresh/app" "$RUNNER_TEMP/ecs-fresh/target"
+          gh release download ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" \
+            -p 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' \
+            -p 'Blanc-ECS-${{ matrix.arch }}-updater.zip' -D "$RUNNER_TEMP/ecs-fresh/download"
+          cd "$RUNNER_TEMP/ecs-fresh/download"
+          echo '${{ matrix.archive_sha }}  Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' | shasum -a 256 -c -
+          echo '${{ matrix.update_sha }}  Blanc-ECS-${{ matrix.arch }}-updater.zip' | shasum -a 256 -c -
+          ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' "$RUNNER_TEMP/ecs-fresh/app"
+          ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-updater.zip' "$RUNNER_TEMP/ecs-fresh/target"
+          echo "BLANC_ECS_PACKAGE_ROOT=$RUNNER_TEMP/ecs-fresh/app/Blanc.app" >> "$GITHUB_ENV"
+          echo "BLANC_PACKAGED_EXECUTABLE=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/MacOS/Blanc" >> "$GITHUB_ENV"
+          echo "BLANC_PACKAGED_ASAR=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/Resources/app.asar" >> "$GITHUB_ENV"
+      - name: Verify exact application payload and Apple trust
+        run: |
+          echo '${{ matrix.app_sha }}  '"$BLANC_ECS_PACKAGE_ROOT/Contents/Resources/app.asar" | shasum -a 256 -c -
+          echo '${{ matrix.executable_sha }}  '"$BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
+          echo '${{ matrix.update_asar }}  '"$RUNNER_TEMP/ecs-fresh/target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
+          for KIND in app target; do
+            APP="$RUNNER_TEMP/ecs-fresh/$KIND/Blanc.app"
+            test "$(lipo -archs "$APP/Contents/MacOS/Blanc")" = '${{ matrix.cpu }}'
+            codesign --verify --deep --strict "$APP"
+            if [[ '${{ matrix.arch }}' = x64 ]]; then
+              bash scripts/ci-intel-apple-tickets.sh "$APP"
+            else
+              xcrun stapler validate "$APP"
+              spctl --assess --type execute --verbose=4 "$APP"
+            fi
+          done
           node scripts/verify-ecs-production-package.cjs "$BLANC_ECS_PACKAGE_ROOT"
-          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-intake",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
-      - name: Native Intel uBO controls, real restarts, reopen and Quit
+          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-fresh/app",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
+      - name: Native signed-app compatibility and protected playback
+        if: matrix.mode == 'acceptance'
         env:
-          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/output/ecs-production/ublock-intel.json
-        run: node test/desktop/support/installed-mac-native-quit.mjs
-      - name: Native Intel offline startup and protected playback
+          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/output/ecs-production/ublock-fresh.json
         run: |
+          node test/desktop/support/installed-mac-native-quit.mjs
           node test/desktop/ecs-production-smoke.mjs
-          node test/desktop/ecs-production-drm-smoke.mjs
-      - name: Native Intel local HTML and browser compatibility
-        run: |
-          node test/desktop/ecs-local-html-smoke.cjs "$BLANC_ECS_PACKAGE_ROOT" output/ecs-production/local-html-intel.json
+          node test/desktop/ecs-local-html-smoke.cjs "$BLANC_ECS_PACKAGE_ROOT" output/ecs-production/local-html-fresh.json
           node test/desktop/packaged-workspace-recovery-smoke.mjs
           node test/desktop/packaged-media-smoke.mjs
+          node test/desktop/ecs-production-drm-smoke.mjs
+      - name: Fetch the public baseline without modifying any public asset
+        if: matrix.mode == 'updater'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ecs-fresh/old" "$RUNNER_TEMP/ecs-fresh/mount"
+          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p '${{ matrix.baseline }}' -p SHA256SUMS -D "$RUNNER_TEMP/ecs-fresh/download"
+          cd "$RUNNER_TEMP/ecs-fresh/download"
+          awk '$2 == "${{ matrix.baseline }}"' SHA256SUMS > baseline.sha256
+          test "$(wc -l < baseline.sha256 | tr -d ' ')" = 1
+          shasum -a 256 -c baseline.sha256
+          hdiutil attach '${{ matrix.baseline }}' -mountpoint "$RUNNER_TEMP/ecs-fresh/mount" -readonly -nobrowse
+          ditto "$RUNNER_TEMP/ecs-fresh/mount/Blanc.app" "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
+          hdiutil detach "$RUNNER_TEMP/ecs-fresh/mount"
+          codesign --verify --deep --strict "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
+          if [[ '${{ matrix.arch }}' = x64 ]]; then
+            bash "$GITHUB_WORKSPACE/scripts/ci-intel-apple-tickets.sh" "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
+          else
+            xcrun stapler validate "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
+            spctl --assess --type execute --verbose=4 "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
+          fi
+      - name: Verify target package metadata then exercise actual Restart Now
+        if: matrix.mode == 'updater'
+        env:
+          BLANC_ECS_DISPOSABLE_HOST: '1'
+        run: |
+          npm version 1.43.0-staging.2 --no-git-tag-version
+          npm run compliance:build
+          node scripts/verify-ecs-production-package.cjs "$RUNNER_TEMP/ecs-fresh/target/Blanc.app"
+          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-fresh/target",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
+          node test/desktop/ecs-production-updater-mac.mjs \
+            "$RUNNER_TEMP/ecs-fresh/old/Blanc.app" \
+            "$RUNNER_TEMP/ecs-fresh/download/Blanc-ECS-${{ matrix.arch }}-updater.zip" \
+            1.43.0-staging.2 '${{ matrix.update_asar }}' \
+            "$PWD/output/ecs-production/updater-fresh.json"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: signed-ecs-native-intel-${{ github.run_id }}
+          name: fresh-mac-${{ matrix.arch }}-${{ matrix.mode }}-${{ github.run_id }}
           path: output/ecs-production/*.json
           if-no-files-found: error
           retention-days: 3

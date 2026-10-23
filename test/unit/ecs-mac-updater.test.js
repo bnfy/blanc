@@ -21,18 +21,39 @@ test('Mac ECS handoff requires a disposable native Mac host and the normal Resta
  assert.match(source,/keystroke "a" using command down/);
  assert.match(source,/if\(report.probeReady===false\)throw Error/);
  assert.match(source,/if\(process.arch==='x64'\)run\('bash'/);
- assert.match(source,/run\('xcrun',\['stapler','validate',app\]\)/);
- assert.match(source,/run\('spctl',\['--assess','--type','execute','--verbose=4',app\]\)/);
+ assert.match(source,/ci-intel-apple-tickets.sh'\),app\],120000\)/);
+ assert.match(source,/run\('xcrun',\['stapler','validate',app\],120000\)/);
+ assert.match(source,/run\('spctl',\['--assess','--type','execute','--verbose=4',app\],120000\)/);
  assert.doesNotMatch(source,/quitAndInstall\(|AUTO_INSTALL:\s*'1'|\bHOME:\s*|--no-sandbox/);
 });
-test('Mac updater intake is opt-in, pinned and cannot publish',()=>{
+test('retired Intel draft intake jobs and permissions are removed',()=>{
  const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
- const job=workflow.slice(workflow.indexOf('  ecs-updater-intel:'),workflow.indexOf('  ecs-signed-intel:'));
- assert.match(job,/inputs.ecs_intel_updater/);
+ assert.doesNotMatch(workflow,/ecs_intel_updater|ecs_signed_intel|ecs-updater-intel:|ecs-signed-intel:|ecs-private-intel-562ec1c87/);
+});
+test('fresh Mac intake binds both native architectures to private signed bytes',()=>{
+ const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
+ const start=workflow.indexOf('  ecs-fresh-mac:');
+ assert(start>=0);
+ const job=workflow.slice(start,workflow.indexOf('  installed-intel:',start));
+ assert.match(job,/inputs.ecs_fresh_mac/);
  assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
- assert.match(job,/runs-on: macos-15-intel/);
- assert.match(job,/7821125f69463194041bdccef112ae6f498c229d70411a7517bd751f5bf23e24/);
- assert.match(job,/200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8/);
+ assert.match(job,/arch: \[arm64, x64\]/);
+ assert.match(job,/mode: \[acceptance, updater\]/);
+ assert.match(job,/os: macos-15\n/);
+ assert.match(job,/os: macos-15-intel/);
+ assert.match(job,/fail-fast: false/);
  assert.match(job,/persist-credentials: false/);
- assert.doesNotMatch(job,/gh release (?:create|upload|edit)|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK/);
+ assert.match(job,/sysctl.proc_translated/);
+ assert.match(job,/--json isDraft/);
+ assert.match(job,/--json targetCommitish/);
+ assert.match(job,/fd865414726d703ce07a50594deeb189665efe10/);
+ assert.equal([...job.matchAll(/(?:archive_sha|app_sha|update_sha|update_asar): [a-f0-9]{64}\n/g)].length,8);
+ assert.match(job,/node test\/desktop\/ecs-production-drm-smoke.mjs/);
+ assert.match(job,/node test\/desktop\/ecs-local-html-smoke.cjs/);
+ assert.match(job,/node test\/desktop\/ecs-production-updater-mac.mjs/);
+ assert.match(job,/BLANC_ECS_DISPOSABLE_HOST: '1'/);
+ assert.match(job,/BLANC_UPDATE_CHANNEL: ecs-qualification-disabled/);
+ assert.doesNotMatch(job,/gh release (?:create|upload|edit)|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|continue-on-error|--no-sandbox/);
+ const ordinary=workflow.slice(workflow.indexOf('  ordinary-package:'),workflow.indexOf('  intel-audio:'));
+ assert.equal([...ordinary.matchAll(/!inputs.ecs_fresh_mac/g)].length,2);
 });

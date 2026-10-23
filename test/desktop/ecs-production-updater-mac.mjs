@@ -40,7 +40,7 @@ const server=http.createServer(async(request,response)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin=`http://127.0.0.1:${server.address().port}`;
 const wait=async(name,read,timeout=120000)=>{const end=Date.now()+timeout;while(Date.now()<end){const result=await read();if(result)return result;await new Promise(resolve=>setTimeout(resolve,250));}throw Error(`Timed out: ${name}`);};
-const run=(cmd,args)=>execFileSync(cmd,args,{encoding:'utf8',timeout:15000}).trim();
+const run=(cmd,args,timeout=15000)=>execFileSync(cmd,args,{encoding:'utf8',timeout}).trim();
 const processIds=()=>run('ps',['-axo','pid=,comm=']).split('\n').flatMap(line=>{const m=line.trim().match(/^(\d+)\s+(.+)$/);return m&&m[2]===executable?[Number(m[1])]:[];});
 const alive=pid=>{try{process.kill(pid,0);return true;}catch{return false;}};
 try{
@@ -79,8 +79,10 @@ end tell`;
  report.automaticRelaunch=true;
  assert.equal(run('plutil',['-extract','CFBundleShortVersionString','raw',path.join(app,'Contents/Info.plist')]),targetVersion);
  run('codesign',['--verify','--deep','--strict',app]);
- if(process.arch==='x64')run('bash',[path.resolve('scripts/ci-intel-apple-tickets.sh'),app]);
- else{run('xcrun',['stapler','validate',app]);run('spctl',['--assess','--type','execute','--verbose=4',app]);}
+ // Gatekeeper may fetch trust data even for a stapled app. Keep verification
+ // mandatory, but do not apply the short local-command timeout to that I/O.
+ if(process.arch==='x64')run('bash',[path.resolve('scripts/ci-intel-apple-tickets.sh'),app],120000);
+ else{run('xcrun',['stapler','validate',app],120000);run('spctl',['--assess','--type','execute','--verbose=4',app],120000);}
  await wait('actual Widevine component installation',async()=>{
   for(const version of await fs.readdir(path.join(profile,'WidevineCdm')).catch(()=>[])){
    if(/^\d+(?:\.\d+){3}$/.test(version)&&await fs.stat(path.join(profile,'WidevineCdm',version,'manifest.json')).catch(()=>null))return true;

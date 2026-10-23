@@ -32,7 +32,7 @@ test('audio attribution requires complete controls and distinguishes ECS-only fa
 });
 test('Intel audio control has no signing, private transfer or production access', () => {
   const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
-  const job=workflow.split('  intel-audio:')[1].split('  ecs-updater-intel:')[0];
+  const job=workflow.split('  intel-audio:')[1].split('  ecs-fresh-mac:')[0];
   assert.match(job,/inputs.intel_audio/);
   assert.match(job,/runs-on: macos-15-intel/);
   assert.match(job,/contents: read/);
