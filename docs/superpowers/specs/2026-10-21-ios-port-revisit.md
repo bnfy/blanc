@@ -234,7 +234,7 @@ TestFlight build is the companion, not a generic browser.
 | M0–M6 | Prototype: tabs, palette, `blanc://` pages, one rule list, theming, settings-lite, session restore | F1, F2, F5–F7, F12, F14–F16, F18 | Built July 2026, unreleased |
 | **M6.5** | Re-baseline (below) | — | This PR |
 | **Duo-1** | iPhone Duo foundation: iOS 27.1 SDK build, edge to edge on both displays, the regular-width pill and in-place palette, fold continuity, CI on the Duo simulator ([design](2026-10-21-ios-iphone-duo-design.md)) | F1, F6, D30 | After M6.5 |
-| **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device | F27, F9 (read) | Next |
+| **M7** | Profile Sync on iOS: pairing code, Favorites and settings, Other devices (desktop open tabs), send a tab to a device ([design](2026-10-23-ios-m7-profile-sync-design.md); M7a [plan](../plans/2026-10-23-ios-m7a-sync-foundation.md), M7b Send to device planned after it) | F27, F9 (read) | Next |
 | **M8** | Favorites and History, live on the `blanc://` pages | F9, F10 | |
 | **M9** | Private tabs | F4 | |
 | **M10** | Groups and Spaces from sync, shown read-only on the phone; Bangs; the full shared slash-command set; Find in page | F3, F41 (read), F47, F7, F8 | |
