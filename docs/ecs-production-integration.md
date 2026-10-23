@@ -198,6 +198,14 @@ downgrade. Only the component-check schedule changes in this disposable test;
 signatures, production update endpoints and sandbox checks are not disabled.
 This gate remains pending until its native run passes.
 
+Run `39997559037` exercises the lifecycle on application/test source
+`ba502510b`. It supersedes queued run `39997387455`; the replacement requires
+a separate old-only profile and proves the newer binary did not exist before
+the vendor update. Local validation passed 4,292 unit tests (two existing
+platform skips), lint, copy/bridge checks and the complete substrate gate.
+The new settings status and restart IPC also reject websites, other internal
+pages, unowned surfaces and subframes in direct handler tests.
+
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
 2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify
