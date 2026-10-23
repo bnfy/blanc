@@ -1,8 +1,13 @@
 # Linux ECS sandbox fix — production qualification
 
 Status as of October 23: not approved for production. All work is on
-`codex/ecs-native-qualification`. No release, installer, merge or production
-feed change is authorized or performed.
+`codex/ecs-native-qualification`. No publication, merge or production feed
+change is authorized or performed; installers exist only for isolated tests.
+
+The AppImage startup/restart blocker is now resolved in the isolated candidate:
+[39956564587](https://github.com/bnfy/blanc/actions/runs/39956564587) passed both
+real updater handoffs, successor protected video, kernel isolation, offline
+startup and the local HTML security matrix. Broader release gates remain below.
 
 ## Scope and gates
 
@@ -59,7 +64,7 @@ from the preloaded version. A candidate-only periodic status check detects
 later background changes; it never starts overlapping installations. Synthetic
 regression tests cover these transitions separately from real playback.
 
-## Native results
+## Earlier native results (before the AppImage correction)
 
 The initial qualification run is
 [39897225232](https://github.com/bnfy/blanc/actions/runs/39897225232), and the
@@ -119,20 +124,91 @@ relaunch rejected before app readiness can still be diagnosed and cleaned up.
 
 ## Remaining release boundary
 
-The candidate presently depends on its explicit launcher to supply the native
+The original candidate depended on its explicit launcher to supply the native
 user-data argument and the preload helper environment. The locked
 electron-updater AppImage implementation starts its replacement with an empty
-argument list and inherited environment. Qualification must prove this is
-self-contained; retaining an old external helper path or relaxing the profile
-guard is not a production fix.
+argument list and inherited environment.
+
+### October 23 AppImage startup correction
+
+Captured child stderr in
+[39953391475](https://github.com/bnfy/blanc/actions/runs/39953391475)
+located the original failure before JavaScript:
+`Zygote process exited prematurely with exit code -1`. Its inherited old-image
+directory and preload helper both still existed at spawn time. Supplying only
+a new in-image launcher was insufficient; the outer AppImage runtime also
+needed a clean native launch environment.
+
+The candidate now packages `AppRun`, `blanc-ecs-launcher`, and the preload shim
+inside each image. It creates a dedicated owner-only candidate profile when
+launched without arguments, restores the native profile switch on updater
+relaunch, validates local CDM selection before Electron starts, and changes to
+the stable profile directory. The updater adapter removes old mount paths and
+loader/Electron/Chrome environment variables before executing the next image.
+It retains the ordinary download/install/Restart Now implementation and the
+explicit install-without-reopening contract. Neither the core fuse target nor
+the kernel sandbox is bypassed.
+
+In [39955277824](https://github.com/bnfy/blanc/actions/runs/39955277824),
+the first replacement reached browser-ready with its original isolated profile
+and its own preload helper while the old unpacked tree was unavailable. That
+run was not a passing qualification: successor playback observation failed
+because the shared debugging port was still occupied. The test now assigns a
+different loopback-only port to each candidate version, holds the following
+metadata response until playback is checked, persists phase checkpoints, and
+closes diagnostic pipes and staging connections during cleanup. A successful
+native run must still verify both complete handoffs and both encrypted-media
+pipelines; replacement bytes and browser-ready alone are insufficient.
+
+### Passing native qualification of the AppImage correction
+
+Run [39956564587](https://github.com/bnfy/blanc/actions/runs/39956564587), from
+source `421cc49ae8bbc7de59f1a6801588bbf7aed85952`, passed every Linux job step.
+It built three isolated ECS 44.9.3+wvcus candidates and used the normal
+downloaded-update dialog for both `1.43.0-ecs.1 → .2` and `.2 → .3`.
+
+| Check | Result |
+| --- | --- |
+| Standalone AppImage, no repository launcher/profile/preload arguments | Pass; dedicated candidate profile created before Electron startup |
+| First Restart Now handoff | Pass; old browser exited, exact `.2` bytes installed, `.2` became ready in the same profile |
+| Second Restart Now handoff | Pass; old browser exited, exact `.3` bytes installed, `.3` became ready in the same profile |
+| Old loose installation dependency | None; old unpacked tree unavailable during both handoffs |
+| Protected video after each handoff | Pass; CENC H.264 track, production test licence backend, advancing playback, zero media errors |
+| CDM after each handoff | seccomp 2, NoNewPrivs 1, separate user/PID namespaces, no no-sandbox flag |
+| Fresh / online / cached-offline startup | Pass, 1,012 / 1,116 / 1,013 ms respectively; all normal exits |
+| Initial and final successor local HTML | Pass through initial load, reload and restart; no readable file frame, script mutation, HTTP canary or STUN packet |
+| Temporary profile and installation cleanup | Pass; both removed after shutdown |
+| Synthetic cache update/rollback | Pass; not a genuine signed CDM binary transition |
+
+Installed successor SHA-256 values matched their staged images:
+
+- `.2`: `63cb3ae27a24b1d60d97d75cd9b128b457aea332cb320eddf6bd63eb44706834`
+- `.3`: `a48f1a5c78cb7f6cad0e759ec6ca78a42f5dee4b1d8a91c03fb22e9ba721eb27`
+
+Playback advanced from 0.085 to 5.020 seconds in `.2` and from 0.083 to 5.002
+seconds in `.3`. Both returned the expected Linux `PLATFORM_UNVERIFIED` status;
+this is not a Linux VMP verification claim. The fixture's video is encrypted;
+its audio track is not. The headless runner has no ALSA device, so this is not
+an audible-audio or account-based Spotify/Netflix acceptance test. The logged
+ALSA warnings and transient startup graphics/GLib messages did not become
+media errors or a restart failure.
+
+The latest local suite passed 4,254 tests with zero failures and one Linux-only
+native launcher test skipped on macOS; that launcher test passed on the Linux
+runner. Lint passed. Production executable/app.asar hashes and the unchanged
+runtime, fuse, signing and entitlement inputs were rechecked. Evidence is
+saved locally under `self-contained-qualified` in the isolated qualification
+workspace; CI uploads only sanitized JSON, never installers or profiles.
 
 Actual CDM version upgrades/rollbacks, including a revoked or incompatible
 older CDM, require authentic vendor binaries and production licence responses.
 No synthetic directory/manifest version is presented as that evidence. Public
-N-1-to-ECS migration and repeated ECS updater continuity remain separate from
-this candidate-to-candidate handoff.
+N-1-to-ECS migration remains separate from these two candidate-to-candidate
+handoffs.
 
-Do not release this candidate. Remaining work is a self-contained, verified
-AppImage startup path and successful automatic handoffs, followed by genuine
-CDM version rollover/rollback evidence and the normal production package gates.
+Do not release this candidate. The AppImage correction is verified, but genuine
+CDM version rollover/rollback, the preceding-public-version migration/handoff,
+account-based platform acceptance and the normal production package gates
+remain separate. The exact-hash native CDM patch is still an experimental
+candidate mechanism, not an implicitly approved production runtime.
 No vendor-email confirmation or waiver was assumed.

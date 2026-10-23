@@ -65,15 +65,18 @@ or machine before that rehearsal can safely run.
    The subsequent [Linux kernel sandbox experiment](ecs-linux-cdm-sandbox-2026-10-22.md)
    passes encrypted playback and actual CDM kernel isolation together, using
    an exact-hash native patch and pre-sandbox preload helper. This experimental
-   mechanism still needs production integration/review and update/offline
-   lifecycle qualification; it is not an ordinary unmodified ECS package.
+   mechanism still needs production integration/review and genuine CDM binary
+   update/rollback qualification; offline startup now passes. It is not an
+   ordinary unmodified ECS package.
 2. Real staged N-1 **Restart Now** handoffs and subsequent ECS updater continuity
    on the supported platforms. Metadata discovery, trust tests and direct
    installer launches are not substitutes. Verify real-profile/cookie continuity.
    The [Linux production-qualification follow-up](ecs-linux-production-qualification-2026-10-22.md)
-   now proves download and byte-exact replacement but fails automatic relaunch;
-   the Linux candidate remains blocked. Fresh/cached offline startup and
-   synthetic CDM activation checks pass, with actual binary rollover pending.
+   now passes two real candidate-to-candidate Restart Now handoffs with
+   byte-exact replacement, self-contained startup, encrypted playback and
+   kernel CDM isolation in both successors. The N-1 public-to-ECS handoff is
+   still separate. Fresh/cached offline startup and synthetic CDM activation
+   checks pass, with actual binary rollover pending.
 3. uBO's reviewed ECS runtime/platform and CodeQL acceptance. This candidate
    excludes uBO; that is an unresolved shipped-feature compatibility gap, not
    permission to remove it from production.

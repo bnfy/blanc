@@ -44,6 +44,39 @@ update/offline and installed-package qualification.
 
 ## Staging-only updater
 
+### Self-contained Linux candidate startup
+
+The patched Linux validation AppImage carries `AppRun`, a small native
+`blanc-ecs-launcher`, and `blanc-cdm-preload.so`. Run the AppImage itself;
+Node.js, a repository checkout, and an external preload helper are not needed.
+On machines without FUSE, `APPIMAGE_EXTRACT_AND_RUN=1` uses the runtime's
+extract-and-run mode. The normal unpacked Electron executable is not the entry
+point for this candidate.
+
+Without an explicit test profile, the launcher creates the owner-only
+`$XDG_CONFIG_HOME/Blanc-ECS-Candidate` directory (or
+`$HOME/.config/Blanc-ECS-Candidate`). It refuses to adopt an existing unmarked
+directory, a redirected profile, or one writable by other users. An explicit
+`BLANC_ECS_FULL_PROFILE` still requires the candidate marker. This never adopts
+the production Blanc profile.
+
+The updater adapter removes the previous AppImage's loader, Electron and mount
+environment before executing the replacement. The entrypoint then resolves its
+own location and starts the separately verified, fused Electron executable
+with the native profile argument and a stable working directory. Component
+selection is local and bounded: active CDM hint,
+persisted registration, then installed version fallback, with canonical-path
+and manifest checks. Invalid component metadata disables DRM for that launch,
+not ordinary browsing. No sandbox-disabling fallback is added. The existing
+Linux sandbox guard still runs before the ECS component binding.
+
+The native updater test now builds three candidates and exercises two real
+Restart Now replacements on a loopback-only feed, checking encrypted playback
+and the CDM kernel sandbox in each successor. It moves the old unpacked tree
+out of reach during the handoffs. A separate final-successor local HTML test
+repeats the frame/worker/WebRTC canaries. See the dated qualification record for
+actual results; the test definition alone is not passing evidence.
+
 `--staging-updater` retains the existing updater implementation in staging.
 It still requires the candidate profile marker, build-time opt-in, explicit
 `BLANC_UPDATE_CHANNEL=staging`, and the existing validated staging URL policy.
