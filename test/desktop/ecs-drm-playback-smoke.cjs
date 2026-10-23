@@ -46,6 +46,9 @@ async function run(appPath, output) {
   const wire = await getCurrentFuseWire(fuseExecutable || executable);
   assert.equal(wire[7], 49);
   const evidence = { app, wire, backend: 'Production', mediaErrors: [], players: {} };
+  const earlySandbox = process.platform === 'linux' && process.env.BLANC_ECS_EARLY_SANDBOX_TRIAL === '1';
+  const earlyArgs = earlySandbox ? ['--enable-sandbox'] : [];
+  evidence.earlySandboxTrial = earlySandbox;
   try {
     await withDiagnosticProfile(async profile => {
       evidence.profile = profile;
@@ -56,7 +59,7 @@ async function run(appPath, output) {
       const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_LOCAL_HTML: ignoredFixture, ...env } = process.env;
       void ignored; void ignoredFixture;
       if (process.platform === 'linux') {
-        const warm = spawn(executable, [], { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
+        const warm = spawn(executable, earlyArgs, { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
         const warmExit = new Promise(resolve => warm.once('exit', code => resolve(code)));
         try {
           evidence.initialInstall = await waitFor(async () => {
@@ -73,7 +76,7 @@ async function run(appPath, output) {
         await fs.unlink(path.join(profile, 'ecs-runtime.json'));
       }
       const port = 55822;
-      const child = spawn(executable, [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
+      const child = spawn(executable, [...earlyArgs, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
         env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
       });
       const exited = new Promise(resolve => child.once('exit', resolve));
