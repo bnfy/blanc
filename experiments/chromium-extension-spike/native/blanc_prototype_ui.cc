@@ -1957,18 +1957,26 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   class SplitCloseWatch : public content::WebContentsObserver {
    public:
-    SplitCloseWatch(content::WebContents* tab, base::RepeatingClosure cancelled)
-        : content::WebContentsObserver(tab), cancelled_(std::move(cancelled)) {}
+    SplitCloseWatch(content::WebContents* tab, bool pinned,
+                    base::RepeatingClosure cancelled)
+        : content::WebContentsObserver(tab), pinned_(pinned),
+          cancelled_(std::move(cancelled)) {}
     void WebContentsDestroyed() override {
-      // Match TabRestoreService's exclusion of an initial, uncommitted tab.
+      // Match TabRestoreService's exclusion of initial tabs and an unpinned
+      // New Tab with no other navigation. Pinned/navigated New Tabs still need
+      // their historical entry flushed; the surviving session always does.
       auto& controller = web_contents()->GetController();
       without_history_ = controller.IsInitialBlankNavigation() ||
-                         controller.GetEntryCount() == 0;
+                         controller.GetEntryCount() == 0 ||
+          (!pinned_ && controller.GetEntryCount() == 1 &&
+           controller.GetEntryAtIndex(0)->GetVirtualURL() ==
+               GURL("chrome://newtab/"));
     }
     bool without_history() const { return without_history_; }
     void BeforeUnloadFired(bool proceed) override { if (!proceed) cancelled_.Run(); }
     void BeforeUnloadDialogCancelled() override { cancelled_.Run(); }
    private:
+    const bool pinned_;
     base::RepeatingClosure cancelled_;
     bool without_history_ = false;
   };
@@ -3599,6 +3607,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         auto* closing_tab = model->GetWebContentsAt(i);
         pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(closing_tab).id());
         pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(closing_tab,
+            model->IsTabPinned(i),
             base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       }
       model->SetSelectionFromModel(selection);
@@ -3615,6 +3624,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       pending_close.single_tab = true;
       pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
       pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(tab,
+          model->IsTabPinned(index),
           base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
       base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
