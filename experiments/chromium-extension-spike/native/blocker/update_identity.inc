@@ -1,3 +1,4 @@
+#include "content/public/common/blanc_research_build.h"
 #include "content/public/browser/browser_context.h"
 #include "base/command_line.h"
 #include "base/files/file_util.h"
@@ -12,10 +13,13 @@
 #include "services/network/public/cpp/resource_request.h"
 #include "third_party/blink/public/common/storage_key/storage_key.h"
 namespace {
+#if BLANC_RESEARCH_HOOKS
 void BlancUpdateIdentity(network::ResourceRequest& request, int64_t registration,
                          int64_t version, const GURL& scope,
                          const blink::StorageKey& storage_key, bool private_profile,
                          bool main_script) {
+  // Refuse private data before creating an identity or inspecting its URL.
+  if (private_profile) return;
   const auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath("blanc-worker-update-log");
   if (file.empty() || registration < 0 || version < 0) return;
   const auto token = "blanc-sw-update/" + base::UnguessableToken::Create().ToString();
@@ -72,10 +76,17 @@ scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
     scoped_refptr<network::SharedURLLoaderFactory> target, int64_t registration,
     int64_t version, GURL scope, blink::StorageKey key, bool private_profile,
     bool main_script) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-worker-update-log")) return target;
+  if (private_profile || !base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-worker-update-log")) return target;
   mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;
   base::MakeSelfDeleting<BlancUpdateProxy>(remote.InitWithNewPipeAndPassReceiver(),
       target, registration, version, scope, key, private_profile, main_script);
   return base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(remote));
 }
+#else
+scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
+    scoped_refptr<network::SharedURLLoaderFactory> target, int64_t, int64_t,
+    GURL, blink::StorageKey, bool, bool) {
+  return target;
+}
+#endif
 }

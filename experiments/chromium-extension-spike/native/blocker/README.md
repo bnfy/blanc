@@ -107,3 +107,20 @@ two-document shared-worker ownership and navigation-driven destruction of one
 exact owner realm pass in regular/private profiles, twice per runtime. Engine
 inputs and native source are unchanged, and the guarded plan contains zero
 actions. Broader lifecycle coverage remains explicit; latency is deferred.
+
+## Distribution versus research builds
+
+Preparation now writes `content/public/common/blanc_research_build.h` with
+`BLANC_RESEARCH_HOOKS=0` by default. The distributable preview excludes uBO
+component-admission/reload/document-start experiments, renderer fault injection,
+and local request/worker diagnostic writers at compile time. The launcher
+rejects all caller-supplied `--blanc-*` options, and packaging refuses native
+binaries that still contain the research switch markers.
+
+For an explicitly authorized research run in a separate source/output workspace,
+pass `--research-hooks` to **both** the root `prepare.mjs` and this directory's
+`prepare.mjs`, then use the normal incremental build guard. Such an output cannot
+be packaged by the distribution script. Do not switch an active candidate output
+to research mode to collect evidence; keep the candidate and Google baseline
+separate. Research worker-update logging also refuses private contexts before
+creating any token or record.

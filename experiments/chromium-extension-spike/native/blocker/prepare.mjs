@@ -1,9 +1,11 @@
+import { writeResearchPolicy, guardResearchHooks } from '../../research-build.mjs';
 // Separate, explicit opt-in to the experimental blocker in the preserved 157 output.
 import fs from 'node:fs';
 import {writeIfChanged as write} from './write-file.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-const [src,assets]=process.argv.slice(2), here=path.dirname(fileURLToPath(import.meta.url));
+const [src,assets,...options]=process.argv.slice(2), here=path.dirname(fileURLToPath(import.meta.url));
+if(options.some(x=>x!=='--research-hooks'))throw Error('Unknown blocker prepare option');
 if(!src||!assets)throw Error('usage: prepare.mjs CHROMIUM_SRC AUTHENTICATED_ENGINE_ASSETS');
 const version=Object.fromEntries(fs.readFileSync(path.join(src,'chrome/VERSION'),'utf8').trim().split('\n').map(line=>line.split('=')));
 if(['MAJOR','MINOR','BUILD','PATCH'].map(k=>version[k]).join('.')!=='157.0.8103.15')throw Error('exact approved 157 pin required');
@@ -76,3 +78,6 @@ patch('chrome/browser/chrome_content_browser_client.cc', 'callback = blanc::Wrap
 patch('chrome/browser/chrome_content_browser_client.cc','blanc::AddNavigationResponseGate(registry);',
   '  CreateAndAddChromeThrottlesForNavigation(registry);',
   '  blanc::AddNavigationResponseGate(registry);\n  CreateAndAddChromeThrottlesForNavigation(registry);');
+
+writeResearchPolicy(src, options.includes('--research-hooks'));
+guardResearchHooks(src);

@@ -1,3 +1,5 @@
+#include "content/public/common/blanc_research_build.h"
+#if BLANC_RESEARCH_HOOKS
 // Browser-owned main-world payload obtained before the first page script.
 class BlancFrameLifetime : public content::RenderFrameObserver {
  public:
@@ -28,3 +30,7 @@ static bool BlancDocumentStart(content::RenderFrame* frame) {
   }
   return lifetime.alive;
 }
+
+#else
+static bool BlancDocumentStart(content::RenderFrame*) { return true; }
+#endif

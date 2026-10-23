@@ -2,6 +2,7 @@
 """Stage existing native output without rebuilding Chromium; never overwrite an app."""
 import argparse, hashlib, json, pathlib, plistlib, shutil, subprocess
 from notice import build_metadata, stamp_html
+from distribution import verify_distribution
 p=argparse.ArgumentParser()
 p.add_argument('--source',type=pathlib.Path,required=True)
 p.add_argument('--assets',type=pathlib.Path,required=True)
@@ -12,6 +13,7 @@ a=p.parse_args()
 if a.output.exists(): raise SystemExit('Output already exists; refusing overwrite')
 for f in [a.source/'Contents/MacOS/Blanc Prototype',a.assets/'index.html',a.assets/'pages/newtab.html',a.blocker/'engine.js']:
  if not f.is_file(): raise SystemExit(f'Missing input: {f}')
+verify_distribution(a.source)
 engine_hash=hashlib.sha256((a.blocker/'engine.js').read_bytes()).hexdigest()
 engine_manifest=json.loads((a.blocker/'manifest.json').read_text())
 if engine_hash != engine_manifest['bundleSha256']: raise SystemExit('Blocker manifest digest mismatch')

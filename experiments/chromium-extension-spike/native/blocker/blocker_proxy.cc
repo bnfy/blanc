@@ -1,4 +1,5 @@
 #include "chrome/services/blanc_blocker/blocker_proxy.h"
+#include "content/public/common/blanc_research_build.h"
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
 #include "content/public/browser/navigation_throttle.h"
 #include "content/public/browser/navigation_throttle_registry.h"
@@ -61,6 +62,7 @@ namespace {
 using DecisionCallback = base::OnceCallback<void(int)>;
 
 void Record(base::DictValue value) {
+#if BLANC_RESEARCH_HOOKS
   // Private events never reach diagnostic serialization or the disk writer.
   const auto* kind = value.FindString("profile_kind");
   if (value.FindBool("private").value_or(false) || (kind && *kind == "private")) return;
@@ -75,6 +77,9 @@ void Record(base::DictValue value) {
   (*writer)->PostTask(FROM_HERE, base::BindOnce([](base::FilePath path, std::string line) {
     base::AppendToFile(path, line);
   }, file, *json + "\n"));
+#else
+  static_cast<void>(value);
+#endif
 }
 class Engine {
  public:
@@ -352,6 +357,7 @@ struct Context {
   int factory_type;
   net::IsolationInfo isolation_info;
 };
+#if BLANC_RESEARCH_HOOKS
 // Offline component prototype only. Cancel while unready; never queue a request
 // which might already have traversed an empty extension webRequest engine.
 struct UboHold : public base::SupportsUserData::Data {
@@ -385,6 +391,7 @@ bool UboBackground(const Context& context, const network::ResourceRequest& reque
       frame->GetLastCommittedURL() == background && request.request_initiator &&
       *request.request_initiator == url::Origin::Create(background);
 }
+#endif  // BLANC_RESEARCH_HOOKS
 const char* FactoryKind(int value) {
   using F = content::ContentBrowserClient::URLLoaderFactoryType;
   switch (static_cast<F>(value)) {
@@ -419,6 +426,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));
   }
   void Begin(base::TimeTicks entered) {
+#if BLANC_RESEARCH_HOOKS
     if (UboProbe() && request_.url.host() == "blanc-ubo-control.invalid") {
       bool ok = false;
       if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start") && UboBackground(context_, request_) && request_.url.SchemeIs("http") && !request_.url.has_port()) {
@@ -530,6 +538,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       client_->OnReceiveResponse(std::move(head), std::move(consumer), std::nullopt);
       Complete(net::OK); return;
     }
+#endif
     Gate(base::BindOnce(&Request::Start, weak_.GetWeakPtr()), entered);
   }
   ~Request() override = default;
@@ -584,6 +593,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     if (!request_.url.SchemeIsHTTPOrHTTPS()) { std::move(allowed).Run(); return; }
     start_ = entered;
+#if BLANC_RESEARCH_HOOKS
     if (UboProbe() && !context_.private_profile) {
       // Exact background-document list acquisition must not deadlock the hold.
       auto& state = UboState(context_.browser_context.get());
@@ -594,6 +604,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       }
       std::move(allowed).Run(); return;
     }
+#endif
     timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));
     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
@@ -700,8 +711,10 @@ content::ContentBrowserClient::WebSocketFactory WrapWebSocketFactory(
   auto* process = content::RenderProcessHost::FromID(process_id);
   // Preserve the separate experimental uBO provider. Its regular-profile socket
   // coverage is not qualified here; private fallback remains Blanc Blocker.
+#if BLANC_RESEARCH_HOOKS
   if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
     return factory;
+#endif
   auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
   auto context = process ? process->GetBrowserContext()->GetWeakPtr()
                          : base::WeakPtr<content::BrowserContext>();
@@ -728,8 +741,10 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets"))
     return callback;
   auto* process = content::RenderProcessHost::FromID(process_id);
+#if BLANC_RESEARCH_HOOKS
   if (UboProbe() && process && !process->GetBrowserContext()->IsOffTheRecord())
     return callback;
+#endif
   auto* frame = content::RenderFrameHost::FromID(process_id, frame_routing_id);
   auto context = process ? process->GetBrowserContext()->GetWeakPtr()
                          : base::WeakPtr<content::BrowserContext>();
@@ -754,6 +769,7 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
       initiator_origin.Serialize(), std::move(callback));
 }
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
+#if BLANC_RESEARCH_HOOKS
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-ubo-document-start")) return;
   // A deferred binder would deadlock the synchronous document-start request.
   // Cancel speculative documents rather than bypassing protection or granting
@@ -761,20 +777,29 @@ void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
   // the ordinary document gate; prerender support remains unqualified.
   policy_map.SetNonAssociatedPolicy<mojom::DocumentStart>(
       content::MojoBinderNonAssociatedPolicy::kCancel);
+#endif
 }
 void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver) {
+#if BLANC_RESEARCH_HOOKS
   new DocumentScript(*frame, std::move(receiver));
+#endif
 }
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
   auto* command = base::CommandLine::ForCurrentProcess();
-  if (!command->HasSwitch("blanc-blocker-assets") ||
-      command->HasSwitch("blanc-ubo-component-probe")) return;
+  if (!command->HasSwitch("blanc-blocker-assets")) return;
+#if BLANC_RESEARCH_HOOKS
+  if (command->HasSwitch("blanc-ubo-component-probe")) return;
+#endif
   registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
 }
 void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,
                 network::URLLoaderFactoryBuilder& builder) {
-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets") && !UboProbe()) return;
+  if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")
+#if BLANC_RESEARCH_HOOKS
+      && !UboProbe()
+#endif
+      ) return;
   auto [receiver, remote] = builder.Append();
   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
       Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});

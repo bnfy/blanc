@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
   for(int i=1;i<argc;i++) {
     // Assets must always come from this sealed bundle. Explicit profile overrides
     // remain available for controlled isolation tests, like Chromium's CLI.
-    if (!strncmp(argv[i],"--blanc-prototype-assets",23) || !strncmp(argv[i],"--blanc-blocker-assets",21)) return 64;
+    // Research/diagnostic switches never enter the distributed native process.
+    if (!strncmp(argv[i],"--blanc-",8)) return 64;
     args[n++]=argv[i];
   }
   execv(browser,args); perror("Blanc Chromium Preview"); return 71;

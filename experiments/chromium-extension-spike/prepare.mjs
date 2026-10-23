@@ -1,3 +1,4 @@
+import { writeResearchPolicy, guardResearchHooks } from './research-build.mjs';
 import { addPreviewNotice } from './preview/notice.mjs';
 import { hardenMarkup } from './trusted-markup.mjs';
 import { prepareSessionRecovery } from './session-recovery.mjs';
@@ -21,7 +22,7 @@ const repo = path.resolve(here, '../..');
 const chromium = path.resolve(process.argv[2] ?? '');
 const expectedVersion = '157.0.8103.15';
 const assetsOnly = process.argv.slice(3).includes('--assets-only');
-if (process.argv.slice(3).some(arg => arg !== '--assets-only')) throw new Error('Unknown prepare option');
+if (process.argv.slice(3).some(arg => arg !== '--assets-only' && arg !== '--research-hooks')) throw new Error('Unknown prepare option');
 
 function fail(message) {
   console.error(`chromium spike: ${message}`);
@@ -786,3 +787,6 @@ edit('chrome/browser/ui/views/frame/multi_contents_view.cc', [
 
 preparePendingNavigation(edit);
 prepareSessionRecovery(edit);
+
+writeResearchPolicy(chromium, process.argv.includes('--research-hooks'));
+guardResearchHooks(chromium);
