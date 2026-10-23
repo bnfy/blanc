@@ -35,36 +35,10 @@ test('Mac ECS handoff requires a disposable native Mac host and the normal Resta
 });
 test('retired Intel draft intake jobs and permissions are removed',()=>{
  const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
- assert.doesNotMatch(workflow,/ecs_intel_updater|ecs_signed_intel|ecs-updater-intel:|ecs-signed-intel:|ecs-private-intel-562ec1c87/);
+ assert.doesNotMatch(workflow,/ecs_intel_updater|ecs_signed_intel|ecs-updater-intel:|ecs-signed-intel:|ecs-private-intel-562ec1c87|ecs_fresh_mac|ecs-fresh-mac:|ecs-private-mac-fd8654147|contents: write/);
 });
-test('fresh Mac intake binds both native architectures to private signed bytes',()=>{
- const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
- const start=workflow.indexOf('  ecs-fresh-mac:');
- assert(start>=0);
- const job=workflow.slice(start,workflow.indexOf('  installed-intel:',start));
- assert.match(job,/inputs.ecs_fresh_mac/);
- assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
- assert.match(job,/arch: \$\{\{ inputs.ecs_fresh_mac_intel_finish && fromJSON\('\["x64"\]'\) \|\| fromJSON\('\["arm64", "x64"\]'\) \}\}/);
- assert.match(job,/inputs.ecs_fresh_mac_audio_only && fromJSON\('\["audio"\]'\)/);
- assert.match(job,/inputs.ecs_fresh_mac_intel_finish && \(inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater", "lifecycle"\]'\)\)/);
- assert.match(job,/inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater"\]'\)/);
- assert.match(job,/runs-on: \$\{\{ matrix.arch == 'x64' && 'macos-15-intel' \|\| 'macos-15' \}\}/);
- assert.match(job,/fail-fast: false/);
- assert.match(job,/persist-credentials: false/);
- assert.match(job,/sysctl.proc_translated/);
- assert.match(job,/--json isDraft/);
- assert.match(job,/--json targetCommitish/);
- assert.match(job,/fd865414726d703ce07a50594deeb189665efe10/);
- const pins=[...job.matchAll(/(?:BLANC_EXPECTED_ASAR_SHA256|ECS_ARCHIVE_SHA|ECS_EXECUTABLE_SHA|ECS_UPDATE_SHA|ECS_UPDATE_ASAR):[^\n]+/g)];
- assert.equal(pins.length,5);
- for(const [line] of pins)assert.equal([...line.matchAll(/[a-f0-9]{64}/g)].length,2);
- assert.match(job,/node "\$\{WRAPPER\[@\]\}" test\/desktop\/ecs-production-drm-smoke.mjs/);
- assert.match(job,/node test\/desktop\/ecs-local-html-smoke.cjs/);
- assert.match(job,/node "\$\{WRAPPER\[@\]\}" test\/desktop\/ecs-production-updater-mac.mjs/);
- assert.match(job,/WRAPPER=\(test\/desktop\/support\/run-with-mac-audio-permission.mjs\)/);
- assert.match(job,/BLANC_ECS_DISPOSABLE_HOST: '1'/);
- assert.match(job,/BLANC_UPDATE_CHANNEL: ecs-qualification-disabled/);
- assert.doesNotMatch(job,/gh release (?:create|upload|edit)|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|continue-on-error|--no-sandbox/);
- const ordinary=workflow.slice(workflow.indexOf('  ordinary-package:'),workflow.indexOf('  intel-audio:'));
- assert.equal([...ordinary.matchAll(/!inputs.ecs_fresh_mac/g)].length,2);
+test('reusable Mac qualification tests survive the retired intake job',()=>{
+ for(const file of ['../desktop/ecs-production-updater-mac.mjs','../desktop/ecs-cdm-lifecycle-mac.mjs','../desktop/ecs-signed-audio-controls.mjs','../desktop/support/run-with-mac-audio-permission.mjs','../desktop/support/approve-mac-audio-dialog.applescript']){
+  assert(fs.existsSync(path.join(__dirname,file)),file);
+ }
 });

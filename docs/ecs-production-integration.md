@@ -25,7 +25,7 @@ Newest evidence supersedes the historical running/pending notes below:
   VMP and the CDM sandbox, but did not record the video's muted/volume fields.
   Final Intel acceptance now explicitly records and asserts both unmuted and
   nonzero volume, alongside the unchanged advancement/security checks.
-  Intel updater successor playback and CDM lifecycle are still separate gates.
+  Intel updater successor playback and CDM lifecycle passed later the same day.
   A temporary Intel-only finish mode runs acceptance, updater and lifecycle
   against the same pinned packages, avoiding redundant Apple Silicon jobs.
 
@@ -73,8 +73,27 @@ Newest evidence supersedes the historical running/pending notes below:
   LaunchServices on the third (Blanc's ordinary open-url path, as a link from
   another app), and then requires the successor to remain the only Blanc
   process before the unchanged unmuted-playback assertions. The Intel finish
-  mode can now run only its updater cell. Intel updater successor playback
-  therefore remains open until that cell passes with the recorded evidence.
+  mode can now run only its updater cell. **That cell passed in
+  `40029171910`** on the unchanged signed bytes: native Restart Now, exact
+  target payload, automatic successor (`successorOnly` true), codesign,
+  Apple tickets and Widevine installation, then VMP-verified protected
+  playback advancing from 0.183 to 3.128 seconds unmuted with no media
+  errors, and both profile and installation removed. The focus evidence
+  shows the successor frontmost with its one window during both keystroke
+  attempts; the first burst produced no request and the second did, so the
+  earlier failure was dropped synthesized input on the slow Intel runner,
+  not the permission handler, and the LaunchServices handoff was not needed.
+  The handler approved one microphone dialog from
+  `com.apple.UserNotificationCenter` during successor playback. With this,
+  every native Intel gate has passed.
+  With every consumer finished, the private transfer draft
+  `ecs-private-mac-fd8654147` (draft, target `fd865414726d703ce07a50594deeb189665efe10`,
+  four assets) was deleted; the signed apps and all four archives remain in
+  the isolated qualification directory. The temporary `ecs-fresh-mac` job,
+  its draft-read `contents: write` permission and its six dispatch inputs
+  are removed from `.github/workflows/ublock-origin.yml`; the desktop
+  updater, CDM lifecycle and audio tests, the confined permission wrapper
+  and its dialog script stay for the next candidate.
 
 - **Apple Silicon CDM lifecycle now passes** in the unchanged signed
   `fd8654147` candidate. First UI took 1743 ms. First install, old 4.10.3050.0,
@@ -181,8 +200,7 @@ source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
   640×480 camera frame and microphone signal (peak 0.008) through Blanc's
   actual permission flow. No recordings were saved; the harness closed the
   tracks/app and removed its temporary profiles. Production hashes are unchanged.
-- **Open:** Intel updater successor playback, native passkey/1Password
-  acceptance, final runtime/uBO source/license/security review and supported
+- **Open:** native passkey/1Password acceptance, final runtime/uBO source/license/security review and supported
   matrix, final PR checks, and the public pipeline/version/What's New gates.
   No waiver, merge, publication or production-runtime switch is implied.
 

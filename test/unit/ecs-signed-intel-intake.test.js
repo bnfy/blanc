@@ -3,24 +3,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-test('fresh signed ECS Intel intake is exact-byte pinned, native, branch-scoped and non-publishing', () => {
+test('temporary fresh signed Mac intake job, inputs and draft access are removed', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '../../.github/workflows/ublock-origin.yml'), 'utf8');
-  const job = workflow.slice(workflow.indexOf('  ecs-fresh-mac:'), workflow.indexOf('  installed-intel:'));
-  assert.match(job, /github\.event_name == 'workflow_dispatch'/);
-  assert.match(job, /refs\/heads\/codex\/ecs-production-integration/);
-  assert.match(job, /runs-on: \$\{\{ matrix.arch == 'x64' && 'macos-15-intel' \|\| 'macos-15' \}\}/);
-  assert.match(job, /persist-credentials: false/);
-  assert.match(job, /af08d30687db5d52bd6931f5b3372194d3e52f08a7adc87111066372fdfc257f/);
-  assert.match(job, /5545cf32167daf6cde48cf9ee69fa7aea1cc2245f514db065d0b69d264889378/);
-  assert.match(job, /0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb/);
-  assert.match(job, /\$ECS_EXECUTABLE_SHA/);
-  assert.match(job, /inputs.ecs_fresh_mac_intel_finish && fromJSON\('\["x64"\]'\)/);
-  assert.match(job, /inputs.ecs_fresh_mac_intel_finish && \(inputs.ecs_fresh_mac_updater_only && fromJSON\('\["updater"\]'\) \|\| fromJSON\('\["acceptance", "updater", "lifecycle"\]'\)\)/);
-  assert.match(job, /sysctl\.proc_translated/);
-  assert.match(job, /ci-intel-apple-tickets\.sh/);
-  assert.match(job, /ecs-production-drm-smoke\.mjs/);
-  assert.match(job, /inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64'/);
-  assert.doesNotMatch(job, /gh release (?:create|upload|edit)|EVS_CONFIG|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK|--no-sandbox/);
+  assert.doesNotMatch(workflow, /ecs_fresh_mac|ecs-fresh-mac:|ecs-private-mac-fd8654147|BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT|contents: write/);
+  assert.match(workflow, /^permissions:\n  contents: read$/m);
 });
 test('owner-approved Intel audio permission is confined to system dialogs and fixed tests',()=>{
   const wrapper=fs.readFileSync('test/desktop/support/run-with-mac-audio-permission.mjs','utf8');

@@ -36,30 +36,6 @@ on:
         description: "Compare official Electron, ECS and native output clocks on disposable Intel"
         type: boolean
         default: false
-      ecs_fresh_mac:
-        description: "Owner-authorized private fresh signed Mac acceptance and updater rehearsals"
-        type: boolean
-        default: false
-      ecs_fresh_mac_updater_only:
-        description: "Rerun only the two fresh signed Mac updater rehearsals"
-        type: boolean
-        default: false
-      ecs_fresh_mac_audio_only:
-        description: "Diagnose PCM, AAC, Web Audio and protected playback in the exact signed Mac apps"
-        type: boolean
-        default: false
-      ecs_fresh_mac_audio_permission:
-        description: "Owner-approved native Blanc microphone dialog on disposable Intel only"
-        type: boolean
-        default: false
-      ecs_fresh_mac_cdm_only:
-        description: "Qualify native Mac CDM install, vendor update and controlled cache rollback"
-        type: boolean
-        default: false
-      ecs_fresh_mac_intel_finish:
-        description: "Finish only native Intel acceptance, updater and CDM lifecycle on the same signed bytes (with updater-only: just the Intel updater)"
-        type: boolean
-        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -68,7 +44,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio && !inputs.ecs_fresh_mac) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -82,7 +58,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio && !inputs.ecs_fresh_mac) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     strategy:
       fail-fast: false
       matrix:
@@ -167,160 +143,6 @@ jobs:
         with:
           name: intel-audio-comparison-${{ github.run_id }}
           path: output/ecs-production/intel-audio-comparison.json
-          if-no-files-found: error
-          retention-days: 3
-
-  ecs-fresh-mac:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_fresh_mac && github.ref == 'refs/heads/codex/ecs-production-integration' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: ${{ inputs.ecs_fresh_mac_intel_finish && fromJSON('["x64"]') || fromJSON('["arm64", "x64"]') }}
-        mode: ${{ inputs.ecs_fresh_mac_intel_finish && (inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater", "lifecycle"]')) || inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
-    runs-on: ${{ matrix.arch == 'x64' && 'macos-15-intel' || 'macos-15' }}
-    timeout-minutes: 25
-    # Temporary owner-approved draft access, removed after all intake runs.
-    # GitHub requires this permission to download an unpublished draft.
-    permissions:
-      contents: write
-    env:
-      BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
-      BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT: ${{ inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64' && '1' || '0' }}
-      BLANC_EXPECTED_ASAR_SHA256: ${{ matrix.arch == 'x64' && '0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb' || '111ad8adb76ac4c45902bddedd6593410f58376e49d6605a9d8f4d51a0f0ee36' }}
-      ECS_CPU: ${{ matrix.arch == 'x64' && 'x86_64' || 'arm64' }}
-      ECS_BASELINE: ${{ matrix.arch == 'x64' && 'Blanc-1.42.1.dmg' || 'Blanc-1.42.1-arm64.dmg' }}
-      ECS_ARCHIVE_SHA: ${{ matrix.arch == 'x64' && 'af08d30687db5d52bd6931f5b3372194d3e52f08a7adc87111066372fdfc257f' || 'f8157115c45489dae30be684773b6ec9fd532e8fc6ad384478e1c8f8429b482b' }}
-      ECS_EXECUTABLE_SHA: ${{ matrix.arch == 'x64' && '5545cf32167daf6cde48cf9ee69fa7aea1cc2245f514db065d0b69d264889378' || '88fb243dfc277b035aeced478b2df125a9b0f2853fae7470abbfc53c56e66bb5' }}
-      ECS_UPDATE_SHA: ${{ matrix.arch == 'x64' && '4b26a99cbb8532b2be79a41049afc55d8fd2a9f46d8612b6fcb4c0c4395db2a3' || '6f1a1778cd5b15e6216365acd1d1dad81eee7e35385bc41d85083a317f6aeafa' }}
-      ECS_UPDATE_ASAR: ${{ matrix.arch == 'x64' && '1f832abb111f96c9d11671a8331a9d98fa70b697653d82467f14818bbc32ccc4' || '7900995e3f2e4feee2b70324ff699b4d61ca4c62dab46576a36eb06c7e957117' }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-      - run: npm ci --no-audit --no-fund
-      - name: Fetch exact fresh signed packages from the temporary draft
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          test "$(uname -m)" = "$ECS_CPU"
-          test "$(node -p 'process.arch')" = '${{ matrix.arch }}'
-          test "$(sysctl -in sysctl.proc_translated 2>/dev/null || echo 0)" != 1
-          test "$(gh release view ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true
-          test "$(gh release view ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)" = fd865414726d703ce07a50594deeb189665efe10
-          mkdir -p "$RUNNER_TEMP/ecs-fresh/download" "$RUNNER_TEMP/ecs-fresh/app" "$RUNNER_TEMP/ecs-fresh/target"
-          gh release download ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" \
-            -p 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' \
-            -p 'Blanc-ECS-${{ matrix.arch }}-updater.zip' -D "$RUNNER_TEMP/ecs-fresh/download"
-          cd "$RUNNER_TEMP/ecs-fresh/download"
-          echo "$ECS_ARCHIVE_SHA  Blanc-ECS-${{ matrix.arch }}-fd8654147.zip" | shasum -a 256 -c -
-          echo "$ECS_UPDATE_SHA  Blanc-ECS-${{ matrix.arch }}-updater.zip" | shasum -a 256 -c -
-          ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' "$RUNNER_TEMP/ecs-fresh/app"
-          ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-updater.zip' "$RUNNER_TEMP/ecs-fresh/target"
-          {
-            echo "BLANC_ECS_PACKAGE_ROOT=$RUNNER_TEMP/ecs-fresh/app/Blanc.app"
-            echo "BLANC_PACKAGED_EXECUTABLE=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/MacOS/Blanc"
-            echo "BLANC_PACKAGED_ASAR=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/Resources/app.asar"
-          } >> "$GITHUB_ENV"
-      - name: Verify exact application payload and Apple trust
-        run: |
-          echo "$BLANC_EXPECTED_ASAR_SHA256  $BLANC_ECS_PACKAGE_ROOT/Contents/Resources/app.asar" | shasum -a 256 -c -
-          echo "$ECS_EXECUTABLE_SHA  $BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
-          echo "$ECS_UPDATE_ASAR  $RUNNER_TEMP/ecs-fresh/target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
-          for KIND in app target; do
-            APP="$RUNNER_TEMP/ecs-fresh/$KIND/Blanc.app"
-            test "$(lipo -archs "$APP/Contents/MacOS/Blanc")" = "$ECS_CPU"
-            codesign --verify --deep --strict "$APP"
-            if [[ '${{ matrix.arch }}' = x64 ]]; then
-              bash scripts/ci-intel-apple-tickets.sh "$APP"
-            else
-              xcrun stapler validate "$APP"
-              spctl --assess --type execute --verbose=4 "$APP"
-            fi
-          done
-          node scripts/verify-ecs-production-package.cjs "$BLANC_ECS_PACKAGE_ROOT"
-          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-fresh/app",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
-      - name: Native signed-app compatibility and protected playback
-        if: matrix.mode == 'acceptance'
-        env:
-          BLANC_UBLOCK_EVIDENCE: ${{ github.workspace }}/output/ecs-production/ublock-fresh.json
-        run: |
-          node test/desktop/support/installed-mac-native-quit.mjs
-          node test/desktop/ecs-production-smoke.mjs
-          node test/desktop/ecs-local-html-smoke.cjs "$BLANC_ECS_PACKAGE_ROOT" output/ecs-production/local-html-fresh.json
-          node test/desktop/packaged-workspace-recovery-smoke.mjs
-          node test/desktop/packaged-media-smoke.mjs
-          WRAPPER=()
-          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
-            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
-          fi
-          node "${WRAPPER[@]}" test/desktop/ecs-production-drm-smoke.mjs
-      - name: Compare audio controls inside the unchanged signed full browser
-        if: matrix.mode == 'audio'
-        run: |
-          swiftc test/desktop/native-audio-clock.swift -o "$RUNNER_TEMP/native-audio-clock"
-          WRAPPER=()
-          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
-            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
-          fi
-          NATIVE_AUDIO_PROBE="$RUNNER_TEMP/native-audio-clock" node "${WRAPPER[@]}" test/desktop/ecs-signed-audio-controls.mjs
-      - name: Strict native Intel protected playback after OS permission exercise
-        if: matrix.mode == 'audio' && matrix.arch == 'x64' && inputs.ecs_fresh_mac_audio_permission
-        run: node test/desktop/support/run-with-mac-audio-permission.mjs test/desktop/ecs-production-drm-smoke.mjs
-      - name: Native Mac CDM installation update rollback and offline qualification
-        if: matrix.mode == 'lifecycle'
-        run: |
-          WRAPPER=()
-          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
-            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
-          fi
-          node "${WRAPPER[@]}" test/desktop/ecs-cdm-lifecycle-mac.mjs
-      - name: Fetch the public baseline without modifying any public asset
-        if: matrix.mode == 'updater'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/ecs-fresh/old" "$RUNNER_TEMP/ecs-fresh/mount"
-          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p "$ECS_BASELINE" -p SHA256SUMS -D "$RUNNER_TEMP/ecs-fresh/download"
-          cd "$RUNNER_TEMP/ecs-fresh/download"
-          awk -v name="$ECS_BASELINE" '$2 == name' SHA256SUMS > baseline.sha256
-          test "$(wc -l < baseline.sha256 | tr -d ' ')" = 1
-          shasum -a 256 -c baseline.sha256
-          hdiutil attach "$ECS_BASELINE" -mountpoint "$RUNNER_TEMP/ecs-fresh/mount" -readonly -nobrowse
-          ditto "$RUNNER_TEMP/ecs-fresh/mount/Blanc.app" "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
-          hdiutil detach "$RUNNER_TEMP/ecs-fresh/mount"
-          codesign --verify --deep --strict "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
-          if [[ '${{ matrix.arch }}' = x64 ]]; then
-            bash "$GITHUB_WORKSPACE/scripts/ci-intel-apple-tickets.sh" "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
-          else
-            xcrun stapler validate "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
-            spctl --assess --type execute --verbose=4 "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
-          fi
-      - name: Verify target package metadata then exercise actual Restart Now
-        if: matrix.mode == 'updater'
-        env:
-          BLANC_ECS_DISPOSABLE_HOST: '1'
-        run: |
-          npm version 1.43.0-staging.2 --no-git-tag-version
-          npm run compliance:build
-          node scripts/verify-ecs-production-package.cjs "$RUNNER_TEMP/ecs-fresh/target/Blanc.app"
-          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-fresh/target",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
-          WRAPPER=()
-          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
-            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
-          fi
-          node "${WRAPPER[@]}" test/desktop/ecs-production-updater-mac.mjs \
-            "$RUNNER_TEMP/ecs-fresh/old/Blanc.app" \
-            "$RUNNER_TEMP/ecs-fresh/download/Blanc-ECS-${{ matrix.arch }}-updater.zip" \
-            1.43.0-staging.2 "$ECS_UPDATE_ASAR" \
-            "$PWD/output/ecs-production/updater-fresh.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: fresh-mac-${{ matrix.arch }}-${{ matrix.mode }}-${{ github.run_id }}
-          path: output/ecs-production/*.json
           if-no-files-found: error
           retention-days: 3
 
