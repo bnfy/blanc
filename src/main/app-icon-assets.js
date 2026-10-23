@@ -44,10 +44,11 @@ module.exports = {
   },
   // Sunrise Spectrum and Sunrise Amber: the Sunrise redrawn as a sun and
   // heavy rounded rays with no water lines, each a colored glass layer over a
-  // white rim, on a pale tile that macOS darkens in Dark. Spectrum runs deep blue
-  // through red to light pink, Amber is bronze. Their layers live in
+  // white rim, on a tile that macOS darkens in Dark. Spectrum runs deep blue
+  // through red to light pink on the cool gray Arc's icon sits on in the
+  // Dock; Amber is bronze on a warm cream. Their layers live in
   // build/app-icons/colorways (npm run brand:build).
-  'sunrise-spectrum': colorwayDefinition('SunriseSpectrum', 'spectrum', '#FBFAFD', '#3A3942'),
+  'sunrise-spectrum': colorwayDefinition('SunriseSpectrum', 'spectrum', '#C3C9D2', '#3A3942'),
   'sunrise-amber': colorwayDefinition('SunriseAmber', 'amber', '#FFF7EC', '#2E261C'),
 };
 

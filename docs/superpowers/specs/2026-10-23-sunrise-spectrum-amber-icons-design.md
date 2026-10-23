@@ -4,7 +4,7 @@ Date: 2026-10-23. Status: approved; Mac only.
 
 ## Intent
 
-Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue through red to light pink) and **Sunrise Amber** (bronze). Both redraw the Sunrise's sun and rays, on the shipped artwork's proportions, in heavy rounded strokes and with no water lines. The sun and rays are colored Icon Composer glass over a white rim, on a pale tile. Users choose them in Settings → General → App icon, after Sunrise Gold.
+Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue through red to light pink) and **Sunrise Amber** (bronze). Both redraw the Sunrise's sun and rays, on the shipped artwork's proportions, in heavy rounded strokes and with no water lines. The sun and rays are colored Icon Composer glass over a white rim, on a light tile: Arc's cool gray for Spectrum, cream for Amber. Users choose them in Settings → General → App icon, after Sunrise Gold.
 
 ## What the owner decided
 
@@ -19,10 +19,11 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 - **A risen sun.** At those exact proportions the sun still read too small and short, because the glass rays are much heavier than the artwork's hairlines. Three options were compared (`sun-size-options.png`): a bigger half disc, a risen sun, and a risen sun with slimmer rays. The owner chose **B, the risen sun at the current ray weight**.
 - **Colors.** The owner asked for Spectrum to come closer to Arc's coloring, with more deep blue and purple, and for Amber to be darker and bronzer, since it read too light in Light mode. From three palettes each (`color-options.png`), the owner chose **P2, deeper indigo and purple**, and **Q2, bronze**.
 - **Arc's red middle.** With P2 the owner missed Arc's brighter red and pink. Two more rounds followed: more coral (`spectrum-pink-options.png`), then Arc's order of blue, red, then light pink (`spectrum-red-options.png`). The owner chose **S2**: blue left rays, Arc's deeper red at the center ray and the middle of the sun, fading to light pink on the right. Amber stays Q2.
+- **Arc's gray tile.** The owner then asked for Spectrum's tile to use the gray Arc's icon sits on in the Dock, in place of near-white. Amber keeps its cream, and Dark is unchanged.
 
 ## Goals
 
-1. On packaged macOS 26+, choosing either icon makes the Dock show its glass stack from the bundle's `Assets.car`. Light shows the pale tile; in Dark, macOS darkens the fill to near-black.
+1. On packaged macOS 26+, choosing either icon makes the Dock show its glass stack from the bundle's `Assets.car`. Light shows the light tile; in Dark, macOS darkens the fill to near-black.
 2. In unpackaged and pre-macOS 26 runs, the Dock shows a flat PNG for the current appearance, the same fallback the other icons have.
 3. Both appear in the existing Mac-only App icon picker, after Sunrise Gold.
 
@@ -57,7 +58,7 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 | front | `<prefix>-sun.png`, `<prefix>-rays.png` | **true** | `specular: true`, `lighting: "individual"`, shadow `layer-color` 0.5, translucency 0.15 |
 | back | `<prefix>-rim.png`, the white outline 14 px (before scaling) beyond every stroke | false | hidden in `tinted` (Clear and Tinted); shadow `neutral` 0.3 |
 
-- The fill is `automatic-gradient`: Spectrum `#FBFAFD`, Amber `#FFF7EC`, with dark specializations `#3A3942` and `#2E261C`.
+- The fill is `automatic-gradient`: Spectrum `#C3C9D2`, Amber `#FFF7EC`, with dark specializations `#3A3942` and `#2E261C`. Spectrum's gray renders about `#BEC3CD` mid-tile, matching the gray Arc's icon sits on in the owner's Dock (about `#BCC2CC`, sampled from a screenshot, since Arc's asset catalog carries no tile color).
 - Icon Composer renders both Dark tiles near-black (`#1F1F1E` to `#100F0F`), which the owner approved in `glass-proof.png`.
 - `createIconDocument` gains `extraLayers` (more layers in the front group) and `rimImageName` (the back group). Existing colorways are unchanged.
 

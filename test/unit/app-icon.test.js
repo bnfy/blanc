@@ -114,7 +114,7 @@ test('Sunrise Spectrum and Amber stack a glass sun and rays over a white rim', (
     assert.equal(definition.nativeName, nativeName);
     assert.equal(definition.darkFlatIcon, `${id}-dark`);
     const document = createIconDocument(definition);
-    // A pale fill that Icon Composer darkens itself in Dark, unlike Gold's tiles.
+    // A light fill that Icon Composer darkens itself in Dark, unlike Gold's tiles.
     assert.equal(document['fill-specializations'][0].appearance, 'dark');
     assert.equal(document.groups.length, 2);
     const [mark, rim] = document.groups;

@@ -419,7 +419,7 @@ From the desktop `DEFAULTS`:
   system appearance), `sunrise-dark`, `sunrise-gold` (soft gold in Light,
   polished gold in Dark), `sunrise-spectrum` (a glass sun and rays from deep blue
   through red to light pink) and `sunrise-amber` (the same in bronze); the last two sit
-  on a pale tile that darkens in Dark. Older ids, including the monogram `gold`, are
+  on a light tile (cool gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
   retired; any stale or hand-set retired id falls back to `sunrise`.
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
