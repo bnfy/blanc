@@ -135,13 +135,13 @@ async function clickStaticLink(page, selector) {
 
 async function run(appPath, output) {
   const app = await fs.realpath(appPath);
-  execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
-  const { full, executable } = candidatePaths(app);
-  const previewModule = extractFile(path.join(app, 'Contents/Resources/app.asar'), full ? 'src/main/ecs-local-html.cjs' : 'ecs-local-html.cjs').toString();
+  if (process.platform === 'darwin') execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
+  const { full, executable, fuseExecutable, asar, launchEnv } = candidatePaths(app);
+  const previewModule = extractFile(asar, full ? 'src/main/ecs-local-html.cjs' : 'ecs-local-html.cjs').toString();
   assert.match(previewModule, /javascript:\s*false/);
   assert.match(previewModule, /script-src 'none'/);
   assert.ok(!previewModule.includes('sandbox allow-scripts'));
-  const wire = await getCurrentFuseWire(executable);
+  const wire = await getCurrentFuseWire(fuseExecutable || executable);
   assert.equal(wire[7], 49, 'exercise the enabled file-privileges fuse');
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-html-smoke-'));
   let receipts = 0;
@@ -181,7 +181,7 @@ async function run(appPath, output) {
         const port = 55821;
         const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
         const child = spawn(executable, [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
-          env: { ...env, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html }, stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html }, stdio: ['ignore', 'pipe', 'pipe'],
         });
         const exited = new Promise(resolve => child.once('exit', resolve));
         let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });

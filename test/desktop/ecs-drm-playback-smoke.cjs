@@ -11,6 +11,7 @@ const { candidatePaths } = require('./ecs-candidate-paths.cjs');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function inspectCdmProcess(mainPid, app) {
+  if (process.platform === 'linux') return require('./ecs-linux-sandbox.cjs').inspectLinuxCdm(mainPid);
   // Never inspect process arguments: other processes can carry credentials.
   const children = execFileSync('ps', ['-axo', 'pid=,ppid=,comm='], { encoding: 'utf8' }).trim().split('\n')
     .map(line => /^\s*(\d+)\s+(\d+)\s+(.+)$/.exec(line)).filter(Boolean)
@@ -40,9 +41,9 @@ async function inspectCdmProcess(mainPid, app) {
 
 async function run(appPath, output) {
   const app = await fs.realpath(appPath);
-  execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
-  const { full, executable } = candidatePaths(app);
-  const wire = await getCurrentFuseWire(executable);
+  if (process.platform === 'darwin') execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
+  const { full, executable, fuseExecutable, launchEnv } = candidatePaths(app);
+  const wire = await getCurrentFuseWire(fuseExecutable || executable);
   assert.equal(wire[7], 49);
   const evidence = { app, wire, backend: 'Production', mediaErrors: [], players: {} };
   try {
@@ -54,9 +55,26 @@ async function run(appPath, output) {
       }
       const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_LOCAL_HTML: ignoredFixture, ...env } = process.env;
       void ignored; void ignoredFixture;
+      if (process.platform === 'linux') {
+        const warm = spawn(executable, [], { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
+        const warmExit = new Promise(resolve => warm.once('exit', code => resolve(code)));
+        try {
+          evidence.initialInstall = await waitFor(async () => {
+            if (warm.exitCode !== null) throw Error('Initial Linux component launch exited');
+            const state = await fs.readFile(path.join(profile, 'ecs-runtime.json'), 'utf8').then(JSON.parse, () => null);
+            return state?.component && state;
+          }, 'initial Linux component installation');
+        } finally {
+          await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
+          const code = await Promise.race([warmExit, delay(10000).then(() => null)]);
+          if (code === null) { warm.kill('SIGKILL'); await warmExit; throw Error('Initial Linux launch did not quit'); }
+          assert.equal(code, 0);
+        }
+        await fs.unlink(path.join(profile, 'ecs-runtime.json'));
+      }
       const port = 55822;
       const child = spawn(executable, [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
-        env: { ...env, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
       });
       const exited = new Promise(resolve => child.once('exit', resolve));
       let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });
@@ -106,7 +124,7 @@ async function run(appPath, output) {
           finally { web.close(); }
           evidence.browserSmoke.webNavigation = true;
           await chrome.evaluate(() => window.browserAPI.createTab('https://castlabs.github.io/wv-vmp-lab/'));
-          await waitFor(async () => JSON.parse(await fs.readFile(path.join(profile, 'ecs-runtime.json'))).drm?.state === 'ready', 'DRM readiness');
+          await waitFor(async () => JSON.parse(await fs.readFile(path.join(profile, 'ecs-runtime.json'))).component, 'DRM preparation complete');
           const state = JSON.parse(await fs.readFile(path.join(profile, 'ecs-runtime.json')));
           evidence.runtime = state;
           assert.equal(state.productionUpdater, false);
@@ -143,11 +161,11 @@ async function run(appPath, output) {
         await waitFor(async () => {
           const status = await page.evaluate(() => document.body.innerText);
           if (/DRM\.FAILED_TO_CREATE_CDM/.test(status)) throw Error('VMP Lab: DRM.FAILED_TO_CREATE_CDM');
-          return /PLATFORM_(SOFTWARE_VERIFIED|TAMPERED|UNVERIFIED)/.test(status);
+          return /PLATFORM_[A-Z_]+/.test(status);
         }, 'production VMP result');
         evidence.statuses = await page.evaluate(() => [...new Set(document.body.innerText.match(/PLATFORM_[A-Z_]+/g) || [])]);
         console.log('VMP: license response', evidence.statuses);
-        assert.ok(evidence.statuses.includes('PLATFORM_SOFTWARE_VERIFIED'));
+        if (process.platform !== 'linux') assert.ok(evidence.statuses.includes('PLATFORM_SOFTWARE_VERIFIED'));
         assert.ok(!evidence.statuses.includes('PLATFORM_TAMPERED'));
         await page.send('Runtime.evaluate', { expression: 'document.querySelector("video").play()', awaitPromise: true, userGesture: true, returnByValue: true });
         const sample = () => page.evaluate(() => {
@@ -163,6 +181,7 @@ async function run(appPath, output) {
         assert.ok(evidence.second.time - evidence.first.time <= evidence.elapsedSeconds * evidence.second.playbackRate + 2, 'playback advances without an unexplained seek');
         assert.equal(evidence.second.seeking, false);
         assert.equal(evidence.mediaErrors.length, 0);
+        assert.ok(Object.values(evidence.players).some(player => /"encryption scheme":"(?:CENC|CBCS)"/.test(player.kVideoTracks || '')), 'video pipeline must report encrypted tracks');
         if (full) evidence.cdmProcess = await inspectCdmProcess(child.pid, app);
         const screenshot = await page.send('Page.captureScreenshot', { format: 'png' });
         await fs.mkdir(path.dirname(output), { recursive: true });

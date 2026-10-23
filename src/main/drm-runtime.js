@@ -8,6 +8,8 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
   let state = 'idle';
   let pending = null;
   let exhausted = false;
+  let registrationStatus = null;
+  let completionStatus = null;
   const supported = Boolean(components && typeof components.status === 'function' &&
     typeof components.whenReady === 'function' && typeof components.WIDEVINE_CDM_ID === 'string' &&
     components.WIDEVINE_CDM_ID.length);
@@ -21,6 +23,7 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
     try {
       const status = components.status()?.[components.WIDEVINE_CDM_ID];
       return { ...snapshot(), updatesEnabled: components.updatesEnabled === true,
+        registrationStatus, completionStatus,
         componentStatus: typeof status?.status === 'string' ? status.status.slice(0, 80) : null,
         version: typeof status?.version === 'string' ? status.version.slice(0, 80) : null };
     } catch {
@@ -45,7 +48,10 @@ function createDrmRuntime({ app, components, platform = process.platform, timeou
             await app.whenReady();
             if (!components.updatesEnabled) return 'updates-disabled';
             const before = components.status()?.[components.WIDEVINE_CDM_ID];
-            await components.whenReady([components.WIDEVINE_CDM_ID]);
+            registrationStatus = typeof before?.status === 'string' ? before.status.slice(0, 80) : null;
+            const results = await components.whenReady([components.WIDEVINE_CDM_ID]);
+            const result = Array.isArray(results) ? results.find(item => item?.id === components.WIDEVINE_CDM_ID) : null;
+            completionStatus = typeof result?.status === 'string' ? result.status.slice(0, 80) : null;
             return platform === 'linux' && !before?.version ? 'restart-required' : 'ready';
           })(),
           new Promise(resolve => { timer = setTimeout(() => resolve('timed-out'), timeoutMs); }),
