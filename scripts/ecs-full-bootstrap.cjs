@@ -36,7 +36,7 @@ const updaterMode = require('./ecs-updater-policy.cjs').applyCandidateUpdaterPol
 });
 app.setAsDefaultProtocolClient = () => false;
 const stateFile = path.join(profile, 'ecs-runtime.json');
-const state = { candidate: true, electron: process.versions.electron, chrome: process.versions.chrome,
+const state = { candidate: true, pid: process.pid, version: metadata.version, electron: process.versions.electron, chrome: process.versions.chrome,
   profile, productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
 const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);
 const protectedSessions = new WeakSet();

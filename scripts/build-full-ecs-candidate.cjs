@@ -24,8 +24,10 @@ function patchMain(source) {
     "  Menu.setApplicationMenu(Menu.buildFromTemplate(require('./ecs-full-bootstrap.cjs').decorateMenu(template)));", 'candidate menu');
 }
 
-async function buildFull(runtimeDir, { qualification = false, nativeValidation = false, stagingUpdater = false, nativeSecurityPatch = null } = {}) {
+async function buildFull(runtimeDir, { qualification = false, nativeValidation = false, stagingUpdater = false, nativeSecurityPatch = null, candidateSequence = 1 } = {}) {
   const platform = process.platform, arch = process.arch;
+  if (!Number.isSafeInteger(candidateSequence) || candidateSequence < 1 || candidateSequence > 99
+    || (candidateSequence !== 1 && !nativeValidation)) throw Error('Invalid isolated candidate sequence');
   if (nativeSecurityPatch && (platform !== 'linux' || arch !== 'x64' || !nativeValidation || qualification)) {
     throw Error('Native CDM experiment is restricted to isolated Linux x64 validation');
   }
@@ -87,7 +89,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
       codeSigningAccountName: process.env.AZURE_CODE_SIGNING_ACCOUNT } };
   }
   const [major, minor] = base.version.split('.').map(Number);
-  const metadata = { ...base, version: `${major}.${minor + 1}.0-ecs.1`, name: 'blanc-ecs-full-candidate', productName,
+  const metadata = { ...base, version: `${major}.${minor + 1}.0-ecs.${candidateSequence}`, name: 'blanc-ecs-full-candidate', productName,
     main: 'src/main/ecs-full-bootstrap.cjs', blancEcsFullCandidate: true, blancEcsQualification: qualification,
     blancEcsStagingUpdater: stagingUpdater, blancEcsGraphicsPolicy: 'copy-video-frames', blancUblockBundled: false, build: config };
   await fs.writeFile(path.join(project, 'package.json'), JSON.stringify(metadata, null, 2));
@@ -174,7 +176,7 @@ async function buildFull(runtimeDir, { qualification = false, nativeValidation =
     const app = path.join(staging, 'dist', arch === 'arm64' ? 'mac-arm64' : 'mac', `${productName}.app`);
     execFileSync('codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'inherit' });
   }
-  if (process.env.BLANC_ECS_BUILD_RESULT) await fs.writeFile(process.env.BLANC_ECS_BUILD_RESULT, JSON.stringify({ staging, project, dist: path.join(staging, 'dist'), ...manifest }, null, 2));
+  if (process.env.BLANC_ECS_BUILD_RESULT) await fs.writeFile(process.env.BLANC_ECS_BUILD_RESULT, JSON.stringify({ staging, project, dist: path.join(staging, 'dist'), runtimeDir: runtime, candidateVersion: metadata.version, ...manifest }, null, 2));
   console.log(`Full candidate built: ${staging}/dist (${platform}/${arch})`);
   return staging;
 }

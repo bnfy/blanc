@@ -818,6 +818,25 @@ jobs:
         run: |
           APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm.json
+      - name: Linux fresh and cached offline startup
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-offline-startup-smoke.cjs "$APP_DIR" output/ecs-native/offline.json
+      - name: Build next isolated Linux updater candidate
+        id: ecs-next
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
+          sudo apt-get update
+          sudo apt-get install --yes xdotool
+      - name: Linux real staged Restart Now handoff
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json
       - name: Diagnose aligned native and session profile
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
         shell: bash

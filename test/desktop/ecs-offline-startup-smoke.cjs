@@ -9,7 +9,7 @@ const { connect, targets, waitFor } = require('./ecs-local-html-smoke.cjs');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function run(app, output) {
-  const { full, executable } = candidatePaths(app);
+  const { full, executable, launchEnv, profileEnv = () => ({}) } = candidatePaths(app);
   assert.equal(full, true);
   const report = { app, attempts: [] };
   try {
@@ -17,15 +17,16 @@ async function run(app, output) {
       report.profile = profile;
       await fs.writeFile(path.join(profile, 'ecs-candidate-profile.json'), '{"candidate":true}');
       await fs.writeFile(path.join(profile, 'settings.json'), JSON.stringify({ onboardingVersion: 1, firstRunCompletedAt: Date.now(), usagePing: false, searchSuggestions: false }));
-      for (const offline of [true, false]) {
-        const attempt = { offline }; report.attempts.push(attempt);
+      for (const phase of ['fresh-offline', 'online-install', 'cached-offline']) {
+        const offline = phase !== 'online-install';
+        const attempt = { phase, offline }; report.attempts.push(attempt);
         const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_LOCAL_HTML: ignoredHtml, ...env } = process.env;
         void ignored; void ignoredHtml;
         const port = 55826;
         const started = Date.now();
         const child = spawn(executable, [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1',
           ...(offline ? ['--host-resolver-rules=MAP * ~NOTFOUND'] : [])], {
-          env: { ...env, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
         });
         let logs = '', chrome;
         child.stdout.on('data', data => { logs = (logs + data).slice(-3000); });
@@ -49,11 +50,24 @@ async function run(app, output) {
           assert.equal(attempt.internalPageRendered, true);
           await waitFor(async () => {
             const state = await readState();
-            return state.drm && state.drm.state !== 'preparing' && state;
+            return state.component && state.drm && state.drm.state !== 'preparing' && state;
           }, 'component attempt complete', 40000);
           attempt.runtime = await readState();
-          if (offline) assert.ok(['installation-failed', 'timed-out'].includes(attempt.runtime.drm.state));
+          if (phase === 'fresh-offline') assert.ok(['installation-failed', 'timed-out'].includes(attempt.runtime.drm.state));
+          else if (phase === 'online-install') assert.equal(attempt.runtime.drm.state, process.platform === 'linux' ? 'restart-required' : 'ready');
           else assert.equal(attempt.runtime.drm.state, 'ready');
+          if (phase === 'online-install' && process.platform === 'linux') {
+            const cache = path.join(profile, 'WidevineCdm');
+            report.cdmCache = { entries: await fs.readdir(cache) };
+            for (const name of report.cdmCache.entries.filter(name => !/^\d/.test(name))) {
+              const stat = await fs.stat(path.join(cache, name));
+              if (stat.isFile() && stat.size < 4096) {
+                // The profile is synthetic and this directory contains only
+                // component metadata, never cookies or account credentials.
+                (report.cdmCache.hints ||= {})[name] = await fs.readFile(path.join(cache, name), 'utf8');
+              }
+            }
+          }
           assert.equal(attempt.runtime.browserReady, true);
         } finally {
           attempt.logs = logs;
