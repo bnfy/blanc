@@ -34,8 +34,9 @@
    "evidenceGroups": [
     "arcImport"
    ],
-   "verdict": "verified",
-   "note": "A greeting that frames the page's Arc import guide; it makes no capability claim of its own."
+   "verdict": "qualified",
+   "kind": "label",
+   "note": "A label: the page's greeting. It makes no capability claim; its evidence group only ties it to the Arc import guide it introduces."
   },
   {
    "id": "arc-welcome-02",

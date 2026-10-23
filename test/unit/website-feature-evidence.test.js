@@ -104,7 +104,12 @@ test('Arc page welcome resolves to public v1.42.1 evidence, with the app icon li
       const { date, decision, risk, releaseCheck } = claim.ownerWaiver ?? {};
       assert.ok(date && decision && risk && releaseCheck?.path && releaseCheck.contains, `${claim.id}: incomplete waiver`);
       assert.ok(read(releaseCheck.path).includes(releaseCheck.contains), `${claim.id}: the waived capability is not on main`);
-      const released = execFileSync('git', ['show', `${newestRelease}:${releaseCheck.path}`], { cwd: root, encoding: 'utf8' });
+      let released;
+      try {
+        released = execFileSync('git', ['show', `${newestRelease}:${releaseCheck.path}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch {
+        assert.fail(`${claim.id}: cannot read ${releaseCheck.path} at ${newestRelease}; check the waiver by hand. ${claim.ownerWaiver.convertWhen}`);
+      }
       assert.ok(!released.includes(releaseCheck.contains), `${claim.id}: ${newestRelease} ships it; record the claim against that release instead of the waiver`);
       for (const key of claim.evidenceGroups) {
         for (const file of record.evidenceGroups[key].evidence) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);

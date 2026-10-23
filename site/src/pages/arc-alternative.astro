@@ -21,13 +21,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h1 id="arc-title">Welcome, Arc users</h1>
       <p>Bring your Arc Spaces over, with folders as tab groups.</p>
       <div class="arc-actions">
-        <a class="arc-pill" href="/download" data-track="feature_cta_click" data-feature="arc-alternative" data-cta-position="hero">Download Blanc</a>
-        <a class="arc-pill arc-pill--glass" href="#arc-move-title">See how the import works</a>
+        <a class="cta arc-cta" href="/download" data-track="feature_cta_click" data-feature="arc-alternative" data-cta-position="hero">Download Blanc</a>
+        <a class="cta arc-cta arc-cta--glass" href="#arc-move-title">See how the import works</a>
       </div>
       <p class="arc-icon-note">On a Mac, choose Sunrise Spectrum, an app icon in Arc’s colors, in Settings → General → App icon.</p>
     </div>
     <figure class="arc-window">
-      <img src="/feature-captures/workspaces-v1.33.0.webp" width="1440" height="900" alt="Blanc’s Spaces menu, open from the Island, listing the spaces Work, Home, Painting class and Lisbon trip" />
+      <img src="/feature-captures/workspaces-v1.36.0.webp" width="1440" height="900" alt="Blanc’s Spaces menu, open from the Island, listing the spaces Work, Home, Painting class and Lisbon trip" />
     </figure>
   </section>
 
@@ -42,7 +42,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
     <div class="arc-story-stage" aria-hidden="true">
       <div class="arc-stage-frame">
-        <img src="/feature-captures/tab-group-colors-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
+        <img src="/feature-captures/workspaces-edit-v1.36.0.webp" width="1440" height="900" alt="" loading="lazy" />
       </div>
     </div>
   </section>
@@ -71,7 +71,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="arc-bento">
       <article class="arc-tile arc-tile--wide">
         <div class="arc-tile-copy"><h3>Sets of tabs for different work.</h3><p><a href="/features/tab-groups">Named tab groups</a> keep related tabs together and fold away when you want a quieter view. <a href="/features/workspaces">Blanc Spaces</a>, free for everyone, save a window’s tabs and groups so you can switch between sets in place.</p></div>
-        <img src="/feature-captures/workspaces-edit-v1.36.0.webp" width="1440" height="900" alt="" loading="lazy" />
+        <img src="/feature-captures/tab-group-colors-v1.38.0.webp" width="1440" height="900" alt="" loading="lazy" />
       </article>
       <article class="arc-tile arc-tile--tall">
         <div class="arc-tile-copy"><h3>Two pages at once.</h3><p><a href="/features/glance">Glance</a> opens another tab as a card over the page you are using. Move or resize it, open it as a tab, or keep the two side by side in Split View.</p></div>
@@ -91,7 +91,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <section class="arc-close" aria-labelledby="arc-close-title">
     <h2 id="arc-close-title">Ready to bring your Arc Spaces into Blanc?</h2>
-    <a class="arc-pill" href="/download" data-track="feature_cta_click" data-feature="arc-alternative" data-cta-position="feature-close">Download Blanc</a>
+    <a class="cta arc-cta" href="/download" data-track="feature_cta_click" data-feature="arc-alternative" data-cta-position="feature-close">Download Blanc</a>
   </section>
 </main>
 </BaseLayout>
@@ -109,7 +109,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     --arc-paper: #FCFCFD;
     --arc-ink-dim: #575C69;
     --arc-line: #E3E6EE;
-    background: var(--arc-paper);
+    /* The site's own background token, so everything painted with it (the
+       body, the newsletter card, scroll-edge fades) turns with the page. */
+    --site-bg: var(--arc-paper);
+    --site-bg-rgb: 252, 252, 253;
   }
   .arc-page { overflow-x: clip; }
   .arc-page h1, .arc-page h2 { font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; text-wrap: balance; }
@@ -119,9 +122,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .arc-hero {
     position: relative; isolation: isolate; padding: 0 24px; color: #fff; text-align: center;
     background:
-      radial-gradient(60% 50% at 18% 12%, rgba(255, 214, 196, 0.55), transparent 70%),
+      radial-gradient(60% 50% at 18% 12%, rgba(255, 140, 150, 0.35), transparent 70%),
       radial-gradient(50% 60% at 88% 30%, rgba(122, 53, 208, 0.55), transparent 70%),
-      linear-gradient(165deg, #FF8A7A 0%, var(--arc-coral) 22%, var(--arc-red) 42%, var(--arc-violet) 70%, var(--arc-blue) 100%);
+      linear-gradient(165deg, #C02A48 0%, #B8284A 30%, #9A2FA8 60%, #6A2FC4 78%, var(--arc-blue) 100%);
   }
   .arc-hero::before {
     content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.22; mix-blend-mode: soft-light; pointer-events: none;
@@ -133,25 +136,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     background: var(--arc-paper); border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   }
   .arc-hero-inner { max-width: 1100px; margin: 0 auto; padding-top: 28px; }
-  .arc-breadcrumb { justify-content: center; padding-top: 0; color: rgba(255, 255, 255, 0.78); }
+  .arc-breadcrumb { justify-content: center; padding-top: 0; color: #fff; }
   .arc-icon { display: block; width: 96px; height: auto; margin: 44px auto 0; filter: drop-shadow(0 18px 28px rgba(26, 0, 127, 0.35)); }
   .arc-hero h1 { margin: 22px 0 0; font-size: clamp(56px, 11vw, 168px); line-height: 0.92; text-shadow: 0 2px 30px rgba(26, 0, 127, 0.18); }
-  .arc-hero-inner > p:not(.arc-icon-note) { max-width: 30ch; margin: 22px auto 0; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.45; color: rgba(255, 255, 255, 0.92); }
+  .arc-hero-inner > p:not(.arc-icon-note) { max-width: 30ch; margin: 22px auto 0; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.45; color: #fff; }
   .arc-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 30px; }
-  .arc-pill {
-    display: inline-flex; align-items: center; height: 50px; padding: 0 28px; border-radius: 999px; background: #111; color: #fff;
-    font-family: var(--font-mono); font-size: 14px; text-decoration: none; box-shadow: 0 12px 30px rgba(17, 17, 17, 0.25);
-    transition: transform 0.1s ease-out, box-shadow 0.2s ease;
-  }
-  .arc-pill:hover { box-shadow: 0 16px 36px rgba(17, 17, 17, 0.32); }
-  .arc-pill--glass {
-    background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.45); box-shadow: none;
+  /* The site's .cta, made a larger pill for this page. */
+  .arc-cta { height: 50px; padding: 0 28px; border-radius: 999px; box-shadow: 0 12px 30px rgba(17, 17, 17, 0.25); transition: transform 0.1s ease-out, box-shadow 0.2s ease, opacity 0.15s ease; }
+  .arc-cta:hover { opacity: 1; box-shadow: 0 16px 36px rgba(17, 17, 17, 0.32); }
+  .arc-cta--glass {
+    background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.45); color: #fff; box-shadow: none;
     backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
   }
-  .arc-pill--glass:hover { background: rgba(255, 255, 255, 0.26); box-shadow: none; }
+  .arc-cta--glass:hover { background: rgba(255, 255, 255, 0.26); box-shadow: none; }
   /* Feedback on press, not release. */
-  .arc-pill:active { transform: scale(0.97); }
-  .arc-hero-inner > .arc-icon-note { max-width: 46ch; margin: 22px auto 0; color: rgba(255, 255, 255, 0.82); font-size: 13px; line-height: 1.6; }
+  .arc-cta:active { transform: scale(0.97); }
+  .arc-hero-inner > .arc-icon-note { max-width: 46ch; margin: 22px auto 0; color: #fff; font-size: 13px; line-height: 1.6; }
   /* A real Blanc window rising out of the color, over the horizon. */
   .arc-window { position: relative; max-width: 1100px; margin: 56px auto 0; padding: 0; }
   .arc-window img, .arc-stage-frame img, .arc-tile img {
@@ -183,8 +183,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .arc-transfer tbody th, .arc-transfer tbody td { padding: 20px 0; border-top: 1px solid var(--arc-line); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
   .arc-transfer tbody th { padding-right: 24px; color: var(--arc-ink-dim); font-weight: 400; }
   .arc-transfer tbody td { font-family: var(--site-font-display); font-size: 21px; line-height: 1.3; }
-  .arc-transfer tbody tr:not(.arc-stays) td { background: linear-gradient(90deg, var(--arc-red), var(--arc-violet) 55%, var(--arc-blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .arc-transfer .arc-stays td { color: #9AA0AD; }
+  .arc-transfer tbody tr:not(.arc-stays) td { background: linear-gradient(90deg, #C02A48, var(--arc-violet) 55%, var(--arc-blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .arc-transfer .arc-stays td { color: #5E6472; }
   .arc-limits { grid-column: 2; margin: 8px 0 0; padding: 20px 22px; border-radius: 16px; background: #F4F5F9; color: var(--arc-ink-dim); font-size: 14px; line-height: 1.65; }
 
   /* Features: tiles where the window shows what the words say. */
@@ -205,14 +205,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   /* Close: the color field again, curving down into the footer. */
   .arc-close {
     position: relative; isolation: isolate; padding: clamp(150px, 18vw, 260px) 24px 140px; text-align: center; color: #fff;
-    background: linear-gradient(15deg, var(--arc-blue), var(--arc-violet) 45%, var(--arc-red) 80%, #FF8A7A);
+    background: linear-gradient(15deg, var(--arc-blue), var(--arc-violet) 45%, #B8284A 80%, #C02A48);
   }
   .arc-close::before {
     content: ""; position: absolute; left: -10%; right: -10%; top: -1px; height: 14vw; max-height: 200px; z-index: -1;
     background: var(--arc-paper); border-radius: 0 0 50% 50% / 0 0 100% 100%;
   }
   .arc-close h2 { max-width: 14ch; margin: 0 auto; font-size: clamp(40px, 6vw, 84px); line-height: 0.98; }
-  .arc-close .arc-pill { margin-top: 36px; background: #fff; color: #111; }
+  .arc-close .arc-cta { margin-top: 36px; background: #fff; color: #111; }
 
   /* Arrival plays once and ends on the static layout; reduced motion gets
      the finished page. Only transform and opacity move. */
@@ -230,7 +230,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   @keyframes arc-window { from { opacity: 0; transform: translateY(70px) scale(0.97); } to { opacity: 1; transform: none; } }
 
   @media (prefers-reduced-transparency: reduce) {
-    .arc-pill--glass { background: rgba(17, 17, 17, 0.55); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .arc-cta--glass { background: rgba(17, 17, 17, 0.55); backdrop-filter: none; -webkit-backdrop-filter: none; }
   }
 
   @media (max-width: 860px) {
