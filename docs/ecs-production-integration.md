@@ -11,6 +11,24 @@ that source update and do not by themselves qualify the merged result.
 
 Newest evidence supersedes the historical running/pending notes below:
 
+- **Intel audio now passes after the normal OS permission flow.** In
+  `40020527609`, the narrowly scoped handler approved the Blanc microphone
+  dialog from `com.apple.UserNotificationCenter`. On the unchanged signed
+  Intel app, all ten PCM/AAC/Web Audio controls advanced, explicitly unmuted
+  protected playback advanced 4.479 seconds before and 4.969 seconds after the
+  controls, and both native output-clock trials worked before, during and
+  after Blanc at the runner's 44.1 kHz virtual output. VMP was 2, media errors
+  were empty and profiles were removed; two aborted storage requests remain
+  recorded. This resolves the reproduced runner privacy-check stall without
+  changing application code, drivers, acceleration or entitlements.
+  The following original VMP Lab smoke advanced 5.007 seconds with verified
+  VMP and the CDM sandbox, but did not record the video's muted/volume fields.
+  Final Intel acceptance now explicitly records and asserts both unmuted and
+  nonzero volume, alongside the unchanged advancement/security checks.
+  Intel updater successor playback and CDM lifecycle are still separate gates.
+  A temporary Intel-only finish mode runs acceptance, updater and lifecycle
+  against the same pinned packages, avoiding redundant Apple Silicon jobs.
+
 - **Runtime security freshness remains an explicit blocker.** The signed
   `fd8654147` Apple Silicon framework contains Node `24.22.0` version
   identifiers. Node's October 21 security release is `24.22.1`, including
@@ -114,7 +132,9 @@ Newest evidence supersedes the historical running/pending notes below:
   for that retry and the follow-up audio diagnosis. No trust check is waived.
 
 These diagnostic changes do not alter application code, signed packages,
-acceleration, entitlements, TCC, devices or drivers. A new Windows signed run
+acceleration, entitlements, devices or drivers. They never edit TCC databases;
+the owner-approved permission grant uses the normal OS dialog on a disposable
+runner. A new Windows signed run
 still requires fresh owner authorization; no approval is inherited.
 
 This summary supersedes historical pending-status notes below. Application

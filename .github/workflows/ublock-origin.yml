@@ -56,6 +56,10 @@ on:
         description: "Qualify native Mac CDM install, vendor update and controlled cache rollback"
         type: boolean
         default: false
+      ecs_fresh_mac_intel_finish:
+        description: "Finish only native Intel acceptance, updater and CDM lifecycle on the same signed bytes"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -171,28 +175,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [arm64, x64]
-        mode: ${{ inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
-        include:
-          - arch: arm64
-            os: macos-15
-            cpu: arm64
-            baseline: Blanc-1.42.1-arm64.dmg
-            archive_sha: f8157115c45489dae30be684773b6ec9fd532e8fc6ad384478e1c8f8429b482b
-            app_sha: 111ad8adb76ac4c45902bddedd6593410f58376e49d6605a9d8f4d51a0f0ee36
-            executable_sha: 88fb243dfc277b035aeced478b2df125a9b0f2853fae7470abbfc53c56e66bb5
-            update_sha: 6f1a1778cd5b15e6216365acd1d1dad81eee7e35385bc41d85083a317f6aeafa
-            update_asar: 7900995e3f2e4feee2b70324ff699b4d61ca4c62dab46576a36eb06c7e957117
-          - arch: x64
-            os: macos-15-intel
-            cpu: x86_64
-            baseline: Blanc-1.42.1.dmg
-            archive_sha: af08d30687db5d52bd6931f5b3372194d3e52f08a7adc87111066372fdfc257f
-            app_sha: 0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb
-            executable_sha: 5545cf32167daf6cde48cf9ee69fa7aea1cc2245f514db065d0b69d264889378
-            update_sha: 4b26a99cbb8532b2be79a41049afc55d8fd2a9f46d8612b6fcb4c0c4395db2a3
-            update_asar: 1f832abb111f96c9d11671a8331a9d98fa70b697653d82467f14818bbc32ccc4
-    runs-on: ${{ matrix.os }}
+        arch: ${{ inputs.ecs_fresh_mac_intel_finish && fromJSON('["x64"]') || fromJSON('["arm64", "x64"]') }}
+        mode: ${{ inputs.ecs_fresh_mac_intel_finish && fromJSON('["acceptance", "updater", "lifecycle"]') || inputs.ecs_fresh_mac_audio_only && fromJSON('["audio"]') || inputs.ecs_fresh_mac_cdm_only && fromJSON('["lifecycle"]') || inputs.ecs_fresh_mac_updater_only && fromJSON('["updater"]') || fromJSON('["acceptance", "updater"]') }}
+    runs-on: ${{ matrix.arch == 'x64' && 'macos-15-intel' || 'macos-15' }}
     timeout-minutes: 25
     # Temporary owner-approved draft access, removed after all intake runs.
     # GitHub requires this permission to download an unpublished draft.
@@ -201,7 +186,13 @@ jobs:
     env:
       BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
       BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT: ${{ inputs.ecs_fresh_mac_audio_permission && matrix.arch == 'x64' && '1' || '0' }}
-      BLANC_EXPECTED_ASAR_SHA256: ${{ matrix.app_sha }}
+      BLANC_EXPECTED_ASAR_SHA256: ${{ matrix.arch == 'x64' && '0a0d7ed5041ccc1134035e36887ab8077cabafefe76ad5ce3306d18c248c01cb' || '111ad8adb76ac4c45902bddedd6593410f58376e49d6605a9d8f4d51a0f0ee36' }}
+      ECS_CPU: ${{ matrix.arch == 'x64' && 'x86_64' || 'arm64' }}
+      ECS_BASELINE: ${{ matrix.arch == 'x64' && 'Blanc-1.42.1.dmg' || 'Blanc-1.42.1-arm64.dmg' }}
+      ECS_ARCHIVE_SHA: ${{ matrix.arch == 'x64' && 'af08d30687db5d52bd6931f5b3372194d3e52f08a7adc87111066372fdfc257f' || 'f8157115c45489dae30be684773b6ec9fd532e8fc6ad384478e1c8f8429b482b' }}
+      ECS_EXECUTABLE_SHA: ${{ matrix.arch == 'x64' && '5545cf32167daf6cde48cf9ee69fa7aea1cc2245f514db065d0b69d264889378' || '88fb243dfc277b035aeced478b2df125a9b0f2853fae7470abbfc53c56e66bb5' }}
+      ECS_UPDATE_SHA: ${{ matrix.arch == 'x64' && '4b26a99cbb8532b2be79a41049afc55d8fd2a9f46d8612b6fcb4c0c4395db2a3' || '6f1a1778cd5b15e6216365acd1d1dad81eee7e35385bc41d85083a317f6aeafa' }}
+      ECS_UPDATE_ASAR: ${{ matrix.arch == 'x64' && '1f832abb111f96c9d11671a8331a9d98fa70b697653d82467f14818bbc32ccc4' || '7900995e3f2e4feee2b70324ff699b4d61ca4c62dab46576a36eb06c7e957117' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -214,7 +205,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          test "$(uname -m)" = '${{ matrix.cpu }}'
+          test "$(uname -m)" = "$ECS_CPU"
           test "$(node -p 'process.arch')" = '${{ matrix.arch }}'
           test "$(sysctl -in sysctl.proc_translated 2>/dev/null || echo 0)" != 1
           test "$(gh release view ecs-private-mac-fd8654147 -R "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true
@@ -224,21 +215,23 @@ jobs:
             -p 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' \
             -p 'Blanc-ECS-${{ matrix.arch }}-updater.zip' -D "$RUNNER_TEMP/ecs-fresh/download"
           cd "$RUNNER_TEMP/ecs-fresh/download"
-          echo '${{ matrix.archive_sha }}  Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' | shasum -a 256 -c -
-          echo '${{ matrix.update_sha }}  Blanc-ECS-${{ matrix.arch }}-updater.zip' | shasum -a 256 -c -
+          echo "$ECS_ARCHIVE_SHA  Blanc-ECS-${{ matrix.arch }}-fd8654147.zip" | shasum -a 256 -c -
+          echo "$ECS_UPDATE_SHA  Blanc-ECS-${{ matrix.arch }}-updater.zip" | shasum -a 256 -c -
           ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-fd8654147.zip' "$RUNNER_TEMP/ecs-fresh/app"
           ditto -x -k 'Blanc-ECS-${{ matrix.arch }}-updater.zip' "$RUNNER_TEMP/ecs-fresh/target"
-          echo "BLANC_ECS_PACKAGE_ROOT=$RUNNER_TEMP/ecs-fresh/app/Blanc.app" >> "$GITHUB_ENV"
-          echo "BLANC_PACKAGED_EXECUTABLE=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/MacOS/Blanc" >> "$GITHUB_ENV"
-          echo "BLANC_PACKAGED_ASAR=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/Resources/app.asar" >> "$GITHUB_ENV"
+          {
+            echo "BLANC_ECS_PACKAGE_ROOT=$RUNNER_TEMP/ecs-fresh/app/Blanc.app"
+            echo "BLANC_PACKAGED_EXECUTABLE=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/MacOS/Blanc"
+            echo "BLANC_PACKAGED_ASAR=$RUNNER_TEMP/ecs-fresh/app/Blanc.app/Contents/Resources/app.asar"
+          } >> "$GITHUB_ENV"
       - name: Verify exact application payload and Apple trust
         run: |
-          echo '${{ matrix.app_sha }}  '"$BLANC_ECS_PACKAGE_ROOT/Contents/Resources/app.asar" | shasum -a 256 -c -
-          echo '${{ matrix.executable_sha }}  '"$BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
-          echo '${{ matrix.update_asar }}  '"$RUNNER_TEMP/ecs-fresh/target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
+          echo "$BLANC_EXPECTED_ASAR_SHA256  $BLANC_ECS_PACKAGE_ROOT/Contents/Resources/app.asar" | shasum -a 256 -c -
+          echo "$ECS_EXECUTABLE_SHA  $BLANC_PACKAGED_EXECUTABLE" | shasum -a 256 -c -
+          echo "$ECS_UPDATE_ASAR  $RUNNER_TEMP/ecs-fresh/target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
           for KIND in app target; do
             APP="$RUNNER_TEMP/ecs-fresh/$KIND/Blanc.app"
-            test "$(lipo -archs "$APP/Contents/MacOS/Blanc")" = '${{ matrix.cpu }}'
+            test "$(lipo -archs "$APP/Contents/MacOS/Blanc")" = "$ECS_CPU"
             codesign --verify --deep --strict "$APP"
             if [[ '${{ matrix.arch }}' = x64 ]]; then
               bash scripts/ci-intel-apple-tickets.sh "$APP"
@@ -259,7 +252,11 @@ jobs:
           node test/desktop/ecs-local-html-smoke.cjs "$BLANC_ECS_PACKAGE_ROOT" output/ecs-production/local-html-fresh.json
           node test/desktop/packaged-workspace-recovery-smoke.mjs
           node test/desktop/packaged-media-smoke.mjs
-          node test/desktop/ecs-production-drm-smoke.mjs
+          WRAPPER=()
+          if [[ "$BLANC_ECS_ALLOW_NATIVE_AUDIO_PROMPT" == 1 ]]; then
+            WRAPPER=(test/desktop/support/run-with-mac-audio-permission.mjs)
+          fi
+          node "${WRAPPER[@]}" test/desktop/ecs-production-drm-smoke.mjs
       - name: Compare audio controls inside the unchanged signed full browser
         if: matrix.mode == 'audio'
         run: |
@@ -286,12 +283,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/ecs-fresh/old" "$RUNNER_TEMP/ecs-fresh/mount"
-          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p '${{ matrix.baseline }}' -p SHA256SUMS -D "$RUNNER_TEMP/ecs-fresh/download"
+          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p "$ECS_BASELINE" -p SHA256SUMS -D "$RUNNER_TEMP/ecs-fresh/download"
           cd "$RUNNER_TEMP/ecs-fresh/download"
-          awk '$2 == "${{ matrix.baseline }}"' SHA256SUMS > baseline.sha256
+          awk -v name="$ECS_BASELINE" '$2 == name' SHA256SUMS > baseline.sha256
           test "$(wc -l < baseline.sha256 | tr -d ' ')" = 1
           shasum -a 256 -c baseline.sha256
-          hdiutil attach '${{ matrix.baseline }}' -mountpoint "$RUNNER_TEMP/ecs-fresh/mount" -readonly -nobrowse
+          hdiutil attach "$ECS_BASELINE" -mountpoint "$RUNNER_TEMP/ecs-fresh/mount" -readonly -nobrowse
           ditto "$RUNNER_TEMP/ecs-fresh/mount/Blanc.app" "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
           hdiutil detach "$RUNNER_TEMP/ecs-fresh/mount"
           codesign --verify --deep --strict "$RUNNER_TEMP/ecs-fresh/old/Blanc.app"
@@ -317,7 +314,7 @@ jobs:
           node "${WRAPPER[@]}" test/desktop/ecs-production-updater-mac.mjs \
             "$RUNNER_TEMP/ecs-fresh/old/Blanc.app" \
             "$RUNNER_TEMP/ecs-fresh/download/Blanc-ECS-${{ matrix.arch }}-updater.zip" \
-            1.43.0-staging.2 '${{ matrix.update_asar }}' \
+            1.43.0-staging.2 "$ECS_UPDATE_ASAR" \
             "$PWD/output/ecs-production/updater-fresh.json"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()

@@ -24,6 +24,6 @@ test('Mac lifecycle keeps exact mapped CDM, VMP, unmuted and sandbox gates',()=>
   assert.doesNotMatch(source,/--no-sandbox|disable-component-update|adblockEnabled:false/);
   const workflow=fs.readFileSync('.github/workflows/ublock-origin.yml','utf8');
   assert.match(workflow,/inputs.ecs_fresh_mac_cdm_only && fromJSON\('\["lifecycle"\]'\)/);
-  assert.match(workflow,/BLANC_EXPECTED_ASAR_SHA256: \$\{\{ matrix.app_sha \}\}/);
+  assert.match(workflow,/BLANC_EXPECTED_ASAR_SHA256: \$\{\{ matrix.arch == 'x64'/);
   assert.match(workflow,/node "\$\{WRAPPER\[@\]\}" test\/desktop\/ecs-cdm-lifecycle-mac.mjs/);
 });

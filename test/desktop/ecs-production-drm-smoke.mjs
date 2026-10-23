@@ -92,6 +92,7 @@ try {
   await page.locator('video').evaluate(video => video.play());
   const sample = () => page.locator('video').evaluate(video => ({ time: video.currentTime, paused: video.paused,
     error: video.error?.code ?? null, mediaKeys: !!video.mediaKeys, seeking: video.seeking,
+    muted: video.muted, volume: video.volume,
     readyState: video.readyState, bufferedAhead: video.buffered.length ? video.buffered.end(video.buffered.length - 1) - video.currentTime : 0,
     decodedFrames: video.getVideoPlaybackQuality().totalVideoFrames, visibility: document.visibilityState }));
   const warmingAt = Date.now();
@@ -105,6 +106,9 @@ try {
   report.first = await sample();
   await new Promise(resolve => setTimeout(resolve, 5000));
   report.second = await sample();
+  assert.equal(report.first.muted, false);
+  assert.equal(report.second.muted, false);
+  assert(report.first.volume > 0 && report.second.volume > 0);
   assert.equal(report.second.paused, false);
   assert.equal(report.second.error, null);
   assert.equal(report.second.mediaKeys, true);
