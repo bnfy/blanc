@@ -74,6 +74,8 @@ test('Windows updater requires native Restart Now and exact automatic successor'
  assert.match(source,/automatic successor/);assert.match(source,/playback.status,2/);assert.match(source,/playback.muted,false/);
  assert.match(source,/report.exactTargetInstalled=true/);assert.match(source,/report.oldBrowserExited=true/);
  assert.match(source,/report.processEvidence=processEvidence\(\)/);
+ assert.match(source,/const root=await fs.realpath\(temporaryRoot\)/);
+ assert(source.indexOf('fs.realpath(temporaryRoot)')<source.indexOf("const install=path.join(root,'app')"));
  assert.match(source,/processPath:\$process.Path|processPath=\$process.Path/);
  assert.match(source,/profileRemoved,true/);assert.match(source,/installationRemoved,true/);
  assert.doesNotMatch(source,/quitAndInstall\(|STAGING_AUTO_INSTALL:'1'|--no-sandbox/);

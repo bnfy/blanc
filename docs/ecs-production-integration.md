@@ -11,6 +11,21 @@ that source update and do not by themselves qualify the merged result.
 
 Newest evidence supersedes the historical running/pending notes below:
 
+- Windows `40016447078` identifies a fixture ownership-path mismatch: after
+  Restart Now, the exact target was installed and a live successor plus five
+  helpers were visible at the disposable installation's full Windows path,
+  but all were classified `fixture: false`. The same unmatched processes
+  survived cleanup and retained the SQLite/install locks. The fixture now
+  resolves its created temporary directory with native `fs.realpath` before
+  deriving the NSIS destination and exact executable comparison, and records
+  the expected path/canonicalization evidence. It keeps the same narrow process
+  ownership checks. This test fix still needs native updater/playback/cleanup
+  validation; the prior run does not close the handoff gate.
+- Apple Silicon updater attempt 2 of `40011188375` passed actual Restart Now,
+  automatic relaunch, unmuted protected playback advancing 4.9425 seconds with
+  VMP 2 and no media errors, and profile/installation cleanup. Its updater gate
+  is complete; Intel unmuted playback remains open.
+
 - Follow-up Intel audio `40015587796` narrows the failure further: the native
   output clock advanced before Blanc launched (226,304/223,164 frames at a
   44.1 kHz virtual output), but timed out with `ETIMEDOUT`/`SIGTERM` both while

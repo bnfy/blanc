@@ -19,7 +19,11 @@ const [baselineInstaller,targetInstaller,targetRoot,targetVersion,evidence]=proc
 for(const value of [baselineInstaller,targetInstaller,targetRoot,evidence])assert(path.isAbsolute(value));
 assert(/^\d+\.\d+\.\d+-staging\.\d+$/.test(targetVersion));
 const publisher=process.env.EXPECTED_WINDOWS_PUBLISHER;assert(publisher);
-const root=await fs.mkdtemp(path.join(os.tmpdir(),'ecs-windows-update-'));
+const temporaryRoot=await fs.mkdtemp(path.join(os.tmpdir(),'ecs-windows-update-'));
+// Windows TEMP can contain an 8.3 alias (RUNNER~1), while CIM reports the
+// expanded executable path after NSIS relaunch. Resolve the existing parent
+// before deriving the installer destination and exact process ownership path.
+const root=await fs.realpath(temporaryRoot);
 assert(!/\s/.test(root),'NSIS /D fixture directory must not need quoting');
 const install=path.join(root,'app'),executable=path.join(install,'Blanc.exe');
 const profile=path.join(process.env.APPDATA,'Blanc');
@@ -27,7 +31,8 @@ assert.equal(await fs.stat(profile).catch(()=>null),null,'disposable runner must
 const marker=crypto.randomBytes(16).toString('hex');
 await fs.mkdir(profile,{recursive:true});await fs.writeFile(path.join(profile,'ecs-handoff-owner'),marker);
 await fs.writeFile(path.join(profile,'settings.json'),JSON.stringify({onboardingVersion:1,usagePing:false,searchSuggestions:false}));
-const report={passed:false,nativeRestartNow:false,automaticRelaunch:false,feed:'owned-loopback-staging',requests:[]};
+const report={passed:false,nativeRestartNow:false,automaticRelaunch:false,feed:'owned-loopback-staging',requests:[],
+ installationPathCanonicalized:temporaryRoot.toLowerCase()!==root.toLowerCase(),expectedExecutable:executable};
 const hash=async file=>crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
 const expectedAsar=await hash(path.join(targetRoot,'resources/app.asar'));
 const targetMetadata=JSON.parse(extractFile(path.join(targetRoot,'resources/app.asar'),'package.json'));
