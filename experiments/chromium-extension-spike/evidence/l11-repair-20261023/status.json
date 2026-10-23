@@ -5,11 +5,13 @@
   "zod": "4.6.7",
   "nativePatch": "Eight fingerprint-matched compromised SPKIs in built-in CRLSet; downloaded updates remain enabled.",
   "nativeVerification": "16 CheckSPKI=REVOKED checks plus unlisted-key control; six TLS CA certificates revoked in builtin verification, two code-signing CAs invalid for TLS. Unrelated TLS certificate control passes.",
-  "codeql": "48 prior alerts mapped to source repairs; hosted exact-head clearance pending",
+  "codeql": "Exact repair head9f27af90 / merge29424200: success and zero open PR-ref alerts; original48 cleared.",
   "unitTests": 4175,
   "newSignedArtifact": "not created or promoted; previous signed artifact remains preserved and does not contain this blocklist patch",
   "L11": "open pending exact repaired-head hosted CI and final candidate disposition",
   "googleBaselineSeparate": true,
   "latency": "deferred",
-  "electronDiagnosticBuild": "pending approval; unstarted"
+  "electronDiagnosticBuild": "pending approval; unstarted",
+  "hostedDependencyAudit": "substrate success on exact repair head",
+  "remainingFailure": "Modified-link duplicate document sandbox failure on Windows/Linux and local44.9.1; unproven attempt reverted"
 }

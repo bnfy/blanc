@@ -1,3 +1,5 @@
+> October23 L11 verification: [original dependency/CodeQL findings cleared on9f27af90](evidence/l11-repair-20261023/README.md#hosted-repair-head-verification-and-remaining-failure), native eight-key revocation verified. L11 remains open for the separate sandboxed-tab duplication failure, unfinished checks and replacement-artifact qualification. No gate credit.
+
 > October23 L11 source repairs: [dependency/CodeQL and native revocation evidence](evidence/l11-repair-20261023/README.md). Dependency audit and4,175unit tests pass; hosted CI/CodeQL and replacement signed-artifact qualification remain pending. No additional gate credit. Prior signed-candidate acceptance records retain their exact-byte scope. Google separate; latency/Electron pending.
 
 > October23 L11 audit: [exact-head failure and pending alert disposition](evidence/l11-audit-20261023/README.md). Substrate dependency audit fails Electron/Zod high advisories; current CodeQL pending,48 prior-analysis harness alerts need disposition, and native CRLSet coverage needs verification. **9/12(75%),delta0;L11 open.** No builds, reruns or policy suppression.

@@ -14,4 +14,7 @@ assert len(read('codeql-remediations.json'))==48
 assert '# pass 4175' in gzip.decompress((r/'unit-tests.log.gz').read_bytes()).decode()
 assert 'site: no unsuppressed high or critical' in gzip.decompress((r/'dependency-audit.log.gz').read_bytes()).decode()
 assert read('status.json')['electronDiagnosticBuild']=='pending approval; unstarted'
-print('L11 source repair evidence verified; hosted CI/CodeQL and signed replacement remain pending')
+ci=read('hosted-ci.json');assert ci['codeql']['openAlerts']==[] and ci['codeql']['analysis']['commit_sha']==ci['mergeCommit']
+assert any(c['name']=='substrate' and c['conclusion']=='success' for c in ci['checks'])
+assert read('remaining-sandbox-failure.json')['allTemporaryChangesRemoved']
+print('Original dependency/CodeQL findings cleared; separate sandbox failure and signed replacement remain pending')
