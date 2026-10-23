@@ -122,4 +122,3 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 .split-tab-fillet-top { right: 0; top: 0; box-shadow: inset -1px 0 var(--split-tab-border); }
 /* Left of the tab, against the card's bottom border. */
 .split-tab-fillet-left { left: 0; bottom: 0; box-shadow: inset 0 -1px var(--split-tab-border); }
-
