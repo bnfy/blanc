@@ -409,9 +409,17 @@ test('an ECS release checks installed uBO, file isolation and protected playback
   // The uBO suite waits for a native Quit; only its wrapper sends one.
   assert.doesNotMatch(block, /node test\/desktop\/packaged-ublock-acceptance\.mjs/);
   // Resuming keeps earlier reports and never reuses the exclusive uBO path.
-  assert.match(block, /mv output\/ecs-production "output\/ecs-production-before-\$ECS_ATTEMPT"/);
+  assert.match(block, /ECS_ARCHIVE="\$\(mktemp -d "output\/ecs-production-before-\$ECS_ATTEMPT\.XXXXXX"\)"/);
+  assert.match(block, /mv output\/ecs-production "\$ECS_ARCHIVE\/"/);
   assert.match(block, /ublock-installed-mac-\$ECS_ATTEMPT\.json/);
   assert.match(block, /local-html-mac-\$ECS_ATTEMPT\.json/);
   assert.doesNotMatch(block, /ublock-installed-mac\.json/);
   assert.equal((block.match(/BLANC_UPDATE_CHANNEL=ecs-qualification-disabled/g) || []).length, 3);
+});
+
+test('every packaged check in an ECS release launches with updates disabled, also after a resume', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  const exportAt = releaseScript.indexOf('if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi');
+  assert(exportAt > releaseScript.indexOf('> "$BUILD_STAMP"'), 'after the build branch, so resumes set it too');
+  assert(exportAt < releaseScript.indexOf('if should_run fuses; then'));
 });

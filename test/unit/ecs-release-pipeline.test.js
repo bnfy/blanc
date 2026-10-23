@@ -53,6 +53,7 @@ test('the Windows release job has no new signing access; the Linux job builds an
   assert.match(steps, /verify-ecs-production-package.cjs --release dist\/linux-unpacked/);
   assert.match(steps, /FUSE_ARGS=\(--ecs\)/);
   assert.equal(linux.env.RELEASE_RUNTIME, "${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}");
+  assert.equal(linux.env.BLANC_UPDATE_CHANNEL, "${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}");
   assert.doesNotMatch(JSON.stringify(linux), /secrets\.EVS|ecs-signing/);
   // The source binding runs right after checkout, before dependencies or build.
   const names = linux.steps.map(step => step.name || step.run || step.uses);

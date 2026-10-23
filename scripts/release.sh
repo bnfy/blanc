@@ -418,6 +418,10 @@ else
   } > "$BUILD_STAMP"
 fi
 
+# ECS: every packaged check from here on (including after a resume) launches
+# with updates disabled, so no fixture can follow the public update feed.
+if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi
+
 if should_run fuses; then
   echo "==> Verifying hardened Electron fuses in packaged binaries"
   $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs ${ECS_FUSE_ARGS[@]+"${ECS_FUSE_ARGS[@]}"} \
@@ -525,9 +529,11 @@ if should_run ecs-acceptance; then
     ECS_APP="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app"
     # A resumed attempt keeps every earlier report: move it aside, then write
     # this attempt's reports fresh (the uBO suite refuses to overwrite).
-    ECS_ATTEMPT="$(date -u +%Y%m%dT%H%M%SZ)"
+    ECS_ATTEMPT="$(date -u +%Y%m%dT%H%M%SZ)-$$"
     if [ -d output/ecs-production ]; then
-      mv output/ecs-production "output/ecs-production-before-$ECS_ATTEMPT"
+      # mktemp allocates a unique archive even for attempts in the same second.
+      ECS_ARCHIVE="$(mktemp -d "output/ecs-production-before-$ECS_ATTEMPT.XXXXXX")"
+      mv output/ecs-production "$ECS_ARCHIVE/"
     fi
     mkdir -p output/ecs-production
     BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \

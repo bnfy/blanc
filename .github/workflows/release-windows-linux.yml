@@ -640,6 +640,9 @@ jobs:
       # Read by the workspace smoke: an ECS package reports its pinned ECS
       # Electron version. Empty (the official path) for official builds.
       BLANC_ECS_PACKAGE_ROOT: ${{ inputs.runtime == 'ecs' && format('{0}/dist/linux-unpacked', github.workspace) || '' }}
+      # Every packaged launch in an ECS run has updates disabled. An empty
+      # value is identical to unset (production updater) for official runs.
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
     permissions:
       contents: write
       id-token: write
