@@ -15,6 +15,7 @@ const {protectedPage} = require('./support/ecs-protected-page.cjs');
 const {browserStartupReady} = require('./support/ecs-startup.cjs');
 const {waitFor} = require('./ecs-drm-playback-smoke.cjs');
 const {nativeProbe} = require('./support/native-probe.cjs');
+const {hostAudioEvidence} = require('./support/host-audio-evidence.cjs');
 assert.equal(process.platform, 'darwin');
 assert.equal(process.env.GITHUB_ACTIONS, 'true');
 assert.equal(process.env.RUNNER_ARCH, {x64:'X64', arm64:'ARM64'}[process.arch]);
@@ -128,6 +129,7 @@ try {
   report.completed=report.trials.length===10;
   if (process.env.NATIVE_AUDIO_PROBE) {
     report.native=nativeProbe(process.env.NATIVE_AUDIO_PROBE);
+    if(report.native.failure)report.hostAudioEvidence=hostAudioEvidence();
   }
   await media.detach();
 } catch(error) {report.failure={name:error.name,message:error.message.slice(0,300)};throw error;}

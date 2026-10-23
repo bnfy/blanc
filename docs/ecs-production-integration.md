@@ -11,6 +11,16 @@ that source update and do not by themselves qualify the merged result.
 
 Newest evidence supersedes the historical running/pending notes below:
 
+- Follow-up Intel audio `40015587796` narrows the failure further: the native
+  output clock advanced before Blanc launched (226,304/223,164 frames at a
+  44.1 kHz virtual output), but timed out with `ETIMEDOUT`/`SIGTERM` both while
+  Blanc ran and after it closed. Ordinary media remained at time zero with
+  readyState 1; Web Audio stayed zero; protected media stalled despite VMP 2.
+  This is not a generic initial absence of a working host audio device, and
+  pre-warming did not help. A follow-up captures read-only coreaudiod stacks,
+  audio-device information and audio/library-validation logs on native failure.
+  No audio service, driver, entitlement, TCC or application policy is modified.
+
 - Windows `40013400671` passed baseline DRM, uBO, offline isolation and the
   complete CDM lifecycle again (first UI 1747 ms; four unmuted stages advanced
   4.941/4.938/4.929/4.935 seconds, verified VMP, exact signed DLLs and restricted
