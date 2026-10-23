@@ -150,7 +150,8 @@ Every later milestone re-enters brainstorm → spec → plan at its own boundary
 A mobile user's wish list (Spaces across devices, AI summaries, control
 placement, phone-to-laptop pages, an ad blocker) was mapped against this
 roadmap. The owner's decisions add four milestones after the parity arc:
-**M17** Spaces sync on desktop, **M18** Spaces on iPhone, **M19** Tab Sync
-(F27) on iPhone, **M20** Send to device; and fold a **Pill position: Bottom /
-Top** setting into M16. AI summaries are declined for now. Details and
+**M17** Sync on iPhone (pairing, Keychain key storage, the sync client) with
+Tab Sync (F27) as its first use, **M18** Spaces sync on desktop, **M19**
+Spaces on iPhone, **M20** Send to device; and fold a **Pill position: Bottom /
+Top** setting (the pill and its panel only) into M16. AI summaries are declined for now. Details and
 reasons: `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md`.
