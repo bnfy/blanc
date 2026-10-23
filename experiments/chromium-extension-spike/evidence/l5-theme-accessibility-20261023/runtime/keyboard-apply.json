@@ -1,0 +1,18 @@
+{
+  "theme": {
+    "background": "#ffffff",
+    "backgroundText": "#323232",
+    "frame": "#2b244e",
+    "id": "lelfanicbadaahlibeimcpfpedfjccnk",
+    "link": "#063774",
+    "surface": "#dc9d99",
+    "text": "#3c4043",
+    "toolbarImage": "chrome://blanc-prototype/theme-toolbar.png?lelfanicbadaahlibeimcpfpedfjccnk",
+    "toolbarImageText": "#2b244e"
+  },
+  "focus": {
+    "action": "removeTheme",
+    "id": "lelfanicbadaahlibeimcpfpedfjccnk"
+  },
+  "text": "Extensions\nEsc\nInstalled themes\nCherry Blossom Tree HD Wallpapers Theme — Active\nApply\nRemove\n\nManage extensions\nBrowse web store\n↑ ↓ to move   Enter to open   Tab for theme actions   Esc to close"
+}

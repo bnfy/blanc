@@ -1,3 +1,5 @@
+> October23 L5 repair: [theme actions exposed as native buttons](evidence/l5-theme-accessibility-20261023/README.md); signed keyboard, AX and focused regression checks pass. Full owner input/VoiceOver acceptance remains open; 7/12, delta 0.
+
 > October23 L10 update: [signed functional smoke accepted](evidence/l10-functional-smoke-20261023/README.md); current readiness 7/12. Theme-action AX defect keeps L5 open.
 
 > October23 L6 update: [49 signed checkpoints and owner mapped-UI acceptance](evidence/l6-signed-acceptance-20261023/README.md) close L6; current readiness 6/12.

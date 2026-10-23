@@ -12,7 +12,7 @@ This defines a proposed, limited public preview track, not approval to publish o
 
 **Current acceptance: October 23, 2026; [L10 functional smoke](evidence/l10-functional-smoke-20261023/README.md), [L6 recovery](evidence/l6-signed-acceptance-20261023/README.md), [L3 baseline/maintenance](evidence/l3-closeout-20261023/README.md), [L7 owner approval](evidence/l7-owner-acceptance-20261023/README.md), L9 [signed notice and live route](evidence/preview-notice-20261023/README.md), and the [L2 owner record](evidence/l2-owner-acceptance-20261022/README.md).**
 
-`[■■■■■■■□□□□□] 7/12 launch gates cleared (58.3%) · Δ +1 L10`
+`[■■■■■■■□□□□□] 7/12 launch gates cleared (58.3%) · Δ 0 L5 repair`
 
 This is a count of verified launch-gate acceptance, **not percentage of engineering completed, probability of shipping, or an ETA**. Extensive prototype implementation and bounded tests exist, L1 scope, L2 signed isolation, L3 baseline/maintenance, L6 recovery, L7 security/privacy, L9 manual update/withdrawal and L10 functional smoke are accepted; the other five rows remain open. The initial denominator is the existing L1–L12 checklist; it includes owner decisions and artifact approval. Decision 2 remains an upstream prerequisite and is not implied by the bar. The owner approved the prepared scope on October 22; see the scope approval record.
 
@@ -24,7 +24,7 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 | L2 Isolation | **Accepted October22 — signed artifact plus owner hand check** | [Evidence and artifact identity](evidence/l2-owner-acceptance-20261022/README.md); reopen if a candidate change invalidates this acceptance |
 | L3 Security/maintenance | **Accepted October23 — selected preview baseline** | [Current Beta/source/dependency and maintenance reconciliation](evidence/l3-closeout-20261023/README.md); Decision 2 billing/capacity and L4 remain separate |
 | L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |
-| L5 Physical input/accessibility | Open — theme Apply/Remove buttons absent from macOS AX tree | [Concrete defect from L10](evidence/l10-functional-smoke-20261023/native-observations.md); repair and signed/owner requalification |
+| L5 Physical input/accessibility | Open — theme action defect repaired and signed requalification passed | [Current AX/keyboard evidence](evidence/l5-theme-accessibility-20261023/README.md); bounded owner input, matched visual and VoiceOver acceptance remain |
 | L6 Recovery | **Accepted October23 — exact signed candidate** | [49 checkpoints and explicit mapped-UI approval](evidence/l6-signed-acceptance-20261023/README.md); no new waiting-screen observation claimed |
 | L7 Security/privacy | **Accepted October23 — exact signed candidate** | [Owner acceptance](evidence/l7-owner-acceptance-20261023/README.md), candidate `4c86c89e7ec8`; requalify relevant changes |
 | L8 Signed distribution | Open — signed/notarized/stapled; native quarantined launch passed on macOS 27.2 | Fresh-machine/public-download, signed extension integration and final provenance acceptance remain |
@@ -33,12 +33,13 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 | L11 CI/audits | Open — no RC head frozen | Exact candidate checks/alerts/audits and runtime blocker disposition; no current CI claim here |
 | L12 Readiness package | Open — not completed | Instructions, exclusions, feedback/privacy route and artifact-specific go/no-go |
 
-**Next priority:** repair the concrete L5 theme-action accessibility defect and requalify, then finish the bounded owner input session. L10 is accepted for the [tested signed-candidate scope](evidence/l10-functional-smoke-20261023/README.md); L4 remains externally gated. [L6 is accepted](evidence/l6-signed-acceptance-20261023/README.md) after 49 current-candidate checkpoints and explicit owner approval of mapped unchanged UI evidence. L7 is accepted for [this exact signed candidate](evidence/l7-owner-acceptance-20261023/README.md). L9 is closed: signed update/rollback, the visible notice and the published withdrawal route are verified. Maintenance ownership is resolved. Complete the Decision 2 review without expanding already-covered stress matrices. Self-contained packaging and encryption recovery have bounded passing evidence; do not repeat open-ended stress matrices. Google baseline remains separate; latency deferred; Electron diagnostic build pending.
+**Next priority:** finish the bounded L5 owner physical-input, matched visual and VoiceOver session. The [theme-action defect is repaired](evidence/l5-theme-accessibility-20261023/README.md), with current signed keyboard/AX and 75 focused runtime checks passing; no full L5 acceptance is implied. L10 is accepted for the [tested signed-candidate scope](evidence/l10-functional-smoke-20261023/README.md); L4 remains externally gated. [L6 is accepted](evidence/l6-signed-acceptance-20261023/README.md) after 49 current-candidate checkpoints and explicit owner approval of mapped unchanged UI evidence. L7 is accepted for [this exact signed candidate](evidence/l7-owner-acceptance-20261023/README.md). L9 is closed: signed update/rollback, the visible notice and the published withdrawal route are verified. Maintenance ownership is resolved. Complete the Decision 2 review without expanding already-covered stress matrices. Self-contained packaging and encryption recovery have bounded passing evidence; do not repeat open-ended stress matrices. Google baseline remains separate; latency deferred; Electron diagnostic build pending.
 
 ### Update log
 
 | Date / checkpoint | Gates cleared | Change | Evidence and remaining blockers |
 | --- | --- | --- | --- |
+| October23 / L5 theme action repair | 7/12 | 0 | [Signed AX/keyboard repair and 75 focused runtime checks](evidence/l5-theme-accessibility-20261023/README.md); full owner L5 remains open |
 | October23 / L10 functional smoke | 7/12 | +1 L10 | [Current core/Store/theme/import/password checks pass](evidence/l10-functional-smoke-20261023/README.md); separate L5 AX defect recorded |
 | October23 / L6 signed recovery | 6/12 | +1 L6 | [49 current-candidate checkpoints and explicit mapped-UI approval](evidence/l6-signed-acceptance-20261023/README.md) |
 | October23 / L3 closeout | 5/12 | +1 L3 | [Baseline/maintenance reconciliation](evidence/l3-closeout-20261023/README.md); next L6 signed recovery acceptance |
