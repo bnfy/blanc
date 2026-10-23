@@ -14,6 +14,10 @@ Run from the spike directory. Output must not exist. The packager compiles only 
 
 The packaged materials are a record of a local incremental build, not a claim of independent hermetic reproduction or a hosted build. Final artifact checksums and their authenticated manifest must be produced after signing/notarization to avoid a self-hash cycle. Run `PYTHONDONTWRITEBYTECODE=1 python3 preview/test_compliance.py` for the tamper/mismatch checks. L8 still requires the actual signed download/installation and final provenance acceptance.
 
+For a completed artifact set, run `python3 preview/verify_artifacts.py --directory /path/to/artifacts --version <four-part-version> --source <exact-source-commit> --cosign /path/to/cosign`. This authenticates `SHA256SUMS` using the repository's pinned release identity/issuer before checking all four artifact digests and the SBOM, archive, source and provenance bindings. The Sigstore bundle is outside the manifest it signs. `test_verify_artifacts.py` covers rejection of tampering, missing/duplicate files, symlinks, wrong source/subject and failed authentication.
+
+An unpublished GitHub draft may hold the bounded L8 download fixture. Record the exact draft and asset identities and the actual anonymous HTTPS download, quarantine, extraction and launch outcomes. Never equate staging a draft, locally setting a quarantine attribute, or signing a materials statement with public release, a fresh-machine pass, or a hosted-build attestation. Publication and updater changes require the separate release decision.
+
 This is local candidate preparation, not distribution approval. Developer ID signing, hardened runtime/entitlements, notarization, native keychain/service namespaces and quarantined acceptance require separate qualification. Never publish this ad-hoc artifact as a public preview. See evidence/preview-package-20261022 for retained failures and bounded acceptance.
 
 The launcher and outer bundle now explicitly target macOS 26, the approved preview minimum, instead of inheriting the build host's SDK default. Native Chromium's own deployment target remains unchanged.
