@@ -1,4 +1,6 @@
-> October23 current closeout: [L3 accepted](evidence/l3-closeout-20261023/README.md) and [owner L7 accepted](evidence/l7-owner-acceptance-20261023/README.md); 5/12 gates. Historical starting-state rows below retain their date.
+> October23 L6 update: [49 signed checkpoints and owner mapped-UI acceptance](evidence/l6-signed-acceptance-20261023/README.md) close L6; current readiness 6/12.
+
+> October23 prior closeout: [L3 accepted](evidence/l3-closeout-20261023/README.md) and [owner L7 accepted](evidence/l7-owner-acceptance-20261023/README.md); 5/12 gates. Historical starting-state rows below retain their date.
 
 # Mac preview gate reconciliation — October 22, 2026
 

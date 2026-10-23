@@ -8,11 +8,17 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■□□□□□□□] 5/12 launch gates cleared (41.7%) · Δ +2 L7/L3 — October 23, 2026`
+`[■■■■■■□□□□□□] 6/12 launch gates cleared (50%) · Δ +1 L6 — October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### L6 signed recovery acceptance — October 23
+
+[Eight current-candidate schedules](../experiments/chromium-extension-spike/evidence/l6-signed-acceptance-20261023/README.md) pass 49 checkpoints: encrypted restart/crash, real failed-write retry, Split/Recently Closed, grouped multiwindow/Spaces, native close/Cancel/Leave, private exclusion, nonregular read/clean Quit, and native owner/profile teardown. All 17 executable and three asset hashes remain unchanged; no build. Initial Node-runtime, target-selection and syntax fixture failures are retained separately.
+
+The owner explicitly accepted the mapped unchanged recovery UI after being told the waiting state was not reproduced on this signed candidate: **“Accept mapped UI evidence; close L6.” L6 is accepted for this exact candidate; readiness is 6/12 (50%), delta +1.** Do not equate FIFO rejection or normal startup with encryption-provider timeout coverage. Next independent work is L10 finite functional smoke; L5 needs physical owner input and L4 an authentic external upgrade. Google remains separate; latency/Electron pending.
 
 ### L3 completed — October 23
 
