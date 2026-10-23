@@ -330,6 +330,27 @@ the address field explicitly and retries only input producing no navigation
 request. Actual page/player errors remain fatal. Retry `39999246654` uses the
 same signed bytes; Intel audio comparison `39996278144` is still separate.
 
+### Native Intel audio comparison
+
+[Run 39996278144](https://github.com/bnfy/blanc/actions/runs/39996278144)
+completed all six controls for each unmodified runtime (official Electron
+44.9.3 and pinned ECS 44.9.3), with no media errors. Unmuted PCM advanced
+3.88/4.90 seconds in official Electron and 4.77/4.94 seconds in ECS at
+44.1/48 kHz respectively. Both Web Audio clocks advanced normally. The native
+CoreAudio probe advanced about five seconds at both input rates on the
+runner's virtual output. Muted controls also advanced, but are not used to
+qualify unmuted playback.
+
+This does not reproduce an ECS-only or universally broken host-audio path.
+It also does not qualify the full signed Blanc DRM player, which previously
+stalled. The next isolated comparison retains all PCM/native controls and
+adds equal locally encoded AAC controls at both rates, muted and unmuted,
+to separate codec behavior from full Blanc/DRM integration. It requires no
+signing credentials, private transfer assets or device-setting changes.
+The expanded comparison passed focused tests, lint and the complete local
+unit suite (4,295 passed, two existing platform skips); native results remain
+pending.
+
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
 2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify

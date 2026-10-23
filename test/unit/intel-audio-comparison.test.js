@@ -41,3 +41,12 @@ test('Intel audio control has no signing, private transfer or production access'
   assert.match(job,/prepareEcsRuntime/);
   assert.doesNotMatch(job,/contents: write|ecs-private|APPLE_|EVS_|--no-sandbox|release (?:create|upload|edit)/);
 });
+test('Intel codec follow-up retains all PCM controls and adds equal local AAC trials', () => {
+  const script=fs.readFileSync(path.join(__dirname,'../desktop/intel-audio-comparison.mjs'),'utf8');
+  assert.match(script,/\/usr\/bin\/afconvert/);
+  assert.match(script,/codec:'aac'/);
+  assert.match(script,/r\.trials\.length===6&&r\.aacTrials\.length===4/);
+  assert.match(script,/aacGood\('official'\) && aacGood\('ecs'\)/);
+  const page=fs.readFileSync(path.join(__dirname,'../desktop/fixtures/audio-control.html'),'utf8');
+  assert.match(page,/spec\.codec === 'aac' \? 'm4a' : 'wav'/);
+});

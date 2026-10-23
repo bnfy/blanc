@@ -10,7 +10,7 @@ document.querySelector('#start').onclick = async () => {
   let context;
   try {
     if (spec.kind === 'media') {
-      audio.src = `/tone-${spec.sampleRate}.wav`;
+      audio.src = `/tone-${spec.sampleRate}.${spec.codec === 'aac' ? 'm4a' : 'wav'}`;
       audio.muted = spec.muted; audio.volume = 0.05;
       await audio.play();
       await sleep(250);
