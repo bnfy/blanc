@@ -36,6 +36,11 @@ on:
         required: false
         default: false
         type: boolean
+      ecs_windows_lifecycle:
+        description: "Private Windows NSIS handoff and real CDM lifecycle qualification"
+        required: false
+        default: false
+        type: boolean
       platform:
         description: "Platform jobs to run"
         required: true
@@ -62,6 +67,8 @@ jobs:
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
           ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
           ECS_PRODUCTION: ${{ inputs.ecs_production }}
+          ECS_WINDOWS_LIFECYCLE: ${{ inputs.ecs_windows_lifecycle }}
+          VALIDATION_REF: ${{ github.ref }}
         run: |
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
@@ -73,6 +80,10 @@ jobs:
           fi
           if [ "$ECS_PRODUCTION" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ]; }; then
             echo "ECS production integration requires exclusive private validation mode" >&2
+            exit 1
+          fi
+          if [ "$ECS_WINDOWS_LIFECYCLE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$ECS_PRODUCTION" != true ] || [ "$RELEASE_PLATFORM" != windows ] || [ "$VALIDATION_REF" != refs/heads/codex/ecs-production-integration ]; }; then
+            echo "Windows ECS lifecycle requires the isolated candidate branch and exclusive Windows validation" >&2
             exit 1
           fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
@@ -415,6 +426,7 @@ jobs:
     needs: validate-inputs
     if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
+    timeout-minutes: 30
     environment: ecs-signing
     permissions:
       contents: read
@@ -437,6 +449,14 @@ jobs:
           EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
           EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
         run: node scripts/prepare-evs-ci.cjs
+      - name: Prepare staging-only updater metadata in the disposable checkout
+        if: inputs.ecs_windows_lifecycle
+        shell: pwsh
+        run: |
+          npm version 1.43.0-staging.3 --no-git-tag-version
+          if ($LASTEXITCODE -ne 0) { throw 'Private version preparation failed' }
+          npm run compliance:build
+          if ($LASTEXITCODE -ne 0) { throw 'Private compliance preparation failed' }
       - name: Build private production-integration installer
         env:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -450,6 +470,7 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: node scripts/build-ecs-production.cjs --win --x64
       - name: Verify final Authenticode signatures after VMP signing
+        id: ecs_package_verified
         shell: pwsh
         env:
           EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
@@ -460,6 +481,9 @@ jobs:
             $signature = Get-AuthenticodeSignature $file
             if ($signature.Status -ne 'Valid' -or !$signature.TimeStamperCertificate -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER) { throw "Invalid final signature: $file" }
           }
+      - name: Remove EVS credentials before native tests
+        if: always()
+        run: node scripts/prepare-evs-ci.cjs --clean
       - name: Verify native browser and local-file isolation
         shell: pwsh
         env:
@@ -480,6 +504,35 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Workspace recovery failed' }
           node test/desktop/packaged-media-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Media permissions failed' }
+      - name: Real Windows CDM first-install update and rollback
+        if: ${{ !cancelled() && inputs.ecs_windows_lifecycle && steps.ecs_package_verified.outcome == 'success' }}
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist-ecs/win-unpacked/Blanc.exe).Path
+          node test/desktop/ecs-cdm-lifecycle-windows.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CDM lifecycle failed' }
+      - name: Actual production-to-ECS Windows Restart Now handoff
+        if: ${{ !cancelled() && inputs.ecs_windows_lifecycle && steps.ecs_package_verified.outcome == 'success' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+          BLANC_ECS_DISPOSABLE_HOST: '1'
+        run: |
+          $baseline = Join-Path $env:RUNNER_TEMP 'ecs-windows-baseline'
+          New-Item -ItemType Directory -Path $baseline | Out-Null
+          gh release download v1.42.1 --repo $env:GITHUB_REPOSITORY -p Blanc-Setup-1.42.1.exe -p SHA256SUMS -D $baseline
+          if ($LASTEXITCODE -ne 0) { throw 'Public baseline download failed' }
+          $rows = @(Get-Content (Join-Path $baseline 'SHA256SUMS') | Where-Object { $_ -match '^([a-f0-9]{64})\s+Blanc-Setup-1\.42\.1\.exe$' })
+          if ($rows.Count -ne 1) { throw 'Exactly one baseline manifest entry required' }
+          $expected = ($rows[0] -split '\s+')[0]
+          $installer = Join-Path $baseline 'Blanc-Setup-1.42.1.exe'
+          if ((Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant() -ne $expected) { throw 'Baseline digest mismatch' }
+          $version = node -p "require('./package.json').version"
+          node test/desktop/ecs-production-updater-windows.mjs $installer (Resolve-Path "dist-ecs/Blanc-Setup-$version.exe").Path (Resolve-Path dist-ecs/win-unpacked).Path $version "$PWD/output/ecs-production/updater-windows.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows NSIS handoff failed' }
       - name: Remove EVS credentials even after failure
         if: always()
         run: node scripts/prepare-evs-ci.cjs --clean

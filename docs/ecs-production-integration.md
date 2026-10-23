@@ -435,6 +435,34 @@ temporary elevated-permission intake job after the final consumers finish.
    What's New, and satisfy the existing full release gates. This PR neither
    merges nor runs that publication pipeline.
 
+## Pending Windows updater and CDM lifecycle qualification
+
+The private `ecs_windows_lifecycle` mode builds a staging-only
+`1.43.0-staging.3` installer in a disposable Windows checkout, behind the
+existing `ecs-signing` environment approval. No signed installer from the
+earlier run was retained, so a new signing approval is required. Credentials
+are removed before browser tests. The mode never publishes installers or
+update metadata and cannot run on the public release path.
+
+The new tests require the actual native Restart Now action from public
+`1.42.1`, an exact-payload automatic successor, final timestamped publisher
+verification, and unmuted protected playback. Separately they exercise a
+fresh Windows CDM install without imposing Linux's preload/restart behavior,
+a genuine vendor update from `4.10.3050.0` to `4.10.3112.0`, a controlled
+stopped-process cache rollback and offline readiness. Each playback stage
+requires verified VMP, the exact mapped DLL hash, a valid DLL signature,
+the CDM service sandbox role, a restricted low-integrity token and a job.
+Controlled cache rollback is not an automatic vendor rollback policy.
+
+Both Windows fixture archives were locally verified against immutable Mozilla
+SHA-512 records and their AMD64 PE headers. Their DLL SHA-256 hashes are
+`f1216e26ee8c27f938d7722427d29f190e569ed83d0ba16ea872cae684b97602`
+and `7b44e84403fbb3faee15ca2d56eb8432fdf4eb68812c4460abdd20972528e825`.
+These test fixtures are not packaged. Local validation passed 4,301 unit tests
+with two existing skips, lint, PowerShell parsing and native declaration
+compilation. Native Windows results are still pending; none of these gates
+are cleared by local source checks.
+
 ## ECS maintenance in every release runbook
 
 Before each release, check upstream ECS and Electron security releases. Compare
