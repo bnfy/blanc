@@ -1,0 +1,1463 @@
+{
+  "log": [
+    {
+      "commit": "728d5cc61b204fd19f3b0b8dd65422865624abc5",
+      "tree": "67f3d6011ec197ab7d8e620cdbf901155f7efbb2",
+      "parents": [
+        "cf146568b3544ce37d16e63846c12c11720a42a6"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 19:42:32 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 19:42:32 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792079975-04c37b53e7279e25a2e1f8b97e904f22a8c33f27-bd55bd8691ba2f4554717862b2493b324875044a.profdata to chrome-mac-arm-8103-1792086905-21142a60126944535dd15cc63c47ea49bd5be6ad-1cc9a44271df08edf2b8c3768e8c4fad8eb8b566.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I7439f71f83324b35f1337aab8b934f0adddbf481\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586836\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#144}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "cf146568b3544ce37d16e63846c12c11720a42a6",
+      "tree": "0bc7876ff2e48a0d53c986b37c3f520b4781683a",
+      "parents": [
+        "d8b1c2aacd8bd570c17cfed13756569020b80ace"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 19:09:34 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 19:09:34 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from xrY6GjJ9duJO0Q4_e... to sfuZZiEcC5S_hYQ6n...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I3e036afdfc03467c0f16688c2f16bec59c6487d0\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8588144\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#143}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d8b1c2aacd8bd570c17cfed13756569020b80ace",
+      "tree": "7955c05e7935a83982369f47d7ae7ca9da3c978e",
+      "parents": [
+        "fdfa6772c790e3f686753da532e82d131b8667dc"
+      ],
+      "author": {
+        "name": "Zijing Liu",
+        "email": "zijingl@google.com",
+        "time": "Thu Oct 15 19:02:07 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 19:02:07 2026"
+      },
+      "message": "[M157] Check for nil stats in configureTaskStat\n\nOriginal change's description:\n> Check for nil stats in configureTaskStat\n>\n> Check that the returned LevelUpStat is non-nil in\n> configureTaskStat before adding it to the NSMutableArray to prevent an\n> NSInvalidArgumentException crash.\n>\n> Bug: 573257301\n> Change-Id: Ia31deb24ce4cdc115513e9eefa115df5cd7a2b80\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8561561\n> Reviewed-by: Cheick Cisse <cheickcisse@google.com>\n> Commit-Queue: Zijing Liu <zijingl@google.com>\n> Reviewed-by: Robbie Gibson <rkgibson@google.com>\n> Reviewed-by: Pier-Alexandre Bouchard <pabouchard@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1718558}\n\n(cherry picked from commit 0d87beb174a71c43d381d1ea474672b8b5bc8c5a)\n\nBug: 573269467,573257301\nChange-Id: Ia31deb24ce4cdc115513e9eefa115df5cd7a2b80\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8589355\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#142}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "fdfa6772c790e3f686753da532e82d131b8667dc",
+      "tree": "413c30769029629a3a9f0d2f348f9f7cd74e95f5",
+      "parents": [
+        "f782b3cec3db601ea45532a47c631cff930d65e0"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:43:50 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:43:50 2026"
+      },
+      "message": "Roll Chrome Linux PGO Profile\n\nRoll Chrome Linux PGO profile from chrome-linux-8103-1792043845-b284569a490022abbd9122ee76141c7d453653eb-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata to chrome-linux-8103-1792065212-341eae1c482a4f570e702943af8b312780a9beaa-25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-linux-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:linux-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ibec8ca33dfbc7b1ec31cac130e5a8bfb88a1504b\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586158\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#141}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f782b3cec3db601ea45532a47c631cff930d65e0",
+      "tree": "0b4468f3563275325d8913c3ba9ebeba507ff4f3",
+      "parents": [
+        "04fe9d3e1348647a34b22ada5396b0826f3a0190"
+      ],
+      "author": {
+        "name": "yoshiki iguchi",
+        "email": "yoshiki@google.com",
+        "time": "Thu Oct 15 18:13:16 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:13:16 2026"
+      },
+      "message": "[M157] Increase Maximum Attempts to Authenticate DRM Device (10 -> 50)\n\nOriginal change's description:\n> Increase Maximum Attempts to Authenticate DRM Device (10 -> 50)\n>\n> Previously the logic had attempted indefinitely but the previous CL\n> limited it to 10 times (which waits ~1 sec).\n>\n> But there is possibility it's too small, according to the comment\n> (crbug.com/563090726#comment19). Previously it was 30 (~ 3 sec) and\n> was safe. Also crbug.com/570378657#comment5 confirmed \"30\" fixes the\n> failure.\n>\n> This CL increases the limit from 10 to 50 (which waits ~5 sec) in\n> including 2 sec margin for safe.\n>\n> As the side effect, the user may need to wait for 5 sec to recover\n> on GPU process crash. But I think it's acceptable considering the\n> failure.\n>\n> Bug: 509364671\n> Bug: 555577489\n> Bug: 563090726\n> Bug: 570378657\n> Change-Id: I76f16add89af31d1476d0505014bf58258a8f087\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8561240\n> Commit-Queue: Yoshiki IGUCHI <yoshiki@chromium.org>\n> Auto-Submit: Yoshiki IGUCHI <yoshiki@chromium.org>\n> Reviewed-by: Mark Yacoub <markyacoub@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1719243}\n\n(cherry picked from commit f2d19627f1a560e2b8a4f39c193fcb05733d802a)\n\nBug: 573781881,509364671,555577489,563090726,570378657\nChange-Id: I76f16add89af31d1476d0505014bf58258a8f087\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8588218\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#140}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "04fe9d3e1348647a34b22ada5396b0826f3a0190",
+      "tree": "e9352c9d1bec6b418bba395748cebe1e5717427d",
+      "parents": [
+        "d77157af85903f0e469627271132c056ce4037cf"
+      ],
+      "author": {
+        "name": "Sophie Chang",
+        "email": "sophiechang@chromium.org",
+        "time": "Thu Oct 15 18:09:36 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:09:36 2026"
+      },
+      "message": "[M157] [lens] Add kContextualCue invocation source\n\nOriginal change's description:\n> [lens] Add kContextualCue invocation source\n>\n> Adds LensOverlayInvocationSource::kContextualCue (\"ccue\") so that\n> contextual search sessions initiated from a contextual cue click send\n> their own source parameter instead of reusing kAppMenu.\n>\n> Bug: b:568812937\n> Change-Id: Ib0e56ba6f5c1ad8bec9c7becd0db974db6d88813\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8547650\n> Reviewed-by: Duncan Mercer <mercerd@google.com>\n> Commit-Queue: Sophie Chang <sophiechang@chromium.org>\n> Reviewed-by: Erik Chen <erikchen@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717876}\n\n(cherry picked from commit fdd59367cdfb396d7b830013634fc902b49e759f)\n\nBug: 573706407,b:568812937\nChange-Id: Ib0e56ba6f5c1ad8bec9c7becd0db974db6d88813\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575542\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#139}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d77157af85903f0e469627271132c056ce4037cf",
+      "tree": "8e967b719d99d8f0f7057259c79303dc89c755a9",
+      "parents": [
+        "441459193520f7e84ae4f13841b6644cdffc3a4d"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 18:09:02 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:09:02 2026"
+      },
+      "message": "[M157] [ContextualTasks] Bridge external search ports\n\nOriginal change's description:\n> [ContextualTasks] Bridge external search ports\n>\n> Previously, the AIM page exchanged search messages with the browser by\n> posting `window.postMessage` events to embedded extension iframes, which\n> failed whenever no extension iframe was mounted in the document.\n> Handling external `chrome-search-channel` port connections in the\n> component extension's service worker (`background.ts`) and forwarding\n> traffic over Mojo keyed by `port.sender.documentId` enables direct\n> bidirectional search messaging between the AIM page and the browser.\n>\n> When a document reconnects with a new port before its previous port\n> closes, the service worker ignores stale `onDisconnect` events from the\n> superseded port so the active document connection is not dropped.\n>\n> Bug: b:549306496\n> Change-Id: If1eb6dbf2a03314a27f84113905ccd1996621783\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8489261\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Reviewed-by: James Cook <jamescook@chromium.org>\n> Reviewed-by: Breno Sousa <soubreno@google.com>\n> Reviewed-by: Jason Hu <hujasonx@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717868}\n\n(cherry picked from commit 30925637d69f968111b6a81c4fd96a35119feecb)\n\nBug: 573706407,b:549306496\nChange-Id: If1eb6dbf2a03314a27f84113905ccd1996621783\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575146\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#138}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "441459193520f7e84ae4f13841b6644cdffc3a4d",
+      "tree": "5be31a26133b8fd71c165e74e25dfd0fa0b34b55",
+      "parents": [
+        "43d8a4cfda21db28bc8e5059495eb0018ebcf5b2"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 18:08:24 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:08:24 2026"
+      },
+      "message": "[M157] [Contextual Tasks] Test Super G Page Info bubble\n\nOriginal change's description:\n> [Contextual Tasks] Test Super G Page Info bubble\n>\n> Adds an interactive UI test covering the Super G logo button in the\n> side panel rearchitecture toolbar for Contextual Tasks across all user\n> variations (signed-in, signed-out, and incognito). The only existing\n> coverage clicked Super G as a step of an extensions flow; this test\n> checks that Page Info opens for the panel's page and stays anchored\n> inside the side panel.\n>\n> This tests the following CUJ:\n>  (1) User opens Lens Overlay from the 3-dot App Menu on a web page.\n>  (2) User types a query into the Lens Overlay Contextual Searchbox and\n>      presses Enter to submit.\n>  (3) The Contextual Tasks side panel opens on an AI Mode page.\n>  (4) User clicks the Super G logo button in the side panel toolbar.\n>  (5) The Page Info bubble opens anchored to the Super G button inside\n>      the side panel with a TOP_LEFT arrow.\n>  (6) The Page Info bubble shows the URL and site of the page in the\n>      side panel, not the page in the active tab.\n>\n> Key Implementation Details:\n> - User Variations: Parameterized via\n>   ContextualTasksInteractiveTestBaseT<UserVariation> across kSignedIn,\n>   kSignedOut, and kIncognito.\n> - Assertions: Page Info is tracked for the panel WebContents (not the\n>   active tab), its site URL is the side panel's URL rather than the\n>   tab's, its header shows the side panel's site (google.com), the\n>   bubble arrow is TOP_LEFT, and its anchor rect overlaps the Super G\n>   tracked element and lies inside the side panel.\n> - Refactor: The Contextual Searchbox query and toolbar instrumentation\n>   steps move into fixture helpers shared with\n>   AiPageUpdatesThreadTitleAndShowsThreadHistoryInMenu, which also\n>   gains its missing CUJ header.\n> - Anti-Flakiness: Side panel animations are disabled by the fixture,\n>   and the click waits for the Super G tracked element to show and for\n>   the button to have a visible layout box.\n>\n> Verification:\n> - Local: 20/20 consecutive passes per variation (60/60) via\n>   tools/autotest.py, plus 60/60 for the refactored sibling test\n> - Swarm: 150/150 passes (10 shards x 5 repeats x 3 variations) via\n>   tools/run-swarmed.py, 0 failures across 10 shards\n>\n> Bug: 533072196\n> Change-Id: I99dab9bf2760804a7d460ac3207be7f0596e8ff5\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8560858\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Reviewed-by: Juan Mojica <juanmojica@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717807}\n\n(cherry picked from commit 853060dd80085273f409b0c7a67b7c10821feea6)\n\nBug: 573706407,533072196\nChange-Id: I99dab9bf2760804a7d460ac3207be7f0596e8ff5\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8580745\nOwners-Override: Ben Mason <benmason@chromium.org>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#137}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "43d8a4cfda21db28bc8e5059495eb0018ebcf5b2",
+      "tree": "76fb167a54d319dea16f860eafcf610c64299831",
+      "parents": [
+        "f781360a01e1a4ad49aa96f7f22e98880f444ccf"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 18:07:50 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:07:50 2026"
+      },
+      "message": "[M157] [Contextual Tasks] Re-enable tab chip test\n\nOriginal change's description:\n> [Contextual Tasks] Re-enable tab chip test\n>\n> `AddAndRemoveTabFromComposebox` was disabled across Linux, ChromeOS, and\n> Windows ASan due to race conditions during side panel zero-state\n> initialization and context menu interaction. Attaching a tab before the\n> embedded thread frame finished loading raced with `forceComposeboxFocus`\n> clearing manual attachments, and slow Mojo IPCs or window blur events on\n> instrumented bots could cause the context menu to open before tab\n> suggestions rendered or close mid-sequence before clicks settled.\n>\n> Wait for the inner thread `WebContents` to load before interacting with\n> the composebox, ensure context menu helpers wait for tab suggestions to\n> render and selection state (`aria-checked`) or menu closure to settle\n> with automatic reopen on blur, and re-enable the test on all platforms.\n>\n> Fixed: 524797987, 529701663\n> Change-Id: I3352dcbca33113dc61aa41d32439792f5b77eaff\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8313495\n> Reviewed-by: Juan Mojica <juanmojica@google.com>\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717805}\n\n(cherry picked from commit c2a5d47f4033408f1a8ca38a6ceb0f79f9486926)\n\nBug: 573706407,524797987,529701663\nChange-Id: I3352dcbca33113dc61aa41d32439792f5b77eaff\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583556\nOwners-Override: Ben Mason <benmason@chromium.org>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#136}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f781360a01e1a4ad49aa96f7f22e98880f444ccf",
+      "tree": "e56096d01ea622a519682940202cf921be3a5ec3",
+      "parents": [
+        "33d296b76911971f25e518cb3b12a180f6d7abfb"
+      ],
+      "author": {
+        "name": "Jason Hu",
+        "email": "hujasonx@google.com",
+        "time": "Thu Oct 15 18:07:15 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:07:15 2026"
+      },
+      "message": "[M157] [context-input] Fix flaky tab context submission across extension frames\n\nOriginal change's description:\n> [context-input] Fix flaky tab context submission across extension frames\n>\n> Previously, `ContextualTasksWebContentsUserData` marked all registered\n> extension frames as handshake-complete at once and always dispatched\n> outbound Search messages via `extension_frames_[0]`. When multiple\n> extension frames coexisted (such as `context_library.html` mounting\n> while `tab_picker.html` was closing, or `tab_picker.html` opening and\n> closing on top of `context_library.html`), outbound messages or\n> handshake pings could leave Search's `activeChromeWindow` pointing to a\n> detached `tab_picker.html` window, causing `OnSubmitQueryRequest` to\n> time out after 10s.\n>\n> Track handshake completion per frame, route outbound messages via the\n> most recent active handshake-complete frame, and re-send\n> `OnContextStateChanged` through a surviving bound frame when another\n> bound frame unregisters.\n>\n> Bug: b:572883847\n> Change-Id: I01b5e6339b7bef0808904c6f353df87c29fce275\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8561460\n> Reviewed-by: Duncan Mercer <mercerd@google.com>\n> Commit-Queue: Jason Hu <hujasonx@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717763}\n\n(cherry picked from commit 41b24a411d4bcab6380ab8f66add26a798c5b38b)\n\nBug: 573706407,b:572883847\nChange-Id: I01b5e6339b7bef0808904c6f353df87c29fce275\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8578806\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#135}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "33d296b76911971f25e518cb3b12a180f6d7abfb",
+      "tree": "9d1c33973e6b7e6e6015456200c10c84170e771b",
+      "parents": [
+        "f1326e3ad7cec1832ff658425e1d80fa3cff869b"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 18:06:40 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:06:40 2026"
+      },
+      "message": "[M157] [ContextualTasks] Serve profile avatar via WebUI\n\nOriginal change's description:\n> [ContextualTasks] Serve profile avatar via WebUI\n>\n> Instead of PNG-encoding and Base64-encoding the profile avatar bitmap\n> into a `data:` URL string over Mojo IPC on every navigation, serve the\n> cached 1x PNG `RefCountedMemory` from `AccountTrackerService` directly\n> via a `chrome://contextual-tasks/profile-avatar.png?gaia_id=` request\n> filter on `WebUIDataSource`.\n>\n> This avoids synchronous UI-thread PNG re-encoding and multi-kilobyte\n> `data:` URL serialization over Mojo IPC while preserving per-account URL\n> cache keys across `authuser` redirects.\n>\n> Bug: b:565382494\n> Change-Id: I9ddadac2edc73c89ab50084ab58d6e31981a1e5e\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8529223\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Reviewed-by: Daniel Cheng <dcheng@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717711}\n\n(cherry picked from commit 214109090b00af9a49b054749c13c3fedb64647e)\n\nBug: 573706407,b:565382494\nChange-Id: I9ddadac2edc73c89ab50084ab58d6e31981a1e5e\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8577326\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#134}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f1326e3ad7cec1832ff658425e1d80fa3cff869b",
+      "tree": "31bc38deac12287b2d9d41ba88ee976c771acf8b",
+      "parents": [
+        "eea940d94678138edee2af0a8c29af695b2edbd1"
+      ],
+      "author": {
+        "name": "Adam Yao",
+        "email": "adamyao@google.com",
+        "time": "Thu Oct 15 18:05:47 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:05:47 2026"
+      },
+      "message": "[M157] Revert \"[aim-drive] Verify Drive consent with the backend before granting it\"\n\nOriginal change's description:\n> Revert \"[aim-drive] Verify Drive consent with the backend before granting it\"\n>\n> This reverts commit 895803ea34a230e18d3f270ec06d91f1522f7b9d.\n>\n> Reason for revert: Causing consent acceptance issues in canary version 157.0.8102.0\n>\n> Failure Link: n/a - accepting consent isn't opening up picker.\n>\n> Original change's description:\n> > [aim-drive] Verify Drive consent with the backend before granting it\n> >\n> > DrivePickerHostUI granted Drive consent (set the kDriveConsentState pref\n> > to kConsent and minted a drive.readonly OAuth token) based solely on a\n> > PrivacyFlowResult relayed by the chrome-untrusted://drive-picker-host\n> > renderer. The checks added in crrev.com/c/8401387 (flow_id match and an\n> > outstanding consent flow) only validate data a compromised renderer\n> > controls: the flow_id is a public constant that the browser itself puts\n> > in the ConsentKit URL, and the consent.google.com origin check runs only\n> > in untrusted JS.\n> >\n> > Treat the renderer's result purely as a signal that the flow finished.\n> > Before recording consent or fetching a token, query the Footprints\n> > backend via DriveDisclaimerController (the same source of truth the\n> > entry point in ContextualSearchboxHandler already consults) and proceed\n> > only if it reports the consent as accepted. Any other status, including\n> > RPC failure, fails closed with an error. A reply that arrives after the\n> > flow was cancelled or errored is ignored.\n> >\n> > Fixed: b:571284298\n> > Change-Id: Id5e095baa8f03ac472076201dd24226f44db9625\n> > Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8544143\n> > Reviewed-by: Juliet Knighton <julietlevesque@google.com>\n> > Commit-Queue: Adam Yao <adamyao@google.com>\n> > Cr-Commit-Position: refs/heads/main@{#1717137}\n>\n> Bug: b:571284298\n> No-Presubmit: true\n> No-Tree-Checks: true\n> No-Try: true\n> Change-Id: I3aa418ef1d718b9f9ae1e95e69a5e36024dffae6\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8570698\n> Commit-Queue: Adam Yao <adamyao@google.com>\n> Reviewed-by: Juliet Knighton <julietlevesque@google.com>\n> Auto-Submit: Adam Yao <adamyao@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717710}\n\n(cherry picked from commit ef588dd9ab90d947c20b1449e519bbb7f0cbbc71)\n\nBug: 573706407,b:571284298\nChange-Id: I3aa418ef1d718b9f9ae1e95e69a5e36024dffae6\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583555\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nOwners-Override: Ben Mason <benmason@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#133}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "eea940d94678138edee2af0a8c29af695b2edbd1",
+      "tree": "df513254e98dc9a4882b7f4ad29059b00c9faaf5",
+      "parents": [
+        "2681cc231b99456b58f83ab37b56fdeaf2d36b0e"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 18:05:30 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:05:30 2026"
+      },
+      "message": "[M157] [ContextualTasks] Bind service worker search IPC\n\nOriginal change's description:\n> [ContextualTasks] Bind service worker search IPC\n>\n> Search communication between the browser and the AIM page previously\n> relied on document-scoped `ContextualTasksExtensionHandler` instances,\n> which required at least one extension iframe to be mounted on the page.\n> Extending the search Mojo channel with an optional `document_id` and\n> binding `ContextualTasksExtensionServiceWorkerHandler` on the component\n> extension's service worker allows the browser to exchange search\n> messages with `ContextualTasksWebContentsUserData` when zero extension\n> iframes are present.\n>\n> Because a single profile-scoped service worker multiplexes messages\n> across tabs and side panels, incoming `document_id` tokens are validated\n> against `ExtensionApiFrameIdMap` to ensure the target frame is a primary\n> main frame in the same `Profile` before routing traffic.\n>\n> Bug: b:549306496\n> Change-Id: I9ce76542960aeb05f4884d69b4bd19fce70fa033\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8489260\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Reviewed-by: Jason Hu <hujasonx@google.com>\n> Reviewed-by: Tom Sepez <tsepez@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717701}\n\n(cherry picked from commit a90dde1864635acb172f1e06bb4e38015f7cbb69)\n\nBug: 573706407,b:549306496\nChange-Id: I9ce76542960aeb05f4884d69b4bd19fce70fa033\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8580291\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#132}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "2681cc231b99456b58f83ab37b56fdeaf2d36b0e",
+      "tree": "6e70df6b9f05b281da692e17d7676176f7c6d949",
+      "parents": [
+        "f77f02c325fd7c74bd707550a2b8b47f30baae50"
+      ],
+      "author": {
+        "name": "Wenhu Cheng",
+        "email": "wenhuc@google.com",
+        "time": "Thu Oct 15 18:04:32 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:04:32 2026"
+      },
+      "message": "[M157] [Voice Search] Split NewTabPageAppTest.VoiceSearchCoherence\n\nOriginal change's description:\n> [Voice Search] Split NewTabPageAppTest.VoiceSearchCoherence\n>\n> The VoiceSearchCoherence Mocha suite runs 17 test cases in one browser\n> test, and every case re-creates the NTP app. On slow bots the whole\n> suite takes close to, or longer than, the test launcher timeout, so it\n> kept timing out:\n> * Linux Tests (dbg)(1): passing runs took 53-90s (median ~65s) against\n>   the 90s launcher timeout, and nearly every build needed a retry\n>   (TIMEOUT) until the test was disabled on Linux debug builds.\n> * linux-chromeos-dbg: ~56% of runs were flaky, timing out at the 180s\n>   limit.\n> * linux-blink-web-tests-force-accessibility-rel: occasional timeouts at\n>   the 45s limit.\n>\n> Group the test cases into four nested sub-suites (Dialog, Events,\n> Animation, LiveTranscript) and run each one in its own browser test.\n> The test logic is unchanged: the cases are only moved and re-indented.\n> The repeated \"open voice search\" dispatch is moved into an\n> openVoiceSearch() helper, because at the deeper indentation clang-format\n> would break the line before the non-null assertion, which does not\n> parse. Each browser test now runs at most 5 cases, so re-enable the\n> tests on Linux debug builds.\n>\n> Also remove the \"NewTabPageAppTest.VoiceSearchCoherence\" entry that was\n> added to accessibility-linux.browser_tests.filter for this bug. It had\n> no leading \"-\", so it acted as a positive filter. Since then, the\n> browser_tests step on linux-blink-web-tests-force-accessibility-rel has\n> run only that one test and skipped all the others.\n>\n> Fixed: b:562962226\n> Bug: 527605085\n> Change-Id: If729b2378d9bfaac82305473b13773451b47e2dd\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8564724\n> Reviewed-by: Bofeng Chen <bofengchen@google.com>\n> Commit-Queue: Wenhu Cheng <wenhuc@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717661}\n\n(cherry picked from commit 4e55fbb6e0e2a139d4c0e7f57bbddc634abd4809)\n\nBug: 573706407,b:562962226,527605085\nChange-Id: If729b2378d9bfaac82305473b13773451b47e2dd\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8579182\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nOwners-Override: Ben Mason <benmason@chromium.org>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#131}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f77f02c325fd7c74bd707550a2b8b47f30baae50",
+      "tree": "4f347b67dc53c18734a0ad2a54e52d397dc9aecb",
+      "parents": [
+        "1cc9a44271df08edf2b8c3768e8c4fad8eb8b566"
+      ],
+      "author": {
+        "name": "Marlon Facey",
+        "email": "mfacey@google.com",
+        "time": "Thu Oct 15 18:04:19 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 18:04:19 2026"
+      },
+      "message": "[M157] [Full WebUI Omnibox] Make sure blur does not clear icon\n\nOriginal change's description:\n> [Full WebUI Omnibox] Make sure blur does not clear icon\n>\n> The selected match was getting cleared on blur. Now we store the last\n> selected match so the icon does not change.\n>\n> http://screencast/cast/NDc5NjgwNzA2MTE3NjMyMHwzNTQzYWFjMi1iZg\n>\n> Bug: b:566212422\n> Change-Id: I9d41bf5c97b673af863cd50bb3a7bac5040c3e13\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8520063\n> Reviewed-by: Paul Adedeji <pauladedeji@google.com>\n> Commit-Queue: Marlon Facey <mfacey@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717657}\n\n(cherry picked from commit 3489f19d6b1eab5504cd7e9110f5d18997a23ab7)\n\nBug: 573706407,b:566212422\nChange-Id: I9d41bf5c97b673af863cd50bb3a7bac5040c3e13\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8577367\nOwners-Override: Ben Mason <benmason@chromium.org>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#130}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "1cc9a44271df08edf2b8c3768e8c4fad8eb8b566",
+      "tree": "0804ecfa0e53ab0f7c2fb4c922286cf8f702a43c",
+      "parents": [
+        "b0c84c565b0d4595ab3f6ed683898294a0487152"
+      ],
+      "author": {
+        "name": "Charles Cai",
+        "email": "charlesyc@google.com",
+        "time": "Thu Oct 15 17:55:05 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 17:55:05 2026"
+      },
+      "message": "[M157] Support offloading oversized custom data and catch clipboard exceptions\n\nOriginal change's description:\n> Support offloading oversized custom data and catch clipboard exceptions\n>\n> Extend ClipboardTextDataProvider to stage and serve web custom data\n> payloads alongside text and HTML when writes exceed Binder transaction\n> limits, and update getCustomClipData to read back offloaded data from\n> the content URI.\n>\n> Additionally, wrap ClipboardManager getPrimaryClipDescription and\n> getPrimaryClip calls in try-catch blocks to prevent uncaught exceptions\n> (such as Binder buffer exhaustion) from crashing the browser.\n>\n> Bug: 567533604\n> Change-Id: I9f0c53edfd7138d27ad31592fb313643204e74e6\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8527628\n> Reviewed-by: Sky Malice <skym@chromium.org>\n> Commit-Queue: Charles Cai <charlesyc@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717644}\n\n(cherry picked from commit 1ff44908c04073ec5ff6b7832b43bf7c8eff2ccb)\n\nBug: 573981021,567533604\nChange-Id: I9f0c53edfd7138d27ad31592fb313643204e74e6\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8588937\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#129}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "b0c84c565b0d4595ab3f6ed683898294a0487152",
+      "tree": "79fd554f3a937c49549aab8960ed245bc6283c88",
+      "parents": [
+        "4d1a651f0a57543b7e7d686ac33a913dd85bdd93"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 17:39:57 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 17:39:57 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792072156-3a531da487877aef23ff64dc1310376cd91115e5-778b0a80f8e903757be94ad68adfcc6eaa3f5c92.profdata to chrome-mac-arm-8103-1792079975-04c37b53e7279e25a2e1f8b97e904f22a8c33f27-bd55bd8691ba2f4554717862b2493b324875044a.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I7feae9f1a987c4c9038203d2c99076286a32c8f0\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8589195\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#128}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "4d1a651f0a57543b7e7d686ac33a913dd85bdd93",
+      "tree": "bdb3bab556977088c571f33d8122b580bf9f1ea3",
+      "parents": [
+        "2c0a8ad305ede45480ee22e98d77d39848046b5e"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 17:32:01 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 17:32:01 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from A-Q45DY35S6ORlnnw... to ylCW0ETl-lv24vNVb...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: If28cada40d84c3bb2cb64a8ca33e28a8e7e1bed9\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586296\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#127}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "2c0a8ad305ede45480ee22e98d77d39848046b5e",
+      "tree": "810b9dbb94f3c02b344544f4e59a33d8f24060eb",
+      "parents": [
+        "68d8e7d48da141410a99efba281a2b1cebe61cfc"
+      ],
+      "author": {
+        "name": "Ben Pastene",
+        "email": "bpastene@chromium.org",
+        "time": "Thu Oct 15 16:57:40 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:57:40 2026"
+      },
+      "message": "m157: infra: Move all N2+HDD chromium.try jammy builders to new C3+SSD bots\n\nThe new machines were allocated in https://crrev.com/i/9960700.\n\nThis migrates all trunk traffic to the new pool (and also adds cores=8\nto any linux builder in this old machine pool that was missing it).\n\nAt some point soon (maybe after this CL is fully cherry-picked?),\nwe'll want to swap the default of SSD from 0 to 1. Or maybe remove it\nall together from requests, since the new world will eventually be all\nSSD.\n\n(cherry picked from commit 266bd469d50a4a73c52ea60a5b7d8b800c7e8bab)\n\nBug: 548320842\nMerge-Approval-Bypass: Infra builder fix for M157\nNo-Try: true\nChange-Id: Iba3d640a59aed97f639689d1dd52eb8a86370706\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583045\nReviewed-by: Haiyang Pan <hypan@google.com>\nAuto-Submit: Ben Pastene <bpastene@chromium.org>\nCommit-Queue: Haiyang Pan <hypan@google.com>\nCr-Commit-Position: refs/branch-heads/8103@{#126}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "68d8e7d48da141410a99efba281a2b1cebe61cfc",
+      "tree": "b44d405bc3f882b289a8d4b7c5de1edc26986593",
+      "parents": [
+        "c03f0d53c25479724f322283cdeadcbf47e5b3e3"
+      ],
+      "author": {
+        "name": "David Bienvenu",
+        "email": "davidbienvenu@chromium.org",
+        "time": "Thu Oct 15 16:39:51 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:39:51 2026"
+      },
+      "message": "[M157] Use WindowTracker in NativeWindowOcclusionTrackerWin\n\nOriginal change's description:\n> Use WindowTracker in NativeWindowOcclusionTrackerWin\n>\n> Use WindowTracker when updating occlusion states.\n>\n> Bug: 570029317\n> Change-Id: Ia0f58e66c22a492235c5013084e57e2b7594da5c\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8560011\n> Reviewed-by: Chris Davis <chrdavis@microsoft.com>\n> Reviewed-by: Jesse McKenna <jessemckenna@google.com>\n> Commit-Queue: David Bienvenu <davidbienvenu@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718265}\n\n(cherry picked from commit 1775ec03a1389c3b2a0f3d3fba3dbe7d5b9f0632)\n\nBug: 573868208,570029317\nChange-Id: Ia0f58e66c22a492235c5013084e57e2b7594da5c\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8587915\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#125}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c03f0d53c25479724f322283cdeadcbf47e5b3e3",
+      "tree": "7c6012d66751319a4fd678ee12c3c0efb7b16492",
+      "parents": [
+        "f738536b20c6d97c3520b7e9cf66eb65b259c2b0"
+      ],
+      "author": {
+        "name": "Dibyajyoti Pal",
+        "email": "dibyapal@google.com",
+        "time": "Thu Oct 15 16:35:33 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:35:33 2026"
+      },
+      "message": "[M157] [WebApk] Make install detection scope-aware for same-origin PWAs\n\nOriginal change's description:\n> [WebApk] Make install detection scope-aware for same-origin PWAs\n>\n> Since crrev.com/c/8257064 (M154), WebappRegistry.isAppInstalledForUrl()\n> decides whether a WebAPK is installed for the current tab by comparing\n> origins only (hasAtLeastOneWebApkForOrigin). Origin.create() discards\n> the scope path, so once any WebAPK is installed on an origin, every\n> same-origin URL is reported as \"installed\".\n>\n> The launch side (OpenInApp intent resolution, findWebApkWithManifestId,\n> WebApkValidator.queryFirstWebApkPackage) is scope-aware. As a result,\n> with PWA A (scope /apps/pwa-a/) installed, visiting PWA B\n> (scope /apps/pwa-b/) on the same origin shows \"This app is already\n> installed\" in the Universal Install sheet, and tapping Open fails with\n> \"Could not open app\" because no WebAPK actually covers that URL. The\n> omnibox install button (desktop form factor) is hidden for B for the\n> same reason.\n>\n> Prior to crrev.com/c/8257064, install detection used PackageManager URL\n> resolution against the WebAPK intent filter (pathPrefix = scope path),\n> which was scope-granular. This CL restores that contract without the\n> per-navigation PackageManager IPC: isAppInstalledForUrl() now matches a WebAPK only if the URL is within its stored scope, using the same\n> UrlUtilities.isUrlWithinScope() predicate that WebApkVerifier and\n> WebApkReparentingHandler already rely on. The TWA check is unchanged.\n>\n> To ensure stored scopes and manifest-ID lookups stay accurate across\n> updates and uninstalls:\n> - WebappDataStorage.updateFromWebappIntentDataProvider() now updates\n>   KEY_SCOPE whenever info.scopeUrl() changes (rather than only when\n>   KEY_SCOPE is URL_INVALID), so WebAPK manifest scope updates take\n>   effect on relaunch.\n> - WebappRegistry.findWebApkWithManifestId() now filters out mStorages\n>   entries that are marked uninstalled or no longer installed in\n>   PackageManager, preventing an uninstalled child-scope WebAPK from\n>   shadowing an installed parent-scope WebAPK when opening the app.\n>\n> hasAtLeastOneWebApkForOrigin() and getOriginsWithInstalledApp() are\n> intentionally left as-is; their remaining callers (ShortcutHelper via\n> JNI, site settings) ask origin-level questions.\n>\n> Also adds test coverage for the changes to WebappDataStorage and\n> WebappRegistry as requested.\n>\n> TAG=agy\n> CONV=a2f025ae-455b-499b-a8dc-6661b7536c9e\n>\n> Fixed: 568841400\n> Change-Id: I77e6098ed45832c903038e16f305e27ab5001ba4\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8556881\n> Commit-Queue: Dibyajyoti Pal <dibyapal@chromium.org>\n> Reviewed-by: Kunjan Patel <ksukh@chromium.org>\n> Reviewed-by: Daniel Murphy <dmurph@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717887}\n\n(cherry picked from commit 2e165cdb08d714941e3573a18b719bfdad78ff66)\n\nBug: 573692007,568841400\nChange-Id: I77e6098ed45832c903038e16f305e27ab5001ba4\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583262\nCommit-Queue: Dibyajyoti Pal <dibyapal@chromium.org>\nReviewed-by: Daniel Murphy <dmurph@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#124}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f738536b20c6d97c3520b7e9cf66eb65b259c2b0",
+      "tree": "6af7215fb764fbae8089e4ef51155c51539ae87a",
+      "parents": [
+        "d549da9546fe4e32d9e631f98afb54ca6191268e"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:28:10 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:28:10 2026"
+      },
+      "message": "Roll Chrome Win64 PGO Profile\n\nRoll Chrome Win64 PGO profile from chrome-win64-8103-1792043845-4ab4027d724a9520a36c2af6f2914a31690c2e5d-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata to chrome-win64-8103-1792065212-765b24f30c4018e6ec531a4cb938140f9a5c0591-25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-win64-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:win64-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I458be4496cfeb5cf06a0219ef1700e68c7b34ea2\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586642\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#123}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d549da9546fe4e32d9e631f98afb54ca6191268e",
+      "tree": "4dcc71948a8e8494aa14b3047559b07c923a8048",
+      "parents": [
+        "b631865b1bfb1d2e42aed69c00141a00bdc307f3"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:21:57 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:21:57 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792065212-e5f41370d1ba4a4d96ec194f9edf2f73ace60e4c-25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363.profdata to chrome-mac-arm-8103-1792072156-3a531da487877aef23ff64dc1310376cd91115e5-778b0a80f8e903757be94ad68adfcc6eaa3f5c92.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I56858a48494af9f4fd176ce7480e32ddcdf28f88\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8587795\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#122}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "b631865b1bfb1d2e42aed69c00141a00bdc307f3",
+      "tree": "acc4df8e2759fba11b7b5ba72126cdbd2e67fc94",
+      "parents": [
+        "eca5517a3c3c959b12bab0f2e1db03a20668144b"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 16:21:27 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:21:27 2026"
+      },
+      "message": "[M157] Revert CHECK on callbacks_.empty() back to DCHECK in TabDownloadState\n\nOriginal change's description:\n> Revert CHECK on callbacks_.empty() back to DCHECK in TabDownloadState\n>\n> Revert CHECK on callbacks_.empty() in TabDownloadState destructor back\n> to DCHECK to prevent crashes when callbacks_ is non-empty during\n> destructor execution.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/c4fdfe5908400000. Please see go/crash-autofix for more details.\n>\n> Bug: 571735666\n> Change-Id: I0a9581bd5c3dbcd05ef119951c21bbfe3d0145d8\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8547610\n> Reviewed-by: Gregg Tavares <gman@chromium.org>\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Commit-Queue: Gregg Tavares <gman@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717361}\n\n(cherry picked from commit 21733e130c0949b4bba966a3d9773ebe62f06425)\n\nBug: 573337349,571735666\nChange-Id: I0a9581bd5c3dbcd05ef119951c21bbfe3d0145d8\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581470\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#121}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "eca5517a3c3c959b12bab0f2e1db03a20668144b",
+      "tree": "b485f1a30d4f1b7112b2301c7273a7cb4cf07b26",
+      "parents": [
+        "db7c55294e9d83542b7989f6a2757a0554071247"
+      ],
+      "author": {
+        "name": "\u0141ukasz Barczy\u0144ski",
+        "email": "lbarczynski@google.com",
+        "time": "Thu Oct 15 16:00:49 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 16:00:49 2026"
+      },
+      "message": "[M157] [Signin][Android] Notify IdentityManager when device account fetch fails\n\nOriginal change's description:\n> [Signin][Android] Notify IdentityManager when device account fetch fails\n>\n> When MakeIdentityManagerSourceOfAccounts is enabled and fetching device\n> accounts fails, SigninManagerImpl#onAccountsChanged() returns early\n> without seeding accounts into IdentityManager. This CL calls\n> IdentityMutator#setRefreshTokensLoadingFailed() in that case so\n> IdentityManager and its observers (such as ProfileDataCache) are\n> notified that refresh token loading has failed.\n>\n> Bug: 571443093\n> Fixed: 566138426\n> Change-Id: I2bb3f7b06582feac0fc045b3a5b7723a8af14aff\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8539907\n> Commit-Queue: \u0141ukasz Barczy\u0144ski <lbarczynski@google.com>\n> Reviewed-by: Boris Sazonov <bsazonov@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718037}\n\n(cherry picked from commit 068a966727a09a7143b23c6e7493671be96ee24f)\n\nBug: 573471963,571443093,566138426\nChange-Id: I2bb3f7b06582feac0fc045b3a5b7723a8af14aff\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586136\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#120}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "db7c55294e9d83542b7989f6a2757a0554071247",
+      "tree": "dfd62de9e453307560ccf545306bb468a6600396",
+      "parents": [
+        "bd55bd8691ba2f4554717862b2493b324875044a"
+      ],
+      "author": {
+        "name": "\u0141ukasz Barczy\u0144ski",
+        "email": "lbarczynski@google.com",
+        "time": "Thu Oct 15 15:59:55 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:59:55 2026"
+      },
+      "message": "[M157] [Signin][Android] Handle accounts loading failure in ProfileDataCache\n\nOriginal change's description:\n> [Signin][Android] Handle accounts loading failure in ProfileDataCache\n>\n> When MakeIdentityManagerSourceOfAccounts is enabled, ProfileDataCache\n> observes IdentityManager to populate its accounts cache and fulfill the\n> getAccounts() promise. Previously, if refresh token loading failed, the\n> promise remained unfulfilled. This CL updates ProfileDataCache to\n> fulfill cache with the empty accounts list, when accounts fetching\n> failed. This is mirroring behavior for the disabled flag, when the\n> AccountManagerFacade is source of truth for accounts.\n>\n> Actual integration of the SigninManager and IdentityManager for that\n> callback will be implemented in the following CL.\n>\n> Bug: 571443093, 566138426\n> Change-Id: Ic11f6e68840f58390d934ebec01290366548be65\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8540025\n> Reviewed-by: Sophie Crowley <crowleso@google.com>\n> Reviewed-by: Boris Sazonov <bsazonov@chromium.org>\n> Commit-Queue: \u0141ukasz Barczy\u0144ski <lbarczynski@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717984}\n\n(cherry picked from commit 871391537f1196b96f4bdc4d472c855c5ad90390)\n\nBug: 573471963,571443093,566138426\nChange-Id: Ic11f6e68840f58390d934ebec01290366548be65\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581913\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#119}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "bd55bd8691ba2f4554717862b2493b324875044a",
+      "tree": "93220ac7e394d51e7c82fc89969473228090ba27",
+      "parents": [
+        "a0436424ed50748d25a82f230d39502a1ebffed1"
+      ],
+      "author": {
+        "name": "\u0141ukasz Barczy\u0144ski",
+        "email": "lbarczynski@google.com",
+        "time": "Thu Oct 15 15:59:35 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:59:35 2026"
+      },
+      "message": "[M157] [Signin][Android] Expose refresh token loading failure in IdentityManager\n\nOriginal change's description:\n> [Signin][Android] Expose refresh token loading failure in IdentityManager\n>\n> When MakeIdentityManagerSourceOfAccounts is enabled, Java components\n> relying on IdentityManager have no way to know if fetching device\n> accounts failed, as areRefreshTokensLoaded() remains IN_PROGRESS\n> indefinitely without any notification.\n>\n> This CL introduces a temporary Java-layer mechanism to surface refresh\n> token loading failures.\n>\n> Bug: 566138426, 571443093\n> Change-Id: I7283f0979720bac1ae90f0bf3923f0bfee433904\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8539328\n> Reviewed-by: Sophie Crowley <crowleso@google.com>\n> Reviewed-by: Boris Sazonov <bsazonov@chromium.org>\n> Commit-Queue: \u0141ukasz Barczy\u0144ski <lbarczynski@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717667}\n\n(cherry picked from commit 30847c5f10012571df87b4892777fd5559b135fc)\n\nBug: 573471963,566138426,571443093\nChange-Id: I7283f0979720bac1ae90f0bf3923f0bfee433904\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581912\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#118}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "a0436424ed50748d25a82f230d39502a1ebffed1",
+      "tree": "b22a723f5e40dda95ad0655fa35e51c1071d7b36",
+      "parents": [
+        "bc5e73e9dfe171f74161a88347262a23db9c3356"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 15:42:32 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:42:32 2026"
+      },
+      "message": "[M157] Revert CHECK to DCHECK in NotifyInstallingRegistration\n\nOriginal change's description:\n> Revert CHECK to DCHECK in NotifyInstallingRegistration\n>\n> ServiceWorkerRegistry::NotifyInstallingRegistration contains an\n> assertion that the registration being marked as installing is not\n> already present in installing_registrations_. Converting this check from\n> DCHECK to CHECK caused crashes in production builds when the assertion\n> failed.\n>\n> Revert this check back to DCHECK to prevent production crashes while\n> preserving the assertion check in debug builds.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/5a6016a908400000. Please see go/crash-autofix for more details.\n>\n> Bug: 571444452\n> Change-Id: I5e6577006ef07c52914b0ddd2ab56c12b9736fe8\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8537508\n> Commit-Queue: Gregg Tavares <gman@chromium.org>\n> Reviewed-by: Gregg Tavares <gman@chromium.org>\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717354}\n\n(cherry picked from commit 9356c83c69a6d7b52083ac4fd6bc8c45539c5b22)\n\nBug: 573337329,571444452\nChange-Id: I5e6577006ef07c52914b0ddd2ab56c12b9736fe8\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581469\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#117}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "bc5e73e9dfe171f74161a88347262a23db9c3356",
+      "tree": "74436ab9b4d73a147c78d939ae055b416d821461",
+      "parents": [
+        "c452ff76397bc191c6f183d690cb6221f7e2a305"
+      ],
+      "author": {
+        "name": "PKI Metadata Updates Bot",
+        "email": "mdb.chrome-pki-metadata-release-jobs@google.com",
+        "time": "Thu Oct 15 15:21:49 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:21:49 2026"
+      },
+      "message": "[CT] Automatic update from google3\n\nAutomatic update for 2026-10-15 UTC\n\nMerge-Approval-Bypass: pki-metadata-updater\nChange-Id: I5313d9170924525921c1013a45ec34847c68f787\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8587155\nBot-Commit: PKI Metadata Updates Bot <mdb.chrome-pki-metadata-release-jobs@google.com>\nCommit-Queue: PKI Metadata Updates Bot <mdb.chrome-pki-metadata-release-jobs@google.com>\nCr-Commit-Position: refs/branch-heads/8103@{#116}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c452ff76397bc191c6f183d690cb6221f7e2a305",
+      "tree": "764a16b0b0811247f86bd6c1fee0c937ecc8fe36",
+      "parents": [
+        "849b46b4b506bfb7136d73f25d30544ac62caffa"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 15:16:15 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:16:15 2026"
+      },
+      "message": "[M157] Revert CHECK to DCHECK in PartnerBookmarksShim::IsPartnerBookmark\n\nOriginal change's description:\n> Revert CHECK to DCHECK in PartnerBookmarksShim::IsPartnerBookmark\n>\n> Revert CHECK(IsLoaded()) in PartnerBookmarksShim::IsPartnerBookmark back\n> to DCHECK(IsLoaded()). IsPartnerBookmark may be called before the\n> partner bookmarks shim is loaded, leading to crashes in release builds.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/e564cad508400000. Please see go/crash-autofix for more details.\n>\n> Bug: 572863652\n> Change-Id: I0bb70c62560c8e8c7f513c869fcd0e4442de1a03\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8557282\n> Commit-Queue: Stephen Nusko <nuskos@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Reviewed-by: Takashi Sakamoto <tasak@google.com>\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717397}\n\n(cherry picked from commit 5da253fbd63532cd659879bf7a95d3bd3109a97d)\n\nBug: 573337110,572863652\nChange-Id: I0bb70c62560c8e8c7f513c869fcd0e4442de1a03\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585736\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#115}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "849b46b4b506bfb7136d73f25d30544ac62caffa",
+      "tree": "ec94f0faef749606213fb75cd2fa3e01153b78e2",
+      "parents": [
+        "3a59e7f32e2664aefcde2789fd58e0ea4ad991d1"
+      ],
+      "author": {
+        "name": "Duncan Mercer",
+        "email": "mercerd@google.com",
+        "time": "Thu Oct 15 15:15:17 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:15:17 2026"
+      },
+      "message": "[M157] [Lens] Parameterize Contextual Tasks UI tests\n\nOriginal change's description:\n> [Lens] Parameterize Contextual Tasks UI tests\n>\n> Parameterizes `ContextualTasksLensOverlayControllerInteractiveUiTest`,\n> `ContextualTasksLensOverlayEphemeralButtonInteractiveUiTest`,\n> `ContextualTasksLensOverlayControllerEligibilityInteractiveUiTest`, and\n> `OmniboxContextualSuggestionInteractiveUiTest` across `SignedIn`,\n> `SignedOut`, and `Incognito` user variations under\n> `kLensSidePanelUnification` by inheriting from\n> `ContextualTasksInteractiveTestBaseT`.\n>\n> `ContextualTasksInteractiveTestBase` installs\n> `TestTabContextualizationController` returning eligible page context and\n> completes initial cookie sync immediately across all variations, so\n> `FakeLensQueryFlowRouter` now wires up upload status observer\n> notifications on `MockContextualSearchContextController` and side panel\n> composebox tests synchronize on initial thread frame navigation commit\n> before opening the Lens overlay.\n>\n> Bug: 533072196\n> Change-Id: I739e09d0228ed6de20bd8cb845f2f5c90e482529\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8428389\n> Commit-Queue: Duncan Mercer <mercerd@google.com>\n> Reviewed-by: Juan Mojica <juanmojica@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1717626}\n\n(cherry picked from commit f7feacbf6971de9dd607c0360a58ebfabd3d540b)\n\nBug: 573706407,533072196\nChange-Id: I739e09d0228ed6de20bd8cb845f2f5c90e482529\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8580290\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nOwners-Override: Ben Mason <benmason@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#114}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "3a59e7f32e2664aefcde2789fd58e0ea4ad991d1",
+      "tree": "e93cbda66ac15873ad280d345331c5029e44da53",
+      "parents": [
+        "3b4d90a4be198d59d8447413de96181b6dec416e"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 15:10:40 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 15:10:40 2026"
+      },
+      "message": "[M157] Revert CHECK to DCHECK in BookmarkBridge::MoveBookmark\n\nOriginal change's description:\n> Revert CHECK to DCHECK in BookmarkBridge::MoveBookmark\n>\n> BookmarkBridge::MoveBookmark had a CHECK assertion on IsEditable(node)\n> which crashes release builds when moving a non-editable bookmark node.\n> This change reverts the CHECK back to DCHECK with a comment explaining\n> the exclusion until we are confident it will not be triggered.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/c051a85508400000. Please see go/crash-autofix for more details.\n>\n> Bug: 572776773\n> Change-Id: Ib759fe087dab9256477bb7891e1d28b78bf53613\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8559441\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Reviewed-by: Kalvin Lee <kdlee@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Commit-Queue: Kalvin Lee <kdlee@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717403}\n\n(cherry picked from commit f5ca884a7a611f3f99bc654f51f835bca2ae80e7)\n\nBug: 573342719,572776773\nChange-Id: Ib759fe087dab9256477bb7891e1d28b78bf53613\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581591\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#113}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "3b4d90a4be198d59d8447413de96181b6dec416e",
+      "tree": "212dfcfb363a94b1ea4cf5c2e4a53fb1d4977809",
+      "parents": [
+        "d046baf0d26019393a4c61355e797be610840ffa"
+      ],
+      "author": {
+        "name": "Chrome Release Translations",
+        "email": "mdb.chrome-release-translation-dump@google.com",
+        "time": "Thu Oct 15 14:43:36 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:43:36 2026"
+      },
+      "message": "Updating XTBs based on .GRDs from branch 8103\n\nBinary-Size: Size increase is unavoidable\nMerge-Approval-Bypass: Chromium translation automation\nChange-Id: I349b0fc799b9fe7e3ab72c8a0a345ce35b77b858\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8579145\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: Chrome Release Translation Dump <mdb.chrome-release-translation-dump@google.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#112}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d046baf0d26019393a4c61355e797be610840ffa",
+      "tree": "65a48b2dbfa02c7506c74825fe012b356a4e30d4",
+      "parents": [
+        "bfc559822d54940130cb64bcacec4c27a3c31efe"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:42:23 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:42:23 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from 7N4IDmwllES7nREUU... to xrY6GjJ9duJO0Q4_e...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I1c56a63f416cd1096ad5875af0e288079f4ede56\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586702\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#111}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "bfc559822d54940130cb64bcacec4c27a3c31efe",
+      "tree": "86568fb873153508879c1e570c1e32ba454a2c94",
+      "parents": [
+        "5f0715b17e44faf3f6bfc49baf23a4d3281ccac8"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:05:03 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:05:03 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from 8QyDwxbHtK5vm8tsa... to A-Q45DY35S6ORlnnw...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I4dc2e59bfe31ee874defeea74ca37734ce7c425b\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586645\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#110}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "5f0715b17e44faf3f6bfc49baf23a4d3281ccac8",
+      "tree": "ac47cb5d29f9e18456198cee2bace55ae49c139c",
+      "parents": [
+        "778b0a80f8e903757be94ad68adfcc6eaa3f5c92"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 14:01:37 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 14:01:37 2026"
+      },
+      "message": "[M157] Revert CHECK back to DCHECK in DialMediaRouteProvider destructor\n\nOriginal change's description:\n> Revert CHECK back to DCHECK in DialMediaRouteProvider destructor\n>\n> When DialMediaRouteProvider is destroyed while media_sink_queries_ is\n> non-empty, the CHECK macro triggers and causes a crash.\n>\n> This change reverts the CHECK back to DCHECK in ~DialMediaRouteProvider\n> and adds a comment to annotate the CHECK exclusion.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/0e14dd3508400000. Please see go/crash-autofix for more details.\n>\n> Bug: 572960266\n> Change-Id: Id162d709fd8749253fe76bd22bd27779709a7c73\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8564420\n> Commit-Queue: Kalvin Lee <kdlee@chromium.org>\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Reviewed-by: Kalvin Lee <kdlee@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718379}\n\n(cherry picked from commit f2e1e2d7fc278d583152b815ba4379e31eca4044)\n\nBug: 573791277,572960266\nChange-Id: Id162d709fd8749253fe76bd22bd27779709a7c73\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581549\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#109}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "778b0a80f8e903757be94ad68adfcc6eaa3f5c92",
+      "tree": "ea760045a921a078cdc91e7ffb02c9bf0f9defde",
+      "parents": [
+        "cde0449d368bdde84542752d5e26e216f8603408"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:49:16 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:49:16 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792058149-1686833315d17d27ad6b6a0ed45610b01fef5d69-a77b6e12489709ba41647bfb7f03606abce1458f.profdata to chrome-mac-arm-8103-1792065212-e5f41370d1ba4a4d96ec194f9edf2f73ace60e4c-25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I1c7fd3d89458b919bd7bd15c3b3c0f091353f52c\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586696\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#108}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "cde0449d368bdde84542752d5e26e216f8603408",
+      "tree": "174bb2eb3c581206e31e113f1f3bb4717d6689b8",
+      "parents": [
+        "802dc853e4abba85f15625c6ef3bf14aa60ea7f9"
+      ],
+      "author": {
+        "name": "Rakina Zata Amni",
+        "email": "rakina@chromium.org",
+        "time": "Thu Oct 15 13:48:25 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:48:25 2026"
+      },
+      "message": "[M157] Don't use a deleted source RenderFrameHost in WebContentsImpl::OpenURL\n\nOriginal change's description:\n> Don't use a deleted source RenderFrameHost in WebContentsImpl::OpenURL\n>\n> WebContentsImpl::OpenURL() looks up the source RenderFrameHost, calls\n> delegate_->OpenURLFromTab(), and then uses the source RenderFrameHost.\n> However, OpenURLFromTab() can synchronously delete it: e.g. if a\n> ServiceWorker calls WindowClient.navigate() on a frame whose renderer\n> process has crashed, starting the navigation performs an early\n> RenderFrameHost swap, which deletes the crashed source RenderFrameHost.\n>\n> Fix this by checking the source SiteInstance before calling\n> OpenURLFromTab(), and only accessing the source RenderFrameHost through\n> a WeakPtr after that.\n>\n> Bug: 569408568\n> Change-Id: Ib38179939a27b2461a23ce230f281069d50e9644\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8536146\n> Reviewed-by: Alex Moshchuk <alexmos@chromium.org>\n> Commit-Queue: Rakina Zata Amni <rakina@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718495}\n\n(cherry picked from commit fa4d1be86a1ca97c8b49ca173618ce3d93c4563a)\n\nBug: 573868009,569408568\nChange-Id: Ib38179939a27b2461a23ce230f281069d50e9644\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583166\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#107}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "802dc853e4abba85f15625c6ef3bf14aa60ea7f9",
+      "tree": "98c465e858a749fa7b8b0944fd5d123053440d31",
+      "parents": [
+        "1bcace62034111b0bb0647bc5e58b7ab713083fd"
+      ],
+      "author": {
+        "name": "Rune Lillesveen",
+        "email": "futhark@chromium.org",
+        "time": "Thu Oct 15 13:34:53 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:34:53 2026"
+      },
+      "message": "[M157] Do not expose pseudo-elements through LargestContentfulPaint API\n\nOriginal change's description:\n> Do not expose pseudo-elements through LargestContentfulPaint API\n>\n> If a PseudoElement is stored as the element_ in the\n> LargestContentfulPaint object, we would expose that to javascript\n> through the element attribute.\n>\n> This could cause all sorts of problems, letting javascript be able to\n> modify them as if they were true elements, moving them around the tree\n> in unexpected places and setting attributes on them, for instance.\n>\n> Specifically, the issue reported was modifying querySelector caches\n> while being traversed due to slot re-assignment.\n>\n> Bug: 570638836\n> Change-Id: I44d87a537a7da52fa9dc2aa577a58a888c94f3de\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8545831\n> Commit-Queue: Scott Haseley <shaseley@chromium.org>\n> Commit-Queue: Rune Lillesveen <futhark@chromium.org>\n> Auto-Submit: Rune Lillesveen <futhark@chromium.org>\n> Reviewed-by: Scott Haseley <shaseley@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1718007}\n\n(cherry picked from commit 73dd2febfaa5d8d2a398dbd906454a4e7e9d2b79)\n\nBug: 573867349,570638836\nChange-Id: I44d87a537a7da52fa9dc2aa577a58a888c94f3de\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586595\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#106}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "1bcace62034111b0bb0647bc5e58b7ab713083fd",
+      "tree": "c7c48a37611a072d840b525061b93bfba526b933",
+      "parents": [
+        "de833ecfd72cd19417dec94a3b1a3c8660362214"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:26:27 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:26:27 2026"
+      },
+      "message": "Roll Chrome Mac PGO Profile\n\nRoll Chrome Mac PGO profile from chrome-mac-8103-1792043845-5eaf35555673d2d622fbea9c05771bb3ebef1167-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata to chrome-mac-8103-1792065212-a1ec6526bb93f35418b883dc9ba3c13b8dc947ad-25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:mac-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I278614b196c4c1d0b4e2d9b2a87be79553693802\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8586637\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#105}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "de833ecfd72cd19417dec94a3b1a3c8660362214",
+      "tree": "0c2d5165a027a4cd3a63bf9709d5f7c272161a81",
+      "parents": [
+        "c38bc892a9b6bf4a330cc55569c2d71efe89d49a"
+      ],
+      "author": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:05:56 2026"
+      },
+      "committer": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 13:05:56 2026"
+      },
+      "message": "Roll commits from side projects in M157\n\nRoll src/v8 in M157 from f641a2b80baf to a3512c841aae\nCommits rolled:\nhttps://chromium.googlesource.com/v8/v8.git/+log/f641a2b80baf..a3512c841aae\n\nGenerated by: http://go/bbid/8667872958674710721\nMerge-Approval-Bypass: Chrome DEPS-autoroller\n\nChange-Id: Id62918ff981c4f58f80e6b492372c75aa476501a\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8577778\nBot-Commit: chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com <chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#104}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c38bc892a9b6bf4a330cc55569c2d71efe89d49a",
+      "tree": "0628d796e04b645414dfb5e86a77f269999063c2",
+      "parents": [
+        "e6f63d4e20ba7c5264457b2e94400ae1c7cd0b8d"
+      ],
+      "author": {
+        "name": "Ryan Sultanem",
+        "email": "rsult@google.com",
+        "time": "Thu Oct 15 12:55:48 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 12:55:48 2026"
+      },
+      "message": "[M157] [SyncPreview] Do not select accounts already signed in on other profiles\n\nOriginal change's description:\n> [SyncPreview] Do not select accounts already signed in on other profiles\n>\n> Adds SigninClient::IsAccountSignedInOnOtherProfile() (implemented in\n> ChromeSigninClient and IOSChromeSigninClient) and populates\n> AccountPreviewHeuristicContext::is_signed_in_on_other_profile in\n> AccountPreviewDataServiceImpl.\n>\n> Updates ComputePreferredAccountForPromo() and\n> ComputeAccountSwitchingSelection() to ignore candidate accounts that are\n> already signed in on another profile on the client, recording\n> AccountPreviewSelectionReason::kNoSelectionSignedInOnOtherProfile and\n> AccountSwitchingSelectionOutcome::kWouldNotShowSecondarySignedInOnOtherProfile\n> when no eligible account can be selected as a result.\n>\n> Fixed: 572670733\n> Change-Id: I72aa7a25e1ca9b23b9e377792f38010d57605f3b\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8559097\n> Auto-Submit: Ryan Sultanem <rsult@google.com>\n> Reviewed-by: Arthur Milchior <arthurmilchior@chromium.org>\n> Commit-Queue: Ryan Sultanem <rsult@google.com>\n> Cr-Commit-Position: refs/heads/main@{#1718478}\n\n(cherry picked from commit f83aa3da90c893062cc50ec5eb8e948027654a1d)\n\nBug: 573615121,572670733\nChange-Id: I72aa7a25e1ca9b23b9e377792f38010d57605f3b\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575566\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Ryan Sultanem <rsult@google.com>\nCr-Commit-Position: refs/branch-heads/8103@{#103}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "e6f63d4e20ba7c5264457b2e94400ae1c7cd0b8d",
+      "tree": "5326f67acb1a540bbf526444954e2d769081193d",
+      "parents": [
+        "43754bcdebbc3abc800520355dfd6cacb280ddce"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 12:16:11 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 12:16:11 2026"
+      },
+      "message": "Roll Chrome Win64 PGO Profile\n\nRoll Chrome Win64 PGO profile from chrome-win64-8103-1791996162-d39336eda22ae193df01b34311823ad4001010fa-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata to chrome-win64-8103-1792043845-4ab4027d724a9520a36c2af6f2914a31690c2e5d-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-win64-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:win64-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ib847a3e1c2fc45fba5bc94ee89db281825a63336\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585775\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#102}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "43754bcdebbc3abc800520355dfd6cacb280ddce",
+      "tree": "358bea8fa80b7e74d92ab343d76bc342c63ad110",
+      "parents": [
+        "25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363"
+      ],
+      "author": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 12:04:55 2026"
+      },
+      "committer": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 12:04:55 2026"
+      },
+      "message": "Roll commits from side projects in M157\n\nRoll src/v8 in M157 from 283bfa459af9 to f641a2b80baf\nCommits rolled:\nhttps://chromium.googlesource.com/v8/v8.git/+log/283bfa459af9..f641a2b80baf\n\nGenerated by: http://go/bbid/8667876726780420945\nMerge-Approval-Bypass: Chrome DEPS-autoroller\n\nChange-Id: I3944d869b4a5dd6b57fb221b302aa05dd607c71d\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8581190\nBot-Commit: chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com <chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#101}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "25f99d50f2deb7a893f2b8114b0dd2f3ec7cc363",
+      "tree": "3d88cdb09ae15e591f33edef367ced9b3713ea91",
+      "parents": [
+        "0ba9b026acff16308419f70245664edd26b5c0e3"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 11:53:32 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 11:53:32 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792051042-689296e6ee956775790977560b053feb2ea01f3f-f59581f12fc5be2ff11d5298e627a97c018e90ba.profdata to chrome-mac-arm-8103-1792058149-1686833315d17d27ad6b6a0ed45610b01fef5d69-a77b6e12489709ba41647bfb7f03606abce1458f.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ifb483a6ed02f6bc15e45b71c78c3a7f1dc0157b0\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585898\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#100}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "0ba9b026acff16308419f70245664edd26b5c0e3",
+      "tree": "5b65094230cafad42220158f80f83115f94c117a",
+      "parents": [
+        "e98bd80b5d5ac8b6317579b5120b9ec9d0a4b0ec"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 11:27:29 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 11:27:29 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from vF_nU5wz1THyqxKXl... to 7N4IDmwllES7nREUU...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I3a0d278d9101b69d09b3227f078c1f6f53c137dc\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585895\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#99}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "e98bd80b5d5ac8b6317579b5120b9ec9d0a4b0ec",
+      "tree": "85946fe4ed4b0efd037859c756e7c39ac7876e56",
+      "parents": [
+        "f0f53ffd93125485f94041a24be13976a922b9a4"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:49:37 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:49:37 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from _piE9ly8mteBx_MeZ... to 8QyDwxbHtK5vm8tsa...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I68b96b84c112a8a8cf6aa5eab0cb64c435a0c728\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585935\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#98}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f0f53ffd93125485f94041a24be13976a922b9a4",
+      "tree": "87edc70254618852c8f2127a323ae2b9a1ad4b5a",
+      "parents": [
+        "51df085a07401bde78da5fd6ca9c857f53004205"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:39:43 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:39:43 2026"
+      },
+      "message": "Roll Chrome Linux PGO Profile\n\nRoll Chrome Linux PGO profile from chrome-linux-8103-1792021395-f6be8810ffd4afbca8022ec69ceeee08fea7515c-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata to chrome-linux-8103-1792043845-b284569a490022abbd9122ee76141c7d453653eb-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-linux-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:linux-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I4f06c6a5c08fc8f8483181a27138cc28ee3d21f5\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582958\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#97}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "51df085a07401bde78da5fd6ca9c857f53004205",
+      "tree": "44ac88ce1a7bc85e8046e614fecd5608f6d5b11f",
+      "parents": [
+        "ceafd053e158fbf2ac2e51823d78cd8f207eb575"
+      ],
+      "author": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:34:15 2026"
+      },
+      "committer": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:34:15 2026"
+      },
+      "message": "Roll commits from side projects in M157\n\nRoll src/v8 in M157 from d2463ed6f2df to 283bfa459af9\nCommits rolled:\nhttps://chromium.googlesource.com/v8/v8.git/+log/d2463ed6f2df..283bfa459af9\n\nGenerated by: http://go/bbid/8667882395609750113\nMerge-Approval-Bypass: Chrome DEPS-autoroller\n\nChange-Id: Iade4f98c4c4ea95ba97bd7d178d12f9f65c061e9\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8585296\nBot-Commit: chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com <chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#96}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "ceafd053e158fbf2ac2e51823d78cd8f207eb575",
+      "tree": "67721fedcd785570063a1635bb3dcf8f595e4bc7",
+      "parents": [
+        "a77b6e12489709ba41647bfb7f03606abce1458f"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:02:45 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 10:02:45 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from Eae3j1kA9CyGRgOcj... to vF_nU5wz1THyqxKXl...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ia5c5880d87a50ee3662e17d9605a25a33361b1c2\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8580173\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#95}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "a77b6e12489709ba41647bfb7f03606abce1458f",
+      "tree": "dbd1d5a0ce527ee78b959f8721d8111d438bc2a5",
+      "parents": [
+        "3d7c4a0b0a297a14a335d677454ced4acfc4b849"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 09:55:49 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 09:55:49 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792043845-30c41edb22bce65ab1256ca7c3355016143baec0-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata to chrome-mac-arm-8103-1792051042-689296e6ee956775790977560b053feb2ea01f3f-f59581f12fc5be2ff11d5298e627a97c018e90ba.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I14e70ddca182d903ed242d934a3dc392c564762a\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582969\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#94}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "3d7c4a0b0a297a14a335d677454ced4acfc4b849",
+      "tree": "d899aa78e92e203b6781125171f367ee255b52cf",
+      "parents": [
+        "f59581f12fc5be2ff11d5298e627a97c018e90ba"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 09:54:21 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 09:54:21 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from aJg4ajFiuwCbcvdAw... to _piE9ly8mteBx_MeZ...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I6cd7c228f57ff2d57b4ee3166efca0883ff75eef\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8584678\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#93}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "f59581f12fc5be2ff11d5298e627a97c018e90ba",
+      "tree": "617ea98f17a3c52411f49bc6f6d0612ba20bbf2e",
+      "parents": [
+        "1280bee94b59d705bde069fda30de2ffa7f0586b"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:57:22 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:57:22 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792033679-fe80d7fb34608afa27b22aa98978dd76cd296a04-9ba81f44ac74b99471bae49fa668edca98a5b1a8.profdata to chrome-mac-arm-8103-1792043845-30c41edb22bce65ab1256ca7c3355016143baec0-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I1f72079d2b4cf02e21e72249c8afc1d08f636247\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8584497\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#92}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "1280bee94b59d705bde069fda30de2ffa7f0586b",
+      "tree": "003b13308810fe885fcaf7510fe01735aff2ad63",
+      "parents": [
+        "8566d969e0e28d3bb1d10b9285a04489eeefbfaf"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:38:57 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:38:57 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from FbRyb9AXSXB7lTsuJ... to aJg4ajFiuwCbcvdAw...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I767b2e9fb619669ed897bfe9822c8d5cbcd9a22e\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582333\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#91}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "8566d969e0e28d3bb1d10b9285a04489eeefbfaf",
+      "tree": "4bc659ee183a35c7a4e8e24bf89ed99cd184d252",
+      "parents": [
+        "d0779b10d79fbd3d3c15ef519349ff228c26702c"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:29:24 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:29:24 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from G3BN04Hm2al4oy3gx... to Eae3j1kA9CyGRgOcj...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ic92cbb1b7dc6606d32761c0a10fd813773cf278c\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8584741\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#90}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d0779b10d79fbd3d3c15ef519349ff228c26702c",
+      "tree": "49f8dff2230ce5cd0684cbb9fb07831f09289c2c",
+      "parents": [
+        "ee065115429e2f3d3ff5547d2e6676bb0b79890b"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:25:00 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:25:00 2026"
+      },
+      "message": "Roll Chrome Mac PGO Profile\n\nRoll Chrome Mac PGO profile from chrome-mac-8103-1792021395-f49fbe4f968ec5058c369acff190bff5cb20b5ed-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata to chrome-mac-8103-1792043845-5eaf35555673d2d622fbea9c05771bb3ebef1167-3e687baf609ec0c29f284e55013f8c66dc23c216.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:mac-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ie9825eaca9daf1048cf9b6fedd5a1a9df510a9a7\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8578516\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#89}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "ee065115429e2f3d3ff5547d2e6676bb0b79890b",
+      "tree": "5757c9de7288596f11b757622dea5632300466d6",
+      "parents": [
+        "c20bd87f09668b8957c64e63742bbe974cc6f65d"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:04:39 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 07:04:39 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from Sha3qJ61jVUahWONg... to FbRyb9AXSXB7lTsuJ...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I001313e47c56bc878c96144df826397119dd30db\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582957\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#88}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c20bd87f09668b8957c64e63742bbe974cc6f65d",
+      "tree": "9d7ada010cacbd82a55c05bc0d4aa477bb30b30b",
+      "parents": [
+        "3e687baf609ec0c29f284e55013f8c66dc23c216"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 06:11:43 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 06:11:43 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792028456-e410d60fb2d51d1267c73bb242e04ee7170b4a7a-00892a6486fcc8cccf28fe5b61d4f1b8a26cf2bc.profdata to chrome-mac-arm-8103-1792033679-fe80d7fb34608afa27b22aa98978dd76cd296a04-9ba81f44ac74b99471bae49fa668edca98a5b1a8.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ie3206e4fb8e2b4390071f7bffaae49dc65f2d172\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583996\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#87}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "3e687baf609ec0c29f284e55013f8c66dc23c216",
+      "tree": "330e02fe6ae72192fc1d22cf7a34dab4c6ce43c8",
+      "parents": [
+        "158f38f065a0787c43462f878fb47e8073d4a7ec"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:57:25 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:57:25 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from QUHQP43hAWZ5N3X4a... to G3BN04Hm2al4oy3gx...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I2d352cb4357a9678a0dbc1d5e8c8bec936a64dc5\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575755\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#86}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "158f38f065a0787c43462f878fb47e8073d4a7ec",
+      "tree": "92c63a59a9bd7eceac302b1d68d25a1243d55ca2",
+      "parents": [
+        "b94c926d5fb8ec1f5d539fd0b38d543d6eb07dd0"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:38:02 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:38:02 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from KoJJh8t_sIZksgkGo... to Sha3qJ61jVUahWONg...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I512ffc87782f26cd985d61b9c11580e886bfecc1\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582508\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#85}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "b94c926d5fb8ec1f5d539fd0b38d543d6eb07dd0",
+      "tree": "cd1885584056b75f8a38268eaee22cd27e9d9d26",
+      "parents": [
+        "fa0eb93ba0ffdec79b41433c3656c036a1151d1f"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 05:25:58 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:25:58 2026"
+      },
+      "message": "[M157] Revert CHECK for active_session_ to DCHECK in Play()\n\nOriginal change's description:\n> Revert CHECK for active_session_ to DCHECK in Play()\n>\n> As part of the DCHECK-to-CHECK conversion effort, the active_session_\n> check in VideoPictureInPictureWindowControllerImpl::Play() was converted\n> to a fatal CHECK in release builds. This change reverts it back to a\n> DCHECK with a TODO comment to avoid crashing.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/a4e7bfc508400000. Please see go/crash-autofix for more details.\n>\n> Bug: 572378968\n> Change-Id: I603d41993b2284c8d30599cbd55e990f148ebd87\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8546196\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Commit-Queue: Kalvin Lee <kdlee@chromium.org>\n> Reviewed-by: Kalvin Lee <kdlee@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717430}\n\n(cherry picked from commit c4b5e8067a17d2afd5bdf7980373e647ab061b51)\n\nBug: 573442605,572378968\nChange-Id: I603d41993b2284c8d30599cbd55e990f148ebd87\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8580284\nReviewed-by: Stephen Nusko <nuskos@chromium.org>\nCommit-Queue: Stephen Nusko <nuskos@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#84}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "fa0eb93ba0ffdec79b41433c3656c036a1151d1f",
+      "tree": "2ba604ac574c2e329a7f5ca5847da231aa04950c",
+      "parents": [
+        "ce4deb459e369c71f41caf6a531661213c908207"
+      ],
+      "author": {
+        "name": "Chrome Crash (Prod)",
+        "email": "crash@system.gserviceaccount.com",
+        "time": "Thu Oct 15 05:10:23 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 05:10:23 2026"
+      },
+      "message": "[M157] Revert CHECK_EQ to DCHECK_EQ in ExtensionSyncService::CreateSyncData\n\nOriginal change's description:\n> Revert CHECK_EQ to DCHECK_EQ in ExtensionSyncService::CreateSyncData\n>\n> In ExtensionSyncService::CreateSyncData, a CHECK_EQ macro was added to\n> verify that a pending extension update version is strictly newer than\n> the currently installed version. In cases where this assumption is\n> violated in the wild, the CHECK_EQ triggers a crash.\n>\n> To prevent crashes without altering underlying logic, revert the\n> CHECK_EQ back to a DCHECK_EQ and add an exclusion comment.\n>\n> This fix was generated by the Crash Autofix pipeline for crash report\n> crash/1f9fb9b508400000. Please see go/crash-autofix for more details.\n>\n> Bug: 573016960\n> Change-Id: I297512f20c4f46324ba19dd3af636f9ae01d01eb\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8557785\n> Reviewed-by: Stephen Nusko <nuskos@chromium.org>\n> Commit-Queue: Stephen Nusko <nuskos@chromium.org>\n> Reviewed-by: Keishi Hattori <keishi@chromium.org>\n> Commit-Queue: Keishi Hattori <keishi@chromium.org>\n> Owners-Override: Stephen Nusko <nuskos@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717445}\n\n(cherry picked from commit a9eff2271fdcb03e1ea1443eae20ac658c67899b)\n\nBug: 573441529,573016960\nChange-Id: I297512f20c4f46324ba19dd3af636f9ae01d01eb\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8579180\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: Stephen Nusko <nuskos@chromium.org>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#83}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "ce4deb459e369c71f41caf6a531661213c908207",
+      "tree": "25780b1432aafcbbbd93fa04961411177c6a722d",
+      "parents": [
+        "a2201b742a8b9737075783dbe06e9ec59a294a39"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 04:26:06 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 04:26:06 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from _kWQVOZZFjeBY3j-I... to KoJJh8t_sIZksgkGo...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I6a19f49a58e816f705943cc807cc7e6d2b8f35f3\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583469\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#82}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "a2201b742a8b9737075783dbe06e9ec59a294a39",
+      "tree": "be3c4d9b73fd695ff1e3ecbea36ceb516c840a99",
+      "parents": [
+        "9ba81f44ac74b99471bae49fa668edca98a5b1a8"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 04:15:44 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 04:15:44 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792021395-ed575f62753c4f987b879fc49156bad3565a5e1b-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata to chrome-mac-arm-8103-1792028456-e410d60fb2d51d1267c73bb242e04ee7170b4a7a-00892a6486fcc8cccf28fe5b61d4f1b8a26cf2bc.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I4cb169b4843f98de43765dbc9c84450c7f0d44f9\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8574290\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#81}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "9ba81f44ac74b99471bae49fa668edca98a5b1a8",
+      "tree": "d02cf6d18f34646dc701bcaf8d13416c6ea4d659",
+      "parents": [
+        "2d6a8dbade08bf8cb81a1a96cd783ceaf344e852"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 03:07:59 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 03:07:59 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from pJ474hjOxl4wdyYhc... to QUHQP43hAWZ5N3X4a...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I59791a85bf79db61cb0bd13271d145b3bac0ae36\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583796\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#80}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "2d6a8dbade08bf8cb81a1a96cd783ceaf344e852",
+      "tree": "060ff36c25b14b277c45bc69187da4b238fdbe13",
+      "parents": [
+        "291d9f79416a9c0ef6e932941161b8a8447537f0"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 02:59:17 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 02:59:17 2026"
+      },
+      "message": "Roll Chrome Linux PGO Profile\n\nRoll Chrome Linux PGO profile from chrome-linux-8103-1791996162-3d36c129278c0c995f54c1b9438cfb36454c002f-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata to chrome-linux-8103-1792021395-f6be8810ffd4afbca8022ec69ceeee08fea7515c-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-linux-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:linux-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: If4b4e47e3b6a6eaf3962a74c2642017052062a2f\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583462\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#79}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "291d9f79416a9c0ef6e932941161b8a8447537f0",
+      "tree": "4fc80de709c68c2e46944caeddec46a1ab33f607",
+      "parents": [
+        "00892a6486fcc8cccf28fe5b61d4f1b8a26cf2bc"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 02:42:26 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 02:42:26 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792014077-68289b24b260a03bbc2caa9092b3aea291925c7d-265dd8bc1461e888a9bb4155e0e5011adb3c9c5b.profdata to chrome-mac-arm-8103-1792021395-ed575f62753c4f987b879fc49156bad3565a5e1b-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ica1a4464800611d364c331d66a294bb239dcfb77\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575995\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#78}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "00892a6486fcc8cccf28fe5b61d4f1b8a26cf2bc",
+      "tree": "c07fb97292eb4528119b9b75db862fe41729cfd5",
+      "parents": [
+        "d5b7fcb11379feb1fdf7afeb39e9937a842a9b89"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:40:56 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:40:56 2026"
+      },
+      "message": "Roll Chrome Mac PGO Profile\n\nRoll Chrome Mac PGO profile from chrome-mac-8103-1791996162-a7af6ffd4bc8e8a52bf3850c40f7d2e88fc28d83-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata to chrome-mac-8103-1792021395-f49fbe4f968ec5058c369acff190bff5cb20b5ed-3856f94957bef3c5e6048e5c1dc5f09f353d4186.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:mac-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I4450baee14b5accfbde793539a42f7e418e43449\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583715\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#77}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "d5b7fcb11379feb1fdf7afeb39e9937a842a9b89",
+      "tree": "871723c5ff60c2ee4a387a2a0136bb73233e7e2e",
+      "parents": [
+        "c6adfba8bad7979ee32608f49a5268e04f892d47"
+      ],
+      "author": {
+        "name": "Achuith Bhandarkar",
+        "email": "achuith@chromium.org",
+        "time": "Thu Oct 15 01:40:40 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:40:40 2026"
+      },
+      "message": "[M157] omnibox: Load the full WebUI popup once per window\n\nOriginal change's description:\n> omnibox: Load the full WebUI popup once per window\n>\n> OmniboxFullPopupWebUIContent's base class, OmniboxPopupWebUIContent,\n> called SetContentURL() in its constructor, and then the subclass\n> called it again. So every browser window built a popup WebContents\n> (and OmniboxPopupUI) and started its navigation, only to throw it\n> away for a second one. The first one was also built before the\n> subclass overrides existed, e.g. with the classic metric prefix and\n> EscClosesUI() true. A trace of window creation on linux-chromeos\n> shows ~16 ms of the full popup's LocationBarView::Init going to the\n> discarded load.\n>\n> Give the base constructor a set_content_url argument. The classic\n> presenter passes true and behaves as before; the full popup passes\n> false and loads its page once, from its own constructor.\n>\n> TAG=agy\n> CONV=a03590ac-da78-4264-b0b6-3ac7536d2e06\n>\n> Bug: b:570224989\n> Change-Id: I5ac1412d37a0f2296415d1d1ed3a75663d8b0501\n> Test: browser_tests --gtest_filter=*OmniboxPopupResourceBudget*\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8543493\n> Reviewed-by: Aviv Kiss <avivkiss@google.com>\n> Commit-Queue: Achuith Bhandarkar <achuith@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717623}\n\n(cherry picked from commit 6be472153d6937ce78688a1076d9b2dfa38f14c9)\n\nBug: 573706407,b:570224989\nChange-Id: I5ac1412d37a0f2296415d1d1ed3a75663d8b0501\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8579701\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCommit-Queue: Justin Donnelly <jdonnelly@chromium.org>\nCr-Commit-Position: refs/branch-heads/8103@{#76}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "c6adfba8bad7979ee32608f49a5268e04f892d47",
+      "tree": "cf6ee597bf7d4bbfd28edf8028e9a98ea24f2beb",
+      "parents": [
+        "9883b63cf923e027544b8cc1d0d8fd935bd1b8f8"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:30:46 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:30:46 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from 6MD4m_kDNcNdwuApN... to pJ474hjOxl4wdyYhc...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Id8ab33d138ba1dece3fd45dcb87eb3f386b0790d\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582113\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#75}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "9883b63cf923e027544b8cc1d0d8fd935bd1b8f8",
+      "tree": "cba2d5d9c1242591140f453f60615e2b8bfb71f1",
+      "parents": [
+        "53e4b1ca7fbb23913b7617138635e98b1edd2f3f"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:17:42 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:17:42 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1792007654-4f89ea4fa292285ba8fd4a3c4b107390d07593d9-763f697d434f3a99457065a27810509938a2efc0.profdata to chrome-mac-arm-8103-1792014077-68289b24b260a03bbc2caa9092b3aea291925c7d-265dd8bc1461e888a9bb4155e0e5011adb3c9c5b.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I29ef012c0f4ee51c0f3fc06ade732a203fde9af0\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583363\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#74}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "53e4b1ca7fbb23913b7617138635e98b1edd2f3f",
+      "tree": "452b77b8687626000a2833dac5ab05e5cbad3e02",
+      "parents": [
+        "51b090e57e65fea2528ad874612de47c8ff55749"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:15:19 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 01:15:19 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from OfnKtDDWKWn5g50Q1... to _kWQVOZZFjeBY3j-I...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ic13497d22678f70253d941d0267341752b1d315d\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583464\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#73}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "51b090e57e65fea2528ad874612de47c8ff55749",
+      "tree": "faa2a68bfc1600ed4dcd6babfd58f9fece92c4a4",
+      "parents": [
+        "15a2027eb95730d3e384da1f019da93476d58dd7"
+      ],
+      "author": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 00:37:30 2026"
+      },
+      "committer": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 00:37:30 2026"
+      },
+      "message": "Incrementing VERSION to 157.0.8103.8\n\nMerge-Approval-Bypass: Chrome release infra\nChange-Id: I5b0994c714f113b14e02cb77b1538987771e123f\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8579440\nBot-Commit: chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com <chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#72}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "15a2027eb95730d3e384da1f019da93476d58dd7",
+      "tree": "297177a53e0282c62dadd531779eb005435caacc",
+      "parents": [
+        "0b80fb71998524cf4ff2639f093141e6a0235eeb"
+      ],
+      "author": {
+        "name": "Xi Han",
+        "email": "hanxi@google.com",
+        "time": "Thu Oct 15 00:23:57 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 00:23:57 2026"
+      },
+      "message": "[M157] [MChips] Record impression metrics for merchandising chips on NTPs.\n\nOriginal change's description:\n> [MChips] Record impression metrics for merchandising chips on NTPs.\n>\n> In this CL, we adds a new enum histogram:\n> - \"NewTabPage.Composeplate.Buttons.Impression\",\n> It records which merchandising chips the user saw when a NTP is shown.\n> It reuses NewTabPageUtils.ActionChips as the enum, with DEFAULT standing\n> for the AI Mode button.\n>\n> Each time the NTP is shown (on page load or when it comes back to the\n> foreground), the following are recorded if the composeplate view is\n> visible:\n> - the AI Mode button;\n> - the incognito button;\n> - the optional button (create image or gallery), if it is shown.\n>\n> NewTabPage#recordNtpShown() calls\n> NewTabPageCoordinator#recordNtpShown(), which forwards to\n> ComposeplateCoordinator#recordButtonsImpression().\n>  OBSOLETE_HISTOGRAM[NewTabPage.FakeSearchBox.ComposeplateButton.Impression2]=Replaced by NewTabPage.Composeplate.Buttons.Impression, which records an impression of each visible composeplate button (AI Mode, incognito and the optional button) instead of a single boolean.\n>\n> Bug: 568005713\n> Change-Id: Ia05b3e4f9b5935d48e84528e878ec6fb0d272e43\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8562547\n> Reviewed-by: Xinyi Ji <xinyiji@chromium.org>\n> Commit-Queue: Xi Han <hanxi@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717982}\n\n(cherry picked from commit afb5607241d476c202a711e30d43789e4036ca15)\n\nBug: 573659659,568005713\nChange-Id: Ia05b3e4f9b5935d48e84528e878ec6fb0d272e43\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8577819\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#71}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "0b80fb71998524cf4ff2639f093141e6a0235eeb",
+      "tree": "5f30678a4de87bf048cdf14dd236ce0aeabf6829",
+      "parents": [
+        "3856f94957bef3c5e6048e5c1dc5f09f353d4186"
+      ],
+      "author": {
+        "name": "Kent Tamura",
+        "email": "tkent@chromium.org",
+        "time": "Thu Oct 15 00:19:38 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Thu Oct 15 00:19:38 2026"
+      },
+      "message": "[M157] Prevent cross-frame selection on GestureLongPress\n\nOriginal change's description:\n> Prevent cross-frame selection on GestureLongPress\n>\n> When an event handler for `gesturelongpress` mutates the DOM (e.g.\n> removing an overlay element above an `<iframe>`), the subsequent hit\n> test in GestureManager::HandleGestureLongPress() could descend into a\n> child frame and set a cross-document selection on the parent frame's\n> FrameSelection.\n>\n> * gesture_manager.cc: Use event_handling_util::HitTestResultInFrame()\n>   instead of EventHandler::HitTestResultAtLocation() in\n>   GestureManager::HandleGestureLongPress() so the re-hit-test stays\n>   within the handling frame and does not descend into child frames.\n>   This is the main fix of the issue.\n>\n> * web_view_test.cc: Update WebViewTest.LongPressLink to long-press at\n>   (499, 299) on the link inside the 500x300 viewport instead of\n>   out-of-bounds at (500, 300). This test worked by accident because\n>   HitTestResultAtLocation() doesn't have viewport bounds check.\n>\n> * selection_controller.cc: Verify in `SelectionController::\n>   UpdateSelectionForMouseDownDispatchingSelectStart()` that\n>   `target_node` and `selection` belong to GetDocument() before and\n>   after dispatching `selectstart`, matching\n>   UpdateSelectionForMouseDrag().\n>   This is an optional change for defence-in-depth.\n>\n> * selection_template.cc: Upgrade DCHECK_EQ() to CHECK_EQ() in\n>   SelectionTemplate::AssertValidFor() to prevent setting a selection\n>   whose document does not match the FrameSelection's document.\n>   This is another optional change for defence-in-depth.\n>\n> Bug: 572893186\n> Change-Id: I2e51c75838351009987dc7820a7fe3d2cef944ac\n> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8561139\n> Auto-Submit: Kent Tamura <tkent@chromium.org>\n> Commit-Queue: Koji Ishii <kojii@chromium.org>\n> Reviewed-by: Koji Ishii <kojii@chromium.org>\n> Cr-Commit-Position: refs/heads/main@{#1717499}\n\n(cherry picked from commit c0e830bdda6e389c8c8c1b5c5174793f853a55fa)\n\nBug: 573300128,572893186\nChange-Id: I2e51c75838351009987dc7820a7fe3d2cef944ac\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8574426\nAuto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>\nCommit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nBot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#70}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "3856f94957bef3c5e6048e5c1dc5f09f353d4186",
+      "tree": "8da5784265af84c951b49f42f80561fc1cdbe008",
+      "parents": [
+        "db4e312bc0cc7df3258d0b3163f86fbb311ecaca"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 23:43:15 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 23:43:15 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1791996162-c8284902b9515905ab2f20b364e888bc1b128ddd-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata to chrome-mac-arm-8103-1792007654-4f89ea4fa292285ba8fd4a3c4b107390d07593d9-763f697d434f3a99457065a27810509938a2efc0.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I3c37410d38995f7ac07b51e4e4dfcdb920c4c3ac\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8583102\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#69}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "db4e312bc0cc7df3258d0b3163f86fbb311ecaca",
+      "tree": "8554d3339c7b52328e20ddfbac389cbe9d6b083d",
+      "parents": [
+        "8d586bf330bd61eb9fb12d966aad1d68d703a9ff"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:43:11 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:43:11 2026"
+      },
+      "message": "Roll Chrome Android ARM64 Orderfile from 94blZERGeVxsay1BX... to OfnKtDDWKWn5g50Q1...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-android-arm64-chromium-beta\nPlease CC clank-build@google.com,clank-library-failures@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: clank-library-failures@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I43b6367e0b2499c8babb92caa029db18a36fc7ba\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8582767\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#68}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "8d586bf330bd61eb9fb12d966aad1d68d703a9ff",
+      "tree": "7d4a64c574b06085bcf07b27d175d1096bdbecdf",
+      "parents": [
+        "75974307ac66a3b977499b4badb4963d13aa82ac"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:37:36 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:37:36 2026"
+      },
+      "message": "Roll WebView ARM64 Orderfile from -CXr1GmDRURmJ6ZAt... to 6MD4m_kDNcNdwuApN...\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/orderfile-webview-arm64-chromium-beta\nPlease CC woa-engprod@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: woa-engprod@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Iee3978c0949c0d01fc876fcb464593ccbb7af653\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8578031\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#67}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "75974307ac66a3b977499b4badb4963d13aa82ac",
+      "tree": "d5d0d9e913f37b8b92a682fd031d137ca55d555e",
+      "parents": [
+        "372811a6afe0d8a2ff628b69db9ffd6cca3e160e"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:33:48 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:33:48 2026"
+      },
+      "message": "Roll Chrome Win64 PGO Profile\n\nRoll Chrome Win64 PGO profile from chrome-win64-8103-1791978957-fbd3418c0e450d90e9a41c66de7dd989ce40176f-7c0466e8e3d2fcad3386cd6c4cccb3e6940eb169.profdata to chrome-win64-8103-1791996162-d39336eda22ae193df01b34311823ad4001010fa-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-win64-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nCq-Include-Trybots: luci.chrome-m157.try:win64-chrome\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: I71b495562175f50390546eebffb42dc12d32cffc\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8578026\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#66}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "372811a6afe0d8a2ff628b69db9ffd6cca3e160e",
+      "tree": "5cbd07865e738eeda44fb90185c080d9373a6416",
+      "parents": [
+        "265dd8bc1461e888a9bb4155e0e5011adb3c9c5b"
+      ],
+      "author": {
+        "name": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "email": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:03:35 2026"
+      },
+      "committer": {
+        "name": "Chromium LUCI CQ",
+        "email": "chromium-scoped@luci-project-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 22:03:35 2026"
+      },
+      "message": "Roll Chrome Mac Arm PGO Profile\n\nRoll Chrome Mac Arm PGO profile from chrome-mac-arm-8103-1791990234-ee5c377e248a9b1b1f81e3054af458d96b7ba552-c5efb0218f83cf504dec7a135f274a3832c3e537.profdata to chrome-mac-arm-8103-1791996162-c8284902b9515905ab2f20b364e888bc1b128ddd-ea3f85ac34756c6423824bd1eabbfd3ed7ae942b.profdata\n\nIf this roll has caused a breakage, revert this CL and set the roller\nto dry run mode using the controls here:\nhttps://autoroll.skia.org/r/pgo-mac-arm-chromium-beta\nPlease CC chrome-brapp-engprod@google.com,pgo-profile-sheriffs@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo file a bug in Chromium beta branch: https://bugs.chromium.org/p/chromium/issues/entry\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://issues.skia.org/issues/new?component=1389291&template=1850622\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/main/autoroll/README.md\n\nTbr: pgo-profile-sheriffs@google.com\nMerge-Approval-Bypass: Chrome autoroller\nChange-Id: Ia2419cbd319ff7b7bddb869f1059af5ed018c3e1\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8574165\nBot-Commit: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCommit-Queue: chromium-release-autoroll@skia-public.iam.gserviceaccount.com <chromium-release-autoroll@skia-public.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#65}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    },
+    {
+      "commit": "265dd8bc1461e888a9bb4155e0e5011adb3c9c5b",
+      "tree": "fea30db2d8a7fd2f4e990016fc58c2509610ac45",
+      "parents": [
+        "41520584daa68d0040db7746ae562a0ff82187f6"
+      ],
+      "author": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 21:41:17 2026"
+      },
+      "committer": {
+        "name": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "email": "chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com",
+        "time": "Wed Oct 14 21:41:17 2026"
+      },
+      "message": "Incrementing VERSION to 157.0.8103.7\n\nMerge-Approval-Bypass: Chrome release infra\nChange-Id: Ib85df64fa5f091bdcb23bf2ea5edb6e279348081\nReviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8575083\nBot-Commit: chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com <chrome-official-brancher@chops-service-accounts.iam.gserviceaccount.com>\nCr-Commit-Position: refs/branch-heads/8103@{#64}\nCr-Branched-From: e7baefea94b4a90087e3043e4a8effec33c2025f-refs/heads/main@{#1717349}\n"
+    }
+  ],
+  "previous": "f094b45bbac9590424e79fbdb95f40fd74a250d6"
+}

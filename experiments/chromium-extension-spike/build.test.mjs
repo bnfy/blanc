@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -69,4 +69,14 @@ test('small plans with generated buildflags cannot conceal dependent compilation
   const output = '../../build/write_buildflag_header.py --output base/apple/app_plist_size_buildflags.h\nBuild Succeeded: 5 steps';
   assert.throws(() => checkPlan(output), /Generated build flags are pending/);
   assert.equal(checkPlan(output, true), 5);
+});
+
+// Worker limits change scheduling only; they must not admit other Siso flags.
+test('local worker limit is bounded and cannot inject or duplicate flags', () => {
+  assert.deepEqual(localJobs([]), []);
+  assert.deepEqual(localJobs(['--build', '--local-jobs=8']), ['-local_jobs', '8']);
+  for (const value of ['0', '-1', '1.5', '1000', '8 -clobber', '']) {
+    assert.throws(() => localJobs(['--local-jobs=' + value]));
+  }
+  assert.throws(() => localJobs(['--local-jobs=8', '--local-jobs=4']));
 });

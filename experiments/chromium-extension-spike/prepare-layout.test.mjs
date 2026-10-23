@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 // Reproduce the 157 regression: a separator patch already contains HasIsland,
 // but the independent header-space patch has not yet been applied.
-test('separator customization cannot suppress the 68px header reservation', () => {
+test('separator customization cannot suppress the dynamic Island header reservation', () => {
   const source = fs.readFileSync(new URL('./prepare.mjs', import.meta.url), 'utf8');
   const begin = source.indexOf("edit('chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc', [");
   const end = source.indexOf('// The Island owns fullscreen', begin);
@@ -22,7 +22,7 @@ test('separator customization cannot suppress the 68px header reservation', () =
     }
   };
   apply();
-  assert(fixture.includes('params.visual_client_area.width(), 68)'));
+  assert(fixture.includes('params.visual_client_area.width(), blanc_prototype::HeaderHeight(views().browser_view))'));
   const once = fixture;
   apply();
   assert.equal(fixture, once);

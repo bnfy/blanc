@@ -18,7 +18,7 @@ import { prepareRendererTarget } from './ubo-renderer-target.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 const chromium = path.resolve(process.argv[2] ?? '');
-const expectedVersion = '157.0.8103.6';
+const expectedVersion = '157.0.8103.15';
 const assetsOnly = process.argv.slice(3).includes('--assets-only');
 if (process.argv.slice(3).some(arg => arg !== '--assets-only')) throw new Error('Unknown prepare option');
 

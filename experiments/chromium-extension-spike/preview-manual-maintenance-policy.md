@@ -13,7 +13,7 @@ Updates are manual: quit the preview, retain a closed backup of its own profile,
 1. Freeze the candidate commit and record bundled assets/dependency inventory. Sign through the existing release-signing environment using Chromium-appropriate entitlements and distinct preview/helper identities. Notarize and staple; retain receipts and digests.
 2. Run the frozen candidate acceptance on macOS 27.2, including signed-identity keychain behavior, isolation, recovery, extensions, accessibility and quarantine launch. Record exact artifact identity and reviewer.
 3. Publish only after artifact-specific owner approval. Never retarget shipping updater feeds. Record the replacement version and any profile compatibility restriction in the notice.
-4. Review upstream security advisories each working day while a preview is supported. A named primary and backup maintainer must accept this duty before launch. Record affected versions, fix availability and the decision to replace or withdraw; do not promise an unstaffed repair deadline.
+4. Anthony Loria is the sole primary maintenance and withdrawal owner (owner decision October22: “Sole maintainer; suspend when unavailable”). Review upstream security advisories each working day while the preview is supported. Suspend preview distribution whenever Anthony cannot perform that review; do not imply an independent backup. Record affected versions, fix availability and the decision to replace or withdraw; do not promise an unstaffed repair deadline.
 5. For a known exploitable security defect, reproducible enabled-feature data loss, signature compromise or unsupported baseline, mark the affected preview withdrawn in its release/security notice and remove its recommended download. Direct users to quit it and use shipping Blanc. Preserve evidence and provide replacement instructions only after verification. A manual-only preview cannot remotely force an installed app to stop; disclose that limitation.
 
 ## Retreat and rollback
@@ -22,7 +22,7 @@ Removing the preview app must leave shipping Blanc and both applications' data u
 
 ## Required acceptance records (still open)
 
-- Named maintenance primary/backup, approved release/security notice location and working feedback/security route.
+- Maintenance owner resolved: Anthony Loria, with distribution suspended when unavailable. Approved release/security notice location and working feedback/security route remain open.
 - Signed preview A → preview B replacement using a disposable preview profile, with tabs preserved and shipping app/profile unchanged.
 - Withdrawal notice and fresh-profile or matching-backup retreat rehearsal; confirm no shipping updater ownership.
 - Clean supported macOS 27.2 quarantine launch and final artifact review. The owner amended the acceptance target to macOS 27.2; final artifact observations must identify that OS.
