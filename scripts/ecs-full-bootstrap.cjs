@@ -2,7 +2,11 @@
 
 // Copied only into an isolated full-browser staging tree by the candidate
 // builder. The production entrypoint never imports this module.
-const { app, BrowserWindow, Menu, dialog, session, components, webContents } = require('electron');
+const { app, BrowserWindow, Menu, dialog, session, webContents, shell, clipboard } = require('electron');
+// Match production's first-operation Linux guard before accessing the ECS
+// component binding, which can initialize native component/child services.
+if (!require('./linux-sandbox-launch').enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
+const { components } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createDrmRuntime } = require('./drm-runtime');
