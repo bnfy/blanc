@@ -18,6 +18,7 @@
 #include <sys/prctl.h>
 #include <signal.h>
 #endif
+extern char** environ;
 namespace fs = std::filesystem;
 struct Json {
   std::string text;
