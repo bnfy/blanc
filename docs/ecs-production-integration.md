@@ -7,7 +7,7 @@ Main's subsequent Split View update (`33da400fe`) is now merged into this
 integration branch. Earlier signed binaries and native evidence below predate
 that source update and do not by themselves qualify the merged result.
 
-## Current gate status — October 23, 19:25 UTC
+## Current gate status — October 23, 19:37 UTC
 
 This summary supersedes historical pending-status notes below. Application
 source is unchanged since `7b009cd6c`; the signed Mac batch is `fd8654147`.
@@ -65,6 +65,23 @@ architectures using the same signed bytes. Owner-approved Windows retry
 `40011311276` is on the same head and its protected signing approval has been
 submitted. No new signing authority extends to any later replacement run.
 
+Windows `40011311276` again passed baseline checks and the full CDM lifecycle.
+First UI took 1330 ms; unmuted playback advanced 4.928/4.933/4.934/4.922 seconds
+through first install, old baseline, vendor update and controlled rollback.
+Every stage retained VMP 2, exact signed DLL, the broker role, restricted token,
+job membership and untrusted integrity. Offline and profile cleanup passed for
+that lifecycle test. Its updater step failed during teardown on a locked
+`DIPS-wal` file, masking the preceding handoff result and preventing the updater
+report from being written. Neither successful handoff nor updater cleanup is
+claimed. The harness now persists the primary result before cleanup, attempts
+every cleanup stage, waits for all processes using the exact disposable
+executable (including helpers), and records teardown failures separately.
+Fresh native Windows proof remains required.
+The teardown fix passed 4,305 unit tests (two existing skips), lint, and then
+10 focused tests including a further regression that prevents a report from
+claiming success before cleanup finishes. A new signed Windows validation
+requires its own owner approval.
+
 Audio diagnostic run `40012023427` on test commit `a1a994f2f` uses the unchanged signed full Mac application,
 with fresh profiles and the normal entrypoint, on each native architecture.
 It compares local PCM and AAC at 44.1/48 kHz, muted and unmuted controls,
@@ -80,6 +97,16 @@ signatures, application changes, acceleration changes or sandbox exemptions.
 All 4,303 unit tests and lint passed; two existing unit skips remain. The new
 diagnostic is queued, not a passing native result. Its two jobs are additional
 consumers of the private draft, which must remain until they terminate.
+
+Superseded candidate PR checks were cancelled to reduce the Mac queue backlog;
+current-head checks and all explicitly dispatched qualification runs were
+preserved. The queued signed-audio and updater runs have not yet supplied new
+Intel evidence. GitHub's runner-image reports also document virtual-audio
+initialization and output-triggered microphone-prompt problems
+([13668](https://github.com/actions/runner-images/issues/13668),
+[9330](https://github.com/actions/runner-images/issues/9330)). These are diagnostic
+leads, not proof of this failure. No TCC database, device, driver, entitlement
+or library-validation policy was changed.
 
 The upstream check confirms the selected `v44.9.3+wvcus` is the latest ECS
 release and matches the latest Electron 44 patch `v44.9.3` (which includes

@@ -11,6 +11,7 @@ const require=createRequire(import.meta.url);
 const {protectedPage}=require('./support/ecs-protected-page.cjs');
 const {extractFile}=require('@electron/asar');
 const {runWindowsPowerShell}=require('./support/windows-powershell.cjs');
+const {finishFixture}=require('./support/fixture-cleanup.cjs');
 assert.equal(process.platform,'win32');assert.equal(process.arch,'x64');
 assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.RUNNER_ARCH,'X64');
 assert.equal(process.env.BLANC_ECS_DISPOSABLE_HOST,'1');
@@ -36,6 +37,7 @@ const ps=runWindowsPowerShell;
 const quote=s=>"'"+s.replaceAll("'","''")+"'";
 const ui=(pid,action,url='')=>ps(`& ${quote(path.resolve('test/desktop/support/windows-owned-ui.ps1'))} -TargetProcessId ${pid} -Action ${action} -Url ${quote(url)} -ExpectedVersion ${quote(targetVersion)}`);
 const pids=()=>JSON.parse(ps(`ConvertTo-Json -InputObject @((Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} -and $_.CommandLine -notmatch '--type=' }).ProcessId) -Compress`)).filter(Number.isInteger);
+const ownedPids=()=>JSON.parse(ps(`ConvertTo-Json -InputObject @((Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} }).ProcessId) -Compress`)).filter(Number.isInteger);
 const alive=pid=>{try{process.kill(pid,0);return true;}catch{return false;}};
 const wait=async(name,read,timeout=120000)=>{const end=Date.now()+timeout;while(Date.now()<end){const v=await read();if(v)return v;await new Promise(r=>setTimeout(r,250));}throw Error('Timed out: '+name);};
 const verify=file=>{
@@ -92,10 +94,23 @@ try{
  throw error;
 }
 finally{
- for(const pid of pids()){try{ui(pid,'close');await wait('owned app exit',()=>!alive(pid),10000);}catch{try{process.kill(pid,'SIGTERM');}catch{}}}
- server.closeAllConnections();await new Promise(r=>server.close(r));
- if(await fs.readFile(path.join(profile,'ecs-handoff-owner'),'utf8').catch(()=>null)===marker){await fs.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});report.profileRemoved=true;}
- await fs.rm(root,{recursive:true,force:true,maxRetries:10,retryDelay:200});report.installationRemoved=true;
- await fs.mkdir(path.dirname(evidence),{recursive:true});await fs.writeFile(evidence,JSON.stringify(report,null,2));
+ await finishFixture(report,[
+  ['owned-processes',async()=>{
+   for(const pid of pids()){try{ui(pid,'close');await wait('owned app exit',()=>!alive(pid),10000);}catch{}}
+   // Include renderers and utility processes: they can retain SQLite handles
+   // after the browser exits. Recheck the exact fixture executable at the
+   // moment of termination; never kill by process name or a stale PID alone.
+   ps(`Get-CimInstance Win32_Process -Filter "Name='Blanc.exe'" | Where-Object { $_.ExecutablePath -eq ${quote(executable)} } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`);
+   await wait('all fixture process handles released',()=>ownedPids().length===0,30000);
+   report.processesRemoved=true;
+  }],
+  ['loopback-server',async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));}],
+  ['owned-profile',async()=>{
+   assert.equal(await fs.readFile(path.join(profile,'ecs-handoff-owner'),'utf8'),marker);
+   await fs.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});report.profileRemoved=true;
+  }],
+  ['owned-installation',async()=>{await fs.rm(root,{recursive:true,force:true,maxRetries:10,retryDelay:200});report.installationRemoved=true;}],
+ ],async()=>{await fs.mkdir(path.dirname(evidence),{recursive:true});await fs.writeFile(evidence,JSON.stringify(report,null,2));});
 }
+assert.deepEqual(report.cleanupErrors,[]);assert.equal(report.processesRemoved,true);
 assert.equal(report.profileRemoved,true);assert.equal(report.installationRemoved,true);console.log(JSON.stringify(report));
