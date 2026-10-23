@@ -24,6 +24,11 @@ test('preload is opt-in to a packaged shim and marked isolated profile', () => {
     };
     install('4.10.9.0'); const latest = install('4.10.11.0');
     assert.equal(linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH, latest);
+    fs.writeFileSync(path.join(profile, 'Local State'), JSON.stringify({ updateclientdata: { apps: {
+      oimompecagnajdejgnnjijobebaeigek: { pv: '4.10.9.0', max_pv: '4.10.11.0' },
+    } } }));
+    assert.ok(linuxPreloadEnv(app, profile).BLANC_ECS_CDM_PRELOAD_PATH.includes('/4.10.9.0/'));
+    fs.unlinkSync(path.join(profile, 'Local State'));
     fs.writeFileSync(path.join(profile, 'WidevineCdm/4.10.11.0/manifest.json'), '{"version":"wrong"}');
     assert.throws(() => linuxPreloadEnv(app, profile), /manifest/);
     fs.writeFileSync(path.join(profile, 'WidevineCdm/4.10.11.0/manifest.json'), '{"version":"4.10.11.0"}');

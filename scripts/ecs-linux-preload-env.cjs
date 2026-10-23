@@ -1,6 +1,8 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
+const WIDEVINE_ID = 'oimompecagnajdejgnnjijobebaeigek';
+const validVersion = value => typeof value === 'string' && /^\d+(?:\.\d+){3}$/.test(value);
 function linuxPreloadEnv(appDir, profile) {
   const shim = path.join(appDir, 'blanc-cdm-preload.so');
   if (!fs.existsSync(shim)) return {};
@@ -9,12 +11,21 @@ function linuxPreloadEnv(appDir, profile) {
     throw Error('CDM preload requires an explicitly marked isolated profile and safe absolute shim path');
   }
   const root = path.join(profile, 'WidevineCdm');
-  const versions = fs.existsSync(root) ? fs.readdirSync(root).filter(v => /^\d+(?:\.\d+){3}$/.test(v)) : [];
+  const versions = fs.existsSync(root) ? fs.readdirSync(root).filter(validVersion) : [];
   versions.sort((a, b) => {
     const x = a.split('.').map(Number), y = b.split('.').map(Number);
     for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return y[i] - x[i];
     return 0;
   });
+  // Chromium's component installer prefers its persisted registration over
+  // the highest directory, including on a rollback. Mirror that selection.
+  const stateFile = path.join(profile, 'Local State');
+  if (fs.existsSync(stateFile)) {
+    const registered = JSON.parse(fs.readFileSync(stateFile, 'utf8'))?.updateclientdata?.apps?.[WIDEVINE_ID]?.pv;
+    if (validVersion(registered) && versions.includes(registered)) {
+      versions.splice(versions.indexOf(registered), 1); versions.unshift(registered);
+    }
+  }
   let library = '';
   for (const version of versions) {
     const dir = path.join(root, version);

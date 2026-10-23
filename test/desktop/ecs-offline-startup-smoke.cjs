@@ -82,6 +82,16 @@ async function run(app, output) {
           await exited;
         }
         assert.equal(attempt.exit.code, 0);
+        if (phase === 'online-install' && process.platform === 'linux') {
+          for (const location of ['Local State', 'chromium/Local State']) {
+            try {
+              const saved = JSON.parse(await fs.readFile(path.join(profile, location), 'utf8'));
+              const registrations = Object.fromEntries(Object.entries(saved.updateclientdata?.apps || {})
+                .map(([id, value]) => [id, { pv: value.pv, max_pv: value.max_pv }]));
+              (report.registrations ||= {})[location] = registrations;
+            } catch { /* No registered component state at this candidate path. */ }
+          }
+        }
         // A new process must prove readiness, not reuse the previous marker.
         await fs.unlink(path.join(profile, 'ecs-runtime.json'));
       }

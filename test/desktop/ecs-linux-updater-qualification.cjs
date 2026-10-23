@@ -84,6 +84,11 @@ async function main() {
         report.fileReplaced = !(await fs.stat(install).then(() => true, () => false));
         assert.equal(report.fileReplaced, true);
         const relaunched = await waitFor(async () => {
+          const launch = await fs.readFile(path.join(profile, 'ecs-launch-attempt.json'), 'utf8').then(JSON.parse, () => null);
+          if (launch?.version === second.candidateVersion) {
+            newPid = launch.pid; report.relaunchAttempt = launch;
+            if (!launch.nativeProfileMatches) throw Error('Updater relaunch dropped native --user-data-dir; isolated profile guard refused startup');
+          }
           const value = await state();
           if (value?.pid) newPid = value.pid;
           return value?.browserReady && value.version === second.candidateVersion && value;

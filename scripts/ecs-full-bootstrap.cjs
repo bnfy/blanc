@@ -19,6 +19,13 @@ if (!metadata.blancEcsFullCandidate || !profile || !path.isAbsolute(profile)
   || JSON.parse(fs.readFileSync(path.join(profile, 'ecs-candidate-profile.json'), 'utf8')).candidate !== true) {
   throw Error('Use the full ECS candidate launcher with an explicitly initialized isolated profile');
 }
+if (process.env.BLANC_ECS_FULL_SMOKE === '1') {
+  // Owned-process cleanup/diagnosis even when a relaunch fails before ready.
+  require('./ecs-runtime-state.cjs').writeRuntimeState(path.join(profile, 'ecs-launch-attempt.json'), {
+    pid: process.pid, version: metadata.version,
+    nativeProfileMatches: app.commandLine.getSwitchValue('user-data-dir') === profile,
+  });
+}
 require('./ecs-profile-policy.cjs').requireNativeLinuxProfile({ profile,
   switchProfile: app.commandLine.getSwitchValue('user-data-dir'), nativeProfile: app.getPath('userData') });
 const { components } = require('electron');
