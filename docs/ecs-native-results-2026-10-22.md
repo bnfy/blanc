@@ -60,10 +60,11 @@ or machine before that rehearsal can safely run.
    platform. Windows needs production VMP signing in addition to Authenticode;
    hosted Mac compatibility copies need Developer ID/notarization. Preserve the
    reviewed CDM helper routing, library validation and final-fuse signing order.
-   Linux reported `restart-required` on both observed starts. It passed browser
-   and updater discovery tests, but that is not evidence of a working CDM: its
-   installation/readiness signaling and actual protected playback need further
-   investigation before release. No Linux DRM success is claimed here.
+   The [Linux DRM follow-up](ecs-linux-drm-readiness-2026-10-22.md) fixes the
+   repeated `restart-required` warning and verifies CENC-encrypted playback.
+   Linux still fails the kernel CDM sandbox gate; playback alone does not
+   qualify it for release. The earlier startup/preferences and metadata tests
+   remain narrower evidence, not proof of OS-level sandboxing.
 2. Real staged N-1 **Restart Now** handoffs and subsequent ECS updater continuity
    on the supported platforms. Metadata discovery, trust tests and direct
    installer launches are not substitutes. Verify real-profile/cookie continuity.

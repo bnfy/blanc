@@ -30,6 +30,13 @@ static local HTML, verifies disabled production updates, and checks cleanup.
 These checks do not replace the complete local-file/frames/workers/WebRTC matrix,
 OS sandbox probes, account playback, accessibility, or real updater handoffs.
 
+Linux validation also runs the complete local-HTML matrix and protected-video
+test as independent required steps. The latter installs Widevine into a fresh
+isolated profile, restarts that profile, verifies advancing CENC/CBCS media, and
+checks the owned CDM process's kernel seccomp, no-new-privileges and namespace
+state. A `ready` label or successful decryption cannot bypass that security
+gate. See the [Linux follow-up](ecs-linux-drm-readiness-2026-10-22.md).
+
 ## Staging-only updater
 
 `--staging-updater` retains the existing updater implementation in staging.
