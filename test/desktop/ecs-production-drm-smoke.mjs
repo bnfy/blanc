@@ -15,7 +15,7 @@ assert.equal(process.env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-production-drm-'));
 const report = { platform: process.platform, arch: process.arch, passed: false, mediaErrors: [], players: {}, networkFailures: [] };
 await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
-let app;
+let app, playbackPage;
 const launch = () => launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
   args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '' }, timeoutMs: 30000 });
 function observeNetwork(context) {
@@ -62,6 +62,7 @@ try {
     }
     return app.pages().find(p => p.url().startsWith('https://castlabs.github.io/wv-vmp-lab/'));
   }, 'production VMP Lab');
+  playbackPage = page;
   const media = await app.context.newCDPSession(page);
   media.on('Media.playerErrorsRaised', event => {
     for (const error of event.errors) report.mediaErrors.push({ code: error.code, type: error.errorType });
@@ -92,7 +93,7 @@ try {
   const sample = () => page.locator('video').evaluate(video => ({ time: video.currentTime, paused: video.paused,
     error: video.error?.code ?? null, mediaKeys: !!video.mediaKeys, seeking: video.seeking,
     readyState: video.readyState, bufferedAhead: video.buffered.length ? video.buffered.end(video.buffered.length - 1) - video.currentTime : 0,
-    decodedFrames: video.getVideoPlaybackQuality().totalVideoFrames }));
+    decodedFrames: video.getVideoPlaybackQuality().totalVideoFrames, visibility: document.visibilityState }));
   const warmingAt = Date.now();
   await waitFor(async () => {
     const state = await sample();
@@ -121,12 +122,33 @@ try {
   report.stage = 'complete';
 } catch (error) {
   report.failure = { name: error.name, message: error.message.slice(0, 300) };
+  // These comparisons never convert the strict unmuted playback failure into
+  // a pass. They separate native visibility and audio-clock problems from DRM.
+  if (process.platform === 'darwin' && process.arch === 'x64' && playbackPage) {
+    try {
+      await playbackPage.bringToFront();
+      const sample = () => playbackPage.locator('video').evaluate(video => ({
+        time: video.currentTime, paused: video.paused, error: video.error?.code ?? null,
+        muted: video.muted, visibility: document.visibilityState,
+        decodedFrames: video.getVideoPlaybackQuality().totalVideoFrames,
+      }));
+      const first = await sample();
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      report.focusedDiagnostic = { first, second: await sample() };
+      await playbackPage.locator('video').evaluate(async video => { video.muted = true; await video.play(); });
+      const mutedFirst = await sample();
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      report.mutedDiagnostic = { first: mutedFirst, second: await sample() };
+    } catch { report.comparisonUnavailable = true; }
+  }
   if (process.platform === 'darwin' && process.env.GITHUB_ACTIONS === 'true') {
     try {
       const { execFileSync } = require('node:child_process');
       const audio = JSON.parse(execFileSync('system_profiler', ['SPAudioDataType', '-json'], { encoding: 'utf8', timeout: 15000 }));
       report.hostAudio = { containers: audio.SPAudioDataType?.length || 0,
-        devices: (audio.SPAudioDataType || []).reduce((count, item) => count + (item._items?.length || 0), 0) };
+        devices: (audio.SPAudioDataType || []).reduce((count, item) => count + (item._items?.length || 0), 0),
+        capabilities: (audio.SPAudioDataType || []).flatMap(item => item._items || []).map(item =>
+          Object.fromEntries(Object.entries(item).filter(([key]) => /default|output|input|sample_rate|transport/.test(key)))) };
     } catch { report.hostAudio = { unavailable: true }; }
   }
   report.pages = await Promise.all((app?.pages() || []).map(async page => {

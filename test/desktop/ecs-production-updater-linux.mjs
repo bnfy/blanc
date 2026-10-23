@@ -143,7 +143,16 @@ try {
     if(assets[index+1])offer=assets[index+1];hold=false;for(const response of held.splice(0))metadata(response);
   }
   assert.equal(report.handoffs.length,2);assert(report.handoffs.every(h=>h.passed));assert(report.requests.every(r=>r.path!=='unexpected'));report.passed=true;
-}catch(error){report.failure=error.message;report.logs=output;throw error;}
+}catch(error){
+  report.failure=error.message;report.logs=output;
+  try{report.windowTree=execFileSync('xwininfo',['-root','-tree'],{encoding:'utf8'}).slice(-10000);}catch{}
+  try{
+    report.visibleWindows=x(['search','--onlyvisible','--name','.*']).split(/\s+/).map(id=>{
+      try{return {id,name:x(['getwindowname',id]),geometry:x(['getwindowgeometry','--shell',id]),wmClass:execFileSync('xprop',['-id',id,'WM_CLASS'],{encoding:'utf8'}).trim()};}catch{return {id};}
+    });
+  }catch{}
+  throw error;
+}
 finally{
   try{if(warm)await warm.close();}catch{}
   previous ||= await mainProcess(versionA) || await mainProcess(versionB);
