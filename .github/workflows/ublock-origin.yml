@@ -36,6 +36,10 @@ on:
         description: "Owner-authorized temporary draft intake of the exact signed ECS Intel candidate"
         type: boolean
         default: false
+      ecs_intel_updater:
+        description: "Owner-authorized signed ECS Intel updater rehearsal on a disposable runner"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -44,7 +48,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel && !inputs.ecs_intel_updater) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -58,7 +62,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.ecs_signed_intel && !inputs.ecs_intel_updater) }}
     strategy:
       fail-fast: false
       matrix:
@@ -103,6 +107,73 @@ jobs:
             npm run test:ublock-noscript:desktop
             npm run test:ublock-slow-install:desktop
           fi
+
+  ecs-updater-intel:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_intel_updater && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    # Same temporary owner-approved private draft read permission as intake.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Fetch verified public baseline and private staging update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ecs-update-download" "$RUNNER_TEMP/ecs-update-old" "$RUNNER_TEMP/ecs-update-target" "$RUNNER_TEMP/ecs-update-mount"
+          gh release download v1.42.1 -R "$GITHUB_REPOSITORY" -p Blanc-1.42.1.dmg -p SHA256SUMS -D "$RUNNER_TEMP/ecs-update-download"
+          gh release download ecs-private-intel-562ec1c87 -R "$GITHUB_REPOSITORY" -p Blanc-ECS-Intel-updater.zip -D "$RUNNER_TEMP/ecs-update-download"
+          cd "$RUNNER_TEMP/ecs-update-download"
+          awk '$2 == "Blanc-1.42.1.dmg"' SHA256SUMS > baseline.sha256
+          test -s baseline.sha256
+          shasum -a 256 -c baseline.sha256
+          echo '7821125f69463194041bdccef112ae6f498c229d70411a7517bd751f5bf23e24  Blanc-ECS-Intel-updater.zip' | shasum -a 256 -c -
+          hdiutil attach Blanc-1.42.1.dmg -mountpoint "$RUNNER_TEMP/ecs-update-mount" -readonly -nobrowse
+          ditto "$RUNNER_TEMP/ecs-update-mount/Blanc.app" "$RUNNER_TEMP/ecs-update-old/Blanc.app"
+          hdiutil detach "$RUNNER_TEMP/ecs-update-mount"
+          ditto -x -k Blanc-ECS-Intel-updater.zip "$RUNNER_TEMP/ecs-update-target"
+      - name: Verify signed inputs before any updater runs
+        run: |
+          test "$(uname -m)" = x86_64
+          test "$(node -p 'process.arch')" = x64
+          echo "200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8  $RUNNER_TEMP/ecs-update-target/Blanc.app/Contents/Resources/app.asar" | shasum -a 256 -c -
+          for KIND in old target; do
+            APP="$RUNNER_TEMP/ecs-update-$KIND/Blanc.app"
+            codesign --verify --deep --strict "$APP"
+            for ATTEMPT in 1 2 3; do
+              xcrun stapler validate "$APP" && break
+              test "$ATTEMPT" -lt 3 || exit 1
+              sleep 5
+            done
+            spctl --assess --type execute "$APP"
+          done
+          npm version 1.43.0-staging.1 --no-git-tag-version
+          npm run compliance:build
+          node scripts/verify-ecs-production-package.cjs "$RUNNER_TEMP/ecs-update-target/Blanc.app"
+          node -e 'require("./scripts/after-sign-verify.js")({electronPlatformName:"darwin",appOutDir:process.env.RUNNER_TEMP+"/ecs-update-target",packager:{appInfo:{productFilename:"Blanc"}}}).catch(e=>{console.error(e);process.exitCode=1})'
+      - name: Exercise the actual native Restart Now handoff and protected successor
+        env:
+          BLANC_ECS_DISPOSABLE_HOST: '1'
+        run: |
+          node test/desktop/ecs-production-updater-mac.mjs \
+            "$RUNNER_TEMP/ecs-update-old/Blanc.app" \
+            "$RUNNER_TEMP/ecs-update-download/Blanc-ECS-Intel-updater.zip" \
+            1.43.0-staging.1 200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8 \
+            "$PWD/output/ecs-production/updater-intel.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: signed-ecs-updater-intel-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
 
   ecs-signed-intel:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_signed_intel && github.ref == 'refs/heads/codex/ecs-production-integration' }}

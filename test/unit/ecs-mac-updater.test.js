@@ -1,0 +1,28 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+test('Mac ECS handoff requires a disposable native Intel host and the normal Restart Now action',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../desktop/ecs-production-updater-mac.mjs'),'utf8');
+ assert.match(source,/assert.equal\(process.arch,'x64'\)/);
+ assert.match(source,/assert.equal\(process.env.GITHUB_ACTIONS,'true'\)/);
+ assert.match(source,/BLANC_ECS_DISPOSABLE_HOST/);
+ assert.match(source,/name of itemRef is "Restart Now"/);
+ assert.match(source,/automatic updated process/);
+ assert.match(source,/exact updated app payload/);
+ assert.match(source,/assert.equal\(media.status,2\)/);
+ assert.match(source,/ecs-handoff-owner/);
+ assert.doesNotMatch(source,/quitAndInstall\(|AUTO_INSTALL:\s*'1'|\bHOME:\s*|--no-sandbox/);
+});
+test('Mac updater intake is opt-in, pinned and cannot publish',()=>{
+ const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/ublock-origin.yml'),'utf8');
+ const job=workflow.slice(workflow.indexOf('  ecs-updater-intel:'),workflow.indexOf('  ecs-signed-intel:'));
+ assert.match(job,/inputs.ecs_intel_updater/);
+ assert.match(job,/refs\/heads\/codex\/ecs-production-integration/);
+ assert.match(job,/runs-on: macos-15-intel/);
+ assert.match(job,/7821125f69463194041bdccef112ae6f498c229d70411a7517bd751f5bf23e24/);
+ assert.match(job,/200f5412859e05f5498c0add508594950aae6fa226f9009831840e2f528bf5c8/);
+ assert.match(job,/persist-credentials: false/);
+ assert.doesNotMatch(job,/gh release (?:create|upload|edit)|APPLE_APP_SPECIFIC_PASSWORD|CSC_LINK/);
+});
