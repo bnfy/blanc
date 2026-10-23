@@ -36,7 +36,7 @@ async function run(appPath, { debug = false, graphics = 'candidate' } = {}) {
   void ignored; void ignoredSmoke; void ignoredFile;
   console.log(`Isolated full candidate profile (retained for testing): ${profile}`);
   console.log(`Candidate-only graphics mode: ${graphics}`);
-  const args = [...(graphics === 'candidate' ? [] : ['--blanc-ecs-original-graphics']), ...graphicsSwitches,
+  const args = [`--user-data-dir=${profile}`, ...(graphics === 'candidate' ? [] : ['--blanc-ecs-original-graphics']), ...graphicsSwitches,
     ...(debug ? ['--remote-debugging-port=55824', '--remote-debugging-address=127.0.0.1'] : [])];
   if (typeof metadata.productName !== 'string' || path.basename(metadata.productName) !== metadata.productName) throw Error('Invalid candidate executable name');
   const child = spawn(path.join(app, 'Contents/MacOS', metadata.productName), args, {

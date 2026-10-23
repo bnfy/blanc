@@ -59,7 +59,7 @@ async function run(appPath, output) {
       const { ELECTRON_RUN_AS_NODE: ignored, BLANC_ECS_LOCAL_HTML: ignoredFixture, ...env } = process.env;
       void ignored; void ignoredFixture;
       if (process.platform === 'linux') {
-        const warm = spawn(executable, earlyArgs, { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
+        const warm = spawn(executable, [...earlyArgs, `--user-data-dir=${profile}`], { env: { ...env, ...launchEnv, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: 'ignore' });
         const warmExit = new Promise(resolve => warm.once('exit', code => resolve(code)));
         try {
           evidence.initialInstall = await waitFor(async () => {
@@ -76,7 +76,7 @@ async function run(appPath, output) {
         await fs.unlink(path.join(profile, 'ecs-runtime.json'));
       }
       const port = 55822;
-      const child = spawn(executable, [...earlyArgs, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
+      const child = spawn(executable, [...earlyArgs, `--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
         env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
       });
       const exited = new Promise(resolve => child.once('exit', resolve));

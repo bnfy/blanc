@@ -6,7 +6,6 @@ const { app, BrowserWindow, Menu, dialog, session, webContents, shell, clipboard
 // Match production's first-operation Linux guard before accessing the ECS
 // component binding, which can initialize native component/child services.
 if (!require('./linux-sandbox-launch').enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
-const { components } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createDrmRuntime } = require('./drm-runtime');
@@ -20,6 +19,9 @@ if (!metadata.blancEcsFullCandidate || !profile || !path.isAbsolute(profile)
   || JSON.parse(fs.readFileSync(path.join(profile, 'ecs-candidate-profile.json'), 'utf8')).candidate !== true) {
   throw Error('Use the full ECS candidate launcher with an explicitly initialized isolated profile');
 }
+require('./ecs-profile-policy.cjs').requireNativeLinuxProfile({ profile,
+  switchProfile: app.commandLine.getSwitchValue('user-data-dir'), nativeProfile: app.getPath('userData') });
+const { components } = require('electron');
 app.setName('Blanc ECS Candidate');
 const graphics = applyCandidateGraphicsPolicy({ app, metadata });
 app.setPath('userData', profile);

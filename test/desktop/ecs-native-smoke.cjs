@@ -50,7 +50,7 @@ async function main() {
     const fixture = path.join(profile, 'fixture.html');
     await fs.writeFile(fixture, '<h1 id="canary">Original</h1><script>document.querySelector("h1").textContent="SCRIPT RAN"</script>');
     for (const iteration of [0, 1]) {
-      const child = spawn(launchExecutable, ['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
+      const child = spawn(launchExecutable, [`--user-data-dir=${profile}`, '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0'], {
         env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: fixture,
           ...(!mac && !win ? { APPIMAGE_EXTRACT_AND_RUN: '1' } : {}),
           BLANC_UPDATE_CHANNEL: iteration ? 'staging' : 'production', BLANC_UPDATE_STAGING_URL: `http://127.0.0.1:${server.address().port}/`,

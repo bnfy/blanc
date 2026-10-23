@@ -23,7 +23,7 @@ async function run(app, output) {
         void ignored; void ignoredHtml;
         const port = 55826;
         const started = Date.now();
-        const child = spawn(executable, [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1',
+        const child = spawn(executable, [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1',
           ...(offline ? ['--host-resolver-rules=MAP * ~NOTFOUND'] : [])], {
           env: { ...env, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1' }, stdio: ['ignore', 'pipe', 'pipe'],
         });

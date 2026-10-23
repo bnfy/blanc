@@ -180,7 +180,7 @@ async function run(appPath, output) {
       for (let round = 0; round < 2; round++) {
         const port = 55821;
         const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
-        const child = spawn(executable, [`--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
+        const child = spawn(executable, [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'], {
           env: { ...env, ...launchEnv, BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html }, stdio: ['ignore', 'pipe', 'pipe'],
         });
         const exited = new Promise(resolve => child.once('exit', resolve));
