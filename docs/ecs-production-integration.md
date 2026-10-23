@@ -484,8 +484,9 @@ was removed. A replacement run requires fresh owner signing approval.
 Replacement `40008436074` uses test source `5a08e66a3`. The corrected Settings
 contract, PowerShell environment reset and sanitized CDM failure diagnostics
 passed 4,302 local unit tests with two existing skips, plus lint and targeted
-regressions. This replacement awaits its own signing approval; it is not a
-native qualification pass yet.
+regressions. The owner approved this exact replacement run, and the approval
+was submitted; native validation is running. It is not a qualification pass
+yet.
 
 The fresh Mac matrix `40006057550` remains separate and queued; this Windows
 work does not replace its acceptance requirements.
