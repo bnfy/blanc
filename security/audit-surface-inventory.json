@@ -295,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "95eb429623308095691e86532396e9ee1f4e96f950a9cb35cbe5153a67c7f7cc",
+      "sha256": "12b2b890535da09396df66dfb3b2635878714da5ba271adacdadf1d06ca15fbd",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -1040,7 +1040,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "f339bf08fa04379e27cd9191b8b8917f66d671925966e16b71d021df636db275",
+      "sha256": "25b6505e1f2ccaa8a47ca7eeeec49bf87e4e874643ce0105c805c06d344f6603",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

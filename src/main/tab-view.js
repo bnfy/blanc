@@ -483,8 +483,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (!isMainFrame || !validatedURL) return;
     // Default-off diagnostics: how each main-frame failure was handled and the
     // gate state at that moment. Observation only.
-    const traceFailure = outcome => deps.navigationTrace?.record('did-fail-load', { webContentsId: wc.id, url: validatedURL, code: errorCode, outcome,
-      gate: isStartupGateActive(tab) ? 'active' : 'inactive', queued: startupQueuedNavigations.has(wc.id) });
+    const traceFailure = outcome => deps.navigationTrace?.record('did-fail-load', { webContentsId: wc.id, navEpoch: tab.navEpoch, private: tab.private,
+      url: validatedURL, code: errorCode, outcome, gate: isStartupGateActive(tab) ? 'active' : 'inactive', queued: startupQueuedNavigations.has(wc.id) });
     if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) { traceFailure('not-presented'); return; }
     if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) { traceFailure('gate-suppressed'); return; }
     traceFailure('error-page');

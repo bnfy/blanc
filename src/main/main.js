@@ -1638,7 +1638,9 @@ function installStartupNavigationGate(sessions) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
       queued = true;
     }
-    navigationTrace.record('startup-gate-cancel', { webContentsId: details.webContentsId, url: details.url, method: details.method, queued });
+    const gateTab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+    navigationTrace.record('startup-gate-cancel', { requestId: details.id, webContentsId: details.webContentsId, navEpoch: gateTab?.navEpoch,
+      private: gateTab?.private, resourceType: details.resourceType, url: details.url, method: details.method, queued });
     return true;
   };
   for (const browsingSession of sessions) {
@@ -1681,10 +1683,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
     );
     const wc = liveContents(tab);
     if (!wc) {
-      navigationTrace.record('startup-gate-replay', { webContentsId, outcome: 'no-live-tab' });
+      navigationTrace.record('startup-gate-replay', { webContentsId, private: tab?.private, outcome: 'no-live-tab' });
       continue;
     }
-    navigationTrace.record('startup-gate-replay', { webContentsId, url, outcome: 'replayed' });
+    navigationTrace.record('startup-gate-replay', { webContentsId, navEpoch: tab.navEpoch, private: tab.private, url, outcome: 'replayed' });
     wc.loadURL(url).catch(() => {});
   }
 }

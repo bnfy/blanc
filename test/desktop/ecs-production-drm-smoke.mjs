@@ -25,22 +25,32 @@ const launch = () => {
   const trace = path.join(traceDir, `launch-${traceFiles.length + 1}.jsonl`);
   traceFiles.push(trace);
   return launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
-    args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_NAVIGATION_TRACE: trace }, timeoutMs: 30000 });
+    args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '', BLANC_NAVIGATION_TRACE: trace,
+      BLANC_NAVIGATION_TRACE_HOSTS: 'castlabs.github.io' }, timeoutMs: 30000 });
 };
+// Complete evidence: the app's trace-start marker is present, no line is
+// malformed, the app did not hit its cap, and nothing retained was dropped.
+const RETAINED = 200;
 async function readTraces() {
   return Promise.all(traceFiles.map(async (file, index) => {
     const text = await fs.readFile(file, 'utf8').catch(() => null);
-    if (text === null) return { launch: index + 1, active: false };
-    const events = text.split('\n').filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
-    // The VMP page's own events plus every gate release and replay.
-    const relevant = events.filter(event => event.host === 'castlabs.github.io' || /^startup-gate-(release|replay)$|^profile-gate-replay$/.test(event.event));
-    return { launch: index + 1, active: true, totalEvents: events.length, events: relevant.slice(0, 200) };
+    if (text === null) return { launch: index + 1, active: false, complete: false };
+    let malformedLines = 0;
+    const events = text.split('\n').filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { malformedLines += 1; return []; } });
+    const started = events[0]?.event === 'trace-start';
+    const capReached = events.some(event => event.event === 'trace-truncated');
+    const relevant = events.filter(event => !/^trace-(start|truncated)$/.test(event.event));
+    const retainedTruncated = relevant.length > RETAINED;
+    return { launch: index + 1, active: started, complete: started && malformedLines === 0 && !capReached && !retainedTruncated,
+      malformedLines, capReached, retainedTruncated, totalEvents: relevant.length, events: relevant.slice(0, RETAINED) };
   }));
 }
 function observeNetwork(context) {
   context.on('requestfailed', request => {
     let host; try { host = new URL(request.url()).hostname; } catch { return; }
-    report.networkFailures.push({ host, error: request.failure()?.errorText, at: Date.now() });
+    let redirects = 0; for (let previous = request.redirectedFrom(); previous; previous = previous.redirectedFrom()) redirects += 1;
+    report.networkFailures.push({ host, error: request.failure()?.errorText, at: Date.now(), resourceType: request.resourceType(),
+      navigation: request.isNavigationRequest(), redirects });
   });
   context.on('response', response => {
     if (response.status() >= 400) report.networkFailures.push({ host: new URL(response.url()).hostname, status: response.status() });

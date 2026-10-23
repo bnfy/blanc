@@ -28,8 +28,19 @@ empty (+115 ms), so the error page was shown although the replayed page also
 loaded. Startup reports `ready` before the gate opens, and the tab handler's
 suppression requires an active gate. This reproduces the mechanism; whether run
 `40038238250` took this path needs the traced validation. No fix or workaround
-has been applied. The DRM smoke now embeds each launch's trace (and whether it
-was active) and a same-clock timeline in its report.
+has been applied. The trace runs only when `BLANC_NAVIGATION_TRACE` (a new
+absolute file) and `BLANC_NAVIGATION_TRACE_HOSTS` (fixture hostnames) are both
+set; other hosts and private tabs are never recorded. Coordinator records
+cover main-frame cancellations at every callback stage with Chromium's request
+ID; gate and failure records carry the tab's navigation generation. The file
+starts with a `trace-start` marker and ends with `trace-truncated` at its cap,
+and the DRM smoke reports each launch's trace as complete only with the start
+marker, no malformed lines, no cap and no retained-event truncation. A traced
+local repeat linked the sequence by request and generation: request 50 refused
+and queued at generation 1 (+0 ms), replayed (+23 ms), and a `-20` failure
+during the replayed generation 2 with the gate inactive (+99 ms). Electron's
+load-failure event carries no request ID, so that last link rests on code,
+generation and time.
 
 **Owner waiver (22:06 UTC):** the runtime security (Node 24.22.0) and native
 source/redistribution gates are waived for shipping today, with the missing

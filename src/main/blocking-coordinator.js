@@ -17,8 +17,12 @@ function createBlockingCoordinator({ trace } = {}) {
       session.webRequest[event]({ urls: ['<all_urls>'] }, (details, callback) => {
         let settled = false;
         const respond = value => { if (!settled) { settled = true; callback(value || {}); } };
-        const mainFrame = event === 'onBeforeRequest' && details.resourceType === 'mainFrame';
-        const traced = source => { if (mainFrame) trace?.record('coordinator-cancel', { source, webContentsId: details.webContentsId, url: details.url, method: details.method }); };
+        // Main-frame cancellations at every callback stage, with Chromium's
+        // request ID so original loads, redirects and replays stay distinct.
+        const traced = source => {
+          if (details.resourceType === 'mainFrame') trace?.record('coordinator-cancel', { source, stage: event, requestId: details.id,
+            webContentsId: details.webContentsId, resourceType: details.resourceType, url: details.url, method: details.method });
+        };
         if (event === 'onBeforeRequest' && state.gate?.(details)) { traced('gate'); return respond({ cancel: true }); }
         const run = async () => {
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders

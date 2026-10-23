@@ -29,7 +29,8 @@ function createProfileNavigationGates({ coordinator, queued, resolveContents, re
       queued.set(id, details.url);
       held = true;
     }
-    trace.record('profile-gate-cancel', { webContentsId: id, url: details.url, method: details.method, queued: held });
+    trace.record('profile-gate-cancel', { requestId: details.id, webContentsId: id, navEpoch: target?.tab.navEpoch, private: target?.tab.private,
+      url: details.url, method: details.method, queued: held });
     return true;
   }
   function hold(profileId, session) {
@@ -55,7 +56,7 @@ function createProfileNavigationGates({ coordinator, queued, resolveContents, re
           trace.record('profile-gate-replay', { webContentsId: id, outcome: 'superseded' });
           continue;
         }
-        trace.record('profile-gate-replay', { webContentsId: id, url: item.url, outcome: 'replayed' });
+        trace.record('profile-gate-replay', { webContentsId: id, navEpoch: target.tab.navEpoch, url: item.url, outcome: 'replayed' });
         target.wc.loadURL(item.url).catch(() => {});
       }
     }
