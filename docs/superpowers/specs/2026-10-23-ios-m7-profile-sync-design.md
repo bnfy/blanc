@@ -53,7 +53,8 @@ suspended, iCloud Keychain sharing of the key, Android.
 ## 3. Compatibility: byte-for-byte with desktop
 
 The phone is a new client of the existing v1 protocol; the Worker and desktop
-don't change for M7a. The protocol below is what desktop does today
+sync don't change for M7a. The only shared code M7a touches is two `blanc://`
+pages and one bridge member, so the phone can hide what it can't do (§5). The protocol below is what desktop does today
 (`src/main/sync-crypto.js`, `sync.js`, `sync-pairing.js`,
 `cloudflare/sync-worker/src/index.js`). Where
 `docs/superpowers/specs/2026-07-07-profile-sync-design.md` disagrees, the code
@@ -156,7 +157,21 @@ out at most 60 s after the first unpublished change.
   `SettingsStore`.
 - **Turning sync off** deletes the Keychain item and the four `sync-*.json`
   files, and (if the phone shared tabs) publishes a retraction first. It never
-  deletes the account on the server; that stays a desktop action.
+  deletes the account on the server; that stays a desktop action, so the page
+  hides the "also delete synced data" controls on the phone (§5) and the
+  engine refuses `wipeRemote: true` if it ever arrives.
+- **Account barrier.** The engine is `@MainActor`, but work interleaves at
+  every `await`, so a GET or PUT can still be in flight when the person
+  switches accounts or turns sync off. To keep an old account's response out
+  of the new account's cache and off its server:
+  - every pass and publish runs against an **account snapshot** taken when it
+    starts (`accountId`, key, generation), never against live state;
+  - switching, joining, enabling and disabling **bump the generation** first,
+    cancel the running pass and publish tasks, and **wait for every request
+    already sent to finish** before clearing data or adopting the new account;
+  - after each `await`, a pass whose generation is no longer current stops: it
+    writes nothing to the local stores, applies nothing to settings and sends
+    nothing further. A PUT built from one account is never sent to another.
 
 ## 5. What the person sees
 
@@ -169,13 +184,23 @@ out at most 60 s after the first unpublished change.
   `UIPasteboard`) with desktop's result shapes. The section's layout on a
   phone screen is checked in the simulator, since no automated test renders
   these pages.
+- **No server deletion from the phone.** The shared Settings page shows its
+  "also delete synced data" checkboxes (turning off, `syncWipe`; switching,
+  `syncSwitchWipe`) only when the bridge advertises a new **`syncWipeRemote`**
+  capability. Desktop sends no capability list, so it keeps them; the phone
+  doesn't advertise it, so they're hidden there.
 - **Start page:** `start.data` returns `remoteDevices`, and the bridge emits
   `start.onRemoteTabs` after a pull changes them, so the page's Other devices
   section appears. Favorites appear where desktop shows them.
-- **Favorites page:** lists synced Favorites. Edit calls (`remove`,
-  `setFolder`, `renameFolder`, `removeFolder`, imports, pins) reject with a
-  new catalog message, "Edit Favorites on your computer for now." (all six
-  languages).
+- **Favorites page, read-only:** a new bridge member
+  `bookmarks.capabilities()` returns `{editable}` (desktop `true`, phone
+  `false`). When it's false the shared page hides remove, move, folder rename
+  and delete, import and pin controls, and shows a visible note: "Favorites
+  sync from your computer. Edit them there for now." (new catalog key
+  `favorites.readOnlyNote`, all six languages). The native edit methods still
+  reject with `favorites.editOnComputer` as a backstop, and the page catches
+  and shows any rejection from its edit handlers instead of leaving it
+  unhandled.
 - **Palette:** the Quick Switcher matches other devices' tabs and Favorites,
   ranked below the phone's own tabs; at rest, an **Other devices** section
   lists each device (its name, folded) below the phone's tabs. Picking a
@@ -234,9 +259,12 @@ out at most 60 s after the first unpublished change.
 
 ## 9. Open questions for the owner
 
+A reviewer's recommendations are noted; none is an owner decision yet.
+
 1. The phone can **create** a new sync (desktop's flow). Keep it, or make the
-   phone join-only, matching "pair with your desktop"?
-2. Should M7a's Favorites page be read-only (this spec), or wait for M8 to show
-   it at all?
+   phone join-only, matching "pair with your desktop"? *Reviewer: join-only at
+   first.*
+2. Should M7a's Favorites page be visible read-only (this spec), or hidden
+   until M8? *Reviewer: visible read-only.*
 3. The phone's published name is `iPhone`. Fine, or use the model name
-   (`iPhone 17 Pro`)?
+   (`iPhone 17 Pro`)? *Reviewer: `iPhone`, renamable.*

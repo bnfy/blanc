@@ -14,7 +14,7 @@
 
 - Base: the M6.5 branch `claude/ios-port-revisit` (#1030). Deployment target iOS 18.4; `objectVersion = 77` stays; no SPM packages.
 - New Swift files go in `ios/Blanc/Blanc/Sync/` and `ios/Blanc/BlancTests/Sync/`; both trees are file-system synchronized groups, so no `project.pbxproj` edit is needed.
-- No desktop, Worker or `src/` change in M7a. Endpoint `https://blanc-sync.bnfy-441.workers.dev`.
+- No Worker or desktop sync change in M7a. The only `src/` and contract changes are Task 10's: the `syncWipeRemote` capability gate in `src/renderer/pages/settings.js`, read-only gating in `src/renderer/pages/bookmarks.js`, and the new `bookmarks.capabilities` bridge member (desktop answers `{editable: true}`, so desktop behavior is unchanged). Endpoint `https://blanc-sync.bnfy-441.workers.dev`.
 - Every byte rule in spec §3 is copied exactly: scrypt N=32768 r=8 p=1 dkLen=64; HKDF-SHA256 info `blanc-sync-id/v1`, `blanc-sync-enc/v1`, `blanc-pair-id/v1`, `blanc-pair-key/v1`; salts `blanc-sync:v1:<lowercased trimmed handle>` and `blanc-pair:v1`; envelope `{"v":1,"iv","ct","tag"}` standard padded base64, no AAD; recovery prefix `blanc-sync:1:`; code alphabet `ABCDEFGHJKMNPQRSTVWXYZ23456789`.
 - String tie-breaks compare UTF-16 code units (`Array(s.utf16)` lexicographic), never Swift `String <`.
 - The content key lives only in the Keychain (service `me.bnfy.blanc.sync`, account `content-key`, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, not synchronizable). Never log it, the passphrase or the code.
@@ -29,7 +29,7 @@
 - **Settings the phone doesn't understand** (`searchEngine: "custom"` with a template, `newtabClockFont`, a key added by a newer desktop): they must come back from the phone byte-identical, clocks included. Pinned in Task 5 (`testUnknownKeysRoundTripUnchanged`).
 - **Equal clocks with non-BMP tie-breakers or values**: the winner must match desktop's, or two devices flip a setting forever. Pinned in Task 4 and Task 5's vector cases.
 - **A pass interrupted by 429, 503 or no network**: nothing half-written, `lastError` set, the next foreground retries. Pinned in Task 9 (`testRateLimitedPassWritesNothing`).
-- **Turning sync off while a tab publish is pending or a code is showing**: the retraction goes out, the pair entry is deleted, and no later PUT recreates data. Pinned in Task 9 (`testDisableCancelsPendingPublishAndPair`).
+- **Switching accounts or turning sync off while a GET or PUT is in flight** (or a publish is pending, or a code is showing): the old account's response must never reach the new account's cache, settings or server, and nothing is sent after the switch except the retraction and pair delete. Pinned in Task 9 (`testSwitchDiscardsInFlightOldAccountResponse`, `testDisableWaitsForInFlightPutAndStops`, `testDisableCancelsPendingPublishAndPair`).
 
 ---
 
@@ -172,7 +172,7 @@
 
 - [ ] **Step 1: Failing tests** (temp directory): `testDeviceIdMintedOnceAndKept` (lowercase UUID; survives `clearData()` and reload); `testRoundTrip`; `testCorruptFileFallsBackToDefaults`; `testClearDataRemovesStoreFilesOnly` (`sync.json` stays); `testKeyNeverWrittenToDisk` (after a full round trip, no file in the directory contains the key's base64 or hex).
 - [ ] **Step 2: Run** `-only-testing:BlancTests/SyncStateStoreTests`. Expected: build fails.
-- [ ] **Step 3: Implement.** The Keychain store is exercised by hand in Task 11 (the simulator test host has a Keychain, but CI's unsigned runs don't guarantee one).
+- [ ] **Step 3: Implement.** The Keychain store is exercised by hand in Task 12 (the simulator test host has a Keychain, but CI's unsigned runs don't guarantee one).
 - [ ] **Step 4: Run.** Expected: `** TEST SUCCEEDED **`.
 - [ ] **Step 5: Commit:** `ios(m7a): sync state and Keychain key storage`.
 
@@ -184,7 +184,7 @@
 
 **Interfaces:**
 - Consumes: Tasks 2–8.
-- Produces: `@MainActor @Observable final class SyncEngine { init(state: SyncStateStore, secrets: SyncSecretStore, client: SyncWorkerClient, clock: @escaping () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }, settingsSink: @escaping (SyncedSettings) -> Void, tabsSource: @escaping () -> [(url: String, title: String)]); private(set) var remoteDevices: [RemoteDevice]; private(set) var favorites: [Favorite]; private(set) var pairing: PairingState?; var status: JSONValue { get } /* desktop syncGet shape */; func preflight(handle: String, passphrase: String) async -> JSONValue; func enable(handle: String, passphrase: String) async -> JSONValue; func joinWithCode(_ code: String) async -> JSONValue; func switchWithCode(_ code: String) async -> JSONValue; func beginPairing() async -> JSONValue; func cancelPairing() async; func recoveryCode() -> String?; func disable() async; func syncNow() async; func setShareTabs(_ on: Bool) async; func setDeviceName(_ name: String); func localSettingChanged(key: String, value: JSONValue); func tabsChanged(); func appDidBecomeActive() async }` with `struct PairingState: Equatable { let code: String; let expiresAt: Int64 }`. Result shapes (`ok`, `created`, `message`, `status`) copy desktop's `sync.js` handlers so `settings.js` needs no change.
+- Produces: `@MainActor @Observable final class SyncEngine { init(state: SyncStateStore, secrets: SyncSecretStore, client: SyncWorkerClient, clock: @escaping () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1000) }, settingsSink: @escaping (SyncedSettings) -> Void, tabsSource: @escaping () -> [(url: String, title: String)]); private(set) var remoteDevices: [RemoteDevice]; private(set) var favorites: [Favorite]; private(set) var pairing: PairingState?; var status: JSONValue { get } /* desktop syncGet shape */; func preflight(handle: String, passphrase: String) async -> JSONValue; func enable(handle: String, passphrase: String) async -> JSONValue; func joinWithCode(_ code: String) async -> JSONValue; func switchWithCode(_ code: String, wipeRemote: Bool = false) async -> JSONValue; func beginPairing() async -> JSONValue; func cancelPairing() async; func recoveryCode() -> String?; func disable(wipeRemote: Bool = false) async -> JSONValue; func syncNow() async; func setShareTabs(_ on: Bool) async; func setDeviceName(_ name: String); func localSettingChanged(key: String, value: JSONValue); func tabsChanged(); func appDidBecomeActive() async }` with `struct PairingState: Equatable { let code: String; let expiresAt: Int64 }` and, internally, `struct AccountSnapshot { let accountId: String; let key: SymmetricKey; let generation: Int }` plus `private var generation: Int` and `private var inFlight: Set<UUID>` (one id per request sent, removed when it returns). Result shapes (`ok`, `created`, `message`, `status`) copy desktop's `sync.js` handlers so `settings.js` needs no change.
 
 - [ ] **Step 1: Failing tests** with `FakeTransport` (an in-memory Worker honoring `ifVersion`), `InMemorySyncSecretStore`, a fixed clock and temp directories:
   - `testJoinWithCodeAdoptsAccountAndPulls` (desktop-made pair blob from the vectors → state enabled, key in secrets, settings applied through `settingsSink`, favorites and remote devices populated, the pair entry consumed).
@@ -196,38 +196,59 @@
   - `testPublishDebounce` (`tabsChanged` at t=0, 10 s, 20 s → one publish at 35 s; continuous changes → a publish by 60 s).
   - `testShareOffPublishesRetraction` and `testNeverPublishesWhenShareNeverOn`.
   - `testDisableCancelsPendingPublishAndPair` (code showing and a publish pending → DELETE pair, retraction PUT, then no further request; secrets and store files cleared; `deviceId` kept).
+  - `testSwitchDiscardsInFlightOldAccountResponse` (the fake transport holds account A's `session` GET open; `switchWithCode` to account B runs; then A's response is released → B's `sync-session.json` and `remoteDevices` contain none of A's devices, and no request after the switch targets A).
+  - `testSwitchNeverUploadsOldAccountData` (A's pass is suspended between its GETs and its settings PUT; switch to B; release → no PUT to B carries A's settings, and no PUT to A is sent after the switch began).
+  - `testDisableWaitsForInFlightPutAndStops` (a settings PUT to A is held open; `disable()` does not clear the stores or the key until it returns; after release, exactly the retraction (if sharing) follows and nothing else).
+  - `testDisableRefusesWipeRemote` (`disable(wipeRemote: true)` → result `ok: false` with desktop's error shape; no DELETE sent).
   - `testBeginPairingRegeneratesOnConflict` (409, 409, 201 → third code shown; three 409s → `server` error).
   - `testLocalSettingStampsAndPushes` (`localSettingChanged("theme", "dark")` → next pass PUTs settings whose `meta.theme` is the stamped clock and every other key unchanged).
 - [ ] **Step 2: Run** `-only-testing:BlancTests/SyncEngineTests`. Expected: build fails.
-- [ ] **Step 3: Implement.** A pass: GET `settings`, `bookmarks`, `session`, `icons` in that order; decrypt; merge; apply; PUT `settings` and (if sharing or retracting) `session` only when the export differs; never PUT `bookmarks` or `icons`. Run scrypt off the main actor (`Task.detached`). In `TabsManager`, `applySettingsPatch` calls `syncEngine.localSettingChanged` for each changed key; tab create/close/navigation/title changes call `tabsChanged()`; a `settingsSink` applies `theme`, `searchEngine` (unknown engines → leave the local choice), `adblockEnabled` through `applySettingsPatch` without re-stamping.
+- [ ] **Step 3: Implement.** The account barrier (spec §4): every pass and publish captures an `AccountSnapshot` when it starts and checks `snapshot.generation == generation` after every `await`, stopping without writing, applying or sending when it differs; `switchWithCode`, `joinWithCode`, `enable` and `disable` increment `generation`, cancel the pass and publish tasks, and await until `inFlight` is empty before touching the stores, the Keychain or the new account. `wipeRemote: true` is refused (spec §4). A pass: GET `settings`, `bookmarks`, `session`, `icons` in that order; decrypt; merge; apply; PUT `settings` and (if sharing or retracting) `session` only when the export differs; never PUT `bookmarks` or `icons`. Run scrypt off the main actor (`Task.detached`). In `TabsManager`, `applySettingsPatch` calls `syncEngine.localSettingChanged` for each changed key; tab create/close/navigation/title changes call `tabsChanged()`; a `settingsSink` applies `theme`, `searchEngine` (unknown engines → leave the local choice), `adblockEnabled` through `applySettingsPatch` without re-stamping.
 - [ ] **Step 4: Run** `-only-testing:BlancTests/SyncEngineTests -only-testing:BlancTests/TabsManagerTests`. Expected: `** TEST SUCCEEDED **`.
 - [ ] **Step 5: Commit:** `ios(m7a): sync engine`.
 
-### Task 10: Pages and palette
+### Task 10: Shared pages hide what the phone can't do
+
+**Files:**
+- Modify: `src/renderer/pages/settings.js` (gate `syncWipe` and `syncSwitchWipe` with `supports('syncWipeRemote')`; when unsupported, also send `wipeRemote: false`)
+- Modify: `src/renderer/pages/bookmarks.js` (call `bookmarks.capabilities()` on load; when `editable` is false, hide the remove, move, folder rename/delete, import and pin controls, and show `favorites.readOnlyNote`; wrap every edit handler's bridge call in `try/catch` that shows the rejection's message in the page's existing status area)
+- Modify: `src/main/tab-preload.js`, `src/main/pages.js` (desktop `bookmarks.capabilities` → `{ editable: true }`, host `bookmarks`), `browser-api/bridges.json`, then `npm run browser-api:build` (regenerates `browser-api/generated/vectors.json`)
+- Modify: `copy/messages/*.json` (`favorites.readOnlyNote`: "Favorites sync from your computer. Edit them there for now."; `favorites.editOnComputer`: "Edit Favorites on your computer for now."; both in all six languages, `copy:ack` each, `copy:build`)
+- Test: `test/pages/ios-gating.test.mjs`, a `node --test` file in the style of `test/site/*.test.mjs`: it serves `src/renderer/pages/` from a local `http` server, opens `settings.html` and `bookmarks.html` in Playwright's `chromium`, and injects a stub `window.bowserPages` (the members each page calls, with `settings.bootstrap` returning or omitting `capabilities`) through `page.addInitScript`. Add `"test:pages": "node --test test/pages/*.test.mjs"` to `package.json`.
+
+**Interfaces:**
+- Produces: bridge member `bookmarks.capabilities(): Promise<{ editable: boolean }>` (hosts `["bookmarks"]`); settings capability name `syncWipeRemote`; catalog keys `favorites.readOnlyNote`, `favorites.editOnComputer`.
+
+- [ ] **Step 1: Failing tests:** `wipe controls show when no capabilities are sent (desktop)`; `wipe controls are hidden and wipeRemote is false when capabilities omit syncWipeRemote`; `read-only Favorites hide every edit control and show the note`; `editable Favorites show every edit control and no note`; `a rejected remove shows its message instead of an unhandled rejection` (the stub rejects; assert the status text and that `page.on('pageerror')` saw nothing).
+- [ ] **Step 2: Run** `npm run test:pages`. Expected: fail.
+- [ ] **Step 3: Implement** the page changes, the desktop handler and the contract entry.
+- [ ] **Step 4: Run** `npm run test:pages`, `npm run browser-api:check`, `npm run copy:check`, `npm run lint` and `npm run audit-inventory:check` (run `audit-inventory:write` if `tab-preload.js` or `pages.js` hashes moved). Expected: all pass. Then confirm by hand in `npm start` that desktop's Settings → Sync still shows both wipe checkboxes and the Favorites page still edits.
+- [ ] **Step 5: Commit:** `pages: let iOS hide sync wipe and Favorites editing`.
+
+### Task 11: Pages and palette
 
 **Files:**
 - Modify: `ios/Blanc/Blanc/PagesBridge.swift`, `ios/Blanc/Blanc/PaletteSheet.swift`, `ios/Blanc/Blanc/QuickSwitcher.swift`, `ios/Blanc/Blanc/BlancApp.swift` (scene phase → `appDidBecomeActive`)
 - Modify: `ios/Blanc/BlancTests/PagesBridgeTests.swift`, `ios/Blanc/BlancTests/QuickSwitcherTests.swift`
-- Modify: `copy/messages/*.json` and the generated `strings.*.js` (one new key)
 - Unchanged: `test/unit/ios-pages-bridge.test.js` (the shim template's literal shape must not change)
 
 **Interfaces:**
 - Consumes: `SyncEngine`.
-- Produces: `PagesBridge` async replies (`Task { let result = await …; resolve(id, result) }` holding the web view weakly), `PagesBridge.emit(_ event: String, payload: JSONValue, host: String)` (calls `window.__blancEmit` in every live `blanc://<host>` web view), capability `"sync"` in `settingsBootstrap`, the 13 settings sync methods (spec §5) routed to the engine, `start.data` with `remoteDevices` (`[{name, tabs:[{url,title,favicon}]}]`, favicon from `SyncedIcons`), `start.onRemoteTabs` emitted when `remoteDevices` changes, `bookmarks.list` from `favorites`, and every Favorites edit method rejecting with the new catalog message `favorites.editOnComputer` ("Edit Favorites on your computer for now."). `QuickSwitcher.search(_:tabs:remote:favorites:)` ranks the phone's tabs above Favorites above remote tabs.
+- Produces: `PagesBridge` async replies (`Task { let result = await …; resolve(id, result) }` holding the web view weakly), `PagesBridge.emit(_ event: String, payload: JSONValue, host: String)` (calls `window.__blancEmit` in every live `blanc://<host>` web view), capability `"sync"` in `settingsBootstrap`, the 13 settings sync methods (spec §5) routed to the engine, `start.data` with `remoteDevices` (`[{name, tabs:[{url,title,favicon}]}]`, favicon from `SyncedIcons`), `start.onRemoteTabs` emitted when `remoteDevices` changes, `bookmarks.list` from `favorites`, `bookmarks.capabilities` answering `{editable: false}`, every Favorites edit method rejecting with `favorites.editOnComputer` (Task 10), and `settingsBootstrap` capabilities that include `sync` but not `syncWipeRemote`. `QuickSwitcher.search(_:tabs:remote:favorites:)` ranks the phone's tabs above Favorites above remote tabs.
 
-- [ ] **Step 1: Failing tests:** `testCapabilitiesIncludeSync`; `testSyncGetReturnsEngineStatus`; `testStartDataIncludesRemoteDevices`; `testBookmarksEditRejects` (each edit method → reject with the English catalog text); `testSyncMethodsOnlyAnswerSettingsHost` (a `syncNow` posted from `blanc://newtab` is rejected); `QuickSwitcherTests.testRemoteRankedBelowLocalAndFavorites`.
+- [ ] **Step 1: Failing tests:** `testCapabilitiesIncludeSyncNotWipe`; `testBookmarksCapabilitiesReadOnly`; `testSyncGetReturnsEngineStatus`; `testStartDataIncludesRemoteDevices`; `testBookmarksEditRejects` (each edit method → reject with the English catalog text); `testSyncMethodsOnlyAnswerSettingsHost` (a `syncNow` posted from `blanc://newtab` is rejected); `QuickSwitcherTests.testRemoteRankedBelowLocalAndFavorites`.
 - [ ] **Step 2: Run** `-only-testing:BlancTests/PagesBridgeTests -only-testing:BlancTests/QuickSwitcherTests`. Expected: failures on the new tests only.
-- [ ] **Step 3: Implement.** Update `testStructuredShapes` and `testSettingsGetCapabilities` to the new values. The palette's resting list gains an **Other devices** section after the phone's tabs: one folded row per device (its name and tab count); expanding lists its tabs; picking one calls `manager.createTab(url:)`. The section title is the existing key `footer.devices` ("Other devices"). Add `favorites.editOnComputer` to `copy/messages/en.json` and translate it in `de`, `es`, `fr`, `pt-BR` and `it`, then `npm run copy:ack -- <locale> favorites.editOnComputer` for each and `npm run copy:build`; the bridge reads the message from the bundled catalog for the resolved language.
+- [ ] **Step 3: Implement.** Update `testStructuredShapes` and `testSettingsGetCapabilities` to the new values. The palette's resting list gains an **Other devices** section after the phone's tabs: one folded row per device (its name and tab count); expanding lists its tabs; picking one calls `manager.createTab(url:)`. The section title is the existing key `footer.devices` ("Other devices"). The bridge reads `favorites.editOnComputer` from the bundled catalog for the resolved language.
 - [ ] **Step 4: Run** the iOS tests above plus `node --test test/unit/ios-pages-bridge.test.js`, `npm run browser-api:check` and `npm run copy:check`. Expected: all pass.
 - [ ] **Step 5: Commit:** `ios(m7a): Settings → Sync, start page Other devices, palette`.
 
-### Task 11: By-hand check and records
+### Task 12: By-hand check and records
 
 **Files:**
 - Modify: `spec/parity-matrix.md` (F27 iOS `PLANNED` → `PARTIAL`, note "unreleased; Send to device is M7b"), `docs/superpowers/specs/2026-10-21-ios-port-revisit.md` (M7 row status "M7a built, M7b next")
 
 - [ ] **Step 1: Full suite.** Run the whole `BlancTests` scheme and `npm run test:unit`. Expected: `** TEST SUCCEEDED **` and no new Node failures.
-- [ ] **Step 2: Pair by hand** with a packaged desktop build signed into a test sync account (never the owner's Personal account without asking): join with a code, with the recovery code and with name and passphrase on the simulator, and with a code on a real iPhone (Keychain). Check, with screenshots: Settings → Sync renders inside the phone width; the desktop's tabs appear in the palette and on the start page; turning on "Share this device's tabs" shows the phone in desktop's Other devices within one focus refresh; changing the theme on either side reaches the other after a sync; Favorites appear and an edit shows the refusal message; turning sync off removes the phone from desktop after its next sync.
+- [ ] **Step 2: Pair by hand** with a packaged desktop build signed into a test sync account (never the owner's Personal account without asking): join with a code, with the recovery code and with name and passphrase on the simulator, and with a code on a real iPhone (Keychain). Check, with screenshots: Settings → Sync renders inside the phone width; the desktop's tabs appear in the palette and on the start page; turning on "Share this device's tabs" shows the phone in desktop's Other devices within one focus refresh; changing the theme on either side reaches the other after a sync; Favorites appear read-only with the note and no edit controls; the wipe checkboxes are absent on the phone; turning sync off removes the phone from desktop after its next sync.
 - [ ] **Step 3: Record** results in the PR description (screenshots, what wasn't checked).
 - [ ] **Step 4: Update** the parity matrix and the revisit's M7 row.
 - [ ] **Step 5: Commit:** `ios(m7a): record M7a status`.
