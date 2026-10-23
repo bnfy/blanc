@@ -62,6 +62,9 @@ test('AppImage entrypoint uses its own launcher, never an inherited mount or san
   assert.match(script, /readlink -f -- "\$0"/);
   assert.match(script, /exec "\$ECS_APPDIR\/blanc-ecs-launcher" "\$@"/);
   assert.doesNotMatch(script, /--no-sandbox|unshare|\beval\b/);
+  if (process.platform !== 'win32') assert.equal(spawnSync('sh', [path.resolve('scripts/ecs-linux-apprun.sh')], {
+    env: { ...process.env, APPIMAGE_EXIT_AFTER_INSTALL: 'true' },
+  }).status, 0, 'explicit install-only mode never enters the browser');
   const builder = fs.readFileSync(path.resolve('scripts/build-full-ecs-candidate.cjs'), 'utf8');
   assert.match(builder, /if \(nativeSecurityPatch\) \{/);
   assert.match(builder, /ecs-linux-launcher\.cc/);

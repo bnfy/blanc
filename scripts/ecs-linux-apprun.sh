@@ -1,6 +1,8 @@
 #!/bin/sh
 # Candidate only. Never trust an APPDIR or preload inherited from an old
 # AppImage. Resolve this entrypoint and use only the replacement's own files.
+# Match electron-updater's explicit install-without-relaunch contract.
+if [ -n "${APPIMAGE_EXIT_AFTER_INSTALL:-}" ]; then exit 0; fi
 unset LD_PRELOAD BLANC_ECS_CDM_PRELOAD_PATH APPIMAGE_EXIT_AFTER_INSTALL
 ECS_APPDIR=$(CDPATH= cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd -P) || exit 126
 export APPDIR="$ECS_APPDIR"
