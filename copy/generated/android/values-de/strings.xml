@@ -491,6 +491,8 @@
     <string name="tab_menu_return_pinned_home">Zurück zur angehefteten Seite</string>
     <string name="tab_menu_set_pinned_home">Angeheftete Seite durch aktuelle ersetzen</string>
     <string name="tab_menu_unpin">Tab lösen</string>
+    <string name="tab_menu_pin_split">Geteilte Ansicht anheften</string>
+    <string name="tab_menu_unpin_split">Geteilte Ansicht lösen</string>
     <string name="tab_menu_mute">Tab stummschalten</string>
     <string name="tab_menu_unmute">Ton einschalten</string>
     <string name="tab_menu_new_tab_below">Neuer Tab darunter</string>
@@ -504,7 +506,6 @@
     <string name="tab_menu_unpin_start_page">Von Startseite lösen</string>
     <string name="tab_menu_move_to_group">In Gruppe verschieben</string>
     <string name="tab_menu_split_with">Teilen mit</string>
-    <string name="tab_menu_split_pinned_refused">Angeheftete Tabs können nicht geteilt werden</string>
     <string name="tab_menu_remove_from_split">Aus geteilter Ansicht entfernen</string>
     <string name="tab_menu_close_split">Geteilte Ansicht schließen</string>
     <string name="split_group_move_into">Verschiebt %1$s in %2$s</string>
