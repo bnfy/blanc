@@ -89,7 +89,7 @@ final class PagesBridgeTests: XCTestCase {
             XCTAssertEqual(engines.map(\.0), BlancSearchEngine.allCases.map(\.rawValue))
         } else { XCTFail("searchEngines must be a record") }
         if case .object(let icons)? = dict["appIcons"] {
-            XCTAssertEqual(icons.map(\.0), ["sunrise", "sunrise-dark", "sunrise-gold"])
+            XCTAssertEqual(icons.map(\.0), ["sunrise", "sunrise-dark", "sunrise-gold", "sunrise-spectrum", "sunrise-amber"])
         } else { XCTFail("appIcons must be a record") }
 
         // usagePing comes from BlancSettingsDefaults, not a hardcode.
