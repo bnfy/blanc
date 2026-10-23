@@ -8,6 +8,7 @@ import { createRequire } from 'node:module';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 const require = createRequire(import.meta.url);
 const { waitFor, inspectCdmProcess } = require('./ecs-drm-playback-smoke.cjs');
+const { browserStartupReady } = require('./support/ecs-startup.cjs');
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE;
 assert(executable);
 assert.equal(process.env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
@@ -17,15 +18,20 @@ await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboarding
 let app;
 const launch = () => launchPackagedOverCdp({ executablePath: executable, launchViaOpen: process.platform === 'darwin',
   args: [`--user-data-dir=${root}`], env: { ...process.env, ELECTRON_RUN_AS_NODE: '' }, timeoutMs: 30000 });
-try {
-  app = await launch();
-  app.context.on('requestfailed', request => {
+function observeNetwork(context) {
+  context.on('requestfailed', request => {
     let host; try { host = new URL(request.url()).hostname; } catch { return; }
     report.networkFailures.push({ host, error: request.failure()?.errorText });
   });
-  app.context.on('response', response => {
+  context.on('response', response => {
     if (response.status() >= 400) report.networkFailures.push({ host: new URL(response.url()).hostname, status: response.status() });
   });
+}
+try {
+  report.stage = 'component-installation';
+  app = await launch();
+  observeNetwork(app.context);
+  report.stage = 'browser-startup';
   // ECS downloads its actual component through normal startup. Linux must then
   // re-enter the native launcher to load that component before sandboxing.
   const installed = await waitFor(async () => {
@@ -39,16 +45,17 @@ try {
   report.installedVersion = installed;
   await app.close(); app = null;
   app = await launch();
+  observeNetwork(app.context);
   const chrome = await waitFor(() => app.pages().find(p => p.url() === 'blanc-chrome://index/'), 'normal browser chrome');
   await chrome.waitForFunction(() => !!window.browserAPI);
   // The bridge exists before session restoration completes. A tab opened in
   // that gap can be replaced by startup restoration on a slower native host.
-  const start = await waitFor(() => app.pages().find(p => p.url() === 'blanc://newtab/'), 'restored start page');
-  await waitFor(async () => (await start.evaluate(async () => (await window.bowserPages?.start.data())?.startup?.phase)) === 'ready', 'completed browser startup');
+  await waitFor(() => browserStartupReady(app), 'completed browser startup');
+  report.stage = 'vmp-navigation';
   await chrome.evaluate(() => window.browserAPI.createTab('https://castlabs.github.io/wv-vmp-lab/'));
   const page = await waitFor(() => {
     for (const p of app.pages()) {
-      const url = new URL(p.url());
+      let url; try { url = new URL(p.url()); } catch { continue; }
       if (url.protocol === 'blanc:' && url.hostname === 'error' && url.searchParams.get('url') === 'https://castlabs.github.io/wv-vmp-lab/') {
         throw Error(`VMP navigation failed: ${url.searchParams.get('desc')} (${url.searchParams.get('code')})`);
       }
@@ -66,6 +73,7 @@ try {
     }
   });
   await media.send('Media.enable');
+  report.stage = 'vmp-initialization';
   await page.waitForFunction(() => typeof document.querySelector('#loadContentBtn')?.onclick === 'function', undefined, { timeout: 60000 });
   await page.evaluate(() => {
     const backend = document.querySelector('#backendSelect'); backend.value = 'https://proxy.widevine.com/proxy';
@@ -77,6 +85,7 @@ try {
     return /PLATFORM_[A-Z_]+/.test(text) && [...new Set(text.match(/PLATFORM_[A-Z_]+/g))];
   }, 'production VMP verification', 60000);
   report.statuses = statuses;
+  report.stage = 'protected-playback';
   assert(!statuses.includes('PLATFORM_TAMPERED'));
   if (process.platform !== 'linux') assert(statuses.includes('PLATFORM_SOFTWARE_VERIFIED'), 'production VMP must verify');
   await page.locator('video').evaluate(video => video.play());
@@ -99,6 +108,7 @@ try {
     process.platform === 'darwin' ? path.resolve(path.dirname(executable), '../..') : path.dirname(executable));
   await browserSession.detach(); await media.detach();
   report.passed = true;
+  report.stage = 'complete';
 } catch (error) {
   report.failure = { name: error.name, message: error.message.slice(0, 300) };
   report.pages = await Promise.all((app?.pages() || []).map(async page => {
