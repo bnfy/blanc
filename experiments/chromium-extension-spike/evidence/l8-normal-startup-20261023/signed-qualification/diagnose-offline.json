@@ -1,0 +1,212 @@
+[
+  {
+    "name": "original",
+    "state": {
+      "activeTabId": "1566674470",
+      "adblockEnabled": false,
+      "closed": [
+        {
+          "id": "1566674472",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        },
+        {
+          "id": "1566674476",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        },
+        {
+          "id": "1566674480",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        }
+      ],
+      "displayShares": [],
+      "extensionsWidth": 26,
+      "focusedTabId": "1566674470",
+      "glanceTabId": null,
+      "groups": [],
+      "initialWindowSaveFailed": false,
+      "initialWindowSaved": false,
+      "installedTheme": {},
+      "spaceAutosaveError": "",
+      "spaceBusy": false,
+      "spaceName": "",
+      "spaceWindowIdentity": "1955f913-16a3-413b-a8cd-3027b8989467",
+      "splitGeometry": {},
+      "splits": [],
+      "tabLayout": "island",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674469",
+          "isLoading": true,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": null,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674470",
+          "isLoading": true,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": false,
+          "title": "Signed preview recovery fixture",
+          "url": "http://127.0.0.1:9780/a"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674471",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": false,
+          "title": "Signed preview recovery fixture",
+          "url": "http://127.0.0.1:9780/b"
+        }
+      ],
+      "verticalTabsDefaultWidth": 248,
+      "verticalTabsMaxWidth": 360,
+      "verticalTabsMinWidth": 200,
+      "verticalTabsPreferredWidth": 248,
+      "verticalTabsWidth": 248,
+      "closedSlot": 0
+    },
+    "pass": true
+  },
+  {
+    "name": "replacement",
+    "state": {
+      "activeTabId": "1566674470",
+      "adblockEnabled": false,
+      "closed": [
+        {
+          "id": "1566674472",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        },
+        {
+          "id": "1566674476",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        },
+        {
+          "id": "1566674480",
+          "tabCount": 3,
+          "title": "Window",
+          "url": ""
+        }
+      ],
+      "displayShares": [],
+      "extensionsWidth": 26,
+      "focusedTabId": "1566674470",
+      "glanceTabId": null,
+      "groups": [],
+      "initialWindowSaveFailed": false,
+      "initialWindowSaved": false,
+      "installedTheme": {},
+      "spaceAutosaveError": "",
+      "spaceBusy": false,
+      "spaceName": "",
+      "spaceWindowIdentity": "1955f913-16a3-413b-a8cd-3027b8989467",
+      "splitGeometry": {},
+      "splits": [],
+      "tabLayout": "island",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674469",
+          "isLoading": true,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": null,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674470",
+          "isLoading": true,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": false,
+          "title": "Signed preview recovery fixture",
+          "url": "http://127.0.0.1:9780/a"
+        },
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": null,
+          "groupId": null,
+          "id": "1566674471",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "",
+          "pinned": false,
+          "private": false,
+          "siteMuted": false,
+          "title": "Signed preview recovery fixture",
+          "url": "http://127.0.0.1:9780/b"
+        }
+      ],
+      "verticalTabsDefaultWidth": 248,
+      "verticalTabsMaxWidth": 360,
+      "verticalTabsMinWidth": 200,
+      "verticalTabsPreferredWidth": 248,
+      "verticalTabsWidth": 248,
+      "closedSlot": 0
+    },
+    "pass": true
+  }
+]
