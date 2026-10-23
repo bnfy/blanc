@@ -74,8 +74,7 @@ if (process.platform === 'linux') {
 }
 const state = { candidate: true, pid: process.pid, version: metadata.version, electron: process.versions.electron, chrome: process.versions.chrome,
   profile, selfContainedLauncher: Boolean(process.env.BLANC_ECS_LAUNCHER_ROOT),
-  scopedZygotePreload: Boolean(process.env.BLANC_ECS_LAUNCHER_ROOT) && !process.env.LD_PRELOAD
-    && app.commandLine.getSwitchValue('zygote-cmd-prefix') === `${path.join(process.env.BLANC_ECS_LAUNCHER_ROOT, 'blanc-ecs-launcher')} --ecs-zygote`,
+  preloadEnvironmentCleared: false,
   productionUpdater: false, updaterMode, defaultBrowserRegistration: false, drm: null, blockedFileRequests: 0, graphics };
 const writeState = () => require('./ecs-runtime-state.cjs').writeRuntimeState(stateFile, state);
 const protectedSessions = new WeakSet();
@@ -94,14 +93,22 @@ app.on('web-contents-created', (_event, wc) => {
 });
 const cdmPrefix = path.join(profile, 'WidevineCdm') + path.sep;
 const cdmPath = process.env.BLANC_ECS_CDM_PRELOAD_PATH || '';
-delete process.env.BLANC_ECS_CDM_PRELOAD_PATH;
-delete process.env.BLANC_ECS_CDM_EXECUTABLE;
 const preloadedVersion = cdmPath.startsWith(cdmPrefix) ? cdmPath.slice(cdmPrefix.length).split(path.sep)[0] : null;
 const drm = createDrmRuntime({ app, components,
   ...(process.platform === 'linux' && metadata.blancEcsPreloadRequired
     ? { linuxPreloadedVersion: /^\d+(?:\.\d+){3}$/.test(preloadedVersion || '') ? preloadedVersion : null } : {}),
 });
 const ready = app.whenReady().then(() => {
+  // Chromium's native zygotes already exist at app-ready. Do this before any
+  // browser window, menu or external-file handler can start another program.
+  state.preloadEnvironmentCleared = require('./ecs-appimage-relaunch.cjs').clearStartupPreloadEnvironment(process.env);
+  if (process.platform === 'linux' && process.env.BLANC_ECS_FULL_SMOKE === '1') {
+    // Synthetic test only: check a genuine external process's environment AND
+    // mappings without recording any environment values or document content.
+    const probe = require('node:child_process').spawnSync('/bin/sh', ['-c',
+      'test -z "${LD_PRELOAD+x}" && test -z "${BLANC_ECS_CDM_PRELOAD_PATH+x}" && test -z "${BLANC_ECS_CDM_EXECUTABLE+x}" && ! grep -q blanc-cdm-preload.so /proc/$$/maps'], { stdio: 'ignore' });
+    state.externalChildPreloadFree = probe.status === 0;
+  }
   protectSession(session.defaultSession);
   // Do not hold startup for a download, offline error, or missing component.
   // A failed first install can be retried on the next online launch.

@@ -11,4 +11,6 @@ test('legacy callers never inject preload and require the native selector for pa
   assert.deepEqual(linuxPreloadEnv(root, root), {});
   fs.writeFileSync(path.join(root, 'blanc-cdm-preload.so'), 'fixture');
   assert.throws(() => linuxPreloadEnv(root, root), /self-contained Linux launcher/);
+  fs.writeFileSync(path.join(root, 'blanc-ecs-launcher'), 'not executable; never queried by admission guard');
+  assert.deepEqual(linuxPreloadEnv(root, root), {});
 });

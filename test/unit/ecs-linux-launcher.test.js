@@ -20,8 +20,8 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   assert.equal(run().status, 126);
   fs.writeFileSync(marker, '{"candidate":true}');
   const good = run(); assert.equal(good.status, 0); assert.equal(good.stdout.split('\n')[1], '');
-  assert.equal(good.stdout.split('\n')[2], '', 'browser and external handlers never inherit preload');
-  assert.ok(good.stdout.includes(`--zygote-cmd-prefix=${launcher} --ecs-zygote`));
+  assert.equal(good.stdout.split('\n')[2], path.join(app, 'blanc-cdm-preload.so'), 'preload is retained only for native startup');
+  assert.ok(!good.stdout.includes('--zygote-cmd-prefix='), 'vendor-incompatible prefix is never added');
   assert.ok(good.stdout.includes(`--user-data-dir=${profile}`));
   assert.equal(run(['--user-data-dir=/somewhere-else']).status, 126);
   assert.equal(run(['--user-data-dir', profile]).status, 0);
@@ -79,10 +79,13 @@ test('self-contained Linux launcher selects owned components and fails closed wi
   fs.unlinkSync(core);
   execFileSync('cc', ['-x', 'c', '-', '-o', core], { input:
     '#include <unistd.h>\nint main(void) { execl("/usr/bin/env", "env", (char*)0); return 1; }\n' });
-  const zygote = run(['--ecs-zygote', core, '--type=zygote']);
+  const zygote = run(['--type=zygote']);
   assert.equal(zygote.status, 0); assert.match(zygote.stderr, /CDM_LOADED/);
   assert.doesNotMatch(zygote.stdout, /LD_PRELOAD=|BLANC_ECS_CDM_PRELOAD_PATH=|BLANC_ECS_CDM_EXECUTABLE=/);
-  const unsandboxed = run(['--ecs-zygote', core, '--type=zygote', '--no-zygote-sandbox']);
+  const unsandboxed = spawnSync(core, ['--type=zygote', '--no-zygote-sandbox'], { encoding: 'utf8', env: {
+    ...process.env, LD_PRELOAD: path.join(app, 'blanc-cdm-preload.so'),
+    BLANC_ECS_CDM_PRELOAD_PATH: old, BLANC_ECS_CDM_EXECUTABLE: core,
+  } });
   assert.equal(unsandboxed.status, 0); assert.doesNotMatch(unsandboxed.stderr, /CDM_LOADED/);
   const foreign = spawnSync('/bin/true', ['--type=zygote', 'X'.repeat(70000)], { encoding: 'utf8', env: {
     ...process.env, LD_PRELOAD: path.join(app, 'blanc-cdm-preload.so'),

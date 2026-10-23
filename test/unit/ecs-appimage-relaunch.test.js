@@ -1,7 +1,14 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { cleanRelaunchEnvironment } = require('../../scripts/ecs-appimage-relaunch.cjs');
+const { cleanRelaunchEnvironment, clearStartupPreloadEnvironment } = require('../../scripts/ecs-appimage-relaunch.cjs');
+test('ready-time cleanup removes startup preload settings before browser UI', () => {
+  const env = { LD_PRELOAD: '/shim', BLANC_ECS_CDM_PRELOAD_PATH: '/cdm', BLANC_ECS_CDM_EXECUTABLE: '/core', DISPLAY: ':99' };
+  assert.equal(clearStartupPreloadEnvironment(env), true);
+  assert.deepEqual(env, { DISPLAY: ':99' });
+  const source = require('node:fs').readFileSync(require('node:path').resolve('scripts/ecs-full-bootstrap.cjs'), 'utf8');
+  assert.match(source, /const ready = app\.whenReady\(\)\.then\(\(\) => \{[\s\S]*?clearStartupPreloadEnvironment\(process\.env\)[\s\S]*?protectSession\(session\.defaultSession\)/);
+});
 test('replacement AppImage drops the old native runtime environment before exec', () => {
   const original = { APPDIR: '/tmp/old-image', APPIMAGE: '/install/old.AppImage', ARGV0: 'old', OWD: '/tmp/old-image',
     LD_PRELOAD: '/tmp/old-image/preload.so', LD_LIBRARY_PATH: '/tmp/old-image/lib', ELECTRON_RUN_AS_NODE: '1', CHROME_DEVEL_SANDBOX: '/tmp/old-image/chrome-sandbox',

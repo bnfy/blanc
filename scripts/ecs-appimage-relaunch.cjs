@@ -1,5 +1,9 @@
 'use strict';
 const path = require('node:path');
+function clearStartupPreloadEnvironment(env) {
+  for (const key of ['LD_PRELOAD', 'BLANC_ECS_CDM_PRELOAD_PATH', 'BLANC_ECS_CDM_EXECUTABLE']) delete env[key];
+  return !Object.hasOwn(env, 'LD_PRELOAD') && !Object.hasOwn(env, 'BLANC_ECS_CDM_PRELOAD_PATH') && !Object.hasOwn(env, 'BLANC_ECS_CDM_EXECUTABLE');
+}
 
 // The AppImage runtime itself runs before AppRun can repair the environment.
 // Do not carry one image's mount/loader/Electron state into its replacement.
@@ -19,4 +23,4 @@ function cleanRelaunchEnvironment(source) {
   if (!result.PATH) result.PATH = '/usr/local/bin:/usr/bin:/bin';
   return result;
 }
-module.exports = { cleanRelaunchEnvironment };
+module.exports = { cleanRelaunchEnvironment, clearStartupPreloadEnvironment };

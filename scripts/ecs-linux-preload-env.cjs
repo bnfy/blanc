@@ -14,9 +14,12 @@ function queryLinuxCdm(appDir, profile) {
   if (!result.endsWith('\n')) throw Error('Invalid native CDM selection response');
   return result.slice(0, -1);
 }
-function linuxPreloadEnv(appDir, profile) {
-  if (!fs.existsSync(path.join(appDir, 'blanc-cdm-preload.so'))) return {};
-  queryLinuxCdm(appDir, profile);
+function linuxPreloadEnv(appDir) {
+  // This is a legacy-launch admission guard, not a discarded CDM query.
+  if (fs.existsSync(path.join(appDir, 'blanc-cdm-preload.so'))
+    && !fs.existsSync(path.join(appDir, 'blanc-ecs-launcher'))) {
+    throw Error('Rebuild this candidate with the self-contained Linux launcher');
+  }
   return {};
 }
 module.exports = { linuxPreloadEnv, queryLinuxCdm };

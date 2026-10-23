@@ -53,10 +53,15 @@ On machines without FUSE, `APPIMAGE_EXTRACT_AND_RUN=1` uses the runtime's
 extract-and-run mode. The normal unpacked Electron executable is not the entry
 point for this candidate.
 
-PR #1061 review hardening (October 23): the native launcher applies preload
-only through Chromium's zygote command prefix, not the browser's global
-environment. The shim verifies the exact core executable and clears its loader
-variables before loading the CDM. JavaScript diagnostics query this same native
+PR #1061 review hardening (October 23): the shim verifies the exact core
+executable, preloads the CDM only in its sandboxed generic zygote, and strips
+loader settings from every child and foreign executable. The browser retains
+them only through native initialization; the bootstrap clears them at app-ready
+before the main browser's UI starts. The synthetic smoke also verifies that a
+real external shell has neither loader variables nor the shim mapped. Chromium's
+zygote command-prefix hook was tried in `ac6e79d91`, but the packaged ECS runtime
+exited 127 before JavaScript on the Linux runner; it is not used. New native
+validation is required for the replacement lifecycle. JavaScript diagnostics query the same native
 selector rather than implementing a second selection policy. Home/config
 ancestor symlinks are canonicalized; redirected profile leaves remain refused.
 The updater qualification uses a versionless image named `blanc` to cover

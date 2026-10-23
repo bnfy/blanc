@@ -86,7 +86,7 @@ async function main() {
     capture(child.stdout); capture(child.stderr);
     await checkpoint('standalone cold startup');
     let initial = await waitReady(assets[0].version); currentPid = initial.pid;
-    assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.scopedZygotePreload, true);
+    assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.preloadEnvironmentCleared, true);
     report.coldSelfContainedStartup = true;
     await checkpoint('initial CDM installation');
     const component = await waitFor(async () => (await state())?.component, 'initial component install');
@@ -130,7 +130,7 @@ async function main() {
       const relaunched = await waitReady(next.version); currentPid = relaunched.pid;
       handoff.relaunchedVersion = relaunched.version;
       assert.equal(relaunched.productionUpdater, false); assert.equal(relaunched.selfContainedLauncher, true);
-      assert.equal(relaunched.scopedZygotePreload, true); assert.equal(relaunched.profile, profile);
+      assert.equal(relaunched.preloadEnvironmentCleared, true); assert.equal(relaunched.profile, profile);
       const launch = JSON.parse(await fs.readFile(path.join(profile, 'ecs-launch-attempt.json')));
       assert.equal(launch.nativeProfileMatches, true);
       await checkpoint(`protected playback ${next.version}`);

@@ -9,6 +9,12 @@ const { connect, targets, waitFor } = require('./ecs-local-html-smoke.cjs');
 const { spawn } = require('node:child_process');
 const http = require('node:http');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const STAGING_REQUESTS = Object.freeze(['/staging.yml', '/staging-mac.yml', '/staging-linux.yml']);
+const classifyUpdateRequest = requested => STAGING_REQUESTS.find(value => value === requested) || 'unexpected';
+function assertStagingRequests(requests) {
+  assert.ok(requests.length > 0, 'staging metadata must actually be requested');
+  assert.ok(requests.every(value => STAGING_REQUESTS.includes(value)), 'production or unexpected updater request');
+}
 async function main() {
   const info = JSON.parse(await fs.readFile(process.env.BLANC_ECS_BUILD_RESULT, 'utf8'));
   const mac = process.platform === 'darwin', win = process.platform === 'win32';
@@ -40,7 +46,7 @@ async function main() {
   const requests = [];
   const server = http.createServer((req, res) => {
     const requested = req.url.split('?')[0];
-    requests.push(['/staging.yml', '/staging-mac.yml', '/staging-linux.yml'].find(value => value === requested) || 'unexpected');
+    requests.push(classifyUpdateRequest(requested));
     res.setHeader('Content-Type', 'text/yaml');
     res.end(`version: ${metadata.version}\nfiles:\n  - url: unused.zip\n    sha512: ${Buffer.alloc(64).toString('base64')}\n    size: 1\npath: unused.zip\nsha512: ${Buffer.alloc(64).toString('base64')}\n`);
   });
@@ -71,6 +77,10 @@ async function main() {
         assert.equal(runtime.electron, info.runtime.split('+')[0]);
         assert.equal(runtime.productionUpdater, false);
         assert.equal(runtime.updaterMode, iteration ? 'staging' : 'disabled');
+        if (!mac && !win) {
+          assert.equal(runtime.preloadEnvironmentCleared, true);
+          assert.equal(runtime.externalChildPreloadFree, true, 'external handlers inherit neither preload variables nor the shim');
+        }
         if (iteration) {
           const status = await waitFor(async () => {
             const value = await fs.readFile(path.join(profile, 'staging-status.json'), 'utf8').then(JSON.parse, () => null);
@@ -78,8 +88,7 @@ async function main() {
             return value?.phase === 'not-available' && value;
           }, 'real staging metadata check', 90000);
           report.stagingCheck = { phase: 'not-available', requestedPaths: [...requests], handoffTested: false };
-          assert.ok(requests.some(url => /^\/staging(?:-mac|-linux)?\.yml$/.test(url)));
-          assert.ok(requests.every(url => !url.includes('latest')));
+          assertStagingRequests(requests);
         } else assert.deepEqual(requests, []);
         const local = await waitFor(async () => (await targets(Number(endpoint))).find(t => t.url.startsWith('blanc-local-preview:')), 'local preview');
         page = await connect(local);
@@ -105,4 +114,5 @@ async function main() {
   await fs.writeFile('output/ecs-native/smoke.json', JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 }
-main().catch(error => { console.error(error); process.exitCode = 1; });
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = { classifyUpdateRequest, assertStagingRequests };
