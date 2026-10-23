@@ -86,7 +86,11 @@ try{
  assert.equal(playback.failure,undefined);assert.equal(playback.status,2);assert.equal(playback.mediaKeys,true);
  assert.equal(playback.muted,false);assert.equal(playback.paused,false);assert.equal(playback.error,null);assert.deepEqual(playback.mediaErrors,[]);
  assert(playback.encryptedEvents>0);assert(playback.second-playback.first>2);report.passed=true;
-}catch(error){report.failure=String(error.message).slice(0,600);throw error;}
+}catch(error){
+ report.failure=String(error.message).slice(0,600);
+ try{const pid=pids()[0];if(pid)report.nativeUi=JSON.parse(ui(pid,'inspect'));}catch{}
+ throw error;
+}
 finally{
  for(const pid of pids()){try{ui(pid,'close');await wait('owned app exit',()=>!alive(pid),10000);}catch{try{process.kill(pid,'SIGTERM');}catch{}}}
  server.closeAllConnections();await new Promise(r=>server.close(r));

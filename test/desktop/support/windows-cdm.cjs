@@ -14,6 +14,7 @@ function inspectWindowsCdm(processIds, expectedBinary, expectedHash) {
   assert.equal(path.resolve(row.binary).toLowerCase(), path.resolve(expectedBinary).toLowerCase(), 'exact mapped CDM path');
   assert.equal(row.sha256, expectedHash, 'exact mapped CDM bytes');
   assert.equal(row.signature, 'Valid');
+  assert.equal(row.utilitySubtype, 'media.mojom.CdmServiceBroker', 'exact Chromium CDM broker required');
   assert.equal(row.cdmService, true, 'expected CDM service role'); assert.equal(row.cdmSandbox, true, 'expected CDM sandbox policy'); assert.equal(row.sandboxDisabled, false, 'sandbox bypass forbidden');
   assert.equal(row.restrictedToken, true, 'restricted CDM token required'); assert.equal(row.inJob, true, 'CDM job membership required');
   assert(/^S-1-16-\d+$/.test(row.integritySid));

@@ -33,11 +33,15 @@ foreach ($processId in $ProcessIds) {
  foreach ($module in $process.Modules) {
   if ($module.ModuleName -ine 'widevinecdm.dll') { continue }
   $command = (Get-CimInstance Win32_Process -Filter "ProcessId=$processId").CommandLine
+  # Chromium 152 content/browser/media/service_factory.cc launches the
+  # media.mojom.CdmServiceBroker, not cdm.mojom.CdmService.
+  $subtype = ''
+  if ($command -match '(?:^|\s)"?--utility-sub-type=([^"\s]+)"?(?:\s|$)') { $subtype = $Matches[1] }
   $parts = [CdmToken]::Read($processId).Split('|')
   $signature = Get-AuthenticodeSignature $module.FileName
   $results += [pscustomobject]@{
    pid=$processId; binary=$module.FileName; sha256=(Get-FileHash -Algorithm SHA256 $module.FileName).Hash.ToLowerInvariant()
-   cdmService=($command -match 'cdm\.mojom\.CdmService'); cdmSandbox=($command -match '--service-sandbox-type=cdm')
+   utilitySubtype=$subtype; cdmService=($subtype -ceq 'media.mojom.CdmServiceBroker'); cdmSandbox=($command -match '(?:^|\s)"?--service-sandbox-type=cdm"?(?:\s|$)')
    sandboxDisabled=($command -match '--no-sandbox|--disable-seccomp'); restrictedToken=($parts[0] -eq 'true')
    inJob=($parts[1] -eq 'true'); integritySid=$parts[2]; signature=[string]$signature.Status
   }

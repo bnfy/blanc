@@ -40,6 +40,16 @@ test('Windows binary reads preserve nested/flat fallback without masking IO erro
   fs.unlinkSync(nested);fs.mkdirSync(nested);await assert.rejects(readCdmBinary(root,'win32-x64'),{code:'EISDIR'});
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+test('Windows CDM command parsing identifies the exact broker, including quoted switches',()=>{
+ const source=fs.readFileSync('test/desktop/support/windows-cdm-inspect.ps1','utf8');
+ const pattern=source.match(/if \(\$command -match '([^']+)'\)/)[1];
+ const re=new RegExp(pattern);
+ for(const arg of ['--utility-sub-type=media.mojom.CdmServiceBroker','"--utility-sub-type=media.mojom.CdmServiceBroker"']){
+  assert.equal(re.exec('Blanc.exe --type=utility '+arg+' --service-sandbox-type=cdm')[1],'media.mojom.CdmServiceBroker');
+ }
+ assert.notEqual(re.exec('Blanc.exe --utility-sub-type=media.mojom.CdmServiceBrokerOther')[1],'media.mojom.CdmServiceBroker');
+ assert.equal(re.exec('Blanc.exe --service-sandbox-type=cdm'),null);
+});
 test('Windows lifecycle retains genuine update, unmuted VMP and kernel token checks',()=>{
  const source=fs.readFileSync('test/desktop/ecs-cdm-lifecycle-windows.mjs','utf8');
  assert.match(source,/assertCdmVersionAbsent\(profile,fixtures.current.version\)/);
@@ -52,6 +62,10 @@ test('Windows lifecycle retains genuine update, unmuted VMP and kernel token che
  for(const key of ['restrictedToken','inJob','cdmService','cdmSandbox'])assert(inspect.includes(`row.${key}, true`));
  assert.match(inspect,/<= 4096/);assert.match(inspect,/exact mapped CDM bytes/);
  assert.match(inspect,/runWindowsPowerShell\(command\)/);
+ assert.match(inspect,/row.utilitySubtype, 'media.mojom.CdmServiceBroker'/);
+ const native=fs.readFileSync('test/desktop/support/windows-cdm-inspect.ps1','utf8');
+ assert.match(native,/-ceq 'media.mojom.CdmServiceBroker'/);
+ assert.doesNotMatch(native,/-match 'cdm\\.mojom/);
 });
 test('Windows updater requires native Restart Now and exact automatic successor',()=>{
  const source=fs.readFileSync('test/desktop/ecs-production-updater-windows.mjs','utf8');
@@ -62,6 +76,10 @@ test('Windows updater requires native Restart Now and exact automatic successor'
  assert.doesNotMatch(source,/quitAndInstall\(|STAGING_AUTO_INSTALL:'1'|--no-sandbox/);
  const ui=fs.readFileSync('test/desktop/support/windows-owned-ui.ps1','utf8');
  assert.match(ui,/ProcessIdProperty,\$TargetProcessId/);assert.match(ui,/InvokePattern/);
+ assert.match(ui,/ControlTypeProperty,\[System.Windows.Automation.ControlType\]::Button/);
+ assert.match(ui,/TryGetCurrentPattern/);
+ assert.match(ui,/\$owner -ne \$TargetProcessId/);
+ assert.match(ui,/Automation\]::Compare/);
  assert.match(ui,/\$foregroundPid -ne \$TargetProcessId/);
 });
 test('Windows lifecycle dispatch is private, branch-scoped, signing-gated and cleans secrets before tests',()=>{

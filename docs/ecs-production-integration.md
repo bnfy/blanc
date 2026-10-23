@@ -485,8 +485,29 @@ Replacement `40008436074` uses test source `5a08e66a3`. The corrected Settings
 contract, PowerShell environment reset and sanitized CDM failure diagnostics
 passed 4,302 local unit tests with two existing skips, plus lint and targeted
 regressions. The owner approved this exact replacement run, and the approval
-was submitted; native validation is running. It is not a qualification pass
-yet.
+was submitted; it completed with the further test-selector failures below.
+
+Replacement `40008436074` passed first-install protected playback (4.926 seconds,
+unmuted, VMP status 2), exact current DLL digest/signature, restricted token,
+job membership and untrusted integrity `S-1-16-0`. Its remaining role assertion
+used the wrong namespace. Pinned Chromium 152's service factory and existing
+Linux/Mac probes identify `media.mojom.CdmServiceBroker`; the Windows probe now
+parses and requires that exact utility subtype instead of `cdm.mojom.CdmService`.
+No sandbox condition was removed or relaxed. Full update/rollback still needs
+a passing rerun.
+
+That run also verified both installer signatures and downloaded the private
+updater, but failed before pressing Restart Now: name-only UI lookup selected
+an element without an Invoke pattern. The test now requires an enabled native
+Button with the exact name, uses Invoke when supported, and otherwise presses
+Space only after checking the owned foreground process and exact focused
+button. It records bounded control-type diagnostics on failure. No handoff is
+claimed yet; disposable profiles and installation were removed.
+
+The exact broker and native-button selector fixes passed 4,303 local tests
+with two existing skips, lint, and PowerShell parsing/native declaration
+compilation. All signature, mapped-DLL, token, integrity and playback checks
+remain mandatory in the next run.
 
 The fresh Mac matrix `40006057550` remains separate and queued; this Windows
 work does not replace its acceptance requirements.
