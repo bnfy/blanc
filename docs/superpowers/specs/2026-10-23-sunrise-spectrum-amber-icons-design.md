@@ -4,7 +4,7 @@ Date: 2026-10-23. Status: approved; Mac only.
 
 ## Intent
 
-Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue and indigo to coral) and **Sunrise Amber** (bronze). Both redraw the Sunrise's sun and rays, on the shipped artwork's proportions, in heavy rounded strokes and with no water lines. The sun and rays are colored Icon Composer glass over a white rim, on a pale tile. Users choose them in Settings → General → App icon, after Sunrise Gold.
+Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Spectrum** (deep blue through red to light pink) and **Sunrise Amber** (bronze). Both redraw the Sunrise's sun and rays, on the shipped artwork's proportions, in heavy rounded strokes and with no water lines. The sun and rays are colored Icon Composer glass over a white rim, on a pale tile. Users choose them in Settings → General → App icon, after Sunrise Gold.
 
 ## What the owner decided
 
@@ -18,6 +18,7 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 - **The real Sunrise's proportions.** The owner then asked for the sun and rays to follow the shipped mark more closely: a bigger sun standing higher above the horizon, and a middle ray taller than the rest. The geometry is now measured from `build/app-icons/Icon.icon/Assets/sunrise-mark.png` (`sunrise-proportions-compare.png`).
 - **A risen sun.** At those exact proportions the sun still read too small and short, because the glass rays are much heavier than the artwork's hairlines. Three options were compared (`sun-size-options.png`): a bigger half disc, a risen sun, and a risen sun with slimmer rays. The owner chose **B, the risen sun at the current ray weight**.
 - **Colors.** The owner asked for Spectrum to come closer to Arc's coloring, with more deep blue and purple, and for Amber to be darker and bronzer, since it read too light in Light mode. From three palettes each (`color-options.png`), the owner chose **P2, deeper indigo and purple**, and **Q2, bronze**.
+- **Arc's red middle.** With P2 the owner missed Arc's brighter red and pink. Two more rounds followed: more coral (`spectrum-pink-options.png`), then Arc's order of blue, red, then light pink (`spectrum-red-options.png`). The owner chose **S2**: blue left rays, Arc's deeper red at the center ray and the middle of the sun, fading to light pink on the right. Amber stays Q2.
 
 ## Goals
 
@@ -45,7 +46,7 @@ Add two macOS app icons that sit closer to Arc's Liquid Glass icon: **Sunrise Sp
 
   The mark is centered on the 1024 canvas and scaled so that, rim included, its longer side is 800 px in the native layers. It is a deliberate redraw, so it is the one Sunrise surface not derived from `assets/sunrise-mark.svg`.
 - **Colors** (horizontal gradients across the mark):
-  - Spectrum rays `#1A007F → #2338C8 → #5B2FC9 → #E8456F → #FF8A90`, sun `#2338C8 → #6A2FC4 → #ED4A5F`. The navy, royal blue and coral come from Arc's icon.
+  - Spectrum rays `#1A007F → #1942CD → #2C39B9 → #E23A55 → #F95B6E → #FF7F88 → #FFA3A8`, sun `#1942CD → #2C39B9 → #E23A55 → #FF5F73 → #FF8F96`. The blues are kept short of the middle so no purple forms. The navy, royal blue, deep overlap red and coral come from Arc's icon.
   - Amber rays `#B8692A → #CD8530 → #D9A040 → #CD8530 → #B8692A`, sun `#D08A2C → #B9652A → #9E4A2A`.
 - **Gloss:** each stroke carries a soft white highlight along its top edge, baked into the layer and masked to the stroke. Icon Composer's specular rim and glow sit on top.
 
