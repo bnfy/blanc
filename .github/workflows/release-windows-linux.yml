@@ -867,6 +867,8 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          # Public ECS fixtures never follow the public update feed.
+          if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             BLANC_UBLOCK_EVIDENCE="$PWD/dist/ublock-installed-linux.json" \
             BLANC_UBLOCK_NATIVE_LOG="$PWD/dist/ublock-installed-linux-native.log" \

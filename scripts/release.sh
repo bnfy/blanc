@@ -523,15 +523,21 @@ if should_run ecs-acceptance; then
     # The uBO suite ends with a real native Quit, which its wrapper sends.
     echo "==> Public ECS acceptance: uBO provider and restarts, file isolation, protected playback"
     ECS_APP="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app"
+    # A resumed attempt keeps every earlier report: move it aside, then write
+    # this attempt's reports fresh (the uBO suite refuses to overwrite).
+    ECS_ATTEMPT="$(date -u +%Y%m%dT%H%M%SZ)"
+    if [ -d output/ecs-production ]; then
+      mv output/ecs-production "output/ecs-production-before-$ECS_ATTEMPT"
+    fi
     mkdir -p output/ecs-production
     BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
       BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
-      BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-installed-mac.json" \
+      BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-installed-mac-$ECS_ATTEMPT.json" \
       node test/desktop/support/installed-mac-native-quit.mjs
     BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
       BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
       node test/desktop/ecs-production-smoke.mjs
-    node test/desktop/ecs-local-html-smoke.cjs "$ECS_APP" output/ecs-production/local-html-mac.json
+    node test/desktop/ecs-local-html-smoke.cjs "$ECS_APP" "output/ecs-production/local-html-mac-$ECS_ATTEMPT.json"
     BLANC_UPDATE_CHANNEL=ecs-qualification-disabled \
       BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
       node test/desktop/ecs-production-drm-smoke.mjs

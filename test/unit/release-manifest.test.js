@@ -408,5 +408,10 @@ test('an ECS release checks installed uBO, file isolation and protected playback
   for (const check of ['support/installed-mac-native-quit.mjs', 'ecs-production-smoke.mjs', 'ecs-local-html-smoke.cjs', 'ecs-production-drm-smoke.mjs']) assert.match(block, new RegExp(check.replace('.', '\\.')));
   // The uBO suite waits for a native Quit; only its wrapper sends one.
   assert.doesNotMatch(block, /node test\/desktop\/packaged-ublock-acceptance\.mjs/);
+  // Resuming keeps earlier reports and never reuses the exclusive uBO path.
+  assert.match(block, /mv output\/ecs-production "output\/ecs-production-before-\$ECS_ATTEMPT"/);
+  assert.match(block, /ublock-installed-mac-\$ECS_ATTEMPT\.json/);
+  assert.match(block, /local-html-mac-\$ECS_ATTEMPT\.json/);
+  assert.doesNotMatch(block, /ublock-installed-mac\.json/);
   assert.equal((block.match(/BLANC_UPDATE_CHANNEL=ecs-qualification-disabled/g) || []).length, 3);
 });

@@ -74,6 +74,7 @@ test('the Windows release job has no new signing access; the Linux job builds an
   const drm = lnames.indexOf('Verify public ECS file isolation and protected playback');
   assert(ubo >= 0 && drm >= 0 && ubo < upload && drm < upload);
   assert.match(linux.steps[ubo].if, /inputs\.runtime == 'ecs'/);
+  assert.match(linux.steps[ubo].run, /if \[ "\$RELEASE_RUNTIME" = ecs \]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi/);
   assert.equal(linux.steps[drm].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
   assert.match(linux.steps[drm].run, /ecs-production-drm-smoke\.mjs/);
   assert.match(linux.steps[drm].run, /ecs-production-smoke\.mjs/);
