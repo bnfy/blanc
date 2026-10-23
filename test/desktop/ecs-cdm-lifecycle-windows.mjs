@@ -45,7 +45,7 @@ const start=async(extra=[])=>{
 const close=async()=>{if(app){await app.close();app=null;}};
 const status=()=>settings.evaluate(()=>window.bowserPages.settings.drmStatus());
 const ready=async version=>wait('ready component '+version,async()=>{
- const state=await status();assert.equal(state.supported,true);
+ const state=await status();report.lastStatus=state;assert.equal(state.enabled,true, 'ECS Settings API must expose enabled DRM');
  assert(!['installation-failed','updates-disabled','unsupported','timed-out'].includes(state.state),JSON.stringify(state));
  return state.state==='ready'&&state.version===version&&state;
 });
@@ -88,6 +88,6 @@ try{
  await stageCdm(profile,fixtures.previous);await start(['--component-updater=initial-delay=100000']);rollback.status=await ready(fixtures.previous.version);await play(rollback,fixtures.previous);await close();
  await start(['--host-resolver-rules=MAP * ~NOTFOUND']);report.offlineStatus=await ready(fixtures.previous.version);await close();
  report.passed=true;
-}catch(error){report.failure=String(error.message).slice(0,800);throw error;}
+}catch(error){report.failure=String(error.message).slice(0,800);report.cdmFailure=error.cdmEvidence;throw error;}
 finally{try{await close();}finally{server.closeAllConnections();await new Promise(r=>server.close(r));await fs.rm(root,{recursive:true,force:true,maxRetries:10,retryDelay:200});report.profileRemoved=!(await fs.stat(root).catch(()=>null));await persist();}}
 assert.equal(report.profileRemoved,true);console.log(JSON.stringify(report));

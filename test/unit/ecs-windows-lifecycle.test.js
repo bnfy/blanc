@@ -5,6 +5,17 @@ const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
 const {binaryRelative,validateBinary,readCdmBinary}=require('../desktop/support/cdm-lifecycle.cjs');
+const {runWindowsPowerShell}=require('../desktop/support/windows-powershell.cjs');
+test('Windows harness resets inherited PowerShell module lookup and fails closed',()=>{
+ let invocation;
+ const result=runWindowsPowerShell('Get-AuthenticodeSignature test.exe',120000,(...args)=>{invocation=args;return ' valid \n';});
+ assert.equal(result,'valid');assert.equal(invocation[0],'powershell.exe');
+ assert.equal(invocation[2].env.PSModulePath,'');assert.equal(invocation[2].timeout,120000);
+ assert.equal(invocation[2].windowsHide,true);assert.equal(invocation[2].encoding,'utf8');
+ assert(invocation[1].includes('None'));assert.match(invocation[1].at(-1),/\$ErrorActionPreference = 'Stop'/);
+ assert.match(invocation[1].at(-1),/OutputEncoding/);
+ assert.throws(()=>runWindowsPowerShell('invalid',30000,()=>{throw Error('module unavailable');}),/module unavailable/);
+});
 test('Windows CDM fixtures use immutable upstream pins and reject wrong binaries',()=>{
  const pins=require('../desktop/fixtures/cdm-lifecycle-windows.json');
  assert.notEqual(pins.previous.version,pins.current.version);
@@ -33,12 +44,14 @@ test('Windows lifecycle retains genuine update, unmuted VMP and kernel token che
  const source=fs.readFileSync('test/desktop/ecs-cdm-lifecycle-windows.mjs','utf8');
  assert.match(source,/assertCdmVersionAbsent\(profile,fixtures.current.version\)/);
  assert.match(source,/result.status,2/);assert.match(source,/result.muted,false/);
+ assert.match(source,/state.enabled,true/);assert.doesNotMatch(source,/state.supported/);
  assert.match(source,/inspectWindowsCdm\(ids,binary\(fixture.version\),fixture.sha256\)/);
  assert.match(source,/automaticVendorRollback=false/);assert.match(source,/initial-delay=1/);
  assert.doesNotMatch(source,/--no-sandbox|disable-cup|updatesEnabled\s*=/);
  const inspect=fs.readFileSync('test/desktop/support/windows-cdm.cjs','utf8');
  for(const key of ['restrictedToken','inJob','cdmService','cdmSandbox'])assert(inspect.includes(`row.${key}, true`));
  assert.match(inspect,/<= 4096/);assert.match(inspect,/exact mapped CDM bytes/);
+ assert.match(inspect,/runWindowsPowerShell\(command\)/);
 });
 test('Windows updater requires native Restart Now and exact automatic successor',()=>{
  const source=fs.readFileSync('test/desktop/ecs-production-updater-windows.mjs','utf8');

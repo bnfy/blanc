@@ -463,10 +463,26 @@ with two existing skips, lint, PowerShell parsing and native declaration
 compilation. Native Windows results are still pending; none of these gates
 are cleared by local source checks.
 
-Run `40006965040` on `3c9d2c17d` passed workflow-input validation and is waiting
-for the owner's run-specific `ecs-signing` approval. No credentials have been
-released to that job yet. The fresh Mac matrix `40006057550` remains separate
-and queued; this Windows work does not replace its acceptance requirements.
+Run `40006965040` on `3c9d2c17d` received the owner's run-specific signing
+approval. Its staging installer passed final timestamped exact-publisher
+Authenticode and EVS verification. Existing Windows compatibility checks
+passed: VMP verified, unmuted protected video advanced 4.989 seconds without
+media errors, offline starts took 1284/1089 ms with all tested file boundaries
+closed, and real uBO restarts passed. One aborted storage request was recorded;
+this is not a zero-network-errors claim.
+
+The two new harnesses failed before qualifying their intended operations.
+The lifecycle test incorrectly asserted `supported` on the sanitized Settings
+API, whose contract exposes `enabled`. The updater's Windows PowerShell child
+inherited PowerShell 7's module path, preventing its security module from
+loading; production already resets that environment for its verifier. Both
+test-only mistakes are corrected, with a shared fail-closed PowerShell wrapper
+and regression coverage. No actual updater handoff or CDM lifecycle pass is
+claimed. Both owned profiles were removed; the updater's temporary installation
+was removed. A replacement run requires fresh owner signing approval.
+
+The fresh Mac matrix `40006057550` remains separate and queued; this Windows
+work does not replace its acceptance requirements.
 
 ## ECS maintenance in every release runbook
 
