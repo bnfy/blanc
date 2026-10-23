@@ -1,0 +1,29 @@
+{
+  "purpose": "Functional main-loop ordering only; no latency comparison",
+  "old": {
+    "mainLoopMarkerPresent": true,
+    "restorationMarkerPresent": true,
+    "allRestorationAfterMainLoop": false,
+    "sourceLocations": [
+      {
+        "file_name": "chrome/browser/sessions/session_restore.cc",
+        "function_name": "Restore",
+        "line_number": 429
+      }
+    ]
+  },
+  "fixed": {
+    "mainLoopMarkerPresent": true,
+    "restorationMarkerPresent": true,
+    "allRestorationAfterMainLoop": true,
+    "sourceLocations": [
+      {
+        "file_name": "chrome/browser/sessions/session_restore.cc",
+        "function_name": "Restore",
+        "line_number": 429
+      }
+    ]
+  },
+  "negativeControlRejectsOld": true,
+  "repairedContractPasses": true
+}
