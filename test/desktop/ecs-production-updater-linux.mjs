@@ -80,6 +80,11 @@ function prompt() {
   for(const id of ids){try{const g=x(['getwindowgeometry','--shell',id]);const width=Number(g.match(/^WIDTH=(\d+)/m)?.[1]),height=Number(g.match(/^HEIGHT=(\d+)/m)?.[1]);if(width>=200&&width<=1000&&height>=50&&height<=400)return id;}catch{}}
   return null;
 }
+function browserWindow() {
+  let ids;try{ids=x(['search','--onlyvisible','--name','.*']).split(/\s+/);}catch{return null;}
+  for(const id of ids){try{const g=x(['getwindowgeometry','--shell',id]);const width=Number(g.match(/^WIDTH=(\d+)/m)?.[1]),height=Number(g.match(/^HEIGHT=(\d+)/m)?.[1]);if(width>=800&&height>=500)return {id,width,height};}catch{}}
+  return null;
+}
 const env={...process.env,XDG_CONFIG_HOME:path.join(root,'config'),XDG_CACHE_HOME:path.join(root,'cache'),XDG_DATA_HOME:path.join(root,'data'),APPIMAGE_EXTRACT_AND_RUN:'1',BLANC_UPDATE_CHANNEL:'ecs-qualification-disabled'};
 for(const key of ['ELECTRON_RUN_AS_NODE','LD_PRELOAD','BLANC_ECS_FULL_PROFILE','BLANC_ECS_CDM_PRELOAD_PATH','BLANC_ECS_LAUNCHER_ROOT','BLANC_UPDATE_STAGING_AUTO_INSTALL','BLANC_UPDATE_STAGING_STATUS_FILE'])delete env[key];
 let warm, previous, baseline, output='';
@@ -102,18 +107,25 @@ try {
   baseline.stdout.on('data',b=>{output=(output+b).slice(-6000);});baseline.stderr.on('data',b=>{output=(output+b).slice(-6000);});
   for(let index=0;index<assets.length;index++){
     const next=assets[index];offer=next;
+    const handoff={from:index?assets[index-1].version:oldVersion,to:next.version,passed:false};report.handoffs.push(handoff);
     await wait('real staged download',()=>report.requests.some(r=>r.path===`/${next.name}`&&r.complete));
+    handoff.downloaded=true;
     const dialog=await wait('Restart Now prompt',prompt);hold=true;
     const oldPid=previous?.pid;
     x(['windowfocus',dialog]);x(['key','--clearmodifiers','Return']);
+    handoff.restartNowAccepted=true;
     if(oldPid)await wait('previous ECS process exit',async()=>!(await alive(oldPid)));
     else await wait('public baseline exit',()=>baseline.exitCode===0);
     await wait('exact renamed image replacement',async()=>await hash(install).catch(()=>null)===next.sha256);
+    handoff.sha256=next.sha256;handoff.renamedFilePreserved=true;
     assert.equal(await fs.stat(path.join(root,next.name)).catch(()=>null),null);
     const successor=await wait('automatic ECS successor',()=>mainProcess(next.version));previous=successor;
+    handoff.automaticSuccessorPid=successor.pid;
     ready=false;playback=null;
-    const window=await wait('successor window',()=>{try{return x(['search','--onlyvisible','--pid',String(successor.pid)]).split(/\s+/)[0];}catch{return null;}});
-    x(['windowfocus',window]);x(['key','--clearmodifiers','ctrl+l']);
+    // The display belongs solely to this rehearsal. X11 may attribute a
+    // Chromium window to its GPU process rather than the verified browser PID.
+    const window=await wait('successor window',browserWindow);handoff.window=window;
+    x(['windowfocus',window.id]);x(['key','--clearmodifiers','ctrl+l']);
     x(['type','--clearmodifiers',`${origin}/`]);x(['key','Return']);
     await wait('protected-page readiness',()=>ready);x(['key','Return']);
     const result=await wait('protected-page result',()=>playback);
@@ -121,16 +133,16 @@ try {
     assert.equal(result.mediaKeys,true);assert(result.encryptedEvents>0);assert.deepEqual(result.mediaErrors,[]);
     assert(result.second-result.first>2&&result.second-result.first<8);assert.notEqual(result.status,1);assert.notEqual(result.status,null);
     const cdm=await inspectLinuxCdm(successor.pid);
-    report.handoffs.push({from:index?assets[index-1].version:oldVersion,to:next.version,renamedFilePreserved:true,sha256:next.sha256,automaticSuccessorPid:successor.pid,protectedPlayback:result,cdm,passed:true});
+    Object.assign(handoff,{protectedPlayback:result,cdm,passed:true});
     if(assets[index+1])offer=assets[index+1];hold=false;for(const response of held.splice(0))metadata(response);
   }
-  assert.equal(report.handoffs.length,2);assert(report.requests.every(r=>r.path!=='unexpected'));report.passed=true;
+  assert.equal(report.handoffs.length,2);assert(report.handoffs.every(h=>h.passed));assert(report.requests.every(r=>r.path!=='unexpected'));report.passed=true;
 }catch(error){report.failure=error.message;report.logs=output;throw error;}
 finally{
   try{if(warm)await warm.close();}catch{}
   previous ||= await mainProcess(versionA) || await mainProcess(versionB);
   if(previous&&await alive(previous.pid)){
-    try{x(['windowfocus',x(['search','--onlyvisible','--pid',String(previous.pid)]).split(/\s+/)[0]]);x(['key','ctrl+q']);await wait('final normal quit',async()=>!(await alive(previous.pid)),10000);}
+    try{x(['windowfocus',browserWindow().id]);x(['key','ctrl+q']);await wait('final normal quit',async()=>!(await alive(previous.pid)),10000);}
     catch{process.kill(previous.pid,'SIGTERM');await wait('owned successor cleanup',async()=>!(await alive(previous.pid)),10000);}
   }
   if(baseline?.exitCode===null)baseline.kill('SIGTERM');
