@@ -28,5 +28,6 @@ for mode in ['old','fixed','final']:
  assert all(e['ts']>m['ts'] for e in loops)==(mode!='old'),mode
  # Compressed raw traces remain parseable independent source evidence.
  trace=json.loads(gzip.decompress((r/'ordering'/mode/'startup.json.gz').read_bytes()));assert trace.get('traceEvents')
+assert read('signed-qualification/notice-clone-frozen.json')['allFilesAndSymlinksIdenticalToFinalMasterAfterTests']
 u=read('signed-qualification/unchanged-source-map.json');assert len(u['assets'])==7 and all(v['identicalToOwnerConfirmed7065'] for v in u['assets'].values());assert u['recoveryUI']['identicalToOwnerConfirmed7065']
 print(json.dumps({'verifiedEvidenceMembers':len(members),'finalPassingCheckpoints':125,'recoveryPassingCheckpoints':92,'oldNegativeControlFailsOrdering':True,'finalCandidatePassesOrdering':True,'frozenMembers':463,'gate':'L6 accepted;8/12, delta+1;L4/L8/L11/L12 remain open'}))
