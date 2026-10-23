@@ -29,6 +29,11 @@ async function main() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-ecs-update-'));
   const profile = path.join(root, 'config/Blanc-ECS-Candidate');
   const report = { from: builds[0].candidateVersion, versions: builds.map(b => b.candidateVersion), publicFeed: false, requests: [], handoffs: [], profile };
+  const checkpoint = async stage => {
+    report.stage = stage;
+    await fs.writeFile(process.argv[4], JSON.stringify(report, null, 2));
+    console.log(`ECS updater qualification: ${stage}`);
+  };
   const assets = await Promise.all(builds.map(async b => {
     const name = `Blanc-${b.candidateVersion}.AppImage`, file = path.join(b.dist, name);
     const bytes = await fs.readFile(file);
@@ -67,9 +72,11 @@ async function main() {
     child = spawn(install, [], { env: appEnv, stdio: ['ignore', 'pipe', 'pipe'] });
     const capture = stream => stream.on('data', b => { logs = (logs + b).slice(-8000); });
     capture(child.stdout); capture(child.stderr);
+    await checkpoint('standalone cold startup');
     let initial = await waitReady(assets[0].version); currentPid = initial.pid;
     assert.equal(initial.selfContainedLauncher, true); assert.equal(initial.preloadInsideCurrentImage, true);
     report.coldSelfContainedStartup = true;
+    await checkpoint('initial CDM installation');
     const component = await waitFor(async () => (await state())?.component, 'initial component install');
     assert.equal(component.state, 'restart-required');
     await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit');
@@ -87,6 +94,7 @@ async function main() {
     for (let index = 1; index < assets.length; index++) {
       const previous = assets[index - 1], next = assets[index]; offered = next;
       const handoff = { from: previous.version, to: next.version }; report.handoffs.push(handoff);
+      await checkpoint(`download ${next.version}`);
       await waitFor(() => report.requests.some(r => r.path === `/${next.name}` && r.complete), 'real staged download', 90000);
       handoff.downloadVerified = true;
       const prompt = await waitFor(promptWindow, 'Restart Now prompt', 20000);
@@ -102,13 +110,16 @@ async function main() {
       handoff.installedHash = await hash(installed); handoff.expectedHash = await hash(next.file);
       assert.equal(handoff.installedHash, handoff.expectedHash);
       assert.equal(await fs.stat(path.join(root, previous.name)).then(() => true, () => false), false);
+      await checkpoint(`relaunch ${next.version}`);
       const relaunched = await waitReady(next.version); currentPid = relaunched.pid;
       handoff.relaunchedVersion = relaunched.version;
       assert.equal(relaunched.productionUpdater, false); assert.equal(relaunched.selfContainedLauncher, true);
       assert.equal(relaunched.preloadInsideCurrentImage, true); assert.equal(relaunched.profile, profile);
       const launch = JSON.parse(await fs.readFile(path.join(profile, 'ecs-launch-attempt.json')));
       assert.equal(launch.nativeProfileMatches, true);
+      await checkpoint(`protected playback ${next.version}`);
       handoff.protectedPlayback = await updatedPlayback(55822, currentPid); handoff.passed = true;
+      await checkpoint(`verified ${next.version}`);
     }
     report.passed = report.handoffs.length === 2 && report.handoffs.every(h => h.passed);
     assert.equal(report.passed, true, 'two consecutive automatic handoffs required');
@@ -117,10 +128,12 @@ async function main() {
     report.logs = logs;
     report.updaterLaunch = await fs.readFile(path.join(profile, 'ecs-updater-launch.json'), 'utf8').then(JSON.parse, () => null);
     report.childLog = await fs.readFile(path.join(profile, 'ecs-updater-child.log'), 'utf8').then(value => value.slice(-8000), () => null);
+    await checkpoint('cleanup');
     const finalState = await state(); if (finalState?.pid) currentPid = finalState.pid;
     if (alive(currentPid)) { await fs.writeFile(path.join(profile, 'ecs-smoke-quit'), 'quit'); await waitFor(() => !alive(currentPid), 'final normal shutdown', 15000).catch(() => process.kill(currentPid, 'SIGKILL')); }
     if (child?.exitCode === null) { child.kill('SIGTERM'); await delay(1000); if (child.exitCode === null) child.kill('SIGKILL'); }
     if (hiddenUnpacked) await fs.rename(hiddenUnpacked, path.join(builds[0].dist, 'linux-unpacked'));
+    server.closeAllConnections();
     await new Promise(resolve => server.close(resolve)); await fs.rm(root, { recursive: true, force: true });
     report.profileRemoved = !syncFs.existsSync(profile); report.installationRemoved = !syncFs.existsSync(root);
     await fs.writeFile(process.argv[4], JSON.stringify(report, null, 2));

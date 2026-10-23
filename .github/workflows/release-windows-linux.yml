@@ -837,6 +837,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes xdotool
       - name: Linux real staged Restart Now handoff
+        timeout-minutes: 6
         if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
         shell: bash
         run: |
