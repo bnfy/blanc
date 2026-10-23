@@ -171,6 +171,24 @@ Feature: Split View
     When I split the pinned tab with the ordinary one
     Then the split stays and both its tabs are pinned
     And the pinned shelf shows the split as one row
+    When I show the tabs in the side list
+    Then the side list's Pinned section shows the split as one row
+
+  @F53-26 @F53 @desktop @D11
+  Scenario: A closed pinned split reopens pinned
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And I close the split
+    Then Recently closed holds one split entry
+    When I reopen that entry
+    Then the split is back with both its tabs pinned
+
+  @F53-27 @F53 @desktop @D11
+  Scenario: A pinned split stays pinned after a relaunch
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And Blanc relaunches
+    Then the split is back with both its tabs pinned
 
   @F53-23 @F53 @desktop @D11 @island-autohide
   Scenario: The pushed Island comes back above a split's panes
@@ -193,3 +211,21 @@ Feature: Split View
     When I split the pinned tab with the ordinary one
     Then the split stays and both its tabs are pinned
     And the pinned shelf shows the split as one row
+    When I show the tabs in the side list
+    Then the side list's Pinned section shows the split as one row
+
+  @F53-26 @F53 @desktop @D11
+  Scenario: A closed pinned split reopens pinned
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And I close the split
+    Then Recently closed holds one split entry
+    When I reopen that entry
+    Then the split is back with both its tabs pinned
+
+  @F53-27 @F53 @desktop @D11
+  Scenario: A pinned split stays pinned after a relaunch
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And Blanc relaunches
+    Then the split is back with both its tabs pinned

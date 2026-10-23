@@ -411,7 +411,8 @@
     heading.className = 'vertical-tabs-section-heading';
     heading.textContent = label;
     const count = document.createElement('span');
-    count.textContent = String(tabs.length);
+    // A split counts once, as it is drawn (F53).
+    count.textContent = String(TabSections.rowsOf(tabs.map((tab) => tab.id), tabs).length);
     heading.appendChild(count);
     section.appendChild(heading);
     for (const row of rowsFor(tabs, activeTabId)) section.appendChild(row);

@@ -288,6 +288,29 @@ Then('the pinned shelf shows the split as one row', async function () {
     (count) => count === 1, 'one split row in the pinned shelf');
   const looseSplitTabs = await page.evaluate((ids) => ids.filter((id) => document.querySelector(`.tab-row[data-tab-id="${id}"]:not(.in-split)`)).length, [this.splitA, this.splitB]);
   assert.equal(looseSplitTabs, 0, 'its tabs are not listed as separate rows');
+  assert.equal(await page.evaluate(() => document.querySelector('[data-drag-section="pinned"] .ghead-n')?.textContent), '1',
+    'the Pinned header counts the split once');
+});
+
+Then("the side list's Pinned section shows the split as one row", async function () {
+  const page = await chromePage();
+  const pinned = await waitForValue(() => page.evaluate(() => {
+    const section = document.querySelector('.vertical-tabs-section[data-drag-section="pinned"]');
+    return section && {
+      rows: section.querySelectorAll('.vertical-split-row').length,
+      tabRows: section.querySelectorAll('.vertical-tab-row:not(.vertical-split-row)').length,
+      count: section.querySelector('.vertical-tabs-section-heading span')?.textContent,
+    };
+  }), (s) => s?.rows === 1, 'one split row in the side list\'s Pinned section');
+  assert.deepEqual(pinned, { rows: 1, tabRows: 0, count: '1' });
+  await this.call('setTabLayout', 'horizontal');
+});
+
+Then('the split is back with both its tabs pinned', async function () {
+  await waitForValue(() => splitUrlsNow(this), isTheSplit, 'the split, in order', 15000);
+  const state = await this.state();
+  const members = state.splits[0].tabIds.map((id) => state.tabs.find((t) => t.id === id));
+  assert.deepEqual(members.map((t) => t.pinned), [true, true]);
 });
 
 // ---- Pane headers and the divider (F53-11) ----

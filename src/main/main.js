@@ -4256,10 +4256,6 @@ function pruneSplits(runtime) {
       if (tab && !tabIds.includes(id) && tab.splitId === split.id) tab.splitId = null;
     }
     if (tabIds.length >= 2) {
-      // A split is pinned as a whole: a saved or hand-edited entry whose
-      // panes disagree comes back pinned.
-      const members = tabIds.map((id) => tabs.get(id));
-      if (splitPinned(members)) members.forEach(markPinned);
       kept.push(tabIds.length === split.tabIds.length
         ? split
         : { ...split, tabIds, focusedIndex: Math.min(split.focusedIndex, tabIds.length - 1) });
@@ -4507,6 +4503,8 @@ function createSplitFromTabs(initiatorId, otherIds, { layout = null, announced =
   syncTabLayout(runtime);
   if (all.some((tab) => tab.id === runtime.activeTabId)) showActiveSplit(runtime);
   broadcastTabs();
+  // The View menu's Pin item now names the split (Pin Split / Unpin Split).
+  scheduleMenuRebuild();
   persistSession();
   return split;
 }
@@ -4540,10 +4538,11 @@ function savedWindowSplits(runtime, entries) {
 function applyRestoredSplits(runtime, saved, restoredIds) {
   const rebuilt = restoreSplits(saved?.splits, saved?.splitIds, restoredIds);
   for (const split of rebuilt) {
-    for (const id of split.tabIds) {
-      const tab = tabs.get(id);
-      if (tab) tab.splitId = split.id;
-    }
+    const members = split.tabIds.map((id) => tabs.get(id)).filter(Boolean);
+    for (const tab of members) tab.splitId = split.id;
+    // A split is pinned as a whole: a saved or hand-edited entry whose panes
+    // disagree comes back pinned.
+    if (splitPinned(members)) members.forEach(markPinned);
   }
   runtime.splits = [...(runtime.splits ?? []), ...rebuilt];
   syncTabLayout(runtime);
@@ -4657,7 +4656,8 @@ function closeSplit(splitId) {
   const entry = buildSplitEntry({
     layout: split.layout,
     focusedIndex: split.focusedIndex,
-    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId),
+    // A pinned split in the Pinned shelf is no item (shelf pins lead): 0.
+    index: Math.max(0, itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId)),
     groupId: tabs.get(ids[0])?.groupId ?? null,
   }, ids.map(closedMemberRecord), Date.now());
   const wasShowing = ids.includes(runtime.activeTabId);

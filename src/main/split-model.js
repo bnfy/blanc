@@ -23,7 +23,7 @@ function splitEligible(tab) {
 /** A split is pinned or not as a whole: pinned when any of its tabs is, so
  *  splitting a pinned tab with any other pins the other too. */
 function splitPinned(members) {
-  return (members ?? []).some((tab) => !!tab?.pinned);
+  return members.some((tab) => tab.pinned);
 }
 
 /**
