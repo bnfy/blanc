@@ -8,11 +8,23 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■□□□□□□□□□] 3/12 launch gates cleared (25%) · Δ 0 — L7 review October 23, 2026`
+`[■■■■■□□□□□□□] 5/12 launch gates cleared (41.7%) · Δ +2 L7/L3 — October 23, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
 Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. Next priority remains the F12/Decision 2 package, followed by candidate acceptance under the approved preview scope—not an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+
+### L3 completed — October 23
+
+[Baseline/maintenance closeout](../experiments/chromium-extension-spike/evidence/l3-closeout-20261023/README.md) verifies the candidate still matches the official current Mac Beta `157.0.8103.15`, all five identified security fixes/eight files, nine changed dependency pins and the current 62/162 patch inventory. The guarded update and signed requalification path is rehearsed; Anthony Loria's prior sole-maintainer/suspend-when-unavailable policy supplies the required owner decision. **L3 is accepted for this selected preview baseline. Together with this turn's owner-approved L7, readiness is 5/12 (41.7%), delta +2.**
+
+Decision 2 human-attention/CI billing acceptance and the actual Google extension upgrade remain separate and open. The Beta baseline is not labeled Stable or vulnerability-free. Next independent executable work is the bounded L6 signed-candidate recovery acceptance; L4 waits for a real external upgrade and L5 needs physical owner input. No build/profile change, latency test or Electron build was performed for this closeout.
+
+### L7 accepted — October 23
+
+The owner explicitly approved L7 for the signed candidate with archive SHA-256 `4c86c89e7ec81791ef8bedf525187b302c313f913a5e5b07a26d4d2a45b9ef00`, source `09985c16`. [Owner acceptance](../experiments/chromium-extension-spike/evidence/l7-owner-acceptance-20261023/README.md) binds the existing 80-check signed repair evidence and its limitations. **L7 closed for this candidate at 4/12 gates (33.3%), delta +1; the subsequent L3 closeout above brings the current total to 5/12.** The earlier pending-approval sections below are historical. No release, merge, Decision 2 or unrelated gate approval is implied.
+
+The next launch-gate work at that point was L3; the closeout above now reconciles the upgraded security baseline, clean dependency/patch inventory, successful signed rebase rehearsal and already-approved sole-maintainer withdrawal policy against its finite criterion. Keep actual Google-upgrade qualification in L4 and Decision 2 cost approval separate; neither can be silently counted as passed. Google baseline remains untouched; latency and the Electron diagnostic build stay pending.
 
 ### L7 repairs verified — October 23
 

@@ -1,3 +1,5 @@
+> October23 current closeout: [L3 accepted](evidence/l3-closeout-20261023/README.md) and [owner L7 accepted](evidence/l7-owner-acceptance-20261023/README.md); 5/12 gates. Historical starting-state rows below retain their date.
+
 # Mac preview gate reconciliation — October 22, 2026
 
 Source checkpoint `8b421954`, [primary plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md), [launch criteria](mac-preview-release-checklist.md). Existing runtime evidence is credited below without equating historical fixtures with a signed candidate.
@@ -12,7 +14,7 @@ Source checkpoint `8b421954`, [primary plan](../../docs/chromium-migration-imple
 | L4 Google upgrade | Authentic install/restart baseline recorded separately | Wait for authentic newer version, then native update/network/enabled/restart/popup proof. No synthetic substitute; monitor separately. |
 | L5 native input/accessibility | CDP geometry, menus, extension/theme/permission and close evidence | One physical-input/VoiceOver and matched visual session; fix only actual failures. |
 | L6 recovery | Extensive session, ratio, close-cancel, write-retry, owner/profile lifecycle evidence | Freeze candidate and run bounded list below; reuse mapped historical adverse-condition evidence. No indefinite mutation matrix. |
-| L7 security/privacy | [Signed repair](evidence/l7-security-repair-20261023/README.md): 80 runtime/37 source checks; both diagnostic findings resolved | Owner security/privacy acceptance of exact replacement `4c86c89e7ec8`; technical review passed |
+| L7 security/privacy | [Signed repair](evidence/l7-security-repair-20261023/README.md): 80 runtime/37 source checks; both diagnostic findings resolved | **Accepted:** [owner L7 approval](evidence/l7-owner-acceptance-20261023/README.md) of exact replacement `4c86c89e7ec8` |
 | L8 distribution | Prototype build guard/assets/branding implementation | Reproducible signed/notarized/stapled artifact; clean quarantined Mac Gatekeeper/install/extensions test, digest/SBOM/provenance. |
 | L9 updates/rollback | Explicit manual-only proposal | Owner approves policy; operator rehearses replacement/backup/rollback in isolated profile and proves shipping channel separation. |
 | L10 functionality | Store/themes/Spaces/Split implementation and bounded fixtures | One candidate smoke of enabled features; unsupported controls unavailable. |
