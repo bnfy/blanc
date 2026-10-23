@@ -1199,6 +1199,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
+- **Planned, not built (2026-10-23):** Spaces on iPhone, and opt-in,
+  end-to-end-encrypted Spaces sync through Profile Sync, which will replace
+  the rule above once it ships. Plan:
+  `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md`.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
