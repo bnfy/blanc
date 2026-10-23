@@ -178,6 +178,26 @@ still a separate, unqualified gate.
 
 ## Remaining shipping gates
 
+The CDM lifecycle follow-up adds an ECS-only Protected media section in
+Settings → Help, with sanitized readiness and a restart action routed through
+the normal unsaved-page/quit guard. Ordinary Electron builds hide it and cannot
+invoke a DRM restart. It does not expose component selection or download APIs.
+The seven messages are translated in every supported interface language.
+These application changes require fresh platform packaging/signature/acceptance
+evidence; the signed `562ec1c87` binaries above do not contain this new UI.
+
+The new `ecs-cdm-lifecycle.yml` validation is Linux-only, branch-scoped,
+read-only and unpublished. It starts without a CDM, checks the restart UI,
+requires an automatic relaunch from that button, and exercises unmuted CENC
+playback. Real 4.10.3050.0 and 4.10.3112.0 Google CRX packages are pinned to
+Mozilla's immutable upstream SHA-512 records. The test then checks the vendor
+update, exact mapped binary hashes and the existing kernel-sandbox assertions,
+followed by a stopped-process cache rollback and offline startup. The rollback
+is a controlled cache operation, not a claim that Google's service offered a
+downgrade. Only the component-check schedule changes in this disposable test;
+signatures, production update endpoints and sandbox checks are not disabled.
+This gate remains pending until its native run passes.
+
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
 2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify

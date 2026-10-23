@@ -1,0 +1,50 @@
+name: ECS CDM lifecycle qualification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux-cdm-lifecycle:
+    if: ${{ github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - run: bash scripts/ci-enable-linux-sandbox.sh
+      - name: Install isolated UI test dependencies
+        run: sudo apt-get update && sudo apt-get install --yes xvfb xdotool x11-utils dbus-x11
+      - run: node --test test/unit/drm-controls.test.js test/unit/cdm-lifecycle.test.js test/unit/drm-runtime.test.js test/unit/drm-support.test.js
+      - run: npm run lint && npm run copy:check && npm run browser-api:check
+      - name: Build unpublished normal-entrypoint ECS package
+        run: |
+          node scripts/build-ecs-production.cjs --linux --x64
+          node scripts/verify-ecs-production-package.cjs dist-ecs/linux-unpacked
+      - name: Real first install, guarded restart, vendor update and binary rollback
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-cdm-lifecycle.mjs
+      - name: Recheck offline and local-file security boundaries
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: ecs-cdm-lifecycle-${{ github.run_id }}
+          path: |
+            output/ecs-production/*.json
+            output/playwright/cdm-*.png
+          if-no-files-found: error
+          retention-days: 3

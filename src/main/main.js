@@ -13369,6 +13369,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
     defaultBrowserChanged: () => {

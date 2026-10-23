@@ -29,10 +29,10 @@ function licenseStatus(bytes) {
   const body = field(new Uint8Array(bytes), 2);
   return body instanceof Uint8Array ? field(body, 10) : null;
 }
-function protectedPage(token) {
+function protectedPage(token, { muted = true } = {}) {
   if (!/^[a-f0-9]{32}$/.test(token)) throw Error('Invalid probe token');
   return `<!doctype html><meta charset="utf-8"><title>ECS protected playback check</title>
-<button id="play" autofocus>Play protected test video</button><video id="video" muted playsinline controls></video>
+<button id="play" autofocus>Play protected test video</button><video id="video" ${muted ? 'muted' : ''} playsinline controls></video>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.compiled.min.js"></script>
 <script>
 const token = ${JSON.stringify(token)};
@@ -61,7 +61,7 @@ document.getElementById('play').onclick = async () => {
   await video.play(); result.first = video.currentTime;
   await new Promise(resolve => setTimeout(resolve,5000));
   result.second = video.currentTime; result.mediaKeys = !!video.mediaKeys;
-  result.paused = video.paused; result.error = video.error?.code || null;
+  result.paused = video.paused; result.error = video.error?.code || null; result.muted = video.muted;
  } catch (error) { result.failure = String(error.message).slice(0,160); }
  await send('result', result);
 };

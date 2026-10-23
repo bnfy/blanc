@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Protected media",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.preparing": {
+    "message": "Preparing the component needed to play protected audio and video. You can keep browsing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.ready": {
+    "message": "The protected-media component is ready. Playback availability depends on the website.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartRequired": {
+    "message": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.disabled": {
+    "message": "Protected-media component updates are disabled. Restarting alone may not resolve this.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.failed": {
+    "message": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartButton": {
+    "message": "Restart Blanc",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
   "$note": "Source of every Blanc-authored interface string. Edit here, translate in the same PR, run copy:ack for the keys you translated, then copy:build.",
   "slash.favorites.hint": {
     "message": "Open favorites",

@@ -161,6 +161,35 @@
     }
   }
 
+  // ECS only. Poll while this settings document lives; readiness is not a
+  // promise that a particular streaming service will accept playback.
+  if (typeof window.bowserPages.settings.drmStatus === 'function') {
+    const card = document.getElementById('drmCard');
+    const status = document.getElementById('drmStatus');
+    const restart = document.getElementById('drmRestart');
+    let restarting = false;
+    const refresh = async () => {
+      try {
+        const state = await window.bowserPages.settings.drmStatus();
+        card.hidden = !state.enabled;
+        const key = ({ idle: 'drm.preparing', preparing: 'drm.preparing', ready: 'drm.ready',
+          'restart-required': 'drm.restartRequired', 'updates-disabled': 'drm.disabled' })[state.state] || 'drm.failed';
+        status.textContent = t(key);
+        restart.hidden = !state.canRestart;
+        restart.disabled = restarting;
+      } catch { status.textContent = t('drm.failed'); restart.hidden = true; }
+    };
+    restart.addEventListener('click', async () => {
+      restarting = true; restart.disabled = true;
+      try { await window.bowserPages.settings.drmRestart(); }
+      catch { status.textContent = t('drm.failed'); }
+      finally { restarting = false; await refresh(); }
+    });
+    await refresh();
+    const timer = setInterval(refresh, 2000);
+    window.addEventListener('unload', () => clearInterval(timer), { once: true });
+  }
+
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
   const newtabLayout = document.getElementById('newtabLayout');

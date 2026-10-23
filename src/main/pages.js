@@ -412,6 +412,8 @@ function setupPages(hooks = {}) {
     languages: hooks.i18n?.languagesInfo() ?? { active: 'en', system: 'en', options: [] },
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
+  handle('pages:settings:drm-status', 'settings', () => hooks.drm?.status() ?? { enabled: false, state: 'unsupported', version: null, canRestart: false });
+  handle('pages:settings:drm-restart', 'settings', () => hooks.drm?.restart() ?? false);
   handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
   handle('pages:blocking:retry', 'settings', () => hooks.blocking?.retry() ?? false);
   handle('pages:blocking:open', 'settings', (tool) => hooks.blocking?.open(tool) ?? false);

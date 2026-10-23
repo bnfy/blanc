@@ -1,6 +1,300 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "drm.title": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected media"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschützte Medien"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenido protegido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenus protégés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenuti protetti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mídia protegida"
+          }
+        }
+      }
+    },
+    "drm.preparing": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing the component needed to play protected audio and video. You can keep browsing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Audio- und Videoinhalte wird vorbereitet. Du kannst weiter surfen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se está preparando el componente necesario para reproducir audio y vídeo protegidos. Puedes seguir navegando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation du composant nécessaire à la lecture audio et vidéo protégée. Vous pouvez continuer à naviguer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione del componente necessario per riprodurre audio e video protetti. Puoi continuare a navigare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando o componente necessário para reproduzir áudio e vídeo protegidos. Você pode continuar navegando."
+          }
+        }
+      }
+    },
+    "drm.ready": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The protected-media component is ready. Playback availability depends on the website."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Medien ist bereit. Ob Inhalte wiedergegeben werden können, hängt von der Website ab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El componente de contenido protegido está listo. La disponibilidad de reproducción depende del sitio web."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le composant de contenus protégés est prêt. La disponibilité de la lecture dépend du site web."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il componente per i contenuti protetti è pronto. La disponibilità della riproduzione dipende dal sito web."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O componente de mídia protegida está pronto. A disponibilidade da reprodução depende do site."
+          }
+        }
+      }
+    },
+    "drm.restartRequired": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte Blanc neu, um geschützte Audio- und Videoinhalte vorzubereiten. Deine Tabs werden wiederhergestellt; ungespeicherte Seiten können vor dem Schließen nachfragen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinicia Blanc para terminar de preparar el audio y vídeo protegidos. Se restaurarán tus pestañas; las páginas sin guardar pueden pedir confirmación antes de cerrarse."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrez Blanc pour terminer la préparation des contenus audio et vidéo protégés. Vos onglets seront restaurés ; les pages non enregistrées peuvent demander confirmation avant de se fermer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia Blanc per completare la preparazione di audio e video protetti. Le schede verranno ripristinate; le pagine non salvate potrebbero chiedere conferma prima di chiudersi."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinicie o Blanc para concluir a preparação de áudio e vídeo protegidos. Suas abas serão restauradas; páginas não salvas podem pedir confirmação antes de fechar."
+          }
+        }
+      }
+    },
+    "drm.disabled": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected-media component updates are disabled. Restarting alone may not resolve this."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates der Komponente für geschützte Medien sind deaktiviert. Ein Neustart allein behebt dies möglicherweise nicht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las actualizaciones del componente de contenido protegido están desactivadas. Reiniciar puede no ser suficiente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les mises à jour du composant de contenus protégés sont désactivées. Un redémarrage seul ne suffira peut-être pas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli aggiornamenti del componente per i contenuti protetti sono disattivati. Il solo riavvio potrebbe non risolvere il problema."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As atualizações do componente de mídia protegida estão desativadas. Apenas reiniciar pode não resolver."
+          }
+        }
+      }
+    },
+    "drm.failed": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Medien konnte nicht vorbereitet werden. Prüfe deine Verbindung und starte Blanc neu, um es erneut zu versuchen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo preparar el componente de contenido protegido. Comprueba tu conexión y reinicia Blanc para intentarlo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le composant de contenus protégés n’a pas pu être préparé. Vérifiez votre connexion, puis redémarrez Blanc pour réessayer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile preparare il componente per i contenuti protetti. Controlla la connessione, poi riavvia Blanc per riprovare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível preparar o componente de mídia protegida. Verifique sua conexão e reinicie o Blanc para tentar novamente."
+          }
+        }
+      }
+    },
+    "drm.restartButton": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc neu starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrer Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar Blanc"
+          }
+        }
+      }
+    },
     "slash.favorites.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /favorites.",
       "extractionState": "manual",

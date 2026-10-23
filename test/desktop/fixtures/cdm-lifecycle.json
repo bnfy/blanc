@@ -1,0 +1,18 @@
+{
+  "purpose": "Isolated real-binary cache activation tests only; never bundled or selected for users",
+  "platform": "linux-x64",
+  "previous": {
+    "version": "4.10.3050.0",
+    "source": "https://github.com/mozilla-firefox/firefox/blob/1a3f431ba3781951cec130646414e652fcd509eb/toolkit/content/gmp-sources/widevinecdm.json",
+    "url": "https://www.google.com/dl/release2/chrome_component/bywu6vkyg6gmcthxdaetzfkptm_4.10.3050.0/oimompecagnajdejgnnjijobebaeigek_4.10.3050.0_linux_aduyhcxcs7a2znuo6ss5tffn5jpa.crx3",
+    "bytes": 21685984,
+    "sha512": "e578b2eed7ac887e13efd559e917e488ece43beb49db40a133c18f57bf9f6ed5da5434534e70f7fc3cf4eefdb9c766164b6559c513e1738e899d84d7943d577a"
+  },
+  "current": {
+    "version": "4.10.3112.0",
+    "source": "https://github.com/mozilla-firefox/firefox/blob/f268f9f0bac68a3e043a0ba9c2f166137fdf733b/toolkit/content/gmp-sources/widevinecdm.json",
+    "url": "https://www.google.com/dl/release2/chrome_component/acqexsh26ysyu3zxeotqtsp63idq_4.10.3112.0/oimompecagnajdejgnnjijobebaeigek_4.10.3112.0_linux64_ad7kyx4q7wx7xknykmkbonbbmnwq.crx3",
+    "bytes": 21970001,
+    "sha512": "4bc44f7e2010ff1dec995ab496702467ec02f45db2f4d977822be89e40043ee0dd75f3d777539ecf243617029bbe5b41a1171d293b2fa615ffeacf5cd7112f29"
+  }
+}
