@@ -14,6 +14,7 @@ const require = createRequire(import.meta.url);
 const { extractFile } = require('@electron/asar');
 const { inspectLinuxCdm } = require('./ecs-linux-sandbox.cjs');
 const { protectedPage } = require('./support/ecs-protected-page.cjs');
+const { cleanRelaunchEnvironment } = require('../../src/main/drm-relaunch');
 assert.equal(process.platform, 'linux');
 assert.equal(process.env.BLANC_ECS_UPDATER_QUALIFICATION, '1');
 const [oldImage, oldVersion, imageA, versionA, imageB, versionB, evidencePath] = process.argv.slice(2);
@@ -107,7 +108,7 @@ function browserWindow() {
 const nativeLog=path.join(root,'native-startup.log');
 const env={...process.env,XDG_CONFIG_HOME:path.join(root,'config'),XDG_CACHE_HOME:path.join(root,'cache'),XDG_DATA_HOME:path.join(root,'data'),APPIMAGE_EXTRACT_AND_RUN:'1',BLANC_UPDATE_CHANNEL:'ecs-qualification-disabled',ELECTRON_ENABLE_LOGGING:'1',ELECTRON_LOG_FILE:nativeLog};
 for(const key of ['ELECTRON_RUN_AS_NODE','LD_PRELOAD','BLANC_ECS_FULL_PROFILE','BLANC_ECS_CDM_PRELOAD_PATH','BLANC_ECS_LAUNCHER_ROOT','BLANC_UPDATE_STAGING_AUTO_INSTALL','BLANC_UPDATE_STAGING_STATUS_FILE'])delete env[key];
-let warm, previous, baseline, output='';
+let warm, previous, baseline, inheritedHandoffEnv, output='';
 const hiddenTrees=[];
 const install=path.join(root,'blanc');
 try {
@@ -143,7 +144,14 @@ try {
     handoff.automaticSuccessorPid=successor.pid;
     handoff.initialNativeState=await processState(successor.pid).catch(()=>({unavailable:true}));
     const parentPid=Number(handoff.initialNativeState.status?.find(line=>line.startsWith('PPid:'))?.split(':')[1]);
-    if(parentPid)handoff.parentNativeState=await processState(parentPid).catch(()=>({unavailable:true}));
+    if(parentPid){
+      handoff.parentNativeState=await processState(parentPid).catch(()=>({unavailable:true}));
+      // Keep the exact inherited values in memory only; never serialize a
+      // complete runner environment into logs or artifacts.
+      inheritedHandoffEnv=Object.fromEntries((await fs.readFile(`/proc/${parentPid}/environ`,'utf8')).split('\0').filter(entry=>entry.includes('=')).map(entry=>{
+        const at=entry.indexOf('=');return [entry.slice(0,at),entry.slice(at+1)];
+      }));
+    }
     ready=false;playback=null;
     // The display belongs solely to this rehearsal. X11 may attribute a
     // Chromium window to its GPU process rather than the verified browser PID.
@@ -199,6 +207,23 @@ try {
   // handoff. Compare the same installed bytes/profile after the successor dies.
   if(previous && !(await alive(previous.pid))){
     try{
+      if(inheritedHandoffEnv){
+        report.environmentComparisons=[];
+        for(const [name,diagnosticEnv] of [['inherited',inheritedHandoffEnv],['cleaned',cleanRelaunchEnvironment(inheritedHandoffEnv)],['original',env]]){
+          const attempt={name,window:false};report.environmentComparisons.push(attempt);
+          const child=spawn(install,[],{env:diagnosticEnv,detached:true,stdio:'ignore'});
+          try{
+            previous=await wait('comparison process',()=>mainProcess(assets[report.handoffs.length-1].version),10000);
+            const window=await wait('comparison window',async()=>{assert(await alive(previous.pid),'comparison exited');return browserWindow();},10000);
+            attempt.window=true;x(['windowfocus',window.id]);x(['key','ctrl+q']);
+            await wait('comparison quit',async()=>!(await alive(previous.pid)),10000);
+          }catch(comparisonError){
+            attempt.failure=comparisonError.message.slice(0,200);
+            if(previous&&await alive(previous.pid)){process.kill(previous.pid,'SIGTERM');await wait('comparison cleanup',async()=>!(await alive(previous.pid)),10000);}
+          }
+          if(child.exitCode===null)child.kill('SIGTERM');
+        }
+      }
       const direct=spawn(install,[],{env,detached:true,stdio:['ignore','pipe','pipe']});
       let logs='';direct.stdout.on('data',b=>{logs=(logs+b).slice(-3000);});direct.stderr.on('data',b=>{logs=(logs+b).slice(-3000);});
       try{
