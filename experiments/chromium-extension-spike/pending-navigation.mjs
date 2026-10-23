@@ -30,6 +30,41 @@ export function preparePendingNavigation(edit) {
       present: '    NavigationEntry* entry = pending_initial ? pending : (i == pending_index)\n'
     }
   ]);
+  // Pending first navigations have no committed HistoryItem: their PageState
+  // carries -1 sequence numbers, which cannot be replayed as renderer history.
+  edit('chrome/browser/sessions/session_service_base.cc', [{
+    anchor: '          ContentSerializedNavigationBuilder::FromNavigationEntry(i, entry);\n',
+    replacement: `          ContentSerializedNavigationBuilder::FromNavigationEntry(
+              i, entry, pending_initial
+                  ? ContentSerializedNavigationBuilder::EXCLUDE_PAGE_STATE
+                  : ContentSerializedNavigationBuilder::DEFAULT);
+`,
+    present: '              i, entry, pending_initial\n'
+  }]);
+  edit('components/sessions/content/content_serialized_navigation_builder.cc', [
+    {
+      anchor: '#include "third_party/blink/public/common/page_state/page_state.h"\n',
+      replacement: '#include "third_party/blink/public/common/page_state/page_state.h"\n#include "third_party/blink/public/common/page_state/page_state_serialization.h"\n',
+      present: '#include "third_party/blink/public/common/page_state/page_state_serialization.h"\n'
+    },
+    {
+      anchor: '  if (navigation->encoded_page_state_.empty()) {\n',
+      replacement: `  // Repair URL-only pending GET snapshots written by earlier previews.
+  // Never replay an uncommitted -1 HistoryItem into the renderer. Keep valid
+  // committed histories, child frames and POST records on the normal path.
+  blink::ExplodedPageState pending_state;
+  const bool invalid_pending_get = !navigation->has_post_data_ &&
+      navigation->virtual_url_.SchemeIsHTTPOrHTTPS() &&
+      blink::DecodePageState(navigation->encoded_page_state_, &pending_state) &&
+      pending_state.top.document_sequence_number == -1 &&
+      pending_state.top.item_sequence_number == -1 &&
+      pending_state.top.children.empty() &&
+      !pending_state.top.http_body.request_body;
+  if (navigation->encoded_page_state_.empty() || invalid_pending_get) {
+`,
+      present: '  const bool invalid_pending_get = !navigation->has_post_data_ &&\n'
+    }
+  ]);
   edit('chrome/browser/sessions/session_service.cc', [
     {
       anchor: '  // If Chrome is closed immediately after a history deletion, we have to\n',
