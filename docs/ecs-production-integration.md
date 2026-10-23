@@ -401,6 +401,14 @@ This does not reproduce a generic ECS AAC failure or prove the virtual output
 device faulty. It still does not qualify full Blanc's unmuted DRM path; fresh
 native signed-package acceptance remains required.
 
+The four fresh native Mac jobs were dispatched in `40006057550` on test source
+`ac24b1bae`: Apple Silicon/Intel acceptance and updater rehearsals. All four
+private transfer archive hashes matched GitHub's recorded digests, the draft
+remained unpublished, and no public Git tag existed. The jobs are pending, not
+passes. Local validation before dispatch: 4,296 unit tests passed, two existing
+skips, lint and focused regressions passed. Delete the new draft/assets and
+temporary elevated-permission intake job after the final consumers finish.
+
 1. All PR checks and new native integration jobs pass on the final head, including
    Windows Authenticode **and** production VMP signatures.
 2. Preserve the exact signed/notarized Mac evidence above, and rebuild/requalify
