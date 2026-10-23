@@ -24,7 +24,8 @@ async function main() {
   if (createHash('sha256').update(bytes).digest('hex') !== pins[target]) throw Error('ECS archive checksum mismatch');
   const archive = path.join(dir, name), runtime = path.join(dir, 'runtime');
   await fs.writeFile(archive, bytes); await fs.mkdir(runtime);
-  await require('extract-zip')(archive, { dir: runtime });
+  const { extract } = await import('@electron-internal/extract-zip');
+  await extract(archive, { dir: runtime });
   await buildFull(runtime, { nativeValidation: true, stagingUpdater: true });
 }
 if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

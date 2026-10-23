@@ -730,7 +730,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-15, macos-15-intel]
+        os: ${{ fromJSON(inputs.platform == 'windows' && '["windows-latest"]' || inputs.platform == 'linux' && '["ubuntu-latest"]' || '["windows-latest","ubuntu-latest","macos-15","macos-15-intel"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     env:
@@ -787,6 +787,18 @@ jobs:
               throw 'Invalid publisher, signature or timestamp'
             }
           }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item $installer[0].FullName dist/
+          $evidence = [ordered]@{
+            artifact = $installer[0].Name
+            sha256 = (Get-FileHash -Algorithm SHA256 $installer[0].FullName).Hash.ToLowerInvariant()
+            publisher = $env:EXPECTED_WINDOWS_PUBLISHER
+            signed = $true
+            timestamped = $true
+            vmpSigned = $false
+          }
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM output/ecs-native/windows-signature.json
           node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
           if ($LASTEXITCODE -ne 0) { throw 'Updater trust unit tests failed' }
           node test/desktop/windows-update-trust-smoke.cjs
