@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8"><title>Isolated audio clock control</title>
+<button id="start">Run audio control</button><audio id="audio" controls></audio>
+<script>
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+window.result = null;
+document.querySelector('#start').onclick = async () => {
+  const spec = window.spec;
+  const audio = document.querySelector('#audio');
+  window.result = null;
+  let context;
+  try {
+    if (spec.kind === 'media') {
+      audio.src = `/tone-${spec.sampleRate}.wav`;
+      audio.muted = spec.muted; audio.volume = 0.05;
+      await audio.play();
+      await sleep(250);
+      const sample = () => ({time: audio.currentTime, paused: audio.paused, error: audio.error?.code ?? null,
+        readyState: audio.readyState, muted: audio.muted});
+      const first = sample(); await sleep(5000);
+      window.result = {first, second: sample()};
+    } else {
+      context = new AudioContext({sampleRate: spec.sampleRate});
+      const oscillator = context.createOscillator(), gain = context.createGain();
+      gain.gain.value = 0.002; oscillator.connect(gain).connect(context.destination); oscillator.start();
+      await context.resume(); await sleep(250);
+      const first = {time: context.currentTime, state: context.state, sampleRate: context.sampleRate};
+      await sleep(5000);
+      window.result = {first, second: {time: context.currentTime, state: context.state,
+        sampleRate: context.sampleRate, baseLatency: context.baseLatency, outputLatency: context.outputLatency}};
+      oscillator.stop();
+    }
+  } catch (error) { window.result = {failure: error.name}; }
+  finally { audio.pause(); if (context) await context.close(); }
+};
+</script>
