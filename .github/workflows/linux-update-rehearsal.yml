@@ -108,14 +108,16 @@ jobs:
             "$RUNNER_TEMP/ecs-a/Blanc-$VERSION_A.AppImage" "$VERSION_A" \
             "$RUNNER_TEMP/ecs-b/Blanc-$VERSION_B.AppImage" "$VERSION_B" \
             "$PWD/output/ecs-production/updater-linux.json"
-      - name: Final successor local-HTML and offline boundaries
+      - name: Final successor web-file and offline boundaries
         env:
           BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
           VERSION_B: ${{ steps.baseline.outputs.b }}
         run: |
           export BLANC_PACKAGED_EXECUTABLE="$RUNNER_TEMP/ecs-b/Blanc-$VERSION_B.AppImage"
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
-          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$RUNNER_TEMP/ecs-b/linux-unpacked" output/ecs-production/successor-local-html.json
+          # Production local-document opening is macOS LaunchServices-only.
+          # This cross-platform smoke instead verifies the actual Linux web
+          # boundary: file reads, frames, workers and service workers are denied.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

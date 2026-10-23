@@ -50,16 +50,20 @@ try {
       const target = await waitFor(async () => (await targets(port)).find(p => p.url === url), 'web fixture');
       client = await connect(target);
       const boundary = await client.evaluate(async file => {
-        let readable = false, workerStarted = false, frameReadable = false;
+        let readable = false, workerStarted = false, serviceWorkerRegistered = false, frameReadable = false;
         try { readable = (await (await fetch(file)).text()).includes('PRIVATE_LOCAL_CANARY'); } catch {}
         try { new Worker(file); workerStarted = true; } catch {}
+        try {
+          const registration = await navigator.serviceWorker.register(file);
+          serviceWorkerRegistered = true; await registration.unregister();
+        } catch {}
         const frame = document.createElement('iframe'); frame.src = file; document.body.append(frame);
         await new Promise(resolve => setTimeout(resolve, 500));
         try { frameReadable = frame.contentWindow.document.body.textContent.includes('PRIVATE_LOCAL_CANARY'); } catch {}
         frame.remove();
-        return { readable, workerStarted, frameReadable, nodeExposed: typeof require !== 'undefined' || typeof process !== 'undefined' };
+        return { readable, workerStarted, serviceWorkerRegistered, frameReadable, nodeExposed: typeof require !== 'undefined' || typeof process !== 'undefined' };
       }, pathToFileURL(canary).href);
-      assert.deepEqual(boundary, { readable: false, workerStarted: false, frameReadable: false, nodeExposed: false });
+      assert.deepEqual(boundary, { readable: false, workerStarted: false, serviceWorkerRegistered: false, frameReadable: false, nodeExposed: false });
       report.rounds.push({ round, offlineReadyMs: readyMs, ...boundary });
     } finally { client?.close(); if (app) await app.close(); }
   }

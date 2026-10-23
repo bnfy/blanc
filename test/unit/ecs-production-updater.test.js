@@ -23,6 +23,8 @@ test('production updater CI never publishes candidates or uses signing credentia
   assert.match(job,/github.event_name == 'workflow_dispatch'/);
   assert.match(job,/npm version "\$VERSION" --no-git-tag-version/);
   assert.match(job,/ecs-production-updater-linux.mjs/);
+  assert.match(job,/ecs-production-smoke.mjs/);
+  assert.doesNotMatch(job,/ecs-local-html-smoke.cjs/);
   assert.match(job,/path: output\/ecs-production\/\*.json/);
   assert.doesNotMatch(job,/gh release (create|upload|edit)|secrets\.|--publish always/);
 });
