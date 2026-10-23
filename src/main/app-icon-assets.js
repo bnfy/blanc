@@ -42,4 +42,34 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
+  // Sunrise Spectrum and Sunrise Amber: the Sunrise redrawn in heavy rounded
+  // strokes, its sun, rays and water each a colored glass layer over a white
+  // rim, on a pale tile that macOS darkens in Dark. Spectrum runs blue to
+  // coral, Amber gold to bronze. Their layers live in
+  // build/app-icons/colorways (npm run brand:build).
+  'sunrise-spectrum': colorwayDefinition('SunriseSpectrum', 'spectrum', '#FBFAFD', '#3A3942'),
+  'sunrise-amber': colorwayDefinition('SunriseAmber', 'amber', '#FFF7EC', '#2E261C'),
 };
+
+function colorwayDefinition(nativeName, prefix, background, darkBackground) {
+  return {
+    nativeName,
+    background,
+    darkBackground,
+    imageDir: 'build/app-icons/colorways',
+    imageName: `${prefix}-sun.png`,
+    layerName: 'Sun',
+    extraLayers: [
+      { imageName: `${prefix}-rays.png`, layerName: 'Rays' },
+      { imageName: `${prefix}-water.png`, layerName: 'Water' },
+    ],
+    rimImageName: `${prefix}-rim.png`,
+    glass: true,
+    specular: true,
+    lighting: 'individual',
+    shadow: { kind: 'layer-color', opacity: 0.5 },
+    translucency: { enabled: true, value: 0.15 },
+    darkFlatIcon: `sunrise-${prefix}-dark`,
+    preserveColor: true,
+  };
+}

@@ -51,14 +51,21 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 }
 
 test('every selectable colorway has a named native icon stack', () => {
-  const selectable = ['sunrise', 'sunrise-dark', 'sunrise-gold'].sort();
+  const selectable = ['sunrise', 'sunrise-dark', 'sunrise-gold', 'sunrise-spectrum', 'sunrise-amber'].sort();
   assert.deepEqual(Object.keys(APP_ICON_ASSETS).sort(), selectable);
   assert.equal(new Set(Object.values(APP_ICON_ASSETS).map((x) => x.nativeName)).size, selectable.length);
   for (const definition of Object.values(APP_ICON_ASSETS)) {
     const imageDir = path.join(root, definition.imageDir ?? 'build/app-icons/Icon.icon/Assets');
     const document = createIconDocument(definition);
     assert.equal(document.groups[0].layers[0]['image-name'], definition.imageName);
-    for (const image of [definition.imageName, definition.tileImageName, definition.darkTileImageName].filter(Boolean)) {
+    const images = [
+      definition.imageName,
+      ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
+      definition.rimImageName,
+      definition.tileImageName,
+      definition.darkTileImageName,
+    ];
+    for (const image of images.filter(Boolean)) {
       assert.ok(fs.existsSync(path.join(imageDir, image)), `${image} exists in ${imageDir}`);
     }
   }
@@ -96,6 +103,34 @@ test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', ()
     [{ value: true }, { appearance: 'dark', value: false }, { appearance: 'tinted', value: true }],
   );
   for (const layer of tiles.layers) assert.equal(layer.glass, false);
+});
+
+test('Sunrise Spectrum and Amber stack three glass parts over a white rim', () => {
+  for (const [id, nativeName, prefix] of [
+    ['sunrise-spectrum', 'SunriseSpectrum', 'spectrum'],
+    ['sunrise-amber', 'SunriseAmber', 'amber'],
+  ]) {
+    const definition = APP_ICON_ASSETS[id];
+    assert.equal(definition.nativeName, nativeName);
+    assert.equal(definition.darkFlatIcon, `${id}-dark`);
+    const document = createIconDocument(definition);
+    // A pale fill that Icon Composer darkens itself in Dark, unlike Gold's tiles.
+    assert.equal(document['fill-specializations'][0].appearance, 'dark');
+    assert.equal(document.groups.length, 2);
+    const [mark, rim] = document.groups;
+    assert.deepEqual(
+      mark.layers.map((layer) => [layer.name, layer['image-name'], layer.glass]),
+      [['Sun', `${prefix}-sun.png`, true], ['Rays', `${prefix}-rays.png`, true], ['Water', `${prefix}-water.png`, true]],
+    );
+    assert.equal(mark.specular, true);
+    assert.equal(mark.lighting, 'individual');
+    assert.deepEqual(rim.layers, [{
+      glass: false,
+      'image-name': `${prefix}-rim.png`,
+      name: 'Rim',
+      'hidden-specializations': [{ appearance: 'tinted', value: true }],
+    }]);
+  }
 });
 
 test('other colorways keep a single-group stack with the default shadow', () => {
@@ -337,12 +372,16 @@ test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark
   assert.deepEqual(explicit.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
 });
 
-test('the flat Sunrise Gold fallback follows appearance', () => {
-  for (const [darkAppearance, file] of [[false, 'icon-sunrise-gold.png'], [true, 'icon-sunrise-gold-dark.png']]) {
+test('the flat Sunrise Gold, Spectrum and Amber fallbacks follow appearance', () => {
+  for (const [appIcon, darkAppearance, file] of ['sunrise-gold', 'sunrise-spectrum', 'sunrise-amber'].flatMap((id) => [
+    [id, false, `icon-${id}.png`],
+    [id, true, `icon-${id}-dark.png`],
+  ])) {
+    assert.ok(fs.existsSync(path.join(root, 'src/renderer/pages', file)), `${file} exists`);
     const h = harness({ packaged: false });
     const result = applyDockAppIcon({
       ...h,
-      appIcon: 'sunrise-gold',
+      appIcon,
       darkAppearance,
       platform: 'darwin',
       iconsDirectory: '/icons',
@@ -700,6 +739,45 @@ test('the Sunrise Gold artwork matches the flat icon scale and stays a fixed gol
   const darkMark = await markBoundsOf(sharp(flatDark), (_r, _g, b, a) => a > 24 && b > 200);
   assert.equal(darkTileBounds.height, 824);
   assert.ok(Math.abs(darkMark.height / darkTileBounds.height - flatRatio) < 0.01, 'both flat icons draw the mark at one size');
+});
+
+test('the Spectrum and Amber artwork keeps one mark size in the native and flat icons', async () => {
+  const CANVAS = 1024;
+  const visible = (_r, _g, _b, a) => a > 24;
+  // The colored strokes, not the white rim, glow or tile.
+  const colored = (r, g, b, a) => a > 200 && Math.max(r, g, b) - Math.min(r, g, b) > 90;
+  for (const prefix of ['spectrum', 'amber']) {
+    const layer = (part) => path.join(root, `build/app-icons/colorways/${prefix}-${part}.png`);
+    let native = null;
+    for (const part of ['sun', 'rays', 'water']) {
+      const meta = await sharp(layer(part)).metadata();
+      assert.deepEqual([meta.width, meta.height, meta.hasAlpha], [CANVAS, CANVAS, true]);
+      const bounds = await markBoundsOf(sharp(layer(part)), visible);
+      native = native ? {
+        minX: Math.min(native.minX, bounds.minX), maxX: Math.max(native.maxX, bounds.maxX),
+        minY: Math.min(native.minY, bounds.minY), maxY: Math.max(native.maxY, bounds.maxY),
+      } : bounds;
+    }
+    const nativeHeight = native.maxY - native.minY + 1;
+    assert.ok(nativeHeight > 730 && nativeHeight < 790, `${prefix} artwork stays large within the safe area`);
+
+    const { data, info } = await sharp(layer('rim')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let offset = 0; offset < data.length; offset += info.channels) {
+      if (data[offset + 3] <= 24) continue;
+      assert.ok(data[offset] > 250 && data[offset + 1] > 250 && data[offset + 2] > 250, 'the rim is plain white');
+    }
+    const rim = await markBoundsOf(sharp(layer('rim')), visible);
+    assert.ok(rim.minY < native.minY && rim.maxY > native.maxY, 'the rim outlines every part');
+
+    for (const suffix of ['', '-dark']) {
+      const flat = path.join(root, `src/renderer/pages/icon-sunrise-${prefix}${suffix}.png`);
+      const tile = await markBoundsOf(sharp(flat), (_r, _g, _b, a) => a > 250);
+      assert.equal(tile.height, 824, 'the flat icon keeps the 824px visible tile');
+      const mark = await markBoundsOf(sharp(flat), colored);
+      const ratio = mark.height / tile.height;
+      assert.ok(Math.abs(ratio - nativeHeight / CANVAS) < 0.015, `${prefix}${suffix}: flat ${ratio} vs native ${nativeHeight / CANVAS}`);
+    }
+  }
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

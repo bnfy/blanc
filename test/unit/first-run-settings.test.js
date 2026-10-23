@@ -172,11 +172,18 @@ test('Sunrise Gold is selectable and a saved retired gold monogram reads as Sunr
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-settings-gold-'));
   fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ appIcon: 'gold' }));
   const settings = loadSettings(userData, true);
-  assert.deepEqual(Object.keys(settings.APP_ICON_LABELS), ['sunrise', 'sunrise-dark', 'sunrise-gold']);
+  assert.deepEqual(
+    Object.keys(settings.APP_ICON_LABELS),
+    ['sunrise', 'sunrise-dark', 'sunrise-gold', 'sunrise-spectrum', 'sunrise-amber'],
+  );
   assert.equal(settings.APP_ICON_LABELS['sunrise-gold'], 'Sunrise Gold');
   assert.equal(settings.isAppIconAllowed('sunrise-gold'), true);
   assert.equal(settings.isAppIconAllowed('gold'), false);
   assert.equal(settings.getSettings().appIcon, 'sunrise');
   settings.setSettings({ appIcon: 'sunrise-gold' });
   assert.equal(settings.getSettings().appIcon, 'sunrise-gold');
+  for (const id of ['sunrise-spectrum', 'sunrise-amber']) {
+    settings.setSettings({ appIcon: id });
+    assert.equal(settings.getSettings().appIcon, id);
+  }
 });
