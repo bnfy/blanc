@@ -78,7 +78,8 @@ test('the builders link the launcher statically and build the preload in the pin
   assert.equal(dockerCmd, 'docker');
   assert.deepEqual(dockerArgs.slice(0, 2), ['run', '--rm']);
   assert.ok(dockerArgs.join(' ').includes('--network none'), 'no network inside the build');
-  assert.ok(dockerArgs.includes('/src/scripts:/blanc-src:ro'), 'sources mounted read-only');
+  const sourceDir = path.dirname(path.resolve('/src/scripts/ecs-linux-cdm-preload.c'));
+  assert.ok(dockerArgs.includes(`${sourceDir}:/blanc-src:ro`), 'sources mounted read-only');
   assert.ok(dockerArgs.includes(native.LINUX_NATIVE_IMAGE));
   assert.deepEqual(dockerArgs.slice(-4), ['/blanc-src/ecs-linux-cdm-preload.c', '-o', '/blanc-out/blanc-cdm-preload.so', '-ldl']);
   assert.match(native.LINUX_NATIVE_IMAGE, /^quay\.io\/pypa\/manylinux_2_28_x86_64@sha256:[0-9a-f]{64}$/, 'pinned by digest');
