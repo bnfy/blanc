@@ -526,6 +526,7 @@
     <string name="tab_menu_pin_start_page">Fijar en la página de inicio</string>
     <string name="tab_menu_unpin_start_page">Soltar de la página de inicio</string>
     <string name="tab_menu_move_to_group">Mover al grupo</string>
+    <string name="tab_menu_move_to_space">Mover al Space</string>
     <string name="tab_menu_split_with">Dividir con</string>
     <string name="tab_menu_remove_from_split">Quitar de la vista dividida</string>
     <string name="tab_menu_close_split">Cerrar vista dividida</string>

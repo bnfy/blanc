@@ -1940,6 +1940,10 @@
     "message": "Move to Group",
     "note": "Tab context menu submenu listing tab groups."
   },
+  "tabMenu.moveToSpace": {
+    "message": "Move to Space",
+    "note": "Tab context menu submenu listing this profile's spaces (Blanc Spaces); choosing one moves the tab out of this window into that space."
+  },
   "tabMenu.splitWith": {
     "message": "Split with",
     "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
