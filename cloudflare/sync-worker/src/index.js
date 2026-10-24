@@ -5,7 +5,7 @@
 // This does not establish platform logging/metadata retention. See the design
 // spec in the main repo (docs/superpowers/specs/2026-07-07-profile-sync-design.md).
 
-const STORES = new Set(['bookmarks', 'settings', 'session', 'icons']); // history may follow later
+const STORES = new Set(['bookmarks', 'settings', 'session', 'icons', 'sends']); // history may follow later
 const MAX_BLOB_BYTES = 512 * 1024;                 // favorites+settings are tiny; raise for history
 const MAX_REQUEST_BYTES = 513 * 1024;              // blob plus v1 JSON envelope
 const RATE_LIMIT = 30;                             // GETs per accountId per minute — anti-hammering of one account
