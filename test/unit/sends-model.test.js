@@ -112,3 +112,14 @@ test('targets skip retracted tab-sync entries and use synced device names', () =
 test('pruneDismissed keeps 8 days', () => {
   assert.deepEqual(m.pruneDismissed({ a: NOW - 8 * DAY, b: NOW - 8 * DAY + 1 }, NOW), { b: NOW - 8 * DAY + 1 });
 });
+
+test('a retraction wins over older copies and hides the device', () => {
+  const gone = m.retractedEntry(NOW);
+  const merged = m.mergeDevices({ mac: entry({ items: [item('a')] }) }, { mac: gone }, 'phone', NOW);
+  assert.deepEqual(merged.mac, gone);
+  assert.deepEqual(m.inbox(merged, 'phone', {}, NOW), []);
+  assert.deepEqual(m.targets(merged, {}, 'phone', {}), []);
+  const back = m.ownEntry(gone, { name: 'Mac', platform: 'darwin' }, NOW + 1);
+  assert.equal(back.entry.retracted, undefined);
+  assert.equal(back.entry.updatedAt, NOW + 1);
+});

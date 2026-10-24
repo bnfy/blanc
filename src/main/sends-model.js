@@ -61,6 +61,7 @@ function normalizeItems(items, now) {
 
 function sanitizeEntry(raw, now) {
   if (!raw || !Number.isFinite(raw.updatedAt) || raw.updatedAt <= 0) return null;
+  if (raw.retracted) return { retracted: true, updatedAt: raw.updatedAt };
   return {
     name: typeof raw.name === 'string' && raw.name ? raw.name.slice(0, MAX_NAME) : 'unknown device',
     platform: PLATFORMS.has(raw.platform) ? raw.platform : '',
@@ -73,7 +74,8 @@ function sanitizeEntry(raw, now) {
  * when forced (a send), when the name or platform changed, or when the daily
  * presence heartbeat is due; expired items drop either way. */
 function ownEntry(previous, { name, platform }, now, { force = false } = {}) {
-  const prev = previous ? sanitizeEntry(previous, now) : null;
+  const sanitized = previous ? sanitizeEntry(previous, now) : null;
+  const prev = sanitized && !sanitized.retracted ? sanitized : null;
   const next = {
     name: String(name ?? '').slice(0, MAX_NAME) || 'unknown device',
     platform: PLATFORMS.has(platform) ? platform : '',
@@ -91,10 +93,15 @@ function addItem(entry, { url, title, to }, ownId, now, makeId) {
   if (to === ownId) return { error: 'self' };
   const item = sanitizeItem({ id: makeId(), to, url, title, sentAt: now }, now);
   if (!item) return { error: 'invalid' };
-  const base = entry ? sanitizeEntry(entry, now) : null;
+  const sanitized = entry ? sanitizeEntry(entry, now) : null;
+  const base = sanitized && !sanitized.retracted ? sanitized : null;
   const items = normalizeItems([item, ...(base ? base.items : [])], now);
   return { entry: { ...(base ?? { name: 'unknown device', platform: '' }), updatedAt: now, items }, item };
 }
+
+/** What a device publishes when it leaves the sync: it beats every older
+ * copy of its entry, so it stops being a target and its items disappear. */
+const retractedEntry = (now) => ({ retracted: true, updatedAt: now });
 
 /** Union by device id, last writer wins per entry with tab sync's tie rule
  * (own entry wins on this device, then the smaller canonical form). Other
@@ -139,7 +146,7 @@ function inbox(devices, ownId, dismissed, now) {
   for (const [fromId, raw] of Object.entries(devices ?? {})) {
     if (fromId === ownId) continue;
     const entry = sanitizeEntry(raw, now);
-    if (!entry) continue;
+    if (!entry || entry.retracted) continue;
     for (const item of entry.items) {
       if (item.to !== ownId || Object.hasOwn(hidden, item.id)) continue;
       rows.push({ id: item.id, url: item.url, title: item.title, sentAt: item.sentAt, fromId, fromName: entry.name });
@@ -187,6 +194,6 @@ function pruneDismissed(dismissed, now) {
 module.exports = {
   MAX_ITEMS, ITEM_TTL_MS, ENTRY_TTL_MS, HEARTBEAT_MS, DISMISS_TTL_MS,
   BUDGET_BYTES, MAX_URL, MAX_TITLE, MAX_NAME,
-  sanitizeItem, sanitizeEntry, ownEntry, addItem,
+  sanitizeItem, sanitizeEntry, ownEntry, addItem, retractedEntry,
   mergeDevices, applyBudget, inbox, targets, pruneDismissed,
 };

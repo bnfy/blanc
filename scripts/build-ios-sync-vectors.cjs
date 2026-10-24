@@ -93,6 +93,8 @@ try {
     ['own wins tie',{own:sEntry('local',fixedNow)},{own:sEntry('remote',fixedNow)}],
     ['smaller canonical wins tie',{mac:sEntry('😀',fixedNow)},{mac:sEntry('￿',fixedNow)}],
     ['remote newer',{mac:sEntry('old',fixedNow-2000)},{mac:sEntry('new',fixedNow-1000)}],
+    ['retraction wins',{mac:sEntry('Mac',fixedNow-2000,[sItem('a')])},{mac:sends.retractedEntry(fixedNow-1000)}],
+    ['same-clock retraction wins',{mac:sEntry('Mac',fixedNow)},{mac:sends.retractedEntry(fixedNow)}],
     ['thirty day prune, own kept',{own:sEntry('own',fixedNow-sends.ENTRY_TTL_MS)},{old:sEntry('old',fixedNow-sends.ENTRY_TTL_MS),edge:sEntry('edge',fixedNow-sends.ENTRY_TTL_MS+1)}],
     ['21 items keep newest 20',{},{mac:sEntry('Mac',fixedNow,many)}],
     ['seven day expiry',{},{mac:sEntry('Mac',fixedNow,[sItem('gone',{sentAt:fixedNow-sends.ITEM_TTL_MS}),sItem('kept',{sentAt:fixedNow-sends.ITEM_TTL_MS+1})])}],
@@ -117,6 +119,7 @@ try {
     ['heartbeat due',sEntry('iPhone',fixedNow-DAY,[],'ios'),{name:'iPhone',platform:'ios'},{}],
     ['renamed',sEntry('iPhone',fixedNow-1000,[],'ios'),{name:'Phone',platform:'ios'},{}],
     ['forced',sEntry('iPhone',fixedNow-1000,[],'ios'),{name:'iPhone',platform:'ios'},{force:true}],
+    ['back after a retraction',sends.retractedEntry(fixedNow-1000),{name:'iPhone',platform:'ios'},{}],
     ['expired item dropped',sEntry('iPhone',fixedNow-1000,[sItem('old',{sentAt:fixedNow-8*DAY})],'ios'),{name:'iPhone',platform:'ios'},{}],
   ]) vectors.sendsOwn.push(entry(name,{previous,...args,now:fixedNow,force:!!options.force},sends.ownEntry(previous,args,fixedNow,options)));
   vectors.sendsOwn.push(entry('add item',{operation:'addItem',previous:sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),url:'https://x.test/',title:'X',to:'mac',ownId:'phone',now:fixedNow,id:'new'},sends.addItem(sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),{url:'https://x.test/',title:'X',to:'mac'},'phone',fixedNow,()=>'new')));

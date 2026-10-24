@@ -6625,6 +6625,84 @@
       }
     },
     {
+      "name": "retraction wins",
+      "input": {
+        "local": {
+          "mac": {
+            "name": "Mac",
+            "platform": "darwin",
+            "updatedAt": 1799999998000,
+            "items": [
+              {
+                "id": "a",
+                "to": "phone",
+                "url": "https://example.com/a",
+                "title": "a",
+                "sentAt": 1799999999000
+              }
+            ]
+          }
+        },
+        "remote": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1799999999000
+          }
+        },
+        "ownId": "own",
+        "now": 1800000000000
+      },
+      "expected": {
+        "merged": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1799999999000
+          }
+        },
+        "budgeted": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1799999999000
+          }
+        }
+      }
+    },
+    {
+      "name": "same-clock retraction wins",
+      "input": {
+        "local": {
+          "mac": {
+            "name": "Mac",
+            "platform": "darwin",
+            "updatedAt": 1800000000000,
+            "items": []
+          }
+        },
+        "remote": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1800000000000
+          }
+        },
+        "ownId": "own",
+        "now": 1800000000000
+      },
+      "expected": {
+        "merged": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1800000000000
+          }
+        },
+        "budgeted": {
+          "mac": {
+            "retracted": true,
+            "updatedAt": 1800000000000
+          }
+        }
+      }
+    },
+    {
       "name": "thirty day prune, own kept",
       "input": {
         "local": {
@@ -9201,6 +9279,28 @@
         "platform": "ios",
         "now": 1800000000000,
         "force": true
+      },
+      "expected": {
+        "entry": {
+          "name": "iPhone",
+          "platform": "ios",
+          "updatedAt": 1800000000000,
+          "items": []
+        },
+        "changed": true
+      }
+    },
+    {
+      "name": "back after a retraction",
+      "input": {
+        "previous": {
+          "retracted": true,
+          "updatedAt": 1799999999000
+        },
+        "name": "iPhone",
+        "platform": "ios",
+        "now": 1800000000000,
+        "force": false
       },
       "expected": {
         "entry": {

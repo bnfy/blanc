@@ -76,8 +76,12 @@ Plaintext, before the usual AES-GCM envelope (unchanged from M7a):
   the Worker's 512 KiB cap; over budget, the stalest other entries are dropped
   first, never the device's own.
 - **Leaving a sync:** turning sync off or switching accounts publishes the
-  device's entry with no items (best effort, like M7a's retraction) and clears
-  the local store and dismissed ids.
+  device's entry as a retraction, `{"retracted": true, "updatedAt": …}`
+  (best effort, like M7a's tab-sync retraction; it never creates the store),
+  so other devices stop offering it as a target and drop its items. It then
+  clears the local store and dismissed ids. A retracted entry follows the
+  tab-sync tie rule (a same-clock retraction wins) and is pruned after 30
+  days like any other.
 
 ## 4. Choosing a target
 
