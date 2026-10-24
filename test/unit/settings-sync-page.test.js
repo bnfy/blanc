@@ -31,7 +31,7 @@ test('the code path is one field, Connect, and a passphrase fallback link', () =
   at('id="syncUsePassphrase"');
   const form = html.slice(at('id="syncCodeForm"'), at('id="syncActive"'));
   assert.ok(form.includes('hidden'), 'the code form starts hidden');
-  assert.ok(form.includes('autocapitalize="characters"'));
+  assert.ok(form.includes('autocapitalize="none"'), 'recovery codes must keep their case; short device codes normalize on submission');
 });
 
 test('the on state has Add another device, the pairing panel, the switch panel and Copy recovery code', () => {

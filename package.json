@@ -174,7 +174,10 @@
     "pretest:web-store:runtime": "npm run runtime:check",
     "test:packaged:browser-compatibility": "node test/desktop/packaged-browser-compatibility-smoke.mjs",
     "pretest:packaged:browser-compatibility": "npm run runtime:check",
-    "pretest:trust-receipt": "npm run runtime:check"
+    "pretest:trust-receipt": "npm run runtime:check",
+    "test:pages": "node --test test/pages/*.test.mjs",
+    "ios:sync-vectors:build": "node scripts/build-ios-sync-vectors.cjs --write",
+    "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check"
   },
   "author": {
     "name": "Bananify Creative",
@@ -268,7 +271,7 @@
         "CFBundleDisplayName": "Blanc Browser",
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
-        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.",
+        "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac\u2019s screen and system audio with a website after you choose a source.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",

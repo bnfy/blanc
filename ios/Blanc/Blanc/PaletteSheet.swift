@@ -84,6 +84,24 @@ struct PaletteSheet: View {
                 let ids = offsets.map { manager.tabs[$0].id }
                 for id in ids { manager.closeTab(id) }
             }
+            if !manager.syncEngine.remoteDevices.isEmpty {
+                Section(SyncCopy.text("footer.devices")) {
+                    ForEach(manager.syncEngine.remoteDevices) { device in
+                        DisclosureGroup("\(device.name) (\(device.tabs.count))") {
+                            ForEach(Array(device.tabs.enumerated()), id: \.offset) { _, tab in
+                                Button {
+                                    if let url = URL(string: tab.url) { manager.createTab(url: url); dismiss() }
+                                } label: {
+                                    VStack(alignment: .leading) {
+                                        Text(tab.title.isEmpty ? tab.url : tab.title).lineLimit(1)
+                                        Text(tab.url).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -117,16 +135,16 @@ struct PaletteSheet: View {
     private var switcherList: some View {
         let results = QuickSwitcher.search(
             query: input.trimmingCharacters(in: .whitespacesAndNewlines),
-            tabs: manager.tabs
+            tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites
         )
         return List {
             if results.isEmpty {
                 Text("No matches — tap Go to open as address or search")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(results, id: \.tab.id) { result in
+                ForEach(results) { result in
                     Button {
-                        manager.setActive(result.tab.id)
+                        open(result)
                         dismiss()
                     } label: {
                         VStack(alignment: .leading) {
@@ -143,6 +161,11 @@ struct PaletteSheet: View {
         }
     }
 
+    private func open(_ result: SyncedSwitcherResult) {
+        if let id = result.localTabID { manager.setActive(id) }
+        else if let url = result.url { manager.createTab(url: url) }
+    }
+
     private func handleSubmit() {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -157,9 +180,9 @@ struct PaletteSheet: View {
             return
         }
 
-        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs)
-        if let top = results.first, top.score >= QuickSwitcher.strongMatchScore {
-            manager.setActive(top.tab.id)
+        let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites)
+        if let top = results.first, top.strength >= QuickSwitcher.strongMatchScore {
+            open(top)
             dismiss()
             return
         }

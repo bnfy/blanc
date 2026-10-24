@@ -1,4 +1,5 @@
 import XCTest
+import JavaScriptCore
 @testable import Blanc
 
 final class PagesBridgeTests: XCTestCase {
@@ -36,11 +37,21 @@ final class PagesBridgeTests: XCTestCase {
 
     // No-op writes resolve to null.
     func testNoOpWrites() {
-        XCTAssertEqual(value("bookmarks", "remove"), .null)
+        XCTAssertEqual(value("bookmarks", "clearFavicon"), .null)
         XCTAssertEqual(value("history", "clear"), .null)
         XCTAssertEqual(value("downloads", "clearFinished"), .null)
         XCTAssertEqual(value("settings", "set"), .null)
         XCTAssertEqual(value("start", "focusGroup"), .null)
+    }
+
+    func testBookmarksCapabilitiesReadOnlyAndEditsReject() {
+        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(false))]))
+        for method in ["remove", "setFolder", "renameFolder", "removeFolder", "import", "importBrowser"] {
+            guard case .reject = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
+                XCTFail("read-only Favorites accepted \(method)")
+                continue
+            }
+        }
     }
 
     // Structured sync/supporter/default-browser shapes match what settings.js reads.
@@ -115,7 +126,7 @@ final class PagesBridgeTests: XCTestCase {
             if case .string(let s) = val { return s }
             return nil
         }
-        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled"]))
+        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled", "sync"]))
     }
 
     // shortcuts.list is stubbed (typeable via the address bar), not rejected.
@@ -152,4 +163,38 @@ final class PagesBridgeTests: XCTestCase {
                        [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
         XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
     }
+    func testNativeCopyReadsBundledCatalog() {
+        XCTAssertNotEqual(SyncCopy.text("footer.devices"), "footer.devices")
+        XCTAssertNotEqual(SyncCopy.text("settings.sync.createOnComputer"), "settings.sync.createOnComputer")
+    }
+
+    func testGuardedScriptChecksLiveDocumentOriginBeforeDelivery() throws {
+        for (scheme, host, expected) in [("blanc:", "newtab", 1), ("https:", "example.com", 0), ("blanc:", "bookmarks", 0)] {
+            let context = try XCTUnwrap(JSContext())
+            context.evaluateScript("var window = { location: { protocol: '\(scheme)', host: '\(host)' }, deliveries: 0 };")
+            context.evaluateScript(PagesBridge.guardedScript("window.deliveries += 1;", host: "newtab"))
+            XCTAssertNil(context.exception)
+            XCTAssertEqual(context.evaluateScript("window.deliveries")?.toInt32(), Int32(expected))
+        }
+    }
+    func testFavoritesRefreshOnlyChangesInternalFavoritesSurfaces() throws {
+        let before: JSONValue = .array([])
+        let after: JSONValue = .array([.object([("id", .string("favorite"))])])
+        XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: before, host: "newtab"))
+        for host in ["settings", "history", "example.com"] {
+            XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
+        }
+        for host in ["newtab", "bookmarks"] {
+            let script = try XCTUnwrap(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
+            let context = try XCTUnwrap(JSContext())
+            context.evaluateScript("var reloads = 0; var window = { location: { protocol: 'blanc:', host: '\(host)', reload: function () { reloads += 1; } } };")
+            context.evaluateScript(script)
+            XCTAssertEqual(context.evaluateScript("reloads")?.toInt32(), 1)
+            context.evaluateScript("window.location.protocol = 'https:'; window.location.host = 'example.com';")
+            context.evaluateScript(script)
+            XCTAssertEqual(context.evaluateScript("reloads")?.toInt32(), 1)
+        }
+        XCTAssertNotNil(PagesBridge.favoritesRefreshScript(previous: after, current: before, host: "bookmarks"), "Disabling or switching away must clear rendered Favorites")
+    }
+
 }

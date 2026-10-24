@@ -698,6 +698,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="sync_error_server_error">Serverfehler bei der Synchronisierung – versuche es später erneut.</string>
     <string name="sync_error_offline">Synchronisierung nicht erreichbar – prüfe deine Verbindung.</string>
     <string name="sync_error_off">Die Synchronisierung ist aus.</string>
+    <string name="sync_error_account_gone">Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses Telefon dann auf deinem Computer erneut hinzu.</string>
     <string name="settings_sync_recovery_dialog_message">Wiederherstellungscode für die Synchronisierung kopieren?</string>
     <string name="settings_sync_recovery_dialog_detail">Wer diesen Code hat, kann deine synchronisierten Daten lesen und ändern. Füge ihn jetzt in deinen Passwort-Manager ein – und nirgendwo sonst.</string>
     <string name="settings_sync_recovery_dialog_copy">In die Zwischenablage kopieren</string>
@@ -2163,4 +2164,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="default_browser_reminder_set">Als Standard setzen</string>
     <string name="default_browser_reminder_later">Nicht jetzt</string>
     <string name="ws_editor_retry">Erneut versuchen</string>
+    <string name="favorites_read_only_note">Favoriten werden von deinem Computer synchronisiert. Bearbeite sie vorerst dort.</string>
+    <string name="favorites_edit_on_computer">Bearbeite Favoriten vorerst auf deinem Computer.</string>
+    <string name="settings_sync_create_on_computer">Starte die Synchronisierung auf deinem Computer und füge dann dieses Telefon mit einem Code hinzu.</string>
+    <string name="settings_sync_enter_sync_name">Gib deinen Sync-Namen ein</string>
+    <string name="settings_sync_enter_passphrase">Gib deine Passphrase ein</string>
 </resources>

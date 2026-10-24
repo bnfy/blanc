@@ -125,9 +125,13 @@ full pass is 4 GETs, so the phone pulls at most once a minute.
   `updatedAt`; on a tie the phone's own entry wins locally, else a retraction,
   else the smaller canonical string. Entries older than 30 days are dropped.
   Canonical JSON = sorted keys, `JSON.stringify` primitives.
-- **Icons**: read only; same per-device rules.
+- **Icons**: read only and optional; same per-device rules. A failed or malformed
+  sidecar keeps the last cached icons without blocking settings, Favorites or tabs.
 - **When to PUT:** skip when the merged export equals the remote (canonical
-  equality for session, desktop's payload equality for settings).
+  equality for session, desktop's payload equality for settings). A missing
+  settings store reports `account-gone`; a store that disappears during a
+  conflict retry is never recreated. Retraction does not create a missing
+  session store.
 
 ### 3.6 The phone's tab snapshot
 
@@ -156,7 +160,9 @@ out at most 60 s after the first unpublished change.
   `sync-settings.json`, and a merged remote change is applied to
   `SettingsStore`.
 - **Turning sync off** deletes the Keychain item and the four `sync-*.json`
-  files, and (if the phone shared tabs) publishes a retraction first. It never
+  files, and (if the phone shared tabs) attempts a retraction first. The
+  retraction is best-effort: offline service or a missing device-only key must
+  not prevent turning sync off or switching accounts. It never
   deletes the account on the server; that stays a desktop action, so the page
   hides the "also delete synced data" controls on the phone (§5) and the
   engine refuses `wipeRemote: true` if it ever arrives.

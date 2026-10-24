@@ -2530,6 +2530,10 @@
     "message": "La sincronización está desactivada.",
     "source": "sha256:a6b94c2efc548ceae8da66471f7f2a1917d874cf56b34623e92f11790da5323d"
   },
+  "sync.error.accountGone": {
+    "message": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador.",
+    "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "¿Copiar el código de recuperación de la sincronización?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -7788,5 +7792,25 @@
   "ws.editor.retry": {
     "message": "Reintentar",
     "source": "sha256:ab2341248d6702836c2e7982bf70f75cdfb57d31f69323e993225bdc89d0ba31"
+  },
+  "favorites.readOnlyNote": {
+    "message": "Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí.",
+    "source": "sha256:2b4c87fd07365a888f45d027f22bf1aca4c4c5c4bc0f1371a2bbf4b165a890c4"
+  },
+  "favorites.editOnComputer": {
+    "message": "Por ahora, edita los favoritos en tu ordenador.",
+    "source": "sha256:94193c3e471074a08a6c2bd221296750ac60e31086057002efb0775db7290d40"
+  },
+  "settings.sync.createOnComputer": {
+    "message": "Inicia la sincronización en tu ordenador y después añade este teléfono con un código.",
+    "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Introduce el nombre de tu sincronización",
+    "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Introduce tu frase de contraseña",
+    "source": "sha256:9b8f303ef292e16cff4d4f1a2bdc05eb3313e91c006dd9de2697eb5ab70f0043"
   }
 }

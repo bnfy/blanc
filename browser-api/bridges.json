@@ -162,6 +162,17 @@
         "unsubscribe": false
       },
       {
+        "name": "bookmarks.capabilities",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:capabilities",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Whether this host permits editing Favorites."
+      },
+      {
         "name": "bookmarks.list",
         "kind": "invoke",
         "channel": "pages:bookmarks:list",

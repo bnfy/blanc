@@ -698,6 +698,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="sync_error_server_error">Sync server error — try again later.</string>
     <string name="sync_error_offline">Couldn’t reach sync — check your connection.</string>
     <string name="sync_error_off">Sync is off.</string>
+    <string name="sync_error_account_gone">This sync no longer exists. Turn sync off here, then add this phone again from your computer.</string>
     <string name="settings_sync_recovery_dialog_message">Copy your sync recovery code?</string>
     <string name="settings_sync_recovery_dialog_detail">Anyone with this code can read and change your synced data. Paste it into your password manager now, and nowhere else.</string>
     <string name="settings_sync_recovery_dialog_copy">Copy to Clipboard</string>
@@ -2163,4 +2164,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="default_browser_reminder_set">Set as default</string>
     <string name="default_browser_reminder_later">Not now</string>
     <string name="ws_editor_retry">Try again</string>
+    <string name="favorites_read_only_note">Favorites sync from your computer. Edit them there for now.</string>
+    <string name="favorites_edit_on_computer">Edit Favorites on your computer for now.</string>
+    <string name="settings_sync_create_on_computer">Start your sync on your computer, then add this phone with a code.</string>
+    <string name="settings_sync_enter_sync_name">Enter your sync name</string>
+    <string name="settings_sync_enter_passphrase">Enter your passphrase</string>
 </resources>

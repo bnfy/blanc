@@ -137,6 +137,8 @@ export interface BookmarksPagesAPI {
     onChanged: (callback: () => void) => void;
   };
   bookmarks: {
+    /** Whether this host permits editing Favorites. IPC: invoke `pages:bookmarks:capabilities`. */
+    capabilities: () => Promise<unknown>;
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
     /** Drop a Favorite's cached favicon after it failed to load. IPC: invoke `pages:bookmarks:clear-favicon`. */
