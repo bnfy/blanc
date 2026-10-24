@@ -21043,6 +21043,48 @@
         }
       }
     },
+    "tabMenu.moveToSpace": {
+      "comment": "Tab context menu submenu listing this profile's spaces (Blanc Spaces); choosing one moves the tab out of this window into that space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Space verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover al Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer dans le Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta nello Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover para o Space"
+          }
+        }
+      }
+    },
     "tabMenu.splitWith": {
       "comment": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one.",
       "extractionState": "manual",

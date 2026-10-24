@@ -270,3 +270,28 @@ Feature: Named workspace preservation and recovery
     Given spaces named "Typing gym" and "Reading", with this window in "Typing gym"
     When I open the Spaces menu from the space mark
     Then every space name in the menu and on the mark is drawn whole
+
+  @F41-40
+  Scenario: Moving a tab to a space that is open nowhere keeps its page
+    Given spaces named "One" and "Reading", with this window in "One"
+    And this window is showing a web page that keeps session storage
+    When I move that page to "Reading" from its tab menu
+    Then this window no longer has that page and is still in "One"
+    And "Reading" is set aside with that page last, still loaded
+    And switching this window to "Reading" shows that same page, its session storage intact
+
+  @F41-41
+  Scenario: Moving a tab to a space shown in another window
+    Given a space named "Work" saved from another window
+    And this window is showing a web page
+    When I move that page to "Work" from its tab menu
+    Then the other window has that page last, without selecting it
+    And this window no longer has that page
+
+  @F41-42
+  Scenario: The tab menu offers Move to Space only where the move can happen
+    Given spaces named "One" and "Reading", with this window in "One"
+    Then the tab menu's "Move to Space" is disabled for this window's only tab
+    When this window is showing a web page
+    Then the tab menu's "Move to Space" is enabled for that page
+    And a private tab's menu has no "Move to Space"

@@ -1198,6 +1198,12 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   switching back keeps their pages as they were.
 - Deleted spaces stay in Recently deleted for 7 days, where they can be
   restored or forgotten.
+- A tab's menu has **Move to Space ▸** once the profile has a space, listing
+  every space with the window's own checked. Choosing another moves that one
+  tab, live, to the end of the space, ungrouped; the window stays where it
+  is. A space open nowhere is set aside to receive it. Private tabs never get
+  the item; it is disabled for a window's only tab, a page using the camera
+  or microphone, one with a popup open, or one being quieted (#1060).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
@@ -1208,8 +1214,9 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
-  `test/desktop/steps/workspace-lifecycle.steps.js` and
-  `test/desktop/steps/spaces-redesign.steps.js`);
+  `test/desktop/steps/workspace-lifecycle.steps.js`,
+  `test/desktop/steps/spaces-redesign.steps.js` and
+  `test/desktop/steps/move-to-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 ## F42 — Dark websites

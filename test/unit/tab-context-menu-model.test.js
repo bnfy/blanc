@@ -22,6 +22,8 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseBelow: over.canCloseBelow ?? true,
   siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
   splitCandidates: over.splitCandidates ?? [],
+  spaces: over.spaces ?? [],
+  canMoveToSpace: over.canMoveToSpace ?? true,
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -289,4 +291,30 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   assert.equal(byId(m, 'close-split').label, 'Close Split');
   const order = ids(m);
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
+});
+
+test('Move to Space lists every space, the current one checked, after Move to Group', () => {
+  const spaces = [{ id: 'w1', name: 'Work', current: true }, { id: 'w2', name: 'Reading', current: false }];
+  const m = build({ spaces });
+  const order = ids(m);
+  assert.equal(order.indexOf('space'), order.indexOf('group') + 1);
+  const item = byId(m, 'space');
+  assert.equal(item.label, 'Move to Space');
+  assert.deepEqual(item.submenu.map((i) => [i.id, i.label, i.type, i.checked, i.workspaceId]), [
+    ['space-move', 'Work', 'radio', true, 'w1'],
+    ['space-move', 'Reading', 'radio', false, 'w2'],
+  ]);
+});
+
+test('Move to Space is hidden without spaces and for a private tab', () => {
+  assert.equal(byId(build(), 'space'), undefined);
+  assert.equal(byId(build({ tab: { private: true }, spaces: [{ id: 'w1', name: 'Work', current: false }] }), 'space'), undefined);
+});
+
+test('Move to Space is disabled with nowhere else to go, or when main refuses the move', () => {
+  const only = byId(build({ spaces: [{ id: 'w1', name: 'Work', current: true }] }), 'space');
+  assert.equal(only.enabled, false);
+  assert.equal(only.submenu, undefined);
+  const refused = byId(build({ canMoveToSpace: false, spaces: [{ id: 'w2', name: 'Reading', current: false }] }), 'space');
+  assert.equal(refused.enabled, false);
 });
