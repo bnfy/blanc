@@ -9,7 +9,7 @@ function spyActions() {
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
     'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
     'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance',
-    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin'];
+    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin', 'sendToDevice'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -78,4 +78,10 @@ test('close-glance closes the pane, not the tab', () => {
   const { actions, calls } = spyActions();
   runTabContextMenuItem('close-glance', { tab, actions });
   assert.deepEqual(calls, [['closeGlance']]);
+});
+
+test('send-to-device sends the tab to the item\'s device', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('send-to-device', { tab, deviceId: 'phone', actions });
+  assert.deepEqual(calls, [['sendToDevice', 7, 'phone']]);
 });

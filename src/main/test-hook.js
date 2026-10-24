@@ -228,6 +228,7 @@ function install(refs) {
     readFillStatusDom,
     setSleepThresholdOverride,
     setRemoteDevicesSource,
+    setSendsSource,
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
@@ -309,6 +310,26 @@ function install(refs) {
         tab.view?.webContents?.send('pages:start:remote-tabs', shown);
       }
     }
+  }
+
+  // Send to device (M7b): an in-memory stand-in for sync's sends store. The
+  // targets and inbox are what a scenario injects; sends are recorded and
+  // answered with the scenario's chosen status.
+  let injectedSends = null;
+  function injectSends({ targets = [], inbox = [], sendStatus = 'sent' } = {}) {
+    injectedSends = { targets: structuredClone(targets), inbox: structuredClone(inbox), hidden: new Set(), sent: [], sendStatus };
+    const state = injectedSends;
+    setSendsSource({
+      targets: () => structuredClone(state.targets),
+      inbox: () => state.inbox.filter((item) => !state.hidden.has(item.id)).map((item) => ({ ...item })),
+      hide: (id) => {
+        const item = state.inbox.find((row) => row.id === id && !state.hidden.has(id));
+        if (!item) return null;
+        state.hidden.add(id);
+        return { id: item.id, url: item.url };
+      },
+      send: async (request) => { state.sent.push({ ...request }); return { status: state.sendStatus }; },
+    });
   }
 
   async function readTabImportDom() {
@@ -3368,6 +3389,11 @@ function install(refs) {
       return structuredClone(devices);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
+    /** Send to device: `{targets, inbox, sendStatus}` replace sync's sends. */
+    injectSends(options) { injectSends(options); return true; },
+    clearSends() { injectedSends = null; setSendsSource(null); return true; },
+    sentRequests() { return structuredClone(injectedSends?.sent ?? []); },
+    setSendStatus(status) { if (injectedSends) injectedSends.sendStatus = status; return true; },
     // Mirrors addressResultRows' favicon reporting so the start page and the
     // Quick Switcher are guarded to the same standard: the tile letter is
     // replaced by the icon only once the bytes actually decode.

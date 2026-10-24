@@ -135,6 +135,11 @@ if (window.location.protocol === 'blanc:') {
         onRemoteTabs: (callback) => {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
         },
+        openSent: (id) => invoke('pages:start:open-sent', id),
+        dismissSent: (id) => invoke('pages:start:dismiss-sent', id),
+        onSentItems: (callback) => {
+          ipcRenderer.on('pages:start:sent-items', (_event, items) => callback(items));
+        },
       },
     };
   } else if (host === 'mahjong') {

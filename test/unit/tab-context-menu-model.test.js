@@ -22,6 +22,7 @@ const build = (over = {}) => buildTabContextMenu({
   canCloseBelow: over.canCloseBelow ?? true,
   siteMuted: over.siteMuted === undefined ? false : over.siteMuted,
   splitCandidates: over.splitCandidates ?? [],
+  sendTargets: over.sendTargets === undefined ? null : over.sendTargets,
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -289,4 +290,25 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   assert.equal(byId(m, 'close-split').label, 'Close Split');
   const order = ids(m);
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
+});
+
+test('menu: Send to Device lists the other devices, after the Start Page pin', () => {
+  const m = build({ sendTargets: [{ id: 'phone', name: 'iPhone' }, { id: 'neo', name: 'MacBook Neo' }] });
+  const at = ids(m).indexOf('send-to');
+  assert.equal(ids(m)[at - 1], 'toggle-start-pin');
+  assert.equal(ids(m)[at + 1], 'group');
+  const send = byId(m, 'send-to');
+  assert.equal(send.label, 'Send to Device');
+  assert.deepEqual(send.submenu.map((i) => [i.id, i.label, i.deviceId]), [
+    ['send-to-device', 'iPhone', 'phone'], ['send-to-device', 'MacBook Neo', 'neo'],
+  ]);
+});
+
+test('menu: Send to Device says No other devices, disabled, when there are none', () => {
+  const send = byId(build({ sendTargets: [] }), 'send-to');
+  assert.deepEqual(send.submenu, [{ id: 'send-none', label: 'No other devices', enabled: false }]);
+});
+
+test('menu: no Send to Device when the tab cannot be sent or sync is off', () => {
+  assert.equal(byId(build({ sendTargets: null }), 'send-to'), undefined);
 });
