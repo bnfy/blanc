@@ -1,5 +1,9 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — utility resume crash repaired
+
+[Focused recovery evidence](../experiments/chromium-extension-spike/evidence/f12-utility-resume-20261024/README.md) records two schedules/24 passing assertions in regular and private contexts. Queued Gin locker callbacks could dereference the isolate after Mojo timeout teardown disposed it. A blocker-local task runner now cancels those callbacks before isolate disposal; the existing deadline and fail-closed engine policy remain. Both resumed helpers disappear without a crash signature, browsers remain responsive, post-timeout fetches stay blocked, and main browser exits are clean. One incremental build:31.23s/8steps; finalguard0; upstream73/180 unchanged. Only affected timeout/resume checks rerun. Accepted signed candidate unchanged; no new gate closure (9/12). Electron paused, Google baseline separate, latency deferred.
+
 ## Current October24 — denied/timeout attribution; recovery finding retained
 
 [Terminal-attribution evidence](../experiments/chromium-extension-spike/evidence/f12-terminal-attribution-20261024/README.md) records10denied-update assertions and6each regular/private timeout assertions, with explicit run boundaries. The actual deadline path omitted its terminal trace; a narrow trace-only fix now preserves the request/registration/version join and emits a deadline marker. Four verifier negative controls reject bad/missing identities and the actual pre-fix record. Build32.18s/6steps; guard0. No previous allowed/cache/recovery suite repeated; signed candidate unchanged. Resuming the deliberately held utility emits a helper SIGSEGV before and after the trace repair; recovery is not accepted and is the next concrete issue to investigate.9/12 unchanged; Electron paused, Google separate, latency deferred.

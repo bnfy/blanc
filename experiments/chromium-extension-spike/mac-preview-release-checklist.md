@@ -1,5 +1,7 @@
 > Current October24: [prerender replacement notarized and72final checks pass](evidence/f12-prerender-notarized-20261024/README.md). Source14706b0e/archive18a0c2ca; technical L7 requalification and explicit owner approval complete. **9/12 (75%),delta+1L7.** No build, Google changes or latency measurement; Electron paused.
 
+October24: [native utility-resume recovery repair](evidence/f12-utility-resume-20261024/README.md) passes24focused regular/private checks. Signed-candidate evidence is unchanged; this does not award another gate. Progress remains9/12, Electron paused, Google separate, latency deferred.
+
 > October24 Decision2 input refresh: [current brief](decision2-review-package-20261022.md) removes completed visual/VoiceOver/signing tests from the active queue. Awaiting cash/attention ceilings, residual F12/latency disposition and real Google upgrade; no new gate credited.9/12 unchanged, Electron paused, Google separate.
 
 
