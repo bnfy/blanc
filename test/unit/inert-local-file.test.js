@@ -348,3 +348,174 @@ test('the placeholder page explains and offers no way to load the file', () => {
   assert.equal(failed('retryLink').href, 'https://example.com/', 'ordinary failures keep Try again');
   assert.notEqual(failed('retryLink').hidden, true);
 });
+
+// ─── Multi-tab close/reopen and quiet wake, driven through main.js's own
+// functions with fake views (audit of b5687352f). ──────────────────────────
+const { buildGroupEntry, buildSplitEntry, buildBatchEntry, sanitizeSnapshot } = require('../../src/main/closed-tabs');
+const { trimSnapshot } = require('../../src/main/tab-sleep');
+const { isInertRecord, recordTitle } = require('../../src/main/inert-local-file');
+
+const MAIN_SOURCE = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+
+/** One top-level function of main.js, by name. */
+function lift(name) {
+  const start = MAIN_SOURCE.search(new RegExp(`\\n(async )?function ${name}\\(`));
+  assert.ok(start >= 0, name);
+  const end = MAIN_SOURCE.indexOf('\n}\n', start);
+  return MAIN_SOURCE.slice(start, end + 2);
+}
+
+const PLACEHOLDER_TITLE = 'This local file can’t open in this version of Blanc';
+
+/** A live inert tab as createTab leaves it once its placeholder has loaded. */
+function liveInertTab(id, href, savedTitle) {
+  const tab = tabFromPlan(href, { drm: true, allowLocalFile: true, title: savedTitle });
+  // page-title-updated now keeps the saved title on screen.
+  tab.title = recordTitle(tab, PLACEHOLDER_TITLE);
+  return { ...tab, id };
+}
+
+function fakeNav(urls) {
+  return { getAllEntries: () => urls.map((url) => ({ url, title: url })), getActiveIndex: () => urls.length - 1 };
+}
+
+test('the placeholder page never replaces an inert tab\'s title on screen', () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const tab = liveInertTab('a', href, 'Quarterly report');
+  assert.equal(tab.title, 'Quarterly report');
+  assert.equal(recordTitle({ inertLocalFileUrl: null }, PLACEHOLDER_TITLE), PLACEHOLDER_TITLE, 'ordinary tabs take the page title');
+  assert.equal(recordTitle({ inertLocalFileUrl: href, inertLocalFileTitle: '' }, PLACEHOLDER_TITLE), PLACEHOLDER_TITLE, 'no saved title: the page\'s');
+  const tabView = fs.readFileSync(path.join(ROOT, 'src/main/tab-view.js'), 'utf8');
+  assert.match(tabView, /wc\.on\('page-title-updated'[\s\S]*?tab\.title = recordTitle\(tab, title\);/);
+});
+
+test('group, split and batch closes keep each inert member\'s saved title', () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const tabs = new Map();
+  const inert = liveInertTab('inert', href, 'Quarterly report');
+  // The worst case: the placeholder's title reached the record anyway.
+  inert.title = PLACEHOLDER_TITLE;
+  tabs.set('inert', inert);
+  tabs.set('web', { id: 'web', url: 'https://example.com/', title: 'Example', localFile: false, inertLocalFileUrl: null });
+  const sandbox = {
+    tabs, sleepSnapshots: new Map(),
+    liveContents: (tab) => ({ navigationHistory: fakeNav([tab.url]) }),
+    trimSnapshot, sanitizeSnapshot, recordTitle,
+  };
+  vm.runInNewContext(`${lift('closedMemberRecord')}\nthis.capture = closedMemberRecord;`, sandbox);
+  const members = ['inert', 'web'].map((id) => sandbox.capture(id));
+  assert.equal(members[0].title, 'Quarterly report');
+  assert.equal(members[1].title, 'Example');
+  const entries = [
+    buildGroupEntry({ id: 'g', name: 'Work' }, members, 1),
+    buildSplitEntry({ layout: null, focusedIndex: 0, index: 0, groupId: null }, members, 1),
+    buildBatchEntry(members, 1),
+  ];
+  for (const entry of entries) {
+    assert.deepEqual(entry.tabs.map((m) => m.title), ['Quarterly report', 'Example'], entry.kind);
+    assert.equal(entry.tabs[0].localFile, true, entry.kind);
+    assert.equal(entry.tabs[0].url, placeholderUrl(href), entry.kind);
+  }
+});
+
+/** Run one of main.js's reopen functions against a DRM createTab. */
+function reopenThrough(name, entry) {
+  const tabs = new Map();
+  const created = [];
+  let next = 0;
+  const runtime = { groups: [], tabOrder: [], splits: [] };
+  const sandbox = {
+    tabs, sleepSnapshots: new Map(), isInertRecord,
+    rt: () => runtime,
+    createTab: (url, options) => {
+      const id = `t${next++}`;
+      const tab = { ...tabFromPlan(url, { drm: true, allowLocalFile: options.allowLocalFile, title: options.title }), id, asleep: options.asleep };
+      tabs.set(id, tab);
+      created.push({ id, url: tab.url, title: options.title });
+      return id;
+    },
+    sameGroupName: (a, b) => a.toLowerCase() === b.toLowerCase(),
+    groupRecord: (g) => ({ id: g.id, name: g.name }),
+    itemsOf: () => [], tabLayoutList: () => [], layoutItems: (items) => items,
+    setActiveTab() {}, broadcastTabs() {}, scheduleMenuRebuild() {}, syncTabLayout() {},
+    createSplitFromTabs() {}, splitForTab: () => null,
+  };
+  vm.runInNewContext(`${lift(name)}\nthis.reopen = ${name};`, sandbox);
+  sandbox.reopen(entry);
+  return { tabs, created, snapshots: sandbox.sleepSnapshots };
+}
+
+test('group, split and batch reopening never seed history for an inert record', () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const history = { entries: [{ url: href, title: 'Quarterly report' }, { url: 'https://example.com/a' }], index: 0 };
+  const members = [
+    { url: placeholderUrl(href), localFile: true, title: 'Quarterly report', pinned: false, muted: false, snapshot: history },
+    { url: 'https://example.com/', localFile: false, title: 'Example', pinned: false, muted: false,
+      snapshot: { entries: [{ url: 'https://example.com/' }], index: 0 } },
+  ];
+  const routes = {
+    reopenGroupEntry: { group: { id: 'g', name: 'Work', index: 0 }, activeMemberIndex: 0, tabs: members },
+    reopenSplitEntry: { split: { layout: null, focusedIndex: 0, index: 0, groupId: null }, tabs: members },
+    reopenBatchEntry: { tabs: members },
+  };
+  for (const [name, entry] of Object.entries(routes)) {
+    const { tabs, created, snapshots } = reopenThrough(name, entry);
+    assert.equal(created.length, 2, name);
+    const [inertId, webId] = created.map((c) => c.id);
+    assert.equal(tabs.get(inertId).url, placeholderUrl(href), `${name}: placeholder`);
+    assert.equal(tabs.get(inertId).inertLocalFileUrl, href, `${name}: still a record`);
+    assert.equal(created[0].title, 'Quarterly report', `${name}: saved title`);
+    assert.equal(snapshots.has(inertId), false, `${name}: no history for the record`);
+    assert.equal(snapshots.has(webId), true, `${name}: ordinary members keep theirs (control)`);
+  }
+});
+
+/** Run main.js's wakeTab against a fake view and record what it loads. */
+async function wakeThrough(tab, stored, options = {}) {
+  const calls = [];
+  const wc = {
+    id: 7,
+    isDestroyed: () => false,
+    setAudioMuted() {}, setWebRTCIPHandlingPolicy() {},
+    loadURL: (url) => { calls.push(['loadURL', url]); return Promise.resolve(); },
+    reload: () => { calls.push(['reload']); },
+    navigationHistory: {
+      restore: (value) => { calls.push(['restore', value]); return Promise.resolve(); },
+      goToIndex: (index) => { calls.push(['goToIndex', index]); },
+    },
+  };
+  const tabs = new Map([[tab.id, tab]]);
+  const sleepSnapshots = new Map(stored ? [[tab.id, stored]] : []);
+  if (stored && options.retained) stored.view = { webContents: wc };
+  const sandbox = {
+    tabs, sleepSnapshots, isInertRecord,
+    windowRuntimes: { runtimeForTab: () => ({}) }, primaryRuntime: {},
+    startupNavigationGateActive: false, pendingWakes: new Set(),
+    liveContents: () => wc,
+    createTabView: () => ({ webContents: wc }),
+    primeTabLoadingBackground() {}, wireTabView() {}, rootManagedExtensionView() {},
+    watchUblockPopupOutsideContents() {}, tabIdByWebContentsId: new Map(),
+    effectiveTabMuted: () => false, webrtcPolicyFor: () => 'default',
+    settings: { getSettings: () => ({ webrtcPolicy: 'default' }) },
+    waitForRetainedNavigation: (_wc, action) => { action(); return Promise.resolve(); },
+    commitWake: () => true, failWake: () => false,
+  };
+  vm.runInNewContext(`${lift('wakeTab')}\nthis.wake = wakeTab;`, sandbox);
+  await sandbox.wake(tab.id, options.atIndex === undefined ? {} : { atIndex: options.atIndex });
+  return calls;
+}
+
+test('waking an inert record loads only its placeholder, never stored history', async () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const stored = () => ({ view: null, entries: [{ url: href }, { url: 'https://example.com/' }], index: 1 });
+  const inert = () => ({ ...tabFromPlan(href, { drm: true, allowLocalFile: true, title: 'Q' }), id: 'i', asleep: true, waking: false, wakeGeneration: 0 });
+
+  assert.deepEqual(await wakeThrough(inert(), stored()), [['loadURL', placeholderUrl(href)]]);
+  assert.deepEqual(await wakeThrough(inert(), stored(), { atIndex: 0 }), [['loadURL', placeholderUrl(href)]], 'back/forward too');
+  assert.deepEqual(await wakeThrough(inert(), stored(), { retained: true, atIndex: 0 }), [['reload']], 'a retained view only reloads');
+
+  // Control: an ordinary quiet tab still restores its history.
+  const web = { id: 'w', url: 'https://example.com/', asleep: true, waking: false, wakeGeneration: 0, inertLocalFileUrl: null };
+  const calls = await wakeThrough(web, stored());
+  assert.equal(calls[0][0], 'restore');
+});

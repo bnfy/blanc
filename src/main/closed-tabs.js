@@ -5,6 +5,7 @@
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
 const { cloneEntryMarks } = require('./certificate-history');
+const { recordTitle } = require('./inert-local-file');
 const { normalizeTabName } = require('./tab-name');
 const { pinnedHomeFor } = require('./pinned-home');
 
@@ -90,9 +91,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     url: tab.url,
     localFile: tab.localFile === true,
     openerSandboxFlags: tab.openerSandboxFlags ?? 0,
-    title: typeof tab.inertLocalFileUrl === 'string' && typeof tab.inertLocalFileTitle === 'string'
-      && tab.inertLocalFileTitle ? tab.inertLocalFileTitle
-      : typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
+    title: recordTitle(tab, typeof tab.title === 'string' && tab.title ? tab.title : tab.url),
     customTitle: normalizeTabName(tab.customTitle),
     ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,

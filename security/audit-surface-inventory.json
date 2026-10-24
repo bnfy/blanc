@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "a3e12e5f63080b01baed3ac177605be981ef2c8a090f42fdb9b044f9809f35e8",
+      "sha256": "9b2401a0578235fcdbb51a81e37dff8bd74ce74f1b3a862d43b0f166ee8cce0b",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -295,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "8dda7a8d66fc0e930a4802e03a430dd25e2bd57a0a683dcdb80fd68e34cbfad2",
+      "sha256": "354defe2dbd343b1c43f45f5a6cf09960ba4d3542df661f2ebd1ababef66bece",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -1040,7 +1040,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "d57eda1c743996c776c54f2a42851363eea62682f08de02a17349b52199dce64",
+      "sha256": "2ba6feea00238ec863d7c505bf2fdcf53d40e8e9befbd3503fd64f6fe3375a76",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

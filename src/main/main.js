@@ -357,7 +357,7 @@ const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
-const { localFileTabPlan, keepsLocalFile } = require('./inert-local-file');
+const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -2823,7 +2823,12 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   }
 
   const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
-  const snapshot = sleepSnapshots.get(id);
+  const stored = sleepSnapshots.get(id);
+  // An inert local-file record never replays history or moves within it: it
+  // only reloads its placeholder (a retained view keeps its renderer handoff).
+  const inert = isInertRecord(tab);
+  if (inert) atIndex = null;
+  const snapshot = inert && stored ? { ...stored, entries: [] } : stored;
   let wc;
   let generation;
   let retained = false;
@@ -4731,7 +4736,8 @@ function reopenSplitEntry(entry) {
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -7406,7 +7412,7 @@ function closedMemberRecord(id) {
   }
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
-    url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    url: tab.url, title: recordTitle(tab, tab.title), favicon: tab.favicon ?? null,
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
@@ -9109,7 +9115,8 @@ function reopenGroupEntry(entry) {
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -9144,7 +9151,8 @@ function reopenBatchEntry(entry) {
       allowLocalFile: member.localFile === true,
       openerSandboxFlags: member.openerSandboxFlags,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,

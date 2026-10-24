@@ -14,6 +14,7 @@ const bookmarks = require('./bookmarks');
 const history = require('./history');
 const sync = require('./sync');
 const { attachContextMenu } = require('./context-menu');
+const { recordTitle } = require('./inert-local-file');
 const { createRecognizer } = require('./mouse-gestures');
 const { webrtcPolicyFor } = require('./network-privacy');
 const { effectiveTabMuted, noteMediaStarted } = require('./tab-audio');
@@ -308,7 +309,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    tab.title = title;
+    // An inert local-file record keeps its saved title on screen.
+    tab.title = recordTitle(tab, title);
     if (tab.historyEligible && !noteWakeSuppressed(tab)) history.updateTitle(tab.url, title);
     broadcastTabs();
   }));

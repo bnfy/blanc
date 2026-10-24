@@ -49,4 +49,26 @@ function keepsLocalFile(tab, committedUrl) {
   return typeof tab?.inertLocalFileUrl === 'string' && placeholderTarget(committedUrl) === tab.inertLocalFileUrl;
 }
 
-module.exports = { PLACEHOLDER_CODE, placeholderUrl, placeholderTarget, localFileTabPlan, keepsLocalFile };
+/** Is this tab a DRM build's inert local-file record? */
+function isInertRecord(tab) {
+  return typeof tab?.inertLocalFileUrl === 'string' && tab.inertLocalFileUrl !== '';
+}
+
+/** The title to show and save: an inert record keeps the title it was
+ * restored with, never the placeholder page's own. */
+function recordTitle(tab, fallback) {
+  if (isInertRecord(tab) && typeof tab.inertLocalFileTitle === 'string' && tab.inertLocalFileTitle) {
+    return tab.inertLocalFileTitle;
+  }
+  return fallback;
+}
+
+module.exports = {
+  PLACEHOLDER_CODE,
+  placeholderUrl,
+  placeholderTarget,
+  localFileTabPlan,
+  keepsLocalFile,
+  isInertRecord,
+  recordTitle,
+};
