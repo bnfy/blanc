@@ -783,10 +783,22 @@ body.sheet .page > .row-list > .empty {
 
 /* App icon colorway picker — one compact row of rounded-square previews.
    The 5px inset gives the selected/focused preview ring room to breathe. */
-.icon-scroller { min-width: 0; }
-.icon-grid { display: flex; gap: 14px; overflow-x: auto; min-width: 0; padding: 5px; scrollbar-width: none; }
+.icon-scroller { flex: 0 1 540px; min-width: 0; }
+/* Equal columns share the row, so the previews stay evenly spaced whatever
+   their names; a long name wraps to two centered lines under its preview.
+   Only below the minimum column width does the row scroll. */
+.icon-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(68px, 1fr);
+  gap: 6px;
+  align-items: start;
+  overflow-x: auto;
+  min-width: 0;
+  padding: 5px;
+  scrollbar-width: none;
+}
 .icon-grid::-webkit-scrollbar { display: none; }
-.icon-grid .icon-swatch { flex: 0 0 auto; }
 .icon-swatch {
   display: flex;
   flex-direction: column;
@@ -796,6 +808,9 @@ body.sheet .page > .row-list > .empty {
   background: none;
   border: none;
   border-radius: 0;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
 }
 .icon-swatch:hover { border: none; }
 /* The previews bake the rounded tile + transparent margins. Selection and
@@ -4538,7 +4553,10 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   font-variant-numeric: tabular-nums;
   font-size: 18px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: none;
+}
+@media (max-width: 600px) {
+  #group-sync input { font-size: 16px; }
 }
 .sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }

@@ -66,10 +66,12 @@ Feature: Split View
     Then the two tabs form a split again in the same order
 
   @F53-10 @F53 @desktop @D11
-  Scenario: Pinning a split tab removes it from the split first
+  Scenario: Pinning a split tab pins the whole split
     Given two loaded tabs made into a split
     When I pin the first split tab
-    Then there is no split and the first tab is pinned
+    Then the split stays and both its tabs are pinned
+    When I pin the first split tab
+    Then the split stays and neither of its tabs is pinned
 
   @F53-11 @F53 @desktop @D11
   Scenario: Corner tabs name their panes; the corner × dissolves; the divider resizes and resets
@@ -163,6 +165,31 @@ Feature: Split View
     When I point at the top edge of the window
     Then the floating pill slides in over the split
 
+  @F53-25 @F53 @desktop @D11
+  Scenario: Splitting a pinned tab with another pins the split
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    Then the split stays and both its tabs are pinned
+    And the pinned shelf shows the split as one row
+    When I show the tabs in the side list
+    Then the side list's Pinned section shows the split as one row
+
+  @F53-26 @F53 @desktop @D11
+  Scenario: A closed pinned split reopens pinned
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And I close the split
+    Then Recently closed holds one split entry
+    When I reopen that entry
+    Then the split is back with both its tabs pinned
+
+  @F53-27 @F53 @desktop @D11
+  Scenario: A pinned split stays pinned after a relaunch
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And Blanc relaunches
+    Then the split is back with both its tabs pinned
+
   @F53-23 @F53 @desktop @D11 @island-autohide
   Scenario: The pushed Island comes back above a split's panes
     Given the Island auto-hides
@@ -178,7 +205,32 @@ Feature: Split View
     And I point at the top edge of the window
     Then the floating pill slides in over the split
 
-  @F53-25 @F53 @desktop @D11 @split-to-glance
+  @F53-25 @F53 @desktop @D11
+  Scenario: Splitting a pinned tab with another pins the split
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    Then the split stays and both its tabs are pinned
+    And the pinned shelf shows the split as one row
+    When I show the tabs in the side list
+    Then the side list's Pinned section shows the split as one row
+
+  @F53-26 @F53 @desktop @D11
+  Scenario: A closed pinned split reopens pinned
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And I close the split
+    Then Recently closed holds one split entry
+    When I reopen that entry
+    Then the split is back with both its tabs pinned
+
+  @F53-27 @F53 @desktop @D11
+  Scenario: A pinned split stays pinned after a relaunch
+    Given a pinned loaded tab and an ordinary loaded tab
+    When I split the pinned tab with the ordinary one
+    And Blanc relaunches
+    Then the split is back with both its tabs pinned
+
+  @F53-28 @F53 @desktop @D11 @split-to-glance
   Scenario Outline: A split pane can become a floating Glance over the remaining tab
     Given two loaded tabs made into a split
     When I open the <pane> split pane in Glance from its tab menu

@@ -1,4 +1,5 @@
 import XCTest
+import WebKit
 @testable import Blanc
 
 final class TabsManagerTests: XCTestCase {
@@ -150,6 +151,28 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.settingsStore.adblockEnabled, false)
     }
 
+    @MainActor
+    func testUnchangedBlockingPreferenceDoesNotReloadPages() async throws {
+        let dir = tmpDir()
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data("{\"adblockEnabled\":false}".utf8).write(to: dir.appendingPathComponent("settings.json"))
+        let manager = makeManager(settingsDir: dir)
+        let webView = try XCTUnwrap(manager.activeTab?.webView)
+        webView.stopLoading()
+        let loaded = expectation(description: "local page loaded")
+        let observer = BlockingNavigationObserver()
+        observer.finished = { loaded.fulfill() }
+        webView.navigationDelegate = observer
+        webView.loadHTMLString("<html><body>Page state must survive sync.</body></html>", baseURL: nil)
+        await fulfillment(of: [loaded], timeout: 10)
+        observer.finished = nil
+        let reloaded = expectation(description: "unchanged sync preference must not reload")
+        reloaded.isInverted = true
+        observer.started = { reloaded.fulfill() }
+        manager.applySettingsPatch(["adblockEnabled": false])
+        await fulfillment(of: [reloaded], timeout: 0.4)
+    }
+
     // MARK: - Session restore
 
     func testRestoresTabsFromSession() {
@@ -229,4 +252,11 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(dict["urls"] as? [String], [navigated],
                        "typed navigation must be persisted, not the pre-navigation URL")
     }
+}
+
+@MainActor private final class BlockingNavigationObserver: NSObject, WKNavigationDelegate {
+    var started: (() -> Void)?
+    var finished: (() -> Void)?
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { started?() }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { finished?() }
 }

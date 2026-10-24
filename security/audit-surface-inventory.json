@@ -61,7 +61,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "aa05591a0dfac9e02109ae0ae7bd73a36eebf7cf399b7b8a68ed470c0c82e739",
+      "sha256": "dbbe49d56e4fedbc02229535d6f4847722b64c2d39eb6e3c43c17b89702f2505",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -73,13 +73,13 @@
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "32911eff9c02caa73bfe2439ae53e63afab51e9875f23d8ad393f7ddae497bc6",
+      "sha256": "d126441cab7447543bfcd254d8ce3087e9c77a2bd0376e34ad3ebb766295753f",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "cloudflare/sync-worker/src/index.js",
-      "sha256": "877b2b54aa84af5db3034cb4231e4f0d9dcf2fdb53c613b570789ca49b233ba8",
+      "sha256": "a8ca182f879f2559ea0d94debadc1e1d14139a300f1d554bebbfbf35e317f90e",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "cdf75b4954602a33241c63988d892adf77a1999fc42647823d4b70a2c6aff1f7",
+      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "dc9f67b3ef88729e402c125933dfed212328414a86bd6bf2b436fe1af4d1b8c7",
+      "sha256": "bd514ef6d5c2e0753b554cb83335b5e17a2084f7a3ad1f45397e4e98445ff120",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7999df3c4e20a478aefc970521ce9402d1cd142ae3d84991274af0cd22b35293",
+      "sha256": "43338303d0dcea06a9a1e713b17aa0f80d7b05621fc97ee9217413df9f72321c",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -482,7 +482,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "fcfdc4360cab2d8c2c43b7595e12c8da2eb1592528a8e8058e04d0b30595ac49",
+      "sha256": "67b409b4aea7053a5a201933ce188c29bbc1d510b86854d88aabeb7c4039633a",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -498,6 +498,7 @@
         "pages:blocking:retry",
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
+        "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
@@ -535,6 +536,8 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
@@ -840,7 +843,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "7660b873b0200dadfd79316aabe86a079cc1b5b9a6d346bf625d756b132a86e7",
+      "sha256": "45358351e17c59b550e0e4bf7944437b7536da558088868548e286c541f56252",
       "literalChannels": [
         "before-quit"
       ],
@@ -854,7 +857,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "8c298b3bf97278ebb7328810184f5cda9a3c4e52b06eec027c9feed13c12e115",
+      "sha256": "804e007df1fe115e99ef17c0b3c3c1b54160de3f429869feb77a7009354a6117",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -870,6 +873,7 @@
         "pages:blocking:retry",
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
+        "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
@@ -909,6 +913,8 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
@@ -985,13 +991,13 @@
     },
     {
       "file": "src/main/tab-sleep.js",
-      "sha256": "60237a5c96c10d6c2f8de9b8096a8a491fd09bff6c71d67b6492c3b915017bad",
+      "sha256": "94d4f31a737de495b2c0a717c00169e75567bef88dd417c9df614929d6b7c6fb",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "784ea1289b612110920945fac8e9bec85d040f14468424132f00075f017aa173",
+      "sha256": "c239898f2878909566a745a1db4471e80af81b0addacfe6070860d0b138cf0dc",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -1016,7 +1022,8 @@
         "page-title-updated",
         "render-process-gone",
         "will-navigate",
-        "will-prevent-unload"
+        "will-prevent-unload",
+        "will-redirect"
       ],
       "role": "privileged implementation or service"
     },

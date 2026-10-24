@@ -1111,9 +1111,12 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 
 /* ---------- display headings ---------- */
 /* Every heading on the website is Blubird Display at regular weight and 0
-   tracking (October 15, 2026; it replaced Newsreader). This rule sits last so
-   it wins over the per-section size rules above; those keep their sizes and
-   line heights. Text is Blubird Text; product replicas keep Inter. */
+   tracking (October 15, 2026; it replaced Newsreader). Small Display titles,
+   24px and under, may open up to +0.03em, where the face's own spacing reads
+   tight (owner, October 22, 2026); never negative, and headlines stay at 0.
+   This rule sits last so it wins over the per-section size rules above; those
+   keep their sizes and line heights. Text is Blubird Text; product replicas
+   keep Inter. */
 .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .memchart-heading h2 {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-optical-sizing: auto;
 }

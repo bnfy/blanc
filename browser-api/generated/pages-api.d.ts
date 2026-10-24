@@ -137,6 +137,8 @@ export interface BookmarksPagesAPI {
     onChanged: (callback: () => void) => void;
   };
   bookmarks: {
+    /** Whether this host permits editing Favorites. IPC: invoke `pages:bookmarks:capabilities`. */
+    capabilities: () => Promise<unknown>;
     /** List Favorites (internal name: bookmarks). IPC: invoke `pages:bookmarks:list`. */
     list: () => Promise<unknown>;
     /** Drop a Favorite's cached favicon after it failed to load. IPC: invoke `pages:bookmarks:clear-favicon`. */
@@ -253,6 +255,10 @@ export interface SettingsPagesAPI {
     blockingOpen: (tool: unknown) => Promise<unknown>;
     /** Blocking provider status changed. IPC: event `pages:blocking:status`. */
     onBlockingStatus: (callback: (payload: unknown) => void) => void;
+    /** Read sanitized ECS protected-media readiness. IPC: invoke `pages:settings:drm-status`. */
+    drmStatus: () => Promise<unknown>;
+    /** Restart through the unsaved-work guard only when protected media requires it. IPC: invoke `pages:settings:drm-restart`. */
+    drmRestart: () => Promise<boolean>;
     /** Check for an app update now. IPC: invoke `pages:settings:check-for-updates`. */
     checkForUpdates: () => Promise<unknown>;
     /** Appearance changed outside the page (for example /theme). IPC: event `pages:settings:appearance`. */

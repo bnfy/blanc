@@ -60,7 +60,7 @@ test('Stay preserves Quiet and Reopen state until the irreversible quit phase', 
   const runtime = { closing: false, closedEntries: [entry], window: { isDestroyed: () => false, show() {} } };
   app.relaunch = () => relaunches++;
   app.quit = () => { app.emit('before-quit'); runtime.closing = true; page.emit('will-prevent-unload', { defaultPrevented: false }); };
-  const context = { app, webContents: { getAllWebContents: () => [page] }, createAppRestarter,
+  const context = { app, webContents: { getAllWebContents: () => [page] }, createAppRestarter, drmSupport: {},
     sleepSnapshots: snapshots, windowRuntimes: { all: () => [runtime] }, forEachWindowRuntime: fn => fn(runtime),
     namedWorkspaces: { flushPending() {} }, forgetTabImportForRuntime() {}, clearTimeout,
     downgradeHeldEntry: () => downgrades++, blockingProviders: { stop: () => stops++ }, onePasswordBroker: null,
@@ -133,4 +133,18 @@ test('AppImage restart keeps one extraction switch across repeated restarts', as
     argv: ['/tmp/extracted/blanc', '--appimage-extract-and-run', '--user-data-dir=/tmp/disposable'] });
   assert.equal(await restart(), true);
   assert.deepEqual(options.args, ['--appimage-extract-and-run', '--user-data-dir=/tmp/disposable']);
+});
+
+test('ECS cleanup runs only after irreversible quit and preserves the captured outer image', async () => {
+  const app = new EventEmitter(); const page = new EventEmitter(); let options, cleaned = 0;
+  const env = { APPIMAGE: '/tmp/current-image', LD_LIBRARY_PATH: '/old/mount/lib' };
+  app.isPackaged = true; app.quit = () => {}; app.relaunch = value => { options = value; };
+  const restart = createAppRestarter({ app, webContents: { getAllWebContents: () => [page] }, platform: 'linux', env,
+    beforeRelaunch: () => { cleaned++; delete env.APPIMAGE; delete env.LD_LIBRARY_PATH; } });
+  const pending = restart();
+  assert.equal(cleaned, 0);
+  app.emit('quit'); await pending;
+  assert.equal(cleaned, 1);
+  assert.equal(options.execPath, '/tmp/current-image');
+  assert.equal(env.LD_LIBRARY_PATH, undefined);
 });

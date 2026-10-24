@@ -85,7 +85,7 @@ test('the visual redesign preserves every established on-state control and handl
   assert.match(html, /<input id="syncTabsShare" type="checkbox" \/> <span>share this device’s open tabs with your other devices<\/span>/);
 
   assert.match(js, /nowBtn\.addEventListener\('click',[\s\S]*?settings\.syncNow\(\)/);
-  assert.match(js, /disableBtn\.addEventListener\('click',[\s\S]*?settings\.syncDisable\(\{ wipeRemote: wipeEl\.checked \}\)/);
+  assert.match(js, /disableBtn\.addEventListener\('click',[\s\S]*?settings\.syncDisable\(\{ wipeRemote: canWipeRemote && wipeEl\.checked \}\)/);
   assert.match(js, /wipeEl\.checked = res\.ok \? false : wipeEl\.checked/,
     'a failed remote wipe stays selected for a safe retry');
   assert.match(js, /tabsShareEl\.addEventListener\('change',[\s\S]*?settings\.syncTabsSet\(tabsShareEl\.checked\)/);
@@ -100,7 +100,9 @@ test('settings.js drives the flow through the reducer and performs effects once'
   assert.match(js, /if \(effect\?\.type === 'preflight'\)/);
   assert.match(js, /if \(effect\?\.type === 'enable'\)/);
   assert.match(js, /effect\.path === 'join'/, 'result copy derives from the effect, not live state');
-  assert.doesNotMatch(js, /model\.path === 'join'/);
+  const enableEffect = js.slice(js.indexOf('async function performEnable('), js.indexOf('async function performPreflight('));
+  assert.ok(enableEffect.length > 0);
+  assert.doesNotMatch(enableEffect, /model\.path === 'join'/, 'async enable copy must use its captured effect; synchronous field labels may use the current model');
   assert.match(js, /type: 'enable-reply', token: effect\.token/);
   // A failed enable never becomes a transient note: the error belongs to the
   // Last error row (persisted credentials) or the reducer's notice (not).

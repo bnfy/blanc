@@ -315,7 +315,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.41.0}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.43.1}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
@@ -363,13 +363,13 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
   // A resume needs a reason, a stamp for this exact commit/version/arch set,
   // and unchanged stamped bytes.
   assert.match(releaseScript, /BLANC_RELEASE_RESUME_REASON/);
-  assert.match(releaseScript, /BUILD_STAMP_HEADER="commit=\$LOCAL_HEAD version=\$VERSION mac=\$MAC_ARCH_CSV"/);
+  assert.match(releaseScript, /BUILD_STAMP_HEADER="commit=\$LOCAL_HEAD version=\$VERSION mac=\$MAC_ARCH_CSV runtime=\$RELEASE_RUNTIME"/);
   assert.match(releaseScript, /shasum -a 256 -c --quiet -/);
   assert.match(releaseScript, /Contents\/MacOS\/Blanc" "\$app\/Contents\/Resources\/app\.asar"/);
   // Only the packaged checks between the build and the tag push are resumable,
   // each behind should_run, and nothing from the tag push onward is gated.
   const steps = releaseScript.match(/^RESUME_STEPS=\(([^)]*)\)/m)[1].split(/\s+/);
-  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration']);
+  assert.deepEqual(steps, ['fuses', 'blocker-payloads', 'compliance', 'first-run', 'regressions', 'workspaces', 'favicons-primary', 'favicons-additional', 'migration', 'ecs-acceptance']);
   let previous = fullBranch;
   for (const step of steps) {
     const gate = at(`if should_run ${step}; then`);
@@ -377,4 +377,49 @@ test('release resume reuses only a stamped, unchanged build and never skips pref
     previous = gate;
   }
   assert.doesNotMatch(releaseScript.slice(tagPush), /should_run|RESUME_FROM/);
+});
+
+test('an ECS release is opt-in, needs the EVS account and the reviewed uBO record, and verifies its own package', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  assert.match(releaseScript, /RELEASE_RUNTIME="\$\{BLANC_RELEASE_RUNTIME:-official\}"/);
+  assert.match(releaseScript, /for var in BLANC_EVS_PYTHON EVS_CONFIG_FILE EVS_CACHE_FILE/);
+  assert.match(releaseScript, /matrix\.ecsRuntime !== pin\.version/);
+  assert.match(releaseScript, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production\.cjs --release --mac/);
+  assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac-arm64\/Blanc\.app"/);
+  assert.match(releaseScript, /verify-ecs-production-package\.cjs --release "dist\/mac\/Blanc\.app"/);
+  // Official releases send no runtime input; only ECS does, and only after
+  // a pre-tag check that the native workflow accepts it.
+  assert.doesNotMatch(releaseScript, /-f runtime="\$RELEASE_RUNTIME"/);
+  assert.match(releaseScript, /\[ "\$RELEASE_RUNTIME" = ecs \] && DISPATCH_RUNTIME_ARGS=\(-f runtime=ecs -f source_sha=/);
+  assert.match(releaseScript, /\$\{DISPATCH_RUNTIME_ARGS\[@\]\+"\$\{DISPATCH_RUNTIME_ARGS\[@\]\}"\}/);
+  assert.match(releaseScript, /does not accept runtime=ecs/);
+  assert(releaseScript.indexOf('does not accept runtime=ecs') < releaseScript.indexOf('git push origin "refs/tags/$TAG"'));
+  // macOS bash 3.2 aborts on an empty "${A[@]}" under set -u.
+  assert.doesNotMatch(releaseScript, /[^+]"\$\{(?:ECS_FUSE_ARGS|WORKSPACE_ENV)\[@\]\}"\}?(?!\})/);
+  assert.match(releaseScript, /\$\{ECS_FUSE_ARGS\[@\]\+"\$\{ECS_FUSE_ARGS\[@\]\}"\}/);
+  // The internal uBO qualification build can never enter the pipeline.
+  assert.match(releaseScript, /Internal uBlock validation packages cannot enter the release pipeline/);
+});
+
+test('an ECS release checks installed uBO, file isolation and protected playback on the signed Mac app before tagging', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  const block = releaseScript.slice(releaseScript.indexOf('if should_run ecs-acceptance; then'), releaseScript.indexOf('git push origin "refs/tags/$TAG"'));
+  assert.match(block, /if \[ "\$RELEASE_RUNTIME" = ecs \]; then/);
+  for (const check of ['support/installed-mac-native-quit.mjs', 'ecs-production-smoke.mjs', 'ecs-local-html-smoke.cjs', 'ecs-production-drm-smoke.mjs']) assert.match(block, new RegExp(check.replace('.', '\\.')));
+  // The uBO suite waits for a native Quit; only its wrapper sends one.
+  assert.doesNotMatch(block, /node test\/desktop\/packaged-ublock-acceptance\.mjs/);
+  // Resuming keeps earlier reports and never reuses the exclusive uBO path.
+  assert.match(block, /ECS_ARCHIVE="\$\(mktemp -d "output\/ecs-production-before-\$ECS_ATTEMPT\.XXXXXX"\)"/);
+  assert.match(block, /mv output\/ecs-production "\$ECS_ARCHIVE\/"/);
+  assert.match(block, /ublock-installed-mac-\$ECS_ATTEMPT\.json/);
+  assert.match(block, /local-html-mac-\$ECS_ATTEMPT\.json/);
+  assert.doesNotMatch(block, /ublock-installed-mac\.json/);
+  assert.equal((block.match(/BLANC_UPDATE_CHANNEL=ecs-qualification-disabled/g) || []).length, 3);
+});
+
+test('every packaged check in an ECS release launches with updates disabled, also after a resume', () => {
+  const releaseScript = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/release.sh'), 'utf8');
+  const exportAt = releaseScript.indexOf('if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi');
+  assert(exportAt > releaseScript.indexOf('> "$BUILD_STAMP"'), 'after the build branch, so resumes set it too');
+  assert(exportAt < releaseScript.indexOf('if should_run fuses; then'));
 });

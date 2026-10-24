@@ -1,0 +1,25 @@
+---
+import '../styles/search.css';
+---
+<dialog class="site-search" id="site-search" aria-labelledby="site-search-title">
+  <div class="site-search-top">
+    <h2 id="site-search-title">Search Blanc</h2>
+    <button type="button" class="site-search-close" aria-label="Close search">Esc <span aria-hidden="true">×</span></button>
+  </div>
+  <div class="site-search-field">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+    <label class="search-sr-only" for="site-search-input">Search the Blanc website</label>
+    <input id="site-search-input" type="search" placeholder="What would you like to find?" autocomplete="off" spellcheck="false" maxlength="160" aria-controls="site-search-results" />
+  </div>
+  <div class="site-search-body">
+    <p class="site-search-status" role="status" aria-live="polite"></p>
+    <div class="site-search-suggestions">
+      <p>Start here</p>
+      <div>{['Start Page', 'Tab groups', '1Password', 'Keyboard shortcuts', 'Mail'].map(query => <button type="button" data-search-query={query}>{query}</button>)}</div>
+    </div>
+    <ul id="site-search-results" class="site-search-results" aria-label="Search results"></ul>
+    <div class="site-search-recovery" hidden><button type="button" data-search-retry>Try again</button><a href="/support">Browse Support</a></div>
+  </div>
+  <div class="site-search-bottom"><span>Features, answers & updates</span><span>Searches stay in your browser</span></div>
+</dialog>
+<script src="../scripts/search.js"></script>

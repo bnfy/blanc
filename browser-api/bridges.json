@@ -162,6 +162,17 @@
         "unsubscribe": false
       },
       {
+        "name": "bookmarks.capabilities",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:capabilities",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Whether this host permits editing Favorites."
+      },
+      {
         "name": "bookmarks.list",
         "kind": "invoke",
         "channel": "pages:bookmarks:list",
@@ -1434,6 +1445,24 @@
         "payload": "unknown",
         "doc": "Blocking provider status changed.",
         "unsubscribe": false
+      },
+      {
+        "name": "settings.drmStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-status",
+        "hosts": ["settings"],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read sanitized ECS protected-media readiness."
+      },
+      {
+        "name": "settings.drmRestart",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-restart",
+        "hosts": ["settings"],
+        "params": [],
+        "returns": "boolean",
+        "doc": "Restart through the unsaved-work guard only when protected media requires it."
       },
       {
         "name": "settings.checkForUpdates",

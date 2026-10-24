@@ -6,6 +6,7 @@ const {
   MAX_SPLIT_PANES,
   PR1_MAX_PANES,
   splitEligible,
+  splitPinned,
   createSplit,
   removeFromSplit,
   placeAfterSplit,
@@ -47,11 +48,17 @@ test('createSplit keeps a valid layout it is given and gives each split its own 
   assert.match(a.split.id, /^split-/);
 });
 
-test('splitEligible refuses pinned and already-split tabs', () => {
+test('splitEligible takes pinned tabs and refuses already-split ones', () => {
   assert.equal(splitEligible(tab('a')), true);
-  assert.equal(splitEligible(tab('a', { pinned: true })), false);
+  assert.equal(splitEligible(tab('a', { pinned: true })), true);
   assert.equal(splitEligible(tab('a', { splitId: 'split-1' })), false);
   assert.equal(splitEligible(null), false);
+});
+
+test('splitPinned: a split is pinned when any of its tabs is', () => {
+  assert.equal(splitPinned([tab('a'), tab('b')]), false);
+  assert.equal(splitPinned([tab('a'), tab('b', { pinned: true })]), true);
+  assert.equal(splitPinned([]), false);
 });
 
 test('removeFromSplit of a two-pane split dissolves and names the survivor', () => {

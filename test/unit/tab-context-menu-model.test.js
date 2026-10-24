@@ -271,9 +271,16 @@ test('menu: Split with is disabled with no other tab to split with', () => {
   assert.equal(byId(build(), 'split-with').enabled, false);
 });
 
-test('menu: Split with is disabled for a pinned tab, with the reason', () => {
-  const item = byId(build({ tab: { pinned: true }, splitCandidates: [{ id: 2, title: 'Docs' }] }), 'split-with');
-  assert.deepEqual(item.submenu.map((i) => [i.label, i.enabled]), [["Pinned tabs can't join a split", false]]);
+test('menu: a pinned tab can split with another tab', () => {
+  const item = byId(build({ tab: { pinned: true }, splitCandidates: [{ id: 2, title: 'Docs', groupId: null }] }), 'split-with');
+  assert.notEqual(item.enabled, false);
+  assert.deepEqual(item.submenu.map((i) => i.label), ['Docs']);
+});
+
+test('menu: a split tab pins and unpins the whole split', () => {
+  assert.equal(byId(build({ tab: { splitId: 'split-1' } }), 'toggle-pin').label, 'Pin Split');
+  assert.equal(byId(build({ tab: { splitId: 'split-1', pinned: true } }), 'toggle-pin').label, 'Unpin Split');
+  assert.equal(byId(build({ tab: { pinned: true } }), 'toggle-pin').label, 'Unpin Tab');
 });
 
 test('menu: a split tab offers Remove from Split and Close Split instead', () => {

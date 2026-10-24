@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:root:blanc@1.42.0",
+      "bom-ref": "application:root:blanc@1.43.1",
       "name": "blanc dependency lock",
-      "version": "1.42.0",
+      "version": "1.43.1",
       "description": "Complete root npm supply-chain inventory, including development and optional packages."
     },
     "properties": [
@@ -8664,14 +8664,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron@44.8.0",
+      "bom-ref": "pkg:npm/electron@44.9.3",
       "name": "electron",
-      "version": "44.8.0",
+      "version": "44.9.3",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "627dad277df997c3064498fceaf68062ad4c3a276d8b0f5e5dd9875faa7779c1d05b0b9cb0c301c43cea52b6275c41f2a9d73f2213a1d8a187ce68b326fcdddd"
+          "content": "0aff7fc8c9d9c4d5ac32521ef13e2ffff34a1dd52f6deca84c9a17137048711c6eb3699e78568ef61fcfdf30797787015ee9b9d4880062b4f6423a480d62a924"
         }
       ],
       "licenses": [
@@ -8681,7 +8681,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.8.0",
+      "purl": "pkg:npm/electron@44.9.3",
       "properties": [
         {
           "name": "blanc:development",
@@ -8703,7 +8703,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.8.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.9.3.tgz"
         }
       ]
     },
@@ -19724,14 +19724,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@6.29.0",
+      "bom-ref": "pkg:npm/undici@6.29.1",
       "name": "undici",
-      "version": "6.29.0",
+      "version": "6.29.1",
       "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "47e44e0c1aa9ea2da93df94676afb120e52497e44d7c6807c288a779c2aefc90ae7f6b8ed3a70e2a80db2363fb0e7e8a72cc1d2b0adccdb53a21827a2bc5fec2"
+          "content": "12f46552dfd0a8012f5dd41e44c6147f0390b1fce90f3b7292b1b6a3018413fac1381a18bfdb85dfd673b0d0e1e254c51e14ebd973998ca91882e783d7666618"
         }
       ],
       "licenses": [
@@ -19741,7 +19741,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@6.29.0",
+      "purl": "pkg:npm/undici@6.29.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -19763,20 +19763,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-6.29.0.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-6.29.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@7.30.0",
+      "bom-ref": "pkg:npm/undici@7.30.1",
       "name": "undici",
-      "version": "7.30.0",
+      "version": "7.30.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "764ad05de1d26a86a69c8b6561b9b31b4c0562b3346700f108883403b68a8d3cb2861f6cbd1cc234513357e566d39ff27a18c2ce30d9df52977c6123612ced0d"
+          "content": "d372ab31b8c814359047944d3eb4b0ddb775af5d89a7215097dff2c6351b26daa48e6965a82e65163661eae8deb8908aafc10e42f456f3bd8ecbf6b3fa72d8c6"
         }
       ],
       "licenses": [
@@ -19786,7 +19786,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@7.30.0",
+      "purl": "pkg:npm/undici@7.30.1",
       "properties": [
         {
           "name": "blanc:development",
@@ -19808,7 +19808,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-7.30.0.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-7.30.1.tgz"
         }
       ]
     },
@@ -20938,7 +20938,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:root:blanc@1.42.0",
+      "ref": "application:root:blanc@1.43.1",
       "dependsOn": [
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40cucumber/cucumber@13.2.1",
@@ -20948,7 +20948,7 @@
         "pkg:npm/%40ghostery/adblocker@2.20.1",
         "pkg:npm/electron-builder@26.17.0",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.8.0",
+        "pkg:npm/electron@44.9.3",
         "pkg:npm/eslint@10.12.0",
         "pkg:npm/globals@17.13.0",
         "pkg:npm/playwright@1.63.0",
@@ -21174,7 +21174,7 @@
         "pkg:npm/progress@2.0.3",
         "pkg:npm/semver@7.8.5",
         "pkg:npm/sumchecker@3.0.1",
-        "pkg:npm/undici@7.30.0"
+        "pkg:npm/undici@7.30.1"
       ]
     },
     {
@@ -22154,7 +22154,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.8.0",
+      "ref": "pkg:npm/electron@44.9.3",
       "dependsOn": [
         "pkg:npm/%40electron-internal/extract-zip@1.0.4",
         "pkg:npm/%40electron/get@5.0.0",
@@ -22959,7 +22959,7 @@
         "pkg:npm/semver@7.8.5",
         "pkg:npm/tar@7.5.22",
         "pkg:npm/tinyglobby@0.2.17",
-        "pkg:npm/undici@6.29.0",
+        "pkg:npm/undici@6.29.1",
         "pkg:npm/which@6.0.1"
       ]
     },
@@ -23557,11 +23557,11 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@6.29.0",
+      "ref": "pkg:npm/undici@6.29.1",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@7.30.0",
+      "ref": "pkg:npm/undici@7.30.1",
       "dependsOn": []
     },
     {

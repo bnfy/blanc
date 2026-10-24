@@ -160,6 +160,7 @@ if (window.location.protocol === 'blanc:') {
     api = {
       surface,
       bookmarks: {
+        capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
         remove: (id) => invoke('pages:bookmarks:remove', id),
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),
@@ -240,6 +241,8 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:blocking:status', (_event, status) => callback(status));
         },
         checkForUpdates: () => invoke('pages:settings:check-for-updates'),
+        drmStatus: () => invoke('pages:settings:drm-status'),
+        drmRestart: () => invoke('pages:settings:drm-restart'),
         set: (partial) => invoke('pages:settings:set', partial),
         wallpaper: () => invoke('pages:start:wallpaper'),
         setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),

@@ -11,7 +11,7 @@ test('Mail and Suite checkout selects one production plan and stays closed', asy
   };
   for (const [plan, id] of Object.entries(expected)) {
     assert.deepEqual(commerce.checkoutRequestFor(plan), {
-      products: [id], return_url: 'https://blanc.day/mail/pricing',
+      products: [id], return_url: 'https://blanc.day/mail#pricing',
     });
     assert.equal(commerce.checkoutHrefFor(plan), null);
   }

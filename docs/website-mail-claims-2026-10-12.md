@@ -88,3 +88,39 @@ in the `/mail` hero, the page title and `public/mail-og.png`. The owner chose
 it on October 12, 2026; it pairs with Blanc Browser's "A little less browser."
 It is branding, not a product claim. `site/scripts/render-mail-og-card.mjs`
 regenerates the share card, which reads “A little less inbox.” over “blanc.day/mail”.
+
+## The gold overview: the Island, Set Aside and Rules (October 22, 2026; owner approval pending)
+
+The overview became the gold coming-soon page
+(`docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md`). It keeps
+the feature sentences above word for word, shows one screenshot (the dark rule
+editor, below), and adds the rows below. They were
+checked against the Mail repository's `main` at `d5c39ea6`, not a signed
+candidate, so each is Qualified until it is rechecked against the candidate and
+recorded in that repository's `docs/BLANC_MAIL_CLAIMS_REVIEW.md`, which has no
+Island or Sets entry yet.
+
+| Wording on the page | Evidence | Limits kept in the copy | Verdict |
+| --- | --- | --- | --- |
+| "The Island, made for mail." Blanc Browser's floating Island, rebuilt for email. One capsule floats over your inbox in place of a toolbar, and ⌘L or ⌘F opens it in place to search, jump and act. | `AGENTS.md:25-27` (the window's only toolbar, a capsule centered over the content pane, expands in place); `MailMenuShortcuts.swift:117-118` (⌘F, ⌘L); Island PRs #76–#118 on `main` | — | Qualified: signed UI suite not yet green (`RELEASE_ACCEPTANCE.md:52`) |
+| Jump anywhere: Type a few letters to jump to a mailbox, label, conversation, set or person in the accounts you're viewing, or press ⇧↵ to search all your mail. | `MailIslandPanel.swift:473-508, 551-588, 669-674, 698-701`; `MailStore.swift:7172-7181`; `AGENTS.md:27` ("all mail of the visible accounts") | Scoped to the accounts being viewed | Qualified |
+| Commands with a slash: Type / to snooze, set aside, label, move, archive or trash what you've selected, or start a new message or rule. A command that can't run yet says why. | `EverythingMailCore/Models/MailIsland.swift:6-22`; `MailIslandPanel.swift:386-404`; `MailIslandTests` (menu-parity check) | Selection needed for all but compose and rule | Qualified |
+| Actions at hand: Select a conversation and the Island holds Archive, Snooze, Set Aside, Labels and Trash, with Reply, Forward and the rest one click away. | `MailIsland.swift:236-297, 396-545` (More menu) | — | Qualified |
+| The Island figure: the open panel after typing "/" with a conversation selected | Drawn from `MailIslandPanel.swift` (field, "commands" header, the eight command rows in order, footer chips and hint) and `MailWindowLayout.swift` metrics | A drawing, not a screenshot; no mail content shown | Qualified |
+| Set Aside: Put conversations into a named set, like "Read on the flight", and they leave your Inbox to wait in the sidebar. Give a set a review date and it's marked due when the day comes; nothing moves on its own. Set names and dates stay on this Mac. | `docs/superpowers/specs/2026-08-17-multi-select-and-sets-design.md:19-25, 270-280, 391-399`; `MailSetRecord.swift:85`; `MailSetManagementViews.swift:5-33`; `MailSidebarView.swift:652-653`; ~20 `MailSet*Tests` | Mac-local names and review dates stated; "due" is a marker, not a notification. Not from Spam (not stated) | Qualified: `RELEASE_ACCEPTANCE.md:82` is Partial, FEAT-17 in progress |
+| Rules image: the rule editor, dark (scene `rule-editor`) | Mail repository `native/scripts/capture-public-shots.sh` scene `rule-editor` (bnfy/blanc-mail#147), signed Debug demo build at `b3a4788a`; the fixture's `trailclub.example` → Trips rule; its "already matches" preview is seeded from the demo corpus by `MailRuleLocalMatcher` (DEBUG only), since the demo provider can't run Gmail's search; `SignedInCaptureFixtureTests` | Labelled "Preview build". Demo data only. The footer text in the image ("Runs in Gmail on new mail…") is the app's own and matches the Rules copy's limits | Verified as captured |
+
+**Deploy approval (October 22, 2026).** The owner reviewed the gold overview
+in the local preview and asked for it to be deployed ("do code review,
+address findings, then deploy new page to site"). The Qualified rows above
+are published on that instruction and stay open until they are rechecked
+against the signed Mail candidate; they are recorded as open, not passed.
+
+## One page: Pricing, Support and Download folded in (October 22, 2026)
+
+Pricing, Support and Download moved from their own pages
+(`/mail/pricing`, `/mail/support`, `/mail/download`) into sections of
+`/mail`, word for word, so their claims are unchanged and keep the standing
+they had there. One sentence was dropped, not reworded: Download's "Blanc
+Browser already has separate macOS, Windows, and Linux downloads", which the
+page's notes already say. Nothing new is claimed.

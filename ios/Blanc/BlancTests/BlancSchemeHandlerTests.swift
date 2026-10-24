@@ -51,4 +51,42 @@ final class BlancSchemeHandlerTests: XCTestCase {
     func testUnknownExtensionMime() {
         XCTAssertEqual(BlancPageResolver.mimeType(forFilename: "passwd"), "application/octet-stream")
     }
+
+    // The virtual strings.js maps to the catalog desktop would pick for the
+    // same system languages (resolveLocale with uiLanguage: system).
+    func testStringsCatalogFollowsPreferredLanguages() {
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: ["de-AT", "en-US"]), "de")
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: ["pt-BR"]), "pt-BR")
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: ["pt-PT"]), "pt-BR")
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: ["ja-JP", "fr-CA"]), "fr")
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: ["ja-JP"]), "en")
+        XCTAssertEqual(BlancPageResolver.resolvedLocale(preferred: []), "en")
+        XCTAssertEqual(BlancPageResolver.stringsFilename(preferred: ["it-IT"]), "strings.it.js")
+    }
+
+    // strings.js still resolves through the host allowlist like any asset.
+    func testStringsScriptResolves() {
+        XCTAssertEqual(BlancPageResolver.resolvedFilename(host: "newtab", path: "/strings.js"), "strings.js")
+        XCTAssertNil(BlancPageResolver.resolvedFilename(host: "evil", path: "/strings.js"))
+    }
+
+    // Every catalog the resolver can pick is bundled with the pages.
+    func testEveryCatalogIsBundled() {
+        for locale in BlancPageResolver.selectableLocales {
+            XCTAssertNotNil(
+                Bundle.main.url(forResource: "strings.\(locale)", withExtension: "js", subdirectory: "pages"),
+                "missing strings.\(locale).js")
+        }
+    }
+
+    // The appended source sets the formatting locale with the device region,
+    // and ignores a malformed region.
+    func testStringsSuffix() {
+        XCTAssertEqual(BlancPageResolver.stringsSuffix(locale: "pt-BR", region: "US"),
+                       "\nself.blancStrings.formatLocale=\"pt-US\";self.blancStrings.strict=false;\n")
+        XCTAssertEqual(BlancPageResolver.stringsSuffix(locale: "de", region: nil),
+                       "\nself.blancStrings.formatLocale=\"de\";self.blancStrings.strict=false;\n")
+        XCTAssertEqual(BlancPageResolver.stringsSuffix(locale: "de", region: "\";alert(1)//"),
+                       "\nself.blancStrings.formatLocale=\"de\";self.blancStrings.strict=false;\n")
+    }
 }

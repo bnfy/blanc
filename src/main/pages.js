@@ -1,4 +1,4 @@
-const { app, protocol, net, ipcMain, session, dialog, shell } = require('electron');
+const { app, protocol, net, ipcMain, session, dialog, shell, webContents } = require('electron');
 const { execFileSync } = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
@@ -8,6 +8,19 @@ const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
+
+// Swaps an open page's stylesheet for a fresh copy (and so the current surface
+// style), removing the old one only once the new one has loaded, so the page
+// never shows unstyled. The query only defeats the link's own dedupe; the
+// handler resolves the file by name.
+const RESTYLE_SCRIPT = `(() => {
+  const old = document.querySelector('link[rel="stylesheet"][href^="pages.css"]');
+  if (!old) return;
+  const next = old.cloneNode();
+  next.href = 'pages.css?restyle=' + Date.now();
+  next.addEventListener('load', () => old.remove(), { once: true });
+  old.after(next);
+})()`;
 const history = require('./history');
 const archive = require('./archive');
 const downloads = require('./downloads');
@@ -49,6 +62,8 @@ const PAGES_DIR = path.join(__dirname, '../renderer/pages');
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
+    ...(require('../../package.json').blancRuntime === 'ecs'
+      ? [require('./local-html-preview').LOCAL_HTML_SCHEME] : []),
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
     // The privileged strip + overlay cannot remain on file:// when the
     // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
@@ -103,9 +118,32 @@ function setupPages(hooks = {}) {
   const stringsScript = hooks.stringsScript ?? (() =>
     stringsScriptFor({ source: fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8'), formatLocale: 'en', strict: false }));
 
+  // Both files are read once in a packaged build. A dev run reads them per
+  // request so an edited stylesheet shows on the next navigation.
+  const stylesheetCache = new Map();
+  const stylesheet = (surfaceStyle) => {
+    const key = surfaceStyle === 'neutral' ? 'neutral' : 'sunrise';
+    if (stylesheetCache.has(key)) return stylesheetCache.get(key);
+    let css = fs.readFileSync(path.join(PAGES_DIR, 'pages.css'), 'utf8');
+    if (key === 'neutral') css += '\n' + fs.readFileSync(path.join(PAGES_DIR, 'pages-neutral.css'), 'utf8');
+    if (app.isPackaged) stylesheetCache.set(key, css);
+    return css;
+  };
+  // A Surface style change restyles every open internal page (Start Pages,
+  // sheets, Mahjong) in place, with no reload to lose a game or a search.
+  let appliedSurfaceStyle = settings.getSettings().surfaceStyle;
+  settings.onSettingsChanged?.((s) => {
+    if (s.surfaceStyle === appliedSurfaceStyle) return;
+    appliedSurfaceStyle = s.surfaceStyle;
+    for (const wc of webContents?.getAllWebContents?.() ?? []) {
+      if (wc.isDestroyed() || !wc.getURL().startsWith('blanc://')) continue;
+      wc.executeJavaScript(RESTYLE_SCRIPT).catch(() => {});
+    }
+  });
+
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
-    if (branding) return net.fetch(pathToFileURL(branding).toString());
+    if (branding) return net.fetch(pathToFileURL(branding).toString(), { bypassCustomProtocolHandlers: true });
     const { host, pathname } = new URL(request.url);
     // The custom Start Page image is a userData file, so it is answered by
     // its own exact name, never through the flat PAGES_DIR resolver below.
@@ -121,6 +159,15 @@ function setupPages(hooks = {}) {
       return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
     }
     const name = asset.name;
+    // The stylesheet carries the surface style: Neutral appends its overrides
+    // in the same response, so there is no flash of the Sunrise palette. It
+    // is never cached by Chromium, or a page reloaded after a change would
+    // keep the old palette.
+    if (name === 'pages.css') {
+      return new Response(stylesheet(settings.getSettings().surfaceStyle), {
+        headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' },
+      });
+    }
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({
       name,
@@ -129,7 +176,7 @@ function setupPages(hooks = {}) {
       dockIconPath: developmentDockIconPath,
       darkDockIconPath: developmentDarkDockIconPath,
     });
-    return net.fetch(pathToFileURL(resource).toString());
+    return net.fetch(pathToFileURL(resource).toString(), { bypassCustomProtocolHandlers: true });
   };
 
   // The top-level `protocol` module binds only to the default session, so a
@@ -198,6 +245,7 @@ function setupPages(hooks = {}) {
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
+  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true }));
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   // Start Page pins (start-page-pins.js): one device-local list that the
   // Start Page and the Favorites page read and change; main tells both when it
@@ -410,6 +458,8 @@ function setupPages(hooks = {}) {
     languages: hooks.i18n?.languagesInfo() ?? { active: 'en', system: 'en', options: [] },
   }));
   handle('pages:settings:check-for-updates', 'settings', () => hooks.checkForUpdates());
+  handle('pages:settings:drm-status', 'settings', () => hooks.drm?.status() ?? { enabled: false, state: 'unsupported', version: null, canRestart: false });
+  handle('pages:settings:drm-restart', 'settings', () => hooks.drm?.restart() ?? false);
   handle('pages:blocking:status', 'settings', () => hooks.blocking?.status() ?? null);
   handle('pages:blocking:retry', 'settings', () => hooks.blocking?.retry() ?? false);
   handle('pages:blocking:open', 'settings', (tool) => hooks.blocking?.open(tool) ?? false);

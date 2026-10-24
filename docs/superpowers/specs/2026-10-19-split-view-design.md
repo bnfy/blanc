@@ -88,7 +88,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
   - A split belongs to at most one group; all its tabs share that `groupId`.
   - Adding a tab from elsewhere moves it into the split's group, or out of a group if the split has none. The tab menu says so in the item's accessible description.
   - A split's row sits in the window's display order wherever its first tab sits, and its tabs stay contiguous (the existing `syncTabLayout` contiguity rule, extended).
-- **Pinning:** a split can't hold a pinned tab. Pinning a pane removes it from the split first, dissolving the split if one pane would remain, then pins it (D7).
+- **Pinning:** a split is pinned or not as a whole (D7, revised 2026-10-23). Splitting a pinned tab with any tab pins the split; Pin Split or Unpin Split on any pane does the same to every pane. A pinned split sits where pins do (the Pinned shelf, or leading its group) as one row, and each pane keeps its own pinned home.
 
 ### 3.5 Leaving and dissolving
 
@@ -115,7 +115,7 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 | Recently closed | Closing a pane records a tab entry. That entry reopens as an ordinary tab, not back into the split. Close Split records one split entry that reopens whole. Same tiers, holds and privacy rules as group entries. |
 | Capture indicator, permission prompts, 1Password | Per pane, as Glance already does for two panes: a prompt or fill message belongs to the pane it's about. |
 | Find in page, zoom, print | Follow the focused pane. |
-| Pinned homes (F48) | Not applicable: a split holds no pinned tabs. |
+| Pinned homes (F48) | Each pane of a pinned split keeps its own home. Pinning a split homes each newly pinned pane on its current page. |
 | Custom tab names (F46) | A pane header and the split row use each tab's display title. |
 | Window close / reopen (macOS) | The split survives in the session like the rest of the window. |
 
@@ -170,7 +170,6 @@ A **split** is a small, named-by-its-tabs set of 2–4 ordinary tabs in one wind
 - **Free-form layouts** (any pane split left/right or top/bottom). D3 chose columns plus a 2×2 grid.
 - **More than four panes.**
 - **Moving a whole split to another window or profile**, or one split spanning windows.
-- **Pinned splits**, or a pinned tab inside a split.
 - **Syncing the layout** to other devices.
 - **Mobile.** This is a desktop window-model capability (D11); phones are N/A.
 - **Any automatic grouping or "smart" split suggestions.** Splits are user-directed only (`docs/marketing-claims.md`).
@@ -193,7 +192,7 @@ Each PR starts from mockups where it adds visible chrome, and is checked in a pa
 - **D4:** A split is one row in the tab list, and its tabs stay real tabs underneath.
 - **D5 (was Q1):** chrome direction A. One Island stays centered in the strip and always addresses the focused pane; every pane, top row included, has the same header band at its top. The owner chose it over B (the Island follows focus) and C (the Island carries the panes, with no headers). This costs one header band of page height per pane; nothing moves when focus moves, and every pane can be identified and closed in place.
 - **D6 (was Q2):** pane focus cycles with `Cmd+Option+]` / `[` on macOS and `Ctrl+Alt+]` / `[` on Windows and Linux. Directional arrows were rejected: `Cmd+Option+←/→` is tab switching in Chrome and Safari, and some Windows graphics drivers rotate the screen on `Ctrl+Alt+Arrow`.
-- **D7 (was Q3):** pinning a split tab removes it from the split first.
+- **D7 (was Q3; revised 2026-10-23):** a split is pinned as a whole. The first rule (pinning a split tab removes it from the split first) was reversed on user feedback asking for splits with pinned tabs; the owner chose a pinned split over mixed pinned and unpinned panes or a one-step Unpin and Split.
 - **D8 (was Q4):** a tab leaving a split lands directly below the split's row.
 - **D9 (2026-10-20, revises D5):** panes look like Chromium's split view, as the Chromium fork's do: rounded bordered cards with a darker border on the focused pane and no header band. A corner tab floats over each pane's bottom-right corner (site and × when unfocused, × alone when focused) in its own small view, and the Island's Back and Reload serve the focused pane. The owner chose the floating corner tab over a reserved bottom strip, which would have left an empty band beside the tab.
 

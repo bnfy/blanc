@@ -125,16 +125,17 @@ test('buildGroupEntry is one entry with per-member snapshots and no private memb
   assert.equal(entry.view, null);
 });
 
-test('closed tab, group, and batch entries retain sandbox restrictions only in main', () => {
-  const tab = baseTab({ openerSandboxFlags: 4294836015 });
+test('closed tab, group, and batch entries keep the document-policy mark only in main', () => {
+  const tab = baseTab({ inheritsDocumentPolicy: true });
   const entries = [
     buildTabEntry(tab, SNAP),
     buildGroupEntry({ id: 'g', name: 'Sandbox' }, [tab]),
     buildBatchEntry([tab]),
   ];
-  assert.equal(entries[0].openerSandboxFlags, tab.openerSandboxFlags);
-  assert.equal(entries[1].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
-  assert.equal(entries[2].tabs[0].openerSandboxFlags, tab.openerSandboxFlags);
+  assert.equal(entries[0].inheritsDocumentPolicy, true);
+  assert.equal(entries[1].tabs[0].inheritsDocumentPolicy, true);
+  assert.equal(entries[2].tabs[0].inheritsDocumentPolicy, true);
+  assert.equal(buildTabEntry(baseTab(), SNAP).inheritsDocumentPolicy, false);
   for (const projected of projectEntries(entries)) {
     assert.deepEqual(Object.keys(projected).sort(), ['favicon', 'id', 'tabCount', 'title']);
   }

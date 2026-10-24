@@ -106,6 +106,9 @@ const equalsRemote = (exported, remote) => model.devicesEqual(exported?.devices,
 const getRemoteDevices = (ctx) =>
   model.displayDevices(rebind(ctx.accountId).data.devices, ctx.deviceId, { now: Date.now() });
 
+/** Every cached entry, other devices' included, for the send-target list. */
+const getDeviceEntries = (ctx) => rebind(ctx.accountId).data.devices;
+
 const heartbeatDue = (ctx) =>
   model.heartbeatDue(rebind(ctx.accountId).data.devices[ctx.deviceId], Date.now());
 
@@ -122,5 +125,5 @@ function onSyncDisabled() {
 module.exports = {
   setSnapshotProvider, onChanged, onRemoteChanged, noteTabsChanged,
   exportForSync, mergeFromSync, equalsRemote,
-  getRemoteDevices, heartbeatDue, onSyncDisabled,
+  getRemoteDevices, getDeviceEntries, heartbeatDue, onSyncDisabled,
 };

@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Protected media",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.preparing": {
+    "message": "Preparing the component needed to play protected audio and video. You can keep browsing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.ready": {
+    "message": "The protected-media component is ready. Playback availability depends on the website.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartRequired": {
+    "message": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.disabled": {
+    "message": "Protected-media component updates are disabled. Restarting alone may not resolve this.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.failed": {
+    "message": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartButton": {
+    "message": "Restart Blanc",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
   "$note": "Source of every Blanc-authored interface string. Edit here, translate in the same PR, run copy:ack for the keys you translated, then copy:build.",
   "slash.favorites.hint": {
     "message": "Open favorites",
@@ -1856,6 +1884,14 @@
     "message": "Unpin Tab",
     "note": "Tab context menu command."
   },
+  "tabMenu.pinSplit": {
+    "message": "Pin Split",
+    "note": "Tab context menu command on a Split View tab: pins every tab of the split."
+  },
+  "tabMenu.unpinSplit": {
+    "message": "Unpin Split",
+    "note": "Tab context menu command on a pinned Split View tab: unpins every tab of the split."
+  },
   "tabMenu.mute": {
     "message": "Mute Tab",
     "note": "Tab context menu command."
@@ -1907,10 +1943,6 @@
   "tabMenu.splitWith": {
     "message": "Split with",
     "note": "Tab context menu: submenu that makes a Split View (F53) of this tab and the chosen one."
-  },
-  "tabMenu.splitPinnedRefused": {
-    "message": "Pinned tabs can't join a split",
-    "note": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View."
   },
   "tabMenu.removeFromSplit": {
     "message": "Remove from Split",
@@ -2559,6 +2591,10 @@
     "message": "Sync is off.",
     "note": "Profile Sync status when syncing is requested while it is off."
   },
+  "sync.error.accountGone": {
+    "message": "This sync no longer exists. Turn sync off here, then add this phone again from your computer.",
+    "note": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it."
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copy your sync recovery code?",
     "note": "Settings → Sync → Copy recovery code: native dialog title."
@@ -2955,6 +2991,14 @@
   "error.reloadFailed": {
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
+  },
+  "error.localFile.title": {
+    "message": "This local file can’t open in this version of Blanc",
+    "note": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files."
+  },
+  "error.localFile.detail": {
+    "message": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab.",
+    "note": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded."
   },
   "arcImport.entry.title": {
     "message": "Arc",
@@ -3421,6 +3465,24 @@
   "settings.general.theme.dark": {
     "message": "Dark",
     "note": "Settings → General: choice in a dropdown.",
+    "maxLength": 12
+  },
+  "settings.general.surfaceStyle.label": {
+    "message": "Surface style",
+    "note": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages."
+  },
+  "settings.general.surfaceStyle.hint": {
+    "message": "The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray.",
+    "note": "Settings → General: hint under the Surface style dropdown."
+  },
+  "settings.general.surfaceStyle.sunrise": {
+    "message": "Sunrise",
+    "note": "Settings → General: choice in the Surface style dropdown; Sunrise is Blanc's warm cream and gold palette.",
+    "maxLength": 12
+  },
+  "settings.general.surfaceStyle.neutral": {
+    "message": "Neutral",
+    "note": "Settings → General: choice in the Surface style dropdown; plain ink and gray, no gold.",
     "maxLength": 12
   },
   "settings.general.islandSiteColors.label": {
@@ -5822,6 +5884,24 @@
     "message": "{description} (reason: {reason})",
     "note": "Error page: detail after a crash; {description} is a sentence such as “The page crashed”, {reason} a technical code."
   },
+  "error.inert.title": {
+    "message": "This tab can’t be reopened",
+    "note": "Explanation page for a tab a page opened, which Blanc can’t load again with the restrictions it was opened under: heading."
+  },
+  "error.inert.detail": {
+    "message": "A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab.",
+    "note": "Same page: explanation under the heading."
+  },
+  "error.inert.copy": {
+    "message": "Copy link",
+    "note": "Same page: button that copies the tab’s address.",
+    "maxLength": 16
+  },
+  "error.inert.copied": {
+    "message": "Link copied",
+    "note": "Same page: the button’s label after copying.",
+    "maxLength": 16
+  },
   "error.certificate.title": {
     "message": "Your connection isn’t private",
     "note": "Error page for an untrusted certificate: heading."
@@ -7994,5 +8074,25 @@
     "message": "Try again",
     "note": "Space editor: button that sends an edit again after it failed to save.",
     "maxLength": 16
+  },
+  "favorites.readOnlyNote": {
+    "message": "Favorites sync from your computer. Edit them there for now.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "favorites.editOnComputer": {
+    "message": "Edit Favorites on your computer for now.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "settings.sync.createOnComputer": {
+    "message": "Start your sync on your computer, then add this phone with a code.",
+    "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Enter your sync name",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Enter your passphrase",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
   }
 }

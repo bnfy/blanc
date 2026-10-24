@@ -43,5 +43,6 @@ test('startup and named-workspace restore require an explicit persisted grant', 
   assert.match(source, /localFile && restorableLocalHtmlUrl\(url\)/g);
   assert.match(source, /allowLocalFile: saved\.localFiles\?\.\[index\] === true/);
   assert.match(source, /allowLocalFile: cleaned\.localFiles\?\.\[index\] === true/);
-  assert.match(source, /if \(!isSupportedLocalHtmlUrl\(url\)\) tab\.localFile = false/);
+  // The commit rule: leaving the file (or a DRM build's inert placeholder for it) ends the grant.
+  assert.match(source, /if \(!keepsLocalFile\(tab, url\)\) \{\s*tab\.localFile = false;/);
 });

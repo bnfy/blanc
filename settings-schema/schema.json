@@ -35,7 +35,9 @@
   "appIcons": [
     { "id": "sunrise", "label": "Sunrise" },
     { "id": "sunrise-dark", "label": "Sunrise Dark" },
-    { "id": "sunrise-gold", "label": "Sunrise Gold" }
+    { "id": "sunrise-gold", "label": "Sunrise Gold" },
+    { "id": "sunrise-spectrum", "label": "Sunrise Spectrum" },
+    { "id": "sunrise-amber", "label": "Sunrise Amber" }
   ],
   "supporterIcons": [],
   "defaults": {
@@ -74,7 +76,7 @@
     "patron": null
   },
   "$internalDefaults": "Keys present in settings.js DEFAULTS that are intentionally desktop-only (not mobile-parity settings); settings:check allowlists these instead of requiring them in the schema. uiLanguage is desktop-only: mobile uses the OS per-app language setting (D27).",
-  "internalDefaults": ["customBangs", "tabArchive", "recentBangs", "adblockProvider", "tabLayout", "islandSiteColors", "islandHoverOpen", "searchPriorityResults", "islandAutoHide", "islandAutoHideStyle", "glanceFrame", "darkWebsites", "darkWebsitesExceptions", "verticalTabsWidth", "onePasswordEnabled", "onePasswordAccount", "mouseGesturesEnabled", "mouseGestureMapping", "onboardingVersion", "firstRunCompletedAt", "presentationDefaultsResetVersion", "groupNamesRecasedVersion", "migrationChecklistDismissed", "syncMigrationCompleted", "tabImportCompleted", "spaceMigrationCompleted", "spaceChecklistIntroduced", "defaultBrowserMigrationCompleted", "defaultChecklistIntroduced", "defaultBrowserReminderShown", "patronCalloutDismissedAt", "lastRunVersion", "whatsNewVersion", "whatsNewSince", "whatsNewPageVersion", "whatsNewTabRelease", "uiLanguage", "deviceNames", "_syncMeta", "_syncTieBreakers"],
+  "internalDefaults": ["customBangs", "tabArchive", "recentBangs", "adblockProvider", "tabLayout", "islandSiteColors", "islandHoverOpen", "searchPriorityResults", "islandAutoHide", "islandAutoHideStyle", "surfaceStyle", "glanceFrame", "darkWebsites", "darkWebsitesExceptions", "verticalTabsWidth", "onePasswordEnabled", "onePasswordAccount", "mouseGesturesEnabled", "mouseGestureMapping", "onboardingVersion", "firstRunCompletedAt", "presentationDefaultsResetVersion", "groupNamesRecasedVersion", "migrationChecklistDismissed", "syncMigrationCompleted", "tabImportCompleted", "spaceMigrationCompleted", "spaceChecklistIntroduced", "defaultBrowserMigrationCompleted", "defaultChecklistIntroduced", "defaultBrowserReminderShown", "patronCalloutDismissedAt", "lastRunVersion", "whatsNewVersion", "whatsNewSince", "whatsNewPageVersion", "whatsNewTabRelease", "uiLanguage", "deviceNames", "_syncMeta", "_syncTieBreakers"],
   "settings": [
     { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo", "note": "'custom' uses searchEngineTemplate; custom without a valid template, or an unknown id, reads as duckduckgo" },
     { "key": "searchEngineTemplate", "type": "string", "default": "", "note": "custom search address with exactly one lowercase %s after the host and port; https://, or http:// to a local-network host; at most 2048 characters; synced with searchEngine; stored trimmed, not URL-normalized" },
@@ -102,7 +104,7 @@
     { "key": "webrtcAudioBuffer", "type": "enum", "enum": "webrtcAudioBuffers", "default": "automatic", "note": "device-local; Stable targets 400 ms and Resilient targets 1000 ms for audio receivers through the W3C jitterBufferTarget API; Automatic leaves Chromium untouched" },
     { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "app.configureHostResolver secureDnsMode; strict positions hard-fail" },
     { "key": "secureDnsTemplate", "type": "string", "default": "", "note": "custom DoH RFC8484 template; validated raw (not URL-normalized)" },
-    { "key": "appIcon", "type": "enum", "enum": "appIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; Sunrise Gold is a glass icon, soft gold in light and polished gold in dark; sanitize-on-read == validate-on-write" },
+    { "key": "appIcon", "type": "enum", "enum": "appIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; Sunrise Gold is a glass icon, soft gold in light and polished gold in dark; Sunrise Spectrum (coral over blue) and Sunrise Amber (gold over bronze) are a glass ring sun, rays and water lines on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in dark; sanitize-on-read == validate-on-write" },
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
     { "key": "usagePing", "type": "boolean", "default": true },
     { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },

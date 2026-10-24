@@ -77,7 +77,14 @@ function buildSplitSubmenu(tab, groups, candidates, t) {
   return sub;
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
+/** The Pin/Unpin message key for `tab`: a split pins as a whole (F53), so
+ *  its tabs say so. Shared with the app menu's View item. */
+function pinLabelKey(tab) {
+  if (tab?.splitId) return tab.pinned ? 'tabMenu.unpinSplit' : 'tabMenu.pinSplit';
+  return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
+}
+
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -94,13 +101,13 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   items.push({ type: 'separator' });
 
   items.push({ id: 'reload', label: t('menu.reload'), accelerator: ACCEL.reload });
-  items.push({ id: 'duplicate', label: t('tabMenu.duplicate') });
+  items.push({ id: 'duplicate', label: t('tabMenu.duplicate'), enabled: canDuplicate !== false });
   items.push({ id: 'rename', label: t('tabMenu.rename') });
   // Only a renamed tab has a page title to go back to (F46).
   if (tab.customTitle) items.push({ id: 'reset-title', label: t('tabMenu.resetTitle') });
   items.push({ type: 'separator' });
 
-  items.push({ id: 'toggle-pin', label: t(tab.pinned ? 'tabMenu.unpin' : 'tabMenu.pin') });
+  items.push({ id: 'toggle-pin', label: t(pinLabelKey(tab)) });
   if (tab.pinned) {
     items.push({
       id: 'return-pinned-home',
@@ -134,12 +141,10 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Split View (F53): a split tab can leave or close its split; any other tab
   // can make one with an eligible tab (main passes the candidates with their
-  // groups; buildSplitSubmenu sorts them). Pinned tabs never join.
+  // groups; buildSplitSubmenu sorts them). A split with a pinned tab is pinned.
   if (tab.splitId) {
     items.push({ id: 'remove-from-split', label: t('tabMenu.removeFromSplit') });
     items.push({ id: 'close-split', label: t('tabMenu.closeSplit') });
-  } else if (tab.pinned) {
-    items.push({ id: 'split-with', label: t('tabMenu.splitWith'), submenu: [{ label: t('tabMenu.splitPinnedRefused'), enabled: false }] });
   } else if (!splitCandidates.length) {
     items.push({ id: 'split-with', label: t('tabMenu.splitWith'), enabled: false });
   } else {
@@ -198,4 +203,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId };
+module.exports = { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId };

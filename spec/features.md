@@ -415,10 +415,12 @@ From the desktop `DEFAULTS`:
 
 ## F17 — Patron & app icons
 
-- macOS Settings offers three Dock colorways: `sunrise` (default, follows the
-  system appearance), `sunrise-dark`, and `sunrise-gold` (soft gold in Light,
-  polished gold in Dark). Older ids, including the monogram `gold`, are retired; any
-  stale or hand-set retired id falls back to `sunrise`.
+- macOS Settings offers five Dock colorways: `sunrise` (default, follows the
+  system appearance), `sunrise-dark`, `sunrise-gold` (soft gold in Light,
+  polished gold in Dark), `sunrise-spectrum` (a glass ring sun, rays and water
+  lines in coral over blue) and `sunrise-amber` (the same in gold and bronze); the last two sit
+  on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
+  retired; any stale or hand-set retired id falls back to `sunrise`.
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
   ever see a derived `patronActive` boolean; the entitlement record stays in
@@ -1199,6 +1201,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
+- **Planned, not built (2026-10-23):** opt-in, end-to-end-encrypted Spaces
+  sync through Profile Sync, which will replace the rule above once it ships,
+  and Spaces shown read-only on iPhone. Plan:
+  `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md`.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
@@ -1521,8 +1527,8 @@ that survives relaunch and Spaces (spec
 step: **Keep as split** in its header turns the current Glance into a split.
 
 - **Making one.** Keep as split (from Glance), or a tab's **Split with ▸**
-  menu. Pinned tabs never join a split. The initiating tab's group wins: every
-  other tab moves into it, or out of its group (D1).
+  menu. A pinned tab can join, and the split is then pinned. The initiating
+  tab's group wins: every other tab moves into it, or out of its group (D1).
 - **Layout.** Two or three columns; four panes are a 2×2 grid with one shared
   cross. Narrow windows fall back in a fixed order (rows, then focus only;
   for four panes, four columns first). Fallbacks are never saved (D3).
@@ -1534,8 +1540,9 @@ step: **Keep as split** in its header turns the current Glance into a split.
 - **In the tab list.** One row per split in the ⌘L panel and the rail; its
   tabs stay real tabs. ⌘1–9 count a split once (D4).
 - **Leaving.** Remove from Split lands the tab directly below the split's row
-  (D8); a split left with one tab dissolves. Pinning a split tab removes it
-  first (D7). Close Split is one Recently closed entry that reopens it whole.
+  (D8); a split left with one tab dissolves. A split is pinned as a whole:
+  Pin Split on any pane pins every pane (D7). Close Split is one Recently
+  closed entry that reopens it whole.
 - **Persistence.** Saved in `session.json` v2 windows and in Spaces
   (`splits`, `splitIds`), never in the flat rollback mirror, never synced.
   Private tabs are never saved; a split with fewer than two saved tabs is
@@ -1592,3 +1599,22 @@ made.
 - **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
   `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
   `test/unit/clock-font.test.js`.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
+

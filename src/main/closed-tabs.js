@@ -5,6 +5,7 @@
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
 const { cloneEntryMarks } = require('./certificate-history');
+const { recordTitle } = require('./inert-local-file');
 const { normalizeTabName } = require('./tab-name');
 const { pinnedHomeFor } = require('./pinned-home');
 
@@ -89,8 +90,8 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     closedAt: now,
     url: tab.url,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
-    title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
+    title: recordTitle(tab, typeof tab.title === 'string' && tab.title ? tab.title : tab.url),
     customTitle: normalizeTabName(tab.customTitle),
     ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
     favicon: typeof tab.favicon === 'string' ? tab.favicon : null,
@@ -135,7 +136,7 @@ function closedMembers(members) {
       return {
         url: m.url,
         localFile: m.localFile === true,
-        openerSandboxFlags: m.openerSandboxFlags ?? 0,
+        inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         customTitle: normalizeTabName(m.customTitle),
         ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
@@ -207,7 +208,7 @@ function buildBatchEntry(members, now = 0) {
         const member = {
           url: m.url,
           localFile: m.localFile === true,
-          openerSandboxFlags: m.openerSandboxFlags ?? 0,
+          inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
           title: typeof m.title === 'string' && m.title ? m.title : m.url,
           customTitle: normalizeTabName(m.customTitle),
           ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),

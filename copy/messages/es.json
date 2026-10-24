@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Contenido protegido",
+    "source": "sha256:866fcf90caa17d9a55f3bd63ff639f725e15aac88bf17cd3688f2fbdf55314ee"
+  },
+  "drm.preparing": {
+    "message": "Se está preparando el componente necesario para reproducir audio y vídeo protegidos. Puedes seguir navegando.",
+    "source": "sha256:d84c2875b7bbd6f5b2c6d1ff6c4cedca457017869bb1f3f0ca46fc4b91deebab"
+  },
+  "drm.ready": {
+    "message": "El componente de contenido protegido está listo. La disponibilidad de reproducción depende del sitio web.",
+    "source": "sha256:ca99fb8cad32dbb7a67822d9417d378cb4b32c6457fe46322941e47027329bef"
+  },
+  "drm.restartRequired": {
+    "message": "Reinicia Blanc para terminar de preparar el audio y vídeo protegidos. Se restaurarán tus pestañas; las páginas sin guardar pueden pedir confirmación antes de cerrarse.",
+    "source": "sha256:636ec5870d8987e43395c007e2460f8583e3115216cdc5205eb77a33378b796c"
+  },
+  "drm.disabled": {
+    "message": "Las actualizaciones del componente de contenido protegido están desactivadas. Reiniciar puede no ser suficiente.",
+    "source": "sha256:c75005b477338885b9ee6f27499e9d25f838aed29407ef91fa40476899962b23"
+  },
+  "drm.failed": {
+    "message": "No se pudo preparar el componente de contenido protegido. Comprueba tu conexión y reinicia Blanc para intentarlo de nuevo.",
+    "source": "sha256:0d945c243093116fe669010b869d94ef8c8eaa7931ba3a3a9bfdd51aca7dd8d9"
+  },
+  "drm.restartButton": {
+    "message": "Reiniciar Blanc",
+    "source": "sha256:9c531b45c957d43f3d095b46349d415793a02e1ea044d680cddeaade1adc1f75"
+  },
   "$meta": {
     "locale": "es",
     "endonym": "Español",
@@ -1798,6 +1826,14 @@
     "message": "Soltar pestaña",
     "source": "sha256:40251613e30f182261988b473510203a1f8ac40239ccc606593cb2d5ffbb79fe"
   },
+  "tabMenu.pinSplit": {
+    "message": "Fijar vista dividida",
+    "source": "sha256:8ae6b2d5d740e8d04aba4e8aa0d449ae0d80f36a1a79f0879d5e3c4763f7015e"
+  },
+  "tabMenu.unpinSplit": {
+    "message": "Soltar vista dividida",
+    "source": "sha256:f2da89024d6936b5dc7bc4a94fc872d800e6a3f37caba4b4a84cce7b72b8d14f"
+  },
   "tabMenu.mute": {
     "message": "Silenciar pestaña",
     "source": "sha256:5f41ef1d2970f37a646c04c9876a11601833ac6ffc512a8a9d184fc77782c472"
@@ -1849,10 +1885,6 @@
   "tabMenu.splitWith": {
     "message": "Dividir con",
     "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"
-  },
-  "tabMenu.splitPinnedRefused": {
-    "message": "Las pestañas fijadas no pueden unirse a una vista dividida",
-    "source": "sha256:c2a6099a8019b08c63bc85326cef22fe78126914feb00fd186b99d9963a3509d"
   },
   "tabMenu.removeFromSplit": {
     "message": "Quitar de la vista dividida",
@@ -2498,6 +2530,10 @@
     "message": "La sincronización está desactivada.",
     "source": "sha256:a6b94c2efc548ceae8da66471f7f2a1917d874cf56b34623e92f11790da5323d"
   },
+  "sync.error.accountGone": {
+    "message": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador.",
+    "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "¿Copiar el código de recuperación de la sincronización?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -2894,6 +2930,14 @@
   "error.reloadFailed": {
     "message": "No se pudo recargar la página",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
+  },
+  "error.localFile.title": {
+    "message": "Este archivo local no se puede abrir en esta versión de Blanc",
+    "source": "sha256:7af2013810894d42b07a869c7f82c5557bb6e67acdb76ddd30d1f18637f7e49b"
+  },
+  "error.localFile.detail": {
+    "message": "Esta versión de Blanc reproduce vídeo protegido y no abre archivos locales en pestañas. Blanc ha conservado esta pestaña, y el archivo no ha cambiado. Abre el archivo en otra app o cierra esta pestaña.",
+    "source": "sha256:faf1b20e5f3059bca8fbb4e9f0e2156a568f6d164564f8c92a809effc43027d1"
   },
   "arcImport.entry.title": {
     "message": "Arc",
@@ -3346,6 +3390,22 @@
   "settings.general.theme.dark": {
     "message": "Oscuro",
     "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
+  },
+  "settings.general.surfaceStyle.label": {
+    "message": "Estilo de superficie",
+    "source": "sha256:5e57966143767a6d07bf80d17a8f24f3a007e1acb52331eff3df9116e5e82b35"
+  },
+  "settings.general.surfaceStyle.hint": {
+    "message": "El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos.",
+    "source": "sha256:55e6d8007fb1bb62467c8b23067b7c7eb0203b7be60d58a3a958f0edb342e96e"
+  },
+  "settings.general.surfaceStyle.sunrise": {
+    "message": "Sunrise",
+    "source": "sha256:6311719743d6c14863b0239ba76789db18b1d212e3d0ee69672ff5a3004e844e"
+  },
+  "settings.general.surfaceStyle.neutral": {
+    "message": "Neutro",
+    "source": "sha256:5159b3c647291fd3151743bfe8bd00bf23ea6d7f052299af36185379e4b1dff9"
   },
   "settings.general.islandSiteColors.label": {
     "message": "Usar los colores del sitio",
@@ -5633,6 +5693,22 @@
     "message": "{description} (motivo: {reason})",
     "source": "sha256:1205d9aeeb520587957ac3155fad5b79cb696cae07ccb6a567c1e8db6c2979e9"
   },
+  "error.inert.title": {
+    "message": "Esta pestaña no se puede volver a abrir",
+    "source": "sha256:af11cc6f42c3603fed4eb98a1b7e64bbfa2b02bf649d4530f7c382f9c66528cc"
+  },
+  "error.inert.detail": {
+    "message": "Una página abrió esta pestaña y Blanc no puede volver a abrirla con las restricciones que esa página estableció. Para visitarla de nuevo, copia el enlace y ábrelo en una pestaña nueva.",
+    "source": "sha256:f7f4242e2eaf58c17e9a056e83ad4037e5b3586137db6d06c232748c1ff79964"
+  },
+  "error.inert.copy": {
+    "message": "Copiar enlace",
+    "source": "sha256:49424784357b1d801b1425b22823dc4940823f1e88621dfb10df5ca4b111a135"
+  },
+  "error.inert.copied": {
+    "message": "Enlace copiado",
+    "source": "sha256:3c159e0b7f3d83fdb6ea73ee3d5a8b22fed1c195fefbade659d1ed0524664516"
+  },
   "error.certificate.title": {
     "message": "Tu conexión no es privada",
     "source": "sha256:f6e11d3e83e737e83ea17af11e6c78976acafb214ae92b7e80807a699db1bdef"
@@ -7716,5 +7792,25 @@
   "ws.editor.retry": {
     "message": "Reintentar",
     "source": "sha256:ab2341248d6702836c2e7982bf70f75cdfb57d31f69323e993225bdc89d0ba31"
+  },
+  "favorites.readOnlyNote": {
+    "message": "Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí.",
+    "source": "sha256:2b4c87fd07365a888f45d027f22bf1aca4c4c5c4bc0f1371a2bbf4b165a890c4"
+  },
+  "favorites.editOnComputer": {
+    "message": "Por ahora, edita los favoritos en tu ordenador.",
+    "source": "sha256:94193c3e471074a08a6c2bd221296750ac60e31086057002efb0775db7290d40"
+  },
+  "settings.sync.createOnComputer": {
+    "message": "Inicia la sincronización en tu ordenador y después añade este teléfono con un código.",
+    "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Introduce el nombre de tu sincronización",
+    "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Introduce tu frase de contraseña",
+    "source": "sha256:9b8f303ef292e16cff4d4f1a2bdc05eb3313e91c006dd9de2697eb5ab70f0043"
   }
 }

@@ -21,9 +21,11 @@ test('createTab accepts the three lazy-restore options', () => {
 });
 
 test('a quiet-born tab gets no view, and returns before anything is wired', () => {
-  assert.match(createTabSource, /const bornQuiet = asleep && !adopted && !adopting;/,
+  assert.match(createTabSource, /const bornQuiet = \(asleep \|\| inert\) && !adopted && !adopting;/,
     'an adopted window.open child — or a Tier 0 reopen adopting its parked view — '
     + 'is already live and can never be born quiet');
+  // A page-opened tab without a live view is born inert, so born quiet too.
+  assert.match(createTabSource, /const inert = marked && !adopted && !adopting;/);
   assert.match(createTabSource, /view: bornQuiet \? null : view,/);
 
   const quietReturn = createTabSource.indexOf('if (bornQuiet) {');

@@ -13,6 +13,8 @@ on:
       - 'ublock/**'
       - 'test/desktop/ublock*'
       - 'test/desktop/shield-provider*'
+      - 'test/desktop/document-policy*'
+      - 'test/desktop/modified-link-click*'
       - 'test/desktop/support/**'
       - 'test/unit/ublock*'
       - 'test/unit/blocking*'
@@ -32,6 +34,10 @@ on:
         description: "Also exercise an unsigned installed Intel package (not signing acceptance)"
         type: boolean
         default: false
+      intel_audio:
+        description: "Compare official Electron, ECS and native output clocks on disposable Intel"
+        type: boolean
+        default: false
       linux_native_diagnostics:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
@@ -40,7 +46,7 @@ permissions:
   contents: read
 jobs:
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -54,7 +60,7 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
     strategy:
       fail-fast: false
       matrix:
@@ -79,6 +85,18 @@ jobs:
       - run: npm run ublock:check
       - run: npm run lint
       - run: npm run test:unit
+      # Page-opened tabs keep their opener's sandbox or stay inert on the exact
+      # runtime (src/main/document-policy.js), on all four native targets.
+      - name: Inherited document policy and modified link clicks
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:document-policy:desktop
+            xvfb-run -a npm run test:modified-links:desktop
+          else
+            npm run test:document-policy:desktop
+            npm run test:modified-links:desktop
+          fi
       - name: Real blocking, original tools, isolation and lifecycle
         shell: bash
         run: |
@@ -99,6 +117,48 @@ jobs:
             npm run test:ublock-noscript:desktop
             npm run test:ublock-slow-install:desktop
           fi
+
+  intel-audio:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.intel_audio && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund --foreground-scripts
+      - name: Prepare unmodified version-matched audio controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(uname -m)" = x86_64
+          test "$(node -p 'process.arch')" = x64
+          mkdir -p "$RUNNER_TEMP/official-audio"
+          gh release download v44.9.3 -R electron/electron -p electron-v44.9.3-darwin-x64.zip -p SHASUMS256.txt -D "$RUNNER_TEMP/official-audio"
+          cd "$RUNNER_TEMP/official-audio"
+          awk '$2 == "*electron-v44.9.3-darwin-x64.zip" || $2 == "electron-v44.9.3-darwin-x64.zip"' SHASUMS256.txt > expected.sha256
+          test "$(wc -l < expected.sha256 | tr -d ' ')" = 1
+          shasum -a 256 -c expected.sha256
+          ditto -x -k electron-v44.9.3-darwin-x64.zip .
+          echo "OFFICIAL_AUDIO_EXECUTABLE=$RUNNER_TEMP/official-audio/Electron.app/Contents/MacOS/Electron" >> "$GITHUB_ENV"
+          cd "$GITHUB_WORKSPACE"
+          node -e 'require("./scripts/prepare-ecs-runtime.cjs").prepareEcsRuntime("darwin","x64").then(r=>require("node:fs").appendFileSync(process.env.GITHUB_ENV,"ECS_AUDIO_EXECUTABLE="+r.directory+"/Electron.app/Contents/MacOS/Electron\n"))'
+          swiftc test/desktop/native-audio-clock.swift -o "$RUNNER_TEMP/native-audio-clock"
+          echo "NATIVE_AUDIO_PROBE=$RUNNER_TEMP/native-audio-clock" >> "$GITHUB_ENV"
+      - name: Compare local PCM media, Web Audio and native CoreAudio
+        run: node test/desktop/intel-audio-comparison.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: intel-audio-comparison-${{ github.run_id }}
+          path: output/ecs-production/intel-audio-comparison.json
+          if-no-files-found: error
+          retention-days: 3
 
   installed-intel:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.installed_intel }}

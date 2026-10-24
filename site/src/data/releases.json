@@ -1,5 +1,364 @@
 [
   {
+    "tag": "v1.43.1",
+    "version": "1.43.1",
+    "name": "1.43.1",
+    "publishedAt": "2026-10-24T15:21:12.000Z",
+    "humanDate": "October 24, 2026",
+    "machineDate": "2026-10-24",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.43.1",
+    "anchor": "v1-43-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc 1.43.0 didn't start on Linux distributions whose C library (glibc) is older than 2.38, such as Ubuntu 22.04 LTS and Debian 12, so Linux updates were held at 1.42.1. Blanc 1.43.1 needs only glibc 2.28 and starts on Ubuntu 22.04 LTS, and Linux updates resume with it. If you downloaded the 1.43.0 AppImage, download 1.43.1 again; 1.43.0 can't start to update itself."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.43.0",
+    "version": "1.43.0",
+    "name": "1.43.0",
+    "publishedAt": "2026-10-24T12:55:30.000Z",
+    "humanDate": "October 24, 2026",
+    "machineDate": "2026-10-24",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.43.0",
+    "anchor": "v1-43-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video playback."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc now plays video and music that sites protect with Widevine DRM (copy protection), on macOS (Apple Silicon and Intel), Windows and Linux. The first time Blanc starts after the update, it downloads the Widevine component from Google's update service in the background, and you can keep browsing meanwhile. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Protected media"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → Help shows when the component is ready. On Linux, Blanc asks you to "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Restart Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " once the component is installed, and again after the component updates; on any system the same button appears if setup fails or takes too long. Netflix and Spotify were tried on an Apple Silicon Mac. Whether a particular site plays still depends on that site."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Spectrum and Sunrise Amber."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Two new macOS app icons: the Sunrise redrawn in glass as a ring sun, rays and water lines inside a white outline. Spectrum is coral and red over royal blue and navy on a gray tile; Amber is gold over bronze on a cream tile. Both tiles turn dark in Dark mode. Choose one in Settings → General → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Neutral surface style."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Surface style"
+                  },
+                  {
+                    "type": "text",
+                    "value": " setting in Settings → General swaps the cream and gold of the Start Page and of Favorites, History, Downloads and Settings for plain ink and gray, in Light and Dark. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Sunrise"
+                  },
+                  {
+                    "type": "text",
+                    "value": " stays the default. Wallpapers, app icons and the Sunrise mark don't change. The choice applies to this device and to the next page that opens."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pinned tabs can join a Split View."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A split is now pinned or unpinned as a whole. Split a pinned tab with any other tab, or press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a Glance card over a pinned page, and the split is pinned. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Pin Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Unpin Split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in either tab's menu pin or unpin both tabs. A pinned split is one row under Pinned in the ⌘L panel and in vertical tabs, stays pinned after a relaunch, and comes back pinned with Reopen Closed Tab. Before, pinned tabs couldn't join a split, and pinning a tab took it out of its split."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on castLabs' Electron for Content Security 44.9.3, a build of Electron that can play Widevine-protected media, instead of Electron 44.8.0. Chromium stays at 152.0.7977.167. The optional uBlock Origin blocker remains available on this version. It includes Electron 44.9.1's security fix that stops trusting compromised eMudhra intermediate certificates."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, an HTML file you open from Finder or another app now opens in its own window as a static preview instead of in a Blanc tab. Its scripts don't run, and it can't load anything from the network or from other files, so only what is inside the file itself shows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Local HTML tabs from earlier versions are kept. A local HTML file's tab, restored from your last session, a Space, a pinned tab or Reopen Closed Tab, keeps its place and title and shows a short explanation instead of the page. The file itself is unchanged: open it in another app, or close the tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tabs that a page opens keep that page's restrictions. These are tabs from a link that opens a new tab, a ⌘-click or Ctrl-click, a middle-click, or a page's own pop-up. Blanc can't rebuild such a tab with those restrictions, so it never goes quiet and can't be duplicated. After a relaunch, or when you reopen it after closing it, it shows "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "This tab can’t be reopened"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and a "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Copy link"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button instead of loading the page. Tabs you open yourself are unaffected."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A page you opened while Blanc was still starting could show a \"blocked\" error page even though the page itself had loaded. Blanc holds web pages for a moment at startup until its blocker is ready, then opens them; the error no longer appears over a page that opened normally."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.42.1",
+    "version": "1.42.1",
+    "name": "1.42.1",
+    "publishedAt": "2026-10-22T17:07:27.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.1",
+    "anchor": "v1-42-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The floating Glance card stands out more from the page behind it: it casts a deeper shadow, its corners are rounder, and the page inside it sits slightly inset under its header."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows, with Auto-hide set to Float, the floating Island no longer loses its rounded ends when it gets wider, for example after you open more tabs or visit a site with a longer address."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.42.0",
+    "version": "1.42.0",
+    "name": "1.42.0",
+    "publishedAt": "2026-10-22T14:46:10.000Z",
+    "humanDate": "October 22, 2026",
+    "machineDate": "2026-10-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.42.0",
+    "anchor": "v1-42-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Search priority results."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A new setting in Settings → General, under Island, puts search suggestions first as you type: the search for what you typed and your search engine's suggestions come before your tabs, groups, Spaces, Favorites and history, and Enter searches. It is off by default, so the order you know stays the same until you turn it on."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On Windows and Linux, the first permission prompt in a window no longer keeps the keyboard, so what you type next goes to the page instead of being lost."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With Auto-hide set to Float, the floating Island casts one shadow again, without a second outline along its bottom edge."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.41.0",
     "version": "1.41.0",
     "name": "1.41.0",

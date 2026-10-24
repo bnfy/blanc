@@ -18,6 +18,7 @@ const arcSwitchingLedger = JSON.parse(read('docs/website-arc-switching-claims-v1
 const v134Ledger = JSON.parse(read('docs/website-v1.34-claims.json'));
 const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.34.json'));
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
+const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -71,7 +72,7 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   const sources = new Set((ledger.externalSources || []).map(source => source.url));
   for (const file of ['site/src/pages/arc-alternative.astro', 'site/src/pages/ublock-origin-after-chrome.astro']) {
     const page = read(file);
-    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims].filter(claim => claim.source === file);
+    const claims = [...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...arcSwitchingLedger.claims, ...v140Ledger.claims, ...arcWelcomeLedger.claims].filter(claim => claim.source === file);
     const wording = new Set(claims.map(claim => claim.exactWording));
     for (const match of page.matchAll(/<(h[123]|p|figcaption|th|td)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       assert.ok(wording.has(normalize(match[2])), `${file}: unrecorded wording: ${normalize(match[2])}`);
@@ -82,6 +83,41 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
       for (const url of claim.externalSources || []) {
         assert.ok(sources.has(url), `${claim.id}: unrecorded external source ${url}`);
         assert.ok(page.includes(`href="${url}"`), `${claim.id}: the page does not link ${url}`);
+      }
+    }
+  }
+});
+
+test('Arc page welcome resolves to public v1.43.1 evidence; any owner waiver expires when a release ships it', () => {
+  const record = arcWelcomeLedger;
+  assert.equal(record.publicRelease, 'v1.43.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  const newestRelease = JSON.parse(read('site/src/data/releases.json'))[0].tag;
+  for (const claim of record.claims) {
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    assert.ok(claim.evidenceGroups.length, claim.id);
+    for (const key of claim.evidenceGroups) assert.ok(record.evidenceGroups[key]?.qualification, claim.id);
+    if (claim.verdict === 'owner-waived') {
+      // A waiver names the owner's decision and its risk, and lasts only until
+      // a release ships the thing it describes: then it must be re-recorded.
+      const { date, decision, risk, releaseCheck } = claim.ownerWaiver ?? {};
+      assert.ok(date && decision && risk && releaseCheck?.path && releaseCheck.contains, `${claim.id}: incomplete waiver`);
+      assert.ok(read(releaseCheck.path).includes(releaseCheck.contains), `${claim.id}: the waived capability is not on main`);
+      let released;
+      try {
+        released = execFileSync('git', ['show', `${newestRelease}:${releaseCheck.path}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      } catch {
+        assert.fail(`${claim.id}: cannot read ${releaseCheck.path} at ${newestRelease}; check the waiver by hand. ${claim.ownerWaiver.convertWhen}`);
+      }
+      assert.ok(!released.includes(releaseCheck.contains), `${claim.id}: ${newestRelease} ships it; record the claim against that release instead of the waiver`);
+      for (const key of claim.evidenceGroups) {
+        for (const file of record.evidenceGroups[key].evidence) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+      }
+    } else {
+      assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+      for (const key of claim.evidenceGroups) {
+        for (const file of record.evidenceGroups[key].evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${file}`], { cwd: root });
       }
     }
   }
@@ -149,7 +185,7 @@ test('v1.32.0 Arc import, interface-language and /space copy resolves to verifie
   // Any sentence on these pages about importing from Arc or about Blanc's
   // interface languages must be a recorded claim in this ledger, a later one
   // (v1.33, v1.35: Italian since v1.33.0) or the v1.27 one.
-  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
+  const recorded = [...v132Ledger.claims, ...v133Ledger.claims, ...ledger.claims, ...arcSwitchingLedger.claims, ...arcWelcomeLedger.claims, ...JSON.parse(read('docs/website-v1.35-claims.json')).claims].map(claim => claim.exactWording);
   const topic = /\bArc\b.*\b(Spaces?|import|sidebar|Favorites|StorableSidebar)\b|\b(German|Spanish|French|Portuguese|Italian|Dutch|Polish|Russian|Ukrainian|Turkish|Arabic|Hebrew|Hindi|Chinese|Japanese|Korean|Swedish|Danish|Norwegian|Finnish)\b|\binterface languages?\b|\btranslat(e|ed|ion|ions)\b/i;
   for (const file of new Set(v132Ledger.claims.map(claim => claim.source))) {
     const text = read(file);
@@ -243,7 +279,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json'))]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -541,6 +577,30 @@ test('every sentence on the bangs page is recorded', () => {
     const value = source.match(new RegExp(`\\b${attribute}=\\{"([^"]+)"\\}`))?.[1];
     assert.ok(value && recorded.includes(value), `bangs page ${attribute} is not recorded`);
   }
+});
+
+// The runtime Blanc is built on, reworded once public v1.43.0 moved to
+// castLabs' Electron for Content Security.
+test('v1.43 runtime copy resolves to verified public v1.43.1 evidence', () => {
+  const v143 = JSON.parse(read('docs/website-v1.43-claims.json'));
+  assert.equal(v143.publicRelease, 'v1.43.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${v143.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v143.sourceSha);
+  assert.ok(read(v143.releaseEvidence).includes(v143.sourceSha));
+  for (const claim of v143.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v143.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v143.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of ['site/src/components/guides/foundations.astro', 'site/src/data/support-questions.json']) {
+    const text = normalize(read(file));
+    for (const retired of v143.prohibitedClaims) assert.ok(!text.includes(retired), `${file} still says “${retired}”`);
+  }
+  const runtime = JSON.parse(execFileSync('git', ['show', `${v143.publicRelease}:build/ecs-runtime.json`], { cwd: root, encoding: 'utf8' }));
+  assert.match(runtime.version, /\+wvcus$/);
 });
 
 // The clock's Font & color (F54) and the hero gallery of customized Start

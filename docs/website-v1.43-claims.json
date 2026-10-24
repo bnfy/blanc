@@ -1,0 +1,98 @@
+{
+  "publicRelease": "v1.43.1",
+  "sourceSha": "154d1db84a7d54d83b6dd40ef91ea7042636446f",
+  "releaseEvidence": "docs/release-incidents/2026-10-24-v1.43.1.md",
+  "scope": "Site copy verified against public v1.43.1 on October 24, 2026: the Trust guide's foundations sentence and the support answer “What is Blanc built on?” now name castLabs’ Electron for Content Security, which Blanc has run on since v1.43.0, instead of official Electron. Owner requested the update on October 24, 2026. Extended on October 24, 2026: a new support answer “Does protected streaming video play in Blanc?”, and the homepage’s comparison row and “Will my websites work?” answer, which had still said protected streaming doesn’t play, now say it plays since Blanc 1.43 and that Windows needs an x64 PC. Owner requested the Windows x64 note on October 24, 2026.",
+  "prohibitedClaims": [
+    "Blanc uses official Electron releases. Engine changes arrive through a new Blanc release; the running app cannot independently swap in a newer Chromium.",
+    "It uses official, unmodified Electron releases."
+  ],
+  "evidenceGroups": {
+    "ecsRuntime": {
+      "evidence": [
+        "build/ecs-runtime.json",
+        "package.json",
+        "docs/press/release-notes/v1.43.0.md",
+        "docs/ecs-production-integration.md",
+        "src/main/drm-runtime.js",
+        "copy/messages/en.json"
+      ],
+      "qualification": "Since v1.43.0 Blanc ships castLabs’ Electron for Content Security 44.9.3 (44.9.3+wvcus, Chromium 152.0.7977.167), pinned by archive digest in build/ecs-runtime.json, which can play Widevine-protected media on macOS, Windows and Linux. Before v1.43.0 it shipped official Electron. Whether a given site plays depends on that site. The owner waived the Node 24.22.0 TLS defects and the native source review for this runtime pin (docs/ecs-runtime-security-review-2026-10-23.md); public copy must not describe that review as passed."
+    },
+    "windowsX64": {
+      "evidence": [
+        "package.json",
+        ".github/workflows/release-windows-linux.yml",
+        "docs/1password-integration.md"
+      ],
+      "qualification": "Blanc’s Windows build is x64 only (build.win in package.json has no arm64 target; the native release workflow builds one NSIS installer). On October 24, 2026 the installed public 1.43.1 on a Windows 11 on Arm VM (Insider 26220, x64 emulation) installed Widevine component 4.10.3112.0 and granted SW_SECURE_DECODE, and castLabs’ VMP Lab test stream played, but Google’s production license server answered PLATFORM_TAMPERED and Netflix refused the title with error E100 (1044); the native x64 Windows job of release run 40105823451 passed the same DRM smoke with VMP verified. The same day the public Blanc-1.43.1.AppImage (digest checked against SHA256SUMS) passed test/desktop/ecs-production-drm-smoke.mjs on hosted x64 Ubuntu 22.04 and 24.04 (run 40122868187). Netflix itself was tried only on an Apple Silicon Mac; never promise a named service, resolution or HDR."
+    }
+  },
+  "claims": [
+    {
+      "id": "v143-001",
+      "source": "site/src/components/guides/foundations.astro",
+      "exactWording": "Since Blanc 1.43, Blanc runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music. Engine changes arrive through a new Blanc release; the running app cannot independently swap in a newer Chromium.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ecsRuntime"
+      ],
+      "verdict": "verified",
+      "replaces": "trust-125-353"
+    },
+    {
+      "id": "v143-002",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. Since Blanc 1.43 it runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ecsRuntime"
+      ],
+      "verdict": "verified",
+      "replaces": "trust-125-262"
+    },
+    {
+      "id": "v143-003",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes, since Blanc 1.43. Blanc runs on castLabs’ Electron for Content Security and downloads Google’s Widevine component the first time it starts, so sites can play Widevine-protected video and music on macOS, Windows and Linux. Settings → Help → Protected media shows when the component is ready, and Linux asks for one restart. Whether a given title plays is up to the site.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ecsRuntime"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v143-004",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On Windows, protected streaming needs an x64 PC. Blanc ships an x64 Windows build; on Windows on Arm it runs through emulation, where Widevine’s platform verification fails and services such as Netflix refuse to play.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "windowsX64"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "v143-005",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc runs on Chromium, the open-source engine Chrome is built on. Since Blanc 1.43 it can also play Widevine-protected streaming video and music; on Windows that needs an x64 PC.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ecsRuntime",
+        "windowsX64"
+      ],
+      "verdict": "qualified",
+      "replaces": "cinema-data-27"
+    },
+    {
+      "id": "v143-006",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Since Blanc 1.43; on Windows, x64 PCs only",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "ecsRuntime",
+        "windowsX64"
+      ],
+      "verdict": "qualified"
+    }
+  ]
+}

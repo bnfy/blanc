@@ -5,6 +5,7 @@
 // See docs/superpowers/specs/2026-10-19-tab-archive-design.md.
 
 const { validFavicon } = require('./bookmark-validate');
+const { stampedEntry } = require('./document-policy');
 const { normalizeTabName } = require('./tab-name');
 
 /** Setting id -> idle threshold in ms. `off` => null (never archive). This is
@@ -96,6 +97,8 @@ function buildArchiveEntry(tab, { now, spaceName = null } = {}) {
     favicon: validFavicon(tab.favicon) ?? null,
     archivedAt: now,
     lastViewedAt: Number.isFinite(tab.lastViewedAt) ? tab.lastViewedAt : now,
+    // A page-opened tab restores inert (document-policy.js).
+    ...stampedEntry(tab),
   };
   const customTitle = normalizeTabName(tab.customTitle);
   if (customTitle) entry.customTitle = customTitle;

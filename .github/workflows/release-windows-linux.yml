@@ -21,8 +21,34 @@ on:
       tag:
         description: "Release tag to build and upload to (required in release mode)"
         required: false
+      runtime:
+        description: "Runtime: official Electron, or castLabs ECS with Widevine (public package)"
+        required: false
+        default: official
+        type: choice
+        options:
+          - official
+          - ecs
+      source_sha:
+        description: "ECS only: the exact approved source commit; the checkout must resolve to it before building"
+        required: false
       ublock_candidate:
         description: "Include uBO in a private candidate (requires completed distribution clearance)"
+        required: false
+        default: false
+        type: boolean
+      ecs_candidate:
+        description: "Candidate-only native ECS validation, no release or installer upload"
+        required: false
+        default: false
+        type: boolean
+      ecs_production:
+        description: "Private ECS production-integration qualification (never publishes)"
+        required: false
+        default: false
+        type: boolean
+      ecs_windows_lifecycle:
+        description: "Private Windows NSIS handoff and real CDM lifecycle qualification"
         required: false
         default: false
         type: boolean
@@ -50,9 +76,42 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_PLATFORM: ${{ inputs.platform }}
           UBLOCK_CANDIDATE: ${{ inputs.ublock_candidate }}
+          ECS_CANDIDATE: ${{ inputs.ecs_candidate }}
+          ECS_PRODUCTION: ${{ inputs.ecs_production }}
+          ECS_WINDOWS_LIFECYCLE: ${{ inputs.ecs_windows_lifecycle }}
+          RELEASE_RUNTIME: ${{ inputs.runtime }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          VALIDATION_REF: ${{ github.ref }}
         run: |
+          case "$RELEASE_RUNTIME" in official|ecs) ;; *) echo "Unknown release runtime" >&2; exit 1 ;; esac
+          # Public ECS packages: release mode uploads to the draft; validation
+          # mode builds the same marker-free package as a private artifact.
+          if [ "$RELEASE_RUNTIME" = ecs ] && { [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ] || [ "$ECS_PRODUCTION" = true ] || [ "$ECS_WINDOWS_LIFECYCLE" = true ]; }; then
+            echo "The public ECS runtime excludes every candidate/qualification input" >&2
+            exit 1
+          fi
+          if [ "$RELEASE_RUNTIME" = ecs ] && ! [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "An ECS run must name the exact approved source commit (source_sha)" >&2
+            exit 1
+          fi
+          if [ "$RELEASE_RUNTIME" != ecs ] && [ -n "$SOURCE_SHA" ]; then
+            echo "source_sha is only accepted for ECS runs" >&2
+            exit 1
+          fi
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
+            exit 1
+          fi
+          if [ "$ECS_CANDIDATE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ]; }; then
+            echo "ECS requires validation mode and excludes unqualified uBO" >&2
+            exit 1
+          fi
+          if [ "$ECS_PRODUCTION" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$UBLOCK_CANDIDATE" = true ] || [ "$ECS_CANDIDATE" = true ]; }; then
+            echo "ECS production integration requires exclusive private validation mode" >&2
+            exit 1
+          fi
+          if [ "$ECS_WINDOWS_LIFECYCLE" = true ] && { [ "$RELEASE_MODE" != validation ] || [ "$ECS_PRODUCTION" != true ] || [ "$RELEASE_PLATFORM" != windows ] || [ "$VALIDATION_REF" != refs/heads/codex/ecs-production-integration ]; }; then
+            echo "Windows ECS lifecycle requires the isolated candidate branch and exclusive Windows validation" >&2
             exit 1
           fi
           case "$RELEASE_MODE" in release|validation) ;; *) exit 1 ;; esac
@@ -75,8 +134,18 @@ jobs:
 
   windows:
     needs: validate-inputs
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
+    # The ECS build needs the protected EVS account for VMP signing. That
+    # environment's required reviewer approves each run; official runs
+    # reference no environment.
+    environment: ${{ inputs.runtime == 'ecs' && 'ecs-signing' || '' }}
+    env:
+      RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
+      BLANC_ECS_PACKAGE_ROOT: ${{ inputs.runtime == 'ecs' && format('{0}/dist/win-unpacked', github.workspace) || '' }}
+      # Every packaged launch in an ECS run has updates disabled. An empty
+      # value is identical to unset (production updater) for official runs.
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
     permissions:
@@ -95,6 +164,20 @@ jobs:
         with:
           ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
 
+      # Before any credential exists: the environment policy controls which
+      # workflow ref runs, not which code a tag selects.
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -105,7 +188,7 @@ jobs:
       - run: npm ci
 
       - name: Require uBlock distribution clearance for public release
-        if: ${{ inputs.mode == 'release' }}
+        if: ${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}
         run: npm run ublock:distribution
 
       - name: Verify managed uBlock inputs and adaptation
@@ -135,6 +218,21 @@ jobs:
       - name: Verify packaged blocker inputs
         run: npm run adblock:check
 
+      - name: Install pinned EVS client for ECS VMP signing
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: pwsh
+        run: |
+          python -m venv "$env:RUNNER_TEMP/evs-venv"
+          & "$env:RUNNER_TEMP/evs-venv/Scripts/python.exe" -m pip install castlabs-evs==1.3.2
+          if ($LASTEXITCODE -ne 0) { throw 'EVS install failed' }
+
+      - name: Materialize protected EVS credentials without logging their values
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
+          EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
+        run: node scripts/prepare-evs-ci.cjs
+
       - name: Build Windows installer
         shell: bash
         env:
@@ -154,7 +252,12 @@ jobs:
             echo "::error::WINDOWS_EXPECTED_PUBLISHER must contain the exact Authenticode certificate subject."
             exit 1
           }
-          if [ -n "$AZURE_TENANT_ID" ] &&
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            # Same fail-closed Azure-then-CSC Authenticode selection inside the
+            # ECS build, then VMP signing after Authenticode.
+            echo "==> Building the public ECS (Widevine) installer"
+            BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --win --x64
+          elif [ -n "$AZURE_TENANT_ID" ] &&
              [ -n "$AZURE_CLIENT_ID" ] &&
              [ -n "$AZURE_CLIENT_SECRET" ] &&
              [ -n "$AZURE_ENDPOINT" ] &&
@@ -184,6 +287,14 @@ jobs:
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
+      - name: Remove EVS credentials after signing
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        run: node scripts/prepare-evs-ci.cjs --clean
+
+      - name: Verify ECS release identity, archive pin and uBO record
+        if: ${{ inputs.runtime == 'ecs' }}
+        run: node scripts/verify-ecs-production-package.cjs --release dist/win-unpacked
+
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
 
@@ -197,7 +308,8 @@ jobs:
         shell: bash
         run: |
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
+          FUSE_ARGS=(); [ "$RELEASE_RUNTIME" = ecs ] && FUSE_ARGS=(--ecs)
+          node scripts/verify-electron-fuses.mjs "${FUSE_ARGS[@]}" "dist/win-unpacked/$PRODUCT_NAME.exe"
 
       # Build inputs remain pinned to the release tag. After packaging, use
       # the workflow commit's test harness so infrastructure-only fixes can
@@ -303,7 +415,11 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "Installed blanc-import protocol smoke failed."
             }
-            if ($env:UBLOCK_CANDIDATE -eq 'true') {
+            # Public ECS enables uBO through its reviewed runtime record, so the
+            # installed provider, scripting policy and restarts are checked too.
+            # Public ECS fixtures never follow the public update feed.
+            if ($env:RELEASE_RUNTIME -eq 'ecs') { $env:BLANC_UPDATE_CHANNEL = 'ecs-qualification-disabled' }
+            if ($env:UBLOCK_CANDIDATE -eq 'true' -or $env:RELEASE_RUNTIME -eq 'ecs') {
               $env:BLANC_PACKAGED_ASAR = Join-Path $installedRoot 'resources/app.asar'
               $env:BLANC_UBLOCK_EVIDENCE = Join-Path $PWD 'dist/ublock-noscript-windows.json'
               npm run test:ublock-noscript:packaged
@@ -322,6 +438,30 @@ jobs:
             }
           }
 
+      - name: Verify public ECS file isolation and protected playback
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist/win-unpacked/Blanc.exe).Path
+          node test/desktop/ecs-production-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'ECS isolation smoke failed' }
+          node test/desktop/ecs-production-drm-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'ECS protected playback failed' }
+
+      - name: Preserve public ECS acceptance evidence
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Windows-public-ECS-evidence-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            output/ecs-production/*.json
+            dist/ublock-noscript-windows.json
+            dist/ublock-installed-windows.json
+
       - name: Verify installed browser registration and uninstall cleanup
         shell: pwsh
         run: |
@@ -332,6 +472,15 @@ jobs:
             -ProductName $product `
             -Version $version `
             -ProgId 'BlancURL'
+
+      # Mandatory regression: it must pass before anything is uploaded to the
+      # release or attested.
+      - name: Packaged browser and Settings regressions
+        shell: pwsh
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = "$pwd/dist/win-unpacked/Blanc.exe"
+          npm run test:packaged:browser-compatibility
+          if ($LASTEXITCODE -ne 0) { throw "Packaged browser regression failed." }
 
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
@@ -357,13 +506,6 @@ jobs:
             dist/Blanc-Setup-*.exe.blockmap
             dist/windows-signature.json
             dist/latest.yml
-
-      - name: Packaged browser and Settings regressions
-        shell: pwsh
-        run: |
-          $env:BLANC_PACKAGED_EXECUTABLE = "$pwd/dist/win-unpacked/Blanc.exe"
-          npm run test:packaged:browser-compatibility
-          if ($LASTEXITCODE -ne 0) { throw "Packaged browser regression failed." }
 
       - name: Preserve Windows candidate uBO evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
@@ -391,10 +533,192 @@ jobs:
             dist/ublock-noscript-windows.json
             dist/ublock-installed-windows.json
 
+  ecs-production-windows:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    environment: ecs-signing
+    permissions:
+      contents: read
+    steps:
+      - name: Preserve repository bytes
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Install pinned EVS client
+        shell: pwsh
+        run: |
+          python -m venv "$env:RUNNER_TEMP/evs-venv"
+          & "$env:RUNNER_TEMP/evs-venv/Scripts/python.exe" -m pip install castlabs-evs==1.3.2
+          if ($LASTEXITCODE -ne 0) { throw 'EVS install failed' }
+      - name: Materialize protected credentials without logging their values
+        env:
+          EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
+          EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
+        run: node scripts/prepare-evs-ci.cjs
+      - name: Prepare staging-only updater metadata in the disposable checkout
+        if: inputs.ecs_windows_lifecycle
+        shell: pwsh
+        run: |
+          npm version 1.43.0-staging.3 --no-git-tag-version
+          if ($LASTEXITCODE -ne 0) { throw 'Private version preparation failed' }
+          npm run compliance:build
+          if ($LASTEXITCODE -ne 0) { throw 'Private compliance preparation failed' }
+      - name: Build private production-integration installer
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: node scripts/build-ecs-production.cjs --win --x64
+      - name: Verify final Authenticode signatures after VMP signing
+        id: ecs_package_verified
+        shell: pwsh
+        env:
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          if (!$env:EXPECTED_WINDOWS_PUBLISHER) { throw 'Expected publisher is required' }
+          $version = node -p "require('./package.json').version"
+          foreach ($file in @("dist-ecs/Blanc-Setup-$version.exe", 'dist-ecs/win-unpacked/Blanc.exe')) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid' -or !$signature.TimeStamperCertificate -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER) { throw "Invalid final signature: $file" }
+          }
+      - name: Remove EVS credentials before native tests
+        if: always()
+        run: node scripts/prepare-evs-ci.cjs --clean
+      - name: Verify native browser and local-file isolation
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist-ecs/win-unpacked/Blanc.exe).Path
+          $env:BLANC_ECS_PACKAGE_ROOT = (Resolve-Path dist-ecs/win-unpacked).Path
+          $env:BLANC_UBLOCK_EVIDENCE = "$PWD/output/ecs-production/ublock-windows.json"
+          node scripts/verify-ecs-production-package.cjs dist-ecs/win-unpacked
+          if ($LASTEXITCODE -ne 0) { throw 'Final package verification failed' }
+          node test/desktop/packaged-ublock-acceptance.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'uBO acceptance failed' }
+          node test/desktop/ecs-production-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Offline startup or file access isolation failed' }
+          node test/desktop/ecs-production-drm-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Protected playback failed' }
+          node test/desktop/packaged-workspace-recovery-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Workspace recovery failed' }
+          node test/desktop/packaged-media-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Media permissions failed' }
+      - name: Real Windows CDM first-install update and rollback
+        if: ${{ !cancelled() && inputs.ecs_windows_lifecycle && steps.ecs_package_verified.outcome == 'success' }}
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist-ecs/win-unpacked/Blanc.exe).Path
+          node test/desktop/ecs-cdm-lifecycle-windows.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CDM lifecycle failed' }
+      - name: Actual production-to-ECS Windows Restart Now handoff
+        if: ${{ !cancelled() && inputs.ecs_windows_lifecycle && steps.ecs_package_verified.outcome == 'success' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+          BLANC_ECS_DISPOSABLE_HOST: '1'
+        run: |
+          $baseline = Join-Path $env:RUNNER_TEMP 'ecs-windows-baseline'
+          New-Item -ItemType Directory -Path $baseline | Out-Null
+          gh release download v1.42.1 --repo $env:GITHUB_REPOSITORY -p Blanc-Setup-1.42.1.exe -p SHA256SUMS -D $baseline
+          if ($LASTEXITCODE -ne 0) { throw 'Public baseline download failed' }
+          $rows = @(Get-Content (Join-Path $baseline 'SHA256SUMS') | Where-Object { $_ -match '^([a-f0-9]{64})\s+Blanc-Setup-1\.42\.1\.exe$' })
+          if ($rows.Count -ne 1) { throw 'Exactly one baseline manifest entry required' }
+          $expected = ($rows[0] -split '\s+')[0]
+          $installer = Join-Path $baseline 'Blanc-Setup-1.42.1.exe'
+          if ((Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant() -ne $expected) { throw 'Baseline digest mismatch' }
+          $version = node -p "require('./package.json').version"
+          node test/desktop/ecs-production-updater-windows.mjs $installer (Resolve-Path "dist-ecs/Blanc-Setup-$version.exe").Path (Resolve-Path dist-ecs/win-unpacked).Path $version "$PWD/output/ecs-production/updater-windows.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows NSIS handoff failed' }
+      - name: Remove EVS credentials even after failure
+        if: always()
+        run: node scripts/prepare-evs-ci.cjs --clean
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-production-windows-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
+
+  ecs-production-linux:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: bash scripts/ci-enable-linux-sandbox.sh
+      - run: npm ci
+      - name: Verify production profile selection and preload isolation
+        run: node --test test/unit/ecs-linux-launcher.test.js
+      - name: Build private production-integration AppImage
+        run: node scripts/build-ecs-production.cjs --linux --x64
+      - name: Verify native browser and local-file isolation
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          export BLANC_ECS_PACKAGE_ROOT="$PWD/dist-ecs/linux-unpacked"
+          export BLANC_UBLOCK_EVIDENCE="$PWD/output/ecs-production/ublock-linux.json"
+          node scripts/verify-ecs-production-package.cjs dist-ecs/linux-unpacked
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-ublock-acceptance.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-workspace-recovery-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/packaged-media-smoke.mjs
+      - name: Real CDM lifecycle and first-install restart
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist-ecs/Blanc-$(node -p 'require("./package.json").version').AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-cdm-lifecycle.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-production-linux-${{ github.run_id }}
+          path: |
+            output/ecs-production/*.json
+            output/playwright/cdm-*.png
+          if-no-files-found: error
+          retention-days: 3
+
   linux:
     needs: validate-inputs
-    if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
+    env:
+      RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
+      # Read by the workspace smoke: an ECS package reports its pinned ECS
+      # Electron version. Empty (the official path) for official builds.
+      BLANC_ECS_PACKAGE_ROOT: ${{ inputs.runtime == 'ecs' && format('{0}/dist/linux-unpacked', github.workspace) || '' }}
+      # Every packaged launch in an ECS run has updates disabled. An empty
+      # value is identical to unset (production updater) for official runs.
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
     permissions:
       contents: write
       id-token: write
@@ -403,6 +727,17 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
+
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -423,7 +758,7 @@ jobs:
         run: npm run ublock:check
 
       - name: Require uBlock distribution clearance for public release
-        if: ${{ inputs.mode == 'release' }}
+        if: ${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}
         run: npm run ublock:distribution
 
       - name: Verify tag matches package version
@@ -440,7 +775,16 @@ jobs:
       - name: Build
         env:
           BLANC_UBLOCK_INTERNAL_BUILD: ${{ inputs.mode == 'validation' && inputs.ublock_candidate && '1' || '0' }}
-        run: npx electron-builder --linux --publish never
+        run: |
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --linux --x64
+          else
+            npx electron-builder --linux --publish never
+          fi
+
+      - name: Verify ECS release identity, archive pin, native patch and uBO record
+        if: ${{ inputs.runtime == 'ecs' }}
+        run: node scripts/verify-ecs-production-package.cjs --release dist/linux-unpacked
 
       - name: Verify build artifacts
         run: |
@@ -478,7 +822,8 @@ jobs:
       - name: Verify hardened Electron fuses
         run: |
           EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
-          node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
+          FUSE_ARGS=(); [ "$RELEASE_RUNTIME" = ecs ] && FUSE_ARGS=(--ecs)
+          node scripts/verify-electron-fuses.mjs "${FUSE_ARGS[@]}" "dist/linux-unpacked/$EXECUTABLE"
 
       - name: Install AppImage smoke runtime
         run: |
@@ -593,11 +938,16 @@ jobs:
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             dbus-run-session -- xvfb-run -a npm run test:packaged:tab-handoff-protocol
 
+      # Public ECS packages enable uBO through the reviewed ECS runtime
+      # record, so the installed provider, controls and restarts are checked
+      # on the exact package before any upload.
       - name: Verify candidate uBO installed AppImage controls and restart
-        if: ${{ inputs.mode == 'validation' && inputs.ublock_candidate }}
+        if: ${{ (inputs.mode == 'validation' && inputs.ublock_candidate) || inputs.runtime == 'ecs' }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          # Public ECS fixtures never follow the public update feed.
+          if [ "$RELEASE_RUNTIME" = ecs ]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi
           BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             BLANC_UBLOCK_EVIDENCE="$PWD/dist/ublock-installed-linux.json" \
             BLANC_UBLOCK_NATIVE_LOG="$PWD/dist/ublock-installed-linux-native.log" \
@@ -620,30 +970,55 @@ jobs:
             BLANC_UBLOCK_EVIDENCE="$UBLOCK_EVIDENCE" \
             dbus-run-session -- xvfb-run -a node "$UBLOCK_PROBE"
 
-      - name: Upload to release
-        if: ${{ inputs.mode == 'release' }}
+      - name: Verify public ECS file isolation and protected playback
+        if: ${{ inputs.runtime == 'ecs' }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          gh release upload "${{ inputs.tag }}" \
-            "dist/$PRODUCT_NAME-$VERSION.AppImage" \
-            "dist/latest-linux.yml" \
-            --repo "${{ github.repository }}"
+          export BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
 
-      - name: Attest Linux release artifacts
-        if: ${{ inputs.mode == 'release' }}
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      - name: Preserve public ECS acceptance evidence
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          subject-path: |
-            dist/Blanc-*.AppImage
-            dist/latest-linux.yml
+          name: Blanc-Linux-public-ECS-evidence-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            output/ecs-production/*.json
+            dist/ublock-installed-linux.json
 
+      # Mandatory regression: it must pass before anything is uploaded to the
+      # release or attested. Linux ECS refuses to start without its launcher,
+      # so public ECS runs it through the AppImage; the job-level
+      # BLANC_ECS_PACKAGE_ROOT makes the smoke expect the pinned ECS version.
       - name: Packaged browser and Settings regressions
         run: |
-          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/blanc" \
-            xvfb-run -a npm run test:packaged:browser-compatibility
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            VERSION=$(node -p "require('./package.json').version")
+            PRODUCT_NAME=$(node -p "require('./package.json').productName")
+            BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
+              dbus-run-session -- xvfb-run -a npm run test:packaged:browser-compatibility
+          else
+            BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/blanc" \
+              xvfb-run -a npm run test:packaged:browser-compatibility
+          fi
+
+      # The release upload and attestation happen in linux-legacy-launch, after
+      # this exact AppImage has launched on Ubuntu 22.04.
+      - name: Hand the AppImage to the Ubuntu 22.04 launch check
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Linux-${{ github.run_id }}-built
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            dist/Blanc-*.AppImage
+            dist/latest-linux.yml
 
       - name: Preserve Linux candidate scripting-policy evidence
         if: ${{ always() && inputs.mode == 'validation' && inputs.ublock_candidate }}
@@ -670,9 +1045,84 @@ jobs:
             dist/ublock-noscript-linux.json
             dist/ublock-installed-linux.json
 
+  # Blanc 1.43.0's AppImage didn't start on glibc older than 2.38 (Ubuntu 22.04,
+  # Debian 12), and only the hosted smoke after publication found it. The exact
+  # AppImage built above must now launch on Ubuntu 22.04 before it is uploaded
+  # to the release or attested.
+  linux-legacy-launch:
+    needs: [validate-inputs, linux]
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    runs-on: ubuntu-22.04
+    env:
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
+
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install AppImage runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libfuse2 xvfb
+
+      - name: Download the AppImage built for this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Blanc-Linux-${{ github.run_id }}-built
+          path: dist
+
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        run: bash scripts/ci-enable-linux-sandbox.sh
+
+      - name: Launch the built AppImage on Ubuntu 22.04
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          chmod +x "dist/$PRODUCT_NAME-$VERSION.AppImage"
+          node scripts/smoke-public-appimage.mjs "dist/$PRODUCT_NAME-$VERSION.AppImage" "$VERSION"
+
+      - name: Upload to release
+        if: ${{ inputs.mode == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          gh release upload "${{ inputs.tag }}" \
+            "dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            "dist/latest-linux.yml" \
+            --repo "${{ github.repository }}"
+
+      - name: Attest Linux release artifacts
+        if: ${{ inputs.mode == 'release' }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/Blanc-*.AppImage
+            dist/latest-linux.yml
+
   linux-sandbox:
     needs: validate-inputs
-    if: ${{ inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && inputs.runtime != 'ecs' && inputs.mode == 'validation' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     strategy:
       fail-fast: false
       matrix:
@@ -711,3 +1161,146 @@ jobs:
           name: sandbox-evidence-${{ matrix.os }}-${{ github.run_id }}
           path: sandbox-evidence/*.json
           retention-days: 14
+
+  ecs-native:
+    needs: validate-inputs
+    if: ${{ inputs.mode == 'validation' && inputs.ecs_candidate }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.platform == 'windows' && '["windows-latest"]' || inputs.platform == 'linux' && '["ubuntu-latest"]' || '["windows-latest","ubuntu-latest","macos-15","macos-15-intel"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    env:
+      BLANC_ECS_BUILD_RESULT: ${{ github.workspace }}/output/ecs-build.json
+    steps:
+      - name: Preserve verified source bytes
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Candidate unit and input guards
+        shell: bash
+        run: |
+          mkdir -p output
+          node --test test/unit/drm-runtime.test.js test/unit/ecs-drm-startup.test.js test/unit/ecs-local-html.test.js test/unit/full-ecs-candidate.test.js test/unit/ecs-updater-policy.test.js test/unit/ecs-cdm-dispatch.test.js test/unit/ecs-bootstrap-sandbox.test.js test/unit/ecs-linux-probe.test.js test/unit/ecs-linux-cdm-zygote-trial.test.js test/unit/ecs-linux-preload-env.test.js test/unit/ecs-linux-launcher.test.js test/unit/ecs-appimage-relaunch.test.js
+          npm run adblock:check
+          npm run compliance:check
+      - name: Enable Linux sandbox on this disposable runner
+        if: runner.os == 'Linux'
+        run: bash scripts/ci-enable-linux-sandbox.sh
+      - name: Build pinned native ECS candidate, never publish
+        id: ecs-build
+        env:
+          BLANC_ECS_CDM_ZYGOTE_TRIAL: ${{ runner.os == 'Linux' && '1' || '' }}
+          AZURE_TENANT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_TENANT_ID || '' }}
+          AZURE_CLIENT_ID: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_ID || '' }}
+          AZURE_CLIENT_SECRET: ${{ runner.os == 'Windows' && secrets.AZURE_CLIENT_SECRET || '' }}
+          AZURE_ENDPOINT: ${{ runner.os == 'Windows' && vars.AZURE_TRUSTED_SIGNING_ENDPOINT || '' }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ runner.os == 'Windows' && vars.AZURE_CODE_SIGNING_ACCOUNT_NAME || '' }}
+          AZURE_CERT_PROFILE: ${{ runner.os == 'Windows' && vars.AZURE_CERTIFICATE_PROFILE_NAME || '' }}
+          AZURE_PUBLISHER_NAME: ${{ runner.os == 'Windows' && vars.AZURE_PUBLISHER_NAME || '' }}
+        run: node scripts/ecs-native-validation.cjs
+      - name: Native startup, restart, profile cleanup and static HTML guard
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            dbus-run-session -- xvfb-run -a node test/desktop/ecs-native-smoke.cjs
+          else
+            node test/desktop/ecs-native-smoke.cjs
+          fi
+      - name: Verify Windows Authenticode and updater trust gates
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $build = Get-Content $env:BLANC_ECS_BUILD_RESULT | ConvertFrom-Json
+          $installer = @(Get-ChildItem "$($build.dist)/*.exe")
+          if ($installer.Count -ne 1) { throw 'Expected one NSIS installer' }
+          foreach ($file in @($installer[0].FullName, "$($build.dist)/win-unpacked/Blanc.exe")) {
+            $signature = Get-AuthenticodeSignature $file
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER -or -not $signature.TimeStamperCertificate) {
+              throw 'Invalid publisher, signature or timestamp'
+            }
+          }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item $installer[0].FullName dist/
+          $evidence = [ordered]@{
+            artifact = $installer[0].Name
+            sha256 = (Get-FileHash -Algorithm SHA256 $installer[0].FullName).Hash.ToLowerInvariant()
+            publisher = $env:EXPECTED_WINDOWS_PUBLISHER
+            signed = $true
+            timestamped = $true
+            vmpSigned = $false
+          }
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
+          $evidence | ConvertTo-Json | Set-Content -Encoding utf8NoBOM output/ecs-native/windows-signature.json
+          node --test test/unit/windows-update-retry.test.js test/unit/windows-update-trust.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust unit tests failed' }
+          node test/desktop/windows-update-trust-smoke.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Updater trust native smoke failed' }
+      - name: Linux full local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/local-html.json
+      - name: Linux protected playback and kernel CDM sandbox
+        id: linux-drm
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm.json
+      - name: Linux fresh and cached offline startup
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-offline-startup-smoke.cjs "$APP_DIR" output/ecs-native/offline.json
+      - name: Linux cached update and rollback selection
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        run: node test/desktop/ecs-linux-cdm-cache-qualification.cjs output/ecs-native/cdm-cache.json
+      - name: Build next isolated Linux updater candidate
+        id: ecs-next
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-build.outcome == 'success' }}
+        shell: bash
+        run: |
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-next-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json"
+          BLANC_ECS_BUILD_RESULT="$GITHUB_WORKSPACE/output/ecs-third-build.json" node scripts/build-next-ecs-candidate.cjs "$GITHUB_WORKSPACE/output/ecs-build.json" 3
+          sudo apt-get update
+          sudo apt-get install --yes xdotool
+      - name: Linux real staged Restart Now handoff
+        timeout-minutes: 6
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-linux-updater-qualification.cjs output/ecs-build.json output/ecs-next-build.json output/ecs-native/updater-handoff.json output/ecs-third-build.json
+      - name: Linux final successor local HTML isolation
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.ecs-next.outcome == 'success' }}
+        shell: bash
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync("output/ecs-third-build.json")).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs "$APP_DIR" output/ecs-native/successor-local-html.json
+      - name: Diagnose aligned native and session profile
+        if: ${{ !cancelled() && runner.os == 'Linux' && steps.linux-drm.outcome == 'failure' }}
+        shell: bash
+        env:
+          BLANC_ECS_SHARED_PROFILE_TRIAL: '1'
+        run: |
+          APP_DIR=$(node -p 'JSON.parse(require("fs").readFileSync(process.env.BLANC_ECS_BUILD_RESULT)).dist + "/linux-unpacked"')
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-drm-playback-smoke.cjs "$APP_DIR" output/ecs-native/drm-shared-profile.json
+      - name: Upload sanitized evidence only, never installers or profiles
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-native-evidence-${{ matrix.os }}-${{ github.run_id }}
+          path: output/ecs-native/*.json
+          if-no-files-found: error
+          retention-days: 3

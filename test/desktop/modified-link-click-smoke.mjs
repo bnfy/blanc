@@ -59,6 +59,18 @@ let app;
 let appProcess;
 let caseCount = 0;
 let recoveryCount = 0;
+let failed = false;
+/** Teardown: close Blanc and wait for its process to exit, killing it if
+ * closing stalls, so a failed check's error is printed rather than lost. */
+async function stopApp() {
+  const running = () => appProcess?.exitCode === null && appProcess.signalCode === null;
+  if (!running()) return;
+  const exited = new Promise((resolve) => appProcess.once('exit', resolve));
+  const deadline = (ms) => new Promise((resolve) => setTimeout(resolve, ms).unref());
+  await Promise.race([app.close().catch(() => {}), deadline(15_000)]);
+  if (running()) appProcess.kill();
+  await Promise.race([exited, deadline(5_000)]);
+}
 async function documentResult(id, label) {
   return waitForValue(() => callTestHook(app, 'workspacePageScript', [id, 'window.clickResult']),
     (result) => !!result?.storage, `${label} document behavior`);
@@ -160,21 +172,26 @@ try {
           if (context.runtimeId === primary.id && !isPrivate && policy.name === 'sandbox' && index === 1) {
             await callTestHook(app, 'activateTab', [child.id]);
             await callTestHook(app, 'groupTabByName', [child.id, 'Sandbox recovery']);
+            // Electron 44.9 can't rebuild a page-opened tab with its opener's
+            // sandbox, so Blanc refuses the copy (document-policy.js).
+            assert.equal((await callTestHook(app, 'tabMenuItem', [child.id, 'duplicate'])).enabled, false,
+              'Duplicate is disabled for a page-opened tab');
             await callTestHook(app, 'duplicateActive');
             const copies = (await callTestHook(app, 'windowRuntimes'))
               .find((runtime) => runtime.id === context.runtimeId).tabs.filter((tab) => tab.url === targetUrl);
-            assert.equal(copies.length, 2);
-            const duplicate = copies.find((tab) => tab.id !== child.id);
-            assert.equal((await documentResult(duplicate.id, 'duplicate')).storage, 'SecurityError');
+            assert.equal(copies.length, 1, 'no unrestricted copy is made');
             recoveryCount++;
             await callTestHook(app, 'closeGroupByName', ['Sandbox recovery']);
             await callTestHook(app, 'reopenClosedInWindow', [context.runtimeId]);
             const restored = (await callTestHook(app, 'windowRuntimes'))
               .find((runtime) => runtime.id === context.runtimeId).tabs.filter((tab) => tab.url === targetUrl);
-            assert.equal(restored.length, 2);
+            assert.equal(restored.length, 1);
             for (const tab of restored) {
               await callTestHook(app, 'activateTab', [tab.id]);
-              assert.equal((await documentResult(tab.id, 'quiet group reopen')).storage, 'SecurityError');
+              const shown = await waitForValue(() => callTestHook(app, 'workspacePageScript', [tab.id, 'location.href']),
+                (href) => typeof href === 'string' && href.startsWith('blanc://error/'), 'quiet group reopen shows the inert page');
+              assert.equal(new URL(shown).searchParams.get('kind'), 'inert');
+              assert.equal(new URL(shown).searchParams.get('url'), targetUrl);
               recoveryCount++;
             }
             cleanupIds = restored.map((tab) => tab.id);
@@ -187,11 +204,22 @@ try {
       }
     }
   }
-  console.log(`modified-link-click OK on ${process.platform}: ${caseCount} click/sandbox/referrer cases, ${recoveryCount} restricted-tab recreations`);
+  console.log(`modified-link-click OK on ${process.platform}: ${caseCount} click/sandbox/referrer cases, ${recoveryCount} restricted-tab rebuilds refused or inert`);
+} catch (error) {
+  failed = true;
+  throw error;
 } finally {
-  if (app && appProcess.exitCode === null) await app.close();
+  await stopApp();
   await new Promise((resolve) => server.close(resolve));
   const error = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '';
-  fs.rmSync(root, { recursive: true, force: true });
-  assert.equal(error, '', 'no uncaught main-process errors');
+  // Windows can keep a child process's cache file open briefly after Blanc
+  // exits. Cleanup never replaces an earlier failure; it fails only a pass.
+  try {
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  } catch (cleanupError) {
+    if (!failed && !error) throw cleanupError;
+    console.error(`left ${root} behind: ${cleanupError.code ?? cleanupError.message}`);
+  }
+  if (failed && error) console.error(`uncaught main-process errors:\n${error}`);
+  if (!failed) assert.equal(error, '', 'no uncaught main-process errors');
 }

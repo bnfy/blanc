@@ -4,6 +4,14 @@ if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const packageMetadata = require('../../package.json');
+const drmSupport = require('./drm-support').createDrmSupport({
+  app, session, BrowserWindow, metadata: packageMetadata,
+  components: packageMetadata.blancRuntime === 'ecs' ? require('electron').components : undefined,
+});
+// A DRM build never loads local files, so their saved tabs are records only
+// (kept even when the file is missing). Set before anything restores or saves.
+require('./local-html-files').setLocalFilesRecordOnly(drmSupport.enabled);
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
   savesSessionEntry,
@@ -184,7 +192,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { buildTabContextMenu, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -217,6 +225,7 @@ const { siteKey: topSiteKey } = require('./top-sites');
 const startPagePins = require('./start-page-pins');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const documentPolicy = require('./document-policy');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
@@ -309,7 +318,7 @@ const {
   calculateSpacesBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
-const { cardGeometry, fractionsToFrame } = require('./glance-card');
+const { cardGeometry, fractionsToFrame, CARD_PAGE_RADIUS: GLANCE_PAGE_RADIUS } = require('./glance-card');
 const { onScreenFocusedContents } = require('./focused-contents');
 const { createGlanceCardController } = require('./glance-card-controller');
 const {
@@ -323,7 +332,7 @@ const {
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
 const { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, placeInGroup, numberedTabIds } = require('../renderer/tab-sections');
-const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, captureSplits, restoreSplits } = require('./split-model');
+const { createSplit, splitForTab, normalizeSplitOrder, removeFromSplit: splitWithout, placeAfterSplit, splitEligible, splitPinned, captureSplits, restoreSplits } = require('./split-model');
 const {
   computeSplitLayout, splitLayoutPayload, layoutForDivider, defaultSplitLayout,
   cornerTabBounds, cornerTabHit, cornerTabSite, PANE_RADIUS, PANE_BORDER,
@@ -349,6 +358,7 @@ const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
+const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -1603,6 +1613,13 @@ let activeTabHandoffRequest = null;
 // offline filter failure always has a usable recovery surface.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
+// Default-off gate diagnostics (BLANC_NAVIGATION_TRACE); never alters a decision.
+const { navigationTrace } = require('./navigation-trace');
+// Navigations the startup/profile gate refused and queued: their own failure
+// can arrive after the gate replayed them (src/main/gate-refusals.js).
+const gateRefusals = require('./gate-refusals').createGateRefusals();
+// A provider or policy cancelling a replayed request is a real block: show it.
+blockingCoordinator.observeCancel(({ webContentsId, url }) => gateRefusals.disarm(webContentsId, url));
 const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
   coordinator: blockingCoordinator, queued: startupQueuedNavigations,
   resolveContents: id => {
@@ -1613,6 +1630,9 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   ready: profileId => blockingProviders?.status(profileId).phase === 'ready',
   enabled: () => settings.getSettings().adblockEnabled,
   startupActive: () => startupNavigationGateActive,
+  trace: navigationTrace,
+  onRefused: (webContentsId, url) => gateRefusals.noteRefused(webContentsId, url),
+  onReplay: (webContentsId, url) => gateRefusals.armReplay(webContentsId, url),
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1625,9 +1645,15 @@ function installStartupNavigationGate(sessions) {
     ) {
       return false;
     }
+    let queued = false;
     if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
+      gateRefusals.noteRefused(details.webContentsId, details.url);
+      queued = true;
     }
+    const gateTab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+    navigationTrace.record('startup-gate-cancel', { requestId: details.id, webContentsId: details.webContentsId, navEpoch: gateTab?.navEpoch,
+      private: gateTab?.private, resourceType: details.resourceType, url: details.url, method: details.method, queued });
     return true;
   };
   for (const browsingSession of sessions) {
@@ -1636,6 +1662,7 @@ function installStartupNavigationGate(sessions) {
 }
 
 function releaseStartupNavigationGate(sessions, { blockerAttached }) {
+  navigationTrace.record('startup-gate-release', { count: startupQueuedNavigations.size, outcome: blockerAttached ? 'blocker-attached' : 'continued-without-blocker' });
   startupNavigationGateActive = false;
   for (const browsingSession of sessions) blockingCoordinator.setGate(browsingSession, null);
   // A successful blocker attachment has already replaced the temporary
@@ -1656,7 +1683,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
 
   const queued = [...startupQueuedNavigations.entries()];
   for (const [webContentsId, url] of queued) {
-    if (profileNavigationGates.owns(webContentsId)) continue;
+    if (profileNavigationGates.owns(webContentsId)) {
+      navigationTrace.record('startup-gate-replay', { webContentsId, outcome: 'profile-gate-owns' });
+      continue;
+    }
     startupQueuedNavigations.delete(webContentsId);
     // A throwing predicate does not skip an entry — it propagates out of find
     // and leaves every queued tab behind the startup gate. This two-step read
@@ -1665,7 +1695,13 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
       (candidate) => liveContents(candidate)?.id === webContentsId
     );
     const wc = liveContents(tab);
-    if (!wc) continue;
+    if (!wc) {
+      gateRefusals.forget(webContentsId);
+      navigationTrace.record('startup-gate-replay', { webContentsId, private: tab?.private, outcome: 'no-live-tab' });
+      continue;
+    }
+    navigationTrace.record('startup-gate-replay', { webContentsId, navEpoch: tab.navEpoch, private: tab.private, url, outcome: 'replayed' });
+    gateRefusals.armReplay(webContentsId, url);
     wc.loadURL(url).catch(() => {});
   }
 }
@@ -1821,6 +1857,10 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
+  if (drmSupport.enabled) {
+    void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
+    return;
+  }
   externalUrlHandoff.openLocalFiles(paths);
 }
 
@@ -2723,7 +2763,9 @@ function commitWake(tab, generation) {
 async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
-  if (wc) {
+  // An inert tab never gets an error page offering to load its page: it
+  // stays as it is (document-policy.js).
+  if (wc && !tab.inert) {
     const q = new URLSearchParams({
       url: failedUrl ?? '', code: 'wake-failed',
       desc: mainI18n.t('error.reloadFailed'), title: tab.title ?? '',
@@ -2778,13 +2820,28 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   const tab = tabs.get(id);
   if (!tab) return false;
   if (!tab.asleep) return true;
+  // A page-opened tab is never rebuilt with its own page (document-policy.js):
+  // its view only ever shows Blanc's explanation page, whatever was asked.
+  if (tab.inheritsDocumentPolicy && !tab.inert) tab.inert = true;
+  // A plain wake while one is under way joins it (below) rather than
+  // starting the explanation page's load over.
+  const joinsWake = tab.waking && !!liveContents(tab) && navigateTo === null && atIndex === null;
+  if (tab.inert && !joinsWake) {
+    navigateTo = documentPolicy.inertPageUrl(persistableUrl(tab.url), tab.title);
+    atIndex = null;
+  }
   if (startupNavigationGateActive) {
     pendingWakes.add(id);
     return false;
   }
 
   const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
-  const snapshot = sleepSnapshots.get(id);
+  const stored = sleepSnapshots.get(id);
+  // An inert local-file record never replays history or moves within it: it
+  // only reloads its placeholder (a retained view keeps its renderer handoff).
+  const inert = isInertRecord(tab);
+  if (inert) atIndex = null;
+  const snapshot = inert && stored ? { ...stored, entries: [] } : stored;
   let wc;
   let generation;
   let retained = false;
@@ -3078,7 +3135,14 @@ function restoreArchivedEntry(entryId) {
   const entry = archive.takeEntry(String(entryId ?? ''));
   if (!entry) return false;
   // Archived tabs were never pinned, so there is no home to carry.
-  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  const id = createTab(entry.url, {
+    customTitle: entry.customTitle ?? null,
+    pinnedHomeUrl: null,
+    // Shown until the page loads; an inert tab never loads it.
+    title: entry.title ?? null,
+    favicon: entry.favicon ?? null,
+    inheritsDocumentPolicy: documentPolicy.restoredEntryMarker(entry),
+  });
   if (!id) return false;
   setActiveTab(id, { focusContent: true, focusAddress: false });
   return true;
@@ -3089,6 +3153,16 @@ function restoreArchivedEntry(entryId) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+// An inert tab's view shows only Blanc's own page (document-policy.js). Its
+// will-navigate guard turns a click into a new tab; this cancels every other
+// main-frame request it would make (main-process loads, history, reloads,
+// redirect hops) before it leaves the browser, in every session.
+function inertRequestVeto(details) {
+  if (details.resourceType !== 'mainFrame' || !Number.isInteger(details.webContentsId)) return false;
+  const tab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+  return !!tab?.inert && !documentPolicy.inertViewMayShow(details.url);
+}
+blockingCoordinator.setVeto(inertRequestVeto);
 
 /** Stop allowing (certificate spec §4.5): forget the active tab's origin in
  *  its session, drop pooled connections, and reload so the warning returns.
@@ -3956,11 +4030,11 @@ function restackGlanceCard() {
   rt().window.contentView.addChildView(glanceTab.view);
 }
 
-/** The Glance page's view gets the card's corners; it goes back to square
- * when it leaves the card. */
+/** The Glance page's view gets rounded corners inside the card's frame; it
+ * goes back to square when it leaves the card. */
 function roundGlancePage(tab, rounded) {
   if (!liveContents(tab) || !!tab.glanceRounded === rounded) return;
-  tab.view.setBorderRadius(rounded ? PANE_RADIUS - PANE_BORDER : 0);
+  tab.view.setBorderRadius(rounded ? GLANCE_PAGE_RADIUS : 0);
   tab.glanceRounded = rounded;
 }
 
@@ -4211,7 +4285,7 @@ function glanceCardFrame() {
 /** The card's views' bounds while a Glance is open, else null. */
 function glanceCardGeometry() {
   if (!activeGlanceTab() || !hasLiveWindow()) return null;
-  return cardGeometry(glanceCards.frame());
+  return cardGeometry(glanceCards.frame(), glancePageArea());
 }
 
 function currentGlanceLayoutPayload(card = glanceCardGeometry()) {
@@ -4488,19 +4562,23 @@ function createSplitFromTabs(initiatorId, otherIds, { layout = null, announced =
   const initiator = tabs.get(initiatorId);
   const others = otherIds.map((id) => tabs.get(id));
   const all = [initiator, ...others];
-  if (all.some((tab) => !tab || tab.pinned || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
+  if (all.some((tab) => !tab || tab.splitId || windowRuntimes.runtimeForTab(tab.id) !== runtime)) return null;
   if (all.length < 2 || new Set(all.map((tab) => tab.id)).size !== all.length) return null;
   const { split, groupId } = createSplit({ initiator, others, layout });
   if (runtime.glanceTabId) closeGlance({ focusContent: false, announce: !announced });
+  const pinned = splitPinned(all);
   for (const tab of all) {
     tab.groupId = groupId;
     tab.splitId = split.id;
+    if (pinned) markPinned(tab);
   }
   runtime.splits = [...(runtime.splits ?? []), split];
   pruneEmptyGroups();
   syncTabLayout(runtime);
   if (all.some((tab) => tab.id === runtime.activeTabId)) showActiveSplit(runtime);
   broadcastTabs();
+  // The View menu's Pin item now names the split (Pin Split / Unpin Split).
+  scheduleMenuRebuild();
   persistSession();
   return split;
 }
@@ -4534,10 +4612,11 @@ function savedWindowSplits(runtime, entries) {
 function applyRestoredSplits(runtime, saved, restoredIds) {
   const rebuilt = restoreSplits(saved?.splits, saved?.splitIds, restoredIds);
   for (const split of rebuilt) {
-    for (const id of split.tabIds) {
-      const tab = tabs.get(id);
-      if (tab) tab.splitId = split.id;
-    }
+    const members = split.tabIds.map((id) => tabs.get(id)).filter(Boolean);
+    for (const tab of members) tab.splitId = split.id;
+    // A split is pinned as a whole: a saved or hand-edited entry whose panes
+    // disagree comes back pinned.
+    if (splitPinned(members)) members.forEach(markPinned);
   }
   runtime.splits = [...(runtime.splits ?? []), ...rebuilt];
   syncTabLayout(runtime);
@@ -4651,7 +4730,8 @@ function closeSplit(splitId) {
   const entry = buildSplitEntry({
     layout: split.layout,
     focusedIndex: split.focusedIndex,
-    index: itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId),
+    // A pinned split in the Pinned shelf is no item (shelf pins lead): 0.
+    index: Math.max(0, itemsOf(tabLayoutList(runtime)).findIndex((item) => ids.includes(item.id) || item.id === tabs.get(ids[0])?.groupId)),
     groupId: tabs.get(ids[0])?.groupId ?? null,
   }, ids.map(closedMemberRecord), Date.now());
   const wasShowing = ids.includes(runtime.activeTabId);
@@ -4680,13 +4760,14 @@ function reopenSplitEntry(entry) {
     : null;
   const ids = entry.tabs.map((member) => {
     const id = createTab(member.url, {
-      groupId, muted: member.muted,
+      groupId, pinned: member.pinned, muted: member.muted,
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -4717,7 +4798,7 @@ function reopenSplitEntry(entry) {
 /** Split with ▸ choices for a tab's menu: this window's other eligible tabs
  *  with their groups; the menu model sorts them by group (spec §3.1). */
 function splitCandidatesFor(tab, owner) {
-  if (!tab || tab.pinned || tab.splitId) return [];
+  if (!tab || tab.splitId) return [];
   return owner.tabOrder
     .map((id) => tabs.get(id))
     .filter((other) => other && other.id !== tab.id && splitEligible(other))
@@ -6141,6 +6222,12 @@ function navigateTabToAddress(id, rawText) {
   }
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
+  // An inert tab stays as it is (document-policy.js): a typed address opens
+  // in a new ordinary tab instead, as it would after copying the link.
+  if (tab.inert) {
+    setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+    return;
+  }
   rt().tabsWantingAddressBarFocus.delete(id);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
@@ -6320,7 +6407,7 @@ let isQuitting = false;
 // pages it lost. A new main window clears it: Blanc did not quit after all.
 let sessionHeldForQuit = false;
 let sessionPersistenceSuspended = false;
-const restartApp = createAppRestarter({ app, webContents, onCancelled: () => {
+const restartApp = createAppRestarter({ app, webContents, beforeRelaunch: drmSupport.beforeRelaunch, onCancelled: () => {
   isQuitting = false;
   for (const runtime of windowRuntimes.all()) {
     if (runtime.window && !runtime.window.isDestroyed()) { runtime.closing = false; runtime.window.show(); }
@@ -6398,6 +6485,8 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     } : {}),
     groups: persistedGroups,
     ...savedWindowSplits(runtime, entries),
+    // Every tab's document-policy mark, under a stamp (document-policy.js).
+    ...documentPolicy.stampedColumn(entries.map((item) => tabs.get(item.id))),
     ...(closedSlot > 0 ? { closedSlot } : {}),
     sectionOrder: true,
     ...(closedIndex > 0 ? { closedIndex } : {}),
@@ -7361,11 +7450,11 @@ function closedMemberRecord(id) {
   }
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
-    url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    url: tab.url, title: recordTitle(tab, tab.title), favicon: tab.favicon ?? null,
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
     // Batch entries (Close Other Tabs) span groups; each member re-resolves
     // this against the surviving groups at restore time. Group entries carry
@@ -7908,6 +7997,8 @@ function applyWorkspaceToWindow(runtime, workspace) {
       meta: workspace.meta,
       localFiles: workspace.localFiles,
       splitIds: workspace.splitIds,
+      documentPolicy: workspace.documentPolicy,
+      inheritsDocumentPolicy: workspace.inheritsDocumentPolicy,
       activeIndex: workspace.activeIndex,
     }, (url, _index, localFile) => isUtilityUrl(url)
       || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
@@ -7925,6 +8016,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       pinnedHomeUrl: cleaned.meta?.[index]?.pinnedHomeUrl ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
+      inheritsDocumentPolicy: documentPolicy.restoredMarker(cleaned, index),
     }));
     pruneEmptyGroups();
     applySavedLayout(runtime, workspace, restoredIds);
@@ -7991,29 +8083,38 @@ function undoRemoveNamedWorkspace(id) {
   return result;
 }
 
+/** Pin a tab that isn't yet, homing it on its current page. */
+function markPinned(tab) {
+  if (tab.pinned) return;
+  tab.pinned = true;
+  tab.pinnedHomeUrl = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
+}
+
 function toggleTabPinned(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
-  // A split never holds a pinned tab: pinning takes it out first (D7).
-  if (!tab.pinned && tab.splitId) {
-    const owner = windowRuntimes.runtimeForTab(id) ?? rt();
-    const wasShown = owner.activeTabId === id;
-    removeTabFromSplit(id);
-    if (wasShown) withWindowRuntime(owner, () => setActiveTab(id));
+  const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
+  // A split is pinned or not as a whole (D7): pinning or unpinning one pane
+  // does the same to every pane, and each keeps its own pinned home.
+  const memberIds = splitForTab(runtime.splits, id)?.tabIds ?? [id];
+  const members = memberIds.map((tabId) => tabs.get(tabId)).filter(Boolean);
+  const pinned = !tab.pinned;
+  for (const member of members) {
+    if (pinned) markPinned(member);
+    else {
+      member.pinned = false;
+      member.pinnedHomeUrl = null;
+    }
   }
-  tab.pinned = !tab.pinned;
-  tab.pinnedHomeUrl = tab.pinned
-    ? pinnedHomeFor(tab.url, { localFile: tab.localFile === true })
-    : null;
   // Ungrouped pins sit first in the tab order; an unpinned one goes to the
   // bottom with the other new ungrouped tabs, not above every group.
-  if (!tab.pinned && !tab.groupId) {
-    const runtime = windowRuntimes.runtimeForTab(id) ?? rt();
-    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => tabId !== id), id];
+  if (!pinned && !tab.groupId) {
+    const moved = members.map((member) => member.id);
+    runtime.tabOrder = [...runtime.tabOrder.filter((tabId) => !moved.includes(tabId)), ...moved];
   }
   broadcastTabs();
   scheduleMenuRebuild();
-  return tab.pinned;
+  return pinned;
 }
 
 function toggleTabMuted(id) {
@@ -8038,7 +8139,9 @@ function toggleTabMuted(id) {
 
 function duplicateTab(id) {
   const source = tabs.get(id);
-  if (!source) return;
+  // A copy would be a fresh WebContents, which can't carry the opener's
+  // sandbox a page-opened tab may have (document-policy.js).
+  if (!source || source.inheritsDocumentPolicy) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
   // A quiet source duplicates straight from its retained snapshot; waking it
   // just to read history defeats the feature and creates a needless reload.
@@ -8050,7 +8153,6 @@ function duplicateTab(id) {
     allowLocalFile: source.localFile === true,
     managedExtension: /^chrome-extension:/i.test(source.url) && !source.private && restorableUblockTool(source.url, source.profileId),
     private: source.private,
-    openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
     pinnedHomeUrl: source.pinnedHomeUrl,
@@ -8070,7 +8172,16 @@ function duplicateTab(id) {
  * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
-  if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  // Leaving the file (or, on a DRM build, its inert placeholder) ends the grant.
+  if (!keepsLocalFile(tab, url)) {
+    tab.localFile = false;
+    tab.localFileUrl = null;
+    tab.inertLocalFileUrl = null;
+    tab.inertLocalFileTitle = null;
+  } else if (tab.localFile && isSupportedLocalHtmlUrl(url)) {
+    // Official builds: the grant now names the document actually showing.
+    tab.localFileUrl = new URL(url).href;
+  }
   refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
@@ -8252,14 +8363,22 @@ initTabView({
   certificateObserver,
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
+  navigationTrace,
+  gateRefusals,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, inheritsDocumentPolicy = false, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
-  const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
+  // Official builds load a granted local HTML file; a DRM build keeps a
+  // granted local-file record as an inert placeholder (src/main/inert-local-file.js).
+  const localPlan = localFileTabPlan(url, { drm: drmSupport.enabled, allowLocalFile });
+  url = localPlan.url;
+  const admittedLocalFile = localPlan.admitted;
+  // An inert record never replays navigation history: nothing may load the file.
+  if (localPlan.inertLocalFileUrl) restoreHistory = null;
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -8293,16 +8412,22 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     localFile: typeof pinnedHomeUrl === 'string' && pinnedHomeUrl.startsWith('file:'),
   });
   const pinnedHome = pinned
-    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
+    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: localPlan.localFile }))
     : null;
+  // A page-opened tab keeps its mark for life (document-policy.js). Only the
+  // live view Electron built for it, or the same view parked at close, may
+  // show its page; any other construction would drop the opener's sandbox, so
+  // the record is born inert instead.
+  const marked = inheritsDocumentPolicy === true;
+  const inert = marked && !adopted && !adopting;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
-  // already live and can never be born quiet.
-  const bornQuiet = asleep && !adopted && !adopting;
+  // already live and can never be born quiet. An inert tab stays quiet until
+  // it is shown, and then loads only Blanc's explanation page (wakeTab).
+  const bornQuiet = (asleep || inert) && !adopted && !adopting;
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
-    openerSandboxFlags,
   });
 
   const tab = {
@@ -8319,12 +8444,20 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
-    localFile: admittedLocalFile,
+    localFile: localPlan.localFile,
+    // The file the grant names (main-only), so Blanc's own placeholder for that
+    // same file keeps the grant across commits (inert-local-file.js).
+    localFileUrl: localPlan.localFileUrl,
+    // DRM builds: the saved file URL this tab keeps as a record while it shows
+    // the inert placeholder. Null otherwise.
+    inertLocalFileUrl: localPlan.inertLocalFileUrl,
+    inertLocalFileTitle: localPlan.inertLocalFileUrl && typeof title === 'string' ? title : null,
     // Main-owned tool lifetime survives its temporary error URL during uBO reload.
     managedExtension: managedExtension === true && !isPrivate,
-    // Trusted Electron inheritance, kept in main memory for view recreation.
-    // Neither this nor the initial referrer comes from tabs:create IPC.
-    openerSandboxFlags,
+    // Never from tabs:create IPC. Sticky: no navigation or move clears it.
+    inheritsDocumentPolicy: marked,
+    // Never shows its own page again; see wakeTab.
+    inert,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
@@ -8422,7 +8555,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     wc.setAudioMuted(effectiveTabMuted(tab));
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
-    tab.title = wc.getTitle() || tab.title;
+    // An inert local-file record keeps its saved title, not the placeholder's.
+    tab.title = recordTitle(tab, wc.getTitle() || tab.title);
     // Every other re-derivation of this flag hangs off a navigation event, and
     // an adoption performs none — leaving the heart drawn empty on a favorited
     // page, where a click would delete the favorite instead of adding it.
@@ -9058,9 +9192,10 @@ function reopenGroupEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -9093,9 +9228,10 @@ function reopenBatchEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
-    if (id && member.snapshot) {
+    // An inert local-file record never replays history (inert-local-file.js).
+    if (id && member.snapshot && !isInertRecord(tabs.get(id))) {
       sleepSnapshots.set(id, {
         view: null,
         entries: member.snapshot.entries,
@@ -9447,7 +9583,7 @@ function reopenEntry(entry) {
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
     pinnedHomeUrl: entry.pinnedHomeUrl,
-    openerSandboxFlags: entry.openerSandboxFlags,
+    inheritsDocumentPolicy: entry.inheritsDocumentPolicy === true,
     managedExtension: restorableUblockTool(entry.url),
   };
 
@@ -9472,7 +9608,12 @@ function reopenEntry(entry) {
   downgradeHeldEntry(entry);
   const id = createTab(entry.url, {
     ...common,
+    // What an inert tab shows (document-policy.js); a loading page replaces it.
+    ...(common.inheritsDocumentPolicy ? { title: entry.title, favicon: entry.favicon } : {}),
     allowLocalFile: entry.localFile === true,
+    // A local-file record carries its saved title back (on a DRM build the
+    // placeholder never supplies one); other tabs take their page's title.
+    ...(entry.localFile === true && entry.title && entry.title !== entry.url ? { title: entry.title } : {}),
     restoreHistory: entry.snapshot
       ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
       : null,
@@ -10456,6 +10597,11 @@ function registerIpcHandlers() {
         : { engine: engine.id, query: query.trim(), url: target };
       return target;
     }
+    // An inert tab stays as it is; the search opens beside it.
+    if (tab.inert) {
+      setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+      return target;
+    }
     if (tab.asleep) return wakeTab(id, { navigateTo: target });
     return liveContents(tab)?.loadURL(target);
   });
@@ -11406,8 +11552,8 @@ function buildMenuForRuntime(runtime) {
         { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
         { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
-        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
-        { label: t(tabs.get(rt().activeTabId)?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
+        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId && !tabs.get(rt().activeTabId)?.inheritsDocumentPolicy, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
+        { label: t(pinLabelKey(tabs.get(rt().activeTabId))), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
         { label: t(tabs.get(rt().activeTabId)?.muted ? 'tabMenu.unmute' : 'tabMenu.mute'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
         {
@@ -11532,6 +11678,8 @@ function tabContextData(tab, owner) {
       && visibleSplit.tabIds.includes(tab.id)),
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
+    // A page-opened tab can't be copied into a fresh view (document-policy.js).
+    canDuplicate: tab.inheritsDocumentPolicy !== true,
     canQuiet: explicitSleepEligible(tab, owner),
     canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
     canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
@@ -13295,6 +13443,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           fill: current.newtabWallpaperFill,
           followSpace: current.newtabFollowSpaceColor,
           spaceColor,
+          surface: current.surfaceStyle,
         }),
         presets: SpaceIdentity.PRESETS.map(({ id, hex }) => ({ id, hex })),
       },
@@ -13369,6 +13518,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
     defaultBrowserChanged: () => {
@@ -14366,7 +14516,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       groups: rt().groups,
     })));
     tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      // Icons are keyed by page address, so a page-opened tab's icon would
+      // publish the address syncSnapshot keeps on this device.
+      tabList: rt().tabOrder.map((id) => tabs.get(id))
+        .filter((tab) => tab && tab.inheritsDocumentPolicy !== true),
     })));
 
     // Session/icon sync may run from palette open or Sync Now before this
@@ -14448,6 +14601,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
       splitIds: cleaned.splitIds,
+      documentPolicy: cleaned.documentPolicy,
+      inheritsDocumentPolicy: cleaned.inheritsDocumentPolicy,
       activeIndex: cleaned.activeIndex,
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
@@ -14688,6 +14843,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
+          inheritsDocumentPolicy: documentPolicy.restoredMarker(saved, index),
         }));
         pruneEmptyGroups();
         applySavedLayout(runtime, saved, restoredIds);

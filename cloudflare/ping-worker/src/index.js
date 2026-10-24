@@ -27,6 +27,7 @@ import {
   buildDownloadConversionEvent,
   validOppref,
   pickAsset,
+  pinnedDownload,
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
@@ -762,6 +763,8 @@ async function handleDownload(request, env, ctx, now, target) {
       }).catch(() => console.warn('OpenAI conversion send failed'))
     );
   }
+  const pinned = pinnedDownload(target);
+  if (pinned) return redirect(pinned);
   const assets = await latestReleaseAssets(env, now);
   const asset = assets ? pickAsset(assets, target) : null;
   return redirect(asset ? asset.browser_download_url : RELEASES_LATEST_PAGE);

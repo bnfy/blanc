@@ -32,14 +32,15 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
     )[1],
   );
   // The only reviewed wording changes since, applied in order: the Blanc
-  // Spaces rename, free Blanc Spaces, the v1.34.0 memory re-run, then 1Password
-  // on every platform. Each
+  // Spaces rename, free Blanc Spaces, the v1.34.0 memory re-run, 1Password on
+  // every platform, then the v1.43.0 castLabs Electron runtime. Each
   // must still find its exact prior text, so no stale exception lingers.
   const supportAnswers = [
     "docs/website-blanc-spaces-rename-2026-10-11.json",
     "docs/website-blanc-spaces-free-2026-10-14.json",
     "docs/website-memory-rerun-2026-10-15.json",
     "docs/website-1password-all-platforms-2026-10-16.json",
+    "docs/website-ecs-runtime-wording-2026-10-24.json",
   ].flatMap((file) => JSON.parse(read(file)).supportAnswers);
   for (const { id, before, after } of supportAnswers) {
     const entry = original.find((candidate) => candidate.id === id);

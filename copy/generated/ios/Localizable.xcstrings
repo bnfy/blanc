@@ -1,6 +1,300 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "drm.title": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected media"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschützte Medien"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenido protegido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenus protégés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contenuti protetti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mídia protegida"
+          }
+        }
+      }
+    },
+    "drm.preparing": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing the component needed to play protected audio and video. You can keep browsing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Audio- und Videoinhalte wird vorbereitet. Du kannst weiter surfen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se está preparando el componente necesario para reproducir audio y vídeo protegidos. Puedes seguir navegando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation du composant nécessaire à la lecture audio et vidéo protégée. Vous pouvez continuer à naviguer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione del componente necessario per riprodurre audio e video protetti. Puoi continuare a navigare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando o componente necessário para reproduzir áudio e vídeo protegidos. Você pode continuar navegando."
+          }
+        }
+      }
+    },
+    "drm.ready": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The protected-media component is ready. Playback availability depends on the website."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Medien ist bereit. Ob Inhalte wiedergegeben werden können, hängt von der Website ab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El componente de contenido protegido está listo. La disponibilidad de reproducción depende del sitio web."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le composant de contenus protégés est prêt. La disponibilité de la lecture dépend du site web."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il componente per i contenuti protetti è pronto. La disponibilità della riproduzione dipende dal sito web."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O componente de mídia protegida está pronto. A disponibilidade da reprodução depende do site."
+          }
+        }
+      }
+    },
+    "drm.restartRequired": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte Blanc neu, um geschützte Audio- und Videoinhalte vorzubereiten. Deine Tabs werden wiederhergestellt; ungespeicherte Seiten können vor dem Schließen nachfragen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinicia Blanc para terminar de preparar el audio y vídeo protegidos. Se restaurarán tus pestañas; las páginas sin guardar pueden pedir confirmación antes de cerrarse."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrez Blanc pour terminer la préparation des contenus audio et vidéo protégés. Vos onglets seront restaurés ; les pages non enregistrées peuvent demander confirmation avant de se fermer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia Blanc per completare la preparazione di audio e video protetti. Le schede verranno ripristinate; le pagine non salvate potrebbero chiedere conferma prima di chiudersi."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinicie o Blanc para concluir a preparação de áudio e vídeo protegidos. Suas abas serão restauradas; páginas não salvas podem pedir confirmação antes de fechar."
+          }
+        }
+      }
+    },
+    "drm.disabled": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected-media component updates are disabled. Restarting alone may not resolve this."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates der Komponente für geschützte Medien sind deaktiviert. Ein Neustart allein behebt dies möglicherweise nicht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las actualizaciones del componente de contenido protegido están desactivadas. Reiniciar puede no ser suficiente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les mises à jour du composant de contenus protégés sont désactivées. Un redémarrage seul ne suffira peut-être pas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli aggiornamenti del componente per i contenuti protetti sono disattivati. Il solo riavvio potrebbe non risolvere il problema."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As atualizações do componente de mídia protegida estão desativadas. Apenas reiniciar pode não resolver."
+          }
+        }
+      }
+    },
+    "drm.failed": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Komponente für geschützte Medien konnte nicht vorbereitet werden. Prüfe deine Verbindung und starte Blanc neu, um es erneut zu versuchen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo preparar el componente de contenido protegido. Comprueba tu conexión y reinicia Blanc para intentarlo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le composant de contenus protégés n’a pas pu être préparé. Vérifiez votre connexion, puis redémarrez Blanc pour réessayer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile preparare il componente per i contenuti protetti. Controlla la connessione, poi riavvia Blanc per riprovare."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível preparar o componente de mídia protegida. Verifique sua conexão e reinicie o Blanc para tentar novamente."
+          }
+        }
+      }
+    },
+    "drm.restartButton": {
+      "comment": "ECS-only protected-media status in Settings → Help.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc neu starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redémarrer Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riavvia Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar Blanc"
+          }
+        }
+      }
+    },
     "slash.favorites.hint": {
       "comment": "Slash command hint shown in the ⌘L palette for /favorites.",
       "extractionState": "manual",
@@ -20161,6 +20455,90 @@
         }
       }
     },
+    "tabMenu.pinSplit": {
+      "comment": "Tab context menu command on a Split View tab: pins every tab of the split.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht anheften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fijar vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Épingler la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fissa la vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixar visualização dividida"
+          }
+        }
+      }
+    },
+    "tabMenu.unpinSplit": {
+      "comment": "Tab context menu command on a pinned Split View tab: unpins every tab of the split.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin Split"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilte Ansicht lösen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soltar vista dividida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détacher la vue partagée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rilascia la vista divisa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desafixar visualização dividida"
+          }
+        }
+      }
+    },
     "tabMenu.mute": {
       "comment": "Tab context menu command.",
       "extractionState": "manual",
@@ -20703,48 +21081,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dividir com"
-          }
-        }
-      }
-    },
-    "tabMenu.splitPinnedRefused": {
-      "comment": "Tab context menu: disabled entry explaining why a pinned tab can't make a Split View.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pinned tabs can't join a split"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Angeheftete Tabs können nicht geteilt werden"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Las pestañas fijadas no pueden unirse a una vista dividida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les onglets épinglés ne peuvent pas rejoindre une vue partagée"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le schede fissate non possono far parte di una vista divisa"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abas fixadas não podem entrar em uma visualização dividida"
           }
         }
       }
@@ -27895,6 +28231,48 @@
         }
       }
     },
+    "sync.error.accountGone": {
+      "comment": "Profile Sync error on iPhone when the sync's data is gone from the server (deleted from desktop); the phone stops instead of recreating it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sync no longer exists. Turn sync off here, then add this phone again from your computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses Telefon dann auf deinem Computer erneut hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este teléfono desde tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa sincronizzazione non esiste più. Disattivala qui, poi aggiungi di nuovo questo telefono dal tuo computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronização não existe mais. Desative-a aqui e adicione este telefone de novo pelo seu computador."
+          }
+        }
+      }
+    },
     "settings.sync.recovery.dialogMessage": {
       "comment": "Settings → Sync → Copy recovery code: native dialog title.",
       "extractionState": "manual",
@@ -32049,6 +32427,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não foi possível recarregar a página"
+          }
+        }
+      }
+    },
+    "error.localFile.title": {
+      "comment": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This local file can’t open in this version of Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese lokale Datei lässt sich in dieser Blanc-Version nicht öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este archivo local no se puede abrir en esta versión de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier local ne peut pas s’ouvrir dans cette version de Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo file locale non si può aprire in questa versione di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este arquivo local não pode ser aberto nesta versão do Blanc"
+          }
+        }
+      }
+    },
+    "error.localFile.detail": {
+      "comment": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Version von Blanc spielt geschützte Videos ab und öffnet lokale Dateien nicht in Tabs. Blanc hat diesen Tab behalten, und die Datei selbst ist unverändert. Öffne die Datei in einer anderen App oder schließe diesen Tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta versión de Blanc reproduce vídeo protegido y no abre archivos locales en pestañas. Blanc ha conservado esta pestaña, y el archivo no ha cambiado. Abre el archivo en otra app o cierra esta pestaña."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette version de Blanc lit les vidéos protégées et n’ouvre pas les fichiers locaux dans des onglets. Blanc a conservé cet onglet, et le fichier lui-même n’a pas changé. Ouvrez le fichier dans une autre app ou fermez cet onglet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa versione di Blanc riproduce video protetti e non apre i file locali nelle schede. Blanc ha conservato questa scheda, e il file non è stato modificato. Apri il file in un’altra app o chiudi questa scheda."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta versão do Blanc reproduz vídeos protegidos e não abre arquivos locais em abas. O Blanc manteve esta aba, e o arquivo em si não foi alterado. Abra o arquivo em outro app ou feche esta aba."
           }
         }
       }
@@ -37755,6 +38217,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "Escuro"
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.label": {
+      "comment": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surface style"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oberflächenstil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo de superficie"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style des surfaces"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile delle superfici"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo das superfícies"
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.hint": {
+      "comment": "Settings → General: hint under the Surface style dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A aparência das páginas do próprio Blanc. «Neutro» troca o creme e o dourado por tinta e cinza lisos."
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.sunrise": {
+      "comment": "Settings → General: choice in the Surface style dropdown; Sunrise is Blanc's warm cream and gold palette.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.neutral": {
+      "comment": "Settings → General: choice in the Surface style dropdown; plain ink and gray, no gold.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutral"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutral"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
           }
         }
       }
@@ -63001,6 +63631,174 @@
         }
       }
     },
+    "error.inert.title": {
+      "comment": "Explanation page for a tab a page opened, which Blanc can’t load again with the restrictions it was opened under: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This tab can’t be reopened"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Tab kann nicht wieder geöffnet werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta pestaña no se puede volver a abrir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de rouvrir cet onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile riaprire questa scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta aba não pode ser reaberta"
+          }
+        }
+      }
+    },
+    "error.inert.detail": {
+      "comment": "Same page: explanation under the heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Seite hat diesen Tab geöffnet, und Blanc kann ihn nicht mit den Einschränkungen wieder öffnen, die diese Seite festgelegt hat. Um ihn erneut aufzurufen, kopiere den Link und öffne ihn in einem neuen Tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página abrió esta pestaña y Blanc no puede volver a abrirla con las restricciones que esa página estableció. Para visitarla de nuevo, copia el enlace y ábrelo en una pestaña nueva."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une page a ouvert cet onglet, et Blanc ne peut pas le rouvrir avec les restrictions définies par cette page. Pour le consulter à nouveau, copiez le lien et ouvrez-le dans un nouvel onglet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una pagina ha aperto questa scheda e Blanc non può riaprirla con le restrizioni impostate da quella pagina. Per visitarla di nuovo, copia il link e aprilo in una nuova scheda."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma página abriu esta aba, e o Blanc não consegue reabri-la com as restrições que essa página definiu. Para acessá-la de novo, copie o link e abra-o em uma nova aba."
+          }
+        }
+      }
+    },
+    "error.inert.copy": {
+      "comment": "Same page: button that copies the tab’s address.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy link"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar enlace"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia link"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar link"
+          }
+        }
+      }
+    },
+    "error.inert.copied": {
+      "comment": "Same page: the button’s label after copying.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlace copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lien copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiado"
+          }
+        }
+      }
+    },
     "error.certificate.title": {
       "comment": "Error page for an untrusted certificate: heading.",
       "extractionState": "manual",
@@ -87471,6 +88269,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tentar de novo"
+          }
+        }
+      }
+    },
+    "favorites.readOnlyNote": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites sync from your computer. Edit them there for now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoriten werden von deinem Computer synchronisiert. Bearbeite sie vorerst dort."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los favoritos se sincronizan desde tu ordenador. Por ahora, edítalos allí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les favoris sont synchronisés depuis votre ordinateur. Modifiez-les là-bas pour le moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I preferiti si sincronizzano dal computer. Per ora, modificali lì."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os favoritos são sincronizados do seu computador. Por enquanto, edite-os por lá."
+          }
+        }
+      }
+    },
+    "favorites.editOnComputer": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Favorites on your computer for now."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeite Favoriten vorerst auf deinem Computer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por ahora, edita los favoritos en tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifiez les favoris sur votre ordinateur pour le moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per ora, modifica i preferiti sul computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por enquanto, edite os favoritos no seu computador."
+          }
+        }
+      }
+    },
+    "settings.sync.createOnComputer": {
+      "comment": "iOS M7a capability guidance in the shared Favorites or Sync page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your sync on your computer, then add this phone with a code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte die Synchronisierung auf deinem Computer und füge dann dieses Telefon mit einem Code hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia la sincronización en tu ordenador y después añade este teléfono con un código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia la sincronizzazione sul computer, poi aggiungi questo telefono con un codice."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie a sincronização no seu computador e adicione este telefone com um código."
+          }
+        }
+      }
+    },
+    "settings.sync.enterSyncName": {
+      "comment": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your sync name"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deinen Sync-Namen ein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce el nombre de tu sincronización"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez le nom de votre synchronisation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci il nome della sincronizzazione"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite o nome da sua sincronização"
+          }
+        }
+      }
+    },
+    "settings.sync.enterPassphrase": {
+      "comment": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your passphrase"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib deine Passphrase ein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce tu frase de contraseña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez votre phrase secrète"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci la tua passphrase"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Digite sua frase secreta"
           }
         }
       }

@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.42.0",
+  "version": "1.43.1",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -12,6 +12,8 @@
     "dist": "electron-builder",
     "predist:dir": "npm run brand:check && npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
     "dist:dir": "electron-builder --dir",
+    "dist:ecs": "node scripts/build-ecs-production.cjs",
+    "dist:ecs:dir": "node scripts/build-ecs-production.cjs --dir",
     "release": "scripts/release.sh",
     "site:changelog": "node scripts/generate-site-changelog.mjs",
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
@@ -37,6 +39,7 @@
     "test:mouse-gestures:desktop": "node test/desktop/mouse-gestures.mjs",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:modified-links:desktop": "node test/desktop/modified-link-click-smoke.mjs",
+    "test:document-policy:desktop": "node test/desktop/document-policy-smoke.mjs",
     "test:oauth:live": "node scripts/oauth-canary.js",
     "test:acceptance:dry": "cucumber-js -c test/desktop/cucumber.mjs -p dry",
     "test:acceptance:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable",
@@ -171,7 +174,10 @@
     "pretest:web-store:runtime": "npm run runtime:check",
     "test:packaged:browser-compatibility": "node test/desktop/packaged-browser-compatibility-smoke.mjs",
     "pretest:packaged:browser-compatibility": "npm run runtime:check",
-    "pretest:trust-receipt": "npm run runtime:check"
+    "pretest:trust-receipt": "npm run runtime:check",
+    "test:pages": "node --test test/pages/*.test.mjs",
+    "ios:sync-vectors:build": "node scripts/build-ios-sync-vectors.cjs --write",
+    "ios:sync-vectors:check": "node scripts/build-ios-sync-vectors.cjs --check"
   },
   "author": {
     "name": "Bananify Creative",
@@ -184,7 +190,7 @@
     "@electron/asar": "4.3.1",
     "@eslint/js": "10.0.1",
     "@ghostery/adblocker": "^2.18.2",
-    "electron": "^44.8.0",
+    "electron": "^44.9.3",
     "electron-builder": "^26.15.3",
     "eslint": "10.12.0",
     "globals": "17.13.0",
@@ -252,7 +258,7 @@
     "beforePack": "scripts/before-pack.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1420",
+      "bundleVersion": "1431",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,

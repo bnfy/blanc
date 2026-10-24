@@ -2,226 +2,254 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import MailBar from '../components/MailBar.astro';
-import MailIcon from '../components/MailIcon.astro';
 import MailShot from '../components/MailShot.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
+import { checkoutHrefFor, priceFor } from '../data/mail-commerce.mjs';
 import '../styles/mail.css';
+
+// The features: the October 12 overview's sentences, word for word, plus Set
+// Aside and the Island (October 22). Each is recorded with its evidence and
+// limits in docs/website-mail-claims-2026-10-12.md.
+// Each glyph is a 24-unit line drawing, stroked in gilt.
+const features = [
+  { title: 'Every account together', text: 'Up to five Gmail accounts in one unified inbox, each with its own color. One search covers all of them.',
+    glyph: '<rect x="2.5" y="7.5" width="15" height="11" rx="2" /><path d="m3 9 7 4.8L17 9" /><path d="M6.5 4.5h12a3 3 0 0 1 3 3v8" />' },
+  { title: 'Set Aside', text: 'Put conversations into a named set, like “Read on the flight”, and they leave your Inbox to wait in the sidebar. Give a set a review date and it’s marked due when the day comes; nothing moves on its own. Set names and dates stay on this Mac.',
+    glyph: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5l-6.5 4V5A1.5 1.5 0 0 1 7 3.5Z" />' },
+  { title: 'A native window', text: 'Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.',
+    glyph: '<rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="M3 9h18M9 9v10.5" />' },
+  { title: 'Gmail first', text: 'Connect your Google account directly. Mail is stored locally for reading and draft recovery.',
+    glyph: '<rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" />' },
+  { title: 'A moment to change your mind', text: 'Archiving takes effect at once, with five seconds to undo it.',
+    glyph: '<path d="M9 7.5 5.5 11 9 14.5" /><path d="M5.5 11H14a4.5 4.5 0 0 1 0 9h-1.5" />' },
+  { title: 'Later, on your terms', text: 'Snooze a conversation until you need it, or write now and send later. Scheduled mail goes out the next time Blanc Mail is running and online on your Mac.',
+    glyph: '<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />' },
+  { title: 'Ghost Mode', text: 'Hide a conversation or a whole Gmail label from view, then unlock it with Touch ID or your password. It locks again on a timer. Ghost Mode keeps things off your screen; it isn’t encryption.',
+    glyph: '<path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /><rect x="5.5" y="10.5" width="13" height="10" rx="2.5" />' },
+  { title: 'Replies you type often', text: 'Save templates for the answers you give again and again; they stay on your Mac. Gmail’s vacation responder is in Settings too.',
+    glyph: '<rect x="5" y="3.5" width="14" height="17" rx="2.5" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" />' },
+  { title: 'Drafts that keep up', text: 'Move a draft to another account without losing a word. If anything interrupts you, your draft picks up right where you left off.',
+    glyph: '<path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" />' },
+];
+// The Island's slash commands, in the app's order and words
+// (MailIsland.swift and MailIslandPanel.swift in the Mail repository).
+const islandCommands = [
+  ['snooze', 'Snooze…'], ['set-aside', 'Set Aside'], ['label', 'Labels'], ['move', 'Move To…'],
+  ['archive', 'Archive'], ['trash', 'Trash'], ['compose', 'New Message'], ['rule', 'New Rule…'],
+];
+const islandPoints = [
+  { title: 'Jump anywhere', text: 'Type a few letters to jump to a mailbox, label, conversation, set or person in the accounts you’re viewing, or press ⇧↵ to search all your mail.' },
+  { title: 'Commands with a slash', text: 'Type / to snooze, set aside, label, move, archive or trash what you’ve selected, or start a new message or rule. A command that can’t run yet says why.' },
+  { title: 'Actions at hand', text: 'Select a conversation and the Island holds Archive, Snooze, Set Aside, Labels and Trash, with Reply, Forward and the rest one click away.' },
+];
+const careful = [
+  { title: 'Safe to read', text: 'Messages are sanitized before they’re shown, and scripts in them never run. Malformed mail still renders rather than leaving a blank pane.' },
+  { title: 'No accidental double sends', text: 'If a send fails and Gmail’s answer is unclear, Blanc Mail never retries it on its own.' },
+  { title: 'Nothing added to your mail', text: 'Blanc Mail adds no read receipts and no open or click tracking to the mail you send.' },
+  { title: 'Privacy choices', text: 'Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.' },
+];
+// Pricing, Support and Download were their own pages until October 22, 2026;
+// their words moved here unchanged (the old URLs redirect to these sections).
+const plans = [
+  { key: 'mail', name: 'Blanc Mail', features: ['Blanc Mail on macOS', 'Gmail-first native app', '14-day local trial'] },
+  { key: 'suite', name: 'Blanc Suite', features: ['Blanc Browser Patron on macOS, Windows, and Linux', 'Blanc Mail on macOS', 'Your Browser and Mail license keys in one subscription'] },
+];
+const support = [
+  { title: 'Accounts and data', html: 'Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app’s access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.' },
+  { title: 'Uninstalling', html: 'Quit the app and move Blanc Mail to the Trash. To erase local settings and recovery data too, first resolve any drafts you need, then remove the app’s data under your Mac’s Application Support folder. Renaming the app does not erase an existing test install’s local data or Keychain credentials.' },
+  { title: 'Updates and licensing', html: 'After launch, Check for Updates in the app will use its signed Sparkle feed. New subscriptions will be handled by Polar. Existing beta keys will continue to work. To have a previous key sent again, email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> from the address you bought it with.' },
+];
 ---
 <BaseLayout title="Blanc Mail — A little less inbox" description="Blanc Mail is a native Gmail client for macOS, coming soon from the makers of Blanc Browser." path="/mail" header="solid" ogImageAlt="The Blanc Sunrise mark on a warm ivory background">
   <MailBar />
-  <main id="main-content" class="mail-page mail-home">
-    <section class="mail-home-hero" aria-labelledby="mail-home-title">
-      <MailIcon class="mail-home-icon" />
-      <h1 id="mail-home-title">A little less inbox.</h1>
-      <p class="mail-lead">Blanc Mail brings a careful, native Gmail experience to your Mac.</p>
+  <!-- Until Mail launches, the overview is one gold envelope standing under a
+       lamp on a dark stage (docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md).
+       Every sentence is recorded in docs/website-mail-claims-2026-10-12.md:
+       the hero and most features carry over from the October 12 page; the
+       Island and Set Aside are new (its October 22 section). -->
+  <main id="main-content" class="mail-stage">
+    <section class="mail-soon" aria-labelledby="mail-soon-title">
+      <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
+      <h1 id="mail-soon-title"><span class="mail-gold-text">A little less inbox.</span></h1>
+      <!-- The Mail icon as an object: a gold envelope, its flap and folds
+           engraved, the Sunrise stamped where the flap meets. Decorative. -->
+      <div class="mail-envelope" data-mail-envelope aria-hidden="true">
+        <div class="mail-envelope-face">
+          <svg class="mail-envelope-folds" viewBox="0 0 800 500" preserveAspectRatio="none">
+            <path class="mail-groove" d="M0 0 L400 290 L800 0" />
+            <path class="mail-groove-lip" d="M0 2 L400 292 L800 2" />
+            <path class="mail-groove" d="M0 500 L330 248 M800 500 L470 248" />
+            <path class="mail-groove-lip" d="M0 502 L330 250 M800 502 L470 250" />
+          </svg>
+          <span class="mail-hallmark"><BrandMark class="mail-hallmark-lip" /><BrandMark class="mail-hallmark-cut" /></span>
+        </div>
+      </div>
+      <p class="mail-soon-lead">Blanc Mail brings a careful, native Gmail experience to your Mac.</p>
       <MailWaitlistForm />
     </section>
 
-    <!-- The real window, from the preview build's demo inbox, wider than the
-         text column and unframed. MailShot always carries the preview label. -->
-    <MailShot name="main" class="mail-wide mail-hero-shot mail-crop-phone" eager sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="Blanc Mail's main window in the preview build: the sidebar, the inbox, and a photo newsletter open in the reader." />
+    <!-- The gilt that strokes every glyph on the page. -->
+    <svg class="mail-defs" aria-hidden="true" focusable="false"><linearGradient id="mail-gilt-stroke" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#f6e7bd" /><stop offset=".45" stop-color="#e0c084" /><stop offset=".75" stop-color="#b48c4a" /><stop offset="1" stop-color="#e8cf96" /></linearGradient></svg>
 
-    <!-- An open row, not cards: a quick overview before the feature bento. -->
-    <section class="mail-home-section mail-strip-section" aria-labelledby="mail-home-mac">
-      <h2 id="mail-home-mac">One place to read, reply, and move on.</h2>
-      <div class="mail-strip">
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="M3 9h18M9 9v10.5" /></svg>
-          <h3>A native window</h3>
-          <p>Three familiar panes, keyboard friendly navigation, and a macOS app built with SwiftUI.</p>
-        </article>
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" /></svg>
-          <h3>Gmail first</h3>
-          <p>Connect your Google account directly. Mail is stored locally for reading and draft recovery.</p>
-        </article>
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 5 6v5.5c0 4.2 2.9 7.6 7 9 4.1-1.4 7-4.8 7-9V6l-7-2.5Z" /><path d="m9 12 2.2 2.2L15.5 10" /></svg>
-          <h3>Privacy choices</h3>
-          <p>Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.</p>
-        </article>
-      </div>
+    <!-- The headline feature. The figure is the Island's open panel as the Mail
+         app draws it after typing "/" with a conversation selected: its
+         layout, strings and order come from MailIslandPanel.swift. Recorded in
+         docs/website-mail-claims-2026-10-12.md (Island). -->
+    <section class="mail-island" aria-labelledby="mail-island-title">
+      <h2 id="mail-island-title"><span class="mail-gold-text">The Island, made for mail.</span></h2>
+      <p class="mail-island-lead">Blanc Browser’s floating Island, rebuilt for email. One capsule floats over your inbox in place of a toolbar, and ⌘L or ⌘F opens it in place to search, jump and act.</p>
+      <figure class="mail-island-figure">
+        <div class="mail-island-panel" role="img" aria-label="The Island open in Blanc Mail, listing its slash commands: Snooze, Set Aside, Labels, Move To, Archive, Trash, New Message and New Rule.">
+          <div class="mip-field" aria-hidden="true">
+            <svg class="mip-chevron" viewBox="0 0 24 24"><path d="m6 6 6 6-6 6M12 6l6 6-6 6" /></svg>
+            <span class="mip-input">/<i class="mip-caret"></i></span>
+            <svg class="mip-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>
+          </div>
+          <div class="mip-results" aria-hidden="true">
+            <p class="mip-header">commands</p>
+            {islandCommands.map(([keyword, title], index) => (
+              <p class:list={['mip-row', { 'is-highlighted': index === 0 }]}><b>/{keyword}</b>{title}</p>
+            ))}
+          </div>
+          <div class="mip-footer" aria-hidden="true">
+            <span class="mip-chips">{['snooze', 'set-aside', 'label', 'rule'].map(k => <span>/{k}</span>)}</span>
+            <span class="mip-hint">↑↓ to move, ↵ to open, ⇧↵ to search all mail</span>
+          </div>
+        </div>
+      </figure>
+      <ul class="mail-island-points">
+        {islandPoints.map(point => (
+          <li>
+            <h3>{point.title}</h3>
+            <p>{point.text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
 
-    <!-- Every claim below is recorded with its evidence and limits in
-         docs/website-mail-claims-2026-10-12.md; recheck it against the signed
-         Mail build before this page deploys. The vignettes are textless and
-         decorative: each shows only what its tile's copy says. -->
-    <section class="mail-home-section" aria-labelledby="mail-home-features">
-      <h2 id="mail-home-features">Every account, one calm inbox.</h2>
-      <div class="mail-feature-head">
-        <h3>Every account together</h3>
-        <p>Up to five Gmail accounts in one unified inbox, each with its own color. One search covers all of them.</p>
-      </div>
-      <MailShot name="island" class="mail-wide mail-crop-phone" sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="The Island searching “trip” in the preview build, listing a matching mailbox and conversations over the inbox." />
-      <div class="mail-bento" data-mail-bento>
-        <article class="mail-bento-tile is-wide">
-          <div class="mail-vignette vg-undo" aria-hidden="true">
-            <span class="vg-list"><span class="vg-row"><b></b><s></s></span><span class="vg-row is-archived"><b></b><s></s></span><span class="vg-row"><b></b><s></s></span></span>
-            <span class="vg-undo-side">
-              <span class="vg-archive"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="4" rx="1.2" /><path d="M5 8.5v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9M10 12.5h4" /></svg></span>
-              <span class="vg-chip"><svg class="vg-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" pathLength="1" /></svg><svg class="vg-undo-glyph" viewBox="0 0 24 24"><path d="M9 7.5 5.5 11 9 14.5" /><path d="M5.5 11H14a4.5 4.5 0 0 1 0 9h-1.5" /></svg></span>
-            </span>
-          </div>
-          <div class="mail-bento-copy">
-            <h3>A moment to change your mind</h3>
-            <p>Archiving takes effect at once, with five seconds to undo it.</p>
-          </div>
-        </article>
-        <article class="mail-bento-tile is-wide">
-          <div class="mail-vignette vg-later" aria-hidden="true">
-            <span class="vg-clock"><i class="vg-hand-hour"></i><i class="vg-hand-minute"></i></span>
-            <span class="vg-track"><i class="vg-mark"></i><span class="vg-envelope"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" /></svg></span></span>
-          </div>
-          <div class="mail-bento-copy">
-            <h3>Later, on your terms</h3>
-            <p>Snooze a conversation until you need it, or write now and send later. Scheduled mail goes out the next time Blanc Mail is running and online on your Mac.</p>
-          </div>
-        </article>
-        <article class="mail-bento-tile is-wide">
-          <div class="mail-vignette vg-ghost" aria-hidden="true">
-            <span class="vg-list"><span class="vg-row"><b></b><s></s></span><span class="vg-row"><b></b><s></s></span><span class="vg-row"><b></b><s></s></span></span>
-            <span class="vg-lock"><svg viewBox="0 0 24 24"><path class="vg-shackle" d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /><rect x="5.5" y="10.5" width="13" height="10" rx="2.5" /></svg></span>
-          </div>
-          <div class="mail-bento-copy">
-            <h3>Ghost Mode</h3>
-            <p>Hide a conversation or a whole Gmail label from view, then unlock it with Touch ID or your password. It locks again on a timer. Ghost Mode keeps things off your screen; it isn’t encryption.</p>
-          </div>
-        </article>
-        <article class="mail-bento-tile">
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2.5" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" /></svg>
-          <div class="mail-bento-copy">
-            <h3>Replies you type often</h3>
-            <p>Save templates for the answers you give again and again; they stay on your Mac. Gmail’s vacation responder is in Settings too.</p>
-          </div>
-        </article>
-        <article class="mail-bento-tile">
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z" /><path d="m13.5 6.5 4 4" /></svg>
-          <div class="mail-bento-copy">
-            <h3>Drafts that keep up</h3>
-            <p>Move a draft to another account without losing a word. If anything interrupts you, your draft picks up right where you left off.</p>
-          </div>
-        </article>
-      </div>
+    <section class="mail-features" aria-labelledby="mail-features-title">
+      <h2 id="mail-features-title"><span class="mail-gold-text">Every account, one calm inbox.</span></h2>
+      <ul class="mail-feature-grid">
+        {features.map(feature => (
+          <li class="mail-feature">
+            <span class="mail-feature-badge" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={feature.glyph} /></span>
+            <h3>{feature.title}</h3>
+            <p>{feature.text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
 
-    <!-- New copy, checked against the Mail source and recorded in
-         docs/website-mail-claims-2026-10-12.md; it needs the owner's approval
-         before this page deploys. -->
-    <section class="mail-home-section mail-showcase" aria-labelledby="mail-home-clear">
-      <h2 id="mail-home-clear">An empty inbox, kept that way.</h2>
-      <div class="mail-feature-head">
-        <h3>Inbox Zero</h3>
-        <p>When your inbox is empty, Blanc Mail clears the list and reader for a quiet Sunrise view and one line: “Nothing here needs you right now.” Small chips show when your next snoozed conversation returns and when a set you put aside is due, and one click opens it.</p>
-        <p class="mail-feature-note">Turn on “Change wallpapers with the time of day” in Settings › Appearance and the art follows your Mac’s clock, from dawn to night.</p>
-        <fieldset class="mail-segmented">
-          <legend class="mail-visually-hidden">Wallpaper</legend>
-          <label><input type="radio" name="mail-zero-phase" value="dawn" checked /><span>Dawn</span></label>
-          <label><input type="radio" name="mail-zero-phase" value="night" /><span>Night</span></label>
-        </fieldset>
-      </div>
-      <div class="mail-zero mail-wide">
-        <MailShot name="zero" class="mail-zero-dawn mail-crop-phone" sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="Inbox Zero in the preview build: the Sunrise art at dawn and “Nothing here needs you right now.”" />
-        <MailShot name="zero-night" class="mail-zero-night mail-crop-phone" sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="The same Inbox Zero screen with the night art." />
-      </div>
-      <div class="mail-feature-head">
-        <h3>Rules that read like sentences</h3>
+    <!-- Rules: the rule editor, dark, captured by the Mail repository's
+         capture-public-shots.sh (scene rule-editor) from the signed demo build
+         at b3a4788a; MailShot labels it as a preview. -->
+    <section class="mail-rules" aria-labelledby="mail-rules-title">
+      <div class="mail-rules-copy">
+        <h2 id="mail-rules-title"><span class="mail-gold-text">Rules that read like sentences</span></h2>
         <p>Your Gmail filters, written out in plain words. Rules run in Gmail, so new mail keeps getting sorted even while Blanc Mail is closed, and rules you made in Gmail on the web appear too.</p>
       </div>
-      <MailShot name="rules" class="mail-rules-shot" sizes="(max-width: 1100px) 100vw, 1060px" width={2200} height={1964} alt="Settings › Rules in the preview build: three Gmail rules written as sentences, such as “When a message is from trailclub.example, label it Trips.”" />
+      <MailShot name="rule-editor" class="mail-rules-shot" sizes="(max-width: 760px) 100vw, 700px" width={1400} height={744} alt="Editing a rule in the preview build, in the dark appearance: “When a message is from trailclub.example, label it Trips”, with its Gmail search, the one conversation it already matches, and Save Rule." />
     </section>
 
-    <!-- Drag (or use the arrow keys) to wipe between the two appearances. -->
-    <section class="mail-home-section mail-modes" aria-labelledby="mail-home-modes">
-      <h2 id="mail-home-modes">At home in light and dark.</h2>
-      <div class="mail-compare mail-wide" data-mail-compare>
-        <MailShot name="main" class="mail-compare-light" sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="Blanc Mail's main window in the light appearance, from the preview build." />
-        <MailShot name="dark" class="mail-compare-dark" sizes="(max-width: 1392px) 100vw, 1360px" width={2200} height={1342} alt="The same window in the dark appearance." />
-        <span class="mail-compare-handle" aria-hidden="true"></span>
-        <input class="mail-compare-range" type="range" min="0" max="100" value="50" aria-label="Compare the light and dark appearance" />
+    <section class="mail-careful" aria-labelledby="mail-careful-title">
+      <h2 id="mail-careful-title"><span class="mail-gold-text">Careful in what it sends, generous in what it accepts.</span></h2>
+      <ul class="mail-careful-row">
+        {careful.map(item => (
+          <li>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section id="pricing" class="mail-pricing" aria-labelledby="mail-pricing-title">
+      <h2 id="mail-pricing-title"><span class="mail-gold-text">A good home for your mail.</span></h2>
+      <p class="mail-section-lead">Start with a 14-day local trial when Mail launches. No card is needed to begin.</p>
+      <!-- Status first, so nobody reads the prices as an open offer. -->
+      <p class="mail-pricing-status">Purchases are not open yet. Current Browser Patron subscribers will be able to upgrade to Suite through Polar on the same billing period, and their Browser license key keeps working without being entered again. Existing Patron and founding benefits continue to apply to Browser only.</p>
+      <ul class="mail-plans">
+        {plans.map(plan => (
+          <li class="mail-plan">
+            <h3>{plan.name}</h3>
+            <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-monthly`)}</strong> / month<br />or <strong>{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+            <ul>{plan.features.map(feature => <li>{feature}</li>)}</ul>
+            {['monthly', 'annual'].map(period => {
+              const href = checkoutHrefFor(`${plan.key}-${period}`);
+              return href ? <a href={href}>{`Choose ${plan.name} — ${period}`}</a> : null;
+            })}
+          </li>
+        ))}
+      </ul>
+      <div class="mail-pricing-end">
+        <h3>What happens when a subscription ends?</h3>
+        <p>Blanc Mail keeps your mail readable, searchable, and exportable. Composing and sending pause until a valid license is available. Browser's free features remain free.</p>
       </div>
     </section>
 
-    <!-- A dark band: the change of material marks the move from features to trust. -->
-    <section class="mail-home-section mail-trust" aria-labelledby="mail-home-careful">
-      <h2 id="mail-home-careful">Careful in what it sends, generous in what it accepts.</h2>
-      <div class="mail-strip">
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" /><path d="m8.5 12 2.5 2.5 4.5-5" /></svg>
-          <h3>Mail that opens</h3>
-          <p>Messages are sanitized before they’re shown, and scripts in them never run. Malformed mail still renders rather than leaving a blank pane.</p>
-        </article>
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4 18-7Z" /><path d="M21 3 10 14" /></svg>
-          <h3>No accidental double sends</h3>
-          <p>If a send fails and Gmail’s answer is unclear, Blanc Mail never retries it on its own.</p>
-        </article>
-        <article>
-          <svg class="mail-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="m3.5 7 8.5 6 8.5-6" /><path d="m4 20 16-16" /></svg>
-          <h3>Nothing added to your mail</h3>
-          <p>Blanc Mail adds no read receipts and no open or click tracking to the mail you send.</p>
-        </article>
-      </div>
+    <section id="support" class="mail-support" aria-labelledby="mail-support-title">
+      <h2 id="mail-support-title"><span class="mail-gold-text">Support</span></h2>
+      <p class="mail-section-lead">For help with the Mac app or your license, email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off-->.</p>
+      <ul class="mail-careful-row mail-support-row">
+        {support.map(item => (
+          <li>
+            <h3>{item.title}</h3>
+            <p set:html={item.html} />
+          </li>
+        ))}
+      </ul>
     </section>
 
-    <!-- The form's own label is the heading here, so no new copy is needed. -->
-    <section class="mail-home-section mail-closing">
-      <MailIcon class="mail-closing-icon" decorative />
+    <!-- Download closes the page: what it waits on, what it needs, and the
+         waitlist again (its label hidden, as in the hero; the heading says it). -->
+    <section id="download" class="mail-closing" aria-labelledby="mail-download-title">
+      <h2 id="mail-download-title"><span class="mail-gold-text">Blanc Mail for Mac.</span></h2>
+      <p class="mail-section-lead">The first download will appear here after the signed macOS build, Gmail sign-in, Private Push, and Sparkle update checks pass.</p>
       <MailWaitlistForm id="closing-waitlist" />
+      <p class="mail-requirements">macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account. Blanc Mail does not have a Windows or Linux edition planned for launch.</p>
     </section>
 
-    <section class="mail-home-section" aria-labelledby="mail-home-family">
-      <h2 id="mail-home-family">One Blanc family.</h2>
-      <div class="mail-home-family">
-        <a class="mail-home-app" href="/download">
-          <span class="mail-home-app-icon is-browser"><BrandMark /></span>
-          <span class="mail-home-app-text">
-            <strong>Blanc Browser</strong>
-            <span>Available now on macOS, Windows, and Linux.</span>
-          </span>
-          <span class="mail-home-app-chevron" aria-hidden="true">›</span>
-        </a>
-        <a class="mail-home-app" href="/mail/download">
-          <MailIcon class="mail-home-app-icon" decorative />
-          <span class="mail-home-app-text">
-            <strong>Blanc Mail</strong>
-            <span>A separate macOS app, coming soon.</span>
-          </span>
-          <span class="mail-home-app-chevron" aria-hidden="true">›</span>
-        </a>
-      </div>
-      <p class="mail-home-suite">At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
-      <p class="mail-muted mail-home-suite">Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
-    </section>
+    <div class="mail-stage-notes">
+      <p>At launch, a Blanc Suite subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
+      <p>Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
+      <p><a href="/download">Blanc Browser</a> is available now on macOS, Windows, and Linux.</p>
+      <p><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>
+    </div>
   </main>
 </BaseLayout>
 <script>
-  // Each vignette plays once when its tile first comes into view (touch has
-  // no hover), and again when a pointer enters the tile. Every animation ends
-  // on the tile's still frame, which is all reduced motion ever shows.
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  const play = (tile: Element) => {
-    if (reduce.matches || tile.classList.contains('is-playing')) return;
-    tile.classList.add('is-playing');
-    Promise.allSettled(tile.getAnimations({ subtree: true }).map((a) => a.finished))
-      .then(() => tile.classList.remove('is-playing'));
-  };
-  const tiles = document.querySelectorAll('[data-mail-bento] .mail-bento-tile:has(.mail-vignette)');
-  const seen = new IntersectionObserver((entries) => {
-    for (const entry of entries) if (entry.isIntersecting) { play(entry.target); seen.unobserve(entry.target); }
-  }, { threshold: 0.6 });
-  tiles.forEach((tile) => {
-    seen.observe(tile);
-    tile.addEventListener('pointerenter', () => play(tile));
-  });
-
-  // The light/dark compare: the slider's value is where the dark window
-  // starts, so the divider follows the pointer exactly.
-  document.querySelectorAll<HTMLElement>('[data-mail-compare]').forEach((compare) => {
-    const range = compare.querySelector<HTMLInputElement>('input[type=range]');
-    if (!range) return;
-    const sync = () => compare.style.setProperty('--split', `${range.value}%`);
-    range.addEventListener('input', sync);
-    sync();
-  });
+  // The envelope catches the lamp: its sheen follows the pointer and it leans
+  // a degree or two toward it, so the reflections move the way metal's do.
+  // Only for a mouse with motion allowed; otherwise it holds its resting
+  // light, which is the finished design.
+  const envelope = document.querySelector<HTMLElement>('[data-mail-envelope]');
+  const still = matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)');
+  if (envelope) {
+    let frame = 0;
+    let inView = true;
+    // Cancelling the queued frame matters: one already scheduled by the last
+    // move would otherwise lean the envelope again after it settled.
+    const settle = () => {
+      cancelAnimationFrame(frame);
+      envelope.style.removeProperty('--mx');
+      envelope.style.removeProperty('--my');
+    };
+    // Off screen, the envelope needs no light: skip the work and let it rest.
+    new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (!inView) settle();
+    }).observe(envelope);
+    document.addEventListener('pointermove', (event) => {
+      if (still.matches || !inView || event.pointerType !== 'mouse') return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        // Measured against the viewport, so the light moves across the whole
+        // stage rather than only while the pointer is over the envelope.
+        envelope.style.setProperty('--mx', (event.clientX / innerWidth).toFixed(3));
+        envelope.style.setProperty('--my', (event.clientY / innerHeight).toFixed(3));
+      });
+    });
+    document.documentElement.addEventListener('pointerleave', settle);
+    still.addEventListener('change', settle);
+  }
 </script>
