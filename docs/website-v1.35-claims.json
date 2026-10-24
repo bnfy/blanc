@@ -35,7 +35,7 @@
       "evidence": [
         "site/src/pages/privacy.astro"
       ],
-      "qualification": "The revision date tracks the current website policy, not a claim that later website behavior shipped in desktop v1.35.0. The October 22, 2026 revision describes consented website funnel events implemented in site/src/scripts/site.js and checked by test/unit/site-attribution-consent.test.js. The October 19 revision added the What's New check that ships in v1.39.0; the October 17 revision added the newsletter signup card and its browser-local entry. Desktop telemetry is unchanged by the October 22 website update."
+      "qualification": "The revision date tracks the current website policy, not a claim that later website behavior shipped in desktop v1.35.0. The October 24, 2026 revision adds the Widevine component requests to Google's component update service, which ship in Blanc 1.43.0 (src/main/drm-runtime.js), observed in a network capture of the signed 1.43.0 candidate built from 3ed27fda0. The October 22, 2026 revision describes consented website funnel events implemented in site/src/scripts/site.js and checked by test/unit/site-attribution-consent.test.js. The October 19 revision added the What's New check that ships in v1.39.0; the October 17 revision added the newsletter signup card and its browser-local entry. Desktop telemetry is unchanged by the October 22 website update."
     },
     "patronPage": {
       "evidence": [
@@ -151,7 +151,7 @@
     {
       "id": "v135-010",
       "source": "site/src/pages/privacy.astro",
-      "exactWording": "Last updated October 22, 2026",
+      "exactWording": "Last updated October 24, 2026",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "privacyRevision"
