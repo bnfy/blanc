@@ -1,7 +1,7 @@
 # Arc migration: import and Space sync
 
 Date: 2026-10-23
-Status: draft for owner review in PR #1070; nothing implemented
+Status: merged October 23, 2026 (#1070); nothing implemented. Source checks so far: `docs/evidence/arc-1-170-mac-sidebar-and-export-2026-10-23.md`, `docs/evidence/arc-rich-test-setup-2026-10-24.md`, `docs/evidence/arc-rich-setup-importer-and-export-2026-10-24.md`
 Builds on: F45 Arc Spaces import (`docs/superpowers/specs/2026-10-11-arc-spaces-import-design.md`), Blanc Spaces, Profile Sync v1 (`cloudflare/sync-worker/README.md`)
 
 ## Why
@@ -62,7 +62,9 @@ The first release uses **flat groups named by folder path**, such as `Work / Res
 - **50 groups and 500 tabs per Space** (`src/main/arc-sidebar.js:27-28`) stay. Over 50 non-empty folders, the first 50 in source order become groups. The preview lists the rest, and only after confirmation are their tabs imported ungrouped. Tabs past 500 are reported as left out.
 - **Empty folders** are reported as not imported, with their paths in the summary.
 - **Splits:** two-pane splits become Blanc splits where Split View's rules allow (Blanc ships two panes; `PR1_MAX_PANES` in `src/main/split-model.js:13`). Larger splits are listed in the preview, and their tabs are imported in order without the split.
-- Pinned tabs and custom tab names keep F45's behavior. Today tabs, Favorites and the all-or-none write for the selected import stay as they are.
+- Custom tab names, Today tabs, Favorites and the all-or-none write for the selected import keep F45's behavior.
+- **Open decision: tabs inside folders.** Arc keeps folders in the pinned area, so every tab in a folder is pinned in Arc; F45 imports them unpinned (22 of 22 in the October 24 baseline). Release 1 either pins them inside their group (Blanc's group-local pins) or documents that only loose pinned tabs stay pinned. Decide at the November 5 review.
+- **Open decision: sidebar order.** F45 places loose pinned tabs first, then folders, then Today, so a loose pinned tab Arc lists after a folder moves ahead of it. Blanc can lay ungrouped tabs between groups, but ungrouped pinned tabs sit in their own pinned section, so Arc's order may be only partly reproducible. Decide at the same review.
 - Existing flat-group rules don't change: unique names ignoring case, `/group` find-or-create, section ordering, ⌘1–9 and the Island's dots.
 
 ### Profiles and setup
@@ -202,6 +204,7 @@ Deferred: Boosts, Easels, live integrations, AI features and mobile parity. Gene
 
 ## Open questions
 
-- Whether Arc's export carries identifiers that match the sidebar file's.
+- Answered October 23–24: Arc's export carries no identifiers, titles, splits or pinned/Today distinction (`docs/evidence/arc-rich-setup-importer-and-export-2026-10-24.md`). It can only be a fallback for links and folder paths; matching across computers has to come from the sidebar file.
+- Whether tabs inside Arc folders stay pinned, and whether Arc's sidebar order is kept (see *Keep the structure, within current limits*).
 - Whether the sidebar file stays on disk and readable after December 22.
 - Whether Release 2's Worker change should land before or after iOS M7a's client ships, to avoid testing the iPhone against a moving Worker.
