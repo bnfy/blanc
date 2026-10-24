@@ -11,6 +11,7 @@ const crypt = require('../src/main/sync-crypto');
 const pair = require('../src/main/sync-pairing');
 const tabs = require('../src/main/tabsync-model');
 const names = require('../src/main/device-names');
+const sends = require('../src/main/sends-model');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ios-vectors-'));
 const electronId = require.resolve('electron');
 const original = require.cache[electronId];
@@ -33,7 +34,7 @@ function seal(key, plaintext, iv) {
   assert.equal(crypt.decrypt(key, blob), plaintext); return blob;
 }
 try {
-  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], canonical: [], lowercase: [], deviceNamesRename: [] };
+  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], canonical: [], lowercase: [], deviceNamesRename: [], sendsMerge: [], sendsInbox: [], sendsTargets: [], sendsOwn: [] };
   for (const [handle, passphrase] of [['Anthony','correct horse battery staple'],['  Zoë ','Pässwörd-1234'],['İstanbul','🦊🦊🦊🦊🦊 long enough'],['ΟΔΟΣ','correct horse battery staple'],['ab','x']]) {
     const k = crypt.deriveKeys(handle,passphrase); vectors.deriveKeys.push(entry(handle,{handle,passphrase},{accountId:k.accountId,contentKey:k.key.toString('hex')}));
   }
@@ -85,6 +86,44 @@ try {
     const mod=moduleInProfile('bookmarks',local); mod.mergeFromSync(remote); vectors.favoritesMerge.push(entry(name,{local,remote,now:fixedNow},mod.exportForSync()));
   }
   for(const value of [{b:1,a:2},{text:'\ud83d'},{'￿':1,'😀':2},[1,1.5,1e21,-0,1e-7,1e-6],{text:'\b\f\n\t\r\u2028\u007f"\\'}, {'10':'ten','2':'two',a:1}]) vectors.canonical.push(entry('canonical',value,tabs.canonical(value)));
+  const DAY=24*60*60*1000, sItem=(id,over={})=>({id,to:'phone',url:`https://example.com/${id}`,title:id,sentAt:fixedNow-1000,...over});
+  const sEntry=(name,updatedAt,items=[],platform='darwin')=>({name,platform,updatedAt,items});
+  const many=Array.from({length:21},(_,i)=>sItem(`i${String(i).padStart(2,'0')}`,{sentAt:fixedNow-(21-i)*1000}));
+  for(const [name,local,remote] of [
+    ['own wins tie',{own:sEntry('local',fixedNow)},{own:sEntry('remote',fixedNow)}],
+    ['smaller canonical wins tie',{mac:sEntry('😀',fixedNow)},{mac:sEntry('￿',fixedNow)}],
+    ['remote newer',{mac:sEntry('old',fixedNow-2000)},{mac:sEntry('new',fixedNow-1000)}],
+    ['retraction wins',{mac:sEntry('Mac',fixedNow-2000,[sItem('a')])},{mac:sends.retractedEntry(fixedNow-1000)}],
+    ['same-clock retraction wins',{mac:sEntry('Mac',fixedNow)},{mac:sends.retractedEntry(fixedNow)}],
+    ['thirty day prune, own kept',{own:sEntry('own',fixedNow-sends.ENTRY_TTL_MS)},{old:sEntry('old',fixedNow-sends.ENTRY_TTL_MS),edge:sEntry('edge',fixedNow-sends.ENTRY_TTL_MS+1)}],
+    ['21 items keep newest 20',{},{mac:sEntry('Mac',fixedNow,many)}],
+    ['seven day expiry',{},{mac:sEntry('Mac',fixedNow,[sItem('gone',{sentAt:fixedNow-sends.ITEM_TTL_MS}),sItem('kept',{sentAt:fixedNow-sends.ITEM_TTL_MS+1})])}],
+    ['invalid items dropped',{},{mac:sEntry('Mac',fixedNow,[sItem('ftp',{url:'ftp://x.test/'}),sItem('long',{title:'a'.repeat(199)+'😀'}),sItem('long',{sentAt:fixedNow-5000}),{id:'',to:'phone',url:'https://x.test/',sentAt:fixedNow}])}],
+  ]) {
+    const merged=sends.mergeDevices(local,remote,'own',fixedNow);
+    vectors.sendsMerge.push(entry(name,{local,remote,ownId:'own',now:fixedNow},{merged,budgeted:sends.applyBudget(merged,'own')}));
+  }
+  const budgetDevices={own:sEntry('own',fixedNow-5000,many.slice(0,20).map(i=>({...i,title:'x'.repeat(200)})))};
+  for(const id of ['a','b','c']) budgetDevices[id]=sEntry(id,fixedNow-({a:4000,b:3000,c:2000})[id],many.slice(0,20).map(i=>({...i,id:`${id}${i.id}`,title:'x'.repeat(200)})));
+  vectors.sendsMerge.push(entry('budget drops stalest others',{local:budgetDevices,remote:{},ownId:'own',now:fixedNow,maxBytes:20000},{merged:sends.mergeDevices(budgetDevices,{},'own',fixedNow),budgeted:sends.applyBudget(sends.mergeDevices(budgetDevices,{},'own',fixedNow),'own',{maxBytes:20000})}));
+  const inboxDevices={mac:sEntry('Mac',fixedNow,[sItem('a',{sentAt:fixedNow-3000}),sItem('b',{to:'pc'}),sItem('c',{sentAt:fixedNow-2000}),sItem('d',{sentAt:fixedNow-2000})]),phone:sEntry('iPhone',fixedNow,[sItem('self')],'ios'),pc:sEntry('PC',fixedNow,[sItem('old',{sentAt:fixedNow-sends.ITEM_TTL_MS})],'win32')};
+  vectors.sendsInbox.push(entry('inbox',{devices:inboxDevices,ownId:'phone',dismissed:{c:fixedNow},now:fixedNow},sends.inbox(inboxDevices,'phone',{c:fixedNow},fixedNow)));
+  vectors.sendsInbox.push(entry('prune dismissed',{operation:'pruneDismissed',dismissed:{a:fixedNow-sends.DISMISS_TTL_MS,b:fixedNow-sends.DISMISS_TTL_MS+1},now:fixedNow},sends.pruneDismissed({a:fixedNow-sends.DISMISS_TTL_MS,b:fixedNow-sends.DISMISS_TTL_MS+1},fixedNow)));
+  const tSends={phone:sEntry('iPhone',fixedNow,[],'ios'),pc:sEntry('PC (sends)',fixedNow-500,[],'win32')};
+  const tSession={pc:{name:'PC',platform:'win32',updatedAt:fixedNow-1000,tabs:[],groups:[]},gone:{retracted:true,updatedAt:fixedNow},me:{name:'Me',platform:'darwin',updatedAt:fixedNow,tabs:[],groups:[]}};
+  const tNames={phone:{name:'Pocket',at:1}};
+  vectors.sendsTargets.push(entry('targets',{sends:tSends,session:tSession,ownId:'me',deviceNames:tNames},sends.targets(tSends,tSession,'me',tNames)));
+  for(const [name,previous,args,options] of [
+    ['first entry',null,{name:'iPhone',platform:'ios'},{}],
+    ['heartbeat not due',sEntry('iPhone',fixedNow-DAY+1,[],'ios'),{name:'iPhone',platform:'ios'},{}],
+    ['heartbeat due',sEntry('iPhone',fixedNow-DAY,[],'ios'),{name:'iPhone',platform:'ios'},{}],
+    ['renamed',sEntry('iPhone',fixedNow-1000,[],'ios'),{name:'Phone',platform:'ios'},{}],
+    ['forced',sEntry('iPhone',fixedNow-1000,[],'ios'),{name:'iPhone',platform:'ios'},{force:true}],
+    ['back after a retraction',sends.retractedEntry(fixedNow-1000),{name:'iPhone',platform:'ios'},{}],
+    ['expired item dropped',sEntry('iPhone',fixedNow-1000,[sItem('old',{sentAt:fixedNow-8*DAY})],'ios'),{name:'iPhone',platform:'ios'},{}],
+  ]) vectors.sendsOwn.push(entry(name,{previous,...args,now:fixedNow,force:!!options.force},sends.ownEntry(previous,args,fixedNow,options)));
+  vectors.sendsOwn.push(entry('add item',{operation:'addItem',previous:sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),url:'https://x.test/',title:'X',to:'mac',ownId:'phone',now:fixedNow,id:'new'},sends.addItem(sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),{url:'https://x.test/',title:'X',to:'mac'},'phone',fixedNow,()=>'new')));
+  vectors.sendsOwn.push(entry('add to self',{operation:'addItem',previous:null,url:'https://x.test/',title:'X',to:'phone',ownId:'phone',now:fixedNow,id:'new'},sends.addItem(null,{url:'https://x.test/',title:'X',to:'phone'},'phone',fixedNow,()=>'new')));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

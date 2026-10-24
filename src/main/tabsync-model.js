@@ -204,7 +204,7 @@ function displayDevices(devices, ownId, { now }) {
 
 module.exports = {
   PRUNE_MS, HEARTBEAT_MS, BUDGET_BYTES,
-  canonical, fingerprint, sanitizeEntry,
+  canonical, fingerprint, sanitizeEntry, winner,
   mergeDevices, rebindDevices,
   buildOwnEntry, retractedEntry, ownEntryFor, heartbeatDue,
   devicesEqual, applyBudget, exportDevices, displayDevices,

@@ -53,9 +53,13 @@ Never set `CLEANUP_ENABLED` until every account has a marker:
   "pairing unavailable" and falls back to name and passphrase.
 
 `accountId` is 64 hex chars; `store` is one of `bookmarks`, `settings`,
-`session` (tab sync — per-device open-tab snapshots), or `icons` (optional
+`session` (tab sync — per-device open-tab snapshots), `icons` (optional
 source-rasterized tab favicons, kept separate for mixed-client compatibility
-and budget isolation). Every store is ciphertext like the rest. No
+and budget isolation), or `sends` (Send to device: each device's presence
+and the pages it sent, docs/superpowers/specs/2026-10-24-ios-m7b-send-to-device-design.md).
+Deploy `sends` before any client release that offers sending; a client
+meeting an older Worker gets `404 unknown store` and says sending isn't
+available yet. Every store is ciphertext like the rest. No
 separate credentials: possession of `accountId` is the bearer storage
 capability, permitting retrieval, replacement and deletion of ciphertext.
 Its resistance to guessing depends on the handle/passphrase and KDF. This

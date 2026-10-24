@@ -6,6 +6,7 @@ const bookmarks = require('./bookmarks');
 const startPagePins = require('./start-page-pins');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
+const sends = require('./sends');
 const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
@@ -140,6 +141,16 @@ const STORES = [
     export: (ctx) => tabicons.exportForSync(ctx),
     merge: (remote, ctx) => tabicons.mergeFromSync(remote, ctx),
     equals: (exported, remote) => tabicons.equalsRemote(exported, remote),
+  },
+  {
+    // Send to device (M7b addendum §3, §6): optional until the deployed
+    // Worker serves it. Presence alone never creates the store; an item does.
+    name: 'sends',
+    optional: true,
+    hasPublishableContent: (payload, ctx) => sends.hasOwnItems(payload, ctx),
+    export: (ctx) => sends.exportForSync(ctx),
+    merge: (remote, ctx) => sends.mergeFromSync(remote, ctx),
+    equals: (exported, remote) => sends.equalsRemote(exported, remote),
   },
 ];
 
@@ -607,6 +618,8 @@ async function disable({ wipeRemote = false } = {}) {
       if (!decision.clearCredentials) {
         return { ok: false, error: decision.error, status: status() };
       }
+    } else if (d.enabled && d.accountId && d.protectedKey) {
+      await retractSends(d).catch(() => {});
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
@@ -619,10 +632,15 @@ async function disable({ wipeRemote = false } = {}) {
     // not per-account.)
     tabsync.onSyncDisabled();
     tabicons.onSyncDisabled();
+    sends.onSyncDisabled();
     return { ok: true, status: status() };
   } finally {
     suspended = false; // a failed wipe keeps sync enabled — future passes must run
   }
+}
+
+async function responseText(res) {
+  try { return typeof res.text === 'function' ? await res.text() : ''; } catch { return ''; }
 }
 
 /** `run` is immutable for the whole sync pass: `run.ctx` is the tab-sync
@@ -645,6 +663,10 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   } else if (getRes.status === 429) {
     throw new SyncError('rate-limited');
   } else if (getRes.status === 404) {
+    // An older Worker answers an optional store it doesn't serve with this
+    // body; a missing blob in a served store answers "not found".
+    if (desc.optional && await responseText(getRes) === 'unknown store') return { unavailable: true };
+    if (run.stale()) throw new SyncError('stale');
     missing = true;
   } else {
     throw new SyncError(`http-${getRes.status}`);
@@ -658,7 +680,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     missing &&
     desc.optional &&
     desc.hasPublishableContent &&
-    !desc.hasPublishableContent(payload)
+    !desc.hasPublishableContent(payload, run.ctx)
   ) {
     return { missing: true };
   }
@@ -675,13 +697,15 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     return syncOne(accountId, key, desc, run, attempt + 1); // re-pull-merge
   }
   if (putRes.status === 409) throw new SyncError('conflict');
-  if (desc.optional && putRes.status === 404) return;
+  if (desc.optional && putRes.status === 404) return { unavailable: true };
   if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
 }
 
-async function syncNow(names = null) {
+/** `onOutcome(name, outcome, error)` reports each store this pass ran; it
+ * is how sendTab learns its own PUT's result. */
+async function syncNow(names = null, { onOutcome } = {}) {
   if (!isDefaultLocalProfile()) {
-    return withLocalProfile(DEFAULT_PROFILE_ID, () => syncNow(names));
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => syncNow(names, { onOutcome }));
   }
   const d = ensureStore().data;
   // `suspended` bars new passes while disable() drains and wipes — a fresh
@@ -732,6 +756,7 @@ async function syncNow(names = null) {
       if (!desc.optional) ranRequiredStore = true;
       try {
         const outcome = await syncOne(accountId, key, desc, run);
+        onOutcome?.(desc.name, outcome ?? null, null);
         if (desc.optional) {
           if (outcome?.missing) {
             scheduleOptionalMissingRetry(accountId, desc.name);
@@ -742,6 +767,7 @@ async function syncNow(names = null) {
       }
       catch (err) {
         if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
+        onOutcome?.(desc.name, null, err);
         // Cosmetic sidecars degrade to fallback UI; they must never make
         // Favorites/settings/session sync report a failure.
         if (!desc.optional) firstError ??= err;
@@ -835,11 +861,11 @@ function setSyncTabs(on) {
 
 let lastSessionRefresh = 0;
 /** Freshness pull on window focus / panel open (spec §6), throttled to one
- * per minute. Session, the icon sidecar and settings, which carry device
- * names (island lower-section spec §7.2): three GETs a minute stays inside
- * the worker's per-account limit, and Favorites wait for a full sync. Errors
- * stay silent — this is a background freshness path, not a user-initiated
- * sync. */
+ * per minute. Session, the icon sidecar, settings, which carry device names
+ * (island lower-section spec §7.2), and sends (M7b §7): four GETs a minute
+ * stays inside the worker's per-account limit, and Favorites wait for a
+ * full sync. Errors stay silent — this is a background freshness path, not a
+ * user-initiated sync. */
 function refreshSession() {
   if (!isDefaultLocalProfile()) return;
   if (!tabStateReady) return;
@@ -848,7 +874,7 @@ function refreshSession() {
   const now = Date.now();
   if (now - lastSessionRefresh < 60_000) return;
   lastSessionRefresh = now;
-  syncNow(['session', 'icons', 'settings']).catch(() => {});
+  syncNow(['session', 'icons', 'settings', 'sends']).catch(() => {});
 }
 
 /** A generation-bound capture run. Favicon rasterization is asynchronous,
@@ -910,6 +936,93 @@ function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
   return true;
 }
 
+/** Leaving a sync (M7b §3): publish this device's sends entry as retracted,
+ * best effort and bounded, so the account's other devices stop offering it
+ * as a target and drop its items. Never creates the store. Runs inside
+ * disable()'s barrier, after the last pass has settled. */
+async function retractSends(d) {
+  let key;
+  try { key = unprotectSyncKey(safeStorage, d.protectedKey); } catch { return; }
+  const ownId = tabSyncContext().deviceId;
+  const url = `${SYNC_ENDPOINT}/v1/blob/${d.accountId}/sends`;
+  const signal = () => AbortSignal.timeout(5000);
+  try {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const getRes = await net.fetch(url, { signal: signal() });
+      if (getRes.status !== 200) return; // nothing published, or an older Worker
+      const body = await getRes.json();
+      const remote = JSON.parse(decrypt(key, body.blob));
+      if (!remote?.devices?.[ownId] || remote.devices[ownId].retracted) return;
+      const devices = { ...remote.devices, [ownId]: sends.retractedOwn() };
+      const putRes = await net.fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ifVersion: body.version, blob: encrypt(key, JSON.stringify({ devices })) }),
+        signal: signal(),
+      });
+      if (putRes.status !== 409) return;
+    }
+  } finally {
+    key.fill(0);
+  }
+}
+
+/** Every other device of this account a page can be sent to ([] when sync
+ * is off), named as the Other devices drawer names them. */
+function listSendTargets() {
+  if (!isDefaultLocalProfile()) return [];
+  if (!ensureStore().data.enabled) return [];
+  const ctx = tabSyncContext();
+  const names = settings.getDeviceNames();
+  return sends.targets(ctx, tabsync.getDeviceEntries(ctx), {})
+    .map(({ id, name, platform }) => ({ id, name: resolveDeviceName(names, id, name), platform }));
+}
+
+/** Pages other devices sent here that this device hasn't opened or dismissed. */
+function listSentToThisDevice() {
+  if (!isDefaultLocalProfile()) return [];
+  if (!ensureStore().data.enabled) return [];
+  const ctx = tabSyncContext();
+  const names = settings.getDeviceNames();
+  return sends.inbox(ctx).map(({ id, url, title, sentAt, fromId, fromName }) => ({
+    id, url, title, sentAt, fromName: resolveDeviceName(names, fromId, fromName),
+  }));
+}
+
+/** Hide one received page on this device; returns it (for opening) or null. */
+function hideSentItem(id) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => hideSentItem(id));
+  if (typeof id !== 'string' || !ensureStore().data.enabled) return null;
+  const item = sends.hide(tabSyncContext(), id);
+  return item ? { id: item.id, url: item.url } : null;
+}
+
+/** Send one page to another device of this account (M7b §6). The item is
+ * PUT at once, outside the tab-publish debounce, and the reply says what the
+ * sender may be told: 'sent' (never "delivered"), 'unavailable' (the Worker
+ * doesn't serve the store yet), 'failed' or 'invalid'. A page that didn't go
+ * is taken back out of this device's entry. */
+async function sendTab({ url, title, to } = {}) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, () => sendTab({ url, title, to }));
+  const d = ensureStore().data;
+  if (!d.enabled || !d.accountId || !d.protectedKey || !bananifyServiceAllowed(SYNC_ENDPOINT)) return { status: 'failed' };
+  if (!listSendTargets().some((target) => target.id === to)) return { status: 'invalid' };
+  // Wait out a pass already on the wire (and any pass it coalesced), so this
+  // send runs its own pass and hears its own result.
+  for (let i = 0; syncing && i < 5; i += 1) await passSettled;
+  if (syncing || suspended || !ensureStore().data.enabled) return { status: 'failed' };
+  const ctx = tabSyncContext();
+  const added = sends.addOwnItem(ctx, { url, title, to }, () => crypto.randomUUID());
+  if (added.error) return { status: 'invalid' };
+  let result = null;
+  await syncNow(['sends'], {
+    onOutcome: (name, outcome, error) => { if (name === 'sends') result = { outcome, error }; },
+  });
+  if (result && !result.error && !result.outcome?.unavailable && !result.outcome?.missing) return { status: 'sent' };
+  sends.removeOwnItem(ctx, added.item.id);
+  return { status: result?.outcome?.unavailable ? 'unavailable' : 'failed' };
+}
+
 function init() {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, init);
   if (ensureStore().data.enabled) schedule(2000); // sync-on-launch
@@ -947,8 +1060,11 @@ function init() {
   // not in Electron, and under node --test it would hang the run).
   setInterval(() => withLocalProfile(DEFAULT_PROFILE_ID, () => {
     const d = ensureStore().data;
-    if (!d.enabled || !d.syncTabs) return;
+    if (!d.enabled) return;
     const ctx = tabSyncContext();
+    // Presence (M7b §3): a device that doesn't share tabs stays a target.
+    if (sends.heartbeatDue(ctx)) syncNow(['sends']).catch(() => {});
+    if (!d.syncTabs) return;
     if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
     if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
   }), 60 * 60 * 1000).unref?.();
@@ -973,5 +1089,10 @@ module.exports = {
   listRemoteDevices,
   renameRemoteDevice,
   setThisDeviceName,
+  listSendTargets,
+  listSentToThisDevice,
+  hideSentItem,
+  sendTab,
+  onSendsChanged: sends.onChanged,
   captureTabIcon,
 };
