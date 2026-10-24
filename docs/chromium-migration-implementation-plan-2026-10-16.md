@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — production update/cache/multi-client behavior
+
+[New bounded regular-profile record](../experiments/chromium-extension-spike/evidence/f12-production-clients-20261024/README.md) passes10functional checks: independently browser-listed client identities, per-client cache/network responses, B's held response after A closes, same-URL controller replacement, retained B identity, updated cache and eviction-to-network. One separate protocol probe confirms two activated version IDs in one registration. Initial observer-lifetime/readiness/scoping failures remain recorded and excluded. No prior passing suite repeated, no product change/build/signing. Private mode, multiple registrations and hidden loader-token joins are not newly qualified.9/12 unchanged; Electron paused, Google separate, latency deferred.
+
+
 ## Current October24 — production update attribution source mapping complete
 
 [Hashed production chain](../experiments/chromium-extension-spike/evidence/f12-production-attribution-20261024/README.md) traces registration scope/creator restrictions through the owning BrowserContext’s service-worker factory to the production blocker Request gate. The research identity wrapper is a pass-through when disabled; it does not remove enforcement. No active-tab identity substitution or new source defect found. Twelve historical token joins remain historical; arbitrary current-production/cache/multi-client observational parity is not claimed. No tests/builds/profile changes or private logs enabled. Next evidence must target a genuinely missing production case with independent identity, not repeat accepted runs.9/12 unchanged; Electron paused, Google separate, latency deferred.
