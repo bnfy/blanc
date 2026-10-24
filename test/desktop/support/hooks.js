@@ -97,20 +97,25 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
   // suspended lets the first scenario mutate an in-memory workspace that
   // cannot yet reach session.json.
   // After a crash, startup waits for the session-recovery choice (the crash
-  // ledger); make it as a person would before waiting for readiness.
+  // ledger) when the crashed session held something to restore; make it as
+  // a person would. A session of one blank start page asks nothing.
   if (recoveryChoice) {
-    await electronApp.evaluate(
+    const asked = await electronApp.evaluate(
       () => new Promise((resolve) => {
         const t = setInterval(() => {
-          if (globalThis.__blancCall && globalThis.__blanc?.sessionRecoveryState?.()?.required === true) {
+          if (!globalThis.__blancCall) return;
+          const required = globalThis.__blanc?.sessionRecoveryState?.()?.required === true;
+          if (required || globalThis.__blanc?.startupReady?.()) {
             clearInterval(t);
-            resolve();
+            resolve(required);
           }
         }, 50);
       })
     );
-    const chosen = await callTestHook(electronApp, 'chooseSessionRecovery', [recoveryChoice]);
-    if (!chosen?.ok) throw new Error(`session recovery choice failed: ${JSON.stringify(chosen)}`);
+    if (asked) {
+      const chosen = await callTestHook(electronApp, 'chooseSessionRecovery', [recoveryChoice]);
+      if (!chosen?.ok) throw new Error(`session recovery choice failed: ${JSON.stringify(chosen)}`);
+    }
   }
   await electronApp.evaluate(
     () => new Promise((resolve) => {
