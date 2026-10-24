@@ -652,6 +652,20 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
   }
   void TraceDecision(int result, bool timed_out = false) {
+    const perfetto::DynamicCategory decision_category("disabled-by-default-blanc.attribution");
+    bool tracing = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(decision_category, &tracing);
+    if (tracing && request_.devtools_request_id) {
+      // Preserve the DevTools ID; expose only a one-way join key, not URLs or
+      // caller-controlled ID text. Redirect hops retain the same request ID.
+      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
+      TRACE_EVENT_INSTANT(decision_category, "Blanc.RequestDecision",
+                          "request_digest", base::HexEncode(digest),
+                          "method", request_.method,
+                          "redirect_index", redirect_index_,
+                          "private", context_.private_profile,
+                          "result", result);
+    }
     constexpr std::string_view prefix = "blanc-trace-update/";
     if (request_.devtools_request_id &&
         request_.devtools_request_id->size() == prefix.size() + 32 &&
