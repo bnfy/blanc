@@ -61,7 +61,13 @@ final class TabsManager {
             contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
 
-        let savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        #if DEBUG
+        if UITestSeed.sends {
+            UITestSeed.seedSends(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
+        #endif
         if savedURLs.isEmpty {
             createTab()
         } else {

@@ -281,7 +281,9 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         } else if group == "bookmarks", method == "list" {
             result = .value(favoritesPayload())
         } else if group == "start", method == "data" {
-            result = .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0)), ("remoteDevices", remoteDevicesPayload()), ("bookmarks", favoritesPayload())]))
+            result = .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0)), ("remoteDevices", remoteDevicesPayload()), ("sentItems", sentItemsPayload()), ("bookmarks", favoritesPayload())]))
+        } else if group == "start", method == "openSent" || method == "dismissSent" {
+            result = .value(.bool(handleSent(method: method, id: args.first as? String ?? "")))
         } else { result = Self.response(group: group, method: method, appVersion: version) }
         resolve(id, result: result, in: webView, host: host)
     }
@@ -299,6 +301,22 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         .array((manager?.syncEngine.favorites ?? []).map {
             .object([("addedAt", .number($0.addedAt)), ("updatedAt", .number($0.updatedAt)), ("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("favicon", $0.favicon.map(JSONValue.string) ?? .null), ("folder", $0.folder.map(JSONValue.string) ?? .null)])
         })
+    }
+    /// Send to device (M7b): the start page's Sent to this device list, in
+    /// desktop's `SentItem` shape.
+    private func sentItemsPayload() -> JSONValue {
+        .array((manager?.syncEngine.inbox ?? []).map {
+            .object([("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("sentAt", .number(Double($0.sentAt))), ("fromName", .string($0.fromName))])
+        })
+    }
+    private func handleSent(method: String, id: String) -> Bool {
+        guard let manager, let item = manager.syncEngine.inbox.first(where: { $0.id == id }) else { return false }
+        if method == "openSent" {
+            guard let url = URL(string: item.url), ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return false }
+            manager.createTab(url: url)
+        }
+        manager.syncEngine.dismiss(id)
+        return true
     }
     private func remoteDevicesPayload() -> JSONValue {
         guard let engine = manager?.syncEngine else { return .array([]) }
@@ -331,6 +349,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             ]), host: "settings")
         }
         emitRemoteTabs()
+        emit("start.onSentItems", payload: sentItemsPayload(), host: "newtab")
         let current = favoritesPayload()
         let previous = lastFavoritesPayload
         lastFavoritesPayload = current
