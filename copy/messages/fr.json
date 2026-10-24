@@ -1882,6 +1882,10 @@
     "message": "Déplacer dans le groupe",
     "source": "sha256:a9cb65ecce0b3e63ce684799e3574b7f13ed662d025c1b214fcf8d4baab9ef54"
   },
+  "tabMenu.moveToSpace": {
+    "message": "Déplacer dans le Space",
+    "source": "sha256:80234d4828c7f6a3a4af673e19af7552d09d49bbff81ba695e8e0942fbec3359"
+  },
   "tabMenu.splitWith": {
     "message": "Partager avec",
     "source": "sha256:2237dad84c2b0c2c9d654880016c2ebb41286f7b6405088d31f5c4c0b3a3832f"

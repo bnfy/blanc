@@ -14,7 +14,7 @@ const NATIVE_HEADERS = process.platform === 'darwin'
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, otherTabId, workspaceId, cleanedUrl, actions }) {
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
     // The model computed cleanedUrl when it decided to SHOW the item — copy
@@ -34,6 +34,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, cleanedUrl, actio
     case 'group-move': return actions.setGroup(tab.id, groupId);
     case 'group-none': return actions.setGroup(tab.id, null);
     case 'group-new': return actions.beginNewGroup(tab.id);
+    case 'space-move': return actions.moveToSpace(tab.id, workspaceId);
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
     case 'split-with-tab': return actions.splitWith(tab.id, otherTabId);
@@ -70,7 +71,7 @@ function toElectronTemplate(modelItems, { tab, actions }) {
       el.submenu = toElectronTemplate(item.submenu, { tab, actions });
     } else {
       el.click = () => runTabContextMenuItem(item.id,
-        { tab, groupId: item.groupId, otherTabId: item.tabId, cleanedUrl: item.cleanedUrl, actions });
+        { tab, groupId: item.groupId, otherTabId: item.tabId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, actions });
     }
     return el;
   });

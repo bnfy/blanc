@@ -512,6 +512,7 @@
     <string name="tab_menu_pin_start_page">An Startseite anheften</string>
     <string name="tab_menu_unpin_start_page">Von Startseite lösen</string>
     <string name="tab_menu_move_to_group">In Gruppe verschieben</string>
+    <string name="tab_menu_move_to_space">In Space verschieben</string>
     <string name="tab_menu_split_with">Teilen mit</string>
     <string name="tab_menu_remove_from_split">Aus geteilter Ansicht entfernen</string>
     <string name="tab_menu_close_split">Geteilte Ansicht schließen</string>

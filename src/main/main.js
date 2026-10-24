@@ -11661,6 +11661,9 @@ function tabContextData(tab, owner) {
     // null: not a web page, so no site to mute.
     siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
     splitCandidates: splitCandidatesFor(tab, owner),
+    // Move to Space ▸: this profile's spaces, the window's own one marked.
+    spaces: tab.private ? [] : namedWorkspaces.list().map((w) => ({ id: w.id, name: w.name, current: w.id === owner.workspaceId })),
+    canMoveToSpace: canMoveTabToSpace(tab, owner),
   };
 }
 
@@ -11717,6 +11720,7 @@ function menuContextActions(owner) {
     newTabBelow: b((id) => newTabBelow(id)),
     toggleSiteMute: b((id) => toggleSiteMute(id)),
     moveToNewWindow: b((id) => moveTabToNewWindow(id)),
+    moveToSpace: b((id, workspaceId) => moveTabToSpace(id, workspaceId)),
     reopenClosed: b(() => reopenClosedTab()),
     close: b((id) => closeTab(id)),
   };
@@ -12160,21 +12164,8 @@ function openNewWindow(options = {}) {
       if (options.group) runtime.groups = [groupRecord(options.group)];
       for (const id of adoptIds) {
         const tab = tabs.get(id);
-        tab.runtimeId = runtime.id;
         if (options.group) tab.groupId = options.group.id;
-        windowRuntimes.attachTab(runtime, id);
-        // Re-home the per-tab listener set: wireTabView binds its owner runtime
-        // once at attach time, so without this every media/find/beforeunload/
-        // window.open handler would keep acting on the OLD window. A retained-
-        // storage quiet tab keeps a live, still-wired WebContents in its sleep
-        // snapshot (wakeTab's retained branch deliberately skips rewiring), so
-        // that view needs the same treatment as an awake one.
-        const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(id)?.view ?? null);
-        const wiredWc = wiredView?.webContents;
-        if (wiredWc && !wiredWc.isDestroyed()) {
-          unwireTabView(wiredWc);
-          wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
-        }
+        rehomeTab(tab, runtime);
       }
       tabId = adoptIds.includes(options.activeTabId) ? options.activeTabId : adoptIds[0];
       setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
@@ -12192,6 +12183,24 @@ function openNewWindow(options = {}) {
     buildMenu(runtime);
     return runtime.id;
   });
+}
+
+/** Make `runtime` the owner of a tab that has left another window. Re-homes
+ * the per-tab listener set too: wireTabView binds its owner runtime once at
+ * attach time, so without this every media/find/beforeunload/window.open
+ * handler would keep acting on the OLD window. A retained-storage quiet tab
+ * keeps a live, still-wired WebContents in its sleep snapshot (wakeTab's
+ * retained branch deliberately skips rewiring), so that view needs the same
+ * treatment as an awake one. */
+function rehomeTab(tab, runtime) {
+  tab.runtimeId = runtime.id;
+  windowRuntimes.attachTab(runtime, tab.id);
+  const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tab.id)?.view ?? null);
+  const wiredWc = wiredView?.webContents;
+  if (wiredWc && !wiredWc.isDestroyed()) {
+    unwireTabView(wiredWc);
+    wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+  }
 }
 
 /** Detach a tab from `source` before it moves to a new window: cancel its
@@ -12260,6 +12269,79 @@ function moveTabToNewWindow(id) {
   //    rewire, activation, focus, menu) all live in openNewWindow's adopt
   //    branch, keeping guards and sequencing in one place.
   openNewWindow({ profileId: source.profileId, adoptTabId: id });
+}
+
+/** Move to Space ▸ can take this tab out of `owner`: never a private tab
+ * (a space never keeps one) or the window's only tab, and never a page using
+ * the camera or microphone, one with a popup open, or one mid quiet
+ * transition, since a space set aside keeps its pages out of sight. */
+function canMoveTabToSpace(tab, owner) {
+  return !!tab && !tab.private && !tab.sleeping && !tab.waking && !tab.capturing
+    && !popupChildCounts.get(tab.id) && owner.tabOrder.length > 1
+    && !owner.resident && !owner.closing && !owner.workspaceTransition && !sessionReadOnly
+    && !profileDeletions.hasPendingProfileDeletion(owner.profileId);
+}
+
+/** Move to Space ▸ (#1060): take one tab out of its window and into a space
+ * of the same profile, where it lands last and ungrouped (a group spanning
+ * two spaces isn't modeled, as with Move Tab to New Window). The window stays
+ * where it is. The page itself moves, never a copy: a space shown in another
+ * window or set aside receives the tab, and a space open nowhere is first set
+ * aside from its saved tabs (born quiet, as a switch materializes them), then
+ * kept within the set-aside budget like a switch. The space's record is
+ * written at once, while this window's session follows on its usual debounce,
+ * so a crash in between can duplicate the page but never lose it. Returns
+ * whether it moved. */
+function moveTabToSpace(id, workspaceId) {
+  const tab = tabs.get(id);
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || !canMoveTabToSpace(tab, source) || source.workspaceId === workspaceId) return false;
+  return withWindowRuntime(source, () => {
+    const workspace = namedWorkspaces.get(workspaceId);
+    if (!workspace) return false;
+    let target = workspaceOwner(source, workspaceId);
+    if (target && (target.closing || target.workspaceTransition)) return false;
+    let floorId = null;
+    if (!target) {
+      target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: source.profileId });
+      target.resident = true;
+      target.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
+      try {
+        withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
+      } catch {
+        disposeResident(target);
+        return false;
+      }
+      target.workspaceId = workspace.id;
+      // A space saved empty comes back as one blank start page (the floor
+      // applyWorkspaceToWindow lays); the moved tab replaces it.
+      const [only] = target.tabOrder;
+      if (target.tabOrder.length === 1 && tabs.get(only)?.url === NEW_TAB_URL) floorId = only;
+    }
+    if (tab.splitId) removeTabFromSplit(id);
+    detachTabForMove(source, id);
+    withWindowRuntime(target, () => {
+      target.tabOrder = [...target.tabOrder, id];
+      rehomeTab(tab, target);
+      if (floorId != null) {
+        closeTab(floorId, { record: false, selectReplacement: false });
+        target.activeTabId = id;
+      }
+      if (target.resident && !target.activeTabId) target.activeTabId = id;
+      namedWorkspaces.saveCapture(workspace.id, workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }));
+      broadcastTabs();
+    });
+    broadcastWorkspacesUpdated();
+    if (target.resident) {
+      setImmediate(() => {
+        makeRoomForSpaces(source.profileId).catch((error) => {
+          lastRoomPass = { outcome: 'failed', at: Date.now() };
+          console.debug('[spaces] making room after a move failed', error);
+        });
+      });
+    }
+    return true;
+  });
 }
 
 /** "New Tab in Group" (group menu): a new tab at the end of the group,

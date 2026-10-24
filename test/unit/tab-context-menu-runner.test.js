@@ -9,7 +9,7 @@ function spyActions() {
   const names = ['copy', 'reload', 'duplicate', 'togglePin', 'toggleMute', 'toggleFavorite',
     'setGroup', 'beginNewGroup', 'glance', 'quiet', 'newTab', 'newPrivateTab',
     'closeOthers', 'moveToNewWindow', 'reopenClosed', 'close', 'rename', 'resetTitle', 'closeGlance',
-    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin'];
+    'returnPinnedHome', 'setPinnedHome', 'toggleStartPagePin', 'moveToSpace'];
   const actions = {};
   for (const n of names) actions[n] = rec(n);
   return { actions, calls };
@@ -78,4 +78,10 @@ test('close-glance closes the pane, not the tab', () => {
   const { actions, calls } = spyActions();
   runTabContextMenuItem('close-glance', { tab, actions });
   assert.deepEqual(calls, [['closeGlance']]);
+});
+
+test('space-move moves the tab to the chosen space', () => {
+  const { actions, calls } = spyActions();
+  runTabContextMenuItem('space-move', { tab, workspaceId: 'w2', actions });
+  assert.deepEqual(calls, [['moveToSpace', 7, 'w2']]);
 });
