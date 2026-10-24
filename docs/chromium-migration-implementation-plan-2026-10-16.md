@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — L11 Chromium-relevant blockers cleared on reviewed head
+
+[Exact-head reconciliation](../experiments/chromium-extension-spike/evidence/l11-current-head-20261024/README.md) on `3bcb4402`:25success,2failure,2skipped,0pending. CodeQL reports no new changed-code alerts; all four dependency-policy workspaces and compliance pass. The undici and npm10-install repairs are verified in hosted CI. Only Linux/Windows Electron sandbox-duplication assertions remain failing; Electron stays paused and no check is waived. **L11 remains open under its all-green repository requirement;9/12 unchanged.** Accepted native implementation and artifact are unchanged: no runtime test/build was repeated. Next work is the remaining Decision2 decision inputs, not repeating L8 or repairing unrelated Electron while paused. Google baseline separate; latency deferred.
+
+
 ## Current October24 — replacement L8 accepted
 
 The [exact replacement distribution record](../experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md) is complete for source `14706b0e` / archive `18a0c2ca`. Pinned manifest authentication, both real tamper controls, all six hosted/fresh downloads and native Safari quarantine/inventory/signature/staple/Gatekeeper pass. The owner confirms ordinary launch, two normal restarts retaining Example tabs/selection/Shelf, Bitwarden popup Tab focus and Shipping tabs. Read-back verifies the exact translocated running app and unchanged Shipping code against today's preflight. **9/12 (75%), delta 0: L8 reaccepted for replacement bytes.** L4/L11/L12 and Decision2 remain open; no release or merge approval. No build/profile mutation; Electron paused, Google baseline separate, latency deferred. Earlier pending checkpoints below are historical.

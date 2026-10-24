@@ -1,3 +1,5 @@
+> Superseded current-head status: [October24 review of3bcb4402](../l11-current-head-20261024/README.md) closes the undici/npm10 blockers in hosted CI. Only two shared Electron failures remain. Native current-artifact evidence is14706b0e/18a0c2ca. The dated snapshot below is retained as history.
+
 # L11 Chromium applicability reconciliation — October 24, 2026
 
 The target is the native Chromium 157.0.8103.15 preview, not an Electron release. This reconciles the existing requirements; it does not waive repository checks or award L11. **Readiness remains 9/12 (75%), delta 0.**
