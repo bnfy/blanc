@@ -5,7 +5,7 @@ October 22, 2026. Planning sheet, not a budget approval. Source: [measured rebas
 | Cost item | Evidence / proposed commitment |
 | --- | --- |
 | One measured cold build | 9,587.120 s (2h39m47.120s), accumulated across two invocations; 57,664 reported steps. Mixed repair/unfinished-cold work is included, not counted again as incremental. |
-| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current recorded prototype footprint is 56/135, so this is not a measured rebase of today's larger patch set. |
+| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Latest recorded certificate-replacement footprint is73files/179hunks ([evidence](evidence/l11-repair-20261023/README.md)), so this is not a measured rebase of today's larger patch set. |
 | Human effort | Owner attention and agent editing time were not measured. Cannot establish the two-owner-day kill threshold from build logs. Next deliberate rebase records active attention separately. |
 | Incremental development | Recent private-only prefetch fixture builds recorded 38.82/40.13 s, then zero-action guard. Illustrative local runs only; no routine rebase or fleet estimate. |
 | CI money | Actual provider billable minutes, runner rates, storage and signing cost not collected. No invented dollar total. Obtain one representative exact-head run's billing export before budget sign-off. |

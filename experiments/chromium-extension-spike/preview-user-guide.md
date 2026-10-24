@@ -48,3 +48,5 @@ Include the version/source shown in **Version & security**, macOS version, Apple
 Inspect and redact anything you attach. Screenshots, URLs, crash reports and console logs can expose page titles, browsing activity, account names, paths, tokens or private-window content. Never send passwords, vault contents, session cookies, signing keys, a complete browser profile or an unreviewed diagnostic archive. Reporting is voluntary and user-initiated; this guide adds no background upload. It does not claim that websites, extensions or macOS send no network traffic or diagnostics.
 
 Anthony Loria is the sole maintenance and withdrawal owner. Distribution must be suspended when he is unavailable to review security updates. No backup maintainer or guaranteed repair deadline is implied.
+
+Rollback safety: an older archive and matching backup may be used only while that version remains approved by the security/withdrawal notice. A valid signature or matching backup is not a security approval. If no approved rollback exists, use Shipping Blanc and preserve the Preview data.

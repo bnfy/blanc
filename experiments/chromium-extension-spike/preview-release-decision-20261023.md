@@ -40,6 +40,8 @@ The separate [L11 findings](evidence/l11-sandbox-duplication-20261023/README.md)
 - [Live status route](https://github.com/bnfy/blanc/pull/1028): no public release is approved. Final publication must identify the approved artifact and withdrawal state. Packaged status is an offline snapshot, not a continuing safety guarantee.
 - [Scope approval and platform amendment](mac-preview-scope-approval-20261022.md), [L5 owner input/VoiceOver record](evidence/l5-owner-acceptance-20261023/README.md), [L6 frozen recovery record](evidence/l6-restore-scheduling-20261023/README.md), [L7 security approval](evidence/l7-owner-acceptance-20261023/README.md), and [L10 bounded smoke](evidence/l10-functional-smoke-20261023/README.md) remain dated, scoped evidence. Map them explicitly to the replacement candidate rather than editing their historic identities.
 
+[Current artifact acceptance mapping](preview-candidate-acceptance-map-20261023.md) completes the source/asset/identity reconciliation without rerunning unchanged suites or waiving remaining gates.
+
 ## Final operator review, after blockers clear
 
 1. Freeze the source, native upstream revision, patch inventory, dependency audit, packaged assets and build configuration. Record the replacement's exact version and supported OS; do not promote the binary deployment minimum into tested support.

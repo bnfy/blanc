@@ -51,3 +51,5 @@ The current status is **Not publicly released — evaluation only**. This avoids
 ## L9 acceptance — October 23
 
 [Signed notice evidence](evidence/preview-notice-20261023/README.md) records 16 notice checks, two footer layout checks, metadata/security tests and anonymous HTTP200 verification of the live status section. Source `9a1b4fa9`, artifact `f177e0b5100db9a3fc83c7d5522cc343b86582add4d209d49696cef4f3729a55`, Apple accepted `dbe289ff-82fd-4ddf-87ea-d2a3023677f6`. The notice contains a packaged status snapshot, exact version/source identity, update/rollback/removal steps and an explicit live link; it performs no automatic network request. The earlier 43-check signed update/rollback record supplies the operator rehearsal. L9 is accepted, without implying public release, automatic update delivery, email deliverability or closure of L8/L12.
+
+Rollback safety: an older archive and matching backup may be used only while that version remains approved by the security/withdrawal notice. A valid signature or matching backup is not a security approval. If no approved rollback exists, use Shipping Blanc and preserve the Preview data.

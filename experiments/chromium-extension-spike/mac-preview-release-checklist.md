@@ -1,3 +1,5 @@
+> October23: [exact-candidate acceptance mapping](preview-candidate-acceptance-map-20261023.md) completed; no new tests/gate credit.9/12(75%). L4 external offer, L11 pending runtime repair and L12 final decision remain blocked; rollback requires a still-approved version.
+
 > October23 current L8: [certificate replacement accepted](evidence/l8-certificate-distribution-20261023/README.md), source7c427328/archiveffcfefdfbb54. Owner reports final controlled checks passed; running bytes match.9/12(75%),delta0. Earlier first-launch observation retained without claimed repair; L4/L11/L12 and Decision2 open.
 
 > October23 follow-up: one controlled Example-tab restart passes and running bytes match. Concurrent Sync testing confounds the initial observation; causation remains unresolved. Remaining replacement hand-check criteria pending;9/12delta0.
