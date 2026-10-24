@@ -252,10 +252,11 @@
 }
 .sunrise .actions {
   justify-content: center;
+  margin-top: 20px;
 }
 .home-measurement {
   max-width: 42em;
-  margin: 16px auto 0;
+  margin: 12px auto 0;
   color: var(--dim);
   font-size: 14px;
   line-height: 1.45;
@@ -274,6 +275,9 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
+}
+.home-measurement ~ .opening-window {
+  margin-top: 0;
 }
 .handheld-note {
   max-width: 28em;
