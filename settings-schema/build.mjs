@@ -56,7 +56,9 @@ function genSwift() {
     .join(', ');
   out += `public enum BlancTabSleepDelay: String, CaseIterable { case ${sleepCases} }\n\n`;
   out += 'public enum BlancAppIcon: String, CaseIterable {\n';
-  for (const i of icons) out += `    case ${iconSwiftCase(i.id)}\n`;
+  // Hyphenated ids get an explicit raw value so `rawValue` is the stored id
+  // (`sunrise-dark`), not the Swift case name.
+  for (const i of icons) out += `    case ${iconSwiftCase(i.id)}${iconSwiftCase(i.id) === i.id ? '' : ` = "${i.id}"`}\n`;
   out += '    public var label: String {\n        switch self {\n';
   for (const i of icons) out += `        case .${iconSwiftCase(i.id)}: return ${JSON.stringify(i.label)}\n`;
   out += '        }\n    }\n';

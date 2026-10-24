@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-22",
+  "updated": "2026-10-23",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -21,6 +21,13 @@
       "product": "Blanc Browser",
       "title": "Blanc for Teams",
       "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
+    },
+    {
+      "id": "protected-video",
+      "stage": "next",
+      "product": "Blanc Browser",
+      "title": "Protected video playback",
+      "line": "Watch streaming services that need DRM, right in Blanc."
     },
     {
       "id": "crash-reports",

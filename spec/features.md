@@ -415,10 +415,12 @@ From the desktop `DEFAULTS`:
 
 ## F17 — Patron & app icons
 
-- macOS Settings offers three Dock colorways: `sunrise` (default, follows the
-  system appearance), `sunrise-dark`, and `sunrise-gold` (soft gold in Light,
-  polished gold in Dark). Older ids, including the monogram `gold`, are retired; any
-  stale or hand-set retired id falls back to `sunrise`.
+- macOS Settings offers five Dock colorways: `sunrise` (default, follows the
+  system appearance), `sunrise-dark`, `sunrise-gold` (soft gold in Light,
+  polished gold in Dark), `sunrise-spectrum` (a glass ring sun, rays and water
+  lines in coral over blue) and `sunrise-amber` (the same in gold and bronze); the last two sit
+  on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
+  retired; any stale or hand-set retired id falls back to `sunrise`.
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
   ever see a derived `patronActive` boolean; the entitlement record stays in
@@ -1199,6 +1201,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
+- **Planned, not built (2026-10-23):** opt-in, end-to-end-encrypted Spaces
+  sync through Profile Sync, which will replace the rule above once it ships,
+  and Spaces shown read-only on iPhone. Plan:
+  `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md`.
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
