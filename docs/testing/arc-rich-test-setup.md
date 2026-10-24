@@ -12,9 +12,9 @@ This plan builds three labeled test Spaces in Arc covering:
 - Today tabs and a non-web item
 - a Space on its own Arc profile, with its own Favorites
 
-`scripts/arc-test-setup-check.cjs` then reads Arc's sidebar file and confirms the build matches this plan exactly.
+`scripts/arc-test-setup-check.cjs` then reads Arc's sidebar file and compares the build with this plan item by item, in the parts it reads: Space names and Arc profiles, each section's order, folder names, each tab's `example.com`/`.org` path, custom names and the number of panes in each split. It does not compare query strings or fragments, what kind of non-web item sits in Today, or the default profile's Favorites row. `test/unit/arc-test-setup-check.test.js` builds a synthetic sidebar from the same expected tree and proves the check passes it and catches a renamed folder, a stray custom name, a child attached only through `parentID`, a `childrenIds` cycle and a `tab: null` item.
 
-Group and tab caps (50 and 500 per Space) aren't built here. They're Blanc's own logic, independent of Arc's file format, so unit fixtures cover them.
+Group and tab caps (50 and 500 per Space) aren't built here. They're Blanc's own logic, independent of Arc's file format. The 500-tab cap has a unit test in `test/unit/arc-sidebar.test.js`; the 50-group cap does not yet, and Release 1's rule for more than 50 folders needs one.
 
 ## Where it lives
 
@@ -120,7 +120,7 @@ node scripts/arc-test-setup-check.cjs
 - It describes only the three **Blanc Test** Spaces. Every other Space in the file is reported as a count.
 - If Arc saves while it's reading, it says so; run it again.
 
-**What it reports:** either "matches … exactly" or each difference, such as a folder in the wrong place, a missing custom name or a split with the wrong number of panes. Fix the setup in Arc until it matches.
+**What it reports:** either "No differences … in the parts this check compares" or each difference, such as a folder in the wrong place, a missing or unexpected custom name, an extra item, or a split with the wrong number of panes. Fix the setup in Arc until it reports none.
 
 ## Then run these checks
 

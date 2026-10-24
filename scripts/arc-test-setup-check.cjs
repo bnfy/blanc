@@ -113,27 +113,66 @@ function readStable(file) {
   }
 }
 
-function main() {
-  const args = process.argv.slice(2);
-  const idsAt = args.indexOf('--ids');
-  const idsOut = idsAt >= 0 ? args.splice(idsAt, 2)[1] : null;
-  const file = args[0] || DEFAULT_MAC;
+const MAX_DEPTH = 32;
 
-  const data = JSON.parse(readStable(file));
+/** `--ids` takes a path; the one other argument is the sidebar file. */
+function parseArgs(argv) {
+  const args = [...argv];
+  const idsAt = args.indexOf('--ids');
+  let idsOut = null;
+  if (idsAt >= 0) {
+    idsOut = args[idsAt + 1];
+    if (!idsOut || idsOut.startsWith('--')) throw new Error('--ids needs a file path');
+    args.splice(idsAt, 2);
+  }
+  return { file: args[0] || DEFAULT_MAC, idsOut };
+}
+
+/**
+ * Compares a parsed sidebar with `expected`. Returns the differences, the
+ * position-keyed id hashes and counts; never throws on a malformed tree.
+ */
+function checkSidebar(data, expected = EXPECTED) {
   const container = (data?.sidebar?.containers || []).find((c) => isRecord(c) && Array.isArray(c.items));
   if (!container) throw new Error('Not an Arc sidebar file.');
-  const items = new Map(container.items.filter(isRecord).map((it) => [it.id, it]));
-  const kids = (it) => (Array.isArray(it?.childrenIds) ? it.childrenIds : []).filter((id) => items.has(id));
+  // First entry wins for a repeated id, as in parseArcSidebar.
+  const items = new Map();
+  const childrenByParent = new Map();
+  for (const it of container.items) {
+    if (!isRecord(it) || typeof it.id !== 'string' || !it.id || items.has(it.id)) continue;
+    items.set(it.id, it);
+    if (typeof it.parentID === 'string') {
+      if (!childrenByParent.has(it.parentID)) childrenByParent.set(it.parentID, []);
+      childrenByParent.get(it.parentID).push(it.id);
+    }
+  }
+  // childrenIds carries Arc's order; a child that only names its parent
+  // through parentID still belongs, after the ordered ones (the importer's
+  // rule in arc-sidebar.js).
+  const kids = (it) => {
+    if (!it) return [];
+    const ordered = (Array.isArray(it.childrenIds) ? it.childrenIds : []).filter((id) => typeof id === 'string' && items.has(id));
+    const seen = new Set(ordered);
+    for (const id of childrenByParent.get(it.id) ?? []) {
+      if (!seen.has(id)) { seen.add(id); ordered.push(id); }
+    }
+    return ordered;
+  };
   const ids = {};
+  const problems = [];
+  const claimed = new Set();
 
   // Keys use sidebar position, never Arc's ids, so both computers' files
   // produce the same keys for the same item.
-  const describe = (id, where, index) => {
+  const describe = (id, where, index, depth) => {
+    const at = `${where}/${index + 1}`;
+    if (claimed.has(id) || depth > MAX_DEPTH) return { kind: 'repeated or too deep' };
+    claimed.add(id);
     const it = items.get(id);
     const d = isRecord(it.data) ? it.data : {};
-    const at = `${where}/${index + 1}`;
-    const children = (key) => kids(it).map((c, i) => describe(c, key, i));
+    const children = (key) => kids(it).map((c, i) => describe(c, key, i, depth + 1));
     if (has(d, 'tab')) {
+      if (!isRecord(d.tab)) return { kind: 'tab without data' };
       const p = examplePath(d.tab.savedURL);
       const title = typeof it.title === 'string' ? it.title.trim() : '';
       const custom = title && title !== d.tab.savedTitle ? title : null;
@@ -141,7 +180,7 @@ function main() {
       return { kind: 'tab', path: p, name: custom };
     }
     if (has(d, 'list')) {
-      const name = (it.title || '').trim();
+      const name = typeof it.title === 'string' ? it.title.trim() : '';
       ids[`${at}:[${name}]`] = idHash(id);
       return { kind: 'folder', name, children: children(`${at}:[${name}]`) };
     }
@@ -153,7 +192,8 @@ function main() {
   };
 
   const sectionIds = (space) => {
-    const list = space.newContainerIDs || space.containerIDs || [];
+    const list = Array.isArray(space.newContainerIDs) ? space.newContainerIDs
+      : Array.isArray(space.containerIDs) ? space.containerIDs : [];
     const out = { pinned: [], today: [] };
     for (let i = 0; i + 1 < list.length; i += 1) {
       const m = list[i];
@@ -163,12 +203,11 @@ function main() {
     return out;
   };
 
-  const problems = [];
-  const compare = (where, expected, actual) => {
-    if (expected.length !== actual.length) {
-      problems.push(`${where}: expected ${expected.length} items, found ${actual.length}`);
+  const compare = (where, expectedItems, actual) => {
+    if (expectedItems.length !== actual.length) {
+      problems.push(`${where}: expected ${expectedItems.length} items, found ${actual.length}`);
     }
-    expected.forEach((e, i) => {
+    expectedItems.forEach((e, i) => {
       const a = actual[i];
       const at = `${where} #${i + 1}`;
       if (!a) return;
@@ -176,46 +215,67 @@ function main() {
       if (e.kind === 'tab') {
         if (e.path !== a.path) problems.push(`${at}: expected ${e.path}, found ${a.path}`);
         if (e.name && e.name !== a.name) problems.push(`${at}: expected the custom name "${e.name}", found ${a.name ? `"${a.name}"` : 'none'}`);
+        if (!e.name && a.name) problems.push(`${at}: expected ${e.path} with no custom name, found "${a.name}"`);
       }
       if (e.kind === 'folder' && e.name !== a.name) problems.push(`${at}: expected folder "${e.name}", found "${a.name}"`);
       if (e.children) compare(e.kind === 'folder' ? `${where} > ${e.name}` : `${at} (split)`, e.children, a.children || []);
+    });
+    // Items past the expected count are named too, so the extra is findable.
+    actual.slice(expectedItems.length).forEach((a, i) => {
+      const label = a.kind === 'tab' ? a.path : a.kind === 'folder' ? `folder "${a.name}"` : a.kind;
+      problems.push(`${where} #${expectedItems.length + i + 1}: unexpected ${label}`);
     });
   };
 
   const spaces = container.spaces.filter(isRecord);
   const testSpaces = spaces.filter((s) => typeof s.title === 'string' && s.title.startsWith(TEST_PREFIX));
-  for (const [title, expected] of Object.entries(EXPECTED)) {
+  for (const [title, spec] of Object.entries(expected)) {
     const matches = testSpaces.filter((s) => s.title === title);
     if (matches.length !== 1) { problems.push(`${title}: expected one Space with this name, found ${matches.length}`); continue; }
     const space = matches[0];
     ids[`${title}`] = idHash(space.id);
     const profile = !has(space, 'profile') || space.profile?.default === true ? 'default' : 'custom';
-    if (profile !== expected.profile) problems.push(`${title}: expected the ${expected.profile} Arc profile, found ${profile}`);
+    if (profile !== spec.profile) problems.push(`${title}: expected the ${spec.profile} Arc profile, found ${profile}`);
     const sections = sectionIds(space);
     for (const section of ['pinned', 'today']) {
-      const actual = sections[section].flatMap((root) => kids(items.get(root))).map((c, i) => describe(c, `${title}/${section}`, i));
-      compare(`${title} ${section}`, expected[section], actual);
+      const roots = sections[section];
+      roots.forEach((root) => claimed.add(root));
+      const actual = roots.flatMap((root) => kids(items.get(root))).map((c, i) => describe(c, `${title}/${section}`, i, 1));
+      compare(`${title} ${section}`, spec[section], actual);
     }
-    if (expected.favorites) {
-      const markers = container.topAppsContainerIDs || [];
+    if (spec.favorites) {
+      const markers = Array.isArray(container.topAppsContainerIDs) ? container.topAppsContainerIDs : [];
       const rowIds = [];
       for (let i = 0; i + 1 < markers.length; i += 1) {
         // Arc can serialize identical profile fields in different key orders.
         if (isDeepStrictEqual(markers[i], space.profile) && typeof markers[i + 1] === 'string') rowIds.push(markers[i + 1]);
       }
-      const row = rowIds.flatMap((id) => kids(items.get(id))).map((c, i) => describe(c, `${title}/favorites`, i));
-      compare(`${title} favorites`, expected.favorites, row);
+      rowIds.forEach((id) => claimed.add(id));
+      const row = rowIds.flatMap((id) => kids(items.get(id))).map((c, i) => describe(c, `${title}/favorites`, i, 1));
+      compare(`${title} favorites`, spec.favorites, row);
     }
   }
 
-  const extraTest = testSpaces.filter((s) => !EXPECTED[s.title]).length;
-  console.log(`Sidebar: ${spaces.length} Spaces (${testSpaces.length} test, ${spaces.length - testSpaces.length} other, not inspected)`);
-  if (extraTest) console.log(`Note: ${extraTest} other Space(s) start with "${TEST_PREFIX}" and were ignored.`);
+  return {
+    problems,
+    ids,
+    spaceCount: spaces.length,
+    testSpaceCount: testSpaces.length,
+    extraTestCount: testSpaces.filter((s) => !expected[s.title]).length,
+  };
+}
+
+function main() {
+  const { file, idsOut } = parseArgs(process.argv.slice(2));
+  const result = checkSidebar(JSON.parse(readStable(file)));
+  const { problems, ids, spaceCount, testSpaceCount, extraTestCount } = result;
+  console.log(`Sidebar: ${spaceCount} Spaces (${testSpaceCount} test, ${spaceCount - testSpaceCount} other, not inspected)`);
+  if (extraTestCount) console.log(`Note: ${extraTestCount} other Space(s) start with "${TEST_PREFIX}" and were ignored.`);
   if (problems.length) {
     console.log(`\n${problems.length} difference(s) from docs/testing/arc-rich-test-setup.md:`);
     for (const p of problems) console.log(`- ${p}`);
   } else {
-    console.log('The test setup matches docs/testing/arc-rich-test-setup.md exactly.');
+    console.log('No differences from docs/testing/arc-rich-test-setup.md in the parts this check compares.');
   }
   if (idsOut) {
     fs.writeFileSync(idsOut, `${JSON.stringify(ids, null, 1)}\n`, { mode: 0o600 });
@@ -224,5 +284,13 @@ function main() {
   process.exitCode = problems.length ? 1 : 0;
 }
 
-if (require.main === module) main();
-module.exports = { EXPECTED };
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    // A usage mistake, a mid-save read or a non-Arc file: say so without a stack.
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 2;
+  }
+}
+module.exports = { EXPECTED, checkSidebar, parseArgs };
