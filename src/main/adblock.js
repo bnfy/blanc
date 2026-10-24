@@ -17,7 +17,7 @@ const { createAdblockEventBridge } = require('./adblock-events');
 const { loadAdblockEngine } = require('./adblock-engine-loader');
 const { createBlockingCoordinator } = require('./blocking-coordinator');
 const { installOwnedCosmetics } = require('./adblock-owned-css');
-const coordinator = createBlockingCoordinator();
+const coordinator = createBlockingCoordinator({ trace: require('./navigation-trace').navigationTrace });
 
 const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 

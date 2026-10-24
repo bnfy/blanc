@@ -1447,6 +1447,24 @@
         "unsubscribe": false
       },
       {
+        "name": "settings.drmStatus",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-status",
+        "hosts": ["settings"],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Read sanitized ECS protected-media readiness."
+      },
+      {
+        "name": "settings.drmRestart",
+        "kind": "invoke",
+        "channel": "pages:settings:drm-restart",
+        "hosts": ["settings"],
+        "params": [],
+        "returns": "boolean",
+        "doc": "Restart through the unsaved-work guard only when protected media requires it."
+      },
+      {
         "name": "settings.checkForUpdates",
         "kind": "invoke",
         "channel": "pages:settings:check-for-updates",

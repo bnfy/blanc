@@ -103,6 +103,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.blockingRetry` | invoke | `pages:blocking:retry` | settings | Retry a blocking provider that failed to start. |
 | `settings.blockingOpen` | invoke | `pages:blocking:open` | settings | Open a managed uBlock Origin tool view. |
 | `settings.onBlockingStatus` | event | `pages:blocking:status` | settings | Blocking provider status changed. |
+| `settings.drmStatus` | invoke | `pages:settings:drm-status` | settings | Read sanitized ECS protected-media readiness. |
+| `settings.drmRestart` | invoke | `pages:settings:drm-restart` | settings | Restart through the unsaved-work guard only when protected media requires it. |
 | `settings.checkForUpdates` | invoke | `pages:settings:check-for-updates` | settings | Check for an app update now. |
 | `settings.onAppearance` | event | `pages:settings:appearance` | settings | Appearance changed outside the page (for example /theme). |
 | `settings.activateSupporter` | invoke | `pages:settings:supporter-activate` | settings | Activate a Patron key. The key stays in main. |

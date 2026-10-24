@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Contenus protégés",
+    "source": "sha256:866fcf90caa17d9a55f3bd63ff639f725e15aac88bf17cd3688f2fbdf55314ee"
+  },
+  "drm.preparing": {
+    "message": "Préparation du composant nécessaire à la lecture audio et vidéo protégée. Vous pouvez continuer à naviguer.",
+    "source": "sha256:d84c2875b7bbd6f5b2c6d1ff6c4cedca457017869bb1f3f0ca46fc4b91deebab"
+  },
+  "drm.ready": {
+    "message": "Le composant de contenus protégés est prêt. La disponibilité de la lecture dépend du site web.",
+    "source": "sha256:ca99fb8cad32dbb7a67822d9417d378cb4b32c6457fe46322941e47027329bef"
+  },
+  "drm.restartRequired": {
+    "message": "Redémarrez Blanc pour terminer la préparation des contenus audio et vidéo protégés. Vos onglets seront restaurés ; les pages non enregistrées peuvent demander confirmation avant de se fermer.",
+    "source": "sha256:636ec5870d8987e43395c007e2460f8583e3115216cdc5205eb77a33378b796c"
+  },
+  "drm.disabled": {
+    "message": "Les mises à jour du composant de contenus protégés sont désactivées. Un redémarrage seul ne suffira peut-être pas.",
+    "source": "sha256:c75005b477338885b9ee6f27499e9d25f838aed29407ef91fa40476899962b23"
+  },
+  "drm.failed": {
+    "message": "Le composant de contenus protégés n’a pas pu être préparé. Vérifiez votre connexion, puis redémarrez Blanc pour réessayer.",
+    "source": "sha256:0d945c243093116fe669010b869d94ef8c8eaa7931ba3a3a9bfdd51aca7dd8d9"
+  },
+  "drm.restartButton": {
+    "message": "Redémarrer Blanc",
+    "source": "sha256:9c531b45c957d43f3d095b46349d415793a02e1ea044d680cddeaade1adc1f75"
+  },
   "$meta": {
     "locale": "fr",
     "endonym": "Français",
@@ -2902,6 +2930,14 @@
   "error.reloadFailed": {
     "message": "La page n’a pas pu être actualisée",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
+  },
+  "error.localFile.title": {
+    "message": "Ce fichier local ne peut pas s’ouvrir dans cette version de Blanc",
+    "source": "sha256:7af2013810894d42b07a869c7f82c5557bb6e67acdb76ddd30d1f18637f7e49b"
+  },
+  "error.localFile.detail": {
+    "message": "Cette version de Blanc lit les vidéos protégées et n’ouvre pas les fichiers locaux dans des onglets. Blanc a conservé cet onglet, et le fichier lui-même n’a pas changé. Ouvrez le fichier dans une autre app ou fermez cet onglet.",
+    "source": "sha256:faf1b20e5f3059bca8fbb4e9f0e2156a568f6d164564f8c92a809effc43027d1"
   },
   "arcImport.entry.title": {
     "message": "Arc",

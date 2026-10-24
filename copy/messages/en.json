@@ -1,4 +1,32 @@
 {
+  "drm.title": {
+    "message": "Protected media",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.preparing": {
+    "message": "Preparing the component needed to play protected audio and video. You can keep browsing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.ready": {
+    "message": "The protected-media component is ready. Playback availability depends on the website.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartRequired": {
+    "message": "Restart Blanc to finish preparing protected audio and video. Your tabs will be restored; unsaved pages may ask before closing.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.disabled": {
+    "message": "Protected-media component updates are disabled. Restarting alone may not resolve this.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.failed": {
+    "message": "The protected-media component could not be prepared. Check your connection, then restart Blanc to try again.",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
+  "drm.restartButton": {
+    "message": "Restart Blanc",
+    "note": "ECS-only protected-media status in Settings → Help."
+  },
   "$note": "Source of every Blanc-authored interface string. Edit here, translate in the same PR, run copy:ack for the keys you translated, then copy:build.",
   "slash.favorites.hint": {
     "message": "Open favorites",
@@ -2963,6 +2991,14 @@
   "error.reloadFailed": {
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
+  },
+  "error.localFile.title": {
+    "message": "This local file can’t open in this version of Blanc",
+    "note": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files."
+  },
+  "error.localFile.detail": {
+    "message": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab.",
+    "note": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded."
   },
   "arcImport.entry.title": {
     "message": "Arc",

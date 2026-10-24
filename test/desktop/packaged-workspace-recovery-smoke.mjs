@@ -9,6 +9,8 @@ import fixtures from './support/workspace-fixtures.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
+let expectedElectron = pkg.devDependencies.electron.replace(/^[~^]/, '');
+if (process.env.BLANC_ECS_PACKAGE_ROOT) expectedElectron = require('./support/ecs-package-version.cjs').expectedEcsElectron(process.env.BLANC_ECS_PACKAGE_ROOT);
 const executable = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 assert.ok(fs.existsSync(executable), 'Set BLANC_PACKAGED_EXECUTABLE to a packaged Blanc executable');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-workspace-restart-'));
@@ -46,7 +48,7 @@ async function launch() {
   const settings = await wait(() => Promise.resolve(app.pages().find(page => page.url().startsWith('blanc://settings/'))), Boolean, 'packaged settings');
   const info = await settings.evaluate(async () => (await window.bowserPages.settings.get()).appInfo);
   assert.equal(info.blancVersion, pkg.version);
-  assert.equal(info.electronVersion, pkg.devDependencies.electron.replace(/^[~^]/, ''));
+  assert.equal(info.electronVersion, expectedElectron);
   assert.equal(info.platform, process.platform);
   await settings.evaluate(() => window.bowserPages.surface.close());
   return info;

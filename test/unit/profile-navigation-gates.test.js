@@ -60,3 +60,21 @@ test('failed-profile queues are bounded and closed views release their slots', (
   f.targets.delete(3); f.gates.reconcile(); assert.equal(f.queued.size, MAX_PENDING - 1);
   assert(f.request(MAX_PENDING + 3)); assert.equal(f.queued.size, MAX_PENDING);
 });
+
+test('the optional trace records profile-gate cancels and replays without changing decisions', () => {
+  const run = trace => {
+    const queued = new Map(); const listeners = new Map(); const loaded = []; let phase = 'initializing';
+    const target = { tab: { profileId: 'a', private: false, navEpoch: 1 }, wc: { loadURL: url => { loaded.push(url); return Promise.resolve(); } } };
+    const gates = createProfileNavigationGates({ coordinator: { setGate: (s, l) => listeners.set(s, l) }, queued, resolveContents: id => (id === 1 ? target : null),
+      ready: () => phase === 'ready', enabled: () => true, startupActive: () => false, ...(trace ? { trace } : {}) });
+    gates.hold('a', 'a');
+    const cancelled = listeners.get('a')({ webContentsId: 1, resourceType: 'mainFrame', url: 'https://fixture.test/', method: 'GET' });
+    phase = 'ready'; gates.reconcile();
+    return { cancelled, loaded };
+  };
+  const records = [];
+  const traced = run({ record: (event, fields) => records.push([event, fields.outcome ?? fields.queued]) });
+  assert.deepEqual(traced, run(null));
+  assert.deepEqual(traced, { cancelled: true, loaded: ['https://fixture.test/'] });
+  assert.deepEqual(records, [['profile-gate-cancel', true], ['profile-gate-replay', 'replayed']]);
+});

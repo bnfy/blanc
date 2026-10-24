@@ -3,11 +3,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
+import { createRequire } from 'node:module';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 import polling from './support/poll.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { waitForValue: wait } = polling;
-const expected = runtime.lockedElectronVersion();
+const require = createRequire(import.meta.url);
+// Official packages must match the locked Electron. A public ECS package
+// (BLANC_ECS_PACKAGE_ROOT) must carry the pinned ECS runtime and archive and
+// report that runtime's Electron version instead, as in the workspace smoke.
+let expected = runtime.lockedElectronVersion();
+if (process.env.BLANC_ECS_PACKAGE_ROOT) expected = require('./support/ecs-package-version.cjs').expectedEcsElectron(process.env.BLANC_ECS_PACKAGE_ROOT);
 const executablePath = process.env.BLANC_PACKAGED_EXECUTABLE || path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-packaged-browser-'));
 fs.writeFileSync(path.join(scratch, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, usagePing: false, searchSuggestions: false }));
