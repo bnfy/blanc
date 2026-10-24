@@ -20,7 +20,8 @@ const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
 void _ignored;
 let app;
 let chrome;
-const read = name => JSON.parse(fs.readFileSync(path.join(profile, name), 'utf8'));
+let failed = false;
+const read = name =>JSON.parse(fs.readFileSync(path.join(profile, name), 'utf8'));
 const state = () => chrome.evaluate(() => window.browserAPI.getAllTabs());
 const list = () => chrome.evaluate(() => window.browserAPI.listWorkspaces());
 const ready = () => wait(state, value => value.tabs.length && value.tabs.every(tab => !tab.isLoading), 'settled packaged workspace tabs', 20_000);
@@ -146,7 +147,23 @@ try {
   await quit();
   assertDiskCapture(id);
   console.log(`Packaged Workspace recovery PASS: ${JSON.stringify(runtime)}; new binding, groups/pins, private exclusion, quiet restore/wake, durable deleted recovery; three graceful process exits.`);
+} catch (error) {
+  failed = true;
+  throw error;
 } finally {
+  // Teardown never replaces an earlier failure: it fails only a pass.
   try { if (app) await app.close(); }
-  finally { await fixture.close(); fs.rmSync(profile, { recursive: true, force: true }); }
+  catch (error) {
+    if (!failed) throw error;
+    console.error(`Blanc did not close cleanly: ${error.message}`);
+  } finally {
+    await fixture.close();
+    // Windows can keep a child process's cache file open briefly after Blanc exits.
+    try {
+      fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    } catch (error) {
+      if (!failed) throw error;
+      console.error(`left ${profile} behind: ${error.code ?? error.message}`);
+    }
+  }
 }
