@@ -1,0 +1,20 @@
+{
+  "scope": "Website-only consent explanation beside the homepage installer CTA; not a claim about a desktop release or a measured consent rate.",
+  "verified": "2026-10-24",
+  "websiteSourceSha": "0bf2749c95c1ca98a6cfe60cc6378c5f2a9b2950",
+  "evidence": [
+    "site/src/scripts/site.js",
+    "site/src/pages/index.astro",
+    "test/unit/site-attribution-consent.test.js"
+  ],
+  "qualification": "At the recorded website revision, loadMeasurement returns unless the saved website choice is granted. Opening the existing panel does not grant consent. Installer destinations remain ordinary anchors; no measurement choice is required for navigation. All 18 isolated consent and attribution tests passed, including blocked/unavailable storage and installer-only events. Live-bundle offline execution also generated no Google requests while unset or denied. This does not prove external GA4 ingestion or ad attribution.",
+  "claims": [
+    {
+      "id": "home-measurement-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Optional Google analytics and ad measurement stay off until you choose Allow. You can download Blanc without consenting.",
+      "subject": "Blanc website",
+      "verdict": "verified"
+    }
+  ]
+}
