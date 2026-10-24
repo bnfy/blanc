@@ -97,6 +97,12 @@ export interface NewtabPagesAPI {
     onVisibility: (callback: (payload: unknown) => void) => void;
     /** Open tabs from other synced devices changed. IPC: event `pages:start:remote-tabs`. */
     onRemoteTabs: (callback: (payload: unknown) => void) => void;
+    /** Open a page another device sent here in a new ordinary tab, and hide it on this device. IPC: invoke `pages:start:open-sent`. */
+    openSent: (id: string) => Promise<unknown>;
+    /** Hide a page another device sent here without opening it. IPC: invoke `pages:start:dismiss-sent`. */
+    dismissSent: (id: string) => Promise<unknown>;
+    /** Pages other devices sent here changed. IPC: event `pages:start:sent-items`. */
+    onSentItems: (callback: (payload: unknown) => void) => void;
   };
 }
 
