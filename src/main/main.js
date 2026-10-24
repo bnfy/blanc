@@ -13286,6 +13286,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           fill: current.newtabWallpaperFill,
           followSpace: current.newtabFollowSpaceColor,
           spaceColor,
+          surface: current.surfaceStyle,
         }),
         presets: SpaceIdentity.PRESETS.map(({ id, hex }) => ({ id, hex })),
       },

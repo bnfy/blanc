@@ -1,4 +1,4 @@
-const { app, protocol, net, ipcMain, session, dialog, shell } = require('electron');
+const { app, protocol, net, ipcMain, session, dialog, shell, webContents } = require('electron');
 const { execFileSync } = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
@@ -8,6 +8,19 @@ const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
+
+// Swaps an open page's stylesheet for a fresh copy (and so the current surface
+// style), removing the old one only once the new one has loaded, so the page
+// never shows unstyled. The query only defeats the link's own dedupe; the
+// handler resolves the file by name.
+const RESTYLE_SCRIPT = `(() => {
+  const old = document.querySelector('link[rel="stylesheet"][href^="pages.css"]');
+  if (!old) return;
+  const next = old.cloneNode();
+  next.href = 'pages.css?restyle=' + Date.now();
+  next.addEventListener('load', () => old.remove(), { once: true });
+  old.after(next);
+})()`;
 const history = require('./history');
 const archive = require('./archive');
 const downloads = require('./downloads');
@@ -103,6 +116,29 @@ function setupPages(hooks = {}) {
   const stringsScript = hooks.stringsScript ?? (() =>
     stringsScriptFor({ source: fs.readFileSync(path.join(PAGES_DIR, 'strings.en.js'), 'utf8'), formatLocale: 'en', strict: false }));
 
+  // Both files are read once in a packaged build. A dev run reads them per
+  // request so an edited stylesheet shows on the next navigation.
+  const stylesheetCache = new Map();
+  const stylesheet = (surfaceStyle) => {
+    const key = surfaceStyle === 'neutral' ? 'neutral' : 'sunrise';
+    if (stylesheetCache.has(key)) return stylesheetCache.get(key);
+    let css = fs.readFileSync(path.join(PAGES_DIR, 'pages.css'), 'utf8');
+    if (key === 'neutral') css += '\n' + fs.readFileSync(path.join(PAGES_DIR, 'pages-neutral.css'), 'utf8');
+    if (app.isPackaged) stylesheetCache.set(key, css);
+    return css;
+  };
+  // A Surface style change restyles every open internal page (Start Pages,
+  // sheets, Mahjong) in place, with no reload to lose a game or a search.
+  let appliedSurfaceStyle = settings.getSettings().surfaceStyle;
+  settings.onSettingsChanged?.((s) => {
+    if (s.surfaceStyle === appliedSurfaceStyle) return;
+    appliedSurfaceStyle = s.surfaceStyle;
+    for (const wc of webContents?.getAllWebContents?.() ?? []) {
+      if (wc.isDestroyed() || !wc.getURL().startsWith('blanc://')) continue;
+      wc.executeJavaScript(RESTYLE_SCRIPT).catch(() => {});
+    }
+  });
+
   const serveBlanc = (request) => {
     const branding = ublockBrandResourcePath(request.url);
     if (branding) return net.fetch(pathToFileURL(branding).toString());
@@ -123,14 +159,12 @@ function setupPages(hooks = {}) {
     const name = asset.name;
     // The stylesheet carries the surface style: Neutral appends its overrides
     // in the same response, so there is no flash of the Sunrise palette. It
-    // is never cached, or a page reloaded after a change would keep the old
-    // palette.
+    // is never cached by Chromium, or a page reloaded after a change would
+    // keep the old palette.
     if (name === 'pages.css') {
-      let css = fs.readFileSync(path.join(PAGES_DIR, 'pages.css'), 'utf8');
-      if (settings.getSettings().surfaceStyle === 'neutral') {
-        css += '\n' + fs.readFileSync(path.join(PAGES_DIR, 'pages-neutral.css'), 'utf8');
-      }
-      return new Response(css, { headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' } });
+      return new Response(stylesheet(settings.getSettings().surfaceStyle), {
+        headers: { 'content-type': 'text/css; charset=utf-8', 'cache-control': 'no-store' },
+      });
     }
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({

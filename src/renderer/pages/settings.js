@@ -258,12 +258,16 @@
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
 
-  // Pages read their palette with the stylesheet, so reload to show it now.
+  // Main restyles every open internal page, this one included, on a change.
   const surfaceStyle = document.getElementById('surfaceStyle');
-  surfaceStyle.value = settings.surfaceStyle === 'neutral' ? 'neutral' : 'sunrise';
+  const showSurfaceStyle = (value) => { surfaceStyle.value = value === 'neutral' ? 'neutral' : 'sunrise'; };
+  showSurfaceStyle(settings.surfaceStyle);
   surfaceStyle.addEventListener('change', async () => {
-    await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value });
-    location.reload();
+    try {
+      showSurfaceStyle((await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value })).surfaceStyle);
+    } catch {
+      window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
+    }
   });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
