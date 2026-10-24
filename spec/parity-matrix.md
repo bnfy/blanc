@@ -63,6 +63,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F52 | Tab Archive | PARTIAL | N/A | N/A | Desktop only. Off by default, device-local. Idle ungrouped, unpinned tabs close into a per-profile Archive kept 30 days, restorable from the Quick Switcher and History; never private tabs, never synced, cleared with history. | — |
 | F53 | Split View | PARTIAL | PLANNED | N/A | Desktop, and iOS regular width (two panes, D30). Two to four tabs side by side, one row in the tab list, saved with the session and Spaces; grown out of Glance; one Island plus a header per pane. | D11, D30 |
 | F54 | Billboard clock Font & color | PARTIAL | N/A | N/A | Desktop only. Four bundled faces (Roboto Flex added) with weight and a type-designed height from each face's width axis, Automatic or a Spaces preset at a tone, Solid or a refracting Glass, and a shadow that keeps it readable on any background; synced; values finished in a pure module. | — |
+| F56 | Tab gestures | N/A | PLANNED | PLANNED | Phone only. A sideways swipe on the pill switches to the previous or next tab in the dots' order; the switcher is a sideways strip of page cards, and flicking one up closes it; both have VoiceOver and `/close` equivalents; page-edge back/forward unchanged (D7). | D7 |
 
 ## Notes on the "mobile-only wins"
 
