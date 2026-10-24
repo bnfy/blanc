@@ -1,0 +1,31 @@
+{
+  "head": "9ce2d81f4854681f6386d569db80495da98d292e",
+  "paginationComplete": true,
+  "counts": {
+    "success": 25,
+    "failure": 3,
+    "skipped": 2
+  },
+  "failures": [
+    {
+      "id": 120740909287,
+      "name": "modified-link-clicks (ubuntu-latest)"
+    },
+    {
+      "id": 120740909145,
+      "name": "modified-link-clicks (windows-latest)"
+    },
+    {
+      "id": 120740827574,
+      "name": "substrate"
+    }
+  ],
+  "skips": [
+    "installed-intel",
+    "linux-native-diagnostics"
+  ],
+  "codeql": [
+    "No new alerts in code changed by this pull request"
+  ],
+  "statuses": []
+}

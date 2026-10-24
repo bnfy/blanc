@@ -1,5 +1,13 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current priority — October 24: native L11 reconciled; dependency repair next
+
+**Readiness: 9/12 (75%), delta 0.** The [L11 applicability matrix](../experiments/chromium-extension-spike/evidence/l11-native-reconciliation-20261024/README.md) separates the accepted native Chromium artifact from shared Electron CI. All 458 files/five symlinks, signature, ticket, Gatekeeper and authenticated artifact digests were reverified read-only. No native implementation changed since the accepted candidate. The two Electron sandbox failures remain unresolved merge obligations; Electron work is paused, not a native launch task.
+
+The next actionable blocker is the [four-workspace undici audit repair](../experiments/chromium-extension-spike/evidence/l11-undici-20261024/README.md). Patched versions and regenerated SBOMs pass local verification; hosted exact-head substrate must confirm the published change. L11 remains open under its all-green CI wording. L4 real Google upgrade, Decision 2 cost/capacity and deferred latency, and L12 final artifact-specific approval remain explicit. Google baseline stays separate. No release or merge approval is inferred.
+
+Dated entries below retain their historical results; the current applicability matrix supersedes statements that an Electron rebuild is required to qualify the Chromium runtime.
+
 **Primary implementation plan — status reconciled October 23, 2026.** This remains the governing plan and ordering for Chromium migration. The owner explicitly requested that ongoing work update this plan. The [Mac preview checklist](../experiments/chromium-extension-spike/mac-preview-release-checklist.md) is a supporting readiness checklist, not a replacement roadmap, authorization, or waiver of the gates below. Historical estimates are not a current release ETA.
 
 ### Decision 2 closure priority — October 22
@@ -12,7 +20,17 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
-Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. L11 exact-head CI/audits is blocked by the owner’s pending-Electron-build decision. L12 materials are prepared; final readiness/go-no-go still depends on the unaccepted prerequisites. Decision 2 and L4 authentic external-upgrade proof remain independent; do not resume an unlimited stress-test matrix. Google baseline stays separate. Latency deferred; Electron diagnostic build pending approval/unstarted; neither is counted as passed.
+Keep this bar in subsequent progress updates. Award one cell only when the corresponding gate has its complete evidence/approval record; report `Δ 0 gates` when new tests improve supporting evidence without closing a gate. Record regressions and denominator changes explicitly. L11 remains open for explicit reconciliation of Chromium candidate acceptance and shared repository CI. The separate Electron build is stopped after the owner’s scope correction. L12 materials are prepared; final readiness/go-no-go still depends on the unaccepted prerequisites. Decision 2 and L4 authentic external-upgrade proof remain independent; do not resume an unlimited stress-test matrix. Google baseline stays separate. Latency remains deferred; the unrelated Electron worker-update diagnostic build remains pending. No further Electron runtime work is planned under the current direction.
+
+### October24 — scope correction: Chromium fork remains the priority
+
+The owner clarified that this session must focus on the Chromium fork. The isolated Electron build is stopped, with its source, cache, unpublished patch and failure evidence preserved. Electron's sandboxed-duplication failure belongs to shared repository CI; it is not evidence of that defect in the separate native Chromium preview. Pursuing a new Electron runtime before reconciling that distinction was a scope error. No further Electron build or patch publication is planned under the current direction.
+
+Next: reconcile L11's native candidate/source/audit evidence separately from repository merge checks, identify the remaining Chromium-specific acceptance gaps, and continue the Decision2/preview package. Shared CI failures remain reported and unresolved; this does not waive checks, approve a merge, or award a gate. **9/12, delta0.** Verified undici dependency work remains separate unpublished work. Google baseline stays separate; latency deferred.
+
+### October 23–24 — historical Electron detour, now paused
+
+The owner temporarily authorized a focused Electron runtime build for the separate [sandboxed-duplication failure](../experiments/chromium-extension-spike/evidence/l11-sandbox-duplication-20261023/README.md). It did not reach runtime acceptance. Following the Chromium scope correction, the owned build was stopped and the unfinished app/test changes shelved; source, cache and raw build evidence remain local. No unverified Electron patch is published in this update. Its failure remains visible as a shared-repository merge obligation. The native Chromium candidate is evaluated by the current applicability matrix above.
 
 ### October 23 — L12 artifact mapping completed; remaining gates blocked
 
