@@ -35,6 +35,18 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
+// Move to Space ▸ (#1060): every space in the profile, the window's own one
+// checked (choosing it does nothing) and a space that can't receive a tab
+// right now (its window mid switch or closing) disabled. Space names are user
+// data; as radio rows the pseudo-locale sweep skips them, like group names.
+function buildSpaceSubmenu(spaces) {
+  return spaces.map((s) => ({
+    id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id,
+    ...(s.enabled === false ? { enabled: false } : {}),
+  }));
+}
+const spaceReachable = (s) => !s.current && s.enabled !== false;
+
 // Native menus grow to their widest row, so long page titles are cut.
 const SPLIT_TITLE_MAX = 48;
 const shortTitle = (title) => {
@@ -84,7 +96,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, spaces = [], canMoveToSpace = false, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -146,6 +158,14 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
       : { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: [{ id: 'send-none', label: t('sends.none'), enabled: false }] });
   }
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
+  // Shown once the profile has a space; a private tab never joins one. With
+  // no other space able to take it, or a tab main refuses to move, it is
+  // disabled.
+  if (!tab.private && spaces.length) {
+    items.push(canMoveToSpace && spaces.some(spaceReachable)
+      ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces) }
+      : { id: 'space', label: t('tabMenu.moveToSpace'), enabled: false });
+  }
   // Split View (F53): a split tab can leave or close its split; any other tab
   // can make one with an eligible tab (main passes the candidates with their
   // groups; buildSplitSubmenu sorts them). A split with a pinned tab is pinned.
