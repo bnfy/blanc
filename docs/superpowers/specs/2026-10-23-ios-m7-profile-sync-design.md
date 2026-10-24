@@ -253,7 +253,10 @@ out at most 60 s after the first unpublished change.
   phone's palette and the share button on the pill.
 - **Requires:** a Worker deploy (the store list and its budget), desktop UI and
   copy in all six languages, and the phone UI. Old desktops ignore the store.
-- Its own plan follows M7a.
+- Its own plan follows M7a. **Superseded in detail** by the M7b addendum,
+  [`2026-10-24-ios-m7b-send-to-device-design.md`](2026-10-24-ios-m7b-send-to-device-design.md),
+  and its [plan](../plans/2026-10-24-ios-m7b-send-to-device.md); where they differ
+  (presence entries, the phone sending from a pill menu), the addendum wins.
 
 ## 8. Testing
 
