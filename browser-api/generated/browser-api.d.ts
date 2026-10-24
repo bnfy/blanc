@@ -625,6 +625,33 @@ export interface RemoteDevice {
   groups: RemoteGroup[];
 }
 
+/** What sending a page reports (M7b addendum §6): sent (never "delivered"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target). */
+export type SendStatus = 'sent' | 'unavailable' | 'failed' | 'invalid';
+
+/** The reply to sendTabToDevice. */
+export interface SendResult {
+  status: SendStatus;
+}
+
+/** Another device of this sync account a page can be sent to, from sync.listSendTargets(): found in the sends store's presence entries or in tab sync, newest first, named as the Other devices drawer names it. */
+export interface SendTarget {
+  id: string;
+  name: string;
+  platform: string;
+}
+
+/** A page another device sent to this one that this device hasn't opened or dismissed, from sync.listSentToThisDevice(). Newest first, at most 20, each kept 7 days. */
+export interface SentItem {
+  id: string;
+  /** An http(s) address. */
+  url: string;
+  title: string;
+  /** Epoch milliseconds. */
+  sentAt: number;
+  /** The sending device's name as this device shows it. */
+  fromName: string;
+}
+
 /** A bang the person added in Settings, from settings.js normalizeCustomBangs(). */
 export interface CustomBang {
   /** Lowercase; a letter or digit, then up to 31 letters, digits, hyphens or underscores. */
@@ -1306,6 +1333,31 @@ export interface BlancBrowserAPI {
    */
   renameDevice(deviceId: string, name: string | null): Promise<boolean>;
   /**
+   * Other devices of this sync account a page can be sent to. Empty unless Profile Sync is on in the Personal profile.
+   * IPC: invoke `chrome:send-targets`.
+   */
+  listSendTargets(): Promise<SendTarget[]>;
+  /**
+   * Send a tab's page to another device. Main reads the tab's own address and title; the renderer never passes a URL. Private, internal and inert tabs, and devices that aren't targets, answer invalid.
+   * IPC: invoke `chrome:send-tab`.
+   */
+  sendTabToDevice(tabId: TabId, deviceId: string): Promise<SendResult>;
+  /**
+   * Pages other devices sent here that this device hasn't opened or dismissed.
+   * IPC: invoke `chrome:sent-list`.
+   */
+  listSentToThisDevice(): Promise<SentItem[]>;
+  /**
+   * Open a sent page in a new ordinary tab and hide it on this device. False when it is no longer waiting.
+   * IPC: invoke `chrome:sent-open`.
+   */
+  openSentItem(id: string): Promise<boolean>;
+  /**
+   * Hide a sent page on this device without opening it. False when it is no longer waiting.
+   * IPC: invoke `chrome:sent-dismiss`.
+   */
+  dismissSentItem(id: string): Promise<boolean>;
+  /**
    * Cancel a pending workspace action.
    * IPC: send `chrome:workspaces-cancel`.
    */
@@ -1390,6 +1442,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:remote-tabs-updated`.
    */
   onRemoteTabsUpdated(callback: (payload: RemoteDevice[]) => void): () => void;
+  /**
+   * Pages sent here changed: one arrived, or one was opened or dismissed. Same projection as listSentToThisDevice. Sent only to overlay views.
+   * IPC: event `chrome:sent-updated`.
+   */
+  onSentToThisDeviceUpdated(callback: (payload: SentItem[]) => void): () => void;
   /**
    * Named Workspaces changed.
    * IPC: event `chrome:workspaces-updated`.

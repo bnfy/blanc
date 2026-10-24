@@ -84,7 +84,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -138,6 +138,13 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     label: t(tab.startPinned ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
     enabled: isFavoritable(tab) && (!!tab.startPinned || !tab.startPinsFull),
   });
+  // Send to Device ▸ (M7b): null when this tab can't be sent (sync off, a
+  // private, internal or inert tab); [] when there's no other device.
+  if (Array.isArray(sendTargets)) {
+    items.push(sendTargets.length
+      ? { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: sendTargets.map((d) => ({ id: 'send-to-device', label: d.name, deviceId: d.id })) }
+      : { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: [{ id: 'send-none', label: t('sends.none'), enabled: false }] });
+  }
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Split View (F53): a split tab can leave or close its split; any other tab
   // can make one with an eligible tab (main passes the candidates with their
