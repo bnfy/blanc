@@ -32389,6 +32389,90 @@
         }
       }
     },
+    "error.localFile.title": {
+      "comment": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This local file can’t open in this version of Blanc"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese lokale Datei lässt sich in dieser Blanc-Version nicht öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este archivo local no se puede abrir en esta versión de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce fichier local ne peut pas s’ouvrir dans cette version de Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo file locale non si può aprire in questa versione di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este arquivo local não pode ser aberto nesta versão do Blanc"
+          }
+        }
+      }
+    },
+    "error.localFile.detail": {
+      "comment": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Version von Blanc spielt geschützte Videos ab und öffnet lokale Dateien nicht in Tabs. Blanc hat diesen Tab behalten, und die Datei selbst ist unverändert. Öffne die Datei in einer anderen App oder schließe diesen Tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta versión de Blanc reproduce vídeo protegido y no abre archivos locales en pestañas. Blanc ha conservado esta pestaña, y el archivo no ha cambiado. Abre el archivo en otra app o cierra esta pestaña."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette version de Blanc lit les vidéos protégées et n’ouvre pas les fichiers locaux dans des onglets. Blanc a conservé cet onglet, et le fichier lui-même n’a pas changé. Ouvrez le fichier dans une autre app ou fermez cet onglet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa versione di Blanc riproduce video protetti e non apre i file locali nelle schede. Blanc ha conservato questa scheda, e il file non è stato modificato. Apri il file in un’altra app o chiudi questa scheda."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta versão do Blanc reproduz vídeos protegidos e não abre arquivos locais em abas. O Blanc manteve esta aba, e o arquivo em si não foi alterado. Abra o arquivo em outro app ou feche esta aba."
+          }
+        }
+      }
+    },
     "arcImport.entry.title": {
       "comment": "Heading of the Arc row on Bring Your Tabs. Arc is a browser name.",
       "extractionState": "manual",

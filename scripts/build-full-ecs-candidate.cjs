@@ -14,7 +14,7 @@ function replaceExactly(source, before, after, label) {
 function patchMain(source) {
   source = replaceExactly(source, '  externalUrlHandoff.openLocalFiles(paths);',
     "  require('./ecs-full-bootstrap.cjs').openLocalFiles(paths);", 'local HTML entrypoint');
-  source = replaceExactly(source, '  const admittedLocalFile = !drmSupport.enabled && allowLocalFile && isSupportedLocalHtmlUrl(url);',
+  source = replaceExactly(source, '  const admittedLocalFile = localPlan.admitted;',
     '  const admittedLocalFile = false; // Candidate: never admit raw file URLs into browser tabs.', 'raw file admission');
   source = replaceExactly(source, '  if (!ownsInstanceLock) return;\n  mainI18n.init();',
     "  if (!ownsInstanceLock) return;\n  await require('./ecs-full-bootstrap.cjs').ready;\n  mainI18n.init();", 'DRM startup gate');

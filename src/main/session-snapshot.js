@@ -48,9 +48,14 @@ const validViewedAt = (value) => Number.isFinite(value) && value > 0;
  * title showing there is Blanc's error copy, not the site's. */
 function sessionTabMeta(tab) {
   const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error');
-  const title = !onErrorPage && typeof tab?.title === 'string'
-    ? tab.title.slice(0, MAX_META_TITLE)
-    : '';
+  // A DRM build's inert local-file record keeps the title it was restored
+  // with; the placeholder page's own title is never saved over it.
+  const inertTitle = typeof tab?.inertLocalFileUrl === 'string'
+    && typeof tab?.inertLocalFileTitle === 'string' ? tab.inertLocalFileTitle : null;
+  const title = inertTitle !== null ? inertTitle.slice(0, MAX_META_TITLE)
+    : !onErrorPage && typeof tab?.title === 'string'
+      ? tab.title.slice(0, MAX_META_TITLE)
+      : '';
   const meta = { title, favicon: persistableFavicon(tab?.favicon) };
   // F46: only a renamed tab carries the key, so every other entry is written
   // exactly as before and older builds simply ignore it.

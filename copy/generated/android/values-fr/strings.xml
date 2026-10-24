@@ -815,6 +815,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="glance_status_cancelled">Cet onglet n’a pas été ouvert dans Glance</string>
     <string name="tab_untitled_short">Onglet</string>
     <string name="error_reload_failed">La page n’a pas pu être actualisée</string>
+    <string name="error_local_file_title">Ce fichier local ne peut pas s’ouvrir dans cette version de Blanc</string>
+    <string name="error_local_file_detail">Cette version de Blanc lit les vidéos protégées et n’ouvre pas les fichiers locaux dans des onglets. Blanc a conservé cet onglet, et le fichier lui-même n’a pas changé. Ouvrez le fichier dans une autre app ou fermez cet onglet.</string>
     <string name="arc_import_entry_title">Arc</string>
     <string name="arc_import_entry_found">Récupérez vos Spaces, onglets épinglés et dossiers d’Arc.</string>
     <string name="arc_import_entry_missing">Arc n’est pas installé ici. Si vous avez copié son fichier StorableSidebar.json depuis un autre ordinateur, choisissez-le.</string>

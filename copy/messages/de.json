@@ -2927,6 +2927,14 @@
     "message": "Die Seite konnte nicht neu geladen werden",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
   },
+  "error.localFile.title": {
+    "message": "Diese lokale Datei lässt sich in dieser Blanc-Version nicht öffnen",
+    "source": "sha256:7af2013810894d42b07a869c7f82c5557bb6e67acdb76ddd30d1f18637f7e49b"
+  },
+  "error.localFile.detail": {
+    "message": "Diese Version von Blanc spielt geschützte Videos ab und öffnet lokale Dateien nicht in Tabs. Blanc hat diesen Tab behalten, und die Datei selbst ist unverändert. Öffne die Datei in einer anderen App oder schließe diesen Tab.",
+    "source": "sha256:faf1b20e5f3059bca8fbb4e9f0e2156a568f6d164564f8c92a809effc43027d1"
+  },
   "arcImport.entry.title": {
     "message": "Arc",
     "source": "sha256:87b9cd8a27cfa5f5a99c32969088f476d66d10113a8f148016466c00a02192b9"

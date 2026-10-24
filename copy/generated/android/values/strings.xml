@@ -797,6 +797,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="glance_status_cancelled">Didn’t open that tab in Glance</string>
     <string name="tab_untitled_short">Tab</string>
     <string name="error_reload_failed">The page could not be reloaded</string>
+    <string name="error_local_file_title">This local file can’t open in this version of Blanc</string>
+    <string name="error_local_file_detail">This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab.</string>
     <string name="arc_import_entry_title">Arc</string>
     <string name="arc_import_entry_found">Bring your Spaces, pinned tabs and folders from Arc.</string>
     <string name="arc_import_entry_missing">Arc isn’t installed here. If you copied its StorableSidebar.json file from another computer, choose it.</string>

@@ -2927,6 +2927,14 @@
     "message": "La page n’a pas pu être actualisée",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
   },
+  "error.localFile.title": {
+    "message": "Ce fichier local ne peut pas s’ouvrir dans cette version de Blanc",
+    "source": "sha256:7af2013810894d42b07a869c7f82c5557bb6e67acdb76ddd30d1f18637f7e49b"
+  },
+  "error.localFile.detail": {
+    "message": "Cette version de Blanc lit les vidéos protégées et n’ouvre pas les fichiers locaux dans des onglets. Blanc a conservé cet onglet, et le fichier lui-même n’a pas changé. Ouvrez le fichier dans une autre app ou fermez cet onglet.",
+    "source": "sha256:faf1b20e5f3059bca8fbb4e9f0e2156a568f6d164564f8c92a809effc43027d1"
+  },
   "arcImport.entry.title": {
     "message": "Arc",
     "source": "sha256:87b9cd8a27cfa5f5a99c32969088f476d66d10113a8f148016466c00a02192b9"

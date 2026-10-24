@@ -9,6 +9,9 @@ const drmSupport = require('./drm-support').createDrmSupport({
   app, session, BrowserWindow, metadata: packageMetadata,
   components: packageMetadata.blancRuntime === 'ecs' ? require('electron').components : undefined,
 });
+// A DRM build never loads local files, so their saved tabs are records only
+// (kept even when the file is missing). Set before anything restores or saves.
+require('./local-html-files').setLocalFilesRecordOnly(drmSupport.enabled);
 const { installMacOSQuitVisibilityGate } = require('./macos-quit');
 const {
   savesSessionEntry,
@@ -354,6 +357,7 @@ const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
+const { localFileTabPlan, keepsLocalFile } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
@@ -8120,7 +8124,12 @@ function duplicateTab(id) {
  * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
-  if (!isSupportedLocalHtmlUrl(url)) tab.localFile = false;
+  // Leaving the file (or, on a DRM build, its inert placeholder) ends the grant.
+  if (!keepsLocalFile(tab, url)) {
+    tab.localFile = false;
+    tab.inertLocalFileUrl = null;
+    tab.inertLocalFileTitle = null;
+  }
   refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
   // would unprotect exactly the paused video this rule exists to protect.
@@ -8311,7 +8320,13 @@ initTabView({
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
-  const admittedLocalFile = !drmSupport.enabled && allowLocalFile && isSupportedLocalHtmlUrl(url);
+  // Official builds load a granted local HTML file; a DRM build keeps a
+  // granted local-file record as an inert placeholder (src/main/inert-local-file.js).
+  const localPlan = localFileTabPlan(url, { drm: drmSupport.enabled, allowLocalFile });
+  url = localPlan.url;
+  const admittedLocalFile = localPlan.admitted;
+  // An inert record never replays navigation history: nothing may load the file.
+  if (localPlan.inertLocalFileUrl) restoreHistory = null;
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -8345,7 +8360,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     localFile: typeof pinnedHomeUrl === 'string' && pinnedHomeUrl.startsWith('file:'),
   });
   const pinnedHome = pinned
-    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
+    ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: localPlan.localFile }))
     : null;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
@@ -8371,7 +8386,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     url,
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
-    localFile: admittedLocalFile,
+    localFile: localPlan.localFile,
+    // DRM builds: the saved file URL this tab keeps as a record while it shows
+    // the inert placeholder. Null otherwise.
+    inertLocalFileUrl: localPlan.inertLocalFileUrl,
+    inertLocalFileTitle: localPlan.inertLocalFileUrl && typeof title === 'string' ? title : null,
     // Main-owned tool lifetime survives its temporary error URL during uBO reload.
     managedExtension: managedExtension === true && !isPrivate,
     // Trusted Electron inheritance, kept in main memory for view recreation.

@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "dc9f67b3ef88729e402c125933dfed212328414a86bd6bf2b436fe1af4d1b8c7",
+      "sha256": "a3e12e5f63080b01baed3ac177605be981ef2c8a090f42fdb9b044f9809f35e8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -295,7 +295,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "08c4ba699af2791f8fcb708996946d3b617e1c7d92bb6d8a7dbdcd4b510f5b00",
+      "sha256": "8dda7a8d66fc0e930a4802e03a430dd25e2bd57a0a683dcdb80fd68e34cbfad2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

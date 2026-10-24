@@ -815,6 +815,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="glance_status_cancelled">Quella scheda non è stata aperta in Glance</string>
     <string name="tab_untitled_short">Scheda</string>
     <string name="error_reload_failed">Impossibile ricaricare la pagina</string>
+    <string name="error_local_file_title">Questo file locale non si può aprire in questa versione di Blanc</string>
+    <string name="error_local_file_detail">Questa versione di Blanc riproduce video protetti e non apre i file locali nelle schede. Blanc ha conservato questa scheda, e il file non è stato modificato. Apri il file in un’altra app o chiudi questa scheda.</string>
     <string name="arc_import_entry_title">Arc</string>
     <string name="arc_import_entry_found">Porta da Arc i tuoi Spaces, le schede fissate e le cartelle.</string>
     <string name="arc_import_entry_missing">Arc non è installato qui. Se hai copiato il suo file StorableSidebar.json da un altro computer, sceglilo.</string>

@@ -2927,6 +2927,14 @@
     "message": "No se pudo recargar la página",
     "source": "sha256:a1c9370bbc2edc0eb1c3cfac36b5918b02332af7b38c1b7bc5c6564ba0c8c962"
   },
+  "error.localFile.title": {
+    "message": "Este archivo local no se puede abrir en esta versión de Blanc",
+    "source": "sha256:7af2013810894d42b07a869c7f82c5557bb6e67acdb76ddd30d1f18637f7e49b"
+  },
+  "error.localFile.detail": {
+    "message": "Esta versión de Blanc reproduce vídeo protegido y no abre archivos locales en pestañas. Blanc ha conservado esta pestaña, y el archivo no ha cambiado. Abre el archivo en otra app o cierra esta pestaña.",
+    "source": "sha256:faf1b20e5f3059bca8fbb4e9f0e2156a568f6d164564f8c92a809effc43027d1"
+  },
   "arcImport.entry.title": {
     "message": "Arc",
     "source": "sha256:87b9cd8a27cfa5f5a99c32969088f476d66d10113a8f148016466c00a02192b9"

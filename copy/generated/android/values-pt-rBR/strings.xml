@@ -815,6 +815,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="glance_status_cancelled">Essa aba não foi aberta no Glance</string>
     <string name="tab_untitled_short">Aba</string>
     <string name="error_reload_failed">Não foi possível recarregar a página</string>
+    <string name="error_local_file_title">Este arquivo local não pode ser aberto nesta versão do Blanc</string>
+    <string name="error_local_file_detail">Esta versão do Blanc reproduz vídeos protegidos e não abre arquivos locais em abas. O Blanc manteve esta aba, e o arquivo em si não foi alterado. Abra o arquivo em outro app ou feche esta aba.</string>
     <string name="arc_import_entry_title">Arc</string>
     <string name="arc_import_entry_found">Traga seus Spaces, abas fixadas e pastas do Arc.</string>
     <string name="arc_import_entry_missing">O Arc não está instalado aqui. Se você copiou o arquivo StorableSidebar.json dele de outro computador, escolha-o.</string>

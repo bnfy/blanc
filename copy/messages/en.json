@@ -2988,6 +2988,14 @@
     "message": "The page could not be reloaded",
     "note": "Description on the error page when reloading a page failed."
   },
+  "error.localFile.title": {
+    "message": "This local file can’t open in this version of Blanc",
+    "note": "Error page title for a local HTML tab kept as a record on a DRM build, which never loads local files."
+  },
+  "error.localFile.detail": {
+    "message": "This version of Blanc plays protected video and keeps local files out of tabs. Blanc kept this tab, and the file itself is unchanged. Open the file in another app, or close this tab.",
+    "note": "Error page explanation for a local HTML tab kept as a record on a DRM build; the tab and the file are preserved and nothing is loaded."
+  },
   "arcImport.entry.title": {
     "message": "Arc",
     "note": "Heading of the Arc row on Bring Your Tabs. Arc is a browser name."

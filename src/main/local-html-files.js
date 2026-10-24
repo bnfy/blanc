@@ -35,10 +35,22 @@ function localHtmlUrlsFromPaths(paths) {
   return paths.map((filePath) => localHtmlUrlFromPath(filePath)).filter(Boolean);
 }
 
+// DRM (ECS) builds never load local files: createTab refuses them. There a
+// saved local-file tab is only a record, shown as an inert placeholder and
+// never opened, so the existence and canonical-path checks that protect
+// loading on official builds do not apply, and a missing or changed file must
+// not delete the record. Set once at startup (main.js) and never by IPC.
+let recordOnly = false;
+function setLocalFilesRecordOnly(value) { recordOnly = value === true; }
+
 /** A saved grant is usable only for the same canonical, still-existing file.
- * An unmarked or noncanonical file URL cannot become a restored tab. */
+ * An unmarked or noncanonical file URL cannot become a restored tab. On a DRM
+ * build (record-only), any well-formed local HTML URL is kept as a record. */
 function restorableLocalHtmlUrl(value) {
   if (!isSupportedLocalHtmlUrl(value)) return null;
+  if (recordOnly) {
+    try { return new URL(value).href; } catch { return null; }
+  }
   try {
     const parsed = new URL(value);
     return localHtmlUrlFromPath(fileURLToPath(parsed)) === parsed.href ? parsed.href : null;
@@ -67,4 +79,5 @@ module.exports = {
   localHtmlUrlFromPath,
   localHtmlUrlsFromPaths,
   restorableLocalHtmlUrl,
+  setLocalFilesRecordOnly,
 };
