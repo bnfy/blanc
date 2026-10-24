@@ -98,13 +98,6 @@ jobs:
             echo "source_sha is only accepted for ECS runs" >&2
             exit 1
           fi
-          # A Windows ECS release needs EVS (VMP) signing in the public release
-          # job. That signing access is a separate owner decision and is not
-          # wired here, so the Windows ECS release fails closed.
-          if [ "$RELEASE_RUNTIME" = ecs ] && [ "$RELEASE_PLATFORM" != linux ]; then
-            echo "A Windows ECS release needs the separately approved EVS signing access in the release job" >&2
-            exit 1
-          fi
           if [ "$UBLOCK_CANDIDATE" = true ] && [ "$RELEASE_MODE" != validation ]; then
             echo "uBO candidate input requires private validation mode" >&2
             exit 1
@@ -143,6 +136,16 @@ jobs:
     needs: validate-inputs
     if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.platform == 'all' || inputs.platform == 'windows') }}
     runs-on: windows-latest
+    # The ECS build needs the protected EVS account for VMP signing. That
+    # environment's required reviewer approves each run; official runs
+    # reference no environment.
+    environment: ${{ inputs.runtime == 'ecs' && 'ecs-signing' || '' }}
+    env:
+      RELEASE_RUNTIME: ${{ inputs.runtime == 'ecs' && 'ecs' || 'official' }}
+      BLANC_ECS_PACKAGE_ROOT: ${{ inputs.runtime == 'ecs' && format('{0}/dist/win-unpacked', github.workspace) || '' }}
+      # Every packaged launch in an ECS run has updates disabled. An empty
+      # value is identical to unset (production updater) for official runs.
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
     # Release uploads and provenance require these grants. Keep them local
     # to the publishing jobs instead of inherited by future jobs.
     permissions:
@@ -161,6 +164,20 @@ jobs:
         with:
           ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
 
+      # Before any credential exists: the environment policy controls which
+      # workflow ref runs, not which code a tag selects.
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -171,7 +188,7 @@ jobs:
       - run: npm ci
 
       - name: Require uBlock distribution clearance for public release
-        if: ${{ inputs.mode == 'release' }}
+        if: ${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}
         run: npm run ublock:distribution
 
       - name: Verify managed uBlock inputs and adaptation
@@ -201,6 +218,21 @@ jobs:
       - name: Verify packaged blocker inputs
         run: npm run adblock:check
 
+      - name: Install pinned EVS client for ECS VMP signing
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: pwsh
+        run: |
+          python -m venv "$env:RUNNER_TEMP/evs-venv"
+          & "$env:RUNNER_TEMP/evs-venv/Scripts/python.exe" -m pip install castlabs-evs==1.3.2
+          if ($LASTEXITCODE -ne 0) { throw 'EVS install failed' }
+
+      - name: Materialize protected EVS credentials without logging their values
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          EVS_CONFIG_JSON: ${{ secrets.EVS_CONFIG_JSON }}
+          EVS_CACHE_JSON: ${{ secrets.EVS_CACHE_JSON }}
+        run: node scripts/prepare-evs-ci.cjs
+
       - name: Build Windows installer
         shell: bash
         env:
@@ -220,7 +252,12 @@ jobs:
             echo "::error::WINDOWS_EXPECTED_PUBLISHER must contain the exact Authenticode certificate subject."
             exit 1
           }
-          if [ -n "$AZURE_TENANT_ID" ] &&
+          if [ "$RELEASE_RUNTIME" = ecs ]; then
+            # Same fail-closed Azure-then-CSC Authenticode selection inside the
+            # ECS build, then VMP signing after Authenticode.
+            echo "==> Building the public ECS (Widevine) installer"
+            BLANC_ECS_RELEASE_PIPELINE=1 node scripts/build-ecs-production.cjs --release --win --x64
+          elif [ -n "$AZURE_TENANT_ID" ] &&
              [ -n "$AZURE_CLIENT_ID" ] &&
              [ -n "$AZURE_CLIENT_SECRET" ] &&
              [ -n "$AZURE_ENDPOINT" ] &&
@@ -250,6 +287,14 @@ jobs:
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
+      - name: Remove EVS credentials after signing
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        run: node scripts/prepare-evs-ci.cjs --clean
+
+      - name: Verify ECS release identity, archive pin and uBO record
+        if: ${{ inputs.runtime == 'ecs' }}
+        run: node scripts/verify-ecs-production-package.cjs --release dist/win-unpacked
+
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
 
@@ -263,7 +308,8 @@ jobs:
         shell: bash
         run: |
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
+          FUSE_ARGS=(); [ "$RELEASE_RUNTIME" = ecs ] && FUSE_ARGS=(--ecs)
+          node scripts/verify-electron-fuses.mjs "${FUSE_ARGS[@]}" "dist/win-unpacked/$PRODUCT_NAME.exe"
 
       # Build inputs remain pinned to the release tag. After packaging, use
       # the workflow commit's test harness so infrastructure-only fixes can
@@ -369,7 +415,11 @@ jobs:
             if ($LASTEXITCODE -ne 0) {
               throw "Installed blanc-import protocol smoke failed."
             }
-            if ($env:UBLOCK_CANDIDATE -eq 'true') {
+            # Public ECS enables uBO through its reviewed runtime record, so the
+            # installed provider, scripting policy and restarts are checked too.
+            # Public ECS fixtures never follow the public update feed.
+            if ($env:RELEASE_RUNTIME -eq 'ecs') { $env:BLANC_UPDATE_CHANNEL = 'ecs-qualification-disabled' }
+            if ($env:UBLOCK_CANDIDATE -eq 'true' -or $env:RELEASE_RUNTIME -eq 'ecs') {
               $env:BLANC_PACKAGED_ASAR = Join-Path $installedRoot 'resources/app.asar'
               $env:BLANC_UBLOCK_EVIDENCE = Join-Path $PWD 'dist/ublock-noscript-windows.json'
               npm run test:ublock-noscript:packaged
@@ -387,6 +437,30 @@ jobs:
               Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait
             }
           }
+
+      - name: Verify public ECS file isolation and protected playback
+        if: ${{ inputs.runtime == 'ecs' }}
+        shell: pwsh
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+        run: |
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist/win-unpacked/Blanc.exe).Path
+          node test/desktop/ecs-production-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'ECS isolation smoke failed' }
+          node test/desktop/ecs-production-drm-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'ECS protected playback failed' }
+
+      - name: Preserve public ECS acceptance evidence
+        if: ${{ always() && inputs.runtime == 'ecs' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Blanc-Windows-public-ECS-evidence-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            output/ecs-production/*.json
+            dist/ublock-noscript-windows.json
+            dist/ublock-installed-windows.json
 
       - name: Verify installed browser registration and uninstall cleanup
         shell: pwsh

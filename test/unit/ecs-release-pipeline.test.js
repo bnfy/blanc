@@ -29,10 +29,9 @@ test('input validation keeps official releases and refuses unapproved ECS combin
   assert.equal(run(base).status, 0, 'official release');
   assert.equal(run(ecsLinux).status, 0, 'ECS Linux release');
   assert.equal(run({ ...ecsLinux, RELEASE_MODE: 'validation', RELEASE_TAG: '' }).status, 0, 'non-publishing ECS Linux validation');
+  assert.equal(run({ ...ecsLinux, RELEASE_PLATFORM: 'all' }).status, 0, 'ECS release on every platform');
+  assert.equal(run({ ...ecsLinux, RELEASE_PLATFORM: 'windows', RELEASE_MODE: 'validation', RELEASE_TAG: '' }).status, 0, 'non-publishing ECS Windows validation');
   for (const [label, env] of [
-    ['ECS with Windows', { ...ecsLinux, RELEASE_PLATFORM: 'all' }],
-    ['ECS Windows only', { ...ecsLinux, RELEASE_PLATFORM: 'windows' }],
-    ['ECS validation with Windows', { ...ecsLinux, RELEASE_PLATFORM: 'all', RELEASE_MODE: 'validation', RELEASE_TAG: '' }],
     ['ECS without a source commit', { ...ecsLinux, SOURCE_SHA: '' }],
     ['ECS with a short source commit', { ...ecsLinux, SOURCE_SHA: 'abc1234' }],
     ['official with a source commit', { ...base, SOURCE_SHA: sha }],
@@ -42,10 +41,31 @@ test('input validation keeps official releases and refuses unapproved ECS combin
   ]) assert.notEqual(run(env).status, 0, label);
 });
 
-test('the Windows release job has no new signing access; the Linux job builds and verifies ECS', () => {
+test('the Windows job uses EVS only for ECS, after binding the source and before cleanup, and accepts the exact package; the Linux job builds and verifies ECS', () => {
   const windows = workflow.jobs.windows;
-  assert.equal(windows.environment, undefined);
-  assert.doesNotMatch(JSON.stringify(windows), /EVS_|evs-venv|prepare-evs-ci|build-ecs-production/);
+  assert.equal(windows.environment, "${{ inputs.runtime == 'ecs' && 'ecs-signing' || '' }}");
+  assert.equal(windows.env.BLANC_UPDATE_CHANNEL, "${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}");
+  const wnames = windows.steps.map(step => step.name || step.run || step.uses);
+  const at = name => wnames.indexOf(name);
+  const bindW = at('Bind the ECS build to the exact approved source commit');
+  const creds = at('Materialize protected EVS credentials without logging their values');
+  const build = at('Build Windows installer');
+  const clean = at('Remove EVS credentials after signing');
+  assert(bindW >= 0 && bindW < creds && creds < build && build < clean, 'bind, then credentials, then build, then cleanup');
+  for (const index of [bindW, creds, clean]) assert.match(windows.steps[index].if, /inputs\.runtime == 'ecs'/);
+  assert.match(windows.steps[clean].if, /always\(\)/);
+  assert(at('Verify Authenticode signature') > clean);
+  assert.match(windows.steps[build].run, /elif \[ -n "\$AZURE_TENANT_ID" \]/);
+  // Installed uBO, isolation and protected playback on the exact package, before upload.
+  const wupload = at('Upload to release');
+  assert.match(windows.steps[at('Verify installed blanc-import protocol and candidate uBO acceptance')].run, /\$env:RELEASE_RUNTIME -eq 'ecs'/);
+  assert.match(windows.steps[at('Verify installed blanc-import protocol and candidate uBO acceptance')].run, /if \(\$env:RELEASE_RUNTIME -eq 'ecs'\) \{ \$env:BLANC_UPDATE_CHANNEL = 'ecs-qualification-disabled' \}/);
+  const wdrm = at('Verify public ECS file isolation and protected playback');
+  assert(wdrm > clean && wdrm < wupload);
+  assert.equal(windows.steps[wdrm].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
+  // The Windows regression expects the pinned ECS version through the job-level package root.
+  assert.equal(windows.env.BLANC_ECS_PACKAGE_ROOT, "${{ inputs.runtime == 'ecs' && format('{0}/dist/win-unpacked', github.workspace) || '' }}");
+  assert(at('Packaged browser and Settings regressions') < wupload);
   const linux = workflow.jobs.linux;
   const steps = JSON.stringify(linux.steps);
   assert.match(steps, /BLANC_ECS_RELEASE_PIPELINE=1 node scripts\/build-ecs-production.cjs --release --linux --x64/);

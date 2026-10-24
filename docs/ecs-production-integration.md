@@ -101,12 +101,17 @@ public package (`verify-ecs-production-package.cjs --release`,
 `verify-electron-fuses.mjs --ecs`), and sends `runtime=ecs` to the native
 workflow only for ECS releases, after a pre-tag check that the workflow
 accepts it. The native workflow's Linux release job builds and verifies ECS;
-no credentials are involved. The **Windows** ECS release is refused by the
-workflow and, before any tag, by `release.sh`: it needs EVS signing access in
-the public Windows release job plus `main` in the `ecs-signing` environment's
-allowed branches, a persistent access-policy change that is a separate owner
-decision (proposed patch kept outside the repository). No signing,
-credential use, environment change or release run was performed.
+no credentials are involved. **Windows (owner-approved code, October 24):**
+the Windows release job references the `ecs-signing` environment only for
+ECS runs; after binding the checkout to `source_sha` it installs the pinned EVS
+client, materializes the two EVS secrets, builds through the ECS release path
+(Authenticode before VMP signing), removes the credentials on every outcome,
+verifies the ECS package, Authenticode and the regressions, and only then may
+upload. The environment's branch policy still allows only
+`codex/ecs-production-integration`, so a candidate-branch validation can run
+but a release from `main` cannot; adding `main` is a separate owner decision.
+No workflow was dispatched, no credential read or used, no environment
+changed and nothing signed.
 
 Every ECS native run must name `source_sha`, the exact approved commit; the
 job refuses to build unless its checkout resolves to it, because the
