@@ -257,6 +257,18 @@
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
+
+  // Main restyles every open internal page, this one included, on a change.
+  const surfaceStyle = document.getElementById('surfaceStyle');
+  const showSurfaceStyle = (value) => { surfaceStyle.value = value === 'neutral' ? 'neutral' : 'sunrise'; };
+  showSurfaceStyle(settings.surfaceStyle);
+  surfaceStyle.addEventListener('change', async () => {
+    try {
+      showSurfaceStyle((await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value })).surfaceStyle);
+    } catch {
+      window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
+    }
+  });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
   // The tour opens as a real tab in the sheet's window — main creates and

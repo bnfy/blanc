@@ -961,6 +961,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_theme_system">Système</string>
     <string name="settings_general_theme_light">Clair</string>
     <string name="settings_general_theme_dark">Sombre</string>
+    <string name="settings_general_surface_style_label">Style des surfaces</string>
+    <string name="settings_general_surface_style_hint">L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis.</string>
+    <string name="settings_general_surface_style_sunrise">Sunrise</string>
+    <string name="settings_general_surface_style_neutral">Neutre</string>
     <string name="settings_general_island_site_colors_label">Reprendre les couleurs du site</string>
     <string name="settings_general_island_site_colors_hint">Teinte la barre de l’Island avec la couleur de la page affichée. Désactivé, elle garde le fond de votre thème.</string>
     <string name="settings_general_search_priority_results_label">Priorité aux résultats de recherche</string>

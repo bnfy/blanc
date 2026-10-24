@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "04c1dd42629c70f97f8f19f3d0c1a95c2f54bca375737d9b42c349b812a9c47a",
+      "sha256": "0050764a0d3f44401256ea1200cf956c86de342c79b182a4ddf5b95bcf3c4cfa",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -482,7 +482,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "fcfdc4360cab2d8c2c43b7595e12c8da2eb1592528a8e8058e04d0b30595ac49",
+      "sha256": "c39c231633ca456a67e43e52bdee0dcdd4f3ce0372e8542239e598cad4353a44",
       "literalChannels": [
         "blanc",
         "pages:app-version",

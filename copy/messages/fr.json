@@ -3351,6 +3351,22 @@
     "message": "Sombre",
     "source": "sha256:b41d9e243478bf2d60d3d59b40422deee5a9e90cd02e1020c4f289dd2678f98a"
   },
+  "settings.general.surfaceStyle.label": {
+    "message": "Style des surfaces",
+    "source": "sha256:5e57966143767a6d07bf80d17a8f24f3a007e1acb52331eff3df9116e5e82b35"
+  },
+  "settings.general.surfaceStyle.hint": {
+    "message": "L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis.",
+    "source": "sha256:55e6d8007fb1bb62467c8b23067b7c7eb0203b7be60d58a3a958f0edb342e96e"
+  },
+  "settings.general.surfaceStyle.sunrise": {
+    "message": "Sunrise",
+    "source": "sha256:6311719743d6c14863b0239ba76789db18b1d212e3d0ee69672ff5a3004e844e"
+  },
+  "settings.general.surfaceStyle.neutral": {
+    "message": "Neutre",
+    "source": "sha256:5159b3c647291fd3151743bfe8bd00bf23ea6d7f052299af36185379e4b1dff9"
+  },
   "settings.general.islandSiteColors.label": {
     "message": "Reprendre les couleurs du site",
     "source": "sha256:4daf5a519324f703abc255a2684264f95f5be92d8a295a3893ec71fca7038c2a"

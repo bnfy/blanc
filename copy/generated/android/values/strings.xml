@@ -933,6 +933,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Light</string>
     <string name="settings_general_theme_dark">Dark</string>
+    <string name="settings_general_surface_style_label">Surface style</string>
+    <string name="settings_general_surface_style_hint">The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray.</string>
+    <string name="settings_general_surface_style_sunrise">Sunrise</string>
+    <string name="settings_general_surface_style_neutral">Neutral</string>
     <string name="settings_general_island_site_colors_label">Match site colors</string>
     <string name="settings_general_island_site_colors_hint">Tint the Island bar with the color of the page you’re on. Off keeps it on your theme’s background.</string>
     <string name="settings_general_search_priority_results_label">Search priority results</string>
