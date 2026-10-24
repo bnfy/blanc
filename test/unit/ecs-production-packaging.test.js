@@ -7,7 +7,7 @@ const read = name => fs.readFileSync(path.join(__dirname, '../..', name), 'utf8'
 test('ECS production packaging is opt-in, unpublished, and keeps the normal application identity', () => {
   const base = require('../../package.json');
   const source = read('scripts/build-ecs-production.cjs');
-  assert.equal(base.devDependencies.electron, '^44.8.0');
+  assert.equal(base.devDependencies.electron, '^44.9.3');
   assert.equal(base.build.appId, 'me.bnfy.bowser');
   assert.equal(base.build.electronFuses.grantFileProtocolExtraPrivileges, false);
   assert.match(source, /publish: 'never'/);

@@ -1595,6 +1595,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="error_blocking_settings">Impostazioni del blocco</string>
     <string name="error_code">Errore %1$s</string>
     <string name="error_crash_detail">%1$s (motivo: %2$s)</string>
+    <string name="error_inert_title">Impossibile riaprire questa scheda</string>
+    <string name="error_inert_detail">Una pagina ha aperto questa scheda e Blanc non può riaprirla con le restrizioni impostate da quella pagina. Per visitarla di nuovo, copia il link e aprilo in una nuova scheda.</string>
+    <string name="error_inert_copy">Copia link</string>
+    <string name="error_inert_copied">Link copiato</string>
     <string name="error_certificate_title">La connessione non è privata</string>
     <string name="error_certificate_unproven">Il sito non è riuscito a dimostrare la propria identità.</string>
     <string name="error_certificate_back">Torna al sicuro</string>

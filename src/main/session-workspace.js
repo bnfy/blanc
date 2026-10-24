@@ -6,6 +6,7 @@
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
 const { savedSplitColumns } = require('./split-model');
+const { savedPolicyColumns } = require('./document-policy');
 
 const SESSION_WORKSPACE_VERSION = 2;
 const PRIMARY_WINDOW_ID = 'primary';
@@ -78,6 +79,9 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     ...(Number.isInteger(source.closedIndex) && source.closedIndex > 0 ? { closedIndex: source.closedIndex } : {}),
     // Split View (F53): splits plus a splitIds column parallel to urls.
     ...savedSplitColumns(source, urls.length),
+    // Page-opened tabs' document-policy marks (document-policy.js), never in
+    // the five-key rollback mirror.
+    ...savedPolicyColumns(source),
   };
 }
 

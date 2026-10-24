@@ -13,6 +13,8 @@ on:
       - 'ublock/**'
       - 'test/desktop/ublock*'
       - 'test/desktop/shield-provider*'
+      - 'test/desktop/document-policy*'
+      - 'test/desktop/modified-link-click*'
       - 'test/desktop/support/**'
       - 'test/unit/ublock*'
       - 'test/unit/blocking*'
@@ -83,6 +85,18 @@ jobs:
       - run: npm run ublock:check
       - run: npm run lint
       - run: npm run test:unit
+      # Page-opened tabs keep their opener's sandbox or stay inert on the exact
+      # runtime (src/main/document-policy.js), on all four native targets.
+      - name: Inherited document policy and modified link clicks
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a npm run test:document-policy:desktop
+            xvfb-run -a npm run test:modified-links:desktop
+          else
+            npm run test:document-policy:desktop
+            npm run test:modified-links:desktop
+          fi
       - name: Real blocking, original tools, isolation and lifecycle
         shell: bash
         run: |

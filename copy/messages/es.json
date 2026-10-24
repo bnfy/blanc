@@ -5673,6 +5673,22 @@
     "message": "{description} (motivo: {reason})",
     "source": "sha256:1205d9aeeb520587957ac3155fad5b79cb696cae07ccb6a567c1e8db6c2979e9"
   },
+  "error.inert.title": {
+    "message": "Esta pestaña no se puede volver a abrir",
+    "source": "sha256:af11cc6f42c3603fed4eb98a1b7e64bbfa2b02bf649d4530f7c382f9c66528cc"
+  },
+  "error.inert.detail": {
+    "message": "Una página abrió esta pestaña y Blanc no puede volver a abrirla con las restricciones que esa página estableció. Para visitarla de nuevo, copia el enlace y ábrelo en una pestaña nueva.",
+    "source": "sha256:f7f4242e2eaf58c17e9a056e83ad4037e5b3586137db6d06c232748c1ff79964"
+  },
+  "error.inert.copy": {
+    "message": "Copiar enlace",
+    "source": "sha256:49424784357b1d801b1425b22823dc4940823f1e88621dfb10df5ca4b111a135"
+  },
+  "error.inert.copied": {
+    "message": "Enlace copiado",
+    "source": "sha256:3c159e0b7f3d83fdb6ea73ee3d5a8b22fed1c195fefbade659d1ed0524664516"
+  },
   "error.certificate.title": {
     "message": "Tu conexión no es privada",
     "source": "sha256:f6e11d3e83e737e83ea17af11e6c78976acafb214ae92b7e80807a699db1bdef"

@@ -12,6 +12,9 @@ function createBlockingCoordinator({ trace } = {}) {
   // One optional observer of main-frame cancellations made by a provider or a
   // policy failure (never the startup gate). Observation only.
   let cancelObserver = null;
+  // One browser-wide veto, checked before any gate or provider: requests that
+  // must never be made, whatever is blocking (an inert tab's page).
+  let veto = null;
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
     const state = { provider: null, gate: null, beforeSendHeaders: null, observing: false };
@@ -33,6 +36,7 @@ function createBlockingCoordinator({ trace } = {}) {
             try { cancelObserver?.({ webContentsId: details.webContentsId, url: details.url, source, stage: event }); } catch { /* observation only */ }
           }
         };
+        if (event === 'onBeforeRequest' && veto?.(details)) { traced('veto'); return respond({ cancel: true }); }
         if (event === 'onBeforeRequest' && state.gate?.(details)) { traced('gate'); return respond({ cancel: true }); }
         const run = async () => {
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders
@@ -65,6 +69,7 @@ function createBlockingCoordinator({ trace } = {}) {
     ensure,
     setProvider,
     setGate: (session, gate) => { ensure(session).gate = gate; },
+    setVeto: (fn) => { veto = typeof fn === 'function' ? fn : null; },
     setBeforeSendHeaders: (session, policy) => { ensure(session).beforeSendHeaders = policy; },
     observeCancel: observer => { cancelObserver = typeof observer === 'function' ? observer : null; },
   };

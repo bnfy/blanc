@@ -1595,6 +1595,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="error_blocking_settings">Ajustes de bloqueio</string>
     <string name="error_code">Erro %1$s</string>
     <string name="error_crash_detail">%1$s (motivo: %2$s)</string>
+    <string name="error_inert_title">Esta aba não pode ser reaberta</string>
+    <string name="error_inert_detail">Uma página abriu esta aba, e o Blanc não consegue reabri-la com as restrições que essa página definiu. Para acessá-la de novo, copie o link e abra-o em uma nova aba.</string>
+    <string name="error_inert_copy">Copiar link</string>
+    <string name="error_inert_copied">Link copiado</string>
     <string name="error_certificate_title">Sua conexão não é particular</string>
     <string name="error_certificate_unproven">O site não conseguiu provar sua identidade.</string>
     <string name="error_certificate_back">Voltar à segurança</string>

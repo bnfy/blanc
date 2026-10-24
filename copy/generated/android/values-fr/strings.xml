@@ -1595,6 +1595,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="error_blocking_settings">Réglages du blocage</string>
     <string name="error_code">Erreur %1$s</string>
     <string name="error_crash_detail">%1$s (raison : %2$s)</string>
+    <string name="error_inert_title">Impossible de rouvrir cet onglet</string>
+    <string name="error_inert_detail">Une page a ouvert cet onglet, et Blanc ne peut pas le rouvrir avec les restrictions définies par cette page. Pour le consulter à nouveau, copiez le lien et ouvrez-le dans un nouvel onglet.</string>
+    <string name="error_inert_copy">Copier le lien</string>
+    <string name="error_inert_copied">Lien copié</string>
     <string name="error_certificate_title">Votre connexion n’est pas privée</string>
     <string name="error_certificate_unproven">Le site n’a pas pu prouver son identité.</string>
     <string name="error_certificate_back">Retour en lieu sûr</string>

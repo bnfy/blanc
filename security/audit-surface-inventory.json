@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "9b2401a0578235fcdbb51a81e37dff8bd74ce74f1b3a862d43b0f166ee8cce0b",
+      "sha256": "bd514ef6d5c2e0753b554cb83335b5e17a2084f7a3ad1f45397e4e98445ff120",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -212,38 +212,6 @@
       "role": "privileged implementation or service"
     },
     {
-      "file": "src/main/drm-relaunch.js",
-      "sha256": "2d377e5837a34763b06904581a2fcd1e2d411df96c4d5114035125051cb6d427",
-      "literalChannels": [],
-      "role": "privileged implementation or service"
-    },
-    {
-      "file": "src/main/drm-runtime.js",
-      "sha256": "d5bcd6a740b7dbe47cd62b674c7ffc945f11fde08c390884692bb3e93e69fcce",
-      "literalChannels": [],
-      "role": "privileged implementation or service"
-    },
-    {
-      "file": "src/main/drm-startup.js",
-      "sha256": "35051822690ed11fecfe9f331ea4640c5429f5e1fb8fa3faea1dd2835dffe10b",
-      "literalChannels": [],
-      "role": "privileged implementation or service"
-    },
-    {
-      "file": "src/main/drm-support.js",
-      "sha256": "e6881ec845c9aa9870c2a7c5e8e79113899417566bcb44f08ac6a93651482eae",
-      "literalChannels": [
-        "file",
-        "session-created",
-        "unhandledRejection",
-        "web-contents-created",
-        "will-frame-navigate",
-        "will-navigate",
-        "will-redirect"
-      ],
-      "role": "privileged implementation or service"
-    },
-    {
       "file": "src/main/external-protocols.js",
       "sha256": "e3de37e86a4c74cb9ff1acafe8946ef040672d606ba734367f1aa2697152d4cb",
       "literalChannels": [
@@ -275,19 +243,6 @@
       "role": "privileged implementation or service"
     },
     {
-      "file": "src/main/local-html-preview.js",
-      "sha256": "629c4d43dbfacbc8f815ae3ef81751d9e765987be3fe7296d594d9c92aaf6621",
-      "literalChannels": [
-        "blanc-local-preview",
-        "will-attach-webview",
-        "will-download",
-        "will-frame-navigate",
-        "will-navigate",
-        "will-redirect"
-      ],
-      "role": "privileged implementation or service"
-    },
-    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -295,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "00d831f0725a71ac09781c2b9edad233dbe1be57ea70e6f5994a8ee87e62485a",
+      "sha256": "4066225562f00727cc036c3a849eb2d8a55556a7237ccecacb7f6ade806e87cb",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -1034,13 +989,13 @@
     },
     {
       "file": "src/main/tab-sleep.js",
-      "sha256": "60237a5c96c10d6c2f8de9b8096a8a491fd09bff6c71d67b6492c3b915017bad",
+      "sha256": "94d4f31a737de495b2c0a717c00169e75567bef88dd417c9df614929d6b7c6fb",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "2ba6feea00238ec863d7c505bf2fdcf53d40e8e9befbd3503fd64f6fe3375a76",
+      "sha256": "c239898f2878909566a745a1db4471e80af81b0addacfe6070860d0b138cf0dc",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -1065,7 +1020,8 @@
         "page-title-updated",
         "render-process-gone",
         "will-navigate",
-        "will-prevent-unload"
+        "will-prevent-unload",
+        "will-redirect"
       ],
       "role": "privileged implementation or service"
     },

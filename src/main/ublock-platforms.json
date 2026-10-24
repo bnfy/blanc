@@ -1,5 +1,5 @@
 {
-  "electron": "44.8.0",
+  "electron": "44.9.3",
   "ecsRuntime": "44.9.3+wvcus",
   "ecsEvidence": "castLabs ECS 44.9.3+wvcus (Chromium 152.0.7977.167, identical to the reviewed 44.8.0 Chromium) passed signed-package uBO acceptance on Apple Silicon and native Intel Mac (fd8654147; Intel run 40023852344), Windows x64 (39999763727) and Linux x64 (ecs-production-linux). Applies only to the same four platform records; Rosetta stays excluded. Owner approval of October 23, 2026 recorded in docs/ecs-production-integration.md",
   "manifestV2": "supported",
