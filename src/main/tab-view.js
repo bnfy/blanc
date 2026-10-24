@@ -321,9 +321,10 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    // An inert tab keeps its own title: a page that briefly committed before
-    // the lock put the explanation back doesn't get to rename it.
-    if (tab.inert && !inertViewMayShow(wc.getURL())) return;
+    // An inert tab keeps its own title, which its explanation page only
+    // repeats; a page that briefly committed before the lock put the
+    // explanation back never renames it.
+    if (tab.inert) return;
     tab.title = title;
     if (tab.historyEligible && !noteWakeSuppressed(tab)) history.updateTitle(tab.url, title);
     broadcastTabs();

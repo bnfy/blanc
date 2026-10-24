@@ -41,8 +41,14 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
+  // Targets are built here from fixed-shape parameters, never taken from the
+  // request as a URL: /source links to it, /redirect sends there.
+  const targetPath = () => {
+    const safe = (value) => (/^[a-z-]{1,40}$/.test(value ?? '') ? value : 'none');
+    return `/target?${new URLSearchParams({ v: safe(url.searchParams.get('v')), tag: safe(url.searchParams.get('tag')) })}`;
+  };
   if (url.pathname === '/redirect') {
-    res.writeHead(302, { Location: url.searchParams.get('to') ?? '/target' });
+    res.writeHead(302, { Location: targetPath() });
     res.end();
     return;
   }
@@ -61,7 +67,7 @@ const server = http.createServer((req, res) => {
   // unsaved-work probe would otherwise count against it.
   const plain = url.searchParams.get('tag') === 'archive';
   res.end(url.pathname === '/source'
-    ? '<!doctype html><a id="link" href="/target" target="_blank">Open target</a>'
+    ? `<!doctype html><a id="link" href="${targetPath()}" target="_blank">Open target</a>`
     : plain
       ? `<!doctype html><title>Policy target</title><p id="target">Target loaded</p><script>
         window.probe = { nonce: 'plain' };
@@ -116,19 +122,18 @@ async function hrefOf(id) {
 
 /** Middle-click the source page's link and return the page-opened child. */
 async function openChild(variant, tag) {
-  const sourceId = await callTestHook(app, 'openTab', [`${origin}/source?v=${variant.name}`]);
+  const query = new URLSearchParams({ v: variant.name, tag });
+  const sourceId = await callTestHook(app, 'openTab', [`${origin}/source?${query}`]);
   const sourceWcId = await callTestHook(app, 'workspacePageIdentity', [sourceId]);
-  const targetUrl = `${origin}/target?v=${variant.name}&tag=${tag}`;
-  const point = await app.evaluate(async ({ webContents }, { id, targetUrl }) => {
+  const targetUrl = `${origin}/target?${query}`;
+  const point = await app.evaluate(async ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     await new Promise((resolve) => { if (!wc.isLoading()) resolve(); else wc.once('did-stop-loading', resolve); });
     return wc.executeJavaScript(`(() => {
-      const link = document.getElementById('link');
-      link.href = ${JSON.stringify(targetUrl)};
-      const rect = link.getBoundingClientRect();
+      const rect = document.getElementById('link').getBoundingClientRect();
       return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
     })()`);
-  }, { id: sourceWcId, targetUrl });
+  }, sourceWcId);
   await app.evaluate(({ webContents, BrowserWindow }, { id, point }) => {
     const wc = webContents.fromId(id);
     BrowserWindow.fromWebContents(wc)?.focus();
@@ -141,6 +146,18 @@ async function openChild(variant, tag) {
     Boolean, `${variant.name}/${tag} child opened`, 10_000);
   await callTestHook(app, 'closeTab', [sourceId]);
   return { id: child.id, url: targetUrl };
+}
+
+/** Kill a tab's renderer. On Linux, forcefullyCrashRenderer() only asks the
+ * renderer to crash itself, which GitHub's Ubuntu runner never does, so kill
+ * the WebContents' own renderer process there, as Blanc's renderer-discard.js does. */
+async function crashRenderer(wcId) {
+  await app.evaluate(({ webContents }, id) => {
+    const wc = webContents.fromId(id);
+    const pid = wc.getOSProcessId();
+    if (process.platform === 'linux' && pid > 0) process.kill(pid, 'SIGKILL');
+    else wc.forcefullyCrashRenderer();
+  }, wcId);
 }
 
 /** The live document's restrictions: storage, and whether its form reached the server. */
@@ -197,17 +214,17 @@ async function assertInertLocked(id, url, label) {
   const opened = await waitForValue(async () => (await tabsNow()).find((tab) => !before.has(tab.id)),
     Boolean, `${label}: New Tab opens beside it`);
   assert.equal(await hrefOf(id), inertHref, `${label}: New Tab leaves the inert view alone`);
-  // A favorite from that new tab loads there, never in the inert view.
+  // Going to the page from that new tab (a favorite, or its address) loads
+  // there, never in the inert view.
   await waitForValue(() => hrefOf(opened.id), (value) => value?.startsWith('blanc://newtab'), `${label}: new tab ready`);
-  await callTestHook(app, 'workspacePageScript', [opened.id,
-    `setTimeout(() => { location.href = ${JSON.stringify(url)}; }, 0); true`]);
-  await waitForValue(() => hrefOf(opened.id), (value) => value === url, `${label}: favorite opens in the new tab`);
+  await callTestHook(app, 'navigateTab', [opened.id, url]);
+  await waitForValue(() => hrefOf(opened.id), (value) => value === url, `${label}: the page opens in the new tab`);
   assert.equal(await hrefOf(id), inertHref, `${label}: the favorite never reaches the inert view`);
   await callTestHook(app, 'closeTab', [opened.id]);
   // A main-process load of the page, directly or through a redirect.
   // The request never leaves the browser, and the explanation comes back.
   const path = (value) => value.slice(origin.length);
-  for (const target of [url, `${origin}/redirect?to=${encodeURIComponent(url)}`]) {
+  for (const target of [url, `${origin}/redirect${new URL(url).search}`]) {
     const hitsBefore = pageHits.get(path(target)) ?? 0;
     await app.evaluate(({ webContents }, { wcId, target }) => webContents.fromId(wcId)
       .loadURL(target).catch(() => {}), { wcId, target });
@@ -226,7 +243,7 @@ async function assertInertLocked(id, url, label) {
     await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: ${target} put back`, 10_000);
   }
   // A crash of the inert view recovers to the explanation, not the crash page.
-  await app.evaluate(({ webContents }, wcId) => webContents.fromId(wcId).forcefullyCrashRenderer(), wcId);
+  await crashRenderer(wcId);
   await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: crash recovers inert`, 20_000);
   await waitForValue(() => callTestHook(app, 'workspacePageScript', [id,
     "!document.getElementById('retryLink') && !!document.getElementById('copyLink')"]),
@@ -312,10 +329,11 @@ try {
     // crash happened or Blanc's recovery stalled.
     await app.evaluate(({ webContents }, id) => {
       globalThis.__policyCrash = null;
-      const wc = webContents.fromId(id);
-      wc.once('render-process-gone', (_event, details) => { globalThis.__policyCrash = details?.reason ?? 'gone'; });
-      wc.forcefullyCrashRenderer();
+      webContents.fromId(id).once('render-process-gone', (_event, details) => {
+        globalThis.__policyCrash = details?.reason ?? 'gone';
+      });
     }, wcId);
+    await crashRenderer(wcId);
     const reason = await waitForValue(() => app.evaluate(() => globalThis.__policyCrash), Boolean,
       `${variant.name} renderer gone`, 20_000);
     await waitForValue(() => hrefOf(child.id), (value) => typeof value === 'string'

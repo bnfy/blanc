@@ -991,7 +991,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "0b17d0fdfe8e154d289745128dd449f5a5a8fc698df79179ddc6a634956911c1",
+      "sha256": "49a741409314c30bd9a975253258bff99e124541539e730fe814313ad3a17496",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
