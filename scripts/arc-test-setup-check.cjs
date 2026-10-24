@@ -94,14 +94,23 @@ function examplePath(raw) {
   }
 }
 
+// One open descriptor for the stat and the read (the F30 pattern in
+// arc-import-source.js). Arc saves by replacing the file, so a path that
+// now names a different file also means it saved mid-read.
 function readStable(file) {
-  const before = fs.statSync(file);
-  const text = fs.readFileSync(file, 'utf8');
-  const after = fs.statSync(file);
-  if (before.size !== after.size || before.mtimeMs !== after.mtimeMs) {
-    throw new Error('Arc saved the file while it was being read; run the check again.');
+  const fd = fs.openSync(file, 'r');
+  try {
+    const before = fs.fstatSync(fd);
+    const text = fs.readFileSync(fd, 'utf8');
+    const after = fs.fstatSync(fd);
+    const current = fs.statSync(file);
+    if (before.size !== after.size || before.mtimeMs !== after.mtimeMs || current.ino !== before.ino) {
+      throw new Error('Arc saved the file while it was being read; run the check again.');
+    }
+    return text;
+  } finally {
+    fs.closeSync(fd);
   }
-  return text;
 }
 
 function main() {
