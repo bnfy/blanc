@@ -1,5 +1,8 @@
 > Current October24: [prerender replacement notarized and72final checks pass](evidence/f12-prerender-notarized-20261024/README.md). Source14706b0e/archive18a0c2ca; technical L7 requalification and explicit owner approval complete. **9/12 (75%),delta+1L7.** No build, Google changes or latency measurement; Electron paused.
 
+> October24 replacement L8 refresh: [authenticated packet and audit](evidence/l8-prerender-distribution-20261024/README.md) complete for source14706b0e/archive18a0c2ca. All six hosted/fresh-download checks pass; current native Safari/owner acceptance pending. Prior L8 acceptance covers older bytes; no new gate delta or release approval. Electron paused; Google separate; latency deferred.
+
+
 > Current October24 repair: [72signed checks pass](evidence/f12-prerender-repair-20261024/README.md) on14706b0e; prerender loss gap repaired. Corrected replacement notarization awaits1Passwordauthorization. **8/12,delta0;L7open**. Electron paused,Google separate,latency deferred.
 
 > Current October24: **8/12 (66.7%), delta -1 L7**. [Native prerender activation after blocker loss](evidence/f12-prerender-activation-20261024/README.md) reopens security acceptance for unchanged signed bytes. Next: repair the activation commit boundary and requalify it. Substrate/tab-handoff pass on150055d9; Electron failures remain paused. Earlier counts below are historical.

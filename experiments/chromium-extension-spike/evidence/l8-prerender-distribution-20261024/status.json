@@ -1,0 +1,22 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "draft": {
+    "id": 422841466,
+    "url": "https://github.com/bnfy/blanc/releases/tag/untagged-71b48b75290a0fb62215",
+    "published": false
+  },
+  "hostedAssetsVerified": 6,
+  "freshAnonymousDownloadsVerified": 6,
+  "nativeDownloadAccepted": false,
+  "ownerAcceptanceComplete": false,
+  "pending": [
+    "Actual MacBook Safari download/quarantine and exact inventory",
+    "Owner ordinary launch, two restarts, tabs/selection/Shelf and Bitwarden popup focus",
+    "Shipping preservation read-back"
+  ],
+  "electron": "paused",
+  "latency": "deferred",
+  "googleBaseline": "separate; untouched",
+  "readiness": "historical 9/12; no new gate delta; replacement L8 acceptance pending"
+}

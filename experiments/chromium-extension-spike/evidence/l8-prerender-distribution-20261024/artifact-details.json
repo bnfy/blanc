@@ -1,0 +1,10 @@
+{
+  "stem": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e",
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "version": "157.0.8103.15",
+  "archive": "Blanc-Chromium-Preview-157.0.8103.15-14706b0e-arm64.zip",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "notary": "122ace9e-196b-4f10-8986-c57854a5ee4f",
+  "regularFiles": 458,
+  "symlinks": 5
+}

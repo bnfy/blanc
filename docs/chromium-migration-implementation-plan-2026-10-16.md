@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — replacement L8 distribution in progress
+
+The [prerender replacement packet](../experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md) passes exact archive/source/license audit and pinned Sigstore authentication; both real tamper controls reject. All six uploaded digests and six fresh anonymous HTTPS downloads match; the downloaded manifest also authenticates. Native MacBook Safari download/launch acceptance is the next step. Source `14706b0e`, archive `18a0c2ca`; no new build or profile mutation. Existing L8 acceptance is artifact-specific and does not certify this replacement. Historical accepted-gate count remains9/12; current replacement not release-ready. Google baseline separate, Electron paused, latency deferred.
+
+
 ## Current October24 — prerender replacement notarized; final72checks pass
 
 [Final acceptance record](../experiments/chromium-extension-spike/evidence/f12-prerender-notarized-20261024/README.md): Apple Accepted `122ace9e-196b-4f10-8986-c57854a5ee4f`; source `14706b0e8d4753d2a7ef35ea32a875b516366b0d`, archiveSHA256 `18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc`. Stapling adds only the ticket; all462previously signed members and17Mach-O/tenidentity checks remain unchanged. All72checks were rerun after stapling and pass, including regular/private prerender loss refusal, delayed-reply control and startup/recovery/core/notice. Final463members stay frozen. No build or latency benchmark for this checkpoint.
