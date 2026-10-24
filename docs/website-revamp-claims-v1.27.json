@@ -1417,16 +1417,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "trust-125-262",
-      "source": "site/src/data/support-questions.json",
-      "exactWording": "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "trust-125-263",
       "source": "site/src/data/support-questions.json",
       "exactWording": "This lets one small team maintain an app for macOS, Windows and Linux. The trade-off is a bundled runtime and a multi-process memory footprint; it is not a separate web engine or a native system-webview browser.",
@@ -2200,16 +2190,6 @@
       "id": "trust-125-352",
       "source": "site/src/components/guides/foundations.astro",
       "exactWording": "Chromium is the open-source browser engine used by several browsers. Blanc is not the Google Chrome application: it has its own features and update channel. Using Chromium does not, by itself, describe every connection a browser makes. Those connections are explained below.",
-      "subject": "Blanc or website",
-      "evidenceGroups": [
-        "trust"
-      ],
-      "verdict": "qualified"
-    },
-    {
-      "id": "trust-125-353",
-      "source": "site/src/components/guides/foundations.astro",
-      "exactWording": "Blanc uses official Electron releases. Engine changes arrive through a new Blanc release; the running app cannot independently swap in a newer Chromium.",
       "subject": "Blanc or website",
       "evidenceGroups": [
         "trust"
@@ -10322,6 +10302,28 @@
       ],
       "verdict": "qualified",
       "reason": "October 21, 2026, after public v1.40.0: Glance became a card floating over the page (F34, #1007, #1008) and side by side now means Split View (F53). The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "trust-125-262",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 24, 2026, after public v1.43.0 and v1.43.1: Blanc moved from official Electron 44.8.0 to castLabs’ Electron for Content Security 44.9.3 (44.9.3+wvcus, Chromium 152.0.7977.167) for Widevine playback, so “official Electron” is no longer true. The replacement wording is recorded in docs/website-v1.43-claims.json."
+    },
+    {
+      "id": "trust-125-353",
+      "source": "site/src/components/guides/foundations.astro",
+      "exactWording": "Blanc uses official Electron releases. Engine changes arrive through a new Blanc release; the running app cannot independently swap in a newer Chromium.",
+      "subject": "Blanc or website",
+      "evidenceGroups": [
+        "trust"
+      ],
+      "verdict": "qualified",
+      "reason": "October 24, 2026, after public v1.43.0 and v1.43.1: Blanc moved from official Electron 44.8.0 to castLabs’ Electron for Content Security 44.9.3 (44.9.3+wvcus, Chromium 152.0.7977.167) for Widevine playback, so “official Electron” is no longer true. The replacement wording is recorded in docs/website-v1.43-claims.json."
     }
   ],
   "supersededCandidateClaims": [
