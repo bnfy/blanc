@@ -90,8 +90,19 @@ F36, rewritten for the phone):
    Add another device. The code field is the one M7a shipped; a camera QR
    scan of the same code may be added here and is a builder's call. On
    success, the next screen lists what arrived: "N open tabs on MacBook Pro ·
-   M Favorites · your settings." The recovery-code and name-and-passphrase
-   paths stay available behind "Other ways to join."
+   M Favorites · your settings," and, once the desktop has agreed (below),
+   its Spaces. The recovery-code and name-and-passphrase paths stay
+   available behind "Other ways to join."
+
+   **Pairing asks the desktop to share its Spaces** (owner, 2026-10-24). The
+   desktop that showed the code learns the phone joined (its code was taken)
+   and asks, there and then: "Your iPhone joined. Keep Spaces and groups in
+   sync with it?" with **Turn on** and **Not now**. Turn on flips that
+   desktop's own switch (§4.2), so the phone's first minute shows the
+   desktop's Spaces; Not now leaves it off, and the phone's "what arrived"
+   screen says where to turn it on later. The desktop never turns it on
+   without that answer. A phone joined by recovery code or passphrase, with
+   no desktop watching, gets the "where to turn it on" line instead.
 3. **Share back.** Two switches, both off by default, with one line each:
    **Share this iPhone's open tabs** (F27's consent) and **Keep Spaces and
    groups in sync on this iPhone** (§4). Turning the second on is what makes
@@ -377,11 +388,9 @@ settled; M18 is last because it depends on everything it introduces.
 
 From the builder check of 2026-10-24. Answers go into the sections named.
 
-1. **The first minute when the desktop's Spaces switch is off** (§1, §3, §4.2).
-   A freshly paired phone then sees the desktop's tabs flat (F27), Favorites
-   and settings, but no Spaces or groups, until the person turns the switch on
-   on the desktop. Is that acceptable, with the "what arrived" screen saying
-   how to turn it on, or should pairing a phone turn the desktop's switch on?
+1. ~~The first minute when the desktop's Spaces switch is off.~~ Answered
+   (owner, 2026-10-24): pairing asks the desktop, with consent, to turn its
+   switch on (§3 step 2).
 2. **If the default-browser entitlement isn't granted by the time M18 is
    done** (§3 step 5, §6): ship 1.0 without the default-browser step and
    without opening links from other apps (the share-sheet action is then the
