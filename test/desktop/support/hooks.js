@@ -50,7 +50,7 @@ async function closeApp(electronApp) {
   assertNoMainProcessExceptions(electronApp);
 }
 
-async function launchApp(extraEnv = {}) {
+async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
   // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
   // Electron host can spawn Node helpers. That makes the app binary reject
   // Playwright's --remote-debugging-port as a "bad option" and exit before
@@ -96,6 +96,22 @@ async function launchApp(extraEnv = {}) {
   // blocker-gated workspace restore. Returning while persistence is still
   // suspended lets the first scenario mutate an in-memory workspace that
   // cannot yet reach session.json.
+  // After a crash, startup waits for the session-recovery choice (the crash
+  // ledger); make it as a person would before waiting for readiness.
+  if (recoveryChoice) {
+    await electronApp.evaluate(
+      () => new Promise((resolve) => {
+        const t = setInterval(() => {
+          if (globalThis.__blancCall && globalThis.__blanc?.sessionRecoveryState?.()?.required === true) {
+            clearInterval(t);
+            resolve();
+          }
+        }, 50);
+      })
+    );
+    const chosen = await callTestHook(electronApp, 'chooseSessionRecovery', [recoveryChoice]);
+    if (!chosen?.ok) throw new Error(`session recovery choice failed: ${JSON.stringify(chosen)}`);
+  }
   await electronApp.evaluate(
     () => new Promise((resolve) => {
       const t = setInterval(() => {
@@ -343,7 +359,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
       child.kill('SIGKILL');
       await exited;
     }
-    ctx.app = await launchApp();
+    ctx.app = await launchApp({}, { recoveryChoice: 'restore' });
   };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
