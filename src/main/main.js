@@ -8499,7 +8499,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     wc.setAudioMuted(effectiveTabMuted(tab));
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
-    tab.title = wc.getTitle() || tab.title;
+    // An inert local-file record keeps its saved title, not the placeholder's.
+    tab.title = recordTitle(tab, wc.getTitle() || tab.title);
     // Every other re-derivation of this flag hangs off a navigation event, and
     // an adoption performs none — leaving the heart drawn empty on a favorited
     // page, where a click would delete the favorite instead of adding it.
@@ -9530,6 +9531,9 @@ function reopenEntry(entry) {
   const id = createTab(entry.url, {
     ...common,
     allowLocalFile: entry.localFile === true,
+    // A local-file record carries its saved title back (on a DRM build the
+    // placeholder never supplies one); other tabs take their page's title.
+    ...(entry.localFile === true && entry.title && entry.title !== entry.url ? { title: entry.title } : {}),
     restoreHistory: entry.snapshot
       ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
       : null,

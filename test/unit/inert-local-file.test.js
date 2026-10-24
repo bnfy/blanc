@@ -519,3 +519,74 @@ test('waking an inert record loads only its placeholder, never stored history', 
   const calls = await wakeThrough(web, stored());
   assert.equal(calls[0][0], 'restore');
 });
+
+// ─── Single-tab Reopen Closed Tab through main.js's own reopenEntry
+// (audit of 064751878). ────────────────────────────────────────────────────
+/** Run reopenEntry; createTab models the DRM plan and, when adopting, the
+ * adoption block's title line exactly as main.js writes it. */
+function reopenSingle(entry, { held = false } = {}) {
+  const tabs = new Map();
+  const calls = [];
+  const placeholderWc = { isDestroyed: () => false, getTitle: () => PLACEHOLDER_TITLE, getURL: () => entry.url };
+  if (held) { entry.view = { webContents: placeholderWc }; entry.wcId = 3; }
+  const adoptionLine = MAIN_SOURCE.match(/ {4}tab\.title = recordTitle\(tab, wc\.getTitle\(\) \|\| tab\.title\);/)?.[0];
+  assert.ok(adoptionLine, 'adoption applies the record title rule');
+  const sandbox = {
+    tabs, recordTitle, heldWebContents: new Set([3]),
+    rt: () => ({ groups: [], profileId: 'default' }),
+    restorableUblockTool: () => false,
+    removeHeldFirewall() {}, downgradeHeldEntry() {}, finishReopen() {},
+    reopenGroupEntry() {}, reopenBatchEntry() {}, reopenSplitEntry() {},
+    clearTimeout() {},
+    createTab: (url, options) => {
+      calls.push(options);
+      const tab = { ...tabFromPlan(url, { drm: true, allowLocalFile: options.allowLocalFile, title: options.title ?? '' }), id: 'r' };
+      if (!options.title) tab.title = 'Untitled';
+      if (options.adoptView) {
+        const wc = options.adoptView.webContents;
+        vm.runInNewContext(adoptionLine, { tab, wc, recordTitle });
+      }
+      tabs.set('r', tab);
+      return 'r';
+    },
+  };
+  vm.runInNewContext(`${lift('reopenEntry')}\nthis.reopen = reopenEntry;`, sandbox);
+  sandbox.reopen(entry);
+  return { tab: tabs.get('r'), options: calls[0] };
+}
+
+function closedInertEntry(href) {
+  const live = liveInertTab('c', href, 'Quarterly report');
+  return buildTabEntry(live, { entries: [{ url: href }], index: 0 }, { index: 0 }, 1);
+}
+
+test('Reopen Closed Tab after the held view expires keeps the saved title on screen and on save', () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const { tab, options } = reopenSingle(closedInertEntry(href));
+  assert.equal(options.title, 'Quarterly report');
+  // reopenEntry hands over the snapshot; createTab drops it for a record
+  // (pinned by the createTab wiring test above).
+  assert.equal(tab.plan.inertLocalFileUrl, href);
+  assert.equal(tab.url, placeholderUrl(href));
+  assert.equal(tab.title, 'Quarterly report');
+  assert.equal(sessionTabMeta(tab).title, 'Quarterly report', 'the next save keeps it');
+  assert.equal(persistableUrl(tab.url), href);
+
+  // Control: an ordinary tab still takes its title from its page.
+  const web = buildTabEntry({ url: 'https://example.com/', title: 'Example', localFile: false }, null, { index: 0 }, 1);
+  assert.equal(reopenSingle(web).options.title, undefined);
+});
+
+test('Reopen Closed Tab while the held view survives keeps the saved title on screen', () => {
+  const href = pathToFileURL(path.resolve('/tmp/q.html')).href;
+  const { tab, options } = reopenSingle(closedInertEntry(href), { held: true });
+  assert.ok(options.adoptView, 'the held view is adopted');
+  assert.equal(options.title, 'Quarterly report');
+  assert.equal(tab.title, 'Quarterly report', 'not the placeholder page\'s title');
+  assert.equal(sessionTabMeta(tab).title, 'Quarterly report');
+
+  // Control: an adopted ordinary page shows its own title.
+  const plain = { inertLocalFileUrl: null, title: 'Old' };
+  vm.runInNewContext('tab.title = recordTitle(tab, wc.getTitle() || tab.title);', { tab: plain, wc: { getTitle: () => 'Fresh' }, recordTitle });
+  assert.equal(plain.title, 'Fresh');
+});
