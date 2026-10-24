@@ -290,3 +290,13 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   const order = ids(m);
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
 });
+
+test('isCopyable is shared with the Copy Link browser command', () => {
+  const { isCopyable } = require('../../src/main/tab-context-menu-model');
+  for (const url of ['https://example.com/a?b=1', 'http://127.0.0.1:8080/', 'file:///Users/me/page.html']) {
+    assert.equal(isCopyable({ url }), true, url);
+  }
+  for (const url of ['blanc://newtab/', 'blanc://settings/', 'about:blank', '', undefined]) {
+    assert.equal(isCopyable({ url }), false, String(url));
+  }
+});

@@ -239,6 +239,11 @@
     "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
     "maxLength": 28
   },
+  "pill.notice.linkCopied": {
+    "message": "Link copied",
+    "note": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
+    "maxLength": 16
+  },
   "pill.commands": {
     "message": "Commands (/)",
     "note": "Tooltip and accessible name of the pill's slash button that opens commands."
@@ -1806,7 +1811,7 @@
   },
   "tabMenu.copyLink": {
     "message": "Copy Link",
-    "note": "Tab context menu command that copies the tab’s address."
+    "note": "Tab context menu command, and the Edit menu command (⇧⌘C / Ctrl+Shift+C), that copies the tab’s address."
   },
   "tabMenu.duplicate": {
     "message": "Duplicate Tab",

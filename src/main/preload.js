@@ -125,6 +125,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:glance-status', listener);
     return () => ipcRenderer.removeListener('chrome:glance-status', listener);
   },
+  onPillNotice: (callback) => {
+    const listener = (_event, kind) => callback(kind);
+    ipcRenderer.on('chrome:pill-notice', listener);
+    return () => ipcRenderer.removeListener('chrome:pill-notice', listener);
+  },
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openIslandCommands: () => ipcRenderer.send('chrome:open-island-commands'),

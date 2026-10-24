@@ -21,6 +21,9 @@ const COMMANDS = Object.freeze({
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
   'next-tab': { labelKey: 'menu.nextTab', primary: 'Ctrl+Tab', aliases: ['Ctrl+PageDown'] },
   'previous-tab': { labelKey: 'menu.previousTab', primary: 'Ctrl+Shift+Tab', aliases: ['Ctrl+PageUp'] },
+  // Arc's Copy URL key. Chrome gives this chord to DevTools' element picker
+  // on every platform, so no page expects to receive it.
+  'copy-link': { labelKey: 'tabMenu.copyLink', primary: 'CmdOrCtrl+Shift+C' },
 });
 
 function browserCommandDefinition(id, platform = process.platform) {

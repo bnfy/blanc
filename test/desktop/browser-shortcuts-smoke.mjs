@@ -145,6 +145,21 @@ try {
   await call(app, 'closeUtilitySurface');
   await press('reload', 'F5', []);
   await press('hard-reload', 'R', ['control', 'shift']);
+  // Copy Link puts the active page's exact address on the clipboard; a blank
+  // tab has nothing to copy and leaves the clipboard alone.
+  await call(app, 'setClipboardText', ['sentinel']);
+  const copyState = await state();
+  const copyUrl = copyState.tabs.find(tab => tab.id === copyState.activeTabId).url;
+  assert.ok(copyUrl.startsWith(origin), `Copy Link fixture is a web page (${copyUrl})`);
+  await press('copy-link', 'C', ['control', 'shift']);
+  await wait(() => call(app, 'readClipboardText'), value => value === copyUrl, 'active page address copied');
+  await press('new-tab', 'T', ['control']);
+  await wait(state, value => value.tabOrder.length === count + 1, 'blank tab for Copy Link');
+  await wait(() => call(app, 'overlayMode'), value => value === 'panel', 'blank tab panel');
+  await press('copy-link', 'C', ['control', 'shift'], 'overlay');
+  assert.equal(await call(app, 'readClipboardText'), copyUrl, 'a blank tab copies nothing');
+  await press('close-tab', 'W', ['control'], 'overlay');
+  await wait(state, value => value.tabOrder.length === count, 'Copy Link blank tab closed');
   await press('find', 'F', ['control']);
   await wait(() => call(app, 'overlayMode'), value => value === 'find', 'Find');
   await press('settings', ',', ['control'], 'overlay');
