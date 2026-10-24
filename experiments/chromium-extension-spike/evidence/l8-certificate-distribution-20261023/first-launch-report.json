@@ -1,0 +1,28 @@
+{
+  "ownerReport": "The previous Example tabs are not there anymore",
+  "ownerClarification": "Missing on first launch",
+  "runningSource": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "runningProfile": "~/Library/Application Support/Blanc Chromium Preview",
+  "observedMode": "regular; no explicit restore flag",
+  "savedOpenSessionObservation": "Both retained plaintext Session streams contain one tab record and no Example navigation",
+  "tabHistoryObservation": "Both retained Tabs streams contain Example navigation records; this does not prove an entry remains available in the live Recently Closed menu",
+  "cause": "Unresolved; do not infer user closure or new-build data loss from these files alone",
+  "changesMade": "None to the running app/profile; no restart or restore performed",
+  "next": "After other testing finishes, complete remaining controlled restart/selection/Shelf/Bitwarden-popup/Shipping-preservation checks.",
+  "limits": [
+    "Read-only history SQLite query failed to open; no history-database finding claimed",
+    "Closed timestamps unavailable in parsed records; no time/order attribution",
+    "No full permanent-profile copy retained"
+  ],
+  "ownerOldStateClarification": "Yes, both were still open",
+  "controlledRestartResult": "Both tabs returned",
+  "controlledRestartVerified": "Current running7c427328 matches458files/5symlinks and both retained open-session streams now contain Example URLs",
+  "concurrencyContext": "There was another session testing Sync with our iOS port, so that may have confused things",
+  "classification": "Unattributed first-launch observation; concurrency confound disclosed by owner. Not a confirmed upgrade regression; not proven caused by Sync.",
+  "otherSessionReview": {
+    "title": "Review iOS feedback plan",
+    "threadId": "01a16959-3aba-7d72-b084-5820a65f382c",
+    "finding": "Recent recorded pairing work describes isolated desktop app data/throwaway account, without evidence here that it accessed this Preview profile."
+  },
+  "followup": "Owner final controlled walkthrough reports all checks passed after concurrency clarification; original transition remains unexplained and is not claimed repaired."
+}

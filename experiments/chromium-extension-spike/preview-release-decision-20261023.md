@@ -10,16 +10,16 @@ The [primary implementation plan](../../docs/chromium-migration-implementation-p
 | --- | --- |
 | Current PR | [#1028](https://github.com/bnfy/blanc/pull/1028), draft against `codex/chromium157-rebase` |
 | Published L11 findings checkpoint | `893f1e5a7b430cef5e685a402ad044cb2ff11a0b` |
-| Last artifact accepted under L8 | Chromium `157.0.8103.15`, source `6b9a05a00f321bfbde617c181103d5a455ff45f3` |
-| Accepted evaluation archive | `Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0-arm64.zip` |
-| Archive SHA-256 | `a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca` |
-| Apple acceptance for that archive's app | `47e56224-454f-4765-9bd6-f7868a245f32` |
-| Packaging/provenance | [Authenticated L8 packet and second-Mac acceptance](evidence/l8-replacement-20261023/README.md); local incremental materials, not independent hermetic reproduction |
+| Last artifact accepted under L8 | Chromium `157.0.8103.15`, source `7c427328100d1ba76cb7e8b651a1f36d74ec86c6` |
+| Accepted evaluation archive | `Blanc-Chromium-Preview-157.0.8103.15-7c427328-arm64.zip` |
+| Archive SHA-256 | `ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed` |
+| Apple acceptance for that archive's app | `e46dbe18-f1f1-424e-abe9-ab44b79ef29c` |
+| Packaging/provenance | [Authenticated L8 packet and second-Mac acceptance](evidence/l8-certificate-distribution-20261023/README.md); local incremental materials, not independent hermetic reproduction |
 | Supported preview scope | Apple Silicon/macOS 27, accepted on 27.2; separate app and fresh profile, manual signed updates |
 | Staged replacement (not release-approved) | Source `7c427328100d1ba76cb7e8b651a1f36d74ec86c6`, archive `ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed`, Apple `e46dbe18-f1f1-424e-abe9-ab44b79ef29c`; [bounded replacement evidence](evidence/l11-native-replacement-20261023/README.md) |
-| Public release candidate | **None.** The accepted evaluation archive predates the new native certificate blocklist. Do not distribute it as the repaired candidate. A notarized certificate-patched replacement is now staged, with46frozen checks; its manifest/download acceptance and release approval are pending. |
+| Public release candidate | **None approved.** The certificate-patched replacement has bounded L8 acceptance, but L4/L11, remaining artifact qualification and Decision2 prevent a release decision. |
 
-The source checkpoint is not an artifact digest. The L8 record is not proof of the newer source's security, signing or recovery behavior. Before approval, replace this boundary with one frozen candidate source/archive identity and explicit acceptance mappings for its changes.
+The source checkpoint is not an artifact digest. This L8 record binds the exact replacement above; it is not acceptance of later source changes or other launch gates. Final approval still requires explicit security/recovery acceptance mappings and all remaining prerequisites for these bytes.
 
 ## Concrete launch blockers
 
@@ -27,7 +27,7 @@ The source checkpoint is not an artifact digest. The L8 record is not proof of t
 | --- | --- | --- |
 | L4 authentic Google extension upgrade | Open; separate baseline remains untouched | Actual old-to-new installed version increase from Google, native updater network evidence, enabled state, restart and popup focus. A fresh install or no-change callback is insufficient. |
 | L11 sandbox policy / complete CI | Blocked by owner instruction to keep Electron builds pending | Safe duplication/reopen policy preservation, unchanged regression passing, then all applicable exact-head checks and explicit CodeQL/audit disposition. Neither native clone trial is a fix. |
-| Replacement artifact | [Native certificate replacement notarized and46checks pass; manifest/download acceptance pending](evidence/l11-native-replacement-20261023/README.md) | Package the reviewed native blocklist change, sign/notarize/staple, authenticate final bytes, and requalify affected acceptance against those bytes. Do not repeat unrelated matrices without a changed path or new finding. |
+| Replacement artifact | [Notarized;46checks and bounded replacement L8 acceptance pass](evidence/l8-certificate-distribution-20261023/README.md) | Reconcile any remaining affected gate mappings against these exact bytes. Signing, authentication and native download checks are complete; do not repeat them absent a changed artifact or new finding. |
 | Decision 2 | Not approved | Finish the primary plan's remaining decision items, including unresolved cost/capacity and evidence disposition. Latency deferral is not a pass or a waiver. |
 | L12 owner go/no-go | Not requested while prerequisites fail | Owner approval naming the exact source, archive digest, supported scope, residual limitations and all required accepted evidence. |
 
