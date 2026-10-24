@@ -1544,6 +1544,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="error_blocking_settings">Blocking settings</string>
     <string name="error_code">Error %1$s</string>
     <string name="error_crash_detail">%1$s (reason: %2$s)</string>
+    <string name="error_inert_title">This tab can’t be reopened</string>
+    <string name="error_inert_detail">A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab.</string>
+    <string name="error_inert_copy">Copy link</string>
+    <string name="error_inert_copied">Link copied</string>
     <string name="error_certificate_title">Your connection isn’t private</string>
     <string name="error_certificate_unproven">The site could not prove its identity.</string>
     <string name="error_certificate_back">Back to safety</string>

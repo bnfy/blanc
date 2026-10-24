@@ -108,3 +108,9 @@ on the PR head are the blocking and tools evidence the
 [runtime maintenance policy](ublock-origin-shipping-2026-10-03.md#runtime-maintenance-policy)
 requires. This section gets the run link before that PR merges; the release
 record will carry it forward.
+
+44.9.0 also removed Electron's internal `openerSandboxFlags` preference, so
+Blanc can no longer rebuild a page-opened tab with its opener's HTML/CSP
+sandbox. Blanc now marks those tabs and keeps them inert wherever a rebuild
+would be needed (`src/main/document-policy.js`). The same four jobs run
+`test:document-policy:desktop` and `test:modified-links:desktop` on the PR head.

@@ -30,6 +30,7 @@ const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 const { primeLoadingBackground } = require('./tab-loading-background');
+const { mayBuildFreshView } = require('./document-policy');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -78,24 +79,27 @@ const liveViewContents = (view) => {
 const liveContents = (tab) => liveViewContents(tab?.view);
 
 /**
- * The ONLY place a tab's WebContentsView is constructed. Never returns null,
- * never navigates, never registers a listener.
- * @param {{private?: boolean, profileId?: string, openerSandboxFlags?: number}} tab
+ * The ONLY place a tab's WebContentsView is constructed. Never navigates,
+ * never registers a listener.
+ *
+ * Refuses (returns null) for a tab that inherits a page's document policy and
+ * isn't inert: a page-opened child may carry its opener's HTML/CSP sandbox,
+ * which Electron 44.9+ applies only to the WebContents it creates itself and
+ * no longer lets Blanc read or reapply. A fresh view would load that page
+ * unrestricted, so the caller keeps the record inert instead
+ * (document-policy.js). An inert tab's view only ever shows Blanc's own page.
+ * @param {{private?: boolean, profileId?: string, inheritsDocumentPolicy?: boolean, inert?: boolean}} tab
  *   a main-process tab record. Safe to call before the record exists (createTab does).
- * @returns {import('electron').WebContentsView}
+ * @returns {import('electron').WebContentsView | null}
  */
 function createTabView(tab) {
+  if (!mayBuildFreshView(tab)) return null;
   const profileId = tab?.profileId ?? 'default';
   const browsingSession = tab?.private
     ? getPrivateBrowsingSession(profileId)
     : getNormalBrowsingSession(profileId);
   const view = new WebContentsView({
-    webPreferences: {
-      ...TAB_WEB_PREFERENCES, session: browsingSession,
-      // Electron's Chromium document sandbox inheritance, separate from the
-      // process sandbox above. Retain it when a quiet tab's view is rebuilt.
-      openerSandboxFlags: tab?.openerSandboxFlags ?? 0,
-    },
+    webPreferences: { ...TAB_WEB_PREFERENCES, session: browsingSession },
   });
   primeTabLoadingBackground(view, tab);
   return view;
@@ -628,10 +632,11 @@ function wireTabView(tab, view, { owner, adopted }) {
           const newId = createTab(targetUrl, {
             private: tab.private, view: childView, managedExtension,
             openerTabId: childView ? tab.id : null,
-            // Custom creation bypasses Electron's normal construction and
-            // navigation. Keep the inherited HTML/CSP sandbox and referrer
-            // policy; never accept arbitrary replacement web preferences.
-            openerSandboxFlags: options.webPreferences?.openerSandboxFlags ?? 0,
+            // Every page-opened child may carry its opener's HTML/CSP sandbox.
+            // Electron applies it to the WebContents it built and tells Blanc
+            // nothing about it, so the record is marked from birth and Blanc
+            // never builds it a fresh view (document-policy.js).
+            inheritsDocumentPolicy: true,
             httpReferrer: childView ? null : referrer,
           });
           if (disposition !== 'background-tab') setImmediate(() => showOpenedTab(newId, role));

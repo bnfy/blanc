@@ -26,6 +26,7 @@ const MAX_META_TITLE = 200;
 const MAX_META_FAVICON = 8192;
 const { validFavicon } = require('./bookmark-validate');
 const { normalizeTabName, displayTitle } = require('./tab-name');
+const { isInertPageUrl } = require('./document-policy');
 
 /** Session metadata carries only the same fixed-size PNG data accepted by
  * Favorites; live remote sources never survive a restart. */
@@ -47,7 +48,9 @@ const validViewedAt = (value) => Number.isFinite(value) && value > 0;
  * persistableUrl() unwraps that url back to the real destination, and the
  * title showing there is Blanc's error copy, not the site's. */
 function sessionTabMeta(tab) {
-  const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error');
+  // An inert tab's page shows its own title (document-policy.js), so it stays.
+  const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error')
+    && !isInertPageUrl(tab.url);
   const title = !onErrorPage && typeof tab?.title === 'string'
     ? tab.title.slice(0, MAX_META_TITLE)
     : '';
@@ -105,7 +108,9 @@ function persistableEntries(tabList) {
  * order, without device-local presentation state (collapsed). */
 function syncSnapshot(tabList, groups) {
   const tabs = (tabList ?? [])
-    .filter((t) => t && !t.private)
+    // A page-opened tab never leaves this device: older Blanc builds would
+    // ignore its document-policy mark and open it unrestricted.
+    .filter((t) => t && !t.private && t.inheritsDocumentPolicy !== true)
     .map((t) => {
       const url = persistableUrl(t.url);
       if (!url || !/^https?:\/\//.test(url) || url.length > MAX_SYNC_URL) return null;

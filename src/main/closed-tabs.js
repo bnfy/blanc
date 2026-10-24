@@ -89,7 +89,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     closedAt: now,
     url: tab.url,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
     title: typeof tab.title === 'string' && tab.title ? tab.title : tab.url,
     customTitle: normalizeTabName(tab.customTitle),
     ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
@@ -135,7 +135,7 @@ function closedMembers(members) {
       return {
         url: m.url,
         localFile: m.localFile === true,
-        openerSandboxFlags: m.openerSandboxFlags ?? 0,
+        inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
         title: typeof m.title === 'string' && m.title ? m.title : m.url,
         customTitle: normalizeTabName(m.customTitle),
         ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),
@@ -207,7 +207,7 @@ function buildBatchEntry(members, now = 0) {
         const member = {
           url: m.url,
           localFile: m.localFile === true,
-          openerSandboxFlags: m.openerSandboxFlags ?? 0,
+          inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
           title: typeof m.title === 'string' && m.title ? m.title : m.url,
           customTitle: normalizeTabName(m.customTitle),
           ...(pinnedHomeUrl ? { pinnedHomeUrl } : {}),

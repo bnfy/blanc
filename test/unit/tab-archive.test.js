@@ -145,8 +145,12 @@ test('buildArchiveEntry keeps only allow-listed keys', () => {
     favicon: 'not-an-icon',
   }), { now: NOW, spaceName: 'Research' });
   assert.deepEqual(Object.keys(entry).sort(), [
-    'archivedAt', 'customTitle', 'favicon', 'id', 'lastViewedAt', 'spaceName', 'title', 'url',
+    'archivedAt', 'customTitle', 'documentPolicy', 'favicon', 'id', 'inheritsDocumentPolicy',
+    'lastViewedAt', 'spaceName', 'title', 'url',
   ]);
+  assert.equal(entry.documentPolicy, 1);
+  assert.equal(entry.inheritsDocumentPolicy, false);
+  assert.equal(buildArchiveEntry(idleTab('b', { inheritsDocumentPolicy: true }), { now: NOW }).inheritsDocumentPolicy, true);
   assert.equal(entry.archivedAt, NOW);
   assert.equal(entry.customTitle, 'Mine');
   assert.equal(entry.spaceName, 'Research');
