@@ -35,6 +35,18 @@ function buildGroupSubmenu(tab, groups, t) {
   return sub;
 }
 
+// Move to Space ▸ (#1060): every space in the profile, the window's own one
+// checked (choosing it does nothing) and a space that can't receive a tab
+// right now (its window mid switch or closing) disabled. Space names are user
+// data; as radio rows the pseudo-locale sweep skips them, like group names.
+function buildSpaceSubmenu(spaces) {
+  return spaces.map((s) => ({
+    id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id,
+    ...(s.enabled === false ? { enabled: false } : {}),
+  }));
+}
+const spaceReachable = (s) => !s.current && s.enabled !== false;
+
 // Native menus grow to their widest row, so long page titles are cut.
 const SPLIT_TITLE_MAX = 48;
 const shortTitle = (title) => {
@@ -84,7 +96,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], spaces = [], canMoveToSpace = false, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -139,6 +151,14 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     enabled: isFavoritable(tab) && (!!tab.startPinned || !tab.startPinsFull),
   });
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
+  // Shown once the profile has a space; a private tab never joins one. With
+  // no other space able to take it, or a tab main refuses to move, it is
+  // disabled.
+  if (!tab.private && spaces.length) {
+    items.push(canMoveToSpace && spaces.some(spaceReachable)
+      ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces) }
+      : { id: 'space', label: t('tabMenu.moveToSpace'), enabled: false });
+  }
   // Split View (F53): a split tab can leave or close its split; any other tab
   // can make one with an eligible tab (main passes the candidates with their
   // groups; buildSplitSubmenu sorts them). A split with a pinned tab is pinned.
@@ -152,15 +172,15 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   }
   items.push({ type: 'separator' });
 
-  if (surface === 'row' && !isActive) {
+  if (surface === 'row' && (!isActive || (tab.splitId && canGlance))) {
     // The current reference (its ⌘L row, or the Glance header) closes Glance.
     items.push(tab.id === glanceTabId
       ? { id: 'close-glance', label: t('menu.closeGlance') }
-      : { id: 'glance', label: t('tabMenu.glance') });
+      : { id: 'glance', label: t('tabMenu.glance'), enabled: canGlance });
     // canQuiet is main's explicit-quiet predicate (the sweep's full policy
     // minus the idle threshold) — the same check the action runs, so this
     // item can never render enabled for a tab the action would refuse.
-    items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
+    if (!isActive) items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
     items.push({ type: 'separator' });
   }
 

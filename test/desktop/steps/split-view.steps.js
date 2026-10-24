@@ -618,7 +618,32 @@ Then("the Island is shown and the split's cards start below the strip", async fu
 });
 
 When("a pane's view is raised above everything", async function () {
-  assert.equal(await this.call('raiseTabView', this.splitB), true);
-  const pill = await this.call('floatViewState', 'pill');
-  assert.equal(pill.aboveTabsAndSheet, false, 'the raised pane now covers the floating pill');
+  const raised = await this.call('raiseTabView', this.splitB);
+  assert.ok(raised.pillIndex >= 0 && raised.paneIndex > raised.pillIndex,
+    `the raised pane covers the floating pill before layout repairs it: ${JSON.stringify(raised)}`);
+});
+
+When('I open the {word} split pane in Glance from its tab menu', async function (pane) {
+  this.glanceFromSplit = pane === 'first' ? this.splitA : this.splitB;
+  this.remainingSplitTab = pane === 'first' ? this.splitB : this.splitA;
+  this.splitLoadCounts = [await loadCount(this, this.splitA), await loadCount(this, this.splitB)];
+  const item = await this.call('tabMenuItem', this.glanceFromSplit, 'glance');
+  assert.ok(item?.enabled, 'the pane menu offers Open in Glance');
+  await this.call('runTabMenuItem', this.glanceFromSplit, 'glance');
+});
+
+Then('that pane floats in Glance over the remaining tab without reloading either page', async function () {
+  const state = await this.waitForState((s) => s.glanceTabId === this.glanceFromSplit
+    && s.activeTabId === this.remainingSplitTab && s.splits.length === 0);
+  assert.equal(await this.call('splitLayout'), null);
+  assert.equal(state.tabs.find((t) => t.id === this.splitA).splitId, null);
+  assert.equal(state.tabs.find((t) => t.id === this.splitB).splitId, null);
+  assert.deepEqual([await loadCount(this, this.splitA), await loadCount(this, this.splitB)], this.splitLoadCounts);
+  await waitForValue(() => this.call('glancePageViewVisible'), Boolean, 'the Glance page to be visible');
+  const attached = await this.call('attachedTabViewIds');
+  assert.ok(attached.includes(this.splitA) && attached.includes(this.splitB));
+  await this.call('closeGlance');
+  const closed = await this.state();
+  assert.equal(closed.activeTabId, this.remainingSplitTab);
+  assert.ok(closed.tabs.some((t) => t.id === this.glanceFromSplit), 'closing Glance keeps its tab');
 });

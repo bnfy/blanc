@@ -17,13 +17,15 @@ Sidebar: 7 Spaces (3 test, 4 other, not inspected)
 The test setup matches docs/testing/arc-rich-test-setup.md exactly.
 ```
 
+(That was the checker's success line at the time. After the October 24 review it reads "No differences from docs/testing/arc-rich-test-setup.md in the parts this check compares", because the check never compared query strings, stray custom names or the kind of the non-web item; the checklist now lists what it compares.)
+
 The checker needed one correction: matching profile markers with `JSON.stringify` rejected equivalent objects whose keys appeared in different orders. It now uses `isDeepStrictEqual`. A synthetic regression check confirmed that reordered keys pass, a different machine/profile marker fails, and Today-before-Pinned section ordering passes. JavaScript syntax validation passed.
 
 The checklist now explicitly accepts an Easel for the non-web item. Arc's command palette offered **New Easel**, but no **New Note** command. This is an Easel, not evidence of current Note creation support.
 
 ## Earlier QA setup and privacy
 
-The three earlier `Blanc QA` Spaces remain as supplementary cases, including two long names with the same first 40 characters and duplicate URLs with different titles. They do not replace the checklist setup. Their 19 tabs used 18 distinct full URLs, preserved in the earlier native export; all had the same pathname. The checker intentionally ignores queries and fragments, so they were unsuitable substitutes for the checklist's distinct paths.
+The three earlier `Blanc QA` Spaces remain as supplementary cases, including two long names with the same first 40 characters and duplicate URLs with different titles. They do not replace the checklist setup. Their 19 tabs used 18 distinct full URLs that differed only by query or fragment; all had the same pathname. (They were visible in the earlier native export, which has since been deleted; see below.) The checker intentionally ignores queries and fragments, so they were unsuitable substitutes for the checklist's distinct paths.
 
 The earlier full before/after sidebar copies and native export in `/private/tmp/blanc-arc-rich-test-2026-10-24/` were removed after the corrected setup passed. No raw Arc IDs or original browsing contents are recorded here.
 

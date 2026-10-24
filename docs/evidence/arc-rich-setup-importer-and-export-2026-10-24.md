@@ -77,7 +77,6 @@ Not yet decided:
 A fresh **Arc > Settings > Advanced > Export Data** of this setup (8,192 bytes, October 24, 05:15) was copied to a private scratch folder, read and then deleted.
 - Only the three **Blanc Test** sections are described below. In them, any link that isn't a test link is reported only as a count.
 - The other four Spaces' sections were reduced to heading levels and item counts.
-- The owner saved it to iCloud Drive's Downloads folder, so iCloud also holds a copy of the whole sidebar's links.
 
 ### Layout
 

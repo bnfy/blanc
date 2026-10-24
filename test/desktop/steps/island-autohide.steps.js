@@ -105,6 +105,8 @@ Then('the page starts below the Island', async function () {
 });
 
 When('I point at the top edge of the window', async function () {
+  // Native focus gates edge reveal; synthetic input does not front the window.
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the window to receive the pointer');
   const state = await this.call('state');
   await restCursor(this, { x: 400, y: 2 });
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);

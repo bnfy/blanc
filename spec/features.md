@@ -1207,6 +1207,15 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   switching back keeps their pages as they were.
 - Deleted spaces stay in Recently deleted for 7 days, where they can be
   restored or forgotten.
+- A tab's menu has **Move to Space ▸** once the profile has a space, listing
+  every space with the window's own checked. Choosing another moves that one
+  tab, live, to the end of the space, ungrouped; the window stays where it
+  is. A space open nowhere is set aside to receive it. Private tabs never get
+  the item; it is disabled for a window's only tab, a page using the camera
+  or microphone, playing sound or sharing its screen, one with a popup open,
+  or one being quieted, and a space whose window is closing or mid switch is
+  a disabled row (#1060). The space's record is written, with the tab, and
+  checked before the tab leaves its window; a failed write moves nothing.
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
@@ -1217,8 +1226,9 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 - **Acceptance:**
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
-  `test/desktop/steps/workspace-lifecycle.steps.js` and
-  `test/desktop/steps/spaces-redesign.steps.js`);
+  `test/desktop/steps/workspace-lifecycle.steps.js`,
+  `test/desktop/steps/spaces-redesign.steps.js` and
+  `test/desktop/steps/move-to-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 ## F42 — Dark websites
@@ -1608,3 +1618,22 @@ made.
 - **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
   `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
   `test/unit/clock-font.test.js`.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
+

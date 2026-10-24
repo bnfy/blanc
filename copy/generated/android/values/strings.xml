@@ -513,6 +513,7 @@
     <string name="tab_menu_pin_start_page">Pin to Start Page</string>
     <string name="tab_menu_unpin_start_page">Unpin from Start Page</string>
     <string name="tab_menu_move_to_group">Move to Group</string>
+    <string name="tab_menu_move_to_space">Move to Space</string>
     <string name="tab_menu_split_with">Split with</string>
     <string name="tab_menu_remove_from_split">Remove from Split</string>
     <string name="tab_menu_close_split">Close Split</string>

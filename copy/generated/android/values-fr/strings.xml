@@ -527,6 +527,7 @@
     <string name="tab_menu_pin_start_page">Épingler à la page d’accueil</string>
     <string name="tab_menu_unpin_start_page">Détacher de la page d’accueil</string>
     <string name="tab_menu_move_to_group">Déplacer dans le groupe</string>
+    <string name="tab_menu_move_to_space">Déplacer dans le Space</string>
     <string name="tab_menu_split_with">Partager avec</string>
     <string name="tab_menu_remove_from_split">Retirer de la vue partagée</string>
     <string name="tab_menu_close_split">Fermer la vue partagée</string>

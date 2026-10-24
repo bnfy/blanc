@@ -4,6 +4,7 @@
 module.exports = {
   app: null,
   relaunch: null,
+  crashAndRelaunch: null,
   fixturesBase: null,
   secureFixturesBase: null,
   untrustedFixturesBase: null,
