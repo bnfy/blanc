@@ -319,17 +319,20 @@ function install(refs) {
   function injectSends({ targets = [], inbox = [], sendStatus = 'sent' } = {}) {
     injectedSends = { targets: structuredClone(targets), inbox: structuredClone(inbox), hidden: new Set(), sent: [], sendStatus };
     const state = injectedSends;
-    setSendsSource({
+    const source = {
       targets: () => structuredClone(state.targets),
       inbox: () => state.inbox.filter((item) => !state.hidden.has(item.id)).map((item) => ({ ...item })),
       hide: (id) => {
         const item = state.inbox.find((row) => row.id === id && !state.hidden.has(id));
         if (!item) return null;
         state.hidden.add(id);
+        // sync's store notifies the surfaces when a page is hidden; so does this.
+        queueMicrotask(() => { if (injectedSends === state) setSendsSource(source); });
         return { id: item.id, url: item.url };
       },
       send: async (request) => { state.sent.push({ ...request }); return { status: state.sendStatus }; },
-    });
+    };
+    setSendsSource(source);
   }
 
   async function readTabImportDom() {
@@ -3394,6 +3397,35 @@ function install(refs) {
     clearSends() { injectedSends = null; setSendsSource(null); return true; },
     sentRequests() { return structuredClone(injectedSends?.sent ?? []); },
     setSendStatus(status) { if (injectedSends) injectedSends.sendStatus = status; return true; },
+    /** The Ledger's Sent to this device rows on every open start page. */
+    async sentStartPageRows() {
+      const rows = [];
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        try {
+          rows.push(...await tab.view.webContents.executeJavaScript(`[...document.querySelectorAll('#sentList .sent-item')].map((item) => ({
+            title: item.querySelector('.name')?.textContent ?? '',
+            from: item.querySelector('.host')?.textContent ?? '',
+            visible: !document.getElementById('sentSection').hidden,
+          }))`));
+        } catch { /* a start page mid-navigation has nothing to read */ }
+      }
+      return rows;
+    },
+    async clickSentStartPageRow(title, part) {
+      for (const tab of tabs.values()) {
+        if (!urlOf(tab).startsWith('blanc://newtab')) continue;
+        const clicked = await tab.view.webContents.executeJavaScript(`(() => {
+          const item = [...document.querySelectorAll('#sentList .sent-item')].find((el) => el.querySelector('.name')?.textContent === ${JSON.stringify(title)});
+          const target = item?.querySelector(${JSON.stringify(part === 'dismiss' ? '.sent-dismiss' : 'a.fav')});
+          if (!target) return false;
+          target.click();
+          return true;
+        })()`).catch(() => false);
+        if (clicked) return true;
+      }
+      return false;
+    },
     // Mirrors addressResultRows' favicon reporting so the start page and the
     // Quick Switcher are guarded to the same standard: the tile letter is
     // replaced by the icon only once the bytes actually decode.
@@ -3911,6 +3943,8 @@ function install(refs) {
     async reset() {
       refs.workspaceTestAction('reset');
       clearFocusObservation();
+      injectedSends = null;
+      setSendsSource(null);
       activeTabImportFixtureName = null;
       // Keep the current deletion lifecycle authoritative: it settles native
       // visibility and closes profile windows before clearing their sessions.
