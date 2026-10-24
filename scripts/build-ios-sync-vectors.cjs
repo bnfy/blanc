@@ -34,7 +34,7 @@ function seal(key, plaintext, iv) {
   assert.equal(crypt.decrypt(key, blob), plaintext); return blob;
 }
 try {
-  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], canonical: [], lowercase: [], deviceNamesRename: [], sendsMerge: [], sendsInbox: [], sendsTargets: [], sendsOwn: [] };
+  const vectors = { deriveKeys: [], pairing: [], envelopes: [], recovery: [], settingsMerge: [], deviceNamesMerge: [], sessionMerge: [], favoritesMerge: [], favoritesEdit: [], canonical: [], lowercase: [], deviceNamesRename: [], sendsMerge: [], sendsInbox: [], sendsTargets: [], sendsOwn: [] };
   for (const [handle, passphrase] of [['Anthony','correct horse battery staple'],['  Zoë ','Pässwörd-1234'],['İstanbul','🦊🦊🦊🦊🦊 long enough'],['ΟΔΟΣ','correct horse battery staple'],['ab','x']]) {
     const k = crypt.deriveKeys(handle,passphrase); vectors.deriveKeys.push(entry(handle,{handle,passphrase},{accountId:k.accountId,contentKey:k.key.toString('hex')}));
   }
@@ -84,6 +84,35 @@ try {
   const item=(title,updatedAt)=>({id:'fav-1',url:'https://example.com',title,favicon:null,folder:null,addedAt:100,updatedAt});
   for (const [name,local,remote] of [['remote newer',{items:[item('old',100)],tombstones:[]},{items:[item('new',200)],tombstones:[]}],['delete older',{items:[item('old',100)],tombstones:[]},{items:[],tombstones:[{url:'https://example.com',deletedAt:fixedNow}]}],['keep newer',{items:[item('new',fixedNow)],tombstones:[]},{items:[],tombstones:[{url:'https://example.com',deletedAt:fixedNow-1}]}]]) {
     const mod=moduleInProfile('bookmarks',local); mod.mergeFromSync(remote); vectors.favoritesMerge.push(entry(name,{local,remote,now:fixedNow},mod.exportForSync()));
+  }
+  const fav=(id,folder=null,addedAt=100)=>({id,url:`https://${id}.test/`,title:id.toUpperCase(),favicon:null,addedAt,updatedAt:addedAt,folder});
+  for (const [name,store,operation,args,id] of [
+    ['toggle on',{items:[],tombstones:[]},'toggle',{url:'https://new.test/',title:'',favicon:'https://new.test/icon.png'},'new-1'],
+    ['toggle off',{items:[fav('a'),fav('b')],tombstones:[]},'toggle',{url:'https://a.test/',title:'A',favicon:null},'unused'],
+    ['toggle on after delete',{items:[],tombstones:[{url:'https://a.test/',deletedAt:100},{url:'https://b.test/',deletedAt:100}]},'toggle',{url:'https://a.test/',title:'A',favicon:null},'new-2'],
+    ['remove by id',{items:[fav('a'),fav('b')],tombstones:[]},'remove',{id:'b'},''],
+    ['remove unknown id',{items:[fav('a')],tombstones:[]},'remove',{id:'zzz'},''],
+    ['set folder trims',{items:[fav('a')],tombstones:[]},'setFolder',{id:'a',folder:'  Work  '},''],
+    ['set folder too long is a no-op',{items:[fav('a','Home')],tombstones:[]},'setFolder',{id:'a',folder:'x'.repeat(101)},''],
+    ['set folder joins existing spelling',{items:[fav('a','Work',50),fav('b')],tombstones:[]},'setFolder',{id:'b',folder:'work'},''],
+    ['set folder null ungroups',{items:[fav('a','Work')],tombstones:[]},'setFolder',{id:'a',folder:null},''],
+    ['set folder same is unchanged',{items:[fav('a','Work')],tombstones:[]},'setFolder',{id:'a',folder:'Work'},''],
+    ['set folder unknown id',{items:[fav('a')],tombstones:[]},'setFolder',{id:'zzz',folder:'Work'},''],
+    ['rename folder',{items:[fav('a','Work'),fav('b','work'),fav('c','Home')],tombstones:[]},'renameFolder',{from:'WORK',to:' Projects '},''],
+    ['rename folder merges into existing',{items:[fav('a','Work'),fav('b','Home',50)],tombstones:[]},'renameFolder',{from:'Work',to:'home'},''],
+    ['rename folder case only',{items:[fav('a','work')],tombstones:[]},'renameFolder',{from:'work',to:'Work'},''],
+    ['rename folder to empty is a no-op',{items:[fav('a','Work')],tombstones:[]},'renameFolder',{from:'Work',to:'   '},''],
+    ['remove folder',{items:[fav('a','Work'),fav('b','WORK'),fav('c','Home')],tombstones:[]},'removeFolder',{name:'work'},''],
+  ]) {
+    const mod=moduleInProfile('bookmarks',store), uuid=crypto.randomUUID; crypto.randomUUID=()=>id;
+    try {
+      if(operation==='toggle') mod.toggleBookmark(args.url,args.title,args.favicon);
+      else if(operation==='remove') mod.removeBookmark(args.id);
+      else if(operation==='setFolder') mod.setBookmarkFolder(args.id,args.folder);
+      else if(operation==='renameFolder') mod.renameFolder(args.from,args.to);
+      else mod.removeFolder(args.name);
+    } finally { crypto.randomUUID=uuid; }
+    vectors.favoritesEdit.push(entry(name,{store,operation,args,now:fixedNow,id},JSON.parse(JSON.stringify(mod.exportForSync()))));
   }
   for(const value of [{b:1,a:2},{text:'\ud83d'},{'￿':1,'😀':2},[1,1.5,1e21,-0,1e-7,1e-6],{text:'\b\f\n\t\r\u2028\u007f"\\'}, {'10':'ten','2':'two',a:1}]) vectors.canonical.push(entry('canonical',value,tabs.canonical(value)));
   const DAY=24*60*60*1000, sItem=(id,over={})=>({id,to:'phone',url:`https://example.com/${id}`,title:id,sentAt:fixedNow-1000,...over});
