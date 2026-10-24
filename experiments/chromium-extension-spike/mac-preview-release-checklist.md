@@ -1,3 +1,5 @@
+> October23: [certificate-patched replacement](evidence/l11-native-replacement-20261023/README.md) notarized/stapled;46frozen checks pass,12compliance checks,guard0. Manifest authentication/fresh-download acceptance pending.9/12delta0;L4/L11 and final approval remain open.
+
 > October23 08:00 PM EDT: [fresh L4 Google offer check](evidence/l4-google-offer-20261023/README.md) returns HTTP200/`noupdate` for Bitwarden2026.10.0. Isolated profile/backup preserved; no updater or restart. L4 stays open;9/12(75%),delta0.
 
 > October23 L12: [decision packet](preview-release-decision-20261023.md) and [tester guide](preview-user-guide.md) prepared. Final acceptance remains NO-GO pending L4, blocked L11, replacement-artifact qualification and Decision2. **9/12(75%),delta0.** No release/build/profile changes.
