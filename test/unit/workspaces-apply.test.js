@@ -88,6 +88,7 @@ function applyHarness(runtime) {
     applyRestoredSplits: (_runtime, saved, ids) => calls.push(['applyRestoredSplits', saved, [...ids]]),
     setActiveTab: (id, opts) => calls.push(['setActiveTab', id, opts]),
     restorableUblockTool: () => false,
+    documentPolicy: require('../../src/main/document-policy'),
     filterRestoredSession,
     clampClosedSlot,
     groupRecord,

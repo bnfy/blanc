@@ -20,6 +20,7 @@ const { app, BrowserWindow, Menu, clipboard, nativeImage, powerMonitor, webConte
 const TEST_BANG_ICON_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
 const { buildAddressMenu } = require('./address-menu-model');
 const { sameGroupName } = require('./group-name-case');
+const { terminateRenderer } = require('./renderer-discard');
 const { resolveDeviceName } = require('./device-names');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -3807,6 +3808,14 @@ function install(refs) {
     },
     /** With an id: that tab's redacted state. Without: every tab in tab order.
      * NEVER returns entries: snapshots can contain POST bodies and form data. */
+    /** Kill a tab's renderer exactly as Blanc's renderer discard does: a
+     *  SIGKILL of the verified own renderer on Linux, where Electron's crash
+     *  request is only a request, and forcefullyCrashRenderer() elsewhere. */
+    crashTabRenderer(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return null;
+      return terminateRenderer(wc);
+    },
     sleepState(id) {
       const snapshots = getSleepSnapshots();
       const one = (tabId, tab) => ({

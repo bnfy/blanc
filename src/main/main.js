@@ -217,6 +217,7 @@ const { siteKey: topSiteKey } = require('./top-sites');
 const startPagePins = require('./start-page-pins');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const documentPolicy = require('./document-policy');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
 const {
@@ -2723,7 +2724,9 @@ function commitWake(tab, generation) {
 async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
-  if (wc) {
+  // An inert tab never gets an error page offering to load its page: it
+  // stays as it is (document-policy.js).
+  if (wc && !tab.inert) {
     const q = new URLSearchParams({
       url: failedUrl ?? '', code: 'wake-failed',
       desc: mainI18n.t('error.reloadFailed'), title: tab.title ?? '',
@@ -2778,6 +2781,16 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   const tab = tabs.get(id);
   if (!tab) return false;
   if (!tab.asleep) return true;
+  // A page-opened tab is never rebuilt with its own page (document-policy.js):
+  // its view only ever shows Blanc's explanation page, whatever was asked.
+  if (tab.inheritsDocumentPolicy && !tab.inert) tab.inert = true;
+  // A plain wake while one is under way joins it (below) rather than
+  // starting the explanation page's load over.
+  const joinsWake = tab.waking && !!liveContents(tab) && navigateTo === null && atIndex === null;
+  if (tab.inert && !joinsWake) {
+    navigateTo = documentPolicy.inertPageUrl(persistableUrl(tab.url), tab.title);
+    atIndex = null;
+  }
   if (startupNavigationGateActive) {
     pendingWakes.add(id);
     return false;
@@ -3078,7 +3091,14 @@ function restoreArchivedEntry(entryId) {
   const entry = archive.takeEntry(String(entryId ?? ''));
   if (!entry) return false;
   // Archived tabs were never pinned, so there is no home to carry.
-  const id = createTab(entry.url, { customTitle: entry.customTitle ?? null, pinnedHomeUrl: null });
+  const id = createTab(entry.url, {
+    customTitle: entry.customTitle ?? null,
+    pinnedHomeUrl: null,
+    // Shown until the page loads; an inert tab never loads it.
+    title: entry.title ?? null,
+    favicon: entry.favicon ?? null,
+    inheritsDocumentPolicy: documentPolicy.restoredEntryMarker(entry),
+  });
   if (!id) return false;
   setActiveTab(id, { focusContent: true, focusAddress: false });
   return true;
@@ -3089,6 +3109,16 @@ function restoreArchivedEntry(entryId) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+// An inert tab's view shows only Blanc's own page (document-policy.js). Its
+// will-navigate guard turns a click into a new tab; this cancels every other
+// main-frame request it would make (main-process loads, history, reloads,
+// redirect hops) before it leaves the browser, in every session.
+function inertRequestVeto(details) {
+  if (details.resourceType !== 'mainFrame' || !Number.isInteger(details.webContentsId)) return false;
+  const tab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+  return !!tab?.inert && !documentPolicy.inertViewMayShow(details.url);
+}
+blockingCoordinator.setVeto(inertRequestVeto);
 
 /** Stop allowing (certificate spec §4.5): forget the active tab's origin in
  *  its session, drop pooled connections, and reload so the warning returns.
@@ -4690,7 +4720,7 @@ function reopenSplitEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -6147,6 +6177,12 @@ function navigateTabToAddress(id, rawText) {
   }
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
+  // An inert tab stays as it is (document-policy.js): a typed address opens
+  // in a new ordinary tab instead, as it would after copying the link.
+  if (tab.inert) {
+    setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+    return;
+  }
   rt().tabsWantingAddressBarFocus.delete(id);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
@@ -6404,6 +6440,8 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     } : {}),
     groups: persistedGroups,
     ...savedWindowSplits(runtime, entries),
+    // Every tab's document-policy mark, under a stamp (document-policy.js).
+    ...documentPolicy.stampedColumn(entries.map((item) => tabs.get(item.id))),
     ...(closedSlot > 0 ? { closedSlot } : {}),
     sectionOrder: true,
     ...(closedIndex > 0 ? { closedIndex } : {}),
@@ -7371,7 +7409,7 @@ function closedMemberRecord(id) {
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
-    openerSandboxFlags: tab.openerSandboxFlags ?? 0,
+    inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
     // Batch entries (Close Other Tabs) span groups; each member re-resolves
     // this against the surviving groups at restore time. Group entries carry
@@ -7914,6 +7952,8 @@ function applyWorkspaceToWindow(runtime, workspace) {
       meta: workspace.meta,
       localFiles: workspace.localFiles,
       splitIds: workspace.splitIds,
+      documentPolicy: workspace.documentPolicy,
+      inheritsDocumentPolicy: workspace.inheritsDocumentPolicy,
       activeIndex: workspace.activeIndex,
     }, (url, _index, localFile) => isUtilityUrl(url)
       || (isForbiddenTopLevelUrl(url) && !(localFile && restorableLocalHtmlUrl(url))));
@@ -7931,6 +7971,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       pinnedHomeUrl: cleaned.meta?.[index]?.pinnedHomeUrl ?? null,
       allowLocalFile: cleaned.localFiles?.[index] === true,
       managedExtension: restorableUblockTool(url),
+      inheritsDocumentPolicy: documentPolicy.restoredMarker(cleaned, index),
     }));
     pruneEmptyGroups();
     applySavedLayout(runtime, workspace, restoredIds);
@@ -8053,7 +8094,9 @@ function toggleTabMuted(id) {
 
 function duplicateTab(id) {
   const source = tabs.get(id);
-  if (!source) return;
+  // A copy would be a fresh WebContents, which can't carry the opener's
+  // sandbox a page-opened tab may have (document-policy.js).
+  if (!source || source.inheritsDocumentPolicy) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
   // A quiet source duplicates straight from its retained snapshot; waking it
   // just to read history defeats the feature and creates a needless reload.
@@ -8065,7 +8108,6 @@ function duplicateTab(id) {
     allowLocalFile: source.localFile === true,
     managedExtension: /^chrome-extension:/i.test(source.url) && !source.private && restorableUblockTool(source.url, source.profileId),
     private: source.private,
-    openerSandboxFlags: source.openerSandboxFlags,
     groupId: source.groupId,
     pinned: source.pinned,
     pinnedHomeUrl: source.pinnedHomeUrl,
@@ -8272,7 +8314,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, openerSandboxFlags = 0, httpReferrer = null, managedExtension = false } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, customTitle = null, pinnedHomeUrl = null, lastViewedAt = null, adoptView = null, allowLocalFile = false, inheritsDocumentPolicy = false, httpReferrer = null, managedExtension = false } = {}) {
   if (/^chrome-extension:/i.test(url) && (isPrivate || !managedExtension)) return null;
   const admittedLocalFile = allowLocalFile && isSupportedLocalHtmlUrl(url);
   if (isForbiddenTopLevelUrl(url) && !admittedLocalFile) url = NEW_TAB_URL;
@@ -8310,14 +8352,20 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   const pinnedHome = pinned
     ? (suppliedPinnedHome ?? pinnedHomeFor(url, { localFile: admittedLocalFile }))
     : null;
+  // A page-opened tab keeps its mark for life (document-policy.js). Only the
+  // live view Electron built for it, or the same view parked at close, may
+  // show its page; any other construction would drop the opener's sandbox, so
+  // the record is born inert instead.
+  const marked = inheritsDocumentPolicy === true;
+  const inert = marked && !adopted && !adopting;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
-  // already live and can never be born quiet.
-  const bornQuiet = asleep && !adopted && !adopting;
+  // already live and can never be born quiet. An inert tab stays quiet until
+  // it is shown, and then loads only Blanc's explanation page (wakeTab).
+  const bornQuiet = (asleep || inert) && !adopted && !adopting;
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
-    openerSandboxFlags,
   });
 
   const tab = {
@@ -8337,9 +8385,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     localFile: admittedLocalFile,
     // Main-owned tool lifetime survives its temporary error URL during uBO reload.
     managedExtension: managedExtension === true && !isPrivate,
-    // Trusted Electron inheritance, kept in main memory for view recreation.
-    // Neither this nor the initial referrer comes from tabs:create IPC.
-    openerSandboxFlags,
+    // Never from tabs:create IPC. Sticky: no navigation or move clears it.
+    inheritsDocumentPolicy: marked,
+    // Never shows its own page again; see wakeTab.
+    inert,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
@@ -9051,7 +9100,7 @@ function reopenGroupEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -9086,7 +9135,7 @@ function reopenBatchEntry(entry) {
       asleep: true, title: member.title, favicon: member.favicon, customTitle: member.customTitle,
       pinnedHomeUrl: member.pinnedHomeUrl,
       allowLocalFile: member.localFile === true,
-      openerSandboxFlags: member.openerSandboxFlags,
+      inheritsDocumentPolicy: member.inheritsDocumentPolicy === true,
     });
     if (id && member.snapshot) {
       sleepSnapshots.set(id, {
@@ -9440,7 +9489,7 @@ function reopenEntry(entry) {
   const common = {
     pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId, customTitle: entry.customTitle,
     pinnedHomeUrl: entry.pinnedHomeUrl,
-    openerSandboxFlags: entry.openerSandboxFlags,
+    inheritsDocumentPolicy: entry.inheritsDocumentPolicy === true,
     managedExtension: restorableUblockTool(entry.url),
   };
 
@@ -9465,6 +9514,8 @@ function reopenEntry(entry) {
   downgradeHeldEntry(entry);
   const id = createTab(entry.url, {
     ...common,
+    // What an inert tab shows (document-policy.js); a loading page replaces it.
+    ...(common.inheritsDocumentPolicy ? { title: entry.title, favicon: entry.favicon } : {}),
     allowLocalFile: entry.localFile === true,
     restoreHistory: entry.snapshot
       ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
@@ -10449,6 +10500,11 @@ function registerIpcHandlers() {
         : { engine: engine.id, query: query.trim(), url: target };
       return target;
     }
+    // An inert tab stays as it is; the search opens beside it.
+    if (tab.inert) {
+      setActiveTab(createTab(target, { private: tab.private }), { focusContent: true });
+      return target;
+    }
     if (tab.asleep) return wakeTab(id, { navigateTo: target });
     return liveContents(tab)?.loadURL(target);
   });
@@ -11399,7 +11455,7 @@ function buildMenuForRuntime(runtime) {
         { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
         { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
-        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
+        { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId && !tabs.get(rt().activeTabId)?.inheritsDocumentPolicy, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
         { label: t(pinLabelKey(tabs.get(rt().activeTabId))), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
         { label: t(tabs.get(rt().activeTabId)?.muted ? 'tabMenu.unmute' : 'tabMenu.mute'), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
@@ -11522,6 +11578,8 @@ function tabContextData(tab, owner) {
     glanceTabId: owner.glanceTabId ?? null,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
+    // A page-opened tab can't be copied into a fresh view (document-policy.js).
+    canDuplicate: tab.inheritsDocumentPolicy !== true,
     canQuiet: explicitSleepEligible(tab, owner),
     canCloseAbove: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'above' }).length > 0,
     canCloseBelow: closableBeside({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id, direction: 'below' }).length > 0,
@@ -14353,7 +14411,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       groups: rt().groups,
     })));
     tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      // Icons are keyed by page address, so a page-opened tab's icon would
+      // publish the address syncSnapshot keeps on this device.
+      tabList: rt().tabOrder.map((id) => tabs.get(id))
+        .filter((tab) => tab && tab.inheritsDocumentPolicy !== true),
     })));
 
     // Session/icon sync may run from palette open or Sync Now before this
@@ -14435,6 +14496,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       meta: cleaned.meta,
       localFiles: cleaned.localFiles,
       splitIds: cleaned.splitIds,
+      documentPolicy: cleaned.documentPolicy,
+      inheritsDocumentPolicy: cleaned.inheritsDocumentPolicy,
       activeIndex: cleaned.activeIndex,
       closedSlot: saved.closedSlot ?? 0,
       groups: (Array.isArray(saved.groups) ? saved.groups : [])
@@ -14675,6 +14738,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           lastViewedAt: restoredLastViewedAt(saved.meta?.[index], Date.now()),
           allowLocalFile: saved.localFiles?.[index] === true,
           managedExtension: restorableUblockTool(url),
+          inheritsDocumentPolicy: documentPolicy.restoredMarker(saved, index),
         }));
         pruneEmptyGroups();
         applySavedLayout(runtime, saved, restoredIds);

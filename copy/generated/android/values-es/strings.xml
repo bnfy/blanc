@@ -1590,6 +1590,10 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="error_blocking_settings">Ajustes de bloqueo</string>
     <string name="error_code">Error %1$s</string>
     <string name="error_crash_detail">%1$s (motivo: %2$s)</string>
+    <string name="error_inert_title">Esta pestaña no se puede volver a abrir</string>
+    <string name="error_inert_detail">Una página abrió esta pestaña y Blanc no puede volver a abrirla con las restricciones que esa página estableció. Para visitarla de nuevo, copia el enlace y ábrelo en una pestaña nueva.</string>
+    <string name="error_inert_copy">Copiar enlace</string>
+    <string name="error_inert_copied">Enlace copiado</string>
     <string name="error_certificate_title">Tu conexión no es privada</string>
     <string name="error_certificate_unproven">El sitio no pudo demostrar su identidad.</string>
     <string name="error_certificate_back">Volver a lo seguro</string>

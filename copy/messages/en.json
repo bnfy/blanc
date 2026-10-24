@@ -5844,6 +5844,24 @@
     "message": "{description} (reason: {reason})",
     "note": "Error page: detail after a crash; {description} is a sentence such as “The page crashed”, {reason} a technical code."
   },
+  "error.inert.title": {
+    "message": "This tab can’t be reopened",
+    "note": "Explanation page for a tab a page opened, which Blanc can’t load again with the restrictions it was opened under: heading."
+  },
+  "error.inert.detail": {
+    "message": "A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab.",
+    "note": "Same page: explanation under the heading."
+  },
+  "error.inert.copy": {
+    "message": "Copy link",
+    "note": "Same page: button that copies the tab’s address.",
+    "maxLength": 16
+  },
+  "error.inert.copied": {
+    "message": "Link copied",
+    "note": "Same page: the button’s label after copying.",
+    "maxLength": 16
+  },
   "error.certificate.title": {
     "message": "Your connection isn’t private",
     "note": "Error page for an untrusted certificate: heading."

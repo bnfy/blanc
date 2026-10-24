@@ -7,6 +7,9 @@ const OBSERVE_EVENTS = ['onSendHeaders', 'onResponseStarted', 'onBeforeRedirect'
 // removing independent browser policies or another provider's listeners.
 function createBlockingCoordinator() {
   const sessions = new WeakMap();
+  // One browser-wide veto, checked before any gate or provider: requests that
+  // must never be made, whatever is blocking (an inert tab's page).
+  let veto = null;
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
     const state = { provider: null, gate: null, beforeSendHeaders: null, observing: false };
@@ -15,7 +18,7 @@ function createBlockingCoordinator() {
       session.webRequest[event]({ urls: ['<all_urls>'] }, (details, callback) => {
         let settled = false;
         const respond = value => { if (!settled) { settled = true; callback(value || {}); } };
-        if (event === 'onBeforeRequest' && state.gate?.(details)) return respond({ cancel: true });
+        if (event === 'onBeforeRequest' && (veto?.(details) || state.gate?.(details))) return respond({ cancel: true });
         const run = async () => {
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders
             ? state.beforeSendHeaders(details) : {};
@@ -47,6 +50,7 @@ function createBlockingCoordinator() {
     ensure,
     setProvider,
     setGate: (session, gate) => { ensure(session).gate = gate; },
+    setVeto: (fn) => { veto = typeof fn === 'function' ? fn : null; },
     setBeforeSendHeaders: (session, policy) => { ensure(session).beforeSendHeaders = policy; },
   };
 }
