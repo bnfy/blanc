@@ -1,5 +1,13 @@
 # Decision 2 review package — October 22, 2026
 
+## Current closeout — October 24, 2026
+
+The [finite closeout and fresh inventory](evidence/decision2-closeout-20261024/README.md) supersede the historical pending-work list below. Candidate source7c427328/archiveffcfefdf is signed, authenticated and accepted for the recorded L2/L5/L6/L7/L8/L9/L10 scope. Matched visual/physical VoiceOver and signed isolation are complete and mapped; do not repeat them without a changed surface. Fresh inventory73files/179hunks and151clean pinned Git dependencies matches the signed candidate records exactly. A1 layout consolidation is still future work.
+
+The distributable uses Blanc Blocker with research-only uBO paths compiled out. F12's historical limits and deferred latency are not waived. Remaining Decision2 inputs are the authentic Google upgrade, cost/capacity disposition, conditional request-path qualifications and engine decision. Shared CI/merged release readiness are separate; Electron is paused. The cost API result is recorded without treating zero billable fields as zero cost. **9/12 gates, delta0.**
+
+## Historical October 22 package
+
 **Recommendation: finish the finite acceptance items below, then request Decision 2. Do not approve migration or release from this packet alone.** This is the completed evidence reconciliation and review agenda, not a claim that missing runtime evidence exists. Baseline: PR #1028 at `8b421954`; historical runtime archives retain their own binary/source identities. No build, latency run, Electron diagnostic build or profile change was performed for this package.
 
 ## Six required package items

@@ -1,3 +1,5 @@
+> October24 follow-up: hosted substrate passed on6a9781bd. [Worker npm10 lock compatibility repair](evidence/l11-npm10-followup-20261024/README.md) passes a reproduced negative control, clean install and5runtime checks. [Decision2 closeout](evidence/decision2-closeout-20261024/README.md) maps completed owner checks and fresh73/179inventory. Electron paused;9/12,delta0; final CI and remaining decisions open.
+
 > October24 scope correction: the Chromium fork is the priority. The separate Electron build is stopped with its cache/evidence retained. Reconcile native candidate acceptance separately from shared repository CI; do not waive existing failures. **9/12, delta0.**
 
 > October24 current: [L11 native/shared-CI reconciliation](evidence/l11-native-reconciliation-20261024/README.md) is complete; native signed bytes and trust reverified. Undici audit repair is the next actionable blocker. Electron paused, L11 open, 9/12 (75%), delta0. Earlier records below are historical.
