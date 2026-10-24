@@ -14,6 +14,7 @@ const build = (over = {}) => buildTabContextMenu({
   groups: over.groups ?? [],
   activeTabId: over.activeTabId ?? 1,
   glanceTabId: over.glanceTabId ?? null,
+  canGlance: over.canGlance ?? true,
   surface: over.surface ?? 'row',
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
@@ -311,4 +312,12 @@ test('menu: Send to Device says No other devices, disabled, when there are none'
 
 test('menu: no Send to Device when the tab cannot be sent or sync is off', () => {
   assert.equal(byId(build({ sendTargets: null }), 'send-to'), undefined);
+});
+
+test('Open in Glance respects whether the selected tab can leave Split View', () => {
+  for (const splitId of [null, 'split-1']) {
+    const menu = build({ activeTabId: 2, surface: 'row', tab: { splitId }, canGlance: false });
+    assert.equal(byId(menu, 'glance').enabled, false);
+  }
+  assert.equal(byId(build({ activeTabId: 2, surface: 'row', canGlance: true }), 'glance').enabled, true);
 });

@@ -8,6 +8,14 @@
     ]
   },
   {
+    "id": "protected-streaming",
+    "q": "Does protected streaming video play in Blanc?",
+    "a": [
+      "Yes, since Blanc 1.43. Blanc runs on castLabs’ Electron for Content Security and downloads Google’s Widevine component the first time it starts, so sites can play Widevine-protected video and music on macOS, Windows and Linux. Settings → Help → Protected media shows when the component is ready, and Linux asks for one restart. Whether a given title plays is up to the site.",
+      "On Windows, protected streaming needs an x64 PC. Blanc ships an x64 Windows build; on Windows on Arm it runs through emulation, where Widevine’s platform verification fails and services such as Netflix refuse to play."
+    ]
+  },
+  {
     "id": "updates",
     "q": "How do browser and engine updates work?",
     "a": [

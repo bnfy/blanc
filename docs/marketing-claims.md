@@ -438,9 +438,14 @@ original reports:
   shows when it is ready, and Linux asks for one restart. Netflix and Spotify
   were tried on an Apple Silicon Mac only. Whether a given site plays depends
   on that site; never promise a named service, resolution or HDR. The v1.43.0
-  AppImage didn't start on glibc older than 2.38; v1.43.1 needs glibc 2.28 and
-  was launched on Ubuntu 22.04, where DRM playback itself was not tested (it
-  was tested on Ubuntu 24.04).
+  AppImage didn't start on glibc older than 2.38; v1.43.1 needs glibc 2.28, and
+  on October 24, 2026 the public 1.43.1 AppImage played the castLabs VMP Lab
+  test stream on hosted x64 Ubuntu 22.04 and 24.04 (headless, no audio device).
+  Windows needs an x64 PC: Blanc ships no arm64 Windows build, and on Windows
+  on Arm the x64 build runs under emulation, where VMP answers
+  PLATFORM_TAMPERED and Netflix refuses with E100 (1044), observed the same
+  day in a Windows 11 on Arm VM. Say so where Windows streaming is described;
+  never call it a bug.
 - **Sunrise Spectrum and Sunrise Amber:** Since v1.43.0, two more macOS app
   icons in Settings → General → App icon. macOS only.
 - **Neutral surface style:** Since v1.43.0 an opt-in Surface style setting in
