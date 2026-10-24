@@ -24,7 +24,9 @@ const { isUtilityUrl } = require('../../src/main/utility-pages');
 const ROOT = path.join(__dirname, '../..');
 
 function withTempDir(run) {
-  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-inert-local-')));
+  // Canonicalize the way the app does (native realpath expands Windows 8.3
+  // short names such as RUNNER~1), or official-build restore rejects it.
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-inert-local-')));
   try { return run(dir); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 }
 
