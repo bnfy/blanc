@@ -1,0 +1,20 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "draft": {
+    "id": 422841466,
+    "url": "https://github.com/bnfy/blanc/releases/tag/untagged-71b48b75290a0fb62215",
+    "published": false
+  },
+  "hostedAssetsVerified": 6,
+  "freshAnonymousDownloadsVerified": 6,
+  "nativeDownloadAccepted": true,
+  "ownerAcceptanceComplete": true,
+  "pending": [],
+  "electron": "paused",
+  "latency": "deferred",
+  "googleBaseline": "separate; untouched",
+  "readiness": "9/12 (75%); delta 0; replacement L8 reaccepted",
+  "nativeDownloadVerified": true,
+  "gate": "L8 accepted for exact replacement"
+}

@@ -1,0 +1,50 @@
+{
+  "complete": true,
+  "checks": 43,
+  "passed": 43,
+  "artifacts": {
+    "A": {
+      "version": "157.0.8103.6",
+      "zipSha256": "18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f"
+    },
+    "B": {
+      "version": "157.0.8103.15",
+      "zipSha256": "d9924b7e5398b95f21e1107cb146eaf0f1e53387e9c850fc720b33e4adbe50cb"
+    }
+  },
+  "finished": "2026-10-23T15:08:24.579Z",
+  "ownedPidsExited": [
+    74577,
+    74601,
+    74694,
+    75167,
+    75188,
+    75211,
+    75233
+  ],
+  "masterSignaturesAfter": {
+    "A": {
+      "returncode": 0,
+      "stderr": ""
+    },
+    "B": {
+      "returncode": 0,
+      "stderr": ""
+    }
+  },
+  "baselineProcessAlive": false,
+  "devProcessAlive": true,
+  "baselineTargets": "Port 9225 unavailable at both snapshots; no tab-state claim. No baseline mutation performed.",
+  "quarantineNotice": {
+    "observed": "Blanc Chromium Preview is an app downloaded from the Internet. Apple checked it for malicious software and none was detected.",
+    "action": "Open selected using native UI; dialog observation timed out after dismissal, successful native startup independently verified",
+    "bypasses": false
+  },
+  "limits": [
+    "Local HTTP download; no public endpoint or clean-machine proof",
+    "Normal user approval exceeded first startup deadline; continuation completed remaining checks",
+    "Initial download destination and target-lifecycle fixture errors retained",
+    "No new owner physical input acceptance",
+    "L9 notice surface and published withdrawal route remain open; no release approval"
+  ]
+}

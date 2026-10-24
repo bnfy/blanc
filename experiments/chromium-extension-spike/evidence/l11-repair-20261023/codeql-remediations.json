@@ -1,0 +1,434 @@
+[
+  {
+    "alert": 210,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/startup/run.mjs",
+    "lineAtAlert": 17,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "54642f9c2f7877d779d27bfd0e657e0de7a925792fb5c08af52b381aed72e4c7",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 209,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/startup/run.mjs",
+    "lineAtAlert": 17,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "54642f9c2f7877d779d27bfd0e657e0de7a925792fb5c08af52b381aed72e4c7",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 208,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/startup/run.mjs",
+    "lineAtAlert": 4,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "54642f9c2f7877d779d27bfd0e657e0de7a925792fb5c08af52b381aed72e4c7",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 207,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup-native-prefs.mjs",
+    "lineAtAlert": 17,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "53b9fdbd2567396c09c8ebc76a08ec972608884a8a44aee7a9a94f93a2612b04",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 206,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup-native-prefs.mjs",
+    "lineAtAlert": 17,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "53b9fdbd2567396c09c8ebc76a08ec972608884a8a44aee7a9a94f93a2612b04",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 205,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup.mjs",
+    "lineAtAlert": 4,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "81aeb600bdc9b0de3f23a2b0a49441a10e0771120443f2e2df183db0e0126494",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 204,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/verify-startup-native-prefs.mjs",
+    "lineAtAlert": 4,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "53b9fdbd2567396c09c8ebc76a08ec972608884a8a44aee7a9a94f93a2612b04",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 203,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l8-normal-startup-20261023/diagnose.mjs",
+    "lineAtAlert": 4,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "7dcba7469d4eaad0fcb6d11e3058c911b2749ff17a4eb40262dd2c608b2d2d97",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 202,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "595390d58242ff2f9646eef46a553387aa05487adf328d6382639371bcbc9a0d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 201,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "595390d58242ff2f9646eef46a553387aa05487adf328d6382639371bcbc9a0d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 200,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "595390d58242ff2f9646eef46a553387aa05487adf328d6382639371bcbc9a0d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 199,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/geometry.mjs",
+    "lineAtAlert": 5,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "f6a4fb64648b573d64f45c97e2ed18e99b994c4d9e922a09e29d46d5bc3519c9",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 198,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/geometry.mjs",
+    "lineAtAlert": 5,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "f6a4fb64648b573d64f45c97e2ed18e99b994c4d9e922a09e29d46d5bc3519c9",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 197,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/check.mjs",
+    "lineAtAlert": 9,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "88f5d3a7a80a40698797e5f756e1ff4671f27d75cba81980151ad91e15c07496",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 196,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/check.mjs",
+    "lineAtAlert": 9,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "88f5d3a7a80a40698797e5f756e1ff4671f27d75cba81980151ad91e15c07496",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 195,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l5-split-visual-parity-20261023/check.mjs",
+    "lineAtAlert": 5,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "88f5d3a7a80a40698797e5f756e1ff4671f27d75cba81980151ad91e15c07496",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 191,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/check.mjs",
+    "lineAtAlert": 9,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "4fd725790f3dc800b387cac9b5509c72ee2a70c5f7fe1c0122ceba47b3c6a255",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 190,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/check.mjs",
+    "lineAtAlert": 9,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "4fd725790f3dc800b387cac9b5509c72ee2a70c5f7fe1c0122ceba47b3c6a255",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 189,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "697641e5efc519cc1e6ce84223511385ba604b3bda6241b0bdca80937b5ecdde",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 188,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "697641e5efc519cc1e6ce84223511385ba604b3bda6241b0bdca80937b5ecdde",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 187,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/regression/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "697641e5efc519cc1e6ce84223511385ba604b3bda6241b0bdca80937b5ecdde",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 186,
+    "rule": "js/reflected-xss",
+    "file": "experiments/chromium-extension-spike/evidence/l5-native-pointer-20261023/check.mjs",
+    "lineAtAlert": 5,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "4fd725790f3dc800b387cac9b5509c72ee2a70c5f7fe1c0122ceba47b3c6a255",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 185,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-theme-accessibility-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "f792db8c8cd66fa628ecbcec034f2a8006cb5d3cc9411f1167c3ce5ec63fc23d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 184,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-theme-accessibility-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "f792db8c8cd66fa628ecbcec034f2a8006cb5d3cc9411f1167c3ce5ec63fc23d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 183,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l5-theme-accessibility-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "f792db8c8cd66fa628ecbcec034f2a8006cb5d3cc9411f1167c3ce5ec63fc23d",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 181,
+    "rule": "js/incomplete-url-substring-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/hooks.mjs",
+    "lineAtAlert": 31,
+    "remediation": "Compare parsed URL.hostname/origin exactly.",
+    "currentSha256": "35db9bcb58f3bc8dd7b62de23a80998832dc1faf2f678b6e0ebb9d5e5c3a9f0a",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 180,
+    "rule": "js/incomplete-url-substring-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/hooks.mjs",
+    "lineAtAlert": 31,
+    "remediation": "Compare parsed URL.hostname/origin exactly.",
+    "currentSha256": "35db9bcb58f3bc8dd7b62de23a80998832dc1faf2f678b6e0ebb9d5e5c3a9f0a",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 179,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/transport.mjs",
+    "lineAtAlert": 21,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "575b956f84800e359f4f6dfec0afac9d18778206e8bb0da4d12b29aa20980d17",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 178,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/transport.mjs",
+    "lineAtAlert": 21,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "575b956f84800e359f4f6dfec0afac9d18778206e8bb0da4d12b29aa20980d17",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 177,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "b2c122cc93286cd7b1671fb3f48e12f842f53cc23a65a692b4465e435726930e",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 176,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "b2c122cc93286cd7b1671fb3f48e12f842f53cc23a65a692b4465e435726930e",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 175,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-repair-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "b2c122cc93286cd7b1671fb3f48e12f842f53cc23a65a692b4465e435726930e",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 174,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-review-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "936cc1c6d3a941aea2eb70005e39a7d69abf12f879ab86cd80abc7737ec518b9",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 173,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-review-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "936cc1c6d3a941aea2eb70005e39a7d69abf12f879ab86cd80abc7737ec518b9",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 172,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/l7-security-review-20261023/scope/run.mjs",
+    "lineAtAlert": 14,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "936cc1c6d3a941aea2eb70005e39a7d69abf12f879ab86cd80abc7737ec518b9",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 167,
+    "rule": "js/incomplete-url-substring-sanitization",
+    "file": "experiments/chromium-extension-spike/fixtures/replay/synthetic/sender-close-check.mjs",
+    "lineAtAlert": 32,
+    "remediation": "Compare parsed URL.hostname/origin exactly.",
+    "currentSha256": "46a7c65f25de429796ed09e87778e46d40aca19e8fd7bd17660ae94a291c8ad2",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 153,
+    "rule": "js/file-system-race",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/harness/lib.mjs",
+    "lineAtAlert": 12,
+    "remediation": "Read directly and handle ENOENT; remove separate existence check.",
+    "currentSha256": "35afea70e115c5d6a0bddf6119c673e054ce20442b0c9b2012683d3e3347e285",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 152,
+    "rule": "js/file-system-race",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-20261016/harness/lib.mjs",
+    "lineAtAlert": 12,
+    "remediation": "Read directly and handle ENOENT; remove separate existence check.",
+    "currentSha256": "5d399df9f33521e680e7ebce0be162d9299828bb665acd174e5d4ae6726b488f",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 149,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "35afea70e115c5d6a0bddf6119c673e054ce20442b0c9b2012683d3e3347e285",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 148,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "35afea70e115c5d6a0bddf6119c673e054ce20442b0c9b2012683d3e3347e285",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 147,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "35afea70e115c5d6a0bddf6119c673e054ce20442b0c9b2012683d3e3347e285",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 146,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-20261016/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "5d399df9f33521e680e7ebce0be162d9299828bb665acd174e5d4ae6726b488f",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 145,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-20261016/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "5d399df9f33521e680e7ebce0be162d9299828bb665acd174e5d4ae6726b488f",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 144,
+    "rule": "js/bad-code-sanitization",
+    "file": "experiments/chromium-extension-spike/evidence/rebase-157-20261016/harness/lib.mjs",
+    "lineAtAlert": 28,
+    "remediation": "Pass dynamic values as Runtime.callFunctionOn protocol arguments; fixed harness-authored function body.",
+    "currentSha256": "5d399df9f33521e680e7ebce0be162d9299828bb665acd174e5d4ae6726b488f",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 137,
+    "rule": "js/reflected-xss",
+    "file": "test/desktop/support/fixtures-server.js",
+    "lineAtAlert": 185,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "3df797521e21ffaae5036adf3389eaa117512b85eff484f7854b36ab3f0e9af5",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 133,
+    "rule": "js/reflected-xss",
+    "file": "test/oauth/desktop.test.js",
+    "lineAtAlert": 35,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "b40646e8b02dbbd7707f69260de4ece56a877a10e7be864f37209bab63257586",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 18,
+    "rule": "js/reflected-xss",
+    "file": "test/desktop/support/fixtures-server.js",
+    "lineAtAlert": 213,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "3df797521e21ffaae5036adf3389eaa117512b85eff484f7854b36ab3f0e9af5",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  },
+  {
+    "alert": 17,
+    "rule": "js/reflected-xss",
+    "file": "test/desktop/support/fixtures-server.js",
+    "lineAtAlert": 189,
+    "remediation": "Build static HTML; assign request-derived values through textContent or client URL parsing, not server markup interpolation.",
+    "currentSha256": "3df797521e21ffaae5036adf3389eaa117512b85eff484f7854b36ab3f0e9af5",
+    "hostedReanalysis": "Cleared: repair head9f27af90, merge29424200a6c2d0743fec450fa3f17705cdba3a37, zero open PR-ref alerts."
+  }
+]

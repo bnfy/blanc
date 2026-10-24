@@ -1,0 +1,20 @@
+TAP version 13
+# Subtest: real RFC6455 handshake negotiates protocol and delivers fixture message
+ok 1 - real RFC6455 handshake negotiates protocol and delivers fixture message
+  ---
+  duration_ms: 18.748125
+  ...
+# Subtest: rejects malformed or unmanifested handshake without recording arrival
+ok 2 - rejects malformed or unmanifested handshake without recording arrival
+  ---
+  duration_ms: 0.20825
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81.363375

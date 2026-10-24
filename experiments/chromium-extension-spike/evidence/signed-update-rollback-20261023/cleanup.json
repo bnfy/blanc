@@ -1,0 +1,27 @@
+{
+  "removedOnlyDisposablePaths": [
+    "/private/tmp/blanc-signed-update-acceptance/apps",
+    "/private/tmp/blanc-signed-update-acceptance/preview-profile",
+    "/private/tmp/blanc-signed-update-acceptance/shipping-profile",
+    "/private/tmp/blanc-signed-update-acceptance/downloads",
+    "/private/tmp/blanc-signed-update-acceptance/final/apps",
+    "/private/tmp/blanc-signed-update-acceptance/final/preview-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final/shipping-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final/downloads",
+    "/private/tmp/blanc-signed-update-acceptance/final/pre-update-backup",
+    "/private/tmp/blanc-signed-update-acceptance/final/A-retained.app",
+    "/private/tmp/blanc-signed-update-acceptance/final2/apps",
+    "/private/tmp/blanc-signed-update-acceptance/final2/shipping-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final2/downloads",
+    "/private/tmp/blanc-signed-update-acceptance/final2/pre-update-backup",
+    "/private/tmp/blanc-signed-update-acceptance/final2/post-update-backup",
+    "/private/tmp/blanc-signed-update-acceptance/final2/preserved-newer-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final2/rollback-tested-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final2/fresh-retreat-profile",
+    "/private/tmp/blanc-signed-update-acceptance/final2/A-rollback-tested.app",
+    "/private/tmp/blanc-signed-update-acceptance/native-download.zip"
+  ],
+  "ownedAppProcessesRemaining": [],
+  "masterArtifactsRetained": true,
+  "profilesNotArchived": true
+}

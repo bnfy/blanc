@@ -1,0 +1,30 @@
+[
+  {
+    "suite": "startup",
+    "exitCode": 0,
+    "checks": 7,
+    "allChecksPass": true,
+    "error": null
+  },
+  {
+    "suite": "recovery",
+    "exitCode": 0,
+    "checks": 6,
+    "allChecksPass": true,
+    "error": null
+  },
+  {
+    "suite": "core",
+    "exitCode": 0,
+    "checks": 17,
+    "allChecksPass": true,
+    "error": null
+  },
+  {
+    "suite": "notice",
+    "exitCode": 0,
+    "checks": 16,
+    "allChecksPass": true,
+    "error": null
+  }
+]

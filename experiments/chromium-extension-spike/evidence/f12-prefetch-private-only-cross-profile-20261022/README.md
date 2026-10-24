@@ -1,0 +1,9 @@
+# Private-only cross-profile shutdown veto — October 22, 2026
+
+Both private-only cross-profile shutdown-veto schedules pass after closing the disposable regular about:blank anchor. Native and CDP inventories require exactly two Island hosts, four content tabs and two native windows; every native tab is off the record, with distinct original profiles Default and Profile 1. Both guards are armed. The cancel-first and accept-first/cancel-second choices each repeat twice, producing eight acknowledged Exit requests and six sequential prompts. Both original consumptions remain pending through cancellation, including the initially accepted profile, and all four recover after utility resume with native allow/private=true and exactly one server prefetch arrival per URL. Fresh private navigation passes. The final inventory retains the same two private window IDs and no regular window. No runtime failure occurred.
+
+This closes the regular-anchor limitation for this two-private-window cancellation case. It is not completed-shutdown, private persistence/exclusion, cache-isolation, higher-load, arbitrary repeated-cycle, physical native input, crash or power-loss qualification. Temporary native probes from the prior private cross-profile evidence are removed byte-for-byte; normal binary restored incrementally, final guard zero. Production code and prior upstream footprint 56 files/135 hunks unchanged. Google baseline separate; disposable profiles/keys removed and permanent profiles untouched. Latency deferred; Electron diagnostic build pending approval/unstarted. F12/Decision 2 remains open.
+
+Temporary probes: ../f12-prefetch-private-cross-profile-20261022/temporary-native-probes.patch. Raw logs: /private/tmp/blanc-prefetch-private-only-cross-01. Run `python3 validate.py` and verify `SHA256SUMS`.
+
+Guarded incremental builds: diagnostic 38.82 seconds; restoration 40.13 seconds. Final guard zero. Report validation, syntax and scoped lint pass.

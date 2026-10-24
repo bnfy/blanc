@@ -1,0 +1,46 @@
+{
+  "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "archiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+  "gate": "L8 accepted",
+  "readiness": "9/12,delta+1L8",
+  "complete": [
+    "Exact local ZIP file/symlink inventory and four artifact checksums",
+    "Source tree/SBOM/materials/provenance subject binding",
+    "Complete license and readable credits payload",
+    "Strict signature, Apple ticket and Gatekeeper on locally extracted copy",
+    "12compliance and7artifact-verifier tests",
+    "Pinned Sigstore identity/issuer authentication of manifest",
+    "Actual changed-manifest and changed-artifact refusal",
+    "Independent release-Mac packet authentication",
+    "Six unpublished hosted assets match exact digests",
+    "Six fresh anonymous HTTPS downloads and downloaded-packet authentication",
+    "Read-only Shipping hashes unchanged and Store Bitwarden2026.10.0 present",
+    "Actual MacBook Safari download verifies all458files/5symlinks, Safari quarantine, strict signature, Apple ticket and Gatekeeper",
+    "Downloaded Preview copies confirmed closed before first launch; actual MacBookmacOS27.2/arm64 recorded",
+    "Owner confirms ordinary opening, Shelf/Bitwarden, example tabs/selection across two clean Cmd+Q/reopen cycles, popup Tab focus and Shipping tabs intact",
+    "Actual running App-Translocated Preview-2 matches authenticated candidate source and all458files/5symlinks; Shipping three code hashes unchanged",
+    "Prior actual native installation permission Cancel/retry mapped through unchanged controls/bundle identities/DeveloperID/upstream",
+    "Three exact-candidate fresh-profile startup/clean-quit checks pass on MacBook; only own disposable fixture removed"
+  ],
+  "pending": [],
+  "noNativeOrElectronBuild": true,
+  "googleBaselineSeparate": true,
+  "noReleaseApproval": true,
+  "authenticationAttempt": {
+    "initialFailure": "OAuth expired while Mac was locked; retained separately in initial-status.json",
+    "freshAttemptAfterOwnerUnlock": "Completed in Safari; callback succeeded; signature verifies pinned anthony@bnfy.me / https://github.com/login/oauth",
+    "oldOAuthUrlReused": false
+  },
+  "draft": {
+    "id": 422364839,
+    "url": "https://github.com/bnfy/blanc/releases/tag/untagged-afa6366dc2ff7daedc2d",
+    "published": false
+  },
+  "nativeDownloadedApp": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview-2.app",
+  "ownerDecision": "All checks passed",
+  "remainingLaunchGates": [
+    "L4 authentic Google extension upgrade",
+    "L11 exact-head CI/audits",
+    "L12 final readiness/go-no-go"
+  ]
+}

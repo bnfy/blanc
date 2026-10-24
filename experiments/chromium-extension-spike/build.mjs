@@ -65,6 +65,14 @@ export function checkPlan(output, allowLarge = false) {
   }
   return actions;
 }
+export function localJobs(options) {
+  const values = options.filter(option => option.startsWith('--local-jobs='));
+  if (!values.length) return [];
+  if (values.length !== 1 || !/^--local-jobs=([1-9][0-9]{0,2})$/.test(values[0])) {
+    throw new Error('Use one --local-jobs=N with N between 1 and 999.');
+  }
+  return ['-local_jobs', values[0].split('=')[1]];
+}
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 128 * 1024 * 1024, ...options });
   if (result.error) throw result.error;
@@ -90,9 +98,10 @@ function environment(src, out) {
 function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build']);
-  if (!source || options.some(option => !allowed.has(option))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build]');
+  if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs='))) {
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--local-jobs=N]');
   }
+  const workerArgs = localJobs(options);
   const modes = options.filter(option => ['--check', '--build', '--record-environment'].includes(option));
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
@@ -120,7 +129,7 @@ function main() {
   fs.mkdirSync(lock);
   try {
     const siso = path.join(src, 'third_party/siso/cipd/siso');
-    const args = ['ninja', '-offline', '-C', out];
+    const args = ['ninja', '-offline', ...workerArgs, '-C', out];
     const planFile = path.join(out, 'blanc-build-plan.log');
     const planFd = fs.openSync(planFile, 'w');
     let result;

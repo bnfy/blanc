@@ -1,0 +1,43 @@
+{
+  "artifacts": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+      "sha256": "2b7f41e95a5d88efa8c257f1c742da4b4535e1f27ca555783ad570221cda1e8d",
+      "bytes": 595855760
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "5e9c95707a7b7fb4c879055cd93dc0428bdf967eccd84daa6634d9d92e8000d0",
+      "bytes": 41750
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/content/browser/webtransport/web_transport_connector_impl.cc",
+      "sha256": "3ce0ef4688dd60e2eea7e6732dbd25d69435e4b0ac21851ac2a91fb2141736c5",
+      "bytes": 14771
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/extensions/browser/api/web_request/web_request_proxying_webtransport.cc",
+      "sha256": "039dc2f0753ea36b7071fc78af2ece040196ce4ad9951b8a10129c4be270c980",
+      "bytes": 13516
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/third_party/blink/renderer/modules/webtransport/web_transport.idl",
+      "sha256": "cb9de061404651e122c7324eb9a76bbe937e16a9512811bdce0f4428502d9189",
+      "bytes": 3345
+    },
+    {
+      "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-concurrent-cancel-run.mjs",
+      "sha256": "0007a6513ccfb3c99f9a71dd4dcc5fe2a85ca5d7a3f8388f94b2067e0f87ad9b"
+    }
+  ]
+}

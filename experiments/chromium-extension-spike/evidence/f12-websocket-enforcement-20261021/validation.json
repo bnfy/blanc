@@ -1,0 +1,14 @@
+{
+  "native_schedules": 4,
+  "native_decisions": 18,
+  "allowed_handshakes": 8,
+  "filter_refusals": 8,
+  "missing_engine_refusals": 2,
+  "sender_regression_schedules": 4,
+  "fixture_tests": 2,
+  "patch_counter_tests": 11,
+  "scoped_lint": "pass",
+  "final_guard_actions": 0,
+  "latency": "deferred",
+  "electron_diagnostic_build": "pending approval"
+}

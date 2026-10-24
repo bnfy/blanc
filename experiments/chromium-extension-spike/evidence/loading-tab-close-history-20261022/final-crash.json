@@ -1,0 +1,83 @@
+{
+  "label": "final-crash",
+  "hits": [
+    {
+      "url": "/settled",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/pending-stopped",
+      "method": "GET",
+      "held": true
+    }
+  ],
+  "committed": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "closing": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/pending-stopped",
+        "isLoading": true,
+        "private": false
+      }
+    ],
+    "selected": 2
+  },
+  "before": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/settled",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "firstAbruptExit": true,
+  "after": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 0
+  },
+  "secondCleanExit": true,
+  "pass": false
+}

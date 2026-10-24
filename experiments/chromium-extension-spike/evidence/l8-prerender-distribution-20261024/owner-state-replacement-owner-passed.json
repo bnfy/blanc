@@ -1,0 +1,27 @@
+{
+  "phase": "replacement-owner-passed",
+  "previewProfileExists": true,
+  "extension": {
+    "Secure Preferences": {
+      "state": null,
+      "from_webstore": true,
+      "disable_reasons": [],
+      "manifestVersion": "2026.10.0",
+      "location": 1
+    }
+  },
+  "shippingHashes": {
+    "Contents/Info.plist": "0f7843c4a1f1df0c4f4700c14788530df5a5e5a48032913bf9db2b55d1d27fd0",
+    "Contents/MacOS/Blanc": "d17e5899feac8da2ef82f9d8606c116a738631c71185fe7264abb1d8c4b49f77",
+    "Contents/Resources/app.asar": "3e7434be842210374cdb346a950590090bb612bd6c464fa47ab2538570c56982"
+  },
+  "installedManifests": [
+    {
+      "version": "2026.10.0",
+      "update_url": "https://clients2.google.com/service/update2/crx",
+      "name": "__MSG_extName__"
+    }
+  ],
+  "historicalShippingBaselineMatches": false,
+  "shippingFilesUnchangedSinceCurrentPreflight": true
+}

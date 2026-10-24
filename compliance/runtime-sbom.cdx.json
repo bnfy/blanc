@@ -1271,14 +1271,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.8.0",
+      "bom-ref": "pkg:npm/electron@44.9.1",
       "name": "electron",
-      "version": "44.8.0",
+      "version": "44.9.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "627dad277df997c3064498fceaf68062ad4c3a276d8b0f5e5dd9875faa7779c1d05b0b9cb0c301c43cea52b6275c41f2a9d73f2213a1d8a187ce68b326fcdddd"
+          "content": "c7fb440851436b638536330e6c51f4106296ac29c564f391d703f688c215b7449379c1a5f059835dd6a26abc98d247fc9adc3d9122cfdb22bc75f75a5a47c39b"
         }
       ],
       "licenses": [
@@ -1288,7 +1288,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.8.0",
+      "purl": "pkg:npm/electron@44.9.1",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1302,7 +1302,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.8.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.9.1.tgz"
         }
       ]
     },
@@ -1949,7 +1949,7 @@
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.8.0"
+        "pkg:npm/electron@44.9.1"
       ]
     },
     {
@@ -2117,7 +2117,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.8.0",
+      "ref": "pkg:npm/electron@44.9.1",
       "dependsOn": []
     },
     {

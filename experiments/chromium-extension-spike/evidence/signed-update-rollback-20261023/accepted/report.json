@@ -1,0 +1,629 @@
+{
+  "started": "2026-10-23T15:03:54.873Z",
+  "head": "ad53757cb9bfe9c8859c129a37450db264296f2c",
+  "checks": [
+    {
+      "name": "old archive pinned",
+      "pass": true
+    },
+    {
+      "name": "new archive pinned",
+      "pass": true
+    },
+    {
+      "name": "A version",
+      "pass": true,
+      "details": "157.0.8103.6"
+    },
+    {
+      "name": "A signature",
+      "pass": true
+    },
+    {
+      "name": "A gatekeeper",
+      "pass": true
+    },
+    {
+      "name": "A stapler",
+      "pass": true
+    },
+    {
+      "name": "A native runtime version",
+      "pass": true,
+      "details": "Chrome/157.0.8103.6"
+    },
+    {
+      "name": "A seeded tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/one",
+          "http://127.0.0.1:9870/two"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "A Shelf preference",
+      "pass": true
+    },
+    {
+      "name": "B archive matches native browser download",
+      "pass": true,
+      "details": {
+        "served": 0,
+        "path": "/private/tmp/blanc-signed-update-acceptance/final2/downloads/Blanc-Preview-157.0.8103.15-acceptance.zip"
+      }
+    },
+    {
+      "name": "native download carries macOS quarantine",
+      "pass": true,
+      "details": "0081;6adb7682;Blanc Chromium Preview;"
+    },
+    {
+      "name": "clean exit 9872",
+      "pass": true,
+      "details": {
+        "pid": 74601
+      }
+    },
+    {
+      "name": "Archive Utility extracted B",
+      "pass": true
+    },
+    {
+      "name": "extracted B retains quarantine",
+      "pass": true,
+      "details": "0081;6adb7682;Blanc\\x20Chromium\\x20Preview;"
+    },
+    {
+      "name": "B version",
+      "pass": true,
+      "details": "157.0.8103.15"
+    },
+    {
+      "name": "B signature",
+      "pass": true
+    },
+    {
+      "name": "B gatekeeper",
+      "pass": true
+    },
+    {
+      "name": "B stapler",
+      "pass": true
+    },
+    {
+      "name": "clean exit 9871",
+      "pass": true,
+      "details": {
+        "pid": 74577
+      }
+    },
+    {
+      "name": "quarantined B native version",
+      "pass": true,
+      "details": "Chrome/157.0.8103.15"
+    },
+    {
+      "name": "B preserves tab order and selection",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/one",
+          "http://127.0.0.1:9870/two"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "B preserves Shelf",
+      "pass": true
+    },
+    {
+      "name": "shipping unchanged during update",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/shipping"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "B restored document rendered http://127.0.0.1:9870/one",
+      "pass": true,
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "name": "B restored document rendered http://127.0.0.1:9870/two",
+      "pass": true,
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "name": "clean exit 9873",
+      "pass": true,
+      "details": {
+        "pid": 74694
+      }
+    },
+    {
+      "name": "B second clean restart preserves tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/one",
+          "http://127.0.0.1:9870/two"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "B second restart preserves Shelf",
+      "pass": true
+    },
+    {
+      "name": "clean exit 9874",
+      "pass": true,
+      "details": {
+        "pid": 75188
+      }
+    },
+    {
+      "name": "matching-backup rollback native version",
+      "pass": true,
+      "details": "Chrome/157.0.8103.6"
+    },
+    {
+      "name": "matching-backup rollback preserves tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/one",
+          "http://127.0.0.1:9870/two"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "matching-backup rollback preserves Shelf",
+      "pass": true
+    },
+    {
+      "name": "shipping unchanged during rollback",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/shipping"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "clean exit 9875",
+      "pass": true,
+      "details": {
+        "pid": 75211
+      }
+    },
+    {
+      "name": "closed pre-update backup unchanged",
+      "pass": true
+    },
+    {
+      "name": "newer profile retained unchanged",
+      "pass": true
+    },
+    {
+      "name": "fresh-profile retreat contains no old fixture tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0,
+        "pinned": [
+          false
+        ]
+      }
+    },
+    {
+      "name": "clean exit 9876",
+      "pass": true,
+      "details": {
+        "pid": 75233
+      }
+    },
+    {
+      "name": "signed B code and assets unchanged",
+      "pass": true
+    },
+    {
+      "name": "withdrawal removes only preview app",
+      "pass": true
+    },
+    {
+      "name": "shipping survives preview withdrawal",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9870/shipping"
+        ],
+        "selected": 1,
+        "pinned": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "name": "clean exit 9871",
+      "pass": true,
+      "details": {
+        "pid": 75167
+      }
+    },
+    {
+      "name": "permanent Shipping and Google/dev page targets unchanged",
+      "pass": true,
+      "details": {
+        "shipping": {
+          "Contents/Info.plist": "febdfaa900220f76f9e35cfbf7a77a6418f71c1f8ea3ce036c3fe4cc11d80b68",
+          "Contents/MacOS/Blanc": "f944087b8038fdf58e70b298e44b7f441657524682b056b715295ff0e6d42781",
+          "Contents/Resources/app.asar": "35b3ee16358ce874bc3b52ffd0fd471057be16c448fbd9d1b24541c19e71a841"
+        },
+        "endpoints": {
+          "9225": {
+            "unavailable": "TypeError: fetch failed"
+          },
+          "9248": [
+            {
+              "id": "676A452B5616FBBDA5E151B52210E917",
+              "url": "chrome://newtab/",
+              "type": "page"
+            },
+            {
+              "id": "A717858872E4AD77160DF40A8652951D",
+              "url": "chrome://blanc-prototype/host.html",
+              "type": "page"
+            },
+            {
+              "id": "D6C45E6ADAC39BC58B63AA8901E83136",
+              "url": "chrome://omnibox-popup.top-chrome/",
+              "type": "browser_ui"
+            },
+            {
+              "id": "6F73E5B0FB6287E56BEFD2741B594682",
+              "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+              "type": "browser_ui"
+            },
+            {
+              "id": "8B63B1B47882C1E4C8576E53E90F00F1",
+              "url": "chrome://webui-toolbar.top-chrome/",
+              "type": "browser_ui"
+            },
+            {
+              "id": "5AB28B49174814C6F909BDE48A6A0964",
+              "url": "chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/background-service-worker.js",
+              "type": "service_worker"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:04:02.897Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/shipping-profile",
+        "pid": 74577,
+        "version": "Chrome/152.0.7977.167"
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:04:11.379Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/preview-profile",
+        "pid": 74601,
+        "version": "Chrome/157.0.8103.6"
+      }
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:04:14.030Z",
+      "details": {
+        "pid": 74601,
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "download ready for native extraction",
+      "time": "2026-10-23T15:04:14.122Z",
+      "details": {
+        "path": "/private/tmp/blanc-signed-update-acceptance/final2/downloads/Blanc-Preview-157.0.8103.15-acceptance.zip"
+      }
+    },
+    {
+      "name": "replaced only disposable Preview app",
+      "time": "2026-10-23T15:05:18.914Z",
+      "details": {}
+    },
+    {
+      "name": "LaunchServices requested",
+      "time": "2026-10-23T15:05:19.039Z",
+      "details": {
+        "app": "/private/tmp/blanc-signed-update-acceptance/final2/apps/Blanc Chromium Preview.app"
+      }
+    },
+    {
+      "name": "failure",
+      "time": "2026-10-23T15:05:59.524Z",
+      "details": "Error: No ready host 9873"
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:05:59.644Z",
+      "details": {
+        "pid": 74577,
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:07:51.402Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/shipping-profile",
+        "pid": 75167,
+        "version": "Chrome/152.0.7977.167"
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:07:51.422Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/preview-profile",
+        "pid": 74694,
+        "version": "Chrome/157.0.8103.15"
+      }
+    },
+    {
+      "name": "resumed after OS confirmation exceeded harness deadline",
+      "time": "2026-10-23T15:07:51.423Z",
+      "details": {
+        "priorError": "Error: No ready host 9873"
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:07:54.301Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/preview-profile",
+        "pid": 75188,
+        "version": "Chrome/157.0.8103.15"
+      }
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:07:55.040Z",
+      "details": {
+        "pid": 75188,
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:08:00.213Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/preview-profile",
+        "pid": 75211,
+        "version": "Chrome/157.0.8103.6"
+      }
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:08:00.683Z",
+      "details": {
+        "pid": 75211,
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "ready",
+      "time": "2026-10-23T15:08:03.294Z",
+      "details": {
+        "profile": "/private/tmp/blanc-signed-update-acceptance/final2/fresh-retreat-profile",
+        "pid": 75233,
+        "version": "Chrome/157.0.8103.15"
+      }
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:08:03.930Z",
+      "details": {
+        "pid": 75233,
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "name": "process exit",
+      "time": "2026-10-23T15:08:04.629Z",
+      "details": {
+        "pid": 75167,
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "limitations": [
+    "Local HTTP artifact download, not a public release endpoint",
+    "Existing macOS 27.2 host, not a freshly provisioned Mac",
+    "CDP controls only on disposable profiles; no physical-input acceptance",
+    "Rollback uses a matching closed backup, not the upgraded profile"
+  ],
+  "before": {
+    "shipping": {
+      "Contents/Info.plist": "febdfaa900220f76f9e35cfbf7a77a6418f71c1f8ea3ce036c3fe4cc11d80b68",
+      "Contents/MacOS/Blanc": "f944087b8038fdf58e70b298e44b7f441657524682b056b715295ff0e6d42781",
+      "Contents/Resources/app.asar": "35b3ee16358ce874bc3b52ffd0fd471057be16c448fbd9d1b24541c19e71a841"
+    },
+    "endpoints": {
+      "9225": {
+        "unavailable": "TypeError: fetch failed"
+      },
+      "9248": [
+        {
+          "id": "676A452B5616FBBDA5E151B52210E917",
+          "url": "chrome://newtab/",
+          "type": "page"
+        },
+        {
+          "id": "A717858872E4AD77160DF40A8652951D",
+          "url": "chrome://blanc-prototype/host.html",
+          "type": "page"
+        },
+        {
+          "id": "D6C45E6ADAC39BC58B63AA8901E83136",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "type": "browser_ui"
+        },
+        {
+          "id": "6F73E5B0FB6287E56BEFD2741B594682",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "type": "browser_ui"
+        },
+        {
+          "id": "8B63B1B47882C1E4C8576E53E90F00F1",
+          "url": "chrome://webui-toolbar.top-chrome/",
+          "type": "browser_ui"
+        },
+        {
+          "id": "C4D9A3F9D44CF27130D276A133AF1183",
+          "url": "chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/background-service-worker.js",
+          "type": "service_worker"
+        }
+      ]
+    }
+  },
+  "preUpdate": {
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9870/one",
+      "http://127.0.0.1:9870/two"
+    ],
+    "selected": 1,
+    "pinned": [
+      false,
+      false,
+      false
+    ]
+  },
+  "nativeDownloadSource": "/private/tmp/blanc-signed-update-acceptance/native-download.zip",
+  "downloadQuarantine": "0081;6adb7682;Blanc Chromium Preview;",
+  "backupDigest": {
+    "sha256": "f92c0e5e6b568b52a744e0616fa3620ca8afc91b0a6db71e05e0dee143318ca8",
+    "files": 151
+  },
+  "extractedQuarantine": "0081;6adb7682;Blanc\\x20Chromium\\x20Preview;",
+  "newAppBefore": {
+    "sha256": "568b88143310b1422558390db3bbc29b54ccdcf8570a6713c1d7edc9266eca28",
+    "files": 433
+  },
+  "resolvedHarnessError": "Error: No ready host 9873",
+  "postBackupDigest": {
+    "sha256": "5d1477c1dca36fd886ec10bddc6cabffac37c8235462bfd8503639734851fdcf",
+    "files": 528
+  },
+  "after": {
+    "shipping": {
+      "Contents/Info.plist": "febdfaa900220f76f9e35cfbf7a77a6418f71c1f8ea3ce036c3fe4cc11d80b68",
+      "Contents/MacOS/Blanc": "f944087b8038fdf58e70b298e44b7f441657524682b056b715295ff0e6d42781",
+      "Contents/Resources/app.asar": "35b3ee16358ce874bc3b52ffd0fd471057be16c448fbd9d1b24541c19e71a841"
+    },
+    "endpoints": {
+      "9225": {
+        "unavailable": "TypeError: fetch failed"
+      },
+      "9248": [
+        {
+          "id": "676A452B5616FBBDA5E151B52210E917",
+          "url": "chrome://newtab/",
+          "type": "page"
+        },
+        {
+          "id": "A717858872E4AD77160DF40A8652951D",
+          "url": "chrome://blanc-prototype/host.html",
+          "type": "page"
+        },
+        {
+          "id": "D6C45E6ADAC39BC58B63AA8901E83136",
+          "url": "chrome://omnibox-popup.top-chrome/",
+          "type": "browser_ui"
+        },
+        {
+          "id": "6F73E5B0FB6287E56BEFD2741B594682",
+          "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+          "type": "browser_ui"
+        },
+        {
+          "id": "8B63B1B47882C1E4C8576E53E90F00F1",
+          "url": "chrome://webui-toolbar.top-chrome/",
+          "type": "browser_ui"
+        },
+        {
+          "id": "5AB28B49174814C6F909BDE48A6A0964",
+          "url": "chrome-extension://fdjamakpfbbddfjaooikfcpapjohcfmg/background-service-worker.js",
+          "type": "service_worker"
+        }
+      ]
+    }
+  },
+  "complete": true,
+  "finished": "2026-10-23T15:08:24.579Z"
+}

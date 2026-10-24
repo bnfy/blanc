@@ -1,0 +1,135 @@
+{
+  "os": {
+    "args": [
+      "sw_vers"
+    ],
+    "returncode": 0,
+    "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2\nBuildVersion:\t\t26B118\n",
+    "stderr": ""
+  },
+  "architecture": {
+    "args": [
+      "uname",
+      "-m"
+    ],
+    "returncode": 0,
+    "stdout": "arm64\n",
+    "stderr": ""
+  },
+  "A-identity": {
+    "args": [
+      "codesign",
+      "-d",
+      "--verbose=4",
+      "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Executable=/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher\nIdentifier=me.bnfy.blanc.chromium.preview\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20500 size=458 flags=0x12a00(kill,restrict,library-validation,runtime) hashes=3+7 location=embedded\nVersionPlatform=1\nVersionMin=1703936\nVersionSDK=1769472\nHash type=sha256 size=32\nCandidateCDHash sha256=a8ebdb2691248fe26cd390d9930ca84661942f6b\nCandidateCDHashFull sha256=a8ebdb2691248fe26cd390d9930ca84661942f6b85e95cd08986555da044c425\nHash choices=sha256\nCMSDigest=a8ebdb2691248fe26cd390d9930ca84661942f6b85e95cd08986555da044c425\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=16384\nExecutable Segment flags=0x1\nPage size=16384\nCDHash=a8ebdb2691248fe26cd390d9930ca84661942f6b\nSignature size=8977\nAuthority=Developer ID Application: Anthony Loria (XYGUCY4498)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTimestamp=Oct 22, 2026 at 10:00:37\u202fPM\nNotarization Ticket=stapled\nInfo.plist entries=36\nTeamIdentifier=XYGUCY4498\nRuntime Version=27.0.0\nSealed Resources version=2 rules=13 files=138\nInternal requirements count=1 size=192\nTotal signatures=1\nChosen signature=1\n"
+  },
+  "A-requirement": {
+    "args": [
+      "codesign",
+      "-d",
+      "-r-",
+      "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "designated => identifier \"me.bnfy.blanc.chromium.preview\" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = XYGUCY4498\n",
+    "stderr": "Executable=/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher\n"
+  },
+  "A-verify": {
+    "args": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "A-gatekeeper": {
+    "args": [
+      "spctl",
+      "--assess",
+      "--type",
+      "execute",
+      "--verbose=4",
+      "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+  },
+  "A-stapler": {
+    "args": [
+      "xcrun",
+      "stapler",
+      "validate",
+      "/private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "Processing: /private/tmp/blanc-pending-read-repair/Blanc Chromium Preview.app\nThe validate action worked!\n",
+    "stderr": ""
+  },
+  "B-identity": {
+    "args": [
+      "codesign",
+      "-d",
+      "--verbose=4",
+      "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Executable=/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher\nIdentifier=me.bnfy.blanc.chromium.preview\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20500 size=458 flags=0x12a00(kill,restrict,library-validation,runtime) hashes=3+7 location=embedded\nVersionPlatform=1\nVersionMin=1703936\nVersionSDK=1769472\nHash type=sha256 size=32\nCandidateCDHash sha256=5f26d1a6182ed0681d05736998a6dd2434e5ab5e\nCandidateCDHashFull sha256=5f26d1a6182ed0681d05736998a6dd2434e5ab5e30f32f8ee94e7298f986430b\nHash choices=sha256\nCMSDigest=5f26d1a6182ed0681d05736998a6dd2434e5ab5e30f32f8ee94e7298f986430b\nCMSDigestType=2\nExecutable Segment base=0\nExecutable Segment limit=16384\nExecutable Segment flags=0x1\nPage size=16384\nCDHash=5f26d1a6182ed0681d05736998a6dd2434e5ab5e\nSignature size=8976\nAuthority=Developer ID Application: Anthony Loria (XYGUCY4498)\nAuthority=Developer ID Certification Authority\nAuthority=Apple Root CA\nTimestamp=Oct 23, 2026 at 10:39:36\u202fAM\nNotarization Ticket=stapled\nInfo.plist entries=36\nTeamIdentifier=XYGUCY4498\nRuntime Version=27.0.0\nSealed Resources version=2 rules=13 files=138\nInternal requirements count=1 size=192\nTotal signatures=1\nChosen signature=1\n"
+  },
+  "B-requirement": {
+    "args": [
+      "codesign",
+      "-d",
+      "-r-",
+      "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "designated => identifier \"me.bnfy.blanc.chromium.preview\" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = XYGUCY4498\n",
+    "stderr": "Executable=/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher\n"
+  },
+  "B-verify": {
+    "args": [
+      "codesign",
+      "--verify",
+      "--deep",
+      "--strict",
+      "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "B-gatekeeper": {
+    "args": [
+      "spctl",
+      "--assess",
+      "--type",
+      "execute",
+      "--verbose=4",
+      "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+  },
+  "B-stapler": {
+    "args": [
+      "xcrun",
+      "stapler",
+      "validate",
+      "/private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app"
+    ],
+    "returncode": 0,
+    "stdout": "Processing: /private/tmp/blanc-beta15-upgrade/Blanc Chromium Preview.app\nThe validate action worked!\n",
+    "stderr": ""
+  }
+}

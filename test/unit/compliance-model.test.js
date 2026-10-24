@@ -31,7 +31,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.equal(sbom.components.length, 45);
   assert.ok(refs.has('asset:instrument-sans-font'));
   assert.ok(refs.has('asset:ublock-origin'));
-  assert.ok(refs.has('pkg:npm/electron@44.8.0'));
+  assert.ok(refs.has('pkg:npm/electron@44.9.1'));
   assert.ok(refs.has('pkg:npm/%401password/sdk@0.5.0'));
   assert.ok(refs.has('pkg:npm/%401password/sdk-core@0.5.0'));
   assert.ok(refs.has('asset:inter-font'));
@@ -47,7 +47,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   assert.equal([...refs].some((ref) => ref.includes('electron-builder@')), false);
 
   const root = sbom.dependencies.find((item) => item.ref.startsWith('application:runtime:'));
-  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.8.0'));
+  assert.ok(root.dependsOn.includes('pkg:npm/electron@44.9.1'));
   assert.ok(root.dependsOn.includes('asset:blanc-adblock-seed'));
   const seed = sbom.dependencies.find((item) => item.ref === 'asset:blanc-adblock-seed');
   assert.deepEqual(seed.dependsOn, [

@@ -1,0 +1,53 @@
+{
+  "reviewedRepositoryHead": "89b8c603",
+  "candidateSource": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "upstreamFiles": 73,
+  "hunks": 180,
+  "inputsSha256": {
+    "evidence/f12-prerender-repair-20261024/patch-inventory.json": "6a1742078806d2c37187b23f0818167e51979183c33e4c06155ecb8efdd3c4d7",
+    "evidence/f12-prerender-notarized-20261024/owner-acceptance.json": "069742ce1ec98368ac2ad396e4a97507ff60b15246828226117f9799f8d59e68",
+    "evidence/f12-prerender-notarized-20261024/postnotary-ui-comparison.json": "464f334c29440293bd6d05ff45a6a074353e24ab7105c6a4ca3de10dfe9cb350",
+    "evidence/l8-prerender-distribution-20261024/owner-acceptance.json": "ac0695b48dd023c9e103783c9164f1203c221d945f3f5c08a47d13e7db338ac7",
+    "evidence/l8-prerender-distribution-20261024/status.json": "d2e2fa8fda799f6dbd49b2935ca32049c53fb37b241c9b992623f20fd8d73b0e",
+    "evidence/l11-current-head-20261024/status.json": "9079ca0fe9538ef34eb80cfb192da6a753c294f7ff838cdef258150f53242ff9",
+    "evidence/l5-owner-acceptance-20261023/owner-session.json": "4c0210cf16500d3a9f518af9ebfe90741f08316339913749019687889ed2d403",
+    "evidence/decision2-closeout-20261024/github-completed-run-timing.json": "111497b6ec8d70864f180bd5b90c5c45ef135f7b6b1419f15cdf453c4fdeb0c9"
+  },
+  "newRuntimeTests": 0,
+  "newBuilds": 0,
+  "latencyMeasured": false,
+  "engineSelected": false,
+  "Decision2Approved": false,
+  "openOwnerInputs": [
+    "Review a quantified operating proposal when evidence is available",
+    "Eventual engine/Decision2 disposition"
+  ],
+  "openEvidence": [
+    "Authentic Google extension update",
+    "Historical human attention unavailable",
+    "Actual provider billing export unavailable",
+    "F12 unresolved request-path and source-attribution limits",
+    "Qualified latency remains deferred"
+  ],
+  "alreadyAcceptedDoNotRepeat": [
+    "Matched visual and physical input/VoiceOver within L5 scope",
+    "Signed isolation L2",
+    "Recovery L6",
+    "Security L7",
+    "Distribution L8",
+    "Notice/update/withdrawal L9",
+    "Functional smoke L10"
+  ],
+  "electron": "paused",
+  "googleBaseline": "separate, not accessed",
+  "ownerCostResponse": "I have no idea how to answer",
+  "interimOperatingProposal": {
+    "status": "prepared recommendation, not owner approval or gate waiver",
+    "useExistingHardwareAndSigning": true,
+    "newPaidServices": "none proposed",
+    "historicalHandsOnTime": "unknown",
+    "prospectiveAttentionMeasurement": "during next necessary update only; no extra rebase/test",
+    "budgetGate": "open until an informed affordability/capacity decision"
+  }
+}

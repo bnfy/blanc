@@ -1,0 +1,48 @@
+{
+  "artifacts": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+      "sha256": "63db16279bea7c49ca93461c2f4e02eaaef7a0bcdbdc6675db3b0d42af12693d",
+      "bytes": 595855760
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "1e1167fc57b6dbe75c6f53f2515ebcf803a25a3835d994d87a689d3f5db3507e",
+      "bytes": 41750
+    },
+    {
+      "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/bundle.mjs",
+      "sha256": "bc859b4e7f74cc2845f65a2bb0333677d5a4cd2091523637ad4d5ec09b4b1e30"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/third_party/blink/public/devtools_protocol/domains/Network.pdl",
+      "sha256": "55b16f8887a9f61b277676f243d5fc26278b4e1db622147f2802faf7256edfc7"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-postready-repair-run.mjs",
+      "sha256": "4d0a07c09cfc0f0121a0ba97fef6641faddaca3a78893370416ce4e886f44ec5"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-consumption-run.mjs",
+      "sha256": "86ee7ac1a9ff7cf906dbd65e3770448cb2ec6b1994f62361e02343dcca019e64"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/blocker_proxy.h",
+      "sha256": "f738abcf22692fe7196190ce8132b24ecfa548cc4706e4b09bdb7aa42ba0a8fd"
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/prepare.mjs",
+      "sha256": "69989989f5611c0a027874b0046e922f238ed155b1c378a223b9ac7aebfe0b2f"
+    }
+  ]
+}

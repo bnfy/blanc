@@ -1,0 +1,34 @@
+{
+  "sourceHead": "1f99393dc42fea222e84820eced0bde578dc714d",
+  "runtime": "Official Electron 44.9.1",
+  "status": "blocked by owner decision: keep Electron builds pending",
+  "test": "node test/desktop/modified-link-click-smoke.mjs",
+  "trial": "Use source webContents.clone(), adopt it in a WebContentsView, then reload native cloned history",
+  "result": {
+    "exitCode": 1,
+    "line": 168,
+    "actual": "allowed",
+    "expected": "SecurityError",
+    "stage": "duplicate, before closed-group reopen"
+  },
+  "trialReverted": true,
+  "underlyingRuntime": "OpenURLInNewWebContents uses CreateParams.starting_sandbox_flags; Clone constructs new CreateParams and CreateWithOpener without copying those flags. This middle-click child has no native opener relationship to recover them from.",
+  "boundaries": [
+    "No sandbox assertion weakened",
+    "No runtime diagnostic/source build",
+    "No native Chromium build needed or run",
+    "No latency test",
+    "No permanent profiles or Google baseline accessed",
+    "No push or merge"
+  ],
+  "next": "Resume a focused runtime repair only after the owner explicitly changes the Electron-build constraint.",
+  "ownerDecision": "Keep Electron builds pending; record L11 blocked",
+  "secondTrial": {
+    "description": "Native clone followed by navigationHistory.goToIndex(activeIndex), rather than reload",
+    "exitCode": 1,
+    "actual": "allowed",
+    "expected": "SecurityError",
+    "line": 168,
+    "trialReverted": true
+  }
+}

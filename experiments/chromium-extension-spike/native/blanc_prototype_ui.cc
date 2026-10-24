@@ -1,3 +1,7 @@
+#include "ui/views/window/dialog_delegate.h"
+#include "chrome/browser/lifetime/application_lifetime.h"
+#include "ui/views/controls/label.h"
+#include "ui/views/border.h"
 #include "chrome/browser/extensions/extension_uninstall_dialog.h"
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "chrome/browser/themes/theme_service.h"
@@ -117,6 +121,7 @@
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
+#include "content/public/browser/child_process_security_policy.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/render_widget_host_view.h"
@@ -606,6 +611,7 @@ class Owner : public base::SupportsUserData::Data,
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
   base::DictValue split_geometry;
+  std::array<int, 2> split_corner_widths = {240, 240};
   std::vector<gfx::Rect> split_hit_regions;
   std::string page_tint;
 
@@ -675,9 +681,15 @@ class Owner : public base::SupportsUserData::Data,
  private:
   void FindEvent(const std::u16string& script) {
     auto* host = view ? view->GetWebContents() : nullptr;
-    if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
-        host->GetPrimaryMainFrame()->IsRenderFrameLive())
-      host->GetPrimaryMainFrame()->ExecuteJavaScript(script, base::NullCallback());
+    auto* frame = host ? host->GetPrimaryMainFrame() : nullptr;
+    // An error document can retain the host URL without WebUI bindings. Startup
+    // navigation may notify StopFind in that state; never inject into it or
+    // weaken Chromium's ExecuteJavaScript security precondition.
+    if (!frame || !frame->IsRenderFrameLive() || frame->IsErrorDocument() ||
+        frame->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+        !content::ChildProcessSecurityPolicy::GetInstance()->HasWebUIBindings(
+            frame->GetProcess()->GetID())) return;
+    frame->ExecuteJavaScript(script, base::NullCallback());
   }
   void DidReceiveFindReply(int request_id, int matches, const gfx::Rect&,
                            int ordinal, bool final_update) override {
@@ -1945,12 +1957,28 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   class SplitCloseWatch : public content::WebContentsObserver {
    public:
-    SplitCloseWatch(content::WebContents* tab, base::RepeatingClosure cancelled)
-        : content::WebContentsObserver(tab), cancelled_(std::move(cancelled)) {}
+    SplitCloseWatch(content::WebContents* tab, bool pinned,
+                    base::RepeatingClosure cancelled)
+        : content::WebContentsObserver(tab), pinned_(pinned),
+          cancelled_(std::move(cancelled)) {}
+    void WebContentsDestroyed() override {
+      // Match TabRestoreService's exclusion of initial tabs and an unpinned
+      // New Tab with no other navigation. Pinned/navigated New Tabs still need
+      // their historical entry flushed; the surviving session always does.
+      auto& controller = web_contents()->GetController();
+      without_history_ = controller.IsInitialBlankNavigation() ||
+                         controller.GetEntryCount() == 0 ||
+          (!pinned_ && controller.GetEntryCount() == 1 &&
+           controller.GetEntryAtIndex(0)->GetVirtualURL() ==
+               GURL("chrome://newtab/"));
+    }
+    bool without_history() const { return without_history_; }
     void BeforeUnloadFired(bool proceed) override { if (!proceed) cancelled_.Run(); }
     void BeforeUnloadDialogCancelled() override { cancelled_.Run(); }
    private:
+    const bool pinned_;
     base::RepeatingClosure cancelled_;
+    bool without_history_ = false;
   };
   struct PendingSplitClose {
     base::WeakPtr<BrowserWindowInterface> browser;
@@ -2000,10 +2028,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     const bool cancelled = it->second.cancelled;
     if (it->second.single_tab) {
+      const bool without_history = it->second.watches.front()->without_history();
       split_closes_.erase(it);
       // A cancelled native unload is a normal outcome, not a storage failure.
       if (cancelled) Reply(id, true, base::Value(false));
-      else SaveClosedHistory(id, browser->GetProfile());
+      else SaveClosedHistory(id, browser->GetProfile(), without_history);
       return;
     }
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
@@ -2019,6 +2048,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   void ClosedHistorySaved(std::string id, bool saved) {
     if (!history_saves_.erase(id)) return;
+    history_optional_.erase(id);
     Reply(id, saved, saved ? base::Value() :
         base::Value("Tab closed, but history persistence failed or timed out."));
   }
@@ -2079,19 +2109,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (!history_saves_.contains(id)) return;
     auto* service = saved && profile ? ClosedService(profile.get()) : nullptr;
     if (!service) { ClosedHistorySaved(id, false); return; }
+    if (history_optional_.contains(id) && service->entries().empty()) {
+      ClosedRetrySaved(id, profile, std::move(state), true);
+      return;
+    }
     service->SaveAndFlush(base::BindOnce(&Handler::ClosedRetrySaved,
         weak_factory_.GetWeakPtr(), id, profile, std::move(state)));
   }
-  void ClosedHistoryFlushed(std::string id, base::WeakPtr<Profile> profile, bool saved) {
-    if (!history_saves_.contains(id)) return;
-    // A cancellation in another owner may have arrived during a history-only save.
-    if (saved && profile && SessionRepair(profile.get())->pending()) {
-      RetryClosedSession(id, profile);
-      return;
-    }
-    ClosedHistorySaved(id, saved && profile);
-  }
-  void SaveClosedHistory(std::string id, Profile* profile) {
+  void SaveClosedHistory(std::string id, Profile* profile, bool without_history = false) {
     if (profile->IsOffTheRecord()) { Reply(id, true, base::Value()); return; }
     history_saves_.emplace(id, 0);
     auto* service = ClosedService(profile);
@@ -2099,18 +2124,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       ClosedHistorySaved(id, false);
       return;
     }
-    if (SessionRepair(profile)->pending()) {
-      // Revalidate after both stores flush; mutations require a fresh snapshot.
-      RetryClosedSession(id, profile->GetWeakPtr());
-    } else {
-      service->SaveAndFlush(base::BindOnce(
-          &Handler::ClosedHistoryFlushed, weak_factory_.GetWeakPtr(), id, profile->GetWeakPtr()));
-    }
+    if (without_history && service->entries().empty()) history_optional_.insert(id);
+    // History flush alone does not acknowledge the surviving open session.
+    // Rebuild and flush it on every close, including after filesystem errors,
+    // then flush closed history and revalidate mutations before replying.
+    RetryClosedSession(id, profile->GetWeakPtr());
     base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
         FROM_HERE, base::BindOnce(&Handler::ClosedHistorySaved,
           weak_factory_.GetWeakPtr(), id, false), base::Seconds(10));
   }
   std::map<std::string, uint64_t> history_saves_;
+  std::set<std::string> history_optional_;
   void HistoryCleared(std::string id) { Reply(id, true, base::Value()); }
   void HistoryReady(std::string id, history::QueryResults results) {
     base::ListValue items;
@@ -3119,8 +3143,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       action->ExecuteUserAction(ToolbarActionViewModel::InvocationSource::kMenuEntry);
       return;
     }
-    if (method == "geometry" && args.size() == 8 &&
+    if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      if (args.size() == 10) {
+        for (int i = 0; i < 2; ++i)
+          owner->split_corner_widths[i] = std::clamp(args[8 + i].GetInt(), 36, 240);
+      }
       owner->extension_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
           std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
       owner->interactive_bounds = gfx::Rect(args[4].GetInt(), args[5].GetInt(),
@@ -3579,6 +3607,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         auto* closing_tab = model->GetWebContentsAt(i);
         pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(closing_tab).id());
         pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(closing_tab,
+            model->IsTabPinned(i),
             base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       }
       model->SetSelectionFromModel(selection);
@@ -3595,6 +3624,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       pending_close.single_tab = true;
       pending_close.tabs.push_back(sessions::SessionTabHelper::IdForTab(tab).id());
       pending_close.watches.push_back(std::make_unique<SplitCloseWatch>(tab,
+          model->IsTabPinned(index),
           base::BindRepeating(&Handler::SplitCloseCancelled, weak_factory_.GetWeakPtr(), id)));
       model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
       base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
@@ -3739,6 +3769,10 @@ bool SelectIslandSlot(BrowserWindowInterface* browser, int slot) {
 bool IsPersistentSplitTab(content::WebContents* tab) {
   return IsEnabled() && !tab->GetBrowserContext()->IsOffTheRecord() && tab->GetUserData(kPersistentSplitKey);
 }
+bool HasSplitPresentation(content::WebContents* tab) {
+  // Presentation markers also exist in private windows; this performs no I/O.
+  return IsEnabled() && tab && tab->GetUserData(kPersistentSplitKey);
+}
 std::string TabIdentity(content::WebContents* tab) {
   if (!IsEnabled() || tab->GetBrowserContext()->IsOffTheRecord()) return "";
   auto* data = static_cast<TabIdentityData*>(tab->GetUserData(kTabIdentityKey));
@@ -3782,6 +3816,36 @@ bool Config::IsWebUIEnabled(content::BrowserContext*) {
   return IsEnabled();
 }
 
+base::OnceClosure ShowSessionRecovery() {
+  auto dialog = std::make_unique<views::DialogDelegate>();
+  dialog->SetTitle(u"Restoring your tabs");
+  dialog->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk));
+  dialog->SetButtonLabel(ui::mojom::DialogButton::kOk, u"Quit Blanc");
+  dialog->SetAcceptCallbackWithClose(base::BindRepeating([] {
+    chrome::AttemptExit();
+    return false;
+  }));
+  dialog->SetShowCloseButton(false);
+  dialog->set_esc_should_cancel_dialog_override(false);
+  dialog->set_fixed_width(440);
+  auto label = std::make_unique<views::Label>(
+      u"Blanc is waiting for access to your saved session.\n\n"
+      u"If macOS asks for keychain access, allow it to continue. "
+      u"Your saved tabs are kept untouched. They will reopen automatically "
+      u"when access is ready.");
+  label->SetMultiLine(true);
+  label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  label->SetBorder(views::CreateEmptyBorder(gfx::Insets(24)));
+  dialog->SetContentsView(std::move(label));
+  auto* widget = views::DialogDelegate::CreateDialogWidget(
+      dialog.get(), gfx::NativeWindow(), gfx::NativeView());
+  widget->Show();
+  return base::BindOnce([](std::unique_ptr<views::DialogDelegate> owned_dialog,
+                           base::WeakPtr<views::Widget> weak) {
+    if (weak) weak->CloseNow();
+  }, std::move(dialog), widget->GetWeakPtr());
+}
+
 bool IsEnabled() {
   return base::CommandLine::ForCurrentProcess()->HasSwitch(kAssetsSwitch);
 }
@@ -3792,7 +3856,9 @@ UI::UI(content::WebUI* web_ui) : content::WebUIController(web_ui) {
   auto* source =
       content::WebUIDataSource::CreateAndAdd(Profile::FromWebUI(web_ui), kHost);
   source->DisableDenyXFrameOptions();
-  source->DisableTrustedTypesCSP();
+  source->OverrideContentSecurityPolicy(
+      network::mojom::CSPDirectiveName::TrustedTypes,
+      "trusted-types blanc-static-renderer blanc-static-overlay blanc-static-vertical-tabs;");
   source->OverrideContentSecurityPolicy(
       network::mojom::CSPDirectiveName::FrameSrc, "frame-src 'self';");
   source->SetRequestFilter(
@@ -3993,31 +4059,46 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
   const auto& containers = view->contents_container_views();
   if (containers.size() != 2) return;
   const int width = layout->host_size.width(), height = layout->host_size.height();
-  const bool columns = width >= 612;
-  const bool rows = !columns && height >= 392;
-  const int first = columns ? std::clamp(static_cast<int>(std::round((width - 12) * view->GetSplitRatio())), 300, width - 312)
-      : rows ? (height - 12) / 2 : (view->GetActiveIndex() == 0 ? std::max(30, height - 30) : 30);
+  // Shipping Blanc's card contract: 8px around and between panes, 1px border.
+  const int card_width = std::max(0, width - 16);
+  const int card_height = std::max(0, height - 16);
+  const bool columns = card_width >= 608;
+  const bool rows = !columns && card_height >= 388;
+  const int first = columns ? std::clamp(static_cast<int>(std::round((card_width - 8) * view->GetSplitRatio())), 300, card_width - 308)
+      : rows ? (card_height - 8) / 2 : 0;
   std::array<gfx::Rect, 2> panes;
   gfx::Rect gutter;
   if (columns) {
-    panes[0] = gfx::Rect(0, 0, first, height);
-    gutter = gfx::Rect(first, 0, 12, height);
-    panes[1] = gfx::Rect(first + 12, 0, width - first - 12, height);
+    panes[0] = gfx::Rect(8, 8, first, card_height);
+    gutter = gfx::Rect(8 + first, 8, 8, card_height);
+    panes[1] = gfx::Rect(16 + first, 8, card_width - first - 8, card_height);
+  } else if (rows) {
+    panes[0] = gfx::Rect(8, 8, card_width, first);
+    gutter = gfx::Rect(8, 8 + first, card_width, 8);
+    panes[1] = gfx::Rect(8, 16 + first, card_width, card_height - first - 8);
   } else {
-    panes[0] = gfx::Rect(0, 0, width, first);
-    gutter = gfx::Rect(0, first, width, rows ? 12 : 0);
-    panes[1] = gfx::Rect(0, first + gutter.height(), width, std::max(30, height - first - gutter.height()));
+    panes[view->GetActiveIndex()] = gfx::Rect(8, 8, card_width, card_height);
   }
   gfx::Point origin;
   views::View::ConvertPointToTarget(view, browser_view, &origin);
   if (auto* island = browser_view->GetViewByID(kIslandViewId)) origin.Offset(-island->x(), -island->y());
   auto encode = [](const gfx::Rect& r) { return base::DictValue().Set("x", r.x()).Set("y", r.y()).Set("width", r.width()).Set("height", r.height()); };
-  base::ListValue headers;
+  base::ListValue headers, frames;
   std::vector<gfx::Rect> hit_regions;
   for (int i = 0; i < 2; ++i) {
-    gfx::Rect header = panes[i]; header.set_height(30); header.Offset(origin.x(), origin.y());
-    hit_regions.push_back(header); headers.Append(encode(header));
-    auto page = panes[i]; page.Inset(gfx::Insets::TLBR(30, 0, 0, 0));
+    auto frame = panes[i]; frame.Offset(origin.x(), origin.y());
+    frames.Append(encode(frame));
+    gfx::Rect header;
+    if (!panes[i].IsEmpty()) {
+      const int w = std::min(panes[i].width(), i == view->GetActiveIndex() ? 37 : owner->split_corner_widths[i]);
+      const int h = std::min(36, panes[i].height());
+      header = gfx::Rect(frame.right() - w, frame.bottom() - h, w, h);
+      // Only the actual corner tab owns input, never its transparent fillets.
+      hit_regions.emplace_back(header.x() + 7, header.y() + 7,
+          std::max(0, w - 7), std::max(0, h - 7));
+    }
+    headers.Append(encode(header));
+    auto page = panes[i]; page.Inset(gfx::Insets(1));
     for (auto& child : layout->child_layouts) {
       if (child.child_view == containers[i]) { child.bounds = page; child.visible = true; }
     }
@@ -4026,13 +4107,12 @@ void AdjustSplitLayout(const MultiContentsView* view, views::ProposedLayout* lay
     if (std::string(child.child_view->GetClassName()) == "MultiContentsResizeArea") child.bounds = gfx::Rect();
   gutter.Offset(origin.x(), origin.y());
   if (columns) hit_regions.push_back(gutter);
-  // Preferred-size probes also call this method with zero/non-current bounds.
-  // Only applied-size geometry may own input regions or renderer metadata.
+  // Preferred-size probes cannot replace applied input regions or metadata.
   if (width <= 0 || width != view->width() || height != view->height()) return;
   owner->split_hit_regions = std::move(hit_regions);
   owner->split_geometry = base::DictValue().Set("mode", columns ? "columns" : rows ? "rows" : "focus")
-      .Set("headers", std::move(headers)).Set("divider", encode(gutter))
-      .Set("originX", origin.x()).Set("usableWidth", std::max(1, width - 12));
+      .Set("headers", std::move(headers)).Set("frames", std::move(frames)).Set("divider", encode(gutter))
+      .Set("originX", origin.x() + 8).Set("usableWidth", std::max(1, card_width - 8));
 }
 
 void LayoutIsland(views::View* parent, int top) {

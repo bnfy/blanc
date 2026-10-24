@@ -1,0 +1,8 @@
+{
+  "app": "/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-l6-acceptance/splits/isolated-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [],
+  "error": "Error: Startup timeout",
+  "forcedCleanup": true
+}

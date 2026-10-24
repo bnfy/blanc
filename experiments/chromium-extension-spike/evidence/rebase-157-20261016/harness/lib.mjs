@@ -1,3 +1,4 @@
+import {callFunction} from '../../../cdp-function.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -7,7 +8,7 @@ export const base='http://127.0.0.1:8786/';
 export const evidence='/private/tmp/blanc-task0/runtime-evidence.json';
 export function record(name,details={}) {
   let out={version:'157.0.8103.6',checks:[]};
-  if(fs.existsSync(evidence))out=JSON.parse(fs.readFileSync(evidence,'utf8'));
+  try{out=JSON.parse(fs.readFileSync(evidence,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
   out.checks.push({name,at:new Date().toISOString(),...details});
   fs.writeFileSync(evidence,JSON.stringify(out,null,2));console.log(JSON.stringify({name,...details}));
 }
@@ -25,7 +26,7 @@ export async function enter(value,priv=false){await click('#pillDomain','strip',
 export async function point(selector,frame='strip',priv=false){
   const c=await host(priv);try{
     const state=await c.eval('BlancPrototypeHost.api.getAllTabs()'); const tab=state.tabs.find(t=>t.id===state.activeTabId); const infos=(await c.send('Target.getTargets')).targetInfos; const self=(await c.send('Target.getTargetInfo')).targetInfo; const candidates=infos.filter(t=>t.browserContextId===self.browserContextId && t.type==='page' && t.url===tab.url.replace('blanc://newtab/','chrome://newtab/')); const target=candidates.at(-1); if(target)target.id=target.targetId; assert.ok(target,'Content target for window'); const bounds=(await c.send('Browser.getWindowForTarget',{targetId:target.id})).bounds;
-    const rect=await c.eval(`(()=>{const f=${JSON.stringify(frame)}?document.getElementById(${JSON.stringify(frame)}):null;const d=f?f.contentDocument:document;const e=d.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Missing click target');const r=e.getBoundingClientRect();const o=f?f.getBoundingClientRect():{x:0,y:0};return {x:r.x+o.x,y:r.y+o.y,w:r.width,h:r.height,display:getComputedStyle(e).display}})()`);
+    const rect=await callFunction(c,function(frame,selector){const f=frame?document.getElementById(frame):null;const d=f?f.contentDocument:document;const e=d.querySelector(selector);if(!e)throw Error('Missing click target');const r=e.getBoundingClientRect();const o=f?f.getBoundingClientRect():{x:0,y:0};return {x:r.x+o.x,y:r.y+o.y,w:r.width,h:r.height,display:getComputedStyle(e).display}},[frame,selector],true);
     assert.ok(rect.w>0&&rect.h>0&&rect.display!=='none',JSON.stringify(rect));
     return {x:bounds.left+rect.x+rect.w/2,y:bounds.top+rect.y+rect.h/2};
   }finally{c.close();}

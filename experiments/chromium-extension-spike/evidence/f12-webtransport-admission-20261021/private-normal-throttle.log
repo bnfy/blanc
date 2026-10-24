@@ -1,0 +1,455 @@
+[27019:2559612:1021/175623.739080:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=0 throttled_connections_=0
+[27019:2559612:1021/175623.739111:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 0
+[27019:2559612:1021/175623.739120:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 0
+[27019:2559612:1021/175623.739126:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 0 throttled_connections_.size()=1
+[27019:2559612:1021/175623.739131:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11400026700 pending_handshakes_= 0
+[27019:2559612:1021/175623.741469:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.744429:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11400026700
+[27019:2559612:1021/175623.744466:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 1
+[27019:2559612:1021/175623.744474:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.744481:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.755548:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.793843:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=0 throttled_connections_=0
+[27019:2559612:1021/175623.793895:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 0
+[27019:2559612:1021/175623.793904:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 0
+[27019:2559612:1021/175623.793911:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 0 throttled_connections_.size()=1
+[27019:2559612:1021/175623.793917:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfa300 pending_handshakes_= 0
+[27019:2559612:1021/175623.794171:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=0
+[27019:2559612:1021/175623.794181:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794185:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794189:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.013943 s
+[27019:2559612:1021/175623.794373:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=1
+[27019:2559612:1021/175623.794379:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794383:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794386:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.01089 s
+[27019:2559612:1021/175623.794503:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=2
+[27019:2559612:1021/175623.794508:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794512:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794516:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.009864 s
+[27019:2559612:1021/175623.794594:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=3
+[27019:2559612:1021/175623.794598:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794601:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794605:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.005281 s
+[27019:2559612:1021/175623.794647:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=4
+[27019:2559612:1021/175623.794651:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794655:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794658:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.008905 s
+[27019:2559612:1021/175623.794704:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=5
+[27019:2559612:1021/175623.794708:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794712:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794715:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.013223 s
+[27019:2559612:1021/175623.794756:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=1 throttled_connections_=6
+[27019:2559612:1021/175623.794760:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 1
+[27019:2559612:1021/175623.794764:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.794767:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.007918 s
+[27019:2559612:1021/175623.796243:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.796715:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=0 throttled_connections_=0
+[27019:2559612:1021/175623.796733:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 0
+[27019:2559612:1021/175623.796741:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 0
+[27019:2559612:1021/175623.796746:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 0 throttled_connections_.size()=1
+[27019:2559612:1021/175623.796752:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfa200 pending_handshakes_= 0
+[27019:2559612:1021/175623.796963:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=0
+[27019:2559612:1021/175623.796970:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.796975:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.796979:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.008633 s
+[27019:2559612:1021/175623.797252:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=1
+[27019:2559612:1021/175623.797259:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797270:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797274:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.013022 s
+[27019:2559612:1021/175623.797306:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.797354:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=2
+[27019:2559612:1021/175623.797359:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797362:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797366:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.007018 s
+[27019:2559612:1021/175623.797517:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=3
+[27019:2559612:1021/175623.797527:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797532:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797537:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.01242 s
+[27019:2559612:1021/175623.797615:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=4
+[27019:2559612:1021/175623.797621:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797625:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797629:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.012725 s
+[27019:2559612:1021/175623.797727:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=5
+[27019:2559612:1021/175623.797732:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797736:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797740:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.006995 s
+[27019:2559612:1021/175623.797842:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=1 throttled_connections_=6
+[27019:2559612:1021/175623.797855:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 1
+[27019:2559612:1021/175623.797860:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.797864:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.008913 s
+[27019:2559612:1021/175623.799661:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfa300
+[27019:2559612:1021/175623.799667:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 1
+[27019:2559612:1021/175623.799671:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.799675:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.800261:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfa200
+[27019:2559612:1021/175623.800269:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 1
+[27019:2559612:1021/175623.800273:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.800277:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 1
+[27019:2559612:1021/175623.803773:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.803806:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 1 throttled_connections_.size()=7
+[27019:2559612:1021/175623.803810:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf9400 pending_handshakes_= 1
+[27019:2559612:1021/175623.803880:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 2
+[27019:2559612:1021/175623.803886:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.022445 s
+[27019:2559612:1021/175623.804257:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cf9400
+[27019:2559612:1021/175623.804263:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 2
+[27019:2559612:1021/175623.804274:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 2
+[27019:2559612:1021/175623.807538:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.807565:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 1 throttled_connections_.size()=7
+[27019:2559612:1021/175623.807580:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfbcc0 pending_handshakes_= 1
+[27019:2559612:1021/175623.807645:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.807652:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.023203 s
+[27019:2559612:1021/175623.808488:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cfbcc0
+[27019:2559612:1021/175623.808541:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 2
+[27019:2559612:1021/175623.808559:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 2
+[27019:2559612:1021/175623.809955:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 2
+[27019:2559612:1021/175623.809996:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.810004:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:375] relative_delay=-0.000235 s so firing immediately
+[27019:2559612:1021/175623.810011:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 1 throttled_connections_.size()=6
+[27019:2559612:1021/175623.810016:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf6f40 pending_handshakes_= 1
+[27019:2559612:1021/175623.810108:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=299.994 s pending_handshakes_= 2
+[27019:2559612:1021/175623.810326:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 2
+[27019:2559612:1021/175623.810331:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.810335:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.005272 s
+[27019:2559612:1021/175623.810345:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=299.998 s pending_handshakes_= 1
+[27019:2559612:1021/175623.810545:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.812435:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf6f40
+[27019:2559612:1021/175623.812445:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 2
+[27019:2559612:1021/175623.812449:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 2
+[27019:2559612:1021/175623.812455:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 2
+[27019:2559612:1021/175623.816356:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.816376:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 1 throttled_connections_.size()=6
+[27019:2559612:1021/175623.816395:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405536000 pending_handshakes_= 1
+[27019:2559612:1021/175623.816447:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.816454:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.01265 s
+[27019:2559612:1021/175623.816717:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.818369:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405536000
+[27019:2559612:1021/175623.818375:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 2
+[27019:2559612:1021/175623.818380:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 2
+[27019:2559612:1021/175623.818384:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 2
+[27019:2559612:1021/175623.823408:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 2
+[27019:2559612:1021/175623.823452:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 1
+[27019:2559612:1021/175623.823461:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:375] relative_delay=-0.007289 s so firing immediately
+[27019:2559612:1021/175623.823468:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 1 throttled_connections_.size()=5
+[27019:2559612:1021/175623.823474:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfb300 pending_handshakes_= 1
+[27019:2559612:1021/175623.823574:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=299.981 s pending_handshakes_= 2
+[27019:2559612:1021/175623.823852:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cfb300
+[27019:2559612:1021/175623.823858:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 2
+[27019:2559612:1021/175623.823863:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 2
+[27019:2559612:1021/175623.826831:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 2
+[27019:2559612:1021/175623.826852:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 2 throttled_connections_.size()=4
+[27019:2559612:1021/175623.826877:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfbac0 pending_handshakes_= 2
+[27019:2559612:1021/175623.826933:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 3
+[27019:2559612:1021/175623.826941:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.042451 s
+[27019:2559612:1021/175623.827278:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.828594:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 2
+[27019:2559612:1021/175623.828602:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.828607:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.000685 s
+[27019:2559612:1021/175623.828618:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=299.98 s pending_handshakes_= 1
+[27019:2559612:1021/175623.829242:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfbac0
+[27019:2559612:1021/175623.829247:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 3
+[27019:2559612:1021/175623.829251:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 3
+[27019:2559612:1021/175623.829255:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 3
+[27019:2559612:1021/175623.829315:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 1
+[27019:2559612:1021/175623.829320:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 1 throttled_connections_.size()=5
+[27019:2559612:1021/175623.829324:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf8180 pending_handshakes_= 1
+[27019:2559612:1021/175623.829367:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.829371:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.015707 s
+[27019:2559612:1021/175623.829584:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cf8180
+[27019:2559612:1021/175623.829589:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 2
+[27019:2559612:1021/175623.829594:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 2
+[27019:2559612:1021/175623.840364:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 3
+[27019:2559612:1021/175623.840439:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 2
+[27019:2559612:1021/175623.840446:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.014011 s
+[27019:2559612:1021/175623.840458:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=299.964 s pending_handshakes_= 2
+[27019:2559612:1021/175623.845429:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.845450:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 2 throttled_connections_.size()=4
+[27019:2559612:1021/175623.845460:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf7f00 pending_handshakes_= 2
+[27019:2559612:1021/175623.845539:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 3
+[27019:2559612:1021/175623.845547:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.031396 s
+[27019:2559612:1021/175623.845983:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.850409:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf7f00
+[27019:2559612:1021/175623.850436:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 3
+[27019:2559612:1021/175623.850441:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 3
+[27019:2559612:1021/175623.850447:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 3
+[27019:2559612:1021/175623.855534:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 2
+[27019:2559612:1021/175623.855560:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 2 throttled_connections_.size()=3
+[27019:2559612:1021/175623.855566:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x114051e8d00 pending_handshakes_= 2
+[27019:2559612:1021/175623.855646:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 3
+[27019:2559612:1021/175623.855654:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.052025 s
+[27019:2559612:1021/175623.855894:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x114051e8d00
+[27019:2559612:1021/175623.855900:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 3
+[27019:2559612:1021/175623.855905:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 3
+[27019:2559612:1021/175623.860869:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 3
+[27019:2559612:1021/175623.860936:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.860960:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.00143 s
+[27019:2559612:1021/175623.860993:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=299.948 s pending_handshakes_= 2
+[27019:2559612:1021/175623.862620:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 2
+[27019:2559612:1021/175623.862655:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 2 throttled_connections_.size()=3
+[27019:2559612:1021/175623.862663:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x114019122c0 pending_handshakes_= 2
+[27019:2559612:1021/175623.862760:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 3
+[27019:2559612:1021/175623.862769:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.053256 s
+[27019:2559612:1021/175623.863063:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x114019122c0
+[27019:2559612:1021/175623.863076:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 3
+[27019:2559612:1021/175623.863084:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 3
+[27019:2559612:1021/175623.908775:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 3
+[27019:2559612:1021/175623.908815:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 3 throttled_connections_.size()=2
+[27019:2559612:1021/175623.908823:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfa800 pending_handshakes_= 3
+[27019:2559612:1021/175623.908930:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175623.908940:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.113139 s
+[27019:2559612:1021/175623.909479:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.911920:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfa800
+[27019:2559612:1021/175623.911931:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 4
+[27019:2559612:1021/175623.911937:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 4
+[27019:2559612:1021/175623.911952:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 4
+[27019:2559612:1021/175623.917102:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 3
+[27019:2559612:1021/175623.917157:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 3 throttled_connections_.size()=2
+[27019:2559612:1021/175623.917171:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf95c0 pending_handshakes_= 3
+[27019:2559612:1021/175623.917274:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 4
+[27019:2559612:1021/175623.917299:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.109497 s
+[27019:2559612:1021/175623.917717:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175623.919939:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf95c0
+[27019:2559612:1021/175623.919977:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 4
+[27019:2559612:1021/175623.919984:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 4
+[27019:2559612:1021/175623.920012:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 4
+[27019:2559612:1021/175623.922017:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 4
+[27019:2559612:1021/175623.922032:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 3
+[27019:2559612:1021/175623.922039:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.01489 s
+[27019:2559612:1021/175623.922050:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=299.882 s pending_handshakes_= 3
+[27019:2559612:1021/175623.931053:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 4
+[27019:2559612:1021/175623.931088:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 3
+[27019:2559612:1021/175623.931096:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.044075 s
+[27019:2559612:1021/175623.931107:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=299.877 s pending_handshakes_= 3
+[27019:2559612:1021/175623.937731:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 3
+[27019:2559612:1021/175623.937763:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 3 throttled_connections_.size()=1
+[27019:2559612:1021/175623.937770:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfda40 pending_handshakes_= 3
+[27019:2559612:1021/175623.938317:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cfda40
+[27019:2559612:1021/175623.938326:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 4
+[27019:2559612:1021/175623.938333:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 4
+[27019:2559612:1021/175623.976275:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 3
+[27019:2559612:1021/175623.976315:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 3 throttled_connections_.size()=1
+[27019:2559612:1021/175623.976345:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfb040 pending_handshakes_= 3
+[27019:2559612:1021/175623.976821:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cfb040
+[27019:2559612:1021/175623.976837:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 4
+[27019:2559612:1021/175623.976846:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 4
+[27019:2559612:1021/175625.009287:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=0
+[27019:2559612:1021/175625.009375:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 4
+[27019:2559612:1021/175625.009392:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=298.795 s pending_handshakes_= 4
+[27019:2559612:1021/175625.009416:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.009429:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.095375 s
+[27019:2559612:1021/175625.105959:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.106031:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 4 throttled_connections_.size()=1
+[27019:2559612:1021/175625.106051:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf4e00 pending_handshakes_= 4
+[27019:2559612:1021/175625.106996:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.111800:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf4e00
+[27019:2559612:1021/175625.111850:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 5
+[27019:2559612:1021/175625.111860:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.111872:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.122982:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 5
+[27019:2559612:1021/175625.123027:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=298.681 s pending_handshakes_= 4
+[27019:2559612:1021/175625.163927:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=0
+[27019:2559612:1021/175625.163966:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.163976:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.049607 s
+[27019:2559612:1021/175625.164075:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=1
+[27019:2559612:1021/175625.164233:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=2
+[27019:2559612:1021/175625.164312:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=3
+[27019:2559612:1021/175625.164389:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=4
+[27019:2559612:1021/175625.164528:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=5
+[27019:2559612:1021/175625.164661:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=6
+[27019:2559612:1021/175625.164742:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=4 throttled_connections_=7
+[27019:2559612:1021/175625.166102:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=0
+[27019:2559612:1021/175625.166115:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 4
+[27019:2559612:1021/175625.166122:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=298.642 s pending_handshakes_= 4
+[27019:2559612:1021/175625.166131:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 4
+[27019:2559612:1021/175625.166150:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.041539 s
+[27019:2559612:1021/175625.166258:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=1
+[27019:2559612:1021/175625.166441:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=2
+[27019:2559612:1021/175625.166580:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=3
+[27019:2559612:1021/175625.166719:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=4
+[27019:2559612:1021/175625.167089:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=5
+[27019:2559612:1021/175625.168241:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=6
+[27019:2559612:1021/175625.169705:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114058e1180 pending_handshakes_=4 throttled_connections_=7
+[27019:2559612:1021/175625.208750:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 4
+[27019:2559612:1021/175625.208804:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 4 throttled_connections_.size()=8
+[27019:2559612:1021/175625.208816:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf8940 pending_handshakes_= 4
+[27019:2559612:1021/175625.208968:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 5
+[27019:2559612:1021/175625.208985:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.189469 s
+[27019:2559612:1021/175625.209706:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.212308:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf8940
+[27019:2559612:1021/175625.212322:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 5
+[27019:2559612:1021/175625.212328:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.212336:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.214192:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.214208:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 4 throttled_connections_.size()=8
+[27019:2559612:1021/175625.214222:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfe580 pending_handshakes_= 4
+[27019:2559612:1021/175625.214311:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 5
+[27019:2559612:1021/175625.214318:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.107773 s
+[27019:2559612:1021/175625.214659:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.217015:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfe580
+[27019:2559612:1021/175625.217039:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 5
+[27019:2559612:1021/175625.217044:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.217051:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 5
+[27019:2559612:1021/175625.223407:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 5
+[27019:2559612:1021/175625.223445:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 4
+[27019:2559612:1021/175625.223453:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.066673 s
+[27019:2559612:1021/175625.223468:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=298.585 s pending_handshakes_= 4
+[27019:2559612:1021/175625.227534:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 5
+[27019:2559612:1021/175625.227546:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.227551:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.061231 s
+[27019:2559612:1021/175625.227562:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=298.577 s pending_handshakes_= 4
+[27019:2559612:1021/175625.289703:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 4
+[27019:2559612:1021/175625.289774:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 4 throttled_connections_.size()=7
+[27019:2559612:1021/175625.289784:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfa940 pending_handshakes_= 4
+[27019:2559612:1021/175625.289942:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 5
+[27019:2559612:1021/175625.289966:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.131962 s
+[27019:2559612:1021/175625.290186:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 4
+[27019:2559612:1021/175625.290200:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 4 throttled_connections_.size()=7
+[27019:2559612:1021/175625.290207:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11403a80dc0 pending_handshakes_= 4
+[27019:2559612:1021/175625.290287:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 5
+[27019:2559612:1021/175625.290294:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.139876 s
+[27019:2559612:1021/175625.290386:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cfa940
+[27019:2559612:1021/175625.290391:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 5
+[27019:2559612:1021/175625.290398:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 5
+[27019:2559612:1021/175625.290540:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11403a80dc0
+[27019:2559612:1021/175625.290546:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 5
+[27019:2559612:1021/175625.290550:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 5
+[27019:2559612:1021/175625.422136:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 5
+[27019:2559612:1021/175625.422180:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 5 throttled_connections_.size()=6
+[27019:2559612:1021/175625.422188:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cfa940 pending_handshakes_= 5
+[27019:2559612:1021/175625.422281:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 6
+[27019:2559612:1021/175625.422289:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.399779 s
+[27019:2559612:1021/175625.422870:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.425113:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cfa940
+[27019:2559612:1021/175625.425124:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 6
+[27019:2559612:1021/175625.425129:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 6
+[27019:2559612:1021/175625.425136:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 6
+[27019:2559612:1021/175625.431194:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 5
+[27019:2559612:1021/175625.431208:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 5 throttled_connections_.size()=6
+[27019:2559612:1021/175625.431215:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf89c0 pending_handshakes_= 5
+[27019:2559612:1021/175625.431289:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 6
+[27019:2559612:1021/175625.431296:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.302108 s
+[27019:2559612:1021/175625.431620:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.435076:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11405cf89c0
+[27019:2559612:1021/175625.435107:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 6
+[27019:2559612:1021/175625.435113:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 6
+[27019:2559612:1021/175625.435121:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 6
+[27019:2559612:1021/175625.435196:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 6
+[27019:2559612:1021/175625.435204:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 5
+[27019:2559612:1021/175625.435210:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.072816 s
+[27019:2559612:1021/175625.435219:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=298.369 s pending_handshakes_= 5
+[27019:2559612:1021/175625.446043:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 6
+[27019:2559612:1021/175625.446060:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 5
+[27019:2559612:1021/175625.446067:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.141688 s
+[27019:2559612:1021/175625.446077:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=298.363 s pending_handshakes_= 5
+[27019:2559612:1021/175625.509144:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 5
+[27019:2559612:1021/175625.509198:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 5 throttled_connections_.size()=5
+[27019:2559612:1021/175625.509229:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11405cf4e80 pending_handshakes_= 5
+[27019:2559612:1021/175625.509407:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 6
+[27019:2559612:1021/175625.509424:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.259639 s
+[27019:2559612:1021/175625.509888:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11405cf4e80
+[27019:2559612:1021/175625.509905:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 6
+[27019:2559612:1021/175625.509917:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 6
+[27019:2559612:1021/175625.588860:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 5
+[27019:2559612:1021/175625.588911:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 5 throttled_connections_.size()=5
+[27019:2559612:1021/175625.588925:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x114035ed500 pending_handshakes_= 5
+[27019:2559612:1021/175625.589064:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 6
+[27019:2559612:1021/175625.589077:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.208128 s
+[27019:2559612:1021/175625.589450:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x114035ed500
+[27019:2559612:1021/175625.589460:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 6
+[27019:2559612:1021/175625.589468:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 6
+[27019:2559612:1021/175625.770194:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 6
+[27019:2559612:1021/175625.770295:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 6 throttled_connections_.size()=4
+[27019:2559612:1021/175625.770315:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x1140332d200 pending_handshakes_= 6
+[27019:2559612:1021/175625.770530:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 7
+[27019:2559612:1021/175625.770549:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.81388 s
+[27019:2559612:1021/175625.771354:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.775318:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x1140332d200
+[27019:2559612:1021/175625.775337:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 7
+[27019:2559612:1021/175625.775345:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 7
+[27019:2559612:1021/175625.775354:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 7
+[27019:2559612:1021/175625.786255:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 7
+[27019:2559612:1021/175625.786323:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 6
+[27019:2559612:1021/175625.786350:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.400842 s
+[27019:2559612:1021/175625.786373:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=298.018 s pending_handshakes_= 6
+[27019:2559612:1021/175625.798345:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 6
+[27019:2559612:1021/175625.798400:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 6 throttled_connections_.size()=4
+[27019:2559612:1021/175625.798413:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11403a80d80 pending_handshakes_= 6
+[27019:2559612:1021/175625.798571:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 7
+[27019:2559612:1021/175625.798585:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.418671 s
+[27019:2559612:1021/175625.799257:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175625.802977:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x11403a80d80
+[27019:2559612:1021/175625.803001:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 7
+[27019:2559612:1021/175625.803010:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 7
+[27019:2559612:1021/175625.803021:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 7
+[27019:2559612:1021/175625.813446:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 7
+[27019:2559612:1021/175625.813503:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 6
+[27019:2559612:1021/175625.813516:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.34557 s
+[27019:2559612:1021/175625.813536:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=297.995 s pending_handshakes_= 6
+[27019:2559612:1021/175626.160194:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 6
+[27019:2559612:1021/175626.160248:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 6 throttled_connections_.size()=3
+[27019:2559612:1021/175626.160262:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11403a1b500 pending_handshakes_= 6
+[27019:2559612:1021/175626.160423:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 7
+[27019:2559612:1021/175626.160434:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.807963 s
+[27019:2559612:1021/175626.160834:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11403a1b500
+[27019:2559612:1021/175626.160843:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 7
+[27019:2559612:1021/175626.160851:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 7
+[27019:2559612:1021/175626.187287:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 6
+[27019:2559612:1021/175626.187324:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 6 throttled_connections_.size()=3
+[27019:2559612:1021/175626.187333:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x114024a6780 pending_handshakes_= 6
+[27019:2559612:1021/175626.187457:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 7
+[27019:2559612:1021/175626.187465:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.705268 s
+[27019:2559612:1021/175626.187791:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x114024a6780
+[27019:2559612:1021/175626.187797:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 7
+[27019:2559612:1021/175626.187803:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 7
+[27019:2559612:1021/175626.893856:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 7
+[27019:2559612:1021/175626.893926:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 7 throttled_connections_.size()=2
+[27019:2559612:1021/175626.893941:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x1140093e9c0 pending_handshakes_= 7
+[27019:2559612:1021/175626.894135:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 8
+[27019:2559612:1021/175626.894153:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.821737 s
+[27019:2559612:1021/175626.895088:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175626.898968:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x1140093e9c0
+[27019:2559612:1021/175626.899007:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 8
+[27019:2559612:1021/175626.899020:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 8
+[27019:2559612:1021/175626.899032:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 8
+[27019:2559612:1021/175626.910174:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 8
+[27019:2559612:1021/175626.910244:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 7
+[27019:2559612:1021/175626.910259:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.411572 s
+[27019:2559612:1021/175626.910278:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=296.894 s pending_handshakes_= 7
+[27019:2559612:1021/175626.969207:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 7
+[27019:2559612:1021/175626.969308:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 7 throttled_connections_.size()=2
+[27019:2559612:1021/175626.969340:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x1140093bc40 pending_handshakes_= 7
+[27019:2559612:1021/175626.969596:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 8
+[27019:2559612:1021/175626.969653:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=1.89704 s
+[27019:2559612:1021/175626.970793:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175626.974837:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x1140093bc40
+[27019:2559612:1021/175626.974881:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 8
+[27019:2559612:1021/175626.974891:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=0.01 s pending_handshakes_= 8
+[27019:2559612:1021/175626.974903:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=0.01 s pending_handshakes_= 8
+[27019:2559612:1021/175626.986106:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114058e1190 pending_handshakes_= 8
+[27019:2559612:1021/175626.986166:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114058e1180 pending_handshakes_= 7
+[27019:2559612:1021/175626.986180:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=0.428543 s
+[27019:2559612:1021/175626.986199:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114058e1190 after=296.822 s pending_handshakes_= 7
+[27019:2559612:1021/175627.322921:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 7
+[27019:2559612:1021/175627.322962:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 7 throttled_connections_.size()=1
+[27019:2559612:1021/175627.322973:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11400e822c0 pending_handshakes_= 7
+[27019:2559612:1021/175627.323388:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11400e822c0
+[27019:2559612:1021/175627.323397:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 8
+[27019:2559612:1021/175627.323405:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=300 s pending_handshakes_= 8
+[27019:2559612:1021/175627.415802:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114058e1180 pending_handshakes_= 7
+[27019:2559612:1021/175627.415837:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114058e1180 pending_handshakes_= 7 throttled_connections_.size()=1
+[27019:2559612:1021/175627.415847:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x11400e82d00 pending_handshakes_= 7
+[27019:2559612:1021/175627.416245:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:257] WebTransportThrottleContext::Tracker::OnHandshakeFailed() this=0x11400e82d00
+[27019:2559612:1021/175627.416254:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:263]     pending_handshakes_= 8
+[27019:2559612:1021/175627.416260:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114058e1190 after=300 s pending_handshakes_= 8
+[27019:2559612:1021/175628.451025:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:278] WebTransportThrottleContext::PerformThrottle() this=0x114055ba480 pending_handshakes_=8 throttled_connections_=0
+[27019:2559612:1021/175628.451066:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:148] WebTransportThrottleContext::MaybeDecrementPending() this=0x114055ba490 pending_handshakes_= 8
+[27019:2559612:1021/175628.451078:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=295.353 s pending_handshakes_= 8
+[27019:2559612:1021/175628.451092:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:342] WebTransportThrottleContext::ScheduleThrottledConnection() this=0x114055ba480 pending_handshakes_= 8
+[27019:2559612:1021/175628.451099:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:380] Starting throttled_connections_timer_ with delay=1.46701 s
+[27019:2559612:1021/175629.918456:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:407] WebTransportThrottleContext::StartOneConnection() this=0x114055ba480 pending_handshakes_= 8
+[27019:2559612:1021/175629.918544:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:391] WebTransportThrottleContext::DoOnThrottleDone() this=0x114055ba480 pending_handshakes_= 8 throttled_connections_.size()=1
+[27019:2559612:1021/175629.918569:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:192] WebTransportThrottleContext::Tracker() this=0x1140093bb40 pending_handshakes_= 8
+[27019:2559612:1021/175629.919937:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:233] WebTransportThrottleContext::Tracker::OnBeforeConnect() server_address= 127.0.0.1
+[27019:2559612:1021/175629.924201:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:242] WebTransportThrottleContext::Tracker::OnHandshakeEstablished() this=0x1140093bb40
+[27019:2559612:1021/175629.924254:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:248]     pending_handshakes_= 9
+[27019:2559612:1021/175629.924266:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:136] WebTransportThrottleContext::QueuePending() this=0x114055ba490 after=0.01 s pending_handshakes_= 9
+[27019:2559612:1021/175629.924278:VERBOSE1:content/browser/webtransport/web_transport_throttle_context.cc:177] WebTransportThrottleContext::StartPendingQueueTimer() this=0x114055ba490 after=0.01 s pending_handshakes_= 9

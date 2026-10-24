@@ -1,0 +1,16 @@
+{
+  "app": "/private/tmp/blanc-signed-preview-20261022/Relocated Preview.app",
+  "mockKeychain": true,
+  "checks": [
+    {
+      "name": "cancel retains running relocated app",
+      "pass": true
+    },
+    {
+      "name": "cancel retains both tabs",
+      "pass": false
+    }
+  ],
+  "error": "Error: cancel retains both tabs",
+  "forcedCleanup": true
+}

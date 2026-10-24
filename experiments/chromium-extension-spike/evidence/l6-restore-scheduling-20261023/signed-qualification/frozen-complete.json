@@ -1,0 +1,25 @@
+{
+  "source": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "notarizationCompletedBeforeTests": true,
+  "allMemberBytesAndSymlinksUnchanged": true,
+  "members": 463,
+  "temporaryDiagnosticsAbsent": true,
+  "suites": [
+    {
+      "suite": "startup",
+      "exitCode": 0
+    },
+    {
+      "suite": "recovery",
+      "exitCode": 0
+    },
+    {
+      "suite": "core-notice",
+      "exitCode": 0
+    },
+    {
+      "suite": "repeated-targeted",
+      "exitCode": 0
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "app": "/private/tmp/blanc-prerender-repair-20261024/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-repair-20261024/prerender-healthy/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/command",
+          "purpose": null
+        }
+      ]
+    }
+  ],
+  "error": "Error: bounded readiness deadline",
+  "stack": "Error: bounded readiness deadline\n    at until (file:///private/tmp/blanc-prerender-repair-20261024/prerender-healthy.mjs:4:167)\n    at async file:///private/tmp/blanc-prerender-repair-20261024/prerender-healthy.mjs:7:1651"
+}

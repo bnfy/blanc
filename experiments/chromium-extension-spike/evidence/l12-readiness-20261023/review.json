@@ -1,0 +1,109 @@
+{
+  "sourceCheckpoint": "893f1e5a7b430cef5e685a402ad044cb2ff11a0b",
+  "status": "L12 materials prepared; final acceptance blocked",
+  "decision": "NO-GO",
+  "launchGatesAccepted": 9,
+  "denominator": 12,
+  "gateDelta": 0,
+  "candidateSource": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "candidateArchiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+  "candidateScope": "historical accepted evaluation artifact; not a newly patched release candidate",
+  "prerequisites": [
+    "L4 actual Google version upgrade",
+    "L11 safe sandbox recreation and exact-head CI",
+    "replacement signed artifact and relevant qualification",
+    "Decision 2",
+    "exact-artifact owner go/no-go"
+  ],
+  "localLinks": [
+    {
+      "document": "experiments/chromium-extension-spike/preview-user-guide.md",
+      "target": "preview-release-decision-20261023.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-user-guide.md",
+      "target": "preview-manual-maintenance-policy.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "../../docs/chromium-migration-implementation-plan-2026-10-16.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "mac-preview-release-checklist.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l8-replacement-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l11-sandbox-duplication-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l11-repair-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "preview-user-guide.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "preview-manual-maintenance-policy.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "mac-preview-scope-approval-20261022.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l5-owner-acceptance-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l6-restore-scheduling-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l7-owner-acceptance-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "evidence/l10-functional-smoke-20261023/README.md",
+      "exists": true
+    },
+    {
+      "document": "experiments/chromium-extension-spike/preview-release-decision-20261023.md",
+      "target": "preview/README.md",
+      "exists": true
+    }
+  ],
+  "materials": {
+    "experiments/chromium-extension-spike/preview-user-guide.md": "5b902878c1991eddc1aeb17b68918e88654b6afee9853776404740dffe2003c9",
+    "experiments/chromium-extension-spike/preview-release-decision-20261023.md": "e2d49ededf579e90319be13f2d7f3294bdb19320ff9b21fc36020eb78c8b3f9d"
+  },
+  "googleDiffSha256": "0e3ca87926cb2b6e098bbd7daa45547bca83863e3b0966ad7da002279fdab114",
+  "operations": {
+    "build": false,
+    "appLaunch": false,
+    "profileMutation": false,
+    "emailSent": false,
+    "releasePublished": false,
+    "electronDiagnosticBuild": "pending",
+    "latency": "deferred"
+  }
+}

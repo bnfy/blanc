@@ -1,0 +1,40 @@
+The following is a diff from the previous accessibility tree for Window: "New Tab" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 65, 70-84, 94-96
++								94 text 1:02
++					95 container
++						96 container Blanc Island
++							97 HTML content Blanc, URL: chrome://blanc-prototype/index.html
++								98 container
++									99 button Search, tabs & commands (Ctrl/Cmd+L)
++										100 container
++											101 button (disabled) Back
++											102 button (disabled) Forward
++										103 button Switch to New Tab
++										104 text Search or type a URL
++										105 button New tab
++										106 container
++											107 button Reload
++											108 button (disabled) Favorite this page
++											109 button Close tab
++						110 container Blanc address and tabs
++							111 HTML content Blanc Overlay, URL: chrome://blanc-prototype/overlay.html
++								112 container
++									113 container
++										114 text field (settable) Search, enter address, or / for commands
++										115 button (disabled) Back
++										116 button (disabled) Forward
++										117 button Reload
++										118 button (disabled) Favorite this page (Ctrl/Cmd+D)
++										119 button Collapse island
++										120 container New Tab
++											121 button Switch to New Tab
++											122 button Pin tab
++											123 button Close tab
++										124 button Recently closed 20
++										125 button New tab ⌘T
++										126 button Favorites
++										127 button History
++										128 button Downloads
++										129 toggle button Vertical tabs, Value: 0
++	130 menu button Window sharing
+The focused UI element is 114 text field (settable) Search, enter address, or / for commands

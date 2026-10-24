@@ -62,6 +62,8 @@ gate.
 
 **Standing messaging preference (October 4, 2026 owner direction):** Be explicit throughout the website and all other Blanc communications, including social posts, email, release notes, support, demos and product copy. Assume readers are new to Blanc: name the feature, explain what it does and connect it to a concrete benefit. Do not substitute flowery, ambiguous language for that explanation or expect screenshots, branded feature names or prior knowledge to supply it. Prefer “Choose your Start Page layout” and “View two tabs with Glance” to “Start with a view that suits you.” Keep the approved tagline “A little less browser.” Follow the explicit feature and benefit rules in `docs/marketing-claims.md`; this preference applies beyond the current website redesign.
 
+**Prototype patch budget (October 21, 2026 owner direction):** Do not ask for further upstream patch-budget increases during the authorized Chromium prototype work. Record fresh file/hunk totals and update the plan; consolidate patches later where possible. This does not waive guarded incremental builds, approve toolchain changes, authorize latency measurements, or approve the Electron diagnostic build.
+
 ## Commands
 
 ```

@@ -1,0 +1,14 @@
+{
+  "removedDisposablePaths": [
+    "/private/tmp/blanc-preview-notice/test-app",
+    "/private/tmp/blanc-preview-notice/test-profile",
+    "/private/tmp/blanc-preview-notice-final/test-app",
+    "/private/tmp/blanc-preview-notice-final/test-profile",
+    "/private/tmp/blanc-preview-notice-final/footer-profile",
+    "/private/tmp/blanc-preview-notice/Blanc Chromium Preview.app"
+  ],
+  "finalSignedMasterRetained": "/private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app",
+  "supersededArchiveRetained": "/private/tmp/blanc-preview-notice/Blanc-Chromium-Preview-stapled.zip",
+  "retainedSigningAccessUnchanged": true,
+  "noOwnedAppProcessRemaining": true
+}

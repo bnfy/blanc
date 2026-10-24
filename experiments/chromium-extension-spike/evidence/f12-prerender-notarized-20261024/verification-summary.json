@@ -1,0 +1,23 @@
+{
+  "candidateSource": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "appleSubmission": "122ace9e-196b-4f10-8986-c57854a5ee4f",
+  "archiveSha256": "18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc",
+  "postNotaryChecks": 72,
+  "frozenMembersUnchangedAfterAllTests": 463,
+  "removedOwnedFixtures": [
+    "prerender-healthy/private/profile",
+    "prerender-healthy/regular/profile",
+    "prerender-loss/private/profile",
+    "prerender-loss/regular/profile",
+    "prerender-timeout-final/regular/profile",
+    "checks/startup/final",
+    "checks/recovery/node22-home",
+    "checks/core/profile-final",
+    "checks/core/downloads",
+    "test-profile",
+    "test-app"
+  ],
+  "googleBaselineTouched": false,
+  "electronBuildRun": false,
+  "latencyBenchmarkRun": false
+}

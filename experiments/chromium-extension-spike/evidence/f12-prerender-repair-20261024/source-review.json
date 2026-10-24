@@ -1,0 +1,14 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "scope": "HTTP(S) prerender activation only; ordinary navigation and BFCache scope unchanged",
+  "defer": "post task before contacting engine, preventing synchronous reply before kDefer",
+  "lifetime": "navigation-owned condition and weak callbacks; once timer or decision completes invalidate outstanding callback",
+  "deny": "Stop navigation, no resume, no member access after potential destruction",
+  "context": "initiator origin available in common params before sanitized referrer initialization",
+  "privacy": "no new diagnostics or URL logging",
+  "sourceHashes": {
+    "blocker_proxy.cc": "0f162c37953a3f993b12a4af2de62e986b4d06408c62bc3fd9af67b630ca2656",
+    "blocker_proxy.h": "f3e0791e653a21eb3a5995d41d6a58b6a02e8ad83d7d0f6ffa50e26908f37087",
+    "prepare.mjs": "3ada67ad3e2b11264f0168333187228d6874554919c193fe84cd18e09c64b2f9"
+  }
+}

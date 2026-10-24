@@ -13,6 +13,8 @@ export function prepareSaveAcknowledgement(edit) {
   }
 ]);
   edit("components/sessions/core/command_storage_backend.cc", [
+  {"anchor": "#include \"build/build_config.h\"\n", "replacement": "#include \"build/build_config.h\"\n#if BUILDFLAG(IS_POSIX)\n#include <fcntl.h>\n#include <sys/stat.h>\n#include \"base/files/scoped_file.h\"\n#include \"base/posix/eintr_wrapper.h\"\n#endif\n", "present": "#include \"base/posix/eintr_wrapper.h\""},
+  {"anchor": "    file_ = std::make_unique<base::File>(\n        path, base::File::FLAG_OPEN | base::File::FLAG_READ);", "replacement": "#if BUILDFLAG(IS_POSIX)\n    // Session records are regular files. Opening a FIFO in blocking mode can\n    // strand the shutdown-blocking storage sequence before recovery can quit.\n    // Validate the opened descriptor, avoiding a path-check/open race.\n    base::ScopedFD fd(HANDLE_EINTR(open(\n        path.value().c_str(), O_RDONLY | O_NONBLOCK | O_CLOEXEC)));\n    struct stat info;\n    if (fd.is_valid() && fstat(fd.get(), &info) == 0 && S_ISREG(info.st_mode)) {\n      file_ = std::make_unique<base::File>(std::move(fd));\n    } else {\n      file_ = std::make_unique<base::File>();\n    }\n#else\n    file_ = std::make_unique<base::File>(\n        path, base::File::FLAG_OPEN | base::File::FLAG_READ);\n#endif", "present": "// Validate the opened descriptor, avoiding a path-check/open race."},
   {
     "anchor": "// static\nbool CommandStorageBackend::TimestampFromPath(const base::FilePath& path,\n",
     "replacement": "bool CommandStorageBackend::FlushCurrentSession() {\n  return open_file_ && open_file_->did_write_marker && open_file_->file->Flush();\n}\n\n// static\nbool CommandStorageBackend::TimestampFromPath(const base::FilePath& path,\n",

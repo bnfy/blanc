@@ -1,0 +1,18 @@
+{
+  "L11": "open; blocked",
+  "readiness": "9/12 (75%); delta0",
+  "auditedHead": "dc9d5556aee9f490f302111802fcb19a39f1986e",
+  "candidateSource": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "failure": "substrate dependency policy: electron GHSA-jr5w-w6x2-84p9; zod GHSA-mrhx-c7xc-m3w5",
+  "checks": {
+    "('in_progress', None)": 6,
+    "('completed', 'success')": 14,
+    "('completed', 'failure')": 1
+  },
+  "codeql": "Current javascript analysis in progress. 48 open alerts returned for previous PR-merge analysis f5aed858; not evidence of current-head clearance.",
+  "noNativeBuild": true,
+  "noElectronDiagnosticBuild": true,
+  "noJobRerun": true,
+  "googleBaselineSeparate": true,
+  "noReleaseApproval": true
+}

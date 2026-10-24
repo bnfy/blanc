@@ -1,0 +1,14 @@
+{
+  "machine": "local; not second Mac acceptance",
+  "path": "/Users/anthonyjloria/Library/Mobile Documents/com~apple~CloudDocs/Downloads/Blanc Chromium Preview.app",
+  "matchedFiles": 458,
+  "quarantine": "0083;6adbaed6;Safari;A8EA4755-92D0-4B6F-AE77-79D4007068EE",
+  "symlinks": {
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Blanc Prototype Framework": "Versions/Current/Blanc Prototype Framework",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Helpers": "Versions/Current/Helpers",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Libraries": "Versions/Current/Libraries",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Resources": "Versions/Current/Resources",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/Current": "157.0.8103.15"
+  },
+  "extraRegularFiles": []
+}

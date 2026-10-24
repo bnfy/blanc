@@ -1,0 +1,34 @@
+  // Allows the embedder to register one or more NavigationThrottles for the
+  // navigation indicated by |navigation_handle|.  A NavigationThrottle is used
+  // to control the flow of a navigation on the UI thread. The embedder is
+  // guaranteed that the throttles will be executed in the order they were
+  // provided. NavigationThrottles are run only for document loading
+  // navigations; they are specifically not run for page activating navigations
+  // such as prerender activation and back-forward cache restores or for
+  // navigations that don't use a URLLoader like same-document navigations.
+  virtual void CreateThrottlesForNavigation(
+      NavigationThrottleRegistry& registry);
+
+  // Allows the embedder to register NavigationThrottles for a navigation that
+  // commits without a URL loader (e.g. about:blank, about:srcdoc, other
+  // empty-document schemes, and same-document navigations). Such navigations
+  // do not go through CreateThrottlesForNavigation(); a throttle that wants to
+  // observe them (via NavigationThrottle::WillCommitWithoutUrlLoader()) must be
+  // registered here. The default implementation adds nothing.
+  virtual void CreateThrottlesForCommitWithoutUrlLoader(
+      NavigationThrottleRegistry& registry);
+
+  // Allows the embedder to register one or more CommitDeferringConditions for
+  // the navigation indicated by |navigation_handle|. A
+  // CommitDeferringCondition is used to delay committing a navigation until an
+  // embedder-defined condition is met. Similar to NavigationThrottles,
+  // CommitDeferringConditions are not used in navigations that don't use a
+  // URLLoader, like same-document navigations. Unlike NavigationThrottles,
+  // CommitDeferringConditions are also run on page activating navigations such
+  // as prerender activation and back-forward cache restores.
+  virtual std::vector<std::unique_ptr<CommitDeferringCondition>>
+  CreateCommitDeferringConditionsForNavigation(
+      NavigationHandle* navigation_handle,
+      content::CommitDeferringCondition::NavigationType type);
+
+  // Allows the embedder to register one or more

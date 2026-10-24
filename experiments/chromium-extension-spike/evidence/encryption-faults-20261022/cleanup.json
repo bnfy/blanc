@@ -1,0 +1,12 @@
+{
+  "live_owned_processes": [],
+  "removed": [
+    "Blanc Chromium Preview.app",
+    "delay-corrected-profile",
+    "permanent-profile",
+    "temporary-profile",
+    "never-corrected-profile",
+    "never-profile",
+    "delay-profile"
+  ]
+}

@@ -1,6 +1,8 @@
 # A1: upstream integration and patch-budget design
 
-Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. Current tranche ceiling remains **49 existing upstream files / 120 hunks**.
+> October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
+
+Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. The original 49/120 ceiling below is historical. Current October24 counter is **73 files/180 hunks**, with151clean resolved Git dependencies ([recorded prerender inventory](evidence/f12-prerender-repair-20261024/patch-inventory.json)); further increases use standing owner authorization and must be recorded.
 
 ## Measured starting point
 
@@ -34,7 +36,7 @@ A whole-file override can reduce direct edits but increases shadowed source risk
 | Session acknowledgement/identity | Backend, manager, service, restore and live-tab metadata patches enforce durable identity and failure reporting. | Preserve clear/encrypted write failures, delayed completion, owner destruction, duplicate identities and crash reconstruction evidence. No removal recommended before a supported upstream equivalent exists. |
 | Document tokens/blocker and worker hooks | Browser/renderer/Mojo and update-loader edits carry safety and attribution contracts. | Re-run request-path, stale-document, navigation, lifecycle and fail-closed tests. Do not trade correctness for lower inventory. |
 
-No reduction has been applied or measured. Proposal for Decision 2: retain 49/120 initially, prioritize demonstrated removal over speculative extra headroom, and require owner approval for any change. Historical stop conditions remain historical and cannot be waived by this design.
+No reduction has been applied or measured. Current Decision2 proposal: use the recorded73/180footprint as the review baseline and prioritize demonstrated removal. The owner permits recorded increases without repeated budget approval; this does not approve a layout migration or claim a maintenance-cost reduction. Historical stop conditions remain historical and cannot be waived by this design.
 
 ## Fail-closed patch application contract
 
@@ -42,7 +44,7 @@ The future apply tool operates only on the pinned clean source/dependency revisi
 
 ## CI reporting design
 
-Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Fail the budget check above 49/120; report approaching limits without changing the limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
+Every PR should run a lightweight manifest/source-policy check and report the intended upstream paths, direct delta, override delta and missing evidence. A dedicated trusted runner with the pinned Chromium checkout runs the authoritative existing counter after applying the series. Upload signed/hashed inventory evidence tied to the PR SHA, Chromium SHA, resolved dependency pins and tool version. A missing checkout or refused dependency audit is **unverified**, never a zero count or successful budget check. Report the actual current count against the reviewed baseline (currently73/180); any future enforced ceiling must be explicitly documented rather than retaining the historical58/137 limit. Avoid giving untrusted PR scripts credentials or a writable shared developer checkout.
 
 The hosted PR suite currently does not constitute this authoritative Chromium inventory job. Wiring the manifest/apply tool and runner is implementation after Decision 2. Design review remains open; this artifact does not close the runtime, visual, VoiceOver, cost, latency or extension-upgrade gates.
 

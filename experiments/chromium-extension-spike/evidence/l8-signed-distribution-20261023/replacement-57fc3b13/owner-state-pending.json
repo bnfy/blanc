@@ -1,0 +1,11 @@
+{
+  "phase": "pending",
+  "previewProfileExists": true,
+  "extension": {},
+  "shippingHashes": {
+    "Contents/Info.plist": "febdfaa900220f76f9e35cfbf7a77a6418f71c1f8ea3ce036c3fe4cc11d80b68",
+    "Contents/MacOS/Blanc": "f944087b8038fdf58e70b298e44b7f441657524682b056b715295ff0e6d42781",
+    "Contents/Resources/app.asar": "35b3ee16358ce874bc3b52ffd0fd471057be16c448fbd9d1b24541c19e71a841"
+  },
+  "shippingFilesUnchanged": true
+}

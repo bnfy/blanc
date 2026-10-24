@@ -1,0 +1,28 @@
+{
+  "artifacts": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+      "sha256": "2b7f41e95a5d88efa8c257f1c742da4b4535e1f27ca555783ad570221cda1e8d",
+      "bytes": 595855760
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "5e9c95707a7b7fb4c879055cd93dc0428bdf967eccd84daa6634d9d92e8000d0",
+      "bytes": 41750
+    },
+    {
+      "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-native-run.mjs",
+      "sha256": "51d37cadf35a63b4145f97d2046285d29cf60778757adf2f8bb88200e9329c2a"
+    }
+  ]
+}

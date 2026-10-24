@@ -1,0 +1,42 @@
+{
+  "app": "/private/tmp/blanc-l11-signed-replacement/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger before activation; kill exact disposable blocker utility after armed timer",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/final-loss/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ]
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: native profile mode\n+ actual - expected\n\n+ undefined\n- false\n",
+  "stack": "AssertionError [ERR_ASSERTION]: native profile mode\n+ actual - expected\n\n+ undefined\n- false\n\n    at file:///private/tmp/blanc-prerender-acceptance-20261024/final-loss.mjs:7:1662"
+}

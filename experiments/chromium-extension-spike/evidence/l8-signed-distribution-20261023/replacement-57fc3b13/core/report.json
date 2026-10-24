@@ -1,0 +1,272 @@
+{
+  "app": "/private/tmp/blanc-l8-notices-final/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-l8-notices-final/tests/core/profile-final",
+  "checks": [
+    {
+      "name": "fresh signed start page",
+      "pass": true,
+      "details": [
+        "blanc://newtab/"
+      ]
+    },
+    {
+      "name": "native navigation loads page",
+      "pass": true
+    },
+    {
+      "name": "back and forward preserve tab identity",
+      "pass": true
+    },
+    {
+      "name": "reload preserves page",
+      "pass": true
+    },
+    {
+      "name": "native find returns two matches",
+      "pass": true,
+      "details": {
+        "activeMatchOrdinal": 1,
+        "matches": 2,
+        "finalUpdate": true
+      }
+    },
+    {
+      "name": "native zoom changes and resets",
+      "pass": true,
+      "details": {
+        "base": 2
+      }
+    },
+    {
+      "name": "favorite appears in native list",
+      "pass": true,
+      "details": [
+        {
+          "addedAt": 1792782364851.922,
+          "favicon": null,
+          "folder": null,
+          "id": "5",
+          "title": "L10 /two",
+          "url": "http://127.0.0.1:9820/two"
+        }
+      ]
+    },
+    {
+      "name": "visited pages appear in history",
+      "pass": true,
+      "details": [
+        {
+          "favicon": null,
+          "title": "L10 /two",
+          "url": "http://127.0.0.1:9820/two",
+          "visitedAt": 1792782364516.188
+        },
+        {
+          "favicon": null,
+          "title": "L10 /one",
+          "url": "http://127.0.0.1:9820/one",
+          "visitedAt": 1792782363907.326
+        }
+      ]
+    },
+    {
+      "name": "native download saves exact bytes",
+      "pass": true,
+      "details": {
+        "bytes": 27
+      }
+    },
+    {
+      "name": "basic audio decode and playback advance",
+      "pass": true,
+      "details": {
+        "time": 0.158564,
+        "paused": false,
+        "error": null
+      }
+    },
+    {
+      "name": "tab mute control updates native state",
+      "pass": true
+    },
+    {
+      "name": "start customization applies",
+      "pass": true,
+      "details": {
+        "layout": "shelf",
+        "dynamicWallpaperEnabled": false,
+        "wallpaper": {
+          "source": "color",
+          "image": null,
+          "hasImage": false,
+          "style": "dark",
+          "wash": 100,
+          "color": {
+            "presets": [
+              {
+                "id": "sage",
+                "hex": "#426c4c"
+              },
+              {
+                "id": "sky",
+                "hex": "#376694"
+              },
+              {
+                "id": "iris",
+                "hex": "#6757a3"
+              },
+              {
+                "id": "rose",
+                "hex": "#9b4761"
+              },
+              {
+                "id": "clay",
+                "hex": "#974f2a"
+              },
+              {
+                "id": "sand",
+                "hex": "#815c02"
+              },
+              {
+                "id": "slate",
+                "hex": "#576471"
+              },
+              {
+                "id": "graphite",
+                "hex": "#3a3a3a"
+              }
+            ],
+            "preset": "sage",
+            "followSpace": false,
+            "inSpace": false,
+            "paint": {
+              "fill": "gradient",
+              "fromSpace": false,
+              "base": "#426c4c",
+              "glow": "#4d7557",
+              "deep": "#304e37",
+              "ink": "#ffffff",
+              "dim": "#eaefeb",
+              "softLight": "#e2e2d5",
+              "softDark": "#263325"
+            }
+          },
+          "themeAvailable": false
+        },
+        "groups": [],
+        "remoteDevices": [],
+        "blockedThisWeek": 0,
+        "topSites": [
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ],
+        "wallpaperVisible": true
+      }
+    },
+    {
+      "name": "vertical rail is selected",
+      "pass": true
+    },
+    {
+      "name": "restart retains tabs and selected start page",
+      "pass": true,
+      "details": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9820/two"
+      ]
+    },
+    {
+      "name": "start customization persists after restart",
+      "pass": true,
+      "details": {
+        "layout": "shelf",
+        "dynamicWallpaperEnabled": false,
+        "wallpaper": {
+          "source": "color",
+          "image": null,
+          "hasImage": false,
+          "style": "dark",
+          "wash": 100,
+          "color": {
+            "presets": [
+              {
+                "id": "sage",
+                "hex": "#426c4c"
+              },
+              {
+                "id": "sky",
+                "hex": "#376694"
+              },
+              {
+                "id": "iris",
+                "hex": "#6757a3"
+              },
+              {
+                "id": "rose",
+                "hex": "#9b4761"
+              },
+              {
+                "id": "clay",
+                "hex": "#974f2a"
+              },
+              {
+                "id": "sand",
+                "hex": "#815c02"
+              },
+              {
+                "id": "slate",
+                "hex": "#576471"
+              },
+              {
+                "id": "graphite",
+                "hex": "#3a3a3a"
+              }
+            ],
+            "preset": "sage",
+            "followSpace": false,
+            "inSpace": false,
+            "paint": {
+              "fill": "gradient",
+              "fromSpace": false,
+              "base": "#426c4c",
+              "glow": "#4d7557",
+              "deep": "#304e37",
+              "ink": "#ffffff",
+              "dim": "#eaefeb",
+              "softLight": "#e2e2d5",
+              "softDark": "#263325"
+            }
+          },
+          "themeAvailable": false
+        },
+        "groups": [],
+        "remoteDevices": [],
+        "blockedThisWeek": 0,
+        "topSites": [
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ],
+        "wallpaperVisible": true
+      }
+    },
+    {
+      "name": "favorite and history persist",
+      "pass": true
+    },
+    {
+      "name": "clean final exit",
+      "pass": true,
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "complete": true
+}

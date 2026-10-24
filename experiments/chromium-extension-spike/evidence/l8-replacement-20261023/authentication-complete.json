@@ -1,0 +1,25 @@
+{
+  "pinnedManifestAuthentication": {
+    "version": "157.0.8103.15",
+    "source": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+    "archiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+    "authenticatedFiles": 4,
+    "signer": "anthony@bnfy.me",
+    "issuer": "https://github.com/login/oauth"
+  },
+  "freshSafariFlowAfterOwnerUnlock": true,
+  "oauthCallbackCompleted": true,
+  "newSigningKeySetup": false,
+  "realTamperControls": [
+    {
+      "case": "manifest",
+      "exitCode": 1,
+      "rejected": true
+    },
+    {
+      "case": "artifact",
+      "exitCode": 1,
+      "rejected": true
+    }
+  ]
+}

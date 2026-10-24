@@ -31,9 +31,11 @@ function pageBody(req) {
         : '';
   // Glance links (F34): ?blanklink=<name> adds a target=_blank link to
   // /site/<name>. The name is restricted so nothing reaches the markup raw.
-  const blankName = /[?&]blanklink=([a-z0-9-]{1,40})(?:&|$)/.exec(raw)?.[1];
-  const blankLink = blankName
-    ? `<p><a id="acceptance-blank" href="/site/${blankName}" target="_blank" style="display:inline-block;padding:16px">open ${blankName}</a></p>`
+  const blankLink = raw.includes('blanklink=')
+    ? `<p><a id="acceptance-blank" target="_blank" style="display:inline-block;padding:16px"></a></p>` +
+      `<script>{const name=new URLSearchParams(location.search).get('blanklink');` +
+      `const link=document.getElementById('acceptance-blank');` +
+      `if(name&&/^[a-z0-9-]{1,40}$/.test(name)){link.href='/site/'+encodeURIComponent(name);link.textContent='open '+name;}else{link.remove();}}</script>`
     : '';
   // Drag-out probe (F3-15): records anything a page could learn from a tab
   // drag released over it. Read back with workspacePageScript.

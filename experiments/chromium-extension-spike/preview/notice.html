@@ -1,0 +1,24 @@
+<dialog id="previewNotice" class="preview-notice" role="dialog" aria-labelledby="previewNoticeTitle" aria-describedby="previewNoticeStatus">
+  <header class="preview-notice-heading">
+    <div><p class="preview-notice-eyebrow">Blanc Chromium Preview</p><h2 id="previewNoticeTitle">Version &amp; security</h2></div>
+    <button id="previewNoticeClose" type="button" aria-label="Close version and security">Close</button>
+  </header>
+  <p id="previewNoticeStatus" class="preview-notice-status">Not released — evaluation only</p>
+  <dl class="preview-notice-build">
+    <div><dt>Chromium</dt><dd data-preview-field="version"></dd></div>
+    <div><dt>Source revision</dt><dd data-preview-field="revision"></dd></div>
+    <div><dt>Packaged</dt><dd data-preview-field="packagedAt"></dd></div>
+    <div><dt>Platform</dt><dd data-preview-field="supportedPlatform"></dd></div>
+  </dl>
+  <p>This packaged status is a snapshot. Check the current security and withdrawal status before using or updating this preview. No automatic status check or update runs.</p>
+  <p><a id="previewLiveStatus" rel="noreferrer">Current status, updates &amp; withdrawal notice ↗</a></p>
+  <h3>Update safely</h3>
+  <p>Quit the preview and save a closed backup of its preview profile. Verify the replacement’s published checksum and Developer ID, then replace only Blanc Chromium Preview.app. Shipping Blanc is separate.</p>
+  <h3>If this preview is withdrawn</h3>
+  <p>Quit it and use shipping Blanc. Remove only the preview app; keep its profile for recovery. This preview cannot be remotely disabled.</p>
+  <h3>Roll back without risking saved tabs</h3>
+  <p>Keep the newer profile separately. Use the older signed app with its matching closed profile backup, or start with a fresh preview profile. Never open an upgraded profile with an older app.</p>
+  <p class="preview-notice-profile">Preview profile: <code>~/Library/Application Support/Blanc Chromium Preview</code></p>
+  <p>Maintained by <span data-preview-field="maintainer"></span>. Distribution pauses when the maintainer is unavailable.</p>
+  <p><a id="previewSupport" rel="noreferrer">Report a problem or security concern</a>. Do not post passwords, private browsing data, or sensitive logs in the public status thread.</p>
+</dialog>

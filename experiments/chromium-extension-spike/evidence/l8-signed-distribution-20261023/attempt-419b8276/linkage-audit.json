@@ -1,0 +1,209 @@
+{
+  "checkedMachO": 17,
+  "unexpectedExternalDependencies": [],
+  "dependencies": {
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework": [
+      "/System/Library/Frameworks/Carbon.framework/Versions/A/Carbon",
+      "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices",
+      "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+      "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+      "/System/Library/Frameworks/CFNetwork.framework/Versions/A/CFNetwork",
+      "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "/usr/lib/libobjc.A.dylib",
+      "/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText",
+      "/System/Library/Frameworks/Quartz.framework/Versions/A/Quartz",
+      "/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore",
+      "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage",
+      "/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo",
+      "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+      "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+      "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+      "/System/Library/Frameworks/OpenDirectory.framework/Versions/A/OpenDirectory",
+      "/System/Library/Frameworks/CryptoTokenKit.framework/Versions/A/CryptoTokenKit",
+      "/System/Library/Frameworks/LocalAuthentication.framework/Versions/A/LocalAuthentication",
+      "/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate",
+      "/System/Library/Frameworks/AudioUnit.framework/Versions/A/AudioUnit",
+      "/System/Library/Frameworks/AVFAudio.framework/Versions/A/AVFAudio",
+      "/System/Library/Frameworks/ScreenCaptureKit.framework/Versions/A/ScreenCaptureKit",
+      "/System/Library/Frameworks/UniformTypeIdentifiers.framework/Versions/A/UniformTypeIdentifiers",
+      "/System/Library/Frameworks/Network.framework/Versions/A/Network",
+      "/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/SystemConfiguration",
+      "/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface",
+      "/System/Library/Frameworks/CoreMedia.framework/Versions/A/CoreMedia",
+      "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+      "/System/Library/PrivateFrameworks/SkyLight.framework/Versions/A/SkyLight",
+      "/System/Library/Frameworks/AudioToolbox.framework/Versions/A/AudioToolbox",
+      "/System/Library/Frameworks/CoreAudio.framework/Versions/A/CoreAudio",
+      "/System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL",
+      "/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa",
+      "/System/Library/Frameworks/AVFoundation.framework/Versions/A/AVFoundation",
+      "/System/Library/Frameworks/VideoToolbox.framework/Versions/A/VideoToolbox",
+      "/System/Library/Frameworks/CoreMediaIO.framework/Versions/A/CoreMediaIO",
+      "/System/Library/Frameworks/Accessibility.framework/Versions/A/Accessibility",
+      "/System/Library/Frameworks/MetalKit.framework/Versions/A/MetalKit",
+      "/System/Library/Frameworks/CoreBluetooth.framework/Versions/A/CoreBluetooth",
+      "/System/Library/Frameworks/IOBluetooth.framework/Versions/A/IOBluetooth",
+      "/System/Library/Frameworks/CoreMIDI.framework/Versions/A/CoreMIDI",
+      "/System/Library/Frameworks/MediaAccessibility.framework/Versions/A/MediaAccessibility",
+      "/System/Library/Frameworks/SecurityInterface.framework/Versions/A/SecurityInterface",
+      "/System/Library/Frameworks/MediaPlayer.framework/Versions/A/MediaPlayer",
+      "/System/Library/Frameworks/AuthenticationServices.framework/Versions/A/AuthenticationServices",
+      "/System/Library/Frameworks/CoreHaptics.framework/Versions/A/CoreHaptics",
+      "/System/Library/Frameworks/GameController.framework/Versions/A/GameController",
+      "/System/Library/Frameworks/ForceFeedback.framework/Versions/A/ForceFeedback",
+      "/System/Library/Frameworks/CoreWLAN.framework/Versions/A/CoreWLAN",
+      "/System/Library/Frameworks/CoreLocation.framework/Versions/A/CoreLocation",
+      "/System/Library/Frameworks/Vision.framework/Versions/A/Vision",
+      "/System/Library/Frameworks/CoreML.framework/Versions/A/CoreML",
+      "/System/Library/Frameworks/DiskArbitration.framework/Versions/A/DiskArbitration",
+      "/System/Library/Frameworks/ServiceManagement.framework/Versions/A/ServiceManagement",
+      "/System/Library/Frameworks/SafariServices.framework/Versions/A/SafariServices",
+      "/System/Library/Frameworks/UserNotifications.framework/Versions/A/UserNotifications",
+      "/System/Library/Frameworks/LocalAuthenticationEmbeddedUI.framework/Versions/A/LocalAuthenticationEmbeddedUI",
+      "/usr/lib/libcups.2.dylib",
+      "/usr/lib/libbsm.0.dylib",
+      "/usr/lib/libpmenergy.dylib",
+      "/usr/lib/libpmsample.dylib",
+      "/usr/lib/libresolv.9.dylib",
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libbz2.1.0.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)": [
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)": [
+      "@executable_path/../../../../Libraries/libaperitif.dylib",
+      "@executable_path/../../../../Blanc Prototype Framework",
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)": [
+      "@executable_path/../../../../Libraries/libaperitif.dylib",
+      "@executable_path/../../../../Blanc Prototype Framework",
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)": [
+      "@executable_path/../../../../Libraries/libaperitif.dylib",
+      "@executable_path/../../../../Blanc Prototype Framework",
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)": [
+      "@executable_path/../../../../Libraries/libaperitif.dylib",
+      "@executable_path/../../../../Blanc Prototype Framework",
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)": [
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)": [
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper": [
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/app_mode_loader": [
+      "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+      "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices",
+      "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+      "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+      "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "/usr/lib/libobjc.A.dylib",
+      "/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText",
+      "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+      "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+      "/System/Library/Frameworks/OpenDirectory.framework/Versions/A/OpenDirectory",
+      "/System/Library/Frameworks/CryptoTokenKit.framework/Versions/A/CryptoTokenKit",
+      "/System/Library/Frameworks/LocalAuthentication.framework/Versions/A/LocalAuthentication",
+      "/usr/lib/libbsm.0.dylib",
+      "/usr/lib/libpmenergy.dylib",
+      "/usr/lib/libpmsample.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler": [
+      "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "/usr/lib/libobjc.A.dylib",
+      "/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics",
+      "/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText",
+      "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+      "/System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices",
+      "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+      "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+      "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+      "/System/Library/Frameworks/OpenDirectory.framework/Versions/A/OpenDirectory",
+      "/usr/lib/libbsm.0.dylib",
+      "/usr/lib/libpmenergy.dylib",
+      "/usr/lib/libpmsample.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/web_app_shortcut_copier": [
+      "@executable_path/../Blanc Prototype Framework",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libaperitif.dylib": [
+      "/usr/lib/libsandbox.1.dylib",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvk_swiftshader.dylib": [
+      "/System/Library/Frameworks/Metal.framework/Versions/A/Metal",
+      "/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa",
+      "/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit",
+      "/usr/lib/libobjc.A.dylib",
+      "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+      "/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvulkan.dylib": [
+      "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/MacOS/Blanc Preview Launcher": [
+      "/usr/lib/libSystem.B.dylib"
+    ],
+    "Contents/MacOS/Blanc Prototype": [
+      "/usr/lib/libSystem.B.dylib"
+    ]
+  },
+  "dylibIdentitiesExcludedFromDependencies": {
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework": [
+      "@executable_path/../Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/app_mode_loader": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/chrome_crashpad_handler": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/web_app_shortcut_copier": [],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libaperitif.dylib": [
+      "@executable_path/../Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libaperitif.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvk_swiftshader.dylib": [
+      "@rpath/libvk_swiftshader.dylib"
+    ],
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Libraries/libvulkan.dylib": [
+      "./libvulkan.dylib"
+    ],
+    "Contents/MacOS/Blanc Preview Launcher": [],
+    "Contents/MacOS/Blanc Prototype": []
+  },
+  "initialFixtureCorrections": [
+    "Plain COW filenames avoid otool archive(member) parsing of parentheses.",
+    "otool -D distinguishes a dylib own install name from its load dependencies. libvulkan self ID ./libvulkan.dylib is not a linked external input."
+  ],
+  "limit": "System/loader-relative load references plus successful signed runtime; no independent ABI qualification"
+}

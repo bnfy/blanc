@@ -1,0 +1,66 @@
+{
+  "bundle": "/private/tmp/blanc-visual-isolation-20261022/Blanc Chromium Preview.app",
+  "plists": [
+    {
+      "path": "Contents/Info.plist",
+      "id": "me.bnfy.blanc.chromium.preview",
+      "executable": "Blanc Prototype",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Resources/Info.plist",
+      "id": "day.blanc.prototype.framework",
+      "executable": "Blanc Prototype Framework",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.framework.AlertNotificationService",
+      "executable": "Blanc Prototype Helper (Aperitif Alerts)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper",
+      "executable": "Blanc Prototype Helper (GPU)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper.renderer",
+      "executable": "Blanc Prototype Helper (Aperitif Renderer)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper",
+      "executable": "Blanc Prototype Helper",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper",
+      "executable": "Blanc Prototype Helper (Aperitif GPU)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper.renderer",
+      "executable": "Blanc Prototype Helper (Renderer)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.helper",
+      "executable": "Blanc Prototype Helper (Aperitif)",
+      "urlTypes": []
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist",
+      "id": "day.blanc.prototype.framework.AlertNotificationService",
+      "executable": "Blanc Prototype Helper (Alerts)",
+      "urlTypes": []
+    }
+  ],
+  "signature": "Executable=/private/tmp/blanc-visual-isolation-20261022/Blanc Chromium Preview.app/Contents/MacOS/Blanc Prototype\nIdentifier=me.bnfy.blanc.chromium.preview\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20400 size=375 flags=0x2(adhoc) hashes=5+3 location=embedded\nSignature=adhoc\nInfo.plist entries=36\nTeamIdentifier=not set\nSealed Resources version=2 rules=13 files=63\nInternal requirements count=0 size=12\n"
+}

@@ -1,0 +1,14 @@
+{
+  "kinds": [
+    "regular",
+    "private"
+  ],
+  "modes": [
+    "shutdown-veto"
+  ],
+  "lastWindow": true,
+  "cycles": 3,
+  "consumersPerCycle": 8,
+  "vetoRoundsPerCycle": 2,
+  "exitRequestsPerRound": 4
+}
