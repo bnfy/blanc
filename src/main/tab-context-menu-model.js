@@ -84,7 +84,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -152,15 +152,15 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   }
   items.push({ type: 'separator' });
 
-  if (surface === 'row' && !isActive) {
+  if (surface === 'row' && (!isActive || (tab.splitId && canGlance))) {
     // The current reference (its ⌘L row, or the Glance header) closes Glance.
     items.push(tab.id === glanceTabId
       ? { id: 'close-glance', label: t('menu.closeGlance') }
-      : { id: 'glance', label: t('tabMenu.glance') });
+      : { id: 'glance', label: t('tabMenu.glance'), enabled: canGlance });
     // canQuiet is main's explicit-quiet predicate (the sweep's full policy
     // minus the idle threshold) — the same check the action runs, so this
     // item can never render enabled for a tab the action would refuse.
-    items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
+    if (!isActive) items.push({ id: 'quiet', label: t('tabMenu.quiet'), enabled: !!canQuiet });
     items.push({ type: 'separator' });
   }
 
