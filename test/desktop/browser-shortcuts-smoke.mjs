@@ -148,9 +148,13 @@ try {
   // Copy Link puts the active page's exact address on the clipboard; a blank
   // tab has nothing to copy and leaves the clipboard alone.
   await call(app, 'setClipboardText', ['sentinel']);
-  const copyState = await state();
-  const copyUrl = copyState.tabs.find(tab => tab.id === copyState.activeTabId).url;
-  assert.ok(copyUrl.startsWith(origin), `Copy Link fixture is a web page (${copyUrl})`);
+  // The survivor rule may have left the initial blank tab active; copy from a
+  // fixture page.
+  const copyTab = (await state()).tabs.find(tab => tab.url === `${origin}/one`);
+  assert.ok(copyTab, 'Copy Link fixture page is open');
+  const copyUrl = copyTab.url;
+  await call(app, 'activateTab', [copyTab.id]);
+  await wait(state, value => value.activeTabId === copyTab.id, 'Copy Link fixture active');
   await press('copy-link', 'C', ['control', 'shift']);
   await wait(() => call(app, 'readClipboardText'), value => value === copyUrl, 'active page address copied');
   await press('new-tab', 'T', ['control']);
