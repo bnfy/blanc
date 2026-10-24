@@ -14,6 +14,10 @@ const { normalizeWash, normalizeWashStyle } = require('./wallpaper-model');
 const { normalizePreset, normalizeFill } = require('./start-page-paint');
 const clockRules = require('./start-clock-style');
 const { AUTO_HIDE_STYLES, normalizeAutoHideStyle } = require('./island-autohide');
+
+// Surface style: the palette of Blanc's own warm pages (utility sheets, the
+// Start Page). Neutral swaps the cream and gold for plain ink and gray.
+const SURFACE_STYLES = ['sunrise', 'neutral'];
 const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
@@ -239,6 +243,8 @@ const DEFAULTS = {
   // Device-local, not Profile Synced.
   islandAutoHide: false,
   islandAutoHideStyle: 'float',
+  // Palette of the internal pages; device-local, not Profile Synced.
+  surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
   // the page area ({x, y, width, height}, each 0..1), or null for the
   // first-open frame. Device-local, written ONLY by setGlanceFrame().
@@ -512,6 +518,7 @@ function getSettings() {
   if (typeof data.searchPriorityResults !== 'boolean') data.searchPriorityResults = DEFAULTS.searchPriorityResults;
   if (typeof data.islandAutoHide !== 'boolean') data.islandAutoHide = DEFAULTS.islandAutoHide;
   data.islandAutoHideStyle = normalizeAutoHideStyle(data.islandAutoHideStyle);
+  if (!SURFACE_STYLES.includes(data.surfaceStyle)) data.surfaceStyle = DEFAULTS.surfaceStyle;
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
@@ -634,6 +641,7 @@ function sanitize(partial) {
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
   if (AUTO_HIDE_STYLES.includes(partial.islandAutoHideStyle)) clean.islandAutoHideStyle = partial.islandAutoHideStyle;
+  if (SURFACE_STYLES.includes(partial.surfaceStyle)) clean.surfaceStyle = partial.surfaceStyle;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (TAB_ARCHIVE_DELAYS.includes(partial.tabArchive)) clean.tabArchive = partial.tabArchive;
   if (typeof partial.mouseGesturesEnabled === 'boolean') clean.mouseGesturesEnabled = partial.mouseGesturesEnabled;
