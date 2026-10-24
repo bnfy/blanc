@@ -1544,6 +1544,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="error_blocking_settings">Blockier-Einstellungen</string>
     <string name="error_code">Fehler %1$s</string>
     <string name="error_crash_detail">%1$s (Grund: %2$s)</string>
+    <string name="error_inert_title">Dieser Tab kann nicht wieder geöffnet werden</string>
+    <string name="error_inert_detail">Eine Seite hat diesen Tab geöffnet, und Blanc kann ihn nicht mit den Einschränkungen wieder öffnen, die diese Seite festgelegt hat. Um ihn erneut aufzurufen, kopiere den Link und öffne ihn in einem neuen Tab.</string>
+    <string name="error_inert_copy">Link kopieren</string>
+    <string name="error_inert_copied">Link kopiert</string>
     <string name="error_certificate_title">Deine Verbindung ist nicht privat</string>
     <string name="error_certificate_unproven">Die Website konnte ihre Identität nicht nachweisen.</string>
     <string name="error_certificate_back">Zurück in Sicherheit</string>

@@ -59,6 +59,7 @@ function run(tabList, activeTabId, {
     PRIMARY_WINDOW_ID,
     ensureSessionStore: () => ({ update: (fn) => fn(data) }),
     persistableEntries,
+    documentPolicy: require('../../src/main/document-policy'),
     savesSessionEntry,
     sessionTabMeta,
     loadWorkspace,

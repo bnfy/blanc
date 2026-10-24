@@ -5,6 +5,9 @@
   const code = params.get('code') || '';
   const desc = params.get('desc') || '';
   const certificateFailure = params.get('kind') === 'certificate';
+  // A page-opened tab Blanc can't rebuild with its opener's restrictions
+  // (main/document-policy.js). It offers no way to load the page here.
+  const inert = params.get('kind') === 'inert';
   if (code === '-20') document.getElementById('blockingSettingsLink').hidden = false;
 
   document.getElementById('errorUrl').textContent = url;
@@ -16,7 +19,30 @@
   document.getElementById('safetyLink').textContent = certificateFailure
     ? t('error.certificate.back')
     : t('error.newTab');
-  if (certificateFailure) {
+  if (inert) {
+    document.getElementById('errorTitle').textContent = t('error.inert.title');
+    document.getElementById('errorDetail').textContent = t('error.inert.detail');
+    const pageTitle = params.get('title');
+    if (pageTitle) document.title = pageTitle;
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.id = 'copyLink';
+    copy.className = 'advanced-toggle';
+    copy.textContent = t('error.inert.copy');
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        copy.textContent = t('error.inert.copied');
+      } catch {
+        // Clipboard refused: leave the address selected to copy by hand.
+        const range = document.createRange();
+        range.selectNodeContents(document.getElementById('errorUrl'));
+        getSelection().removeAllRanges();
+        getSelection().addRange(range);
+      }
+    });
+    document.getElementById('retryLink').replaceWith(copy);
+  } else if (certificateFailure) {
     document.getElementById('errorDetail').textContent =
       params.get('certMessage') || t('error.certificate.unproven');
     const details = document.getElementById('certificateDetails');
@@ -92,7 +118,7 @@
 
   // Only re-link to schemes a failed navigation can legitimately have —
   // never let a crafted error URL smuggle e.g. javascript: into the href.
-  if (/^(https?|file):\/\//i.test(url)) {
+  if (!inert && /^(https?|file):\/\//i.test(url)) {
     document.getElementById('retryLink').href = url;
   }
 })();

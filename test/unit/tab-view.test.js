@@ -84,6 +84,7 @@ function loadCreateTabView({ dark = false } = {}) {
     TAB_WEB_PREFERENCES: { preload: '/tab-preload.js', sandbox: true },
     getNormalBrowsingSession: (profileId) => ({ partition: `normal:${profileId}` }),
     getPrivateBrowsingSession: (profileId) => ({ partition: `private:${profileId}` }),
+    mayBuildFreshView: require('../../src/main/document-policy').mayBuildFreshView,
   };
   vm.runInNewContext(`${createTabViewSource}\n${primeSource}\nthis.__fn = createTabView;`, sandbox);
   return { createTabView: sandbox.__fn, calls, primed, prefs: sandbox.TAB_WEB_PREFERENCES };
@@ -126,11 +127,18 @@ test('createTabView tolerates being called before the tab record exists', () => 
   assert.deepEqual(calls[0].webPreferences.session, { partition: 'normal:default' });
 });
 
-test('createTabView applies retained document sandbox flags when rebuilding a tab', () => {
+test('createTabView refuses a fresh view for a page-opened tab that is not inert', () => {
   const { createTabView, calls } = loadCreateTabView();
-  createTabView({ private: true, profileId: 'work', openerSandboxFlags: 4294836015 });
-  assert.equal(calls[0].webPreferences.openerSandboxFlags, 4294836015);
-  assert.equal(calls[0].webPreferences.sandbox, true, 'the Electron process sandbox remains enabled');
+  assert.equal(createTabView({ private: true, profileId: 'work', inheritsDocumentPolicy: true }), null);
+  assert.equal(calls.length, 0, 'no WebContentsView is constructed');
+  // An inert tab's view only ever shows Blanc's explanation page.
+  assert.notEqual(createTabView({ profileId: 'work', inheritsDocumentPolicy: true, inert: true }), null);
+  assert.notEqual(createTabView({ profileId: 'work', inheritsDocumentPolicy: false }), null);
+  assert.equal(calls.length, 2);
+  for (const call of calls) {
+    assert.equal(call.webPreferences.sandbox, true, 'the Electron process sandbox remains enabled');
+    assert.equal('openerSandboxFlags' in call.webPreferences, false, 'Electron 44.9 removed the preference');
+  }
 });
 
 test('the private-session ternary lives in tab-view.js and nowhere else', () => {

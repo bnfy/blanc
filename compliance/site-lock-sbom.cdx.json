@@ -12963,14 +12963,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/undici@8.11.2",
+      "bom-ref": "pkg:npm/undici@8.12.3",
       "name": "undici",
-      "version": "8.11.2",
+      "version": "8.12.3",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb8501dbf22b29d53a945c6e9879a6a356b77c240ee6dcd0965468adfa114badedc61ac1ef14e94a7d4f7edc02e2a10790e6aa3fde5f0965b8949cf012bc3385"
+          "content": "f9f7677544f004ff3a7158e2853a76d61647a3b77aa23d5cff8ed73c0de52fc98cd171ecf82e0491c8e6811b059c59367ff50e3460f2f48b4122d997b0b3901f"
         }
       ],
       "licenses": [
@@ -12980,7 +12980,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/undici@8.11.2",
+      "purl": "pkg:npm/undici@8.12.3",
       "properties": [
         {
           "name": "blanc:development",
@@ -13002,7 +13002,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/undici/-/undici-8.11.2.tgz"
+          "url": "https://registry.npmjs.org/undici/-/undici-8.12.3.tgz"
         }
       ]
     },
@@ -15348,7 +15348,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/undici@8.11.2",
+      "ref": "pkg:npm/undici@8.12.3",
       "dependsOn": []
     },
     {
@@ -15368,7 +15368,7 @@
       "dependsOn": [
         "pkg:npm/css-tree@3.2.1",
         "pkg:npm/ohash@2.0.12",
-        "pkg:npm/undici@8.11.2"
+        "pkg:npm/undici@8.12.3"
       ]
     },
     {

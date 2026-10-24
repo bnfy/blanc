@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "dc9f67b3ef88729e402c125933dfed212328414a86bd6bf2b436fe1af4d1b8c7",
+      "sha256": "de756570039af2eec19853e2e884aa427aca0c7fca2adb760d0bb8a051764547",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "a4f28c6b17277acb19fd431ccd3717631d34c799595f24cc4de4aa8a3d799943",
+      "sha256": "04c1dd42629c70f97f8f19f3d0c1a95c2f54bca375737d9b42c349b812a9c47a",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -985,13 +985,13 @@
     },
     {
       "file": "src/main/tab-sleep.js",
-      "sha256": "60237a5c96c10d6c2f8de9b8096a8a491fd09bff6c71d67b6492c3b915017bad",
+      "sha256": "94d4f31a737de495b2c0a717c00169e75567bef88dd417c9df614929d6b7c6fb",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "784ea1289b612110920945fac8e9bec85d040f14468424132f00075f017aa173",
+      "sha256": "49a741409314c30bd9a975253258bff99e124541539e730fe814313ad3a17496",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -1016,7 +1016,8 @@
         "page-title-updated",
         "render-process-gone",
         "will-navigate",
-        "will-prevent-unload"
+        "will-prevent-unload",
+        "will-redirect"
       ],
       "role": "privileged implementation or service"
     },
