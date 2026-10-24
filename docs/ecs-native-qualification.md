@@ -123,7 +123,9 @@ and profiles; never point a production feed at these builds.
 2. Refresh the pins deliberately; rerun native builds, security isolation,
    offline/online component startup, CDM process sandbox/signature checks,
    Spotify/Netflix protected playback, and the Mac flicker regression.
-3. Sign final fused frameworks with EVS before Apple/Windows outer signing.
+3. Sign final fused frameworks with EVS before Apple outer signing on macOS.
+   On Windows, apply Authenticode first and EVS second, then verify both final
+   signatures. The platform ordering is different; never reuse the Mac order.
    Verify production VMP separately from OS publisher signatures. Keep the
    ordinary Mac helpers' library validation and the exact reviewed CDM routing.
 4. Renew uBO's source/license/runtime/platform and CodeQL acceptance before

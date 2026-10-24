@@ -11,12 +11,14 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cctype>
+#include <cstdlib>
 #include <cerrno>
 #include <cstring>
 #ifdef __linux__
 #include <sys/prctl.h>
 #include <signal.h>
 #endif
+extern char** environ;
 namespace fs = std::filesystem;
 struct Json {
   std::string text;
@@ -119,6 +121,21 @@ static Json readJson(const fs::path& file) {
 }
 static std::string env(const char* key) { const char* result = getenv(key); return result ? result : ""; }
 static void set(const char* key, const std::string& value) { if (setenv(key, value.c_str(), 1)) throw std::runtime_error("setenv failed"); }
+static void clearInheritedChromeEnvironment() {
+  // The previous browser can export its own executable/helper selectors.
+  // Replaying those CHROME_* values reproduces a pre-window zygote failure;
+  // clearing just this family restores the same installed ECS bytes. Let the
+  // new runtime initialize its own selectors, including on the first update
+  // from an official-Electron build that cannot run our outgoing cleanup.
+  std::vector<std::string> keys;
+  for (char** entry = environ; *entry; ++entry) {
+    if (std::strncmp(*entry, "CHROME_", 7) == 0) {
+      const char* equals = std::strchr(*entry, '=');
+      if (equals) keys.emplace_back(*entry, static_cast<size_t>(equals - *entry));
+    }
+  }
+  for (const auto& key : keys) if (unsetenv(key.c_str())) throw std::runtime_error("cannot clear inherited Chromium selector");
+}
 static bool version(const std::string& text) {
   unsigned dots = 0, digits = 0;
   for (char c : text) { if (c == '.') { if (!digits) return false; ++dots; digits = 0; } else if (c >= '0' && c <= '9' && ++digits <= 9) {} else return false; }
@@ -157,10 +174,45 @@ static fs::path component(const fs::path& profile) {
 int main(int argc, char** argv) {
   try {
     const fs::path appDir = fs::canonical("/proc/self/exe").parent_path();
+#ifdef BLANC_ECS_PRODUCTION
+    const fs::path core = appDir / "blanc";
+#else
     const fs::path core = appDir / "blanc-ecs-full-candidate";
+#endif
     const fs::path shim = appDir / "blanc-cdm-preload.so";
     if (shim.string().find_first_of(": \t\n\r") != std::string::npos || fs::canonical(shim) != shim) throw std::runtime_error("unsafe preload helper path");
-    fs::path profile = env("BLANC_ECS_FULL_PROFILE");
+    fs::path profile;
+#ifdef BLANC_ECS_PRODUCTION
+    // Match Electron's production userData convention. Never redirect an
+    // existing user to the old candidate profile or require its test marker.
+    for (int i = 1; i < argc; ++i) {
+      const std::string arg = argv[i];
+      std::string requested;
+      if (arg == "--user-data-dir") {
+        if (++i >= argc) throw std::runtime_error("missing profile argument");
+        requested = argv[i];
+      } else if (arg.rfind("--user-data-dir=", 0) == 0) requested = arg.substr(16);
+      if (!requested.empty()) {
+        if (!profile.empty() && profile != fs::path(requested)) throw std::runtime_error("conflicting profile arguments");
+        profile = requested;
+      }
+    }
+    if (profile.empty()) {
+      fs::path config = env("XDG_CONFIG_HOME");
+      if (config.empty()) config = fs::path(env("HOME")) / ".config";
+      if (!config.is_absolute()) throw std::runtime_error("absolute config directory required");
+      profile = config / "Blanc";
+    }
+    if (!profile.is_absolute()) throw std::runtime_error("absolute profile required");
+    // Do not create the profile before main.js performs legacy migration.
+    profile = fs::weakly_canonical(profile);
+    if (fs::exists(profile)) {
+      struct stat info{};
+      if (!fs::is_directory(profile) || stat(profile.c_str(), &info) || info.st_uid != getuid() || (info.st_mode & 0022))
+        throw std::runtime_error("owned non-writable profile required");
+    }
+#else
+    profile = env("BLANC_ECS_FULL_PROFILE");
     if (profile.empty()) {
       fs::path config = env("XDG_CONFIG_HOME");
       if (config.empty()) config = fs::path(env("HOME")) / ".config";
@@ -182,6 +234,7 @@ int main(int argc, char** argv) {
     profile = fs::canonical(profile);
     if (stat(profile.c_str(), &info) || info.st_uid != getuid() || (info.st_mode & 0022)
       || !readJson(profile / "ecs-candidate-profile.json").get("candidate").boolean) throw std::runtime_error("marked owned candidate profile required");
+#endif
     std::string cdm;
     try { cdm = component(profile).string(); }
     catch (const std::exception&) { std::cerr << "Candidate CDM metadata invalid; protected playback disabled for this launch\n"; }
@@ -189,8 +242,8 @@ int main(int argc, char** argv) {
     std::vector<std::string> args{core.string(), "--user-data-dir=" + profile.string()};
     for (int i = 1; i < argc; ++i) {
       const std::string arg = argv[i];
-      if (arg == "--user-data-dir") { if (++i >= argc || fs::canonical(argv[i]) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
-      if (arg.rfind("--user-data-dir=", 0) == 0) { if (fs::canonical(arg.substr(16)) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
+      if (arg == "--user-data-dir") { if (++i >= argc || fs::weakly_canonical(argv[i]) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
+      if (arg.rfind("--user-data-dir=", 0) == 0) { if (fs::weakly_canonical(arg.substr(16)) != profile) throw std::runtime_error("conflicting profile argument"); continue; }
       if (arg.rfind("--zygote-cmd-prefix", 0) == 0 || arg.rfind("--ecs-", 0) == 0) throw std::runtime_error("reserved launcher argument");
       if (arg == "--no-sandbox" || arg == "--no-zygote-sandbox" || arg == "--disable-setuid-sandbox" || arg == "--disable-seccomp-filter-sandbox") throw std::runtime_error("sandbox weakening refused");
       args.push_back(arg);
@@ -205,7 +258,9 @@ int main(int argc, char** argv) {
     set("BLANC_ECS_LAUNCHER_ROOT", appDir.string());
     unsetenv("APPIMAGE_EXIT_AFTER_INSTALL");
     // A replacement must not retain the previous image's disappearing cwd.
-    if (chdir(profile.c_str())) throw std::runtime_error("cannot enter candidate profile");
+    auto workingDirectory = profile;
+    while (!fs::exists(workingDirectory) && workingDirectory.has_parent_path()) workingDirectory = workingDirectory.parent_path();
+    if (chdir(workingDirectory.c_str())) throw std::runtime_error("cannot enter profile directory");
 #ifdef __linux__
     if (env("BLANC_ECS_FULL_SMOKE") == "1") {
       int deathSignal = 0; prctl(PR_GET_PDEATHSIG, &deathSignal);
@@ -216,6 +271,7 @@ int main(int argc, char** argv) {
         << " parent_death_signal=" << deathSignal << " sigchld_ignored=" << (action.sa_handler == SIG_IGN) << '\n';
     }
 #endif
+    clearInheritedChromeEnvironment();
     std::vector<char*> raw; for (auto& arg : args) raw.push_back(arg.data()); raw.push_back(nullptr);
     execv(core.c_str(), raw.data());
     throw std::runtime_error(std::string("candidate exec failed: ") + strerror(errno));

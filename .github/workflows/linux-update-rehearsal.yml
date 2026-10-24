@@ -20,6 +20,11 @@ on:
         required: false
         default: ''
         type: string
+      ecs_production:
+        description: "Rehearse the isolated ECS production integration, including protected playback"
+        required: false
+        default: false
+        type: boolean
   pull_request:
     paths:
       - .github/workflows/linux-update-rehearsal.yml
@@ -38,7 +43,91 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ecs-production-rehearse:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.ecs_production && github.ref == 'refs/heads/codex/ecs-production-integration' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: bash scripts/ci-enable-linux-sandbox.sh
+      - name: Verify native ECS launcher regressions
+        run: node --test test/unit/ecs-linux-launcher.test.js
+      - name: Install isolated UI test dependencies
+        run: sudo apt-get update && sudo apt-get install --yes xvfb xdotool x11-utils dbus-x11
+      - name: Resolve and verify current public baseline
+        id: baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(gh release view -R "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          VERSION=${VERSION#v}
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          mkdir -p "$RUNNER_TEMP/ecs-baseline"
+          gh release download "v$VERSION" -R "$GITHUB_REPOSITORY" -p "Blanc-$VERSION.AppImage" -p SHA256SUMS -D "$RUNNER_TEMP/ecs-baseline"
+          cd "$RUNNER_TEMP/ecs-baseline"
+          awk -v file="Blanc-$VERSION.AppImage" '$2 == file' SHA256SUMS > expected.sha256
+          test -s expected.sha256
+          sha256sum -c expected.sha256
+          chmod +x "Blanc-$VERSION.AppImage"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          NEXT=$(node -e 'const [a,b]=process.argv[1].split(".").map(Number);console.log(`${a}.${b+1}.0`)' "$VERSION")
+          echo "a=$NEXT-staging.1" >> "$GITHUB_OUTPUT"
+          echo "b=$NEXT-staging.2" >> "$GITHUB_OUTPUT"
+      - name: Build two version-distinct unpublished ECS update fixtures
+        env:
+          VERSION_A: ${{ steps.baseline.outputs.a }}
+          VERSION_B: ${{ steps.baseline.outputs.b }}
+        run: |
+          for SLOT in a b; do
+            if [ "$SLOT" = a ]; then VERSION="$VERSION_A"; else VERSION="$VERSION_B"; fi
+            npm version "$VERSION" --no-git-tag-version
+            npm run compliance:build
+            npm run compliance:check
+            node scripts/build-ecs-production.cjs --linux --x64
+            node scripts/verify-ecs-production-package.cjs dist-ecs/linux-unpacked
+            mv dist-ecs "$RUNNER_TEMP/ecs-$SLOT"
+          done
+      - name: Real stable-to-ECS and repeated renamed-AppImage handoffs
+        env:
+          BASELINE: ${{ steps.baseline.outputs.version }}
+          VERSION_A: ${{ steps.baseline.outputs.a }}
+          VERSION_B: ${{ steps.baseline.outputs.b }}
+          BLANC_ECS_UPDATER_QUALIFICATION: '1'
+        run: |
+          mkdir -p output/ecs-production
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-updater-linux.mjs \
+            "$RUNNER_TEMP/ecs-baseline/Blanc-$BASELINE.AppImage" "$BASELINE" \
+            "$RUNNER_TEMP/ecs-a/Blanc-$VERSION_A.AppImage" "$VERSION_A" \
+            "$RUNNER_TEMP/ecs-b/Blanc-$VERSION_B.AppImage" "$VERSION_B" \
+            "$PWD/output/ecs-production/updater-linux.json"
+      - name: Final successor web-file and offline boundaries
+        env:
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
+          VERSION_B: ${{ steps.baseline.outputs.b }}
+        run: |
+          export BLANC_PACKAGED_EXECUTABLE="$RUNNER_TEMP/ecs-b/Blanc-$VERSION_B.AppImage"
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          # Production local-document opening is macOS LaunchServices-only.
+          # This cross-platform smoke instead verifies the actual Linux web
+          # boundary: file reads, frames, workers and service workers are denied.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: ecs-production-updater-${{ github.run_id }}
+          path: output/ecs-production/*.json
+          if-no-files-found: error
+          retention-days: 3
+
   rehearse:
+    if: ${{ !inputs.ecs_production }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

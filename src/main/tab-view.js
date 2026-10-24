@@ -14,6 +14,7 @@ const bookmarks = require('./bookmarks');
 const history = require('./history');
 const sync = require('./sync');
 const { attachContextMenu } = require('./context-menu');
+const { recordTitle } = require('./inert-local-file');
 const { createRecognizer } = require('./mouse-gestures');
 const { webrtcPolicyFor } = require('./network-privacy');
 const { effectiveTabMuted, noteMediaStarted } = require('./tab-audio');
@@ -325,7 +326,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     // repeats; a page that briefly committed before the lock put the
     // explanation back never renames it.
     if (tab.inert) return;
-    tab.title = title;
+    // An inert local-file record keeps its saved title on screen.
+    tab.title = recordTitle(tab, title);
     if (tab.historyEligible && !noteWakeSuppressed(tab)) history.updateTitle(tab.url, title);
     broadcastTabs();
   }));
@@ -434,8 +436,11 @@ function wireTabView(tab, view, { owner, adopted }) {
     broadcastTabs();
     if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
   }));
-  wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
+  wc.on('did-start-navigation', boundToTab((_e, url, isInPlace, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // Gate-refusal attribution counts new-document starts only, never commits
+    // or same-document navigations (src/main/gate-refusals.js).
+    if (isMainFrame && !isInPlace) deps.gateRefusals?.noteNavigationStart(wc.id);
     if (isMainFrame) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
@@ -532,8 +537,31 @@ function wireTabView(tab, view, { owner, adopted }) {
     }
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
-    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;
-    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
+    // Default-off diagnostics: how each main-frame failure was handled and the
+    // gate state at that moment. Observation only.
+    const traceFailure = outcome => deps.navigationTrace?.record('did-fail-load', { webContentsId: wc.id, navEpoch: tab.navEpoch, private: tab.private,
+      url: validatedURL, code: errorCode, outcome, gate: isStartupGateActive(tab) ? 'active' : 'inactive', queued: startupQueuedNavigations.has(wc.id) });
+    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) {
+      // A refusal whose failure is ignored here can never match a later load.
+      deps.gateRefusals?.settle(wc.id, validatedURL);
+      traceFailure('not-presented');
+      return;
+    }
+    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) {
+      deps.gateRefusals?.settle(wc.id, validatedURL);
+      traceFailure('gate-suppressed');
+      return;
+    }
+    // A navigation the gate refused, queued and replayed can report its own -20
+    // after the replay began. That failure is the refusal's, not the replay's:
+    // never show it as an error page. Matches only the replayed refusal of this
+    // URL while no other navigation has started, once, unless a provider
+    // blocked the replay itself (src/main/gate-refusals.js).
+    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {
+      traceFailure('gate-refused-late');
+      return;
+    }
+    traceFailure('error-page');
     const canContinue = !!tab.certificateError && certificateExceptions.isEligible({
       url: tab.certificateError.url,
       error: tab.certificateError.error,
@@ -577,6 +605,9 @@ function wireTabView(tab, view, { owner, adopted }) {
     }
     callback(false);
   }));
+  // A destroyed view's gate refusals can never fail late into another tab.
+  const refusalContentsId = wc.id;
+  wc.once('destroyed', () => deps.gateRefusals?.forget(refusalContentsId));
   // Adopted window.open children can die outside closeTab. A sleeping tab
   // deliberately destroys its own view, so it must not prune the tab record.
   wc.once('destroyed', boundToTab(() => {

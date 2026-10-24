@@ -21,7 +21,7 @@ test('the gate-release function and liveContents are still liftable', () => {
 });
 
 /** Run the real function over controlled tabs, navigation, and wake queues. */
-function load({ tabList, queued, deferredWakes = [], blockerAttached = true, sessions = [] }) {
+function load({ tabList, queued, deferredWakes = [], blockerAttached = true, sessions = [], records = [] }) {
   const woken = [];
   const guarded = [];
   const ungated = [];
@@ -37,6 +37,8 @@ function load({ tabList, queued, deferredWakes = [], blockerAttached = true, ses
     },
     installRequestCoordinator: (session) => guarded.push(session),
     blockingCoordinator: { setGate: (session, value) => { assert.equal(value, null); ungated.push(session); } },
+    navigationTrace: { record: (event, fields) => records.push([event, fields.webContentsId ?? null, fields.outcome ?? null]) },
+    gateRefusals: { armReplay() {}, forget() {} },
   };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
@@ -117,4 +119,16 @@ test('profile sync starts only after the complete saved tab set is restored', ()
     1,
     'the startup release owns the single initialization call'
   );
+});
+
+test('the gate trace records the release and each replay or skip, and replays exactly as before', () => {
+  const loaded = []; const records = [];
+  const tabList = [{ view: null }, liveTab(21, loaded)];
+  load({ tabList, queued: [[20, 'https://gone.example/'], [21, 'https://castlabs.github.io/wv-vmp-lab/']], records });
+  assert.deepEqual(loaded, [[21, 'https://castlabs.github.io/wv-vmp-lab/']]);
+  assert.deepEqual(records, [
+    ['startup-gate-release', null, 'blocker-attached'],
+    ['startup-gate-replay', 20, 'no-live-tab'],
+    ['startup-gate-replay', 21, 'replayed'],
+  ]);
 });

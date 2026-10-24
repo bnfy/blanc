@@ -163,7 +163,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "cdf75b4954602a33241c63988d892adf77a1999fc42647823d4b70a2c6aff1f7",
+      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "de756570039af2eec19853e2e884aa427aca0c7fca2adb760d0bb8a051764547",
+      "sha256": "bd514ef6d5c2e0753b554cb83335b5e17a2084f7a3ad1f45397e4e98445ff120",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "0050764a0d3f44401256ea1200cf956c86de342c79b182a4ddf5b95bcf3c4cfa",
+      "sha256": "7f393acbbfe823c89e4383ceb5f7eaf8b8e3b1fcfe7dadf8afb8ae7e0a8cd80b",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -482,7 +482,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "c39c231633ca456a67e43e52bdee0dcdd4f3ce0372e8542239e598cad4353a44",
+      "sha256": "d76d5c5d03dec497f1925bbef08cde456f1c3b8e9b69b5a499b6fd689387b805",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -535,6 +535,8 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
@@ -854,7 +856,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "8c298b3bf97278ebb7328810184f5cda9a3c4e52b06eec027c9feed13c12e115",
+      "sha256": "565efcd2be91f1f923885ef3c058fd1f3074787771a353fe9bc1e2590c1f86b6",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -909,6 +911,8 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:drm-restart",
+        "pages:settings:drm-status",
         "pages:settings:get",
         "pages:settings:language",
         "pages:settings:onepassword-status",
@@ -991,7 +995,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "49a741409314c30bd9a975253258bff99e124541539e730fe814313ad3a17496",
+      "sha256": "c239898f2878909566a745a1db4471e80af81b0addacfe6070860d0b138cf0dc",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

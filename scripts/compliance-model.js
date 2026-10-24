@@ -253,7 +253,7 @@ function assetComponents(policy) {
   return components;
 }
 
-function electronComponent(model, policy) {
+function electronComponent(model, policy, runtimeOverride) {
   const lockPath = resolveDependencyPath(model.lock.packages, '', 'electron');
   const entry = model.lock.packages[lockPath];
   if (!policy.runtimeAllowedLicenseExpressions.includes(entry.license)) {
@@ -266,6 +266,18 @@ function electronComponent(model, policy) {
     license: entry.license,
   });
   component.type = 'framework';
+  if (runtimeOverride) {
+    const pin = readJson('build/ecs-runtime.json');
+    if (runtimeOverride.version !== pin.version
+      || pin.archives[runtimeOverride.target] !== runtimeOverride.archiveSha256
+      || !/^[a-f0-9]{64}$/.test(runtimeOverride.frameworkSha256 || '')) throw new Error('Invalid pinned ECS compliance input');
+    component.name = 'electron-castlabs';
+    component.version = pin.version;
+    component['bom-ref'] = `framework:electron-castlabs:${pin.version}`;
+    delete component.purl;
+    component.hashes = [{ alg: 'SHA-256', content: runtimeOverride.frameworkSha256 }];
+    component.externalReferences = [{ type: 'distribution', url: pin.release }];
+  }
   component.scope = 'required';
   component.properties = componentProperties({
     distributedRuntime: true,
@@ -307,7 +319,7 @@ function buildSbom(model) {
   });
 }
 
-function runtimeSbom(model, policy) {
+function runtimeSbom(model, policy, runtimeOverride) {
   const closure = runtimeClosure(model);
   const components = [];
   const refsByName = new Map();
@@ -327,7 +339,7 @@ function runtimeSbom(model, policy) {
     ));
   }
 
-  const electron = electronComponent(model, policy);
+  const electron = electronComponent(model, policy, runtimeOverride);
   components.push(electron);
   dependencies.set(electron['bom-ref'], new Set());
 
@@ -406,7 +418,7 @@ function notices(runtime, policy, application) {
     '',
     'EMBEDDED FRAMEWORK',
     '',
-    `- Electron ${runtime.electron.version} — MIT — https://github.com/electron/electron`,
+    `- Electron ${runtime.electron.version} — MIT — ${runtime.electron.name === 'electron-castlabs' ? 'https://github.com/castlabs/electron-releases' : 'https://github.com/electron/electron'}`,
     '  Electron embeds Chromium, Node.js, V8, and other upstream work. LICENSE.electron.txt and',
     '  LICENSES.chromium.html are copied beside this notice in every packaged application.',
     '',
@@ -437,7 +449,7 @@ function notices(runtime, policy, application) {
   return lines.join('\n');
 }
 
-function createComplianceArtifacts({ includeUblock = true } = {}) {
+function createComplianceArtifacts({ includeUblock = true, runtimeOverride } = {}) {
   const policy = readJson('compliance/policy.json');
   if (!includeUblock) policy.assets = policy.assets.filter(asset => asset.id !== 'ublock-origin');
   if (policy.schemaVersion !== 1) throw new Error('unsupported compliance policy schema');
@@ -461,7 +473,7 @@ function createComplianceArtifacts({ includeUblock = true } = {}) {
     lockFile: 'site/package-lock.json',
     policy,
   });
-  const runtime = runtimeSbom(root, policy);
+  const runtime = runtimeSbom(root, policy, runtimeOverride);
   return {
     policy,
     runtime,

@@ -58,7 +58,7 @@ test('scheme never enables service workers or CSP bypass', () => {
 });
 
 test('local document JavaScript is disabled in native WebContents preferences', async () => {
-  const source = await fs.readFile(path.join(__dirname, '../../scripts/ecs-local-html.cjs'), 'utf8');
+  const source = await fs.readFile(path.join(__dirname, '../../src/main/local-html-preview.js'), 'utf8');
   assert.match(source, /javascript:\s*false/);
 });
 
