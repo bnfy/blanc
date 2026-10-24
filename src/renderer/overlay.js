@@ -161,6 +161,7 @@
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
   // devices start folded so the panel stays quiet (spec §2).
   let remoteDevices = [];
+  let sentItems = []; // pages other devices sent here (M7b)
   const unfoldedDevices = new Set();
   // Recently closed starts folded — one line like a synced device; unfold to
   // see the reopen rows (Claude island declutter iteration).
@@ -1280,6 +1281,61 @@
     return row;
   }
 
+  /** "Sent to this device · 2": the inbox heading, which doesn't fold. */
+  function sentHeaderRow(count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static sent-head';
+    row.innerHTML = '<span class="ghead-name"></span><span class="ghead-n"></span>';
+    row.querySelector('.ghead-name').textContent = blancI18n.t('sends.section');
+    row.querySelector('.ghead-n').textContent = String(count);
+    return row;
+  }
+
+  /** A page another device sent here: click opens it in a new tab (main
+   * hides it here), × dismisses it. */
+  function sentItemRow(item) {
+    const row = document.createElement('div');
+    row.className = 'island-row sent-row';
+    row.setAttribute('role', 'button');
+    row.tabIndex = 0;
+    row.dataset.sentId = item.id;
+    const favicon = document.createElement('span');
+    setFavicon(favicon, { url: item.url });
+    const text = document.createElement('span');
+    text.className = 'sent-text';
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = item.title || item.url;
+    title.dataset.i18nIgnore = ''; // a page title is data
+    const from = document.createElement('span');
+    from.className = 'row-sub';
+    from.textContent = blancI18n.t('sends.from', { device: item.fromName, time: timeAgo(item.sentAt) });
+    text.append(title, from);
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'row-close sent-dismiss';
+    dismiss.dataset.tooltip = blancI18n.t('sends.dismiss');
+    dismiss.setAttribute('aria-label', blancI18n.t('row.actionLabel', { action: dismiss.dataset.tooltip, title: title.textContent }));
+    dismiss.dataset.i18nIgnore = 'aria-label'; // carries the page title
+    dismiss.innerHTML = ICONS.close;
+    dismiss.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.dismissSentItem(item.id);
+    });
+    row.append(favicon, text, dismiss);
+    const open = () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openSentItem(item.id);
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      open();
+    });
+    return row;
+  }
+
   /** A remote tab row: opens the url as a plain new local tab (ungrouped —
    * no group reconstruction in v1, spec §2). */
   function remoteTabRow(tab, device) {
@@ -1403,6 +1459,20 @@
       const groupId = activeTab()?.groupId;
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
+    // Send to device (M7b): the argument names one of the account's other
+    // devices, matched without regard to case. Never offered in a private tab.
+    { cmd: '/send', hint: blancI18n.t('slash.send.hint'), keepOverlay: true,
+      get available() { return !activeTab()?.private; },
+      run: (input) => {
+        const name = commandArgument(input);
+        if (!name) { promptCommand('/send '); return null; }
+        const tabId = state.activeTabId;
+        // The notice shows on the resting list, so the typed command goes.
+        addressInput.value = '';
+        renderList();
+        return sendActiveTabTo(tabId, name);
+      },
+      resultNotice: (result) => sendNotice(result) },
     { cmd: '/find', hint: blancI18n.t('slash.find.hint'), run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: blancI18n.t('slash.blockAds.hint'), run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: blancI18n.t('slash.allowAds.hint'), run: () => window.browserAPI.allowAdsOnActiveSite() },
@@ -1420,6 +1490,25 @@
     { cmd: '/glance', hint: blancI18n.t('slash.glance.hint'), keepOverlay: true, run: (input) => window.browserAPI.openGlancePicker(commandArgument(input)) },
     { cmd: '/invite', hint: blancI18n.t('slash.invite.hint'), run: () => window.browserAPI.inviteFriend(), keepOverlay: true, clearInput: true, resultNotice: (result) => result === 'copied' ? blancI18n.t('slash.invite.copied') : '' },
   ];
+
+  async function sendActiveTabTo(tabId, name) {
+    const targets = await window.browserAPI.listSendTargets();
+    if (!targets.length) return { notice: 'none' };
+    const wanted = name.toLocaleLowerCase();
+    const target = targets.find((t) => t.name.toLocaleLowerCase() === wanted);
+    if (!target) return { notice: 'noMatch', name };
+    const { status } = await window.browserAPI.sendTabToDevice(tabId, target.id);
+    return { status, device: target.name };
+  }
+
+  function sendNotice(result) {
+    if (!result) return '';
+    if (result.notice === 'none') return blancI18n.t('sends.none');
+    if (result.notice === 'noMatch') return blancI18n.t('sends.noMatch', { name: result.name });
+    if (result.status === 'sent') return blancI18n.t('sends.sent', { device: result.device });
+    if (result.status === 'unavailable') return blancI18n.t('sends.unavailable');
+    return blancI18n.t('sends.failed');
+  }
 
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
@@ -2570,9 +2659,12 @@
   /** Other devices (spec 2026-10-16 §6): the footer toggle, hidden with no
    * other device to show, and the drawer between the list and the footer. */
   function renderDevicesDrawer(resting, anchor = null) {
-    footerDevices.hidden = !remoteDevices.length;
-    footerDevicesCount.textContent = String(remoteDevices.length);
-    const show = resting && devicesDrawerOpen && remoteDevices.length > 0;
+    // Pages waiting here show the drawer's button even with no device's tabs,
+    // and its count becomes theirs (M7b §5).
+    footerDevices.hidden = !remoteDevices.length && !sentItems.length;
+    footerDevices.classList.toggle('has-sent', sentItems.length > 0);
+    footerDevicesCount.textContent = String(sentItems.length || remoteDevices.length);
+    const show = resting && devicesDrawerOpen && !footerDevices.hidden;
     footerDevices.setAttribute('aria-expanded', String(show));
     islandDrawer.hidden = !show;
     if (!show) {
@@ -2580,6 +2672,7 @@
       return;
     }
     const rows = [];
+    if (sentItems.length) rows.push(sentHeaderRow(sentItems.length), ...sentItems.map(sentItemRow));
     for (const device of remoteDevices) {
       rows.push(remoteHeaderRow(device));
       if (unfoldedDevices.has(device.deviceId)) {
@@ -3751,7 +3844,7 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
@@ -3759,12 +3852,14 @@
       window.browserAPI.bangs(),
       window.browserAPI.archiveList(),
       window.browserAPI.archiveNotice(),
+      window.browserAPI.listSentToThisDevice(),
     ]);
     favorites = favoritesList;
     historyEntries = historyList;
     archivedEntries = Array.isArray(archivedList) ? archivedList : [];
     archiveNotice = notice ?? null;
     remoteDevices = remoteList;
+    sentItems = Array.isArray(sentList) ? sentList : [];
     applyWorkspacesPayload(workspacesPayload);
     bangsState = bangsPayload;
     // Data lands after the panel already rendered — refresh it.
@@ -3800,6 +3895,10 @@
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
     remoteDevices = devices;
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
+  window.browserAPI.onSentToThisDeviceUpdated((items) => {
+    sentItems = Array.isArray(items) ? items : [];
     if (mode === 'panel' || mode === 'palette') renderList();
   });
   // The bang settings changed (Settings, Profile Sync, a bang used, history
