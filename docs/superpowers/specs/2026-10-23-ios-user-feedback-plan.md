@@ -114,8 +114,38 @@ page text goes, and new marketing rules. Revisit only if the owner changes the
 positioning; an on-device summary (nothing leaving the phone) would be the
 starting point then.
 
-## 7. What can be said publicly
+## 7. Tab gestures (Arc users, 2026-10-24)
 
-Nothing here is built. Until a release ships it (`docs/marketing-claims.md`),
+On r/ArcBrowser (2026-10-24), a person looking for an Arc replacement on iOS
+named two gestures they rely on: **swipe up to close tabs**, and **switch tabs
+quickly by swiping the bottom bar**. Sync was "a plus, but not essential". The
+owner decided both are iOS features (**F56**, milestone **M11**, before the
+beta), because the pill is Blanc's bottom bar and Arc's iPhone users are the
+audience the companion is meant to win.
+
+- **Swipe the pill to switch tabs.** A sideways swipe on the resting pill moves
+  to the previous or next tab, in the order the pill's dots show (the active
+  tab's group, or its run of ungrouped tabs), and the page follows the finger
+  the way Safari's bottom bar does. At either end the pill resists and springs
+  back. A tap still opens the palette. Back and forward stay WebKit's page-edge
+  gestures (D7): the pill swipe starts on the pill, never at the screen edge.
+- **Swipe up to close a tab.** The palette's resting tab switcher becomes a
+  horizontal strip of page cards (decided by the owner on 2026-10-24, over
+  keeping the list and flicking the pill): each card closes when flicked up,
+  as apps close in the iOS app switcher and tabs do in Arc. Groups show as
+  labeled runs of cards, and the strip scrolls sideways, so an upward flick
+  never fights scrolling. The list's swipe-left Delete goes. A closed tab can
+  be reopened like one closed with `/close`. Pages sent here, other devices'
+  tabs and the slash and search lists stay lists below the strip.
+- **Accessibility.** Both gestures have equivalents: VoiceOver's actions on the
+  pill (Next tab, Previous tab) and on each card (Close), and the existing
+  `/close`. Reduce Motion drops the page's follow-the-finger slide for a
+  cross-fade.
+- **Duo (D30).** At regular width the pill swipe is the same; the switcher
+  cards follow the regular-width palette.
+
+## 8. What can be said publicly
+
+Nothing here is built, the tab gestures included. Until a release ships it (`docs/marketing-claims.md`),
 replies may say the requests were recorded and which ones Blanc plans to look
 at, but not promise a feature, a date, or that Spaces will sync.
