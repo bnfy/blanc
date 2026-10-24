@@ -1203,7 +1203,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   tab, live, to the end of the space, ungrouped; the window stays where it
   is. A space open nowhere is set aside to receive it. Private tabs never get
   the item; it is disabled for a window's only tab, a page using the camera
-  or microphone, one with a popup open, or one being quieted (#1060).
+  or microphone, playing sound or sharing its screen, one with a popup open,
+  or one being quieted, and a space whose window is closing or mid switch is
+  a disabled row (#1060). The space's record is written, with the tab, and
+  checked before the tab leaves its window; a failed write moves nothing.
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.

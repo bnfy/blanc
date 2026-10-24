@@ -318,3 +318,11 @@ test('Move to Space is disabled with nowhere else to go, or when main refuses th
   const refused = byId(build({ canMoveToSpace: false, spaces: [{ id: 'w2', name: 'Reading', current: false }] }), 'space');
   assert.equal(refused.enabled, false);
 });
+
+test('a space that cannot receive a tab right now is a disabled row, and alone does not enable the item', () => {
+  const busy = { id: 'w2', name: 'Reading', current: false, enabled: false };
+  const mine = { id: 'w1', name: 'Work', current: true };
+  const sub = byId(build({ spaces: [mine, busy, { id: 'w3', name: 'Play', current: false }] }), 'space').submenu;
+  assert.deepEqual(sub.map((i) => [i.label, i.enabled]), [['Work', undefined], ['Reading', false], ['Play', undefined]]);
+  assert.equal(byId(build({ spaces: [mine, busy] }), 'space').enabled, false);
+});

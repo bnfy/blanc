@@ -98,16 +98,17 @@ async function launchApp(extraEnv = {}, { recoveryChoice = null } = {}) {
   // cannot yet reach session.json.
   // After a crash, startup waits for the session-recovery choice (the crash
   // ledger) when the crashed session held something to restore; make it as
-  // a person would. A session of one blank start page asks nothing.
+  // a person would. A session of one blank start page asks nothing. Wait for
+  // startup to have decided which: before that, startupReady() can read true
+  // (persistence isn't suspended yet) while a prompt is still coming.
   if (recoveryChoice) {
     const asked = await electronApp.evaluate(
       () => new Promise((resolve) => {
         const t = setInterval(() => {
-          if (!globalThis.__blancCall) return;
-          const required = globalThis.__blanc?.sessionRecoveryState?.()?.required === true;
-          if (required || globalThis.__blanc?.startupReady?.()) {
+          const recovery = globalThis.__blancCall ? globalThis.__blanc?.sessionRecoveryState?.() : null;
+          if (recovery?.decided === true) {
             clearInterval(t);
-            resolve(required);
+            resolve(recovery.required === true);
           }
         }, 50);
       })

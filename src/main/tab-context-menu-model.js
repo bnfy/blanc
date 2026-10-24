@@ -36,11 +36,16 @@ function buildGroupSubmenu(tab, groups, t) {
 }
 
 // Move to Space ▸ (#1060): every space in the profile, the window's own one
-// checked (choosing it does nothing). Space names are user data; as radio
-// rows the pseudo-locale sweep skips them, the same as group names.
+// checked (choosing it does nothing) and a space that can't receive a tab
+// right now (its window mid switch or closing) disabled. Space names are user
+// data; as radio rows the pseudo-locale sweep skips them, like group names.
 function buildSpaceSubmenu(spaces) {
-  return spaces.map((s) => ({ id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id }));
+  return spaces.map((s) => ({
+    id: 'space-move', label: s.name, type: 'radio', checked: !!s.current, workspaceId: s.id,
+    ...(s.enabled === false ? { enabled: false } : {}),
+  }));
 }
+const spaceReachable = (s) => !s.current && s.enabled !== false;
 
 // Native menus grow to their widest row, so long page titles are cut.
 const SPLIT_TITLE_MAX = 48;
@@ -147,9 +152,10 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   });
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Shown once the profile has a space; a private tab never joins one. With
-  // no other space to go to, or a tab main refuses to move, it is disabled.
+  // no other space able to take it, or a tab main refuses to move, it is
+  // disabled.
   if (!tab.private && spaces.length) {
-    items.push(canMoveToSpace && spaces.some((s) => !s.current)
+    items.push(canMoveToSpace && spaces.some(spaceReachable)
       ? { id: 'space', label: t('tabMenu.moveToSpace'), submenu: buildSpaceSubmenu(spaces) }
       : { id: 'space', label: t('tabMenu.moveToSpace'), enabled: false });
   }
