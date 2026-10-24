@@ -191,9 +191,14 @@ the person leaves it or at the next cold start, whichever comes first, so a
 page under their fingers never changes. On the phone a return from the
 background is not a cold start. Everything else applies at once.
 
-**4.7 Desktop gains Spaces sync too.** Two desktops with the switch on share
-Spaces the same way. F41's "Spaces never sync" is retired when this ships, as
-the October 23 plan anticipated.
+**4.7 Desktop gains Spaces sync too, and ships it first.** Two desktops with
+the switch on share Spaces the same way. F41's "Spaces never sync" is retired
+when this ships, as the October 23 plan anticipated. Owner, 2026-10-24: M16
+ships as a **public desktop feature release** (its own What's New page, the
+feature-release gates in CLAUDE.md) before the phone ships, so the protocol
+gets real use first. A desktop Spaces session already in progress (Move to
+Space, #1097 and its follow-ups in #1098) is where M16 is built; its design
+document is the hand-off.
 
 **4.8 What the phone can do with Spaces.** Open one (its tabs become the
 phone's open tabs, loaded lazily, the active one first), switch between them,
@@ -309,7 +314,7 @@ documents stay correct.
 | M7b | Send to device | Desktop and iOS in draft (#1088, #1096); Worker deploy pending |
 | M8 | Favorites editable, History live | |
 | M9 | Private tabs | |
-| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync) | New |
+| **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync). Ships as a public desktop feature release first (§4.7). | New; built in the parallel desktop Spaces session |
 | **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | New |
 | M10 | Bangs, the full shared slash-command set, Find in page, the shield chip and per-site allow | |
 | M11 | Tab gestures and the card strip (F56) | |
@@ -348,7 +353,30 @@ settled; M18 is last because it depends on everything it introduces.
   carries neither entitlement yet: no entitlements file, no signing
   entitlement setting, and no Blanc provisioning profile on the build Mac.
   M18 adds `Blanc.entitlements` with both and a profile that includes them;
-  the first signed build is the proof. The passkey browser
+  the first signed build is the proof.
+
+  **Filing the default-browser request** (Apple's page "Preparing your app to
+  be the default web browser," read 2026-10-24): the form is
+  `https://developer.apple.com/contact/request/default-browser-entitlement/`
+  (behind an Apple Developer sign-in; it can also request
+  `com.apple.developer.browser.app-installation` in the same submission).
+  Apple's requirements, and where the project stands:
+  - declares the HTTP and HTTPS schemes in `Info.plist` — **not yet**; the
+    project generates its Info.plist, so M18 adds `CFBundleURLTypes` for
+    `http` and `https` (a custom Info.plist or the build setting);
+  - no `UIWebView` — met (`WKWebView` only);
+  - on launch, a field for a URL, search, or bookmarks — met (the pill);
+  - opens an http(s) URL at the destination and renders it as served — met
+    (the blocker removes ads and trackers, which Apple's text allows as
+    "Safe Browsing or other warning" does not cover; state plainly in the
+    request that content blocking uses `WKContentRuleList`, the mechanism
+    Safari's own content blockers use);
+  - none of the banned privacy keys (`NSPhotoLibraryUsageDescription`,
+    always-on location, HomeKit, always-on Bluetooth, Health) — met; the
+    app declares none.
+  With the entitlement, the app may not claim Universal Links for specific
+  domains, and managed entitlements need manual signing in Xcode (Apple's
+  forum guidance), which the release build setup in M18 accounts for. The passkey browser
   entitlement (`com.apple.developer.web-browser.public-key-credential`) was
   assigned to the account on 2026-09-22 (Apple's email; associated app ID
   `me.bnfy.bowser`): enable the capability on the iOS App ID `me.bnfy.blanc`
@@ -402,6 +430,8 @@ From the builder check of 2026-10-24. Answers go into the sections named.
 2. ~~If the default-browser entitlement isn't granted in time.~~ Answered
    (owner, 2026-10-24): **wait**. The request is filed now and 1.0 ships only
    once it is granted (§8).
-3. **M16 on desktop** (§4.7, §7): ship desktop-to-desktop Spaces sync as a
-   public desktop feature release, with its What's New page, before the phone
-   ships, or keep it behind a hidden switch until iOS 1.0?
+3. ~~M16 on desktop.~~ Answered (owner, 2026-10-24): ship it publicly on
+   desktop before the phone, built in the parallel desktop Spaces session
+   (§4.7).
+
+All three are answered; the document is ready for the owner's approval.
