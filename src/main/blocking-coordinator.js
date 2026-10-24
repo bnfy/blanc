@@ -9,6 +9,9 @@ const OBSERVE_EVENTS = ['onSendHeaders', 'onResponseStarted', 'onBeforeRedirect'
 // a main-frame request; it never changes a decision.
 function createBlockingCoordinator({ trace } = {}) {
   const sessions = new WeakMap();
+  // One optional observer of main-frame cancellations made by a provider or a
+  // policy failure (never the startup gate). Observation only.
+  let cancelObserver = null;
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
     const state = { provider: null, gate: null, beforeSendHeaders: null, observing: false };
@@ -23,8 +26,12 @@ function createBlockingCoordinator({ trace } = {}) {
         // Main-frame cancellations at every callback stage, with Chromium's
         // request ID so original loads, redirects and replays stay distinct.
         const traced = source => {
-          if (traceable && details.resourceType === 'mainFrame') trace.record('coordinator-cancel', { source, stage: event, requestId: details.id,
+          if (details.resourceType !== 'mainFrame') return;
+          if (traceable) trace.record('coordinator-cancel', { source, stage: event, requestId: details.id,
             webContentsId: details.webContentsId, resourceType: details.resourceType, url: details.url, method: details.method });
+          if (source !== 'gate') {
+            try { cancelObserver?.({ webContentsId: details.webContentsId, url: details.url, source, stage: event }); } catch { /* observation only */ }
+          }
         };
         if (event === 'onBeforeRequest' && state.gate?.(details)) { traced('gate'); return respond({ cancel: true }); }
         const run = async () => {
@@ -59,6 +66,7 @@ function createBlockingCoordinator({ trace } = {}) {
     setProvider,
     setGate: (session, gate) => { ensure(session).gate = gate; },
     setBeforeSendHeaders: (session, policy) => { ensure(session).beforeSendHeaders = policy; },
+    observeCancel: observer => { cancelObserver = typeof observer === 'function' ? observer : null; },
   };
 }
 

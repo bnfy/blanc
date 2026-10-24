@@ -5,7 +5,7 @@
 // never queued or replayed. Failed providers keep the gate until retry succeeds
 // or the user explicitly disables blocking.
 const MAX_PENDING = 256;
-function createProfileNavigationGates({ coordinator, queued, resolveContents, ready, enabled, startupActive, trace = { record() {} }, onRefused = () => {} }) {
+function createProfileNavigationGates({ coordinator, queued, resolveContents, ready, enabled, startupActive, trace = { record() {} }, onRefused = () => {}, onReplay = () => {} }) {
   const profiles = new Map();
   function prune(entry) {
     for (const [id, item] of entry.pending) {
@@ -58,6 +58,7 @@ function createProfileNavigationGates({ coordinator, queued, resolveContents, re
           continue;
         }
         trace.record('profile-gate-replay', { webContentsId: id, navEpoch: target.tab.navEpoch, url: item.url, outcome: 'replayed' });
+        onReplay(id, item.url, target.tab.navEpoch);
         target.wc.loadURL(item.url).catch(() => {});
       }
     }

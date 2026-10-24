@@ -1613,6 +1613,8 @@ const { navigationTrace } = require('./navigation-trace');
 // Navigations the startup/profile gate refused and queued: their own failure
 // can arrive after the gate replayed them (src/main/gate-refusals.js).
 const gateRefusals = require('./gate-refusals').createGateRefusals();
+// A provider or policy cancelling a replayed request is a real block: show it.
+blockingCoordinator.observeCancel(({ webContentsId, url }) => gateRefusals.disarm(webContentsId, url));
 const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
   coordinator: blockingCoordinator, queued: startupQueuedNavigations,
   resolveContents: id => {
@@ -1625,6 +1627,7 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   startupActive: () => startupNavigationGateActive,
   trace: navigationTrace,
   onRefused: (webContentsId, url) => gateRefusals.noteRefused(webContentsId, url),
+  onReplay: (webContentsId, url, generation) => gateRefusals.armReplay(webContentsId, url, generation),
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1688,10 +1691,12 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
     );
     const wc = liveContents(tab);
     if (!wc) {
+      gateRefusals.forget(webContentsId);
       navigationTrace.record('startup-gate-replay', { webContentsId, private: tab?.private, outcome: 'no-live-tab' });
       continue;
     }
     navigationTrace.record('startup-gate-replay', { webContentsId, navEpoch: tab.navEpoch, private: tab.private, url, outcome: 'replayed' });
+    gateRefusals.armReplay(webContentsId, url, tab.navEpoch);
     wc.loadURL(url).catch(() => {});
   }
 }

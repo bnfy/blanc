@@ -1,114 +1,208 @@
 'use strict';
-// A navigation the startup/profile gate refused and queued may report its own
-// ERR_BLOCKED_BY_CLIENT after the gate replayed it. Only that exact late
-// failure is kept off the error page; everything else is presented as before.
+// A navigation the startup/profile gate refused, queued and replayed may
+// report its own ERR_BLOCKED_BY_CLIENT after the replay began. Only that
+// failure, on the replay's own navigation generation, is kept off the error
+// page; every other failure, including a genuine later block of the same URL,
+// is presented as before.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { createGateRefusals, ERR_BLOCKED_BY_CLIENT, WINDOW_MS, MAX_PER_CONTENTS } = require('../../src/main/gate-refusals');
-const URL_A = 'https://castlabs.github.io/wv-vmp-lab/';
-const URL_B = 'https://example.test/next';
+const A = 'https://castlabs.github.io/wv-vmp-lab/';
+const B = 'https://example.test/next';
+const BLOCKED = ERR_BLOCKED_BY_CLIENT;
 
-test('a refused navigation\'s late -20 is matched once; a second, identical failure is presented', () => {
+// ---- The real tab failure handler, lifted from tab-view.js ----
+function handlerSource() {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
+  const start = source.indexOf('(_e, errorCode, errorDescription, validatedURL, isMainFrame) => {', source.indexOf("wc.on('did-fail-load'"));
+  const end = source.indexOf('\n  }));', start);
+  assert.ok(start > 0 && end > start, 'did-fail-load handler not found');
+  return `${source.slice(start, end)}\n  }`;
+}
+function harness() {
   const refusals = createGateRefusals();
-  refusals.noteRefused(4, URL_A);
-  assert.equal(refusals.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), true);
-  assert.equal(refusals.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), false, 'a later real block of the same URL still shows');
-});
-
-test('unrelated failures are never matched: other URL, other code, other contents, no refusal', () => {
-  const refusals = createGateRefusals();
-  refusals.noteRefused(4, URL_A);
-  assert.equal(refusals.consumeLateFailure(4, URL_B, ERR_BLOCKED_BY_CLIENT), false, 'a provider block of another URL');
-  for (const code of [-2, -3, -105, -200, -312]) assert.equal(refusals.consumeLateFailure(4, URL_A, code), false, `code ${code}`);
-  assert.equal(refusals.consumeLateFailure(5, URL_A, ERR_BLOCKED_BY_CLIENT), false, 'another tab');
-  assert.equal(createGateRefusals().consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), false, 'never refused');
-  assert.equal(refusals.pending(4), 1, 'the real refusal is still recorded');
-});
-
-test('superseding navigations: every refused URL is matched once, in any order', () => {
-  const refusals = createGateRefusals();
-  refusals.noteRefused(4, URL_A); refusals.noteRefused(4, URL_B);
-  assert.equal(refusals.consumeLateFailure(4, URL_B, ERR_BLOCKED_BY_CLIENT), true);
-  assert.equal(refusals.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), true);
-  assert.equal(refusals.pending(4), 0);
-});
-
-test('a failure kept off the page while the gate was active settles its refusal', () => {
-  const refusals = createGateRefusals();
-  refusals.noteRefused(4, URL_A);
-  refusals.settle(4, URL_A);
-  assert.equal(refusals.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), false);
-});
-
-test('closed or replaced contents forget their refusals; records expire after the window', () => {
-  const refusals = createGateRefusals();
-  refusals.noteRefused(4, URL_A); refusals.forget(4);
-  assert.equal(refusals.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), false, 'destroyed contents');
-  let clock = 0;
-  const timed = createGateRefusals({ now: () => clock });
-  timed.noteRefused(4, URL_A);
-  clock = WINDOW_MS + 1;
-  assert.equal(timed.consumeLateFailure(4, URL_A, ERR_BLOCKED_BY_CLIENT), false, 'expired');
-  assert.equal(timed.pending(4), 0);
-});
-
-test('bounded per contents; non-web URLs and invalid contents are ignored', () => {
-  const refusals = createGateRefusals();
-  for (let i = 0; i < MAX_PER_CONTENTS + 3; i += 1) refusals.noteRefused(4, `https://example.test/${i}`);
-  assert.equal(refusals.pending(4), MAX_PER_CONTENTS);
-  assert.equal(refusals.consumeLateFailure(4, 'https://example.test/0', ERR_BLOCKED_BY_CLIENT), false, 'oldest dropped');
-  for (const [id, url] of [[0, URL_A], [-1, URL_A], [1.5, URL_A], ['4', URL_A], [6, 'blanc://newtab/'], [6, 'file:///etc/passwd'], [6, null]]) refusals.noteRefused(id, url);
-  assert.equal(refusals.pending(6), 0);
-});
-
-test('the startup gate notes only the GET main-frame navigations it actually queues', () => {
-  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
-  const source = main.match(/function installStartupNavigationGate\(sessions\) \{[\s\S]*?\n\}/)?.[0];
-  assert.ok(source, 'installStartupNavigationGate not found');
-  const noted = []; let listener;
+  const queued = new Map();
+  const state = { gateActive: true, superseded: false };
+  const shown = []; const outcomes = [];
+  const wc = { id: 4, session: {} };
+  const tab = { navEpoch: 1, sleeping: false, private: false, certificateError: null, view: { webContents: wc } };
   const sandbox = {
-    startupNavigationGateActive: false, startupQueuedNavigations: new Map(), tabs: new Map(), tabIdByWebContentsId: new Map(),
-    navigationTrace: { record() {} }, gateRefusals: { noteRefused: (id, url) => noted.push([id, url]) },
-    blockingCoordinator: { setGate: (_session, gate) => { listener = gate; } },
+    tab, wc, id: 't1', URLSearchParams,
+    noteWakeSuppressed: () => false,
+    isStartupGateActive: () => state.gateActive,
+    startupQueuedNavigations: queued,
+    shouldPresentTabLoadFailure: (_wc, code, url) => !!url && code !== -3 && !state.superseded,
+    deps: { gateRefusals: refusals, navigationTrace: { record: (_event, fields) => outcomes.push(fields.outcome) }, t: key => key, claimOutage: () => null },
+    certificateExceptions: { isEligible: () => false },
+    certificateObserver: { wasVerifiedThisRun: () => false },
+    certificateErrorQuery: () => new URLSearchParams(),
+    queueTabNavigation: (_contents, { run }) => shown.push(run),
+    liveContents: () => wc, windowRuntimes: { runtimeForTab: () => null }, getOwner: () => null,
   };
-  vm.runInNewContext(`${source}\nthis.install = installStartupNavigationGate;`, sandbox);
-  sandbox.install([{}]);
-  assert.equal(listener({ resourceType: 'mainFrame', url: URL_A, method: 'GET', webContentsId: 4 }), true);
-  assert.equal(listener({ resourceType: 'mainFrame', url: URL_B, method: 'POST', webContentsId: 4 }), true, 'POST is still refused');
-  assert.equal(listener({ resourceType: 'subFrame', url: URL_B, method: 'GET', webContentsId: 4 }), false);
-  assert.equal(listener({ resourceType: 'mainFrame', url: 'blanc://newtab/', method: 'GET', webContentsId: 4 }), false);
-  assert.equal(listener({ resourceType: 'mainFrame', url: URL_B, method: 'GET', webContentsId: 0 }), true, 'no contents: refused, not queued');
-  assert.deepEqual(noted, [[4, URL_A]], 'only the queued GET is noted');
-  assert.deepEqual([...sandbox.startupQueuedNavigations], [[4, URL_A]], 'queueing is unchanged');
+  vm.runInNewContext(`this.fail = ${handlerSource()};`, sandbox);
+  return {
+    refusals, queued, state, tab, shown, outcomes,
+    // The startup gate refuses and queues a GET main-frame navigation.
+    refuse(url) { queued.set(wc.id, url); refusals.noteRefused(wc.id, url); },
+    // The gate opens and replays exactly what is queued (main.js release order).
+    release() {
+      state.gateActive = false;
+      const url = queued.get(wc.id); queued.delete(wc.id);
+      if (url) refusals.armReplay(wc.id, url, tab.navEpoch);
+    },
+    start() { tab.navEpoch += 1; },          // did-start-navigation (main frame)
+    fail(code, url) { sandbox.fail({}, code, 'desc', url, true); },
+  };
+}
+
+test('the replayed refusal\'s late -20 on the replay generation stays off the error page; a second one shows', () => {
+  const h = harness();
+  h.refuse(A); h.release(); h.start();
+  h.fail(BLOCKED, A);
+  assert.deepEqual(h.outcomes, ['gate-refused-late']); assert.equal(h.shown.length, 0);
+  h.fail(BLOCKED, A);
+  assert.deepEqual(h.outcomes, ['gate-refused-late', 'error-page']); assert.equal(h.shown.length, 1);
 });
 
-test('the profile gate notes only the GET navigations it holds for replay', () => {
+test('audit sequence: a superseded refusal whose failure was ignored never hides a genuine later block of the same URL', () => {
+  // Superseded before the gate opened: B replaces A in the queue and is replayed.
+  const h = harness();
+  h.refuse(A); h.start(); h.refuse(B); h.release(); h.start();
+  h.state.superseded = true; h.fail(BLOCKED, A); h.state.superseded = false;   // A's own failure ignored
+  h.start(); h.fail(BLOCKED, A);                                               // a genuine later block of A
+  assert.deepEqual(h.outcomes, ['not-presented', 'error-page']); assert.equal(h.shown.length, 1);
+  // Superseded after the replay: A is replayed, then the user navigates on.
+  const g = harness();
+  g.refuse(A); g.release(); g.start(); g.start();
+  g.state.superseded = true; g.fail(BLOCKED, A); g.state.superseded = false;
+  g.start(); g.fail(BLOCKED, A);
+  assert.deepEqual(g.outcomes, ['not-presented', 'error-page']); assert.equal(g.shown.length, 1);
+});
+
+test('a newer navigation invalidates the armed refusal even when its failure never arrived', () => {
+  const h = harness();
+  h.refuse(A); h.release(); h.start();   // replay at generation 2
+  h.start(); h.start();                  // the user navigates on, then back to A
+  h.fail(BLOCKED, A);                    // genuine block of A on a newer generation
+  assert.deepEqual(h.outcomes, ['error-page']); assert.equal(h.shown.length, 1);
+});
+
+test('a provider blocking the replayed request itself is shown', () => {
+  const h = harness();
+  h.refuse(A); h.release(); h.start();
+  h.refusals.disarm(4, A);               // coordinator observed a provider cancel of the replay
+  h.fail(BLOCKED, A);
+  assert.deepEqual(h.outcomes, ['error-page']); assert.equal(h.shown.length, 1);
+});
+
+test('refusals that were never replayed, other URLs and other codes are always shown', () => {
+  const h = harness();
+  h.refuse(A); h.state.gateActive = false;   // gate opened without replaying A
+  h.fail(BLOCKED, A);
+  const g = harness(); g.refuse(A); g.release(); g.start();
+  g.fail(BLOCKED, B); g.fail(-105, A);
+  assert.deepEqual(h.outcomes, ['error-page']);
+  assert.deepEqual(g.outcomes, ['error-page', 'error-page']);
+});
+
+test('a failure while the gate is active is kept off the page as before, and settles its refusal', () => {
+  const h = harness();
+  h.refuse(A); h.fail(BLOCKED, A);         // gate still active, navigation queued
+  assert.deepEqual(h.outcomes, ['gate-suppressed']);
+  h.release(); h.start(); h.fail(BLOCKED, A);
+  assert.deepEqual(h.outcomes, ['gate-suppressed', 'error-page'], 'nothing left to match after settling');
+});
+
+// ---- The tracker on its own ----
+test('the tracker: arming, generations, single use, disarm, settle, forget, expiry and bounds', () => {
+  const r = createGateRefusals();
+  r.noteRefused(4, A);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 1), false, 'pending (not replayed) never matches');
+  r.armReplay(4, A, 5);
+  assert.equal(r.consumeLateFailure(4, A, -3, 6), false, 'other codes never match');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 6), true);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 6), false, 'once');
+  r.noteRefused(4, A); r.armReplay(4, A, 5);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 7), false, 'two generations later');
+  assert.equal(r.pending(4), 0, 'and the record is gone');
+  r.noteRefused(4, A); r.noteRefused(4, B); r.armReplay(4, B, 2);
+  assert.equal(r.pending(4), 1, 'replaying B drops the superseded A');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false);
+  r.disarm(4, B); assert.equal(r.consumeLateFailure(4, B, BLOCKED, 3), false, 'disarmed');
+  r.noteRefused(4, A); r.armReplay(4, A, 2); r.settle(4, A); assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false, 'settled');
+  r.noteRefused(4, A); r.armReplay(4, A, 2); r.forget(4); assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false, 'forgotten');
+  r.armReplay(4, A, 2); assert.equal(r.pending(4), 0, 'arming without a refusal arms nothing');
+  let clock = 0; const timed = createGateRefusals({ now: () => clock });
+  timed.noteRefused(4, A); timed.armReplay(4, A, 2); clock = WINDOW_MS + 1;
+  assert.equal(timed.consumeLateFailure(4, A, BLOCKED, 3), false, 'expired');
+  for (let i = 0; i < MAX_PER_CONTENTS + 3; i += 1) r.noteRefused(9, `https://example.test/${i}`);
+  assert.equal(r.pending(9), MAX_PER_CONTENTS);
+  for (const [id, url] of [[0, A], [-1, A], [1.5, A], ['4', A], [6, 'blanc://newtab/'], [6, 'file:///etc/passwd'], [6, null]]) r.noteRefused(id, url);
+  assert.equal(r.pending(6), 0);
+});
+
+// ---- Wiring ----
+test('the startup gate notes only queued GET main-frame loads and arms only what it replays', () => {
+  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  const install = main.match(/function installStartupNavigationGate\(sessions\) \{[\s\S]*?\n\}/)?.[0];
+  const release = main.match(/function releaseStartupNavigationGate\(sessions, \{ blockerAttached \}\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(install && release);
+  const noted = []; const armed = []; const forgotten = []; let listener;
+  const view = require('fs').readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
+  const liveViewContents = view.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
+  const liveContents = view.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
+  const loaded = [];
+  const tabWc = { id: 4, isDestroyed: () => false, loadURL: url => { loaded.push(url); return Promise.resolve(); } };
+  const sandbox = {
+    startupNavigationGateActive: false, startupQueuedNavigations: new Map(), tabs: new Map([['t1', { navEpoch: 3, view: { webContents: tabWc } }]]),
+    tabIdByWebContentsId: new Map(), pendingWakes: new Set(), wakeTab: () => Promise.resolve(),
+    navigationTrace: { record() {} }, profileNavigationGates: { reconcile() {}, owns: () => false },
+    gateRefusals: { noteRefused: (...a) => noted.push(a), armReplay: (...a) => armed.push(a), forget: id => forgotten.push(id) },
+    blockingCoordinator: { setGate: (_s, gate) => { listener = gate; } }, installRequestCoordinator() {},
+  };
+  vm.runInNewContext(`${liveViewContents}\n${liveContents}\n${install}\n${release}\nthis.install = installStartupNavigationGate; this.release = releaseStartupNavigationGate;`, sandbox);
+  sandbox.install([{}]);
+  assert.equal(listener({ resourceType: 'mainFrame', url: A, method: 'GET', webContentsId: 4 }), true);
+  assert.equal(listener({ resourceType: 'mainFrame', url: B, method: 'POST', webContentsId: 5 }), true, 'POST refused, not queued');
+  assert.equal(listener({ resourceType: 'subFrame', url: B, method: 'GET', webContentsId: 4 }), false);
+  assert.equal(listener({ resourceType: 'mainFrame', url: B, method: 'GET', webContentsId: 7 }), true, 'queued for a contents with no tab');
+  assert.deepEqual(noted, [[4, A], [7, B]]);
+  sandbox.release([], { blockerAttached: true });
+  assert.deepEqual(armed, [[4, A, 3]], 'armed at the tab generation before its replay');
+  assert.deepEqual(loaded, [A], 'replay unchanged');
+  assert.deepEqual(forgotten, [7], 'a contents without a live tab is forgotten');
+});
+
+test('the profile gate notes held GETs and arms its replay; the coordinator reports provider cancels, not gate refusals', async () => {
   const { createProfileNavigationGates } = require('../../src/main/profile-navigation-gates');
-  const noted = []; const listeners = new Map();
-  const target = { tab: { profileId: 'a', private: false, navEpoch: 1 }, wc: { loadURL: () => Promise.resolve() } };
+  const noted = []; const armed = []; const listeners = new Map(); let phase = 'initializing';
+  const target = { tab: { profileId: 'a', private: false, navEpoch: 6 }, wc: { loadURL: () => Promise.resolve() } };
   const priv = { tab: { profileId: 'a', private: true, navEpoch: 1 }, wc: { loadURL: () => Promise.resolve() } };
   const gates = createProfileNavigationGates({ coordinator: { setGate: (s, l) => listeners.set(s, l) }, queued: new Map(),
-    resolveContents: id => ({ 1: target, 2: priv })[id] ?? null, ready: () => false, enabled: () => true, startupActive: () => false,
-    onRefused: (id, url) => noted.push([id, url]) });
+    resolveContents: id => ({ 1: target, 2: priv })[id] ?? null, ready: () => phase === 'ready', enabled: () => true, startupActive: () => false,
+    onRefused: (...a) => noted.push(a), onReplay: (...a) => armed.push(a) });
   gates.hold('a', 'a');
-  const request = (id, method = 'GET') => listeners.get('a')({ webContentsId: id, resourceType: 'mainFrame', url: URL_A, method });
-  assert.equal(request(1), true); assert.equal(request(1, 'POST'), true); assert.equal(request(2), true);
-  assert.deepEqual(noted, [[1, URL_A]], 'POST and private navigations are refused but never noted for replay');
-});
-
-test('the tab failure handler drops only a matching late refusal; every other failure reaches the error page', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
-  const start = source.indexOf("wc.on('did-fail-load'");
-  const handler = source.slice(start, source.indexOf('const canContinue', start));
-  const order = ["if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) { traceFailure('not-presented'); return; }",
-    'if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) {',
-    'deps.gateRefusals?.settle(wc.id, validatedURL);',
-    'if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {',
-    "traceFailure('gate-refused-late');",
-    "traceFailure('error-page');"].map(text => { const at = handler.indexOf(text); assert.ok(at >= 0, text); return at; });
-  assert.deepEqual([...order].sort((a, b) => a - b), order, 'guards keep their order');
-  assert.match(source, /const refusalContentsId = wc\.id;\n  wc\.once\('destroyed', \(\) => deps\.gateRefusals\?\.forget\(refusalContentsId\)\);/);
+  const request = (id, method = 'GET') => listeners.get('a')({ webContentsId: id, resourceType: 'mainFrame', url: A, method });
+  request(1); request(2); request(1, 'POST');
+  assert.deepEqual(noted, [[1, A]]);
+  request(1); phase = 'ready'; gates.reconcile();
+  assert.deepEqual(armed, [[1, A, 6]]);
+  const { createBlockingCoordinator, CALLBACK_EVENTS, OBSERVE_EVENTS } = require('../../src/main/blocking-coordinator');
+  const handlers = new Map(); const cancels = [];
+  const session = { isPersistent: () => true, webRequest: Object.fromEntries([...CALLBACK_EVENTS, ...OBSERVE_EVENTS].map(e => [e, (_f, l) => handlers.set(e, l)])) };
+  const coordinator = createBlockingCoordinator(); coordinator.observeCancel(c => cancels.push([c.source, c.stage, c.webContentsId]));
+  const request2 = (event, details) => new Promise(resolve => handlers.get(event)(details, resolve));
+  const main = { id: 1, resourceType: 'mainFrame', url: A, webContentsId: 4 };
+  coordinator.setGate(session, () => true); assert.deepEqual(await request2('onBeforeRequest', main), { cancel: true });
+  coordinator.setGate(session, null); coordinator.setProvider(session, { decide: () => ({ cancel: true }) });
+  assert.deepEqual(await request2('onBeforeRequest', main), { cancel: true });
+  assert.deepEqual(await request2('onBeforeRequest', { ...main, resourceType: 'image' }), { cancel: true });
+  coordinator.setProvider(session, { decide: async () => { throw new Error('lost'); } });
+  assert.deepEqual(await request2('onHeadersReceived', main), { cancel: true });
+  assert.deepEqual(cancels, [['provider', 'onBeforeRequest', 4], ['policy-exception', 'onHeadersReceived', 4]], 'gate refusals and subresources are not reported');
+  coordinator.observeCancel(() => { throw new Error('observer bug'); });
+  assert.deepEqual(await request2('onHeadersReceived', main), { cancel: true }, 'an observer failure never changes a decision');
 });

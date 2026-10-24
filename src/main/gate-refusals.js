@@ -1,15 +1,24 @@
 'use strict';
-// Navigations the startup or profile navigation gate actually refused and
-// queued for replay. Chromium can deliver that refused load's failure
-// (ERR_BLOCKED_BY_CLIENT, -20) after the gate has opened and replayed the
-// navigation; the failure belongs to the refusal, not to the replay, and must
+// Navigations the startup or profile navigation gate actually refused,
+// queued and then replayed. Chromium can deliver the refused load's failure
+// (ERR_BLOCKED_BY_CLIENT, -20) after the gate opened and replayed the
+// navigation; that failure belongs to the refusal, not to the replay, and must
 // not replace the tab with an error page.
 //
-// Only that exact case matches: the same WebContents, the exact refused URL,
-// error -20, at most once per refusal, within a short window. Every other
-// failure, including an unrelated ERR_BLOCKED_BY_CLIENT from a blocking
-// provider, is presented exactly as before. No navigation is retried here;
-// the gates' own replay is unchanged.
+// Attribution is navigation-aware, not URL-and-time alone:
+// - a refusal is only pending until the gate replays that exact URL, which
+//   arms it at the tab's navigation generation at that moment; refusals that
+//   were superseded and never replayed can never match;
+// - a late -20 matches only an armed record for that URL while the tab is
+//   still on the replay's generation (the one at replay, or the one the replay
+//   started); any newer navigation invalidates it;
+// - if a blocking provider (or a policy failure) cancels the replayed request
+//   itself, the record is disarmed so that block is shown;
+// - a failure for that URL already handled elsewhere (while the gate was
+//   active, or ignored as not presentable) settles the record;
+// - each record matches at most once, within a short window.
+// Every other failure is presented exactly as before. Nothing is retried; the
+// gates' own replay is unchanged.
 const ERR_BLOCKED_BY_CLIENT = -20;
 const WINDOW_MS = 30000;
 const MAX_PER_CONTENTS = 8;
@@ -21,29 +30,49 @@ function createGateRefusals({ now = () => Date.now(), windowMs = WINDOW_MS } = {
     if (list.length) byContents.set(id, list); else byContents.delete(id);
     return list;
   }
-  function take(id, url) {
-    const list = live(id);
-    const index = list.findIndex(entry => entry.url === url);
-    if (index < 0) return false;
-    list.splice(index, 1);
+  function remove(id, entry) {
+    const list = byContents.get(id) || [];
+    const index = list.indexOf(entry);
+    if (index >= 0) list.splice(index, 1);
     if (!list.length) byContents.delete(id);
-    return true;
   }
+  const validId = id => Number.isInteger(id) && id > 0;
   return {
     noteRefused(id, url) {
-      if (!Number.isInteger(id) || id <= 0 || typeof url !== 'string' || !/^https?:/i.test(url)) return;
+      if (!validId(id) || typeof url !== 'string' || !/^https?:/i.test(url)) return;
       const list = live(id);
-      list.push({ url, at: now() });
+      list.push({ url, at: now(), armed: null });
       while (list.length > MAX_PER_CONTENTS) list.shift();
       byContents.set(id, list);
     },
-    // The refusal's failure arrived while the gate was still active and was
-    // already kept off the error page; drop the record so it cannot match later.
-    settle(id, url) { take(id, url); },
-    // True only for the late -20 failure of a navigation the gate refused.
-    consumeLateFailure(id, url, code) {
+    // The gate is replaying `url` in this contents at navigation `generation`.
+    // Only a pending refusal of that exact URL is armed; every other refusal
+    // of this contents was superseded and is dropped.
+    armReplay(id, url, generation) {
+      const list = live(id);
+      const entry = list.find(item => item.url === url && item.armed === null);
+      byContents.delete(id);
+      if (!entry || !Number.isInteger(generation)) return;
+      entry.armed = generation;
+      entry.at = now();
+      byContents.set(id, [entry]);
+    },
+    // A provider or policy cancelled the replayed request itself: show it.
+    disarm(id, url) {
+      for (const entry of [...live(id)]) if (entry.url === url) remove(id, entry);
+    },
+    // The refusal's failure was already handled (gate active, or ignored).
+    settle(id, url) {
+      const entry = live(id).find(item => item.url === url);
+      if (entry) remove(id, entry);
+    },
+    // True only for the armed refusal's own late -20 on the replay's generation.
+    consumeLateFailure(id, url, code, generation) {
+      const entry = live(id).find(item => item.url === url && item.armed !== null);
+      if (!entry) return false;
       if (code !== ERR_BLOCKED_BY_CLIENT) return false;
-      return take(id, url);
+      remove(id, entry);
+      return generation === entry.armed || generation === entry.armed + 1;
     },
     forget(id) { byContents.delete(id); },
     pending(id) { return live(id).length; },

@@ -38,6 +38,7 @@ function load({ tabList, queued, deferredWakes = [], blockerAttached = true, ses
     installRequestCoordinator: (session) => guarded.push(session),
     blockingCoordinator: { setGate: (session, value) => { assert.equal(value, null); ungated.push(session); } },
     navigationTrace: { record: (event, fields) => records.push([event, fields.webContentsId ?? null, fields.outcome ?? null]) },
+    gateRefusals: { armReplay() {}, forget() {} },
   };
   vm.runInNewContext(
     `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,

@@ -485,17 +485,23 @@ function wireTabView(tab, view, { owner, adopted }) {
     // gate state at that moment. Observation only.
     const traceFailure = outcome => deps.navigationTrace?.record('did-fail-load', { webContentsId: wc.id, navEpoch: tab.navEpoch, private: tab.private,
       url: validatedURL, code: errorCode, outcome, gate: isStartupGateActive(tab) ? 'active' : 'inactive', queued: startupQueuedNavigations.has(wc.id) });
-    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) { traceFailure('not-presented'); return; }
+    if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) {
+      // A refusal whose failure is ignored here can never match a later load.
+      deps.gateRefusals?.settle(wc.id, validatedURL);
+      traceFailure('not-presented');
+      return;
+    }
     if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) {
       deps.gateRefusals?.settle(wc.id, validatedURL);
       traceFailure('gate-suppressed');
       return;
     }
-    // A navigation the gate refused and queued can report its own -20 after the
-    // gate opened and replayed it. That failure is the refusal's, not the
-    // replay's: never show it as an error page. Matches only that exact
-    // refusal (same contents, same URL, -20, once); everything else continues.
-    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {
+    // A navigation the gate refused, queued and replayed can report its own -20
+    // after the replay began. That failure is the refusal's, not the replay's:
+    // never show it as an error page. Matches only the replayed refusal of this
+    // URL on the replay's own navigation generation, once, unless a provider
+    // blocked the replay itself (src/main/gate-refusals.js).
+    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode, tab.navEpoch)) {
       traceFailure('gate-refused-late');
       return;
     }
