@@ -27,10 +27,20 @@ M7a is implemented but unreleased. This does not complete M7: Send to device is 
 - Upload budgeting never replaces the full local tab cache. Missing clocks on untouched remote settings do not erase those wire values.
 - The Swift models take raw device maps; the engine wraps them in the existing `devices` envelope at storage/network boundaries.
 
+## Packaged pairing follow-up
+
+The packaged pairing operator tested `3529b56` with one temporary local Settings-page gate. The unmodified page stopped initializing because the iOS bridge exposes `settings.blockingStatus` but rejects it as unsupported. This follow-up commits the `supports('blockingStatus')` gate and tests with that rejecting method present, preserving the real bridge shape.
+
+With the temporary gate, the operator reported all three join paths, Keychain add/readback under normal simulator signing, tabs in both directions, read-only Favorites, theme changes both ways, device renaming without rewrite loops, turn-off retraction, and detection of server-side account deletion. Desktop remote tabs were verified through the data consumed by its UI rather than visual drawer inspection. The throwaway account, credential files, isolated profile, simulator and roughly 534 MB of build output were removed; the clipboard was restored.
+
+The same follow-up also preserves recovery-code case in both join/switch fields, uses existing-credential labels on the join path, and refreshes native Settings controls from sync events without reloading the page or overwriting an actively edited device name. Small-screen Sync inputs use at least 16 px text to avoid input zoom. Ten real-page tests cover these states and retain the desktop creation flow.
+
+These successful pairing results are conditional on the temporary gate; they are not an unqualified pass for the unmodified `3529b56` build. Recheck the committed follow-up and still complete physical-iPhone validation before merge.
+
 ## Pending release gates
 
 - Native execution is complete for `2e6217c`: the follow-up operator reported the full 202-test suite passing on iPhone 17 Pro / iOS 27.0, including the native catalog and unchanged-blocking/no-reload tests. The ten review regression tests failed against the previous production code as a positive control. This supersedes the earlier local launch blocker; the disposable simulator and 204 MB build output were removed afterward. Subsequent test-only changes still require head-matched CI.
-- Pair the simulator with an isolated test sync account using all three join paths against a packaged desktop build; check live tabs, theme, Favorites, renaming and retraction.
+- Recheck the committed Settings follow-up against the packaged desktop and simulator flow. The earlier run covered all three joins and sync behavior with a temporary local gate; it does not by itself verify the new head.
 - Repeat code pairing on a physical iPhone, including device-only Keychain persistence. No iPhone was available to the connected-device tooling.
 - Hand-check compact and regular-width page/palette layouts and desktop Settings/Favorites after the shared-page change.
 

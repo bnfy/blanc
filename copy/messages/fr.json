@@ -7736,5 +7736,13 @@
   "settings.sync.createOnComputer": {
     "message": "Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.",
     "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Saisissez le nom de votre synchronisation",
+    "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Saisissez votre phrase secrète",
+    "source": "sha256:9b8f303ef292e16cff4d4f1a2bdc05eb3313e91c006dd9de2697eb5ab70f0043"
   }
 }

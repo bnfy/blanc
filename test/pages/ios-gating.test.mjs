@@ -30,16 +30,25 @@ async function open(name, options = {}) {
   page.on('pageerror', e => errors.push(e.message));
   await page.addInitScript(options => {
     window.calls = [];
+    window.appearanceListeners = [];
     const status = { enabled: !!options.active, handle: 'example', syncTabs: false };
     const settings = {
-      get: async () => ({ settings: {}, searchEngines: {}, appIcons: {},
+      get: async () => ({ settings: { theme: 'system', searchEngine: 'duckduckgo', adblockEnabled: true }, searchEngines: { duckduckgo: 'DuckDuckGo' }, appIcons: {},
         ...(options.desktop ? {} : { capabilities: ['sync'] }) }),
       set: async patch => patch,
+      // M6.5 exposes every contract method on the phone, including unsupported ones.
+      blockingStatus: async () => {
+        if (!options.desktop) { window.calls.push(['blockingStatus']); throw Error('blockingStatus is not implemented on iOS'); }
+        return { selected: 'blanc', active: 'blanc', supported: true, exposed: true, enabled: true, phase: 'ready' };
+      },
+      onBlockingStatus: () => {},
+      onAppearance: callback => window.appearanceListeners.push(callback),
       syncGet: async () => status,
       syncPreflight: async () => ({ ok: true, outcome: 'notFound' }),
       syncDisable: async value => { window.calls.push(['disable', value]); return { ok: true, status: { enabled: false } }; },
       syncSwitchCode: async value => { window.calls.push(['switch', value]); return { ok: false, status }; },
       syncPairState: async () => ({}),
+      syncDeviceNameSet: async () => status,
     };
     window.bowserPages = {
       settings,
@@ -76,6 +85,10 @@ test('desktop retains both creation paths when capabilities are absent', async (
   const { page } = await open('settings', { desktop: true });
   try {
     assert.equal(await visible(page, '#syncPathStart'), true);
+    await page.locator('#syncPathStart').click();
+    assert.equal(await page.locator('#syncHandle').locator('..').locator('strong').textContent(), 'Give your sync a name');
+    assert.equal(await page.locator('#syncPassphrase').locator('..').locator('strong').textContent(), 'Choose a passphrase');
+    await page.locator('#syncBack').click();
     await missingSync(page);
     assert.equal(await visible(page, '#syncStartNew'), true);
   } finally { await page.close(); }
@@ -142,5 +155,59 @@ test('rejected removal displays its message without an unhandled rejection', asy
     await page.locator('.bookmark-actions .danger').click();
     await page.waitForFunction(() => document.querySelector('#importStatus').textContent === 'Edit Favorites on your computer for now.');
     assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+
+test('phone finishes Settings setup without calling the unsupported blocker provider', async () => {
+  const { page, errors } = await open('settings');
+  try {
+    assert.equal(await page.locator('#searchEngine option').count(), 1);
+    assert.equal(await page.locator('#theme').inputValue(), 'system');
+    assert.equal(await page.locator('#blockingProviderSetting').count(), 0);
+    assert.equal(await page.evaluate(() => window.calls.some(call => call[0] === 'blockingStatus')), false);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+
+test('joining uses existing-credential labels and preserves recovery-code case', async () => {
+  const { page } = await open('settings');
+  try {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#syncPathCode').click();
+    assert.ok(await page.locator('#syncCode').evaluate(el => parseFloat(getComputedStyle(el).fontSize)) >= 16);
+    assert.equal(await page.locator('#syncCode').getAttribute('autocapitalize'), 'none');
+    assert.equal(await page.locator('#syncSwitchCode').getAttribute('autocapitalize'), 'none');
+    await page.locator('#syncCode').fill('blanc-sync:1:MixedCaseABCxyz');
+    assert.equal(await page.locator('#syncCode').inputValue(), 'blanc-sync:1:MixedCaseABCxyz');
+    assert.equal(await page.locator('#syncCode').evaluate(el => getComputedStyle(el).textTransform), 'none');
+    await page.locator('#syncUsePassphrase').click();
+    assert.equal(await page.locator('#syncHandle').locator('..').locator('strong').textContent(), 'Enter your sync name');
+    assert.equal(await page.locator('#syncPassphrase').locator('..').locator('strong').textContent(), 'Enter your passphrase');
+  } finally { await page.close(); }
+});
+
+test('synced Settings redraw without reloading or overwriting an active name edit', async () => {
+  const { page } = await open('settings', { active: true });
+  try {
+    await page.locator('#syncDeviceName').fill('Name being edited');
+    await page.evaluate(() => {
+      for (const callback of window.appearanceListeners) callback({
+        settings: { theme: 'dark', searchEngine: 'duckduckgo', adblockEnabled: false },
+        syncStatus: { enabled: true, handle: 'example', syncTabs: true, deviceName: 'Remote name', deviceNamePublished: 'iPhone' },
+      });
+    });
+    assert.equal(await page.locator('#theme').inputValue(), 'dark');
+    assert.equal(await page.locator('#adblockEnabled').isChecked(), false);
+    assert.equal(await page.locator('#syncTabsShare').isChecked(), true);
+    assert.equal(await page.locator('#syncDeviceName').inputValue(), 'Name being edited');
+    await page.locator('#syncDeviceName').blur();
+    await page.evaluate(() => {
+      for (const callback of window.appearanceListeners) callback({
+        syncStatus: { enabled: true, handle: 'example', syncTabs: true, deviceName: 'Remote name', deviceNamePublished: 'iPhone' },
+      });
+    });
+    assert.equal(await page.locator('#syncDeviceName').inputValue(), 'Remote name');
   } finally { await page.close(); }
 });

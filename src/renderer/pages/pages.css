@@ -4538,7 +4538,10 @@ body[data-layout="shelf"] #layoutShelf { display: grid; }
   font-variant-numeric: tabular-nums;
   font-size: 18px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: none;
+}
+@media (max-width: 600px) {
+  #group-sync input { font-size: 16px; }
 }
 .sync-devices { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .sync-pairing, .sync-switch { margin-top: 10px; display: grid; gap: 8px; }

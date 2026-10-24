@@ -2219,4 +2219,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_read_only_note">I preferiti si sincronizzano dal computer. Per ora, modificali lì.</string>
     <string name="favorites_edit_on_computer">Per ora, modifica i preferiti sul computer.</string>
     <string name="settings_sync_create_on_computer">Avvia la sincronizzazione sul computer, poi aggiungi questo telefono con un codice.</string>
+    <string name="settings_sync_enter_sync_name">Inserisci il nome della sincronizzazione</string>
+    <string name="settings_sync_enter_passphrase">Inserisci la tua passphrase</string>
 </resources>

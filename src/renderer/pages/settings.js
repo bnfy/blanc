@@ -168,7 +168,7 @@
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
-  if (typeof window.bowserPages.settings.blockingStatus === 'function') {
+  if (supports('blockingStatus') && typeof window.bowserPages.settings.blockingStatus === 'function') {
     const selector = document.getElementById('adblockProvider');
     const label = id => id === 'ublock-origin' ? 'uBlock Origin' : 'Blanc Blocker';
     const renderBlocking = (state) => {
@@ -254,6 +254,23 @@
   newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
+
+  // iOS sends core settings with the existing appearance event after a pull.
+  // Update controls in place; a focused field belongs to the person editing it.
+  window.bowserPages.settings.onAppearance?.((state) => {
+    const current = state?.settings;
+    if (!current) return;
+    for (const [control, key] of [[theme, 'theme'], [searchEngine, 'searchEngine']]) {
+      if (typeof current[key] === 'string' && document.activeElement !== control) {
+        control.value = current[key];
+        settings[key] = current[key];
+      }
+    }
+    if (typeof current.adblockEnabled === 'boolean' && document.activeElement !== adblockEnabled) {
+      adblockEnabled.checked = current.adblockEnabled;
+      settings.adblockEnabled = current.adblockEnabled;
+    }
+  });
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
@@ -1555,11 +1572,23 @@
         }
       }
 
+      window.bowserPages.settings.onAppearance?.((state) => {
+        if (state?.syncStatus) renderStatus(state.syncStatus);
+      });
+
       // Off-state: the reducer owns the flow; this code only mirrors view()
       // to the DOM and performs each returned effect exactly once.
       let model = createSyncSetupModel();
       function renderSetup() {
         const v = view(model);
+        for (const [field, key] of [
+          [handleEl, model.path === 'join' ? 'settings.sync.enterSyncName' : 'settings.sync.giveYourSyncA'],
+          [passEl, model.path === 'join' ? 'settings.sync.enterPassphrase' : 'settings.sync.chooseAPassphrase'],
+        ]) {
+          const label = field.closest('label').querySelector('strong');
+          label.dataset.i18n = key;
+          label.textContent = t(key);
+        }
         setupTitle.textContent = v.setupTitle;
         setupIntro.textContent = v.setupIntro;
         paths.hidden = v.pathChosen;

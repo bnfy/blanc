@@ -2219,4 +2219,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_read_only_note">Les favoris sont synchronisés depuis votre ordinateur. Modifiez-les là-bas pour le moment.</string>
     <string name="favorites_edit_on_computer">Modifiez les favoris sur votre ordinateur pour le moment.</string>
     <string name="settings_sync_create_on_computer">Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.</string>
+    <string name="settings_sync_enter_sync_name">Saisissez le nom de votre synchronisation</string>
+    <string name="settings_sync_enter_passphrase">Saisissez votre phrase secrète</string>
 </resources>

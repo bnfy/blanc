@@ -8014,5 +8014,13 @@
   "settings.sync.createOnComputer": {
     "message": "Start your sync on your computer, then add this phone with a code.",
     "note": "iOS M7a capability guidance in the shared Favorites or Sync page."
+  },
+  "settings.sync.enterSyncName": {
+    "message": "Enter your sync name",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
+  },
+  "settings.sync.enterPassphrase": {
+    "message": "Enter your passphrase",
+    "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
   }
 }

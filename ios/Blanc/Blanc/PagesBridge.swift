@@ -324,6 +324,12 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     }
     private var lastFavoritesPayload: JSONValue = .array([])
     func emitSyncChanges() {
+        if let engine = manager?.syncEngine {
+            emit("settings.onAppearance", payload: .object([
+                ("settings", liveSettingsBootstrap()["settings"] ?? .object([])),
+                ("syncStatus", engine.status),
+            ]), host: "settings")
+        }
         emitRemoteTabs()
         let current = favoritesPayload()
         let previous = lastFavoritesPayload

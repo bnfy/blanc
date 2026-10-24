@@ -2150,4 +2150,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="favorites_read_only_note">Favoriten werden von deinem Computer synchronisiert. Bearbeite sie vorerst dort.</string>
     <string name="favorites_edit_on_computer">Bearbeite Favoriten vorerst auf deinem Computer.</string>
     <string name="settings_sync_create_on_computer">Starte die Synchronisierung auf deinem Computer und füge dann dieses Telefon mit einem Code hinzu.</string>
+    <string name="settings_sync_enter_sync_name">Gib deinen Sync-Namen ein</string>
+    <string name="settings_sync_enter_passphrase">Gib deine Passphrase ein</string>
 </resources>

@@ -100,7 +100,9 @@ test('settings.js drives the flow through the reducer and performs effects once'
   assert.match(js, /if \(effect\?\.type === 'preflight'\)/);
   assert.match(js, /if \(effect\?\.type === 'enable'\)/);
   assert.match(js, /effect\.path === 'join'/, 'result copy derives from the effect, not live state');
-  assert.doesNotMatch(js, /model\.path === 'join'/);
+  const enableEffect = js.slice(js.indexOf('async function performEnable('), js.indexOf('async function performPreflight('));
+  assert.ok(enableEffect.length > 0);
+  assert.doesNotMatch(enableEffect, /model\.path === 'join'/, 'async enable copy must use its captured effect; synchronous field labels may use the current model');
   assert.match(js, /type: 'enable-reply', token: effect\.token/);
   // A failed enable never becomes a transient note: the error belongs to the
   // Last error row (persisted credentials) or the reducer's notice (not).

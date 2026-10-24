@@ -2150,4 +2150,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_read_only_note">Favorites sync from your computer. Edit them there for now.</string>
     <string name="favorites_edit_on_computer">Edit Favorites on your computer for now.</string>
     <string name="settings_sync_create_on_computer">Start your sync on your computer, then add this phone with a code.</string>
+    <string name="settings_sync_enter_sync_name">Enter your sync name</string>
+    <string name="settings_sync_enter_passphrase">Enter your passphrase</string>
 </resources>
