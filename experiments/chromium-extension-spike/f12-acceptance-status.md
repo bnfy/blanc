@@ -1,3 +1,5 @@
+> October24 current decision input: [finite Decision2 brief](decision2-review-package-20261022.md) credits completed socket/prefetch/prerender and signed-candidate evidence without reruns. The demonstrated prerender activation-loss defect is repaired and L7/L8 accepted for14706b0e. Conditional pre-prefetch/runtime feature-state, strict update attribution, broader historical parity/provider limits and latency remain explicitly unaccepted. uBO experiments are excluded from the distributed preview; neither aggregate spike nor engine selection is approved.
+
 > October24 final: [notarized activation repair](evidence/f12-prerender-notarized-20261024/README.md) passes all72post-staple checks. The demonstrated activation-after-loss gap is repaired for the bounded regular/private schedules; no full spike/latency acceptance. Electron remains paused.
 
 > October24 repair: [signed prerender revalidation](evidence/f12-prerender-repair-20261024/README.md) now passes healthy/loss controls in regular/private profiles and a delayed-reply timeout control. No aggregate spike acceptance; corrected replacement notarization is pending.

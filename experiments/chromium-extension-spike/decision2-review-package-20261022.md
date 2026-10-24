@@ -1,10 +1,33 @@
 # Decision 2 review package — October 22, 2026
 
-## Current closeout — October 24, 2026
+## Current decision brief — October24
 
-The [finite closeout and fresh inventory](evidence/decision2-closeout-20261024/README.md) supersede the historical pending-work list below. Candidate source7c427328/archiveffcfefdf is signed, authenticated and accepted for the recorded L2/L5/L6/L7/L8/L9/L10 scope. Matched visual/physical VoiceOver and signed isolation are complete and mapped; do not repeat them without a changed surface. Fresh inventory73files/179hunks and151clean pinned Git dependencies matches the signed candidate records exactly. A1 layout consolidation is still future work.
+**Decision2 is not yet ready for unconditional approval.** [Input reconciliation](evidence/decision2-inputs-20261024/README.md) replaces stale repeat-test tasks. Accepted evaluation candidate: source `14706b0e`, archive `18a0c2ca`, Chromium157.0.8103.15,73upstream files/180hunks. These are recorded inventory values, not a new rebase measurement.
 
-The distributable uses Blanc Blocker with research-only uBO paths compiled out. F12's historical limits and deferred latency are not waived. Remaining Decision2 inputs are the authentic Google upgrade, cost/capacity disposition, conditional request-path qualifications and engine decision. Shared CI/merged release readiness are separate; Electron is paused. The cost API result is recorded without treating zero billable fields as zero cost. **9/12 gates, delta0.**
+### Six required package items
+
+| Input | Current disposition | Remaining action |
+| --- | --- | --- |
+| Task0 measured rebase | Historical cold build2h39m47.120s and broken-anchor/API notes retained | Human attention was not recorded; current larger patch set has no measured major-version rebase. Real Google upgrade remains independently required. |
+| A1 integration design/current count | Design and73/180inventory available; owner permits recorded budget increases and later consolidation | Review proposed layout and minimal upstream hook strategy. No consolidation/cost reduction has been proved. |
+| Feature parity table | Bounded implemented features and explicit exclusions recorded in primary plan | Do not claim full three-platform shipping parity, production migration or complete Glance parity. |
+| Matched visual comparison | Scoped owner acceptance recorded underL5 and mapped through unchanged controls | Complete for its accepted scope; no repeat session requested. |
+| Mac VoiceOver | Owner physical input/VoiceOver/theme/permission/popup acceptance recorded underL5 | Complete for its accepted scope; no repeat session requested. |
+| Staffing/CI cost sheet | Sole maintainer Anthony Loria; suspend when unavailable, already accepted | Owner cannot estimate limits without workload data. Prepare existing-hardware/no-new-service operating range; past effort remains unknown. Informed cost/capacity disposition pending. |
+
+### Proposed decision boundary — not an approval
+
+The evaluation artifact currently ships Blanc Blocker; uBO experiments are compiled out. A reviewable proposal is to keep that bounded engine/scope for the side-by-side Mac preview and defer the full-uBO research path. This does **not** accept SpikeA or SpikeB, qualify outstanding paths, change a kill criterion, or authorizePhase3/migration/release. The owner must decide the engine and acceptable residual scope after the evidence prerequisites are resolved.
+
+### Finite unresolved list
+
+1. **Cost/capacity:** prepare an evidence-based operating proposal before asking for cash/attention limits; distinguish actual billed costs and unmeasured past work. Do not derive human time from builds or report zero dollars from the GitHub timing response.
+2. **F12:** preserve the documented pre-prefetch reachability/feature-state limitation, strict service-worker update attribution and historical paired/cosmetic/provider-recovery limits. Prerender's demonstrated activation-after-loss failure is repaired and notarized, with72post-staple checks; it is no longer an open defect. Full per-path currentness and latency remain separate from L7/L8 acceptance. No blanket stress rerun is authorized by this list.
+3. **Latency:** deferred by owner. Keep the requirement open; no new measurement or silent waiver.
+4. **Google upgrade:** external offer required; existing isolated monitor/baseline stays separate. No reinstall as substitute.
+5. **Decision:** after prerequisites/dispositions, request explicit engine/Decision2 approval. L11 shared Electron failures and L12 release go/no-go remain distinct; no merge or release now.
+
+Current supporting acceptance is9/12,delta0. [Latest L11 review](evidence/l11-current-head-20261024/README.md) finds no actionable Chromium-relevant CI/audit failure, but two Electron failures remain under all-green wording. Electron paused; Google baseline separate; latency deferred.
 
 ## Historical October 22 package
 

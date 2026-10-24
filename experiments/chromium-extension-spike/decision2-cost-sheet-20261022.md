@@ -5,12 +5,28 @@ October 22, 2026. Planning sheet, not a budget approval. Source: [measured rebas
 | Cost item | Evidence / proposed commitment |
 | --- | --- |
 | One measured cold build | 9,587.120 s (2h39m47.120s), accumulated across two invocations; 57,664 reported steps. Mixed repair/unfinished-cold work is included, not counted again as incremental. |
-| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Latest recorded certificate-replacement footprint is73files/179hunks ([evidence](evidence/l11-repair-20261023/README.md)), so this is not a measured rebase of today's larger patch set. |
+| Rebase friction | One broken anchor, one API change; 21 upstream files at the historical rebase. Current accepted prerender-replacement footprint is73files/180hunks ([recorded inventory](evidence/f12-prerender-repair-20261024/patch-inventory.json)), so this is not a measured rebase of today's larger patch set. |
 | Human effort | Owner attention and agent editing time were not measured. Cannot establish the two-owner-day kill threshold from build logs. Next deliberate rebase records active attention separately. |
 | Incremental development | Recent private-only prefetch fixture builds recorded 38.82/40.13 s, then zero-action guard. Illustrative local runs only; no routine rebase or fleet estimate. |
 | CI money | The [completed-run timing response](evidence/decision2-closeout-20261024/github-completed-run-timing.json) reports18m21s wall duration and zero billable fields for shared-repository run40050159492. It is not a billing export or native-build measurement; actual runner rates/storage/signing cost remain uncollected. No $0-cost inference. Budget sign-off remains open. |
 | Maintenance proposal | Owner-approved October22: Anthony Loria as sole maintainer; suspend distribution when he cannot review security updates. This supersedes the draft independent-backup requirement. Review upstream security notices each working day; block distribution of a known vulnerable candidate until fixed or withdrawn. Confirm capacity for milestone rebases and urgent security updates explicitly. |
-| Release operations | Reserve operator availability for signing/notarization, clean-Mac acceptance, update/rollback rehearsal and incident withdrawal. Assign names before L3/L8/L9/L12 acceptance. |
+| Release operations | Reserve operator availability for signing/notarization, clean-Mac acceptance, update/rollback rehearsal and incident withdrawal. Anthony Loria is the named sole maintainer; L3/L8/L9 acceptance is already recorded. Final release approval remains separate. |
 | Capacity decision | Owner must accept measured limitations and staffing commitment or reject expansion. Calendar estimates in the original plan are not a release ETA. |
 
-No paid service, runner, release or staffing commitment is made here. Latency remains deferred; Electron diagnostic build remains unapproved. Proposed maintenance policy is reviewable now; actual cost acceptance remains open.
+No paid service, runner, release or staffing commitment is made here. Latency remains deferred; Electron work remains paused. Proposed maintenance policy is reviewable now; actual cost acceptance remains open.
+
+## Decision inputs still needed
+
+| Field | Value at this checkpoint |
+| --- | --- |
+| Maximum monthly out-of-pocket build/signing spend | Unspecified; owner cannot estimate yet. Prepare existing-hardware/no-new-service proposal; no expenditure authorized by this sheet |
+| Maximum owner-attention hours per rebase | Unspecified; measure at next necessary update. Original two-owner-day stop rule remains intact |
+| Actual prior operator time | Not measured; cannot reconstruct honestly from task duration |
+| Actual provider bill / allocated charges | Not supplied; completed-run timing is not a bill |
+| Prospective measurement | On the next deliberate update, record active operator start/stop intervals, build wall time separately, failures/rework and attributable charges |
+
+A ceiling is a budget decision, not evidence that the current implementation fits it. Preserve local hardware/cache investment as an unpriced existing resource; do not invent amortization, power or signing charges. No new build or repeat rebase is proposed merely to fill these fields.
+
+### Owner response and conservative proposal
+
+The owner could not reasonably supply cash/hour limits without a quantified workload. Do not ask again for a guess. Prepare a range from actual attributable bills and hands-on work, with compiler time separate. Proposed interim operation uses existing Macs/signing and no new paid service; preserve cache reuse and test only affected changes. This proposal is not yet a budget approval and does not close the cost/capacity gate. No new benchmark/rebase is authorized merely to collect these numbers.
