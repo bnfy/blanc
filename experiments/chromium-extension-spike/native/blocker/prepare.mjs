@@ -79,5 +79,9 @@ patch('chrome/browser/chrome_content_browser_client.cc','blanc::AddNavigationRes
   '  CreateAndAddChromeThrottlesForNavigation(registry);',
   '  blanc::AddNavigationResponseGate(registry);\n  CreateAndAddChromeThrottlesForNavigation(registry);');
 
+patch('chrome/browser/chrome_content_browser_client.cc', 'blanc::MaybeCreateActivationGate(',
+  '  std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;',
+  '  std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;\n  MaybeAddCondition(blanc::MaybeCreateActivationGate(*navigation_handle, navigation_type),\n                    &conditions);');
+
 writeResearchPolicy(src, options.includes('--research-hooks'));
 guardResearchHooks(src);

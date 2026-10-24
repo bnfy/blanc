@@ -142,6 +142,44 @@ class Engine {
   mojo::Remote<mojom::Blocker> service_;
   base::OneShotTimer startup_;
 };
+// Prerender activation skips NavigationThrottle, including the response gate.
+// Its earlier allow cannot authorize a commit after the engine becomes unavailable.
+class ActivationGate : public content::CommitDeferringCondition {
+ public:
+  explicit ActivationGate(content::NavigationHandle& navigation)
+      : content::CommitDeferringCondition(navigation) {}
+  const char* TraceEventName() const override { return "BlancActivationGate"; }
+  Result WillCommitNavigation(base::OnceClosure resume) override {
+    resume_ = std::move(resume);
+    timer_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(
+        &ActivationGate::Complete, weak_.GetWeakPtr(), -1));
+    // A disconnected engine may reply synchronously. Return kDefer first.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+        base::BindOnce(&ActivationGate::Decide, weak_.GetWeakPtr()));
+    return Result::kDefer;
+  }
+ private:
+  void Decide() {
+    auto& navigation = GetNavigationHandle();
+    Engine::Get().Decide(navigation.GetURL().spec(), "mainFrame",
+        navigation.GetReferrer().url.spec(),
+        base::BindOnce(&ActivationGate::Complete, weak_.GetWeakPtr()));
+  }
+  void Complete(int result) {
+    timer_.Stop();
+    weak_.InvalidateWeakPtrs();
+    if (result == 0) {
+      std::move(resume_).Run();
+      return;
+    }
+    // Stop cancels the navigation and may destroy this condition immediately.
+    // Do not run the resume closure or access members after this call.
+    GetNavigationHandle().GetWebContents()->Stop();
+  }
+  base::OnceClosure resume_;
+  base::OneShotTimer timer_;
+  base::WeakPtrFactory<ActivationGate> weak_{this};
+};
 // Cached/prefetched navigation responses can skip the URL-loader adapter.
 // Revalidate before commit, with weak callbacks tied to this navigation.
 class NavigationResponseGate : public content::NavigationThrottle {
@@ -783,6 +821,18 @@ void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mo
 #if BLANC_RESEARCH_HOOKS
   new DocumentScript(*frame, std::move(receiver));
 #endif
+}
+std::unique_ptr<content::CommitDeferringCondition> MaybeCreateActivationGate(
+    content::NavigationHandle& navigation,
+    content::CommitDeferringCondition::NavigationType type) {
+  if (type != content::CommitDeferringCondition::NavigationType::kPrerenderedPageActivation ||
+      !navigation.GetURL().SchemeIsHTTPOrHTTPS()) return nullptr;
+  auto* command = base::CommandLine::ForCurrentProcess();
+  if (!command->HasSwitch("blanc-blocker-assets")) return nullptr;
+#if BLANC_RESEARCH_HOOKS
+  if (command->HasSwitch("blanc-ubo-component-probe")) return nullptr;
+#endif
+  return std::make_unique<ActivationGate>(navigation);
 }
 void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
   auto* command = base::CommandLine::ForCurrentProcess();
