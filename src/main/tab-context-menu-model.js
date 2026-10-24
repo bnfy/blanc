@@ -84,7 +84,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -101,7 +101,7 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   items.push({ type: 'separator' });
 
   items.push({ id: 'reload', label: t('menu.reload'), accelerator: ACCEL.reload });
-  items.push({ id: 'duplicate', label: t('tabMenu.duplicate') });
+  items.push({ id: 'duplicate', label: t('tabMenu.duplicate'), enabled: canDuplicate !== false });
   items.push({ id: 'rename', label: t('tabMenu.rename') });
   // Only a renamed tab has a page title to go back to (F46).
   if (tab.customTitle) items.push({ id: 'reset-title', label: t('tabMenu.resetTitle') });

@@ -5641,6 +5641,22 @@
     "message": "{description} (Grund: {reason})",
     "source": "sha256:1205d9aeeb520587957ac3155fad5b79cb696cae07ccb6a567c1e8db6c2979e9"
   },
+  "error.inert.title": {
+    "message": "Dieser Tab kann nicht wieder geöffnet werden",
+    "source": "sha256:af11cc6f42c3603fed4eb98a1b7e64bbfa2b02bf649d4530f7c382f9c66528cc"
+  },
+  "error.inert.detail": {
+    "message": "Eine Seite hat diesen Tab geöffnet, und Blanc kann ihn nicht mit den Einschränkungen wieder öffnen, die diese Seite festgelegt hat. Um ihn erneut aufzurufen, kopiere den Link und öffne ihn in einem neuen Tab.",
+    "source": "sha256:f7f4242e2eaf58c17e9a056e83ad4037e5b3586137db6d06c232748c1ff79964"
+  },
+  "error.inert.copy": {
+    "message": "Link kopieren",
+    "source": "sha256:49424784357b1d801b1425b22823dc4940823f1e88621dfb10df5ca4b111a135"
+  },
+  "error.inert.copied": {
+    "message": "Link kopiert",
+    "source": "sha256:3c159e0b7f3d83fdb6ea73ee3d5a8b22fed1c195fefbade659d1ed0524664516"
+  },
   "error.certificate.title": {
     "message": "Deine Verbindung ist nicht privat",
     "source": "sha256:f6e11d3e83e737e83ea17af11e6c78976acafb214ae92b7e80807a699db1bdef"

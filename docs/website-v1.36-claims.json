@@ -220,9 +220,9 @@
       "replaces": "bangs-024"
     },
     {
-      "id": "v136-025",
+      "id": "v136-025-sentence-case",
       "source": "site/src/pages/bangs.astro",
-      "exactWording": "download blanc",
+      "exactWording": "Download Blanc",
       "subject": "Blanc",
       "evidenceGroups": [
         "bangsCore"
@@ -473,6 +473,22 @@
         "bangsList"
       ],
       "verdict": "qualified"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "reason": "October 23, 2026: the owner had every call-to-action button on the site set in sentence case.",
+      "claim": {
+        "id": "v136-025",
+        "source": "site/src/pages/bangs.astro",
+        "exactWording": "download blanc",
+        "subject": "Blanc",
+        "evidenceGroups": [
+          "bangsCore"
+        ],
+        "verdict": "qualified",
+        "replaces": "bangs-025"
+      }
     }
   ]
 }

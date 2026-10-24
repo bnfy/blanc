@@ -6,6 +6,7 @@ const path = require('node:path');
 const sharp = require('sharp');
 const { createIco } = require('./build-windows-icons');
 const { pngsEquivalent } = require('./png-equivalence');
+const { colorwaySources } = require('./app-icon-colorways');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
@@ -743,6 +744,10 @@ async function main() {
   await emit('src/renderer/pages/icon-sunrise-gold.png', gold.flat);
   await emit('build/app-icons/colorways/gold-tile-dark.png', gold.darkTile);
   await emit('src/renderer/pages/icon-sunrise-gold-dark.png', gold.flatDark);
+
+  for (const [file, source] of Object.entries(colorwaySources())) {
+    await emit(file, await raster(source, ICON_CANVAS));
+  }
 
   await buildSiteAssets(sunrise);
 

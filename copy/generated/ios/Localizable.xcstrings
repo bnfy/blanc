@@ -63085,6 +63085,174 @@
         }
       }
     },
+    "error.inert.title": {
+      "comment": "Explanation page for a tab a page opened, which Blanc can’t load again with the restrictions it was opened under: heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This tab can’t be reopened"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Tab kann nicht wieder geöffnet werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta pestaña no se puede volver a abrir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de rouvrir cet onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile riaprire questa scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta aba não pode ser reaberta"
+          }
+        }
+      }
+    },
+    "error.inert.detail": {
+      "comment": "Same page: explanation under the heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page opened this tab, and Blanc can’t reopen it with the restrictions that page set. To visit it again, copy the link and open it in a new tab."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine Seite hat diesen Tab geöffnet, und Blanc kann ihn nicht mit den Einschränkungen wieder öffnen, die diese Seite festgelegt hat. Um ihn erneut aufzurufen, kopiere den Link und öffne ihn in einem neuen Tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página abrió esta pestaña y Blanc no puede volver a abrirla con las restricciones que esa página estableció. Para visitarla de nuevo, copia el enlace y ábrelo en una pestaña nueva."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une page a ouvert cet onglet, et Blanc ne peut pas le rouvrir avec les restrictions définies par cette page. Pour le consulter à nouveau, copiez le lien et ouvrez-le dans un nouvel onglet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una pagina ha aperto questa scheda e Blanc non può riaprirla con le restrizioni impostate da quella pagina. Per visitarla di nuovo, copia il link e aprilo in una nuova scheda."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma página abriu esta aba, e o Blanc não consegue reabri-la com as restrições que essa página definiu. Para acessá-la de novo, copie o link e abra-o em uma nova aba."
+          }
+        }
+      }
+    },
+    "error.inert.copy": {
+      "comment": "Same page: button that copies the tab’s address.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy link"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar enlace"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le lien"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia link"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar link"
+          }
+        }
+      }
+    },
+    "error.inert.copied": {
+      "comment": "Same page: the button’s label after copying.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlace copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lien copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link copiado"
+          }
+        }
+      }
+    },
     "error.certificate.title": {
       "comment": "Error page for an untrusted certificate: heading.",
       "extractionState": "manual",

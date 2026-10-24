@@ -110,6 +110,8 @@ const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
   'sunrise-gold': 'Sunrise Gold',
+  'sunrise-spectrum': 'Sunrise Spectrum',
+  'sunrise-amber': 'Sunrise Amber',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 

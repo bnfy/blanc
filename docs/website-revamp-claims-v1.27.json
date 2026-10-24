@@ -7929,16 +7929,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "seo-2026-10-05-arc-alternative-02",
-      "source": "site/src/pages/arc-alternative.astro",
-      "exactWording": "Looking for an Arc alternative? Here is what Blanc does.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "foundations"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "seo-2026-10-05-arc-alternative-05",
       "source": "site/src/pages/arc-alternative.astro",
       "exactWording": "A calm browser built around one small island.",
@@ -14033,6 +14023,21 @@
       ],
       "verdict": "qualified",
       "reason": "The Press page became the slimmer Media page (2026-10-08); this copy was removed rather than reworded, so it no longer renders."
+    }
+  ],
+  "retiredForArcWelcome": [
+    {
+      "reason": "October 23, 2026: the owner replaced the Arc page's hero with a short welcome (docs/website-arc-welcome-claims.json).",
+      "claim": {
+        "id": "seo-2026-10-05-arc-alternative-02",
+        "source": "site/src/pages/arc-alternative.astro",
+        "exactWording": "Looking for an Arc alternative? Here is what Blanc does.",
+        "subject": "Blanc",
+        "evidenceGroups": [
+          "foundations"
+        ],
+        "verdict": "qualified"
+      }
     }
   ]
 }
