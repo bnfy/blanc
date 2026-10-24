@@ -148,16 +148,21 @@ async function openChild(variant, tag) {
   return { id: child.id, url: targetUrl };
 }
 
-/** Kill a tab's renderer. On Linux, forcefullyCrashRenderer() only asks the
- * renderer to crash itself, which GitHub's Ubuntu runner never does, so kill
- * the WebContents' own renderer process there, as Blanc's renderer-discard.js does. */
-async function crashRenderer(wcId) {
-  await app.evaluate(({ webContents }, id) => {
-    const wc = webContents.fromId(id);
-    const pid = wc.getOSProcessId();
-    if (process.platform === 'linux' && pid > 0) process.kill(pid, 'SIGKILL');
-    else wc.forcefullyCrashRenderer();
+/** Kill a tab's renderer through Blanc's own terminateRenderer (a verified
+ * SIGKILL on Linux, where forcefullyCrashRenderer() is only a request GitHub's
+ * Ubuntu runner never honors) and wait until main has seen it die. */
+async function crashTab(id, label) {
+  const wcId = await callTestHook(app, 'workspacePageIdentity', [id]);
+  await app.evaluate(({ webContents }, wc) => {
+    globalThis.__policyCrash = null;
+    webContents.fromId(wc).once('render-process-gone', (_event, details) => {
+      globalThis.__policyCrash = details?.reason ?? 'gone';
+    });
   }, wcId);
+  const how = await callTestHook(app, 'crashTabRenderer', [id]);
+  assert.ok(how, `${label}: a live renderer to crash`);
+  return waitForValue(() => app.evaluate(() => globalThis.__policyCrash), Boolean,
+    `${label}: renderer gone (${how})`, 20_000);
 }
 
 /** The live document's restrictions: storage, and whether its form reached the server. */
@@ -242,12 +247,15 @@ async function assertInertLocked(id, url, label) {
       .loadURL(target).catch(() => {}), { wcId, target });
     await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: ${target} put back`, 10_000);
   }
-  // A crash of the inert view recovers to the explanation, not the crash page.
-  await crashRenderer(wcId);
-  await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: crash recovers inert`, 20_000);
+  // A crash of the inert view recovers to a new explanation document, not
+  // the crash page. The mark set beforehand proves the document was replaced.
+  assert.equal(await callTestHook(app, 'workspacePageScript', [id, 'window.__policyBeforeCrash = true']), true);
+  await crashTab(id, `${label} inert view`);
   await waitForValue(() => callTestHook(app, 'workspacePageScript', [id,
-    "!document.getElementById('retryLink') && !!document.getElementById('copyLink')"]),
-  (value) => value === true, `${label}: recovered page offers no Retry`, 10_000);
+    `({ fresh: window.__policyBeforeCrash !== true, retry: !!document.getElementById('retryLink'),
+      copy: !!document.getElementById('copyLink'), href: location.href })`]).catch(() => null),
+  (value) => value?.fresh === true && value.retry === false && value.copy === true && value.href === inertHref,
+  `${label}: crash recovers to a new explanation document without Retry`, 20_000);
   // Back and Forward: the cancelled attempts' entries are cleared once the
   // page is back, and stepping through history never requests the page.
   const hitsBefore = pageHits.get(path(url)) ?? 0;
@@ -324,18 +332,9 @@ try {
     checks++;
 
     // Tab crash and Retry stay in the same WebContents.
-    const wcId = await callTestHook(app, 'workspacePageIdentity', [child.id]);
-    // Record the renderer's death in main, so a failure says whether the
-    // crash happened or Blanc's recovery stalled.
-    await app.evaluate(({ webContents }, id) => {
-      globalThis.__policyCrash = null;
-      webContents.fromId(id).once('render-process-gone', (_event, details) => {
-        globalThis.__policyCrash = details?.reason ?? 'gone';
-      });
-    }, wcId);
-    await crashRenderer(wcId);
-    const reason = await waitForValue(() => app.evaluate(() => globalThis.__policyCrash), Boolean,
-      `${variant.name} renderer gone`, 20_000);
+    // Main records the renderer's death, so a failure says whether the crash
+    // happened or Blanc's recovery stalled.
+    const reason = await crashTab(child.id, variant.name);
     await waitForValue(() => hrefOf(child.id), (value) => typeof value === 'string'
       && value.startsWith('blanc://error/') && new URL(value).searchParams.get('kind') !== 'inert',
     `${variant.name} crash page after the renderer was ${reason}`, 20_000);
