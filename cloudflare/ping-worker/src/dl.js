@@ -34,6 +34,18 @@ export function buildDownloadConversionEvent({ target, oppref, timestampMs, even
   };
 }
 
+// Temporary pin (October 24, 2026): the Blanc 1.43.0 AppImage doesn't start on
+// Linux with glibc older than 2.38 (Ubuntu 22.04, Debian 12), so the Linux
+// download stays on 1.42.1 until 1.43.1 ships. Remove the entry then. Only the
+// targets listed here are pinned; every other target follows the latest release.
+export const PINNED_DOWNLOADS = Object.freeze({
+  linux: 'https://github.com/bnfy/blanc/releases/download/v1.42.1/Blanc-1.42.1.AppImage',
+});
+
+export function pinnedDownload(target) {
+  return Object.hasOwn(PINNED_DOWNLOADS, target) ? PINNED_DOWNLOADS[target] : null;
+}
+
 // Pick the artifact for a target from a release's assets
 // ([{name, browser_download_url}]). Returns null when the release has no such
 // artifact (e.g. releases that intentionally omit mac-x64) — callers must then

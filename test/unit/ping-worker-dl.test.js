@@ -78,3 +78,16 @@ test('ping-worker dl pure logic', async (t) => {
     }), null);
   });
 });
+
+test('the temporary Linux download pin names the 1.42.1 AppImage and nothing else', async () => {
+  const { PINNED_DOWNLOADS, pinnedDownload, DL_TARGETS } = await import('../../cloudflare/ping-worker/src/dl.js');
+  assert.deepEqual(Object.keys(PINNED_DOWNLOADS), ['linux']);
+  assert.equal(pinnedDownload('linux'), 'https://github.com/bnfy/blanc/releases/download/v1.42.1/Blanc-1.42.1.AppImage');
+  for (const target of DL_TARGETS) if (target !== 'linux') assert.equal(pinnedDownload(target), null, target);
+  assert.equal(pinnedDownload('__proto__'), null);
+  assert.equal(pinnedDownload('constructor'), null);
+  for (const url of Object.values(PINNED_DOWNLOADS)) {
+    assert.match(url, /^https:\/\/github\.com\/bnfy\/blanc\/releases\/download\/v\d+\.\d+\.\d+\/Blanc-\d+\.\d+\.\d+\.AppImage$/);
+  }
+});
+
