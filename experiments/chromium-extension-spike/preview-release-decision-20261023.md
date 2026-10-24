@@ -2,7 +2,7 @@
 
 Prepared October 23, 2026. **Decision: NO-GO. L12 is prepared for review, not accepted. No publication, merge, release tag or updater change is authorized.**
 
-The [primary implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) governs this packet. The [supporting checklist](mac-preview-release-checklist.md) currently records **8/12 gates (66.7%), delta -1 L7**. The count tracks dated acceptance records; it does not transfer every earlier approval to new artifact bytes.
+The [primary implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) governs this packet. The [supporting checklist](mac-preview-release-checklist.md) currently records **9/12 gates (75%), delta +1 L7**. The count tracks dated acceptance records; it does not transfer every earlier approval to new artifact bytes.
 
 ## Artifact and source boundary
 
@@ -16,7 +16,7 @@ The [primary implementation plan](../../docs/chromium-migration-implementation-p
 | Apple acceptance for that archive's app | `e46dbe18-f1f1-424e-abe9-ab44b79ef29c` |
 | Packaging/provenance | [Authenticated L8 packet and second-Mac acceptance](evidence/l8-certificate-distribution-20261023/README.md); local incremental materials, not independent hermetic reproduction |
 | Supported preview scope | Apple Silicon/macOS 27, accepted on 27.2; separate app and fresh profile, manual signed updates |
-| Staged replacement (not release-approved) | Source `7c427328100d1ba76cb7e8b651a1f36d74ec86c6`, archive `ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed`, Apple `e46dbe18-f1f1-424e-abe9-ab44b79ef29c`; [bounded replacement evidence](evidence/l11-native-replacement-20261023/README.md) |
+| Staged replacement (not release-approved) | Source `14706b0e8d4753d2a7ef35ea32a875b516366b0d`; archive `18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc`; Apple `122ace9e-196b-4f10-8986-c57854a5ee4f`; [72post-staple checks](evidence/f12-prerender-notarized-20261024/README.md). |
 | Public release candidate | **None approved.** The certificate-patched replacement has bounded L8 acceptance, but L4/L11 and Decision2 prevent a release decision. |
 
 The source checkpoint is not an artifact digest. This L8 record binds the exact replacement above; it is not acceptance of later source changes or other launch gates. Final approval still requires explicit security/recovery acceptance mappings and all remaining prerequisites for these bytes.
@@ -25,7 +25,7 @@ The source checkpoint is not an artifact digest. This L8 record binds the exact 
 
 | Requirement | Current disposition | Evidence needed to change it |
 | --- | --- | --- |
-| L7 native prerender activation | Repaired and72signed checks pass; corrected candidate notarization pending | [Repair and retained failures](evidence/f12-prerender-repair-20261024/README.md); finish Apple submission/ticket validation and replacement acceptance after1Passwordauthorization. |
+| L7 native prerender activation | Accepted for the exact repaired notarized candidate;72post-staple checks and owner approval | [Exact replacement acceptance](evidence/f12-prerender-notarized-20261024/README.md), source14706b0e/archive18a0c2ca. |
 | L4 authentic Google extension upgrade | Open; separate baseline remains untouched | Actual old-to-new installed version increase from Google, native updater network evidence, enabled state, restart and popup focus. A fresh install or no-change callback is insufficient. |
 | L11 native evidence / repository CI | Native artifact verified; shared CI remains open; Electron paused | [Applicability matrix](evidence/l11-native-reconciliation-20261024/README.md). Publish scoped undici repair and verify exact-head checks. Electron failures remain merge obligations, not native defect evidence; no waiver or all-green claim. |
 | Replacement artifact | [Notarized;46checks and bounded replacement L8 acceptance pass](evidence/l8-certificate-distribution-20261023/README.md) | Reconcile any remaining affected gate mappings against these exact bytes. Signing, authentication and native download checks are complete; do not repeat them absent a changed artifact or new finding. |

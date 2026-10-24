@@ -1,3 +1,5 @@
+> October24 final: [notarized activation repair](evidence/f12-prerender-notarized-20261024/README.md) passes all72post-staple checks. The demonstrated activation-after-loss gap is repaired for the bounded regular/private schedules; no full spike/latency acceptance. Electron remains paused.
+
 > October24 repair: [signed prerender revalidation](evidence/f12-prerender-repair-20261024/README.md) now passes healthy/loss controls in regular/private profiles and a delayed-reply timeout control. No aggregate spike acceptance; corrected replacement notarization is pending.
 
 > October24: [Default signed prerender tests](evidence/f12-prerender-activation-20261024/README.md) prove healthy activation and a real fail-closed gap after blocker loss. Earlier statements that activation is wholly unobserved are superseded; complete enforcement remains unaccepted. L7 reopened,8/12; next repair is the activation commit boundary. No latency or Electron work.

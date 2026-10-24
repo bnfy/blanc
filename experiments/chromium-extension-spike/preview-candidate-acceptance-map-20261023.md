@@ -1,3 +1,5 @@
+> October24 replacement: source14706b0e/archive18a0c2ca is now notarized with72post-staple checks. [Exact replacement record](evidence/f12-prerender-notarized-20261024/README.md). L7 technical requalification and explicit owner approval are complete for this candidate; other artifact-specific gates remain separate. Earlier mappings below retain their original artifact scope.
+
 > October24 repair update: source14706b0e passes72DeveloperID-signed checks for the corrected activation gate and regressions. [Repair evidence](evidence/f12-prerender-repair-20261024/README.md). The replacement is not yet notarized; this does not replace the earlier artifact acceptance or close L7.
 
 > October24 supersession: L7 is reopened by [signed prerender activation after utility loss](evidence/f12-prerender-activation-20261024/README.md). Source/byte equivalence remains valid, but no longer establishes complete current security acceptance. Readiness8/12; prior mapping below is a dated record.

@@ -1,5 +1,11 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — prerender replacement notarized; final72checks pass
+
+[Final acceptance record](../experiments/chromium-extension-spike/evidence/f12-prerender-notarized-20261024/README.md): Apple Accepted `122ace9e-196b-4f10-8986-c57854a5ee4f`; source `14706b0e8d4753d2a7ef35ea32a875b516366b0d`, archiveSHA256 `18a0c2ca240f2200fee3e8b250fbade27b7b86ec1c1dd77c21a538a6776aa8cc`. Stapling adds only the ticket; all462previously signed members and17Mach-O/tenidentity checks remain unchanged. All72checks were rerun after stapling and pass, including regular/private prerender loss refusal, delayed-reply control and startup/recovery/core/notice. Final463members stay frozen. No build or latency benchmark for this checkpoint.
+
+**9/12 gates (75%), delta+1 L7.** Technical requalification is complete and the owner explicitly approved L7 for the exact notarized replacement; [decision record](../experiments/chromium-extension-spike/evidence/f12-prerender-notarized-20261024/owner-acceptance.json). No public release, merge, new L8 download acceptance or full F12 spike acceptance is implied. Google baseline separate, Electron paused, latency deferred. Earlier notarization-blocked entries below are historical.
+
 ## Current October24 — prerender repair passes signed checks; notarization pending
 
 [Activation repair evidence](../experiments/chromium-extension-spike/evidence/f12-prerender-repair-20261024/README.md): source14706b0e revalidates prerender activation with a navigation-owned commit condition, explicit allow, weak callbacks and35-second timeout. Final72DeveloperID-signed assertions pass, including healthy/loss regular/private cases, delayed-reply refusal, startup/recovery/core/notice. The initial signed GetReferrer crash was repaired using the early-available initiator origin; original failure retained. Builds remain incremental45.55s/8steps and31.42s/6steps, guard0,73files180hunks. No Electron work or latency benchmark.
@@ -34,7 +40,7 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ -1 L7 reopened, October 24, 2026`
+`[■■■■■■■■■□□□] 9/12 launch gates cleared (75%) · Δ +1 L7 reaccepted, October 24, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 
