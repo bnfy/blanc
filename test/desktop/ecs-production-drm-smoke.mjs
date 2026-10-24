@@ -14,7 +14,12 @@ assert(executable);
 assert.equal(process.env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-production-drm-'));
 const report = { platform: process.platform, arch: process.arch, passed: false, mediaErrors: [], players: {}, networkFailures: [] };
-await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
+// lastRunVersion: this profile has already run the version under test. Without
+// it a set-up profile counts as an update from before What's New existed, and
+// once that release's page is live the owed What's New tab takes the window
+// on the second launch, leaving the Start Page quiet (src/main/whats-new.js).
+const { version } = require('../../package.json');
+await fs.writeFile(path.join(root, 'settings.json'), JSON.stringify({ onboardingVersion: 1, lastRunVersion: version, usagePing: false, searchSuggestions: false }));
 let app, playbackPage;
 // Default-off app diagnostics (src/main/navigation-trace.js): one trace file
 // per launch, read back into the report. Times share this machine's clock.
