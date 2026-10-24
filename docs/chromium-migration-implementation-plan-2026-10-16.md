@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — request-to-registration join demonstrated
+
+[New opaque tracing join](../experiments/chromium-extension-spike/evidence/f12-request-registration-20261024/README.md) links four real update requests to the native registration/checked-version and blocker decision, regular/private, with13passing assertions. Tracing is explicitly opt-in; default factory pass-through and private research-file suppression remain. Events contain opaque IDs only, not URLs/storage keys, and tokens do not enter HTTP headers. This required a small native source change and guarded incremental builds; final guard0, inventory73/180. Prior compiler/setup failures are retained. Accepted signed14706b0e/18a0c2ca is unchanged; the new delta is tested on separate native output and requires affected review before future distribution. No prior cache/recovery/L8 suite repeated. Broader/F12 latency and engine decisions remain open;9/12unchanged, Electron paused, Google separate.
+
+
 ## Current October24 — private multi-registration attribution
 
 [Ten new final checks](../experiments/chromium-extension-spike/evidence/f12-private-registrations-20261024/README.md) pass in a fresh private browser context: two same-script registrations retain distinct clients/scopes and version histories, concurrent updates remain correctly attributed, named-cache eviction affects only its intended fixture cache, regular context sees no private state, and fresh private context is empty after disposal. Native private flag plus page/context bindings establish scope. Initial worker syntax and UI snapshot assumptions are retained as fixture failures, not counted. No prior accepted test suite repeated, no source/build/signing changes, no private diagnostics enabled. Hidden network-loader token joins and broader arbitrary patterns remain unclaimed.9/12 unchanged; Electron paused, Google separate, latency deferred.

@@ -7,6 +7,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/task/thread_pool.h"
 #include "base/unguessable_token.h"
+#include "base/trace_event/trace_event.h"
 #include "services/network/public/cpp/self_deleting_url_loader_factory.h"
 #include "services/network/public/cpp/wrapper_shared_url_loader_factory.h"
 // Opt-in disposable-profile diagnostics. No URL, ordering or time-based join.
@@ -83,10 +84,72 @@ scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
   return base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(remote));
 }
 #else
+// Opt-in DevTools tracing carries opaque join keys only. No file writer, URL,
+// scope or storage key is used, including for private contexts.
+class BlancTraceUpdateProxy : public network::SelfDeletingURLLoaderFactory {
+ public:
+  BlancTraceUpdateProxy(
+      mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
+      scoped_refptr<network::SharedURLLoaderFactory> target,
+      int64_t registration, int64_t version, bool private_profile,
+      base::SelfDeletingPassKey pass);
+  void CreateLoaderAndStart(
+      mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id,
+      uint32_t options, const network::ResourceRequest& request,
+      mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+      const net::MutableNetworkTrafficAnnotationTag& annotation) override;
+ private:
+  ~BlancTraceUpdateProxy() override;
+  scoped_refptr<network::SharedURLLoaderFactory> target_;
+  int64_t registration_, version_;
+  bool private_;
+};
+BlancTraceUpdateProxy::BlancTraceUpdateProxy(
+    mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
+    scoped_refptr<network::SharedURLLoaderFactory> target,
+    int64_t registration, int64_t version, bool private_profile,
+    base::SelfDeletingPassKey pass)
+    : SelfDeletingURLLoaderFactory(std::move(receiver), pass),
+      target_(std::move(target)), registration_(registration),
+      version_(version), private_(private_profile) {}
+BlancTraceUpdateProxy::~BlancTraceUpdateProxy() = default;
+void BlancTraceUpdateProxy::CreateLoaderAndStart(
+    mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id,
+    uint32_t options, const network::ResourceRequest& request,
+    mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+    const net::MutableNetworkTrafficAnnotationTag& annotation) {
+  const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+  bool tracing = false;
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(category, &tracing);
+  if (!tracing || request.devtools_request_id.has_value()) {
+    target_->CreateLoaderAndStart(std::move(receiver), id, options, request,
+                                 std::move(client), annotation);
+    return;
+  }
+  network::ResourceRequest tagged(request);
+  tagged.devtools_request_id =
+      "blanc-trace-update/" + base::UnguessableToken::Create().ToString();
+  TRACE_EVENT_INSTANT(category, "Blanc.ServiceWorkerUpdateRequest",
+                      "request_token", *tagged.devtools_request_id,
+                      "registration_id", registration_,
+                      "version_id", version_, "private", private_);
+  target_->CreateLoaderAndStart(std::move(receiver), id, options, tagged,
+                               std::move(client), annotation);
+}
 scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
-    scoped_refptr<network::SharedURLLoaderFactory> target, int64_t, int64_t,
-    GURL, blink::StorageKey, bool, bool) {
-  return target;
+    scoped_refptr<network::SharedURLLoaderFactory> target, int64_t registration,
+    int64_t version, GURL, blink::StorageKey, bool private_profile, bool) {
+  const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+  bool tracing = false;
+  TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+      category, &tracing);
+  if (!tracing || registration < 0 || version < 0) return target;
+  mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;
+  base::MakeSelfDeleting<BlancTraceUpdateProxy>(
+      remote.InitWithNewPipeAndPassReceiver(), target, registration, version,
+      private_profile);
+  return base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(
+      std::move(remote));
 }
 #endif
 }

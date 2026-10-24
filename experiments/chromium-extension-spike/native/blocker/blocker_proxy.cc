@@ -27,6 +27,7 @@
 #include "base/task/thread_pool.h"
 #include "base/timer/timer.h"
 #include "base/unguessable_token.h"
+#include "base/trace_event/trace_event.h"
 #include "chrome/services/blanc_blocker/blocker.mojom.h"
 #include "chrome/services/blanc_blocker/bundle_hash.h"
 #include "content/public/browser/browser_context.h"
@@ -689,6 +690,18 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (completed_) return;
     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     timeout_.Stop();
+    constexpr std::string_view prefix = "blanc-trace-update/";
+    if (request_.devtools_request_id &&
+        request_.devtools_request_id->size() == prefix.size() + 32 &&
+        base::StartsWith(*request_.devtools_request_id, prefix) &&
+        base::ContainsOnlyChars(request_.devtools_request_id->substr(prefix.size()),
+                                "0123456789ABCDEF")) {
+      const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+      TRACE_EVENT_INSTANT(category,
+                          "Blanc.BlockerDecision",
+                          "request_token", *request_.devtools_request_id,
+                          "result", result);
+    }
     // Measure through application of the decision, not just receipt of the Mojo
     // reply. Capture time before optional context/logging work adds overhead.
     if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
