@@ -59,6 +59,18 @@ let app;
 let appProcess;
 let caseCount = 0;
 let recoveryCount = 0;
+let failed = false;
+/** Teardown: close Blanc and wait for its process to exit, killing it if
+ * closing stalls, so a failed check's error is printed rather than lost. */
+async function stopApp() {
+  const running = () => appProcess?.exitCode === null && appProcess.signalCode === null;
+  if (!running()) return;
+  const exited = new Promise((resolve) => appProcess.once('exit', resolve));
+  const deadline = (ms) => new Promise((resolve) => setTimeout(resolve, ms).unref());
+  await Promise.race([app.close().catch(() => {}), deadline(15_000)]);
+  if (running()) appProcess.kill();
+  await Promise.race([exited, deadline(5_000)]);
+}
 async function documentResult(id, label) {
   return waitForValue(() => callTestHook(app, 'workspacePageScript', [id, 'window.clickResult']),
     (result) => !!result?.storage, `${label} document behavior`);
@@ -193,10 +205,21 @@ try {
     }
   }
   console.log(`modified-link-click OK on ${process.platform}: ${caseCount} click/sandbox/referrer cases, ${recoveryCount} restricted-tab rebuilds refused or inert`);
+} catch (error) {
+  failed = true;
+  throw error;
 } finally {
-  if (app && appProcess.exitCode === null) await app.close();
+  await stopApp();
   await new Promise((resolve) => server.close(resolve));
   const error = fs.existsSync(uncaught) ? fs.readFileSync(uncaught, 'utf8') : '';
-  fs.rmSync(root, { recursive: true, force: true });
-  assert.equal(error, '', 'no uncaught main-process errors');
+  // Windows can keep a child process's cache file open briefly after Blanc
+  // exits. Cleanup never replaces an earlier failure; it fails only a pass.
+  try {
+    fs.rmSync(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  } catch (cleanupError) {
+    if (!failed && !error) throw cleanupError;
+    console.error(`left ${root} behind: ${cleanupError.code ?? cleanupError.message}`);
+  }
+  if (failed && error) console.error(`uncaught main-process errors:\n${error}`);
+  if (!failed) assert.equal(error, '', 'no uncaught main-process errors');
 }
