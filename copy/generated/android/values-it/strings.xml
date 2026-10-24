@@ -961,6 +961,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Chiaro</string>
     <string name="settings_general_theme_dark">Scuro</string>
+    <string name="settings_general_surface_style_label">Stile delle superfici</string>
+    <string name="settings_general_surface_style_hint">L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici.</string>
+    <string name="settings_general_surface_style_sunrise">Sunrise</string>
+    <string name="settings_general_surface_style_neutral">Neutro</string>
     <string name="settings_general_island_site_colors_label">Usa i colori del sito</string>
     <string name="settings_general_island_site_colors_hint">Colora la barra dell’Island con il colore della pagina in cui ti trovi. Se è disattivato, mantiene lo sfondo del tuo tema.</string>
     <string name="settings_general_search_priority_results_label">Dai priorità ai risultati di ricerca</string>

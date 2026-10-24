@@ -121,6 +121,14 @@ function setupPages(hooks = {}) {
       return new Response(stringsScript(), { headers: { 'content-type': 'text/javascript; charset=utf-8' } });
     }
     const name = asset.name;
+    // Neutral surface style: the stylesheet and its Neutral overrides, in one
+    // response so there is no flash of the Sunrise palette. Every page loads
+    // pages.css fresh on navigation, so a change applies to the next page.
+    if (name === 'pages.css' && settings.getSettings().surfaceStyle === 'neutral') {
+      const css = fs.readFileSync(path.join(PAGES_DIR, 'pages.css'), 'utf8')
+        + '\n' + fs.readFileSync(path.join(PAGES_DIR, 'pages-neutral.css'), 'utf8');
+      return new Response(css, { headers: { 'content-type': 'text/css; charset=utf-8' } });
+    }
     const defaultPath = path.join(PAGES_DIR, name);
     const resource = developmentBrandAssetPath({
       name,

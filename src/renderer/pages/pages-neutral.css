@@ -1,0 +1,140 @@
+/* Neutral surface style (Settings → Appearance → Surface style).
+
+   Main appends this file to pages.css while the setting is Neutral, so it
+   restates, in the same order, every rule of pages.css that carries the
+   Sunrise cream and gold: the --sunrise-* palette, the Start Page's own
+   tokens, and its wallpaper washes. Page background #FBFAF6 light and
+   #1B1B1B dark; accents are plain ink instead of gold. The wallpaper art,
+   the app icon, the Sunrise mark and Blanc Patron's gold keep their color.
+   The mock-up is docs/mockups/quieter-warmth.html. */
+
+:root {
+  --sunrise-bg: #fbfaf6;
+  --sunrise-surface: #f3f1eb;
+  --sunrise-surface-raised: #ffffff;
+  --sunrise-border: #e5e2da;
+  --sunrise-text: #14130f;
+  --sunrise-text-dim: #6a665e;
+  --sunrise-accent: #1f1e1b;
+  --sunrise-accent-dim: rgba(20, 19, 15, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sunrise-bg: #1b1b1b;
+    --sunrise-surface: #262625;
+    --sunrise-surface-raised: #202020;
+    --sunrise-border: #3a3a38;
+    --sunrise-text: #f3f1ec;
+    --sunrise-text-dim: #a9a69e;
+    --sunrise-accent: #f3f1ec;
+    --sunrise-accent-dim: rgba(243, 241, 236, 0.14);
+  }
+}
+
+:root[data-theme="private"] {
+  --sunrise-bg: #121212;
+  --sunrise-surface: #1d1d1c;
+  --sunrise-surface-raised: #171716;
+  --sunrise-border: #3f3f3c;
+  --sunrise-text: #f5f3ee;
+  --sunrise-text-dim: #a9a69e;
+  --sunrise-accent: #f3f1ec;
+  --sunrise-accent-dim: rgba(243, 241, 236, 0.14);
+}
+
+.ledger-body {
+  --bg: #fbfaf6;
+  --surface: rgba(243, 241, 235, 0.78);
+  --surface-raised: rgba(255, 255, 255, 0.88);
+  --onboarding-surface: #ffffff;
+  --border: #e5e2da;
+  --text: #14130f;
+  --text-dim: #6a665e;
+  --accent: #1f1e1b;
+  --accent-dim: rgba(20, 19, 15, 0.08);
+  --start-footer-tint-sunrise: #f4f2ed;
+  --start-footer-tint-day: #f2f0eb;
+  --start-footer-ink-day: #6a665e;
+  --start-footer-ink-evening: #3b3a36;
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(251, 250, 246, 0.94) 0%, rgba(251, 250, 246, 0.84) 60%, rgba(251, 250, 246, 0.35) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(251, 250, 246, 0.76) 0%, rgba(251, 250, 246, 0.28) 49%, rgba(251, 250, 246, 0.04) 100%);
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(251, 250, 246, calc(0.78 * var(--start-wallpaper-wash, 1))) 0%, rgba(251, 250, 246, calc(0.66 * var(--start-wallpaper-wash, 1))) 55%, rgba(251, 250, 246, calc(0.5 * var(--start-wallpaper-wash, 1))) 100%);
+  --start-wallpaper-spotlight-overlay: radial-gradient(ellipse 62% 52% at 50% 46%, rgba(251, 250, 246, calc(0.82 * var(--start-wallpaper-wash, 1))) 0%, rgba(251, 250, 246, calc(0.6 * var(--start-wallpaper-wash, 1))) 45%, rgba(251, 250, 246, 0) 100%), linear-gradient(180deg, rgba(251, 250, 246, calc(0.7 * var(--start-wallpaper-wash, 1))) 0, rgba(251, 250, 246, 0) 180px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ledger-body {
+    --bg: #1b1b1b;
+    --surface: rgba(38, 38, 37, 0.78);
+    --surface-raised: rgba(32, 32, 32, 0.9);
+    --onboarding-surface: #202020;
+    --border: #3a3a38;
+    --text: #f3f1ec;
+    --text-dim: #a9a69e;
+    --accent: #f3f1ec;
+    --accent-dim: rgba(243, 241, 236, 0.14);
+    --start-footer-tint-sunrise: #40403e;
+    --start-footer-tint-day: #3e3e3c;
+    --start-footer-ink-day: #cfccc4;
+    --start-footer-ink-evening: #cfccc4;
+    --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(20, 20, 20, 0.84) 0%, rgba(24, 24, 24, 0.72) 50%, rgba(20, 20, 20, 0.66) 100%);
+    --start-wallpaper-overlay: linear-gradient(180deg, rgba(20, 20, 20, 0.84) 0%, rgba(24, 24, 24, 0.72) 50%, rgba(20, 20, 20, 0.66) 100%);
+    --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(20, 20, 20, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 24, 24, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(20, 20, 20, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
+    --start-wallpaper-spotlight-overlay: radial-gradient(ellipse 62% 52% at 50% 46%, rgba(20, 20, 20, calc(0.86 * var(--start-wallpaper-wash, 1))) 0%, rgba(20, 20, 20, calc(0.66 * var(--start-wallpaper-wash, 1))) 45%, rgba(20, 20, 20, 0) 100%), linear-gradient(180deg, rgba(20, 20, 20, calc(0.74 * var(--start-wallpaper-wash, 1))) 0, rgba(20, 20, 20, 0) 180px);
+  }
+}
+
+:root[data-theme="private"] .ledger-body {
+  --bg: #121212;
+  --surface: rgba(29, 29, 28, 0.82);
+  --surface-raised: rgba(23, 23, 22, 0.94);
+  --onboarding-surface: #171716;
+  --border: #3f3f3c;
+  --text: #f5f3ee;
+  --text-dim: #a9a69e;
+  --accent: #f3f1ec;
+  --accent-dim: rgba(243, 241, 236, 0.14);
+  --start-footer-tint-sunrise: #353534;
+  --start-footer-tint-day: #343433;
+  --start-footer-ink-day: #cfccc4;
+  --start-footer-ink-evening: #cfccc4;
+  --start-wallpaper-evening-overlay: linear-gradient(180deg, rgba(10, 10, 10, 0.9) 0%, rgba(15, 15, 15, 0.8) 52%, rgba(8, 8, 8, 0.78) 100%);
+  --start-wallpaper-overlay: linear-gradient(180deg, rgba(10, 10, 10, 0.9) 0%, rgba(15, 15, 15, 0.8) 52%, rgba(8, 8, 8, 0.78) 100%);
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(10, 10, 10, calc(0.9 * var(--start-wallpaper-wash, 1))) 0%, rgba(15, 15, 15, calc(0.8 * var(--start-wallpaper-wash, 1))) 52%, rgba(8, 8, 8, calc(0.78 * var(--start-wallpaper-wash, 1))) 100%);
+}
+
+.start-brand-mark { filter: drop-shadow(0 5px 12px rgba(20, 19, 15, 0.14)); }
+
+.ledger-body[data-wallpaper-style="light"],
+.ledger-body[data-wallpaper-fill="solid"][data-wallpaper-ink="dark"],
+.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink="dark"] {
+  --bg: #fbfaf6;
+  --surface: rgba(243, 241, 235, 0.78);
+  --surface-raised: rgba(255, 255, 255, 0.88);
+  --onboarding-surface: #ffffff;
+  --border: #e5e2da;
+  --text: #14130f;
+  --text-dim: #6a665e;
+  --accent: #1f1e1b;
+  --accent-dim: rgba(20, 19, 15, 0.08);
+  --start-footer-tint-day: #f2f0eb;
+  --start-footer-ink-day: #6a665e;
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(251, 250, 246, calc(0.78 * var(--start-wallpaper-wash, 1))) 0%, rgba(251, 250, 246, calc(0.66 * var(--start-wallpaper-wash, 1))) 55%, rgba(251, 250, 246, calc(0.5 * var(--start-wallpaper-wash, 1))) 100%);
+}
+.ledger-body[data-wallpaper-style="dark"],
+.ledger-body[data-wallpaper-fill="solid"][data-wallpaper-ink="light"],
+.ledger-body[data-wallpaper-fill="gradient"][data-wallpaper-ink="light"] {
+  --bg: #1b1b1b;
+  --surface: rgba(38, 38, 37, 0.78);
+  --surface-raised: rgba(32, 32, 32, 0.9);
+  --onboarding-surface: #202020;
+  --border: #3a3a38;
+  --text: #f3f1ec;
+  --text-dim: #a9a69e;
+  --accent: #f3f1ec;
+  --accent-dim: rgba(243, 241, 236, 0.14);
+  --start-footer-tint-day: #3e3e3c;
+  --start-footer-ink-day: #cfccc4;
+  --start-wallpaper-custom-overlay: linear-gradient(180deg, rgba(20, 20, 20, calc(0.84 * var(--start-wallpaper-wash, 1))) 0%, rgba(24, 24, 24, calc(0.72 * var(--start-wallpaper-wash, 1))) 50%, rgba(20, 20, 20, calc(0.66 * var(--start-wallpaper-wash, 1))) 100%);
+}

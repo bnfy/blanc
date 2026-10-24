@@ -257,6 +257,14 @@
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
+
+  // Pages read their palette with the stylesheet, so reload to show it now.
+  const surfaceStyle = document.getElementById('surfaceStyle');
+  surfaceStyle.value = settings.surfaceStyle === 'neutral' ? 'neutral' : 'sunrise';
+  surfaceStyle.addEventListener('change', async () => {
+    await window.bowserPages.settings.set({ surfaceStyle: surfaceStyle.value });
+    location.reload();
+  });
   newtabLayout.addEventListener('change', () =>
     window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
   // The tour opens as a real tab in the sheet's window — main creates and

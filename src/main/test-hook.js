@@ -3950,6 +3950,7 @@ function install(refs) {
         islandHoverOpen: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
+        surfaceStyle: 'sunrise',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
         // leak that seed into later scenarios.

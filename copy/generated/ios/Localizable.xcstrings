@@ -37801,6 +37801,174 @@
         }
       }
     },
+    "settings.general.surfaceStyle.label": {
+      "comment": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surface style"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oberflächenstil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo de superficie"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Style des surfaces"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile delle superfici"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estilo das superfícies"
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.hint": {
+      "comment": "Settings → General: hint under the Surface style dropdown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El aspecto de las páginas propias de Blanc. «Neutro» cambia el crema y el dorado por tinta y gris lisos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’apparence des pages propres à Blanc. « Neutre » remplace la crème et l’or par de l’encre et du gris unis."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’aspetto delle pagine di Blanc. «Neutro» sostituisce crema e oro con inchiostro e grigio semplici."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A aparência das páginas do próprio Blanc. «Neutro» troca o creme e o dourado por tinta e cinza lisos."
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.sunrise": {
+      "comment": "Settings → General: choice in the Surface style dropdown; Sunrise is Blanc's warm cream and gold palette.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunrise"
+          }
+        }
+      }
+    },
+    "settings.general.surfaceStyle.neutral": {
+      "comment": "Settings → General: choice in the Surface style dropdown; plain ink and gray, no gold.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutral"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutral"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neutro"
+          }
+        }
+      }
+    },
     "settings.general.islandSiteColors.label": {
       "comment": "Settings → General: setting name.",
       "extractionState": "manual",
