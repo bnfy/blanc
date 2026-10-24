@@ -341,13 +341,14 @@ settled; M18 is last because it depends on everything it introduces.
 - **One maintainer.** Desktop still releases weekly. The revisit's kill
   criteria (waitlist, TestFlight seven-day return, pairing rate, 30-day
   retention) are armed at the beta and decide whether 1.0 ships at all.
-- **Owner actions outside the code:** the owner reports (2026-10-24) that
-  Apple has granted the default-browser entitlement
-  (`com.apple.developer.web-browser`). The project doesn't carry it yet: no
-  entitlements file, no signing entitlement setting, and no Blanc
-  provisioning profile on the build Mac. M18 adds `Blanc.entitlements` with
-  it and a profile that includes it; the first signed build is the proof,
-  and a build that won't sign reopens question 2 of §11. The passkey browser
+- **Owner actions outside the code:** the default-browser entitlement
+  (`com.apple.developer.web-browser`) is **not yet requested** (owner,
+  2026-10-24; the September 22 grant was the passkey entitlement). The owner
+  files it now, and **1.0 does not ship until Apple grants it**. The project
+  carries neither entitlement yet: no entitlements file, no signing
+  entitlement setting, and no Blanc provisioning profile on the build Mac.
+  M18 adds `Blanc.entitlements` with both and a profile that includes them;
+  the first signed build is the proof. The passkey browser
   entitlement (`com.apple.developer.web-browser.public-key-credential`) was
   assigned to the account on 2026-09-22 (Apple's email; associated app ID
   `me.bnfy.bowser`): enable the capability on the iOS App ID `me.bnfy.blanc`
@@ -398,10 +399,9 @@ From the builder check of 2026-10-24. Answers go into the sections named.
 1. ~~The first minute when the desktop's Spaces switch is off.~~ Answered
    (owner, 2026-10-24): pairing asks the desktop, with consent, to turn its
    switch on (§3 step 2).
-2. ~~If the default-browser entitlement isn't granted in time.~~ Moot if the
-   owner's report holds (2026-10-24): the entitlement is granted; M18 wires
-   it in and the first signed build proves it (§8). Reopens only if that
-   build won't sign.
+2. ~~If the default-browser entitlement isn't granted in time.~~ Answered
+   (owner, 2026-10-24): **wait**. The request is filed now and 1.0 ships only
+   once it is granted (§8).
 3. **M16 on desktop** (§4.7, §7): ship desktop-to-desktop Spaces sync as a
    public desktop feature release, with its What's New page, before the phone
    ships, or keep it behind a hidden switch until iOS 1.0?
