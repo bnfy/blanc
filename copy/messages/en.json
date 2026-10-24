@@ -3463,6 +3463,24 @@
     "note": "Settings → General: choice in a dropdown.",
     "maxLength": 12
   },
+  "settings.general.surfaceStyle.label": {
+    "message": "Surface style",
+    "note": "Settings → General: label of the dropdown choosing the palette of Blanc's own pages."
+  },
+  "settings.general.surfaceStyle.hint": {
+    "message": "The look of Blanc’s own pages. Neutral swaps the cream and gold for plain ink and gray.",
+    "note": "Settings → General: hint under the Surface style dropdown."
+  },
+  "settings.general.surfaceStyle.sunrise": {
+    "message": "Sunrise",
+    "note": "Settings → General: choice in the Surface style dropdown; Sunrise is Blanc's warm cream and gold palette.",
+    "maxLength": 12
+  },
+  "settings.general.surfaceStyle.neutral": {
+    "message": "Neutral",
+    "note": "Settings → General: choice in the Surface style dropdown; plain ink and gray, no gold.",
+    "maxLength": 12
+  },
   "settings.general.islandSiteColors.label": {
     "message": "Match site colors",
     "note": "Settings → General: setting name."

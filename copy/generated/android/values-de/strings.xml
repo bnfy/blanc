@@ -942,6 +942,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Hell</string>
     <string name="settings_general_theme_dark">Dunkel</string>
+    <string name="settings_general_surface_style_label">Oberflächenstil</string>
+    <string name="settings_general_surface_style_hint">Das Aussehen der eigenen Seiten von Blanc. „Neutral“ ersetzt Creme und Gold durch schlichtes Schwarz und Grau.</string>
+    <string name="settings_general_surface_style_sunrise">Sunrise</string>
+    <string name="settings_general_surface_style_neutral">Neutral</string>
     <string name="settings_general_island_site_colors_label">Website-Farben übernehmen</string>
     <string name="settings_general_island_site_colors_hint">Färbt die Island-Leiste in der Farbe der aktuellen Seite. Aus behält den Hintergrund deines Designs.</string>
     <string name="settings_general_search_priority_results_label">Suchergebnisse priorisieren</string>

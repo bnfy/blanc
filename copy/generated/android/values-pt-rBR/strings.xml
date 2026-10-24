@@ -970,6 +970,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Claro</string>
     <string name="settings_general_theme_dark">Escuro</string>
+    <string name="settings_general_surface_style_label">Estilo das superfícies</string>
+    <string name="settings_general_surface_style_hint">A aparência das páginas do próprio Blanc. «Neutro» troca o creme e o dourado por tinta e cinza lisos.</string>
+    <string name="settings_general_surface_style_sunrise">Sunrise</string>
+    <string name="settings_general_surface_style_neutral">Neutro</string>
     <string name="settings_general_island_site_colors_label">Usar as cores do site</string>
     <string name="settings_general_island_site_colors_hint">Tinge a barra da Island com a cor da página em que você está. Desativado, ela mantém o fundo do seu tema.</string>
     <string name="settings_general_search_priority_results_label">Priorizar resultados de pesquisa</string>
