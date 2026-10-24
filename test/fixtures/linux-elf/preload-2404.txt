@@ -1,0 +1,77 @@
+
+Elf file type is DYN (Shared object file)
+Entry point 0x0
+There are 11 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x0008a8 0x0008a8 R   0x1000
+  LOAD           0x001000 0x0000000000001000 0x0000000000001000 0x000569 0x000569 R E 0x1000
+  LOAD           0x002000 0x0000000000002000 0x0000000000002000 0x0001bc 0x0001bc R   0x1000
+  LOAD           0x002d50 0x0000000000003d50 0x0000000000003d50 0x0002b8 0x0002c0 RW  0x1000
+  DYNAMIC        0x002d68 0x0000000000003d68 0x0000000000003d68 0x0001e0 0x0001e0 RW  0x8
+  NOTE           0x0002a8 0x00000000000002a8 0x00000000000002a8 0x000020 0x000020 R   0x8
+  NOTE           0x0002c8 0x00000000000002c8 0x00000000000002c8 0x000024 0x000024 R   0x4
+  GNU_PROPERTY   0x0002a8 0x00000000000002a8 0x00000000000002a8 0x000020 0x000020 R   0x8
+  GNU_EH_FRAME   0x0020c4 0x00000000000020c4 0x00000000000020c4 0x00002c 0x00002c R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+  GNU_RELRO      0x002d50 0x0000000000003d50 0x0000000000003d50 0x0002b0 0x0002b0 R   0x1
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.property .note.gnu.build-id .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt 
+   01     .init .plt .plt.got .plt.sec .text .fini 
+   02     .rodata .eh_frame_hdr .eh_frame 
+   03     .init_array .fini_array .dynamic .got .data .bss 
+   04     .dynamic 
+   05     .note.gnu.property 
+   06     .note.gnu.build-id 
+   07     .note.gnu.property 
+   08     .eh_frame_hdr 
+   09     
+   10     .init_array .fini_array .dynamic .got 
+
+Dynamic section at offset 0x2d68 contains 26 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x000000000000000c (INIT)               0x1000
+ 0x000000000000000d (FINI)               0x155c
+ 0x0000000000000019 (INIT_ARRAY)         0x3d50
+ 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x3d60
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x2f0
+ 0x0000000000000005 (STRTAB)             0x508
+ 0x0000000000000006 (SYMTAB)             0x310
+ 0x000000000000000a (STRSZ)              242 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000003 (PLTGOT)             0x3f48
+ 0x0000000000000002 (PLTRELSZ)           360 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x740
+ 0x0000000000000007 (RELA)               0x668
+ 0x0000000000000008 (RELASZ)             216 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW
+ 0x000000006ffffffe (VERNEED)            0x628
+ 0x000000006fffffff (VERNEEDNUM)         1
+ 0x000000006ffffff0 (VERSYM)             0x5fa
+ 0x000000006ffffff9 (RELACOUNT)          4
+ 0x0000000000000000 (NULL)               0x0
+
+Version symbols section '.gnu.version' contains 21 entries:
+ Addr: 0x00000000000005fa  Offset: 0x000005fa  Link: 4 (.dynsym)
+  000:   0 (*local*)       2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)
+  004:   1 (*global*)      2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)
+  008:   3 (GLIBC_2.4)     2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)
+  00c:   4 (GLIBC_2.34)    1 (*global*)      2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)
+  010:   2 (GLIBC_2.2.5)   1 (*global*)      2 (GLIBC_2.2.5)   2 (GLIBC_2.2.5)
+  014:   2 (GLIBC_2.2.5)
+
+Version needs section '.gnu.version_r' contains 1 entry:
+ Addr: 0x0000000000000628  Offset: 0x00000628  Link: 5 (.dynstr)
+  000000: Version: 1  File: libc.so.6  Cnt: 3
+  0x0010:   Name: GLIBC_2.34  Flags: none  Version: 4
+  0x0020:   Name: GLIBC_2.4  Flags: none  Version: 3
+  0x0030:   Name: GLIBC_2.2.5  Flags: none  Version: 2

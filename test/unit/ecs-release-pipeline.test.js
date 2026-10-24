@@ -86,14 +86,28 @@ test('the Windows job uses EVS only for ECS, after binding the source and before
   // never starts the official-only sandbox job.
   assert.equal(linux.steps.find(step => step.name === 'Require uBlock distribution clearance for public release').if, "${{ inputs.mode == 'release' || inputs.runtime == 'ecs' }}");
   assert.match(workflow.jobs['linux-sandbox'].if, /inputs\.runtime != 'ecs'/);
-  assert.equal(linux.steps.find(step => step.name === 'Upload to release').if, "${{ inputs.mode == 'release' }}");
+  // The Linux release upload waits for the exact AppImage to launch on
+  // Ubuntu 22.04 (linux-legacy-launch); the build job only hands it over.
+  const legacy = workflow.jobs['linux-legacy-launch'];
+  assert.deepEqual(legacy.needs, ['validate-inputs', 'linux']);
+  assert.equal(legacy['runs-on'], 'ubuntu-22.04');
+  assert.equal(legacy.if, linux.if);
+  assert.equal(linux.steps.find(step => step.name === 'Upload to release'), undefined, 'the build job never uploads');
+  assert.equal(legacy.steps.find(step => step.name === 'Upload to release').if, "${{ inputs.mode == 'release' }}");
+  const legacyNames = legacy.steps.map(step => step.name || step.uses);
+  const launch = legacyNames.indexOf('Launch the built AppImage on Ubuntu 22.04');
+  assert(launch >= 0 && launch < legacyNames.indexOf('Upload to release') && launch < legacyNames.indexOf('Attest Linux release artifacts'));
+  assert.equal(legacy.steps[launch].if, undefined, 'the launch check is unconditional');
+  assert.match(legacy.steps[launch].run, /smoke-public-appimage\.mjs/);
+  const legacyBind = legacyNames.indexOf('Bind the ECS build to the exact approved source commit');
+  assert(legacyBind >= 0 && legacyBind < launch);
   // The exact public package's installed uBO, file isolation and protected
-  // playback are checked before any release upload.
+  // playback are checked before it is handed over for upload.
   const lnames = linux.steps.map(step => step.name);
-  const upload = lnames.indexOf('Upload to release');
+  const upload = lnames.indexOf('Hand the AppImage to the Ubuntu 22.04 launch check');
   const ubo = lnames.indexOf('Verify candidate uBO installed AppImage controls and restart');
   const drm = lnames.indexOf('Verify public ECS file isolation and protected playback');
-  assert(ubo >= 0 && drm >= 0 && ubo < upload && drm < upload);
+  assert(upload >= 0 && ubo >= 0 && drm >= 0 && ubo < upload && drm < upload);
   assert.match(linux.steps[ubo].if, /inputs\.runtime == 'ecs'/);
   assert.match(linux.steps[ubo].run, /if \[ "\$RELEASE_RUNTIME" = ecs \]; then export BLANC_UPDATE_CHANNEL=ecs-qualification-disabled; fi/);
   assert.equal(linux.steps[drm].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
@@ -112,14 +126,19 @@ test('release.sh refuses an ECS release the native workflow cannot build before 
 });
 
 test('mandatory browser regressions run before any release upload or attestation, on both platforms', () => {
-  for (const job of ['windows', 'linux']) {
-    const names = workflow.jobs[job].steps.map(step => step.name || step.uses);
-    const regression = names.indexOf('Packaged browser and Settings regressions');
-    assert(regression >= 0, job);
-    assert(regression < names.indexOf('Upload to release'), `${job}: regression precedes upload`);
-    assert(regression < names.findIndex(name => /^Attest /.test(name || '')), `${job}: regression precedes attestation`);
-    assert.equal(workflow.jobs[job].steps[regression].if, undefined, `${job}: the regression is unconditional`);
-  }
+  const windows = workflow.jobs.windows.steps.map(step => step.name || step.uses);
+  const wRegression = windows.indexOf('Packaged browser and Settings regressions');
+  assert(wRegression >= 0 && wRegression < windows.indexOf('Upload to release'), 'windows: regression precedes upload');
+  assert(wRegression < windows.findIndex(name => /^Attest /.test(name || '')), 'windows: regression precedes attestation');
+  assert.equal(workflow.jobs.windows.steps[wRegression].if, undefined, 'windows: the regression is unconditional');
+  // Linux: the regression runs in the build job, which only hands the
+  // AppImage over; upload and attestation are in a job that needs it.
+  const linux = workflow.jobs.linux.steps.map(step => step.name || step.uses);
+  const lRegression = linux.indexOf('Packaged browser and Settings regressions');
+  assert(lRegression >= 0 && lRegression < linux.indexOf('Hand the AppImage to the Ubuntu 22.04 launch check'), 'linux: regression precedes hand-off');
+  assert.equal(workflow.jobs.linux.steps[lRegression].if, undefined, 'linux: the regression is unconditional');
+  assert.equal(linux.findIndex(name => /^Attest |^Upload to release$/.test(name || '')), -1, 'linux build job neither uploads nor attests');
+  assert(workflow.jobs['linux-legacy-launch'].needs.includes('linux'));
 });
 
 test('Linux ECS regressions go through the AppImage launcher; official Linux keeps its unpacked binary', () => {
