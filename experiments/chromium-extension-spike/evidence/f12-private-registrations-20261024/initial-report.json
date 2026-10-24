@@ -1,0 +1,206 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "scope": "off-the-record context, two registrations sharing one script URL, concurrent update and cache partition ownership",
+  "checks": [],
+  "complete": false,
+  "origin": "http://127.0.0.1:51020",
+  "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) TypeError: Failed to register a ServiceWorker for scope ('http://127.0.0.1:51020/alpha/') with script ('http://127.0.0.1:51020/worker.js'): ServiceWorker script evaluation failed\",\"lineNumber\":0,\"columnNumber\":0,\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Failed to register a ServiceWorker for scope ('http://127.0.0.1:51020/alpha/') with script ('http://127.0.0.1:51020/worker.js'): ServiceWorker script evaluation failed\",\"objectId\":\"-7217302323139906024.2.1\"}}\n    at Object.eval (file:///private/tmp/blanc-f12-private-registrations-20261024/run.mjs:5:773)\n    at async file:///private/tmp/blanc-f12-private-registrations-20261024/run.mjs:15:130",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "serverHits": [
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "sha256": "73d3b850c74a04e89fd945fba68b1b691029fa894d3f4f079ba7d85b42f101fa"
+    }
+  ],
+  "workerEvents": [
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": []
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": []
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "0",
+            "scopeURL": "http://127.0.0.1:51020/alpha/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": [],
+            "targetId": "831246F6BF99D5F6BD412BA3862D49B7"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerErrorReported",
+      "params": {
+        "errorMessage": {
+          "errorMessage": "Uncaught SyntaxError: Unexpected token ')'",
+          "registrationId": "0",
+          "versionId": "0",
+          "sourceURL": "http://127.0.0.1:51020/worker.js",
+          "lineNumber": 4,
+          "columnNumber": 380
+        }
+      }
+    },
+    {
+      "method": "ServiceWorker.workerErrorReported",
+      "params": {
+        "errorMessage": {
+          "errorMessage": "Uncaught SyntaxError: Unexpected token ')'",
+          "registrationId": "0",
+          "versionId": "0",
+          "sourceURL": "http://127.0.0.1:51020/worker.js",
+          "lineNumber": 4,
+          "columnNumber": -1
+        }
+      }
+    },
+    {
+      "method": "ServiceWorker.workerErrorReported",
+      "params": {
+        "errorMessage": {
+          "errorMessage": "Failed to register a ServiceWorker for scope ('http://127.0.0.1:51020/alpha/') with script ('http://127.0.0.1:51020/worker.js'): ",
+          "registrationId": "0",
+          "versionId": "0",
+          "sourceURL": "",
+          "lineNumber": -1,
+          "columnNumber": -1
+        }
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "starting",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": [],
+            "targetId": "831246F6BF99D5F6BD412BA3862D49B7"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "stopping",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": [],
+            "targetId": "831246F6BF99D5F6BD412BA3862D49B7"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "http://127.0.0.1:51020/worker.js",
+            "runningStatus": "stopped",
+            "status": "redundant",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792866296.605276,
+            "controlledClients": []
+          }
+        ]
+      }
+    }
+  ]
+}

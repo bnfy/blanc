@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — private multi-registration attribution
+
+[Ten new final checks](../experiments/chromium-extension-spike/evidence/f12-private-registrations-20261024/README.md) pass in a fresh private browser context: two same-script registrations retain distinct clients/scopes and version histories, concurrent updates remain correctly attributed, named-cache eviction affects only its intended fixture cache, regular context sees no private state, and fresh private context is empty after disposal. Native private flag plus page/context bindings establish scope. Initial worker syntax and UI snapshot assumptions are retained as fixture failures, not counted. No prior accepted test suite repeated, no source/build/signing changes, no private diagnostics enabled. Hidden network-loader token joins and broader arbitrary patterns remain unclaimed.9/12 unchanged; Electron paused, Google separate, latency deferred.
+
+
 ## Current October24 — production update/cache/multi-client behavior
 
 [New bounded regular-profile record](../experiments/chromium-extension-spike/evidence/f12-production-clients-20261024/README.md) passes10functional checks: independently browser-listed client identities, per-client cache/network responses, B's held response after A closes, same-URL controller replacement, retained B identity, updated cache and eviction-to-network. One separate protocol probe confirms two activated version IDs in one registration. Initial observer-lifetime/readiness/scoping failures remain recorded and excluded. No prior passing suite repeated, no product change/build/signing. Private mode, multiple registrations and hidden loader-token joins are not newly qualified.9/12 unchanged; Electron paused, Google separate, latency deferred.
