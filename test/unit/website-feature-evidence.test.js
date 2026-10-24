@@ -88,9 +88,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
-test('Arc page welcome resolves to public v1.42.1 evidence, with the app icon line as an expiring owner waiver', () => {
+test('Arc page welcome resolves to public v1.43.1 evidence; any owner waiver expires when a release ships it', () => {
   const record = arcWelcomeLedger;
-  assert.equal(record.publicRelease, 'v1.42.1');
+  assert.equal(record.publicRelease, 'v1.43.1');
   assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
   assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
   const newestRelease = JSON.parse(read('site/src/data/releases.json'))[0].tag;
