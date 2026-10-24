@@ -49,9 +49,13 @@ async function afterPack(context) {
     for (const key of keys) wire[FuseV1Options[key]] = context.packager.config.electronFuses[key[0].toLowerCase() + key.slice(1)];
     await flipFuses(path.join(context.appOutDir, 'Blanc.app'), wire);
   } else if (platform === 'linux') {
+    // Both natives must start on glibc 2.28 (linux-native-build.cjs): the
+    // launcher links fully static, the preload comes from the pinned image.
+    const { buildLauncher, assertLinuxBaseline } = require('./linux-native-build.cjs');
     await fs.copyFile(path.join(runtime.directory, 'blanc-cdm-preload.so'), path.join(context.appOutDir, 'blanc-cdm-preload.so'));
-    execFileSync('c++', ['-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-DBLANC_ECS_PRODUCTION',
-      '-Wl,-z,relro,-z,now', path.join(__dirname, 'ecs-linux-launcher.cc'), '-o', path.join(context.appOutDir, 'blanc-ecs-launcher')], { stdio: 'inherit' });
+    assertLinuxBaseline(path.join(context.appOutDir, 'blanc-cdm-preload.so'), { kind: 'shared' });
+    const launcher = buildLauncher(path.join(__dirname, 'ecs-linux-launcher.cc'), path.join(context.appOutDir, 'blanc-ecs-launcher'));
+    assertLinuxBaseline(launcher, { kind: 'static' });
     await fs.copyFile(path.join(__dirname, 'ecs-linux-apprun.sh'), path.join(context.appOutDir, 'AppRun'));
     await fs.chmod(path.join(context.appOutDir, 'AppRun'), 0o755);
   }
