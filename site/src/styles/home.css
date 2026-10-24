@@ -253,6 +253,28 @@
 .sunrise .actions {
   justify-content: center;
 }
+.home-measurement {
+  max-width: 42em;
+  margin: 16px auto 0;
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+.home-measurement p {
+  margin: 0;
+}
+.home-measurement button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .handheld-note {
   max-width: 28em;
   margin: 16px auto 0;
