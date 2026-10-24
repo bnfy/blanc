@@ -91,7 +91,7 @@ class BlancTraceUpdateProxy : public network::SelfDeletingURLLoaderFactory {
   BlancTraceUpdateProxy(
       mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
       scoped_refptr<network::SharedURLLoaderFactory> target,
-      int64_t registration, int64_t version, bool private_profile,
+      int64_t registration, int64_t version, bool private_profile, bool main_script,
       base::SelfDeletingPassKey pass);
   void CreateLoaderAndStart(
       mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id,
@@ -102,16 +102,16 @@ class BlancTraceUpdateProxy : public network::SelfDeletingURLLoaderFactory {
   ~BlancTraceUpdateProxy() override;
   scoped_refptr<network::SharedURLLoaderFactory> target_;
   int64_t registration_, version_;
-  bool private_;
+  bool private_, main_script_;
 };
 BlancTraceUpdateProxy::BlancTraceUpdateProxy(
     mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,
     scoped_refptr<network::SharedURLLoaderFactory> target,
-    int64_t registration, int64_t version, bool private_profile,
+    int64_t registration, int64_t version, bool private_profile, bool main_script,
     base::SelfDeletingPassKey pass)
     : SelfDeletingURLLoaderFactory(std::move(receiver), pass),
       target_(std::move(target)), registration_(registration),
-      version_(version), private_(private_profile) {}
+      version_(version), private_(private_profile), main_script_(main_script) {}
 BlancTraceUpdateProxy::~BlancTraceUpdateProxy() = default;
 void BlancTraceUpdateProxy::CreateLoaderAndStart(
     mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id,
@@ -132,13 +132,14 @@ void BlancTraceUpdateProxy::CreateLoaderAndStart(
   TRACE_EVENT_INSTANT(category, "Blanc.ServiceWorkerUpdateRequest",
                       "request_token", *tagged.devtools_request_id,
                       "registration_id", registration_,
-                      "version_id", version_, "private", private_);
+                      "version_id", version_, "private", private_,
+                      "main_script", main_script_);
   target_->CreateLoaderAndStart(std::move(receiver), id, options, tagged,
                                std::move(client), annotation);
 }
 scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
     scoped_refptr<network::SharedURLLoaderFactory> target, int64_t registration,
-    int64_t version, GURL, blink::StorageKey, bool private_profile, bool) {
+    int64_t version, GURL, blink::StorageKey, bool private_profile, bool main_script) {
   const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
   bool tracing = false;
   TRACE_EVENT_CATEGORY_GROUP_ENABLED(
@@ -147,7 +148,7 @@ scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(
   mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;
   base::MakeSelfDeleting<BlancTraceUpdateProxy>(
       remote.InitWithNewPipeAndPassReceiver(), target, registration, version,
-      private_profile);
+      private_profile, main_script);
   return base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(
       std::move(remote));
 }

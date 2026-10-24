@@ -1,0 +1,25 @@
+{
+  "source_base": "dd3ebc5428e9f7400a27b67b9377fbb7ed031813",
+  "attribution_patch_sha256": "ea1012aa3a38790a7a12d9c14afe180eaccf93b60ad7d1e6cab46f5dfe5e0958",
+  "repo_include_sha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+  "inputs": {
+    "content/browser/service_worker/service_worker_update_checker.cc": "d71c2a8eddf11bd4ba011579e79a0a07f6640d95c98059160df350f72bcdd71d",
+    "content/browser/service_worker/service_worker_single_script_update_checker.cc": "f6ffad1d53e0b275f38a7fec8e06719283a0d7861d74dd9fa4dd8ca86173f695",
+    "content/browser/service_worker/service_worker_registration.cc": "1d8e05dc1b48ccd3b8aa93b27232e8f73f4fe58e338edff7e34a0a42631d7062",
+    "content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
+    "out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework": "d0dddac2e04dc9937397d63213a5cdb9f0899e6e771a6f6b86c52822025e5a95"
+  },
+  "build": {
+    "planned_actions": 1,
+    "actual_steps": 6,
+    "duration_seconds": 31.59,
+    "final_guard": 0
+  },
+  "signed_candidate_unchanged": true,
+  "last_upstream_inventory": {
+    "files": 73,
+    "hunks": 180,
+    "source": "../f12-utility-resume-20261024/patch-budget.json",
+    "note": "Only copied Blanc include changed; no existing upstream patch changed."
+  }
+}
