@@ -9,7 +9,7 @@
 
 | PR | What | Size |
 | --- | --- | --- |
-| 0 | **Checked persistence for Move to Space** (§3). #1097 as written ignores the result of its record write and reports success. This must be fixed in #1097 before it merges, or as the first follow-up before anything below. | Small |
+| 0 | **Checked persistence for Move to Space** (§3), for one tab. Done in #1097 before it merges: as first written, it ignored the result of its record write and reported success. | Small |
 | 1 | **New Space…** at the bottom of Move to Space ▸: make a space and move the tab into it in one step (§4). | Small |
 | 2 | **Open Link in Space ▸** in a page's link menu: send a link to another space without leaving this one (§5). | Small to medium |
 | 3 | **Selecting several tabs** in the ⌘L panel and the side list, with a tab menu that acts on all of them (§6). | Large |
@@ -27,17 +27,17 @@ Dragging several tabs, Split View from a selection, and selection on the Island'
 
 ## 3. Saving a move (PR 0, and every later move)
 
-### 3.1 What #1097 does today, and why it's not enough
+### 3.1 What #1097 first did, and why it wasn't enough
 
-`moveTabToSpace` does four things, in this order:
+As first written, `moveTabToSpace` did four things, in this order:
 1. detaches the tab from its window;
 2. attaches it to the target space;
 3. calls `namedWorkspaces.saveCapture`;
-4. returns `true`, whatever `saveCapture` returned.
+4. returned `true`, whatever `saveCapture` returned.
 
-If the write fails (a full disk, an unreadable `workspaces.json`, a newer file format), the tab has already moved in memory while the record on disk doesn't list it. Nothing reports the failure. The tab now exists only in memory and in this window's next debounced `session.json` write, which no longer lists it. A crash before the target space's autosave succeeds loses the tab. The code comment claims "never lose it", but it doesn't hold.
+If the write failed (a full disk, an unreadable `workspaces.json`, a newer file format), the tab had already moved in memory while the record on disk didn't list it. Nothing reported the failure. The tab then existed only in memory and in this window's next debounced `session.json` write, which no longer listed it. A crash before the target space's autosave succeeded lost the tab. The code comment claimed "never lose it", but it didn't hold.
 
-Undoing the move after the fact isn't a good fix either. The in-memory move can have:
+#1097 now follows §3.2 for one tab. Undoing a move after the fact isn't a good fix either. The in-memory move can have:
 - closed Glance;
 - changed the current tab;
 - removed the tab from a split;
@@ -52,7 +52,7 @@ A move of tabs T₁…Tₙ into space S runs in five steps. Only step 4 changes 
 1. **Check.** Every tab passes `canMoveTabToSpace`. S exists, and S's owner (if any) isn't closing or mid-switch. The workspaces store is not `future-format`, `read-failed` or `repair-failed`.
 2. **Prepare, invisibly.** If S is open nowhere, set it aside in memory from its record (`applyWorkspaceToWindow` into a new set-aside runtime). Nothing is written yet. Then compute the record S will hold after the move:
    - start from S's capture as it is now, without a blank start page that stands in for an empty space;
-   - append T₁…Tₙ, using a pure `appendCaptureEntries(capture, entries)` in `workspaces-model.js`.
+   - append T₁…Tₙ, using the pure `appendTabToCapture(capture, entry)` in `src/main/space-move.js` once per tab (and `emptiedCapture` for the stand-in start page).
 
    Each entry carries the per-tab fields `captureWindowEntry` writes: URL, pinned, meta, local-file flag and document-policy mark. Its group is null. Its split is set only when §6.5 moves a whole split.
 3. **Write, checked.** `saveCapture(S, next)` is synchronous and durable (`updateAndFlush`). If it fails:
@@ -64,26 +64,30 @@ A move of tabs T₁…Tₙ into space S runs in five steps. Only step 4 changes 
 4. **Move in memory.** This is one synchronous pass with no event-loop yield: detach from the source, attach to S, re-home listeners (`rehomeTab`), then broadcast both windows.
 5. **This window's `session.json`** is written on its usual debounce. A crash between steps 3 and 5 restores the moved tabs in both places. That is a duplicate, never a loss. The "never lose it" claim holds only because step 3 is checked and comes before step 4.
 
-**If step 4 throws partway.** Only a programming error can do this, but tests inject it on purpose:
-- the tabs already re-homed stay in S, and the rest stay where they were;
-- Blanc rewrites S's record from S's live tabs (a second, checked write), so disk matches memory;
-- the result is `{ ok: false, error: 'moved-partly', moved: k, total: n }`.
+**Success.** The result is `{ ok: true }` only when the write in step 3 **and** the transfer in step 4 both succeed. Broadcasts and set-aside housekeeping after the transfer can't turn a saved move into a failure.
 
-If that rewrite also fails, S's record still lists every tab, so the unmoved ones are duplicated rather than lost. The error says so.
+**If step 4 throws.** Only a programming error can do this, but tests inject it on purpose. Each tab is first put where it can be found, whole in one place: either S, if it got all the way there, or its window, at its old place, back in its group if that group still exists, and selected again if it was the current tab. It is never half in each and never in neither. Blanc then rewrites S's record from S's live tabs (a second, checked write), so disk matches memory.
+- **One tab (#1097):** the result is `{ ok: false, error: 'move-failed', moved, recorded }`. `moved` says whether the tab ended up in S, and `recorded` whether the rewrite succeeded.
+- **Several tabs (§6):** the result is `{ ok: false, error: 'moved-partly', moved: k, total: n, recorded }`.
 
-**How a failure is shown.** A native menu can't show an error. On any failure, Blanc opens the Spaces menu, which already shows storage errors in its `role="status"` feedback line, with **"Couldn't move {count, plural} to {space}."** followed by the store's reason (`ws.error.moveFailed`). The tabs stay where the person can see them.
+If the rewrite also fails (`recorded: false`), S's record still lists every tab from step 3, so tabs that didn't move are duplicated, never lost. They're in their window and in S's record. §3.3 tests this across a crash and restart, not just in memory.
+
+**How a failure is shown (PR 1).** A native menu can't show an error. #1097 returns the result and leaves the tab visibly where it was; it shows no message. From PR 1, on any failure Blanc opens the Spaces menu, which already shows storage errors in its `role="status"` feedback line, with **"Couldn't move {count, plural} to {space}."** followed by the store's reason (`ws.error.moveFailed`).
 
 ### 3.3 How it's built and tested
 
-- **Pure orchestrator:** the five steps live in `src/main/space-move.js`, with no `require('electron')`. It takes an injected adapter (`check`, `prepare`, `dispose`, `write`, `commitOne`, `rewrite`), the same pattern as `workspace-controller.js`. `main.js` supplies the adapter. Single moves (#1097), New Space… (§4), several tabs (§6) and Open Link in Space (§5, steps 2–3 only) all use it.
-- **Unit tests that fail on purpose:**
-  - The write fails: `commitOne` is never called, and the result carries the error.
-  - The space was open nowhere and the write fails: `dispose` is called, and no runtime is left.
-  - `commitOne` throws on the second of three tabs: the first stays moved, `rewrite` is called once, and the result is `moved-partly` with `moved: 1, total: 3`.
-  - The rewrite fails too: the result says the record still lists all three.
-- **Acceptance:** an env-gated test-hook seam (`failNextSpaceWrite(error)`, `failSpaceMoveAfter(n)`; installed only when `!app.isPackaged && BLANC_TEST === '1'`, like the rest of `test-hook.js`).
-  - A failed write leaves the tab in this window, live and selected as before, and the Spaces menu shows the error.
-  - A failure after the first tab leaves disk and memory agreeing on which tabs moved.
+- **Pure orchestrator:** the steps live in `src/main/space-move.js` (`runSpaceMove`), with no `require('electron')`. It takes an injected adapter (`check`, `prepare`, `discard`, `write`, `transfer`, `reconcile`, `rewrite`, `finish`), the same pattern as `workspace-controller.js`. `main.js` supplies the adapter. The same module holds the pure `appendTabToCapture` and `emptiedCapture`. #1097 uses it for one tab. New Space… (§4), several tabs (§6, which extends `transfer` and `reconcile` to a list) and Open Link in Space (§5, steps 2–3 only) reuse it.
+- **Unit tests that fail on purpose** (`test/unit/space-move.test.js`):
+  - The write fails or throws: `transfer` is never called, and the result carries the error.
+  - Prepare fails or throws: `discard` runs before any write.
+  - The transfer throws: `reconcile` and `rewrite` run, and the result is never `ok`.
+  - The transfer and the rewrite both fail: `recorded: false`.
+  - With several tabs (§6): the transfer throws on the second of three, the first stays moved, and the result is `moved-partly` with `moved: 1, total: 3`.
+- **Acceptance**, through one-shot faults on each step (`workspaceAction('arm-move-fault', step, error)`, honoured only when `!app.isPackaged && BLANC_TEST === '1'`). The harness's `crashAndRelaunch` kills the process with SIGKILL, so nothing flushes on the way out, and relaunches on the same profile.
+  - **A failed write** leaves the tab in this window, live and selected. After a crash and restart, the window has the tab once and S's record doesn't list it (F41-43).
+  - **A failed transfer and a failed recovery write**: the tab is back in this window, live and selected. After a crash and restart, the window has the tab once and S's record lists it once: a duplicate, not a loss (F41-44).
+  - **A clean move**, as the positive control: after a crash and restart, the window doesn't have the tab and S's record lists it once (F41-45).
+  - **Several tabs (§6):** the transfer fails after the first member and the recovery write fails, then a crash and restart. Every selected tab exists at least once after the restart: the first in S, the rest in this window and also in S's record.
 
 ## 4. New Space… in Move to Space ▸
 
@@ -182,7 +186,7 @@ A quiet tab is the recommended default (D2) for three reasons:
 ### 5.3 How
 
 - **Pure module:** `openLinkInSpace(opener, url, workspaceId, deps)` goes beside `openLinkInGlance`. It applies the same guards, then hands off to the §3 orchestrator: steps 2–3 with one appended entry, then, for a set-aside space only, `createTab(url, { asleep: true, title })` in that runtime as step 4.
-- **Model:** the appending is `appendCaptureEntries` (§3.2). It appends to every parallel column (`urls`, `groupIds` → null, `pinned` → false, `meta`) and, when the record carries the `documentPolicy` stamp, adds an explicit `false`. Each column stays the length of `urls`.
+- **Model:** the appending is `appendTabToCapture` (§3.2). It appends to every parallel column (`urls`, `groupIds` → null, `pinned` → false, `meta`) and, when the record carries the `documentPolicy` stamp, adds an explicit `false`. Each column stays the length of `urls`.
 - **Strings:**
   - `contextMenu.openLinkInSpace`: "Open Link in Space"
   - `ws.announce.openedIn`: "Opened in {space}"
@@ -191,7 +195,7 @@ A quiet tab is the recommended default (D2) for three reasons:
 
 - **Unit:**
   - `linkMenuItems`' order and its hidden cases.
-  - `appendCaptureEntries` keeps the columns zipped, with and without the stamp.
+  - `appendTabToCapture` keeps the columns zipped, with and without the stamp (covered for #1097 in `test/unit/space-move.test.js`).
   - A failed write adds nothing.
 - **Acceptance**, one scenario for each row of the table in §5.2:
   - A space in another window loads the page there, and this window is unchanged.
@@ -262,7 +266,7 @@ There's no keyboard way to add a single row that isn't next to the selection in 
 
 | Item | Rule | How it runs (§6.6) |
 | --- | --- | --- |
-| Move to Space ▸ | All to one space, New Space… included. Selected splits move whole, keeping their layout (the split record goes into the target's `splits`, and the capture's `splitIds` column carries it). | All or nothing |
+| Move to Space ▸ | All to one space, New Space… included. Selected splits move whole, keeping their layout (the split record goes into the target's `splits`, and the capture's `splitIds` column carries it). | All-tabs eligibility, partial-failure recovery |
 | Move Tabs to New Window | Keeps order. Splits move whole. Under D7, allowed even when every tab of this window is selected. | All or nothing |
 | Move to Group ▸ | All into one group, keeping order. A split joins as a whole. Remove from Group appears if any is grouped. New Group… binds the whole selection. | All or nothing |
 | Pin Tabs / Unpin Tabs | Unpin when every selected tab is pinned, otherwise Pin. A split pins as a whole, as today. | All or nothing |
@@ -280,21 +284,27 @@ There's no keyboard way to add a single row that isn't next to the selection in 
 
 ### 6.6 How each action runs, and what stays selected
 
-Checking eligibility first doesn't make a sequence of operations atomic. Each action therefore belongs to one of three kinds.
+Checking eligibility first doesn't make a sequence of operations atomic. Each action therefore belongs to one of four kinds. Kinds 1 and 2 are both **enabled only when every selected tab qualifies** (D5); an item whose rule refuses any selected tab is disabled. Only kind 1 also guarantees the result is all or nothing.
 
-**1. All or nothing, guaranteed.** Move to Space, Move Tabs to New Window, Move to Group, Pin/Unpin, Mute/Unmute.
-- **Enabled only when every selected tab qualifies** (D5). An item whose rule refuses any selected tab is disabled, never partly applied.
-- **Move to Space** follows §3.2. One checked write of the target record holds every member before anything moves. A failed write moves nothing. Only a programming error during the in-memory pass can leave some moved, and that is reported as `moved-partly` with disk and memory reconciled.
+**1. All or nothing.** Move Tabs to New Window, Move to Group, Pin/Unpin, Mute/Unmute.
 - **Move to Group, Pin/Unpin and Mute/Unmute** change memory only. A pure helper computes the full result first: the new `tabOrder`, groups, and pinned and muted flags. Main then applies it in one synchronous pass with no yield and broadcasts once. No step waits on or can be refused by a page.
 - **Move Tabs to New Window** detaches the tabs, then opens the window adopting them (the existing Move Group to New Window path). If opening the window throws, the detached tabs go back into this window at their original places, in order. They're re-homed through `rehomeTab` and their group and split records are restored from the plan.
-- **On success**, the selection clears. **On failure**, nothing changed, so the selection stays exactly as it was and the person can retry. The error shows in the Spaces menu for moves to a space, and is announced for the others.
+- **On success**, the selection clears. **On failure**, nothing changed, so the selection stays exactly as it was and the person can retry. The failure is announced.
 
-**2. Each tab on its own.** Reload Tabs, Quiet Tabs.
+**2. All-tabs eligibility with partial-failure recovery.** Move to Space ▸, including New Space….
+- **This is not all or nothing.** It follows §3.2. One checked write of the target record holds every member before anything moves, so a failed write moves nothing. A failure during the in-memory pass can leave some tabs moved and some not. That is reported as `moved-partly`, each tab is whole in one place, and disk is reconciled by the recovery write. If the recovery write fails too, the unmoved tabs are duplicated in the target's record, never lost.
+- **Selection afterwards:**
+  - On success it clears.
+  - When the write fails, nothing moved and the selection stays exactly as it was.
+  - After `moved-partly`, the selection keeps exactly the tabs that didn't move (they're still in this window), so the person can see them and retry.
+- **The failure** shows in the Spaces menu (§3.2) with the count that moved.
+
+**3. Each tab on its own.** Reload Tabs, Quiet Tabs.
 - **Enabled when at least one selected tab qualifies.** The others are skipped.
 - **Quieting is asynchronous** and a page can refuse it (the dirty probe, a `beforeunload` listener, a shared renderer). Each refusal affects only that tab.
 - **Afterwards,** the selection becomes the tabs that weren't reloaded or quieted, so the person can see which ones stayed. The live region announces, for example, "Quieted 2 of 3 tabs."
 
-**3. Close Tabs.**
+**4. Close Tabs.**
 - **Today's behaviour:** closing in Blanc doesn't run a page's leave-page prompt (`closeTab` calls `wc.close()` without `waitForBeforeUnload`), so no page can cancel a close. Close Tabs is one synchronous pass:
   - it records one batch entry first, as Close Other Tabs does;
   - it closes every selected tab;
@@ -315,11 +325,11 @@ Dragging tabs as a group needs its own spec, because `tab-drag.js`'s source mode
   - any split member id selects the whole split;
   - ranges count a split once;
   - a split change clears the selection.
-- `buildTabsContextMenu`: each row of §6.5, including disabling an all-or-nothing item when one tab is refused.
+- `buildTabsContextMenu`: each row of §6.5, including disabling a kind 1 or kind 2 item when one tab is refused.
 - The runner's new ids.
 - The `browser-api` check covers the bridge member and the payload field.
 - **Failing after the first member**, one test per kind, each with an adapter that fails on the second of three tabs:
-  - **Move to Space:** the in-memory pass throws on the second tab. Result: `moved-partly`, the record is rewritten, and the selection keeps the two unmoved tabs.
+  - **Move to Space:** the in-memory pass throws on the second tab. Result: `moved-partly`, the record is rewritten, and the selection keeps exactly the two unmoved tabs.
   - **Move to Space:** the write fails. Result: nothing moved, and the selection is unchanged.
   - **Move Tabs to New Window:** opening the window throws. Result: all three tabs are back in place, in order, with their group and split.
   - **Move to Group:** the plan is applied in one pass. No partial state can be observed between members (assert that a single broadcast happens).
@@ -333,6 +343,7 @@ Dragging tabs as a group needs its own spec, because `tab-drag.js`'s source mode
 - Move to Space with three selected tabs keeps their order, and the tabs stay live.
 - Move to Space with a selected split keeps it a split in the target.
 - A failed write (test seam) leaves everything selected and in place.
+- A transfer failure after the first member plus a failed recovery write, then a crash and restart (§3.3): every selected tab exists after the restart, and none is lost.
 - Close Tabs makes one Recently closed entry, and ⌘⇧T restores all of them, splits as splits.
 - Escape clears the selection.
 - The selection never reaches `session.json`.
@@ -347,7 +358,7 @@ Dragging tabs as a group needs its own spec, because `tab-drag.js`'s source mode
 | D2 | A link opened into a set-aside space: quiet until looked at, or load now in the background? | **Quiet** (§5.2). |
 | D3 | New Space… in Open Link in Space ▸ too? | **Yes**, once §4's editor exists; it costs one fixed start line. |
 | D4 | Does the current tab join the selection once another row is selected? | **Yes**, the model people know from other browsers. |
-| D5 | Placement actions on several tabs (§6.6, kind 1): disabled unless every tab qualifies, or applied to the tabs that can with a note on the rest? Reload and Quiet act per tab either way. | **Disabled unless every tab qualifies.** |
+| D5 | Placement actions on several tabs (§6.6, kinds 1 and 2): disabled unless every tab qualifies, or applied to the tabs that can with a note on the rest? Reload and Quiet act per tab either way. Eligibility is all tabs; only kind 1 is also all-or-nothing in execution. | **Disabled unless every tab qualifies.** |
 | D6 | Close Tabs with pinned tabs selected: close them, or skip them like Close Other Tabs? | **Close them.** Selecting them was an explicit choice. |
 | D7 | Moving every tab of a window: allowed, leaving one blank start page, or disabled? | **Allowed.** |
 | D8 | Add Move Group to Space ▸ to the group menu so a group moves with its name and colour? | **Yes.** Small; it mirrors Move Group to New Window, through the §3 orchestrator. |
