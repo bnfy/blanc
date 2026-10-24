@@ -177,3 +177,13 @@ Feature: Split View
     When a pane's view is raised above everything
     And I point at the top edge of the window
     Then the floating pill slides in over the split
+
+  @F53-25 @F53 @desktop @D11 @split-to-glance
+  Scenario Outline: A split pane can become a floating Glance over the remaining tab
+    Given two loaded tabs made into a split
+    When I open the <pane> split pane in Glance from its tab menu
+    Then that pane floats in Glance over the remaining tab without reloading either page
+    Examples:
+      | pane   |
+      | first  |
+      | second |

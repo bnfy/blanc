@@ -14,6 +14,7 @@ const build = (over = {}) => buildTabContextMenu({
   groups: over.groups ?? [],
   activeTabId: over.activeTabId ?? 1,
   glanceTabId: over.glanceTabId ?? null,
+  canGlance: over.canGlance ?? true,
   surface: over.surface ?? 'row',
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
@@ -282,4 +283,12 @@ test('menu: a split tab offers Remove from Split and Close Split instead', () =>
   assert.equal(byId(m, 'close-split').label, 'Close Split');
   const order = ids(m);
   assert.equal(order.indexOf('remove-from-split'), order.indexOf('group') + 1);
+});
+
+test('Open in Glance respects whether the selected tab can leave Split View', () => {
+  for (const splitId of [null, 'split-1']) {
+    const menu = build({ activeTabId: 2, surface: 'row', tab: { splitId }, canGlance: false });
+    assert.equal(byId(menu, 'glance').enabled, false);
+  }
+  assert.equal(byId(build({ activeTabId: 2, surface: 'row', canGlance: true }), 'glance').enabled, true);
 });

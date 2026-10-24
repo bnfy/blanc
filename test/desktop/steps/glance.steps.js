@@ -1797,7 +1797,13 @@ When('I watch the Glance card while I point at the top edge of the window', asyn
     const card = await glanceCard(this);
     return JSON.stringify({ card: card?.cardViewBounds, page: card?.viewBounds });
   };
+  await waitForValue(() => this.call('focusWindow'), Boolean, 'the window to receive the pointer');
   this.glanceCardSeen = new Set([await read()]);
+  // Keep the sampled cursor and injected event at the same position. The
+  // auto-hide setup parks sampling below the strip, which would otherwise
+  // immediately hide the Island again after this synthetic move.
+  const bounds = await this.call('windowContentBounds');
+  assert.equal(await this.call('setTestCursorPoint', { x: bounds.x + 400, y: bounds.y + 2 }), true);
   const state = await this.state();
   assert.equal(await this.call('sendMouseInput', state.activeTabId, { type: 'mouseMove', x: 400, y: 2 }), true);
   const until = Date.now() + 1200;
@@ -1807,9 +1813,10 @@ When('I watch the Glance card while I point at the top edge of the window', asyn
     if ((await this.call('islandAutoHideState'))?.sliding) slid = true;
   }
   this.glanceIslandSlid = slid;
+  this.glanceIslandFinal = await this.call('islandAutoHideState');
 });
 
 Then('the Glance card never moved while the Island slid in', async function () {
-  assert.equal(this.glanceIslandSlid, true, 'the Island slid in while the card was watched');
+  assert.equal(this.glanceIslandSlid, true, `the Island slid in while the card was watched: ${JSON.stringify(this.glanceIslandFinal)}`);
   assert.deepEqual([...this.glanceCardSeen].map((value) => JSON.parse(value)), [JSON.parse([...this.glanceCardSeen][0])]);
 });
