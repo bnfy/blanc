@@ -163,3 +163,20 @@ test('the ECS package verifier rejects missing, unknown or mismatched metadata i
   const real = require('../../build/ecs-runtime.json');
   for (const [target, digest] of Object.entries(real.archives)) assert.match(digest, /^[a-f0-9]{64}$/, target);
 });
+
+test('the uBO scripting probe expects the pinned ECS version only for a strictly verified ECS package read from the launched app', () => {
+  const probe = fs.readFileSync(path.join(root, 'test/desktop/packaged-ublock-noscript.mjs'), 'utf8');
+  // The ASAR must still belong to the launched executable, and metadata comes from it.
+  assert.match(probe, /assert\.equal\(fs\.realpathSync\(asar\), fs\.realpathSync\(adjacentAsar\), 'ASAR must belong to the launched executable'\);/);
+  assert.match(probe, /const metadata = readJson\('package\.json'\);/);
+  assert.match(probe, /let expectedElectron = matrix\.electron;/);
+  assert.match(probe, /if \(ecsPackage\) \{\n\s+expectedElectron = createRequire\(import\.meta\.url\)\('\.\/support\/ecs-package-version\.cjs'\)\.verifyEcsPackageMetadata\(metadata\);/);
+  assert.match(probe, /assert\.equal\(matrix\.ecsRuntime, metadata\.blancEcsRuntime, 'installed uBO record must cover this ECS runtime'\);/);
+  // Both runtime assertions use the expected runtime; none hard-codes the official one.
+  assert.match(probe, /assert\.equal\(appInfo\.electronVersion, expectedElectron,/);
+  assert.match(probe, /assert\.equal\(status\.electron, expectedElectron,/);
+  assert.doesNotMatch(probe, /assert\.equal\([^)]*, matrix\.electron\)/);
+  // The report distinguishes expected from actual runtime.
+  assert.match(probe, /runtime: ecsPackage \? 'ecs' : 'official', expectedElectron,/);
+  assert.match(probe, /report\.actualElectron = appInfo\.electronVersion;/);
+});

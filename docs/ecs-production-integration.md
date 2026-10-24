@@ -9,6 +9,22 @@ that source update and do not by themselves qualify the merged result.
 
 ## Current gate status — October 23
 
+**Windows public-ECS validation `40046267635` (2172d3526): not passed.** The owner
+approved the `ecs-signing` deployment. Source binding, Authenticode (installer
+and app valid, publisher Bananify Creative), the ECS package identity, archive
+pin and uBO record, ECS fuses, media permissions, workspace recovery and the
+installed protocol handoff passed, and the credential cleanup step succeeded.
+EVS signing is evidenced only indirectly (the mandatory sign and verify hooks
+fail the build on error; the build succeeded); the DRM check that reports VMP
+on Windows did not run. The uBO scripting probe then failed at launch because
+it expected the official 44.8.0 while the ECS package reported 44.9.3, so
+installed uBO, isolation, DRM, registration and the browser regression were
+skipped and no installer was retained. The probe now expects the pinned ECS
+version only after the strict verifier proves the launched app's own ASAR
+metadata is the pinned ECS package and its uBO record covers that runtime;
+official packages keep the 44.8.0 check, and the report records expected and
+actual runtime.
+
 **Startup-gate race fixed (owner-approved, narrowly scoped; attribution
 revised after audit).** `src/main/gate-refusals.js` records navigations the
 startup or profile gate actually refused and queued. A record is armed only
