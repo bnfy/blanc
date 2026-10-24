@@ -30,6 +30,7 @@ struct ContentView: View {
                         .modifier(PillStyle(theme: theme))
                         .transition(.opacity)
                         .accessibilityAddTraits(.updatesFrequently)
+                        .accessibilityIdentifier("send.banner")
                 }
                 addressPill
             }
@@ -52,6 +53,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Open palette")
+            .accessibilityIdentifier("pill.palette")
 
             if manager.isAdBlockReady {
                 Image(systemName: "shield.checkmark")
@@ -104,6 +106,7 @@ struct ContentView: View {
                 Image(systemName: "paperplane")
             }
             .accessibilityLabel(SyncCopy.text("tabMenu.sendToDevice"))
+            .accessibilityIdentifier("pill.send")
         }
     }
 

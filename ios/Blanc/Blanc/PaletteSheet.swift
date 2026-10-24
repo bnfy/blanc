@@ -89,6 +89,7 @@ struct PaletteSheet: View {
                                 .lineLimit(1)
                             }
                         }
+                        .accessibilityIdentifier("sent.\(item.id)")
                         .swipeActions(edge: .trailing) {
                             Button(SyncCopy.text("sends.dismiss"), role: .destructive) {
                                 manager.syncEngine.dismiss(item.id)
