@@ -23,6 +23,11 @@ import Observation
   private(set) var favorites: [Favorite] = []
   private(set) var pairing: PairingState?
   private(set) var icons: JSONValue = .object([])
+  /// Pages other devices sent here that this phone hasn't opened or dismissed,
+  /// and the devices a page can be sent to (M7b).
+  private(set) var inbox: [InboxItem] = []
+  private(set) var sendTargets: [SendTarget] = []
+  enum SendResult: Equatable { case sent, unavailable, failed, invalid }
   var onChanged: (() -> Void)?
   private var generation = 0
   private var pairingGeneration = 0
@@ -37,6 +42,9 @@ import Observation
   private var rerunRequested = false
   private var settings: SyncedSettings
   private var session: JSONValue
+  /// The local sends cache: `{devices, dismissed}`. Only `devices` is synced;
+  /// opened and dismissed ids stay on this phone.
+  private var sends: JSONValue
 
   init(
     state: SyncStateStore, secrets: any SyncSecretStore, client: SyncWorkerClient,
@@ -53,8 +61,12 @@ import Observation
     settings = SyncedSettings(payload: state.load(.settings) ?? .object([]))
     session = state.load(.session) ?? .object([("devices", .object([]))])
     icons = state.load(.icons) ?? .object([("devices", .object([]))])
+    sends = state.load(.sends) ?? Self.emptySends
     if state.state.enabled { refreshViews() }
   }
+  private static let emptySends: JSONValue = .object([
+    ("devices", .object([])), ("dismissed", .object([])),
+  ])
   var status: JSONValue {
     let s = stateStore.state
     return .object([
@@ -192,10 +204,9 @@ import Observation
       else { throw SyncError.createOnComputer }
       try check(g)
       _ = try decode(found.blob, key: key)
-      if stateStore.state.enabled, stateStore.state.accountId != payload.accountId,
-        stateStore.state.syncTabs
-      {
-        await retractBestEffort()
+      if stateStore.state.enabled, stateStore.state.accountId != payload.accountId {
+        if stateStore.state.syncTabs { await retractBestEffort() }
+        await retractSendsBestEffort()
         try check(g)
       }
       await cancelPairing()
@@ -231,8 +242,11 @@ import Observation
     settings = SyncedSettings(payload: .object([]))
     session = .object([("devices", .object([]))])
     icons = .object([("devices", .object([]))])
+    sends = Self.emptySends
     remoteDevices = []
     favorites = []
+    inbox = []
+    sendTargets = []
     onChanged?()
   }
   func beginPairing() async -> JSONValue {
@@ -302,6 +316,7 @@ import Observation
     await barrier()
     do {
       if stateStore.state.enabled, stateStore.state.syncTabs { await retractBestEffort() }
+      if stateStore.state.enabled { await retractSendsBestEffort() }
       await cancelPairing()
       let oldKey = try secrets.readKey()
       let oldState = stateStore.state
@@ -328,8 +343,11 @@ import Observation
       settings = SyncedSettings(payload: .object([]))
       session = .object([])
       icons = .object([])
+      sends = Self.emptySends
       remoteDevices = []
       favorites = []
+      inbox = []
+      sendTargets = []
       onChanged?()
       return reply()
     } catch { return reply(error) }
@@ -364,16 +382,20 @@ import Observation
       try check(g)
       var pulled: [SyncStore: (String, JSONValue)] = [:]
       var iconsUnavailable = false
+      var sendsUnavailable = false
       for store in SyncStore.allCases {
         do {
           let item = try await request { try await client.get(snap.accountId, store) }
           try check(g)
           if let item { pulled[store] = (item.version, try decode(item.blob, key: snap.key)) }
-        } catch let error where store == .icons && (error as? SyncError) != .stale {
-          // Favicons are optional, as on desktop: a missing, broken or busy
-          // icons store keeps the phone's last icons and never blocks the rest.
+        } catch let error
+          where (store == .icons || store == .sends) && (error as? SyncError) != .stale
+        {
+          // Favicons and sent pages are optional, as on desktop: a missing,
+          // broken or busy store (or an older Worker without `sends`) keeps
+          // the phone's last copy and never blocks the rest or sets lastError.
           try check(g)
-          iconsUnavailable = true
+          if store == .icons { iconsUnavailable = true } else { sendsUnavailable = true }
         }
       }
       try check(g)
@@ -411,6 +433,13 @@ import Observation
       let mergedFavorites = SyncedFavorites.merge(
         local: stateStore.load(.bookmarks) ?? .object([]),
         remote: pulled[.bookmarks]?.1 ?? .object([]))
+      var mergedSendDevices = sends["devices"] ?? .object([])
+      if !sendsUnavailable {
+        mergedSendDevices = withOwnPresence(
+          SyncSends.merge(
+            local: mergedSendDevices, remote: pulled[.sends]?.1["devices"] ?? .object([]),
+            ownId: stateStore.state.deviceId, now: Double(clock())))
+      }
       // Preserve a concurrent local settings edit made during a GET.
       mergedSettings.merge(remote: settings)
       let revisionBeforeWrite = settingsRevision
@@ -440,15 +469,35 @@ import Observation
         ])
       }
       try check(g)
+      // Sent pages (M7b §6): presence alone never creates the store, and any
+      // failure here is the optional store's, never the pass's.
+      if !sendsUnavailable, pulled[.sends] == nil, !ownHasItems(mergedSendDevices) {
+        // Nothing published: don't keep a presence entry the server never saw,
+        // so leaving this sync has nothing to take back.
+        mergedSendDevices[stateStore.state.deviceId] = nil
+      } else if !sendsUnavailable {
+        do {
+          let uploaded = try await writeMerged(
+            .sends,
+            payload: .object([
+              ("devices", SyncSends.applyBudget(mergedSendDevices, ownId: stateStore.state.deviceId))
+            ]), remote: pulled[.sends], snapshot: snap)
+          mergedSendDevices = SyncSends.merge(
+            local: mergedSendDevices, remote: uploaded["devices"] ?? .object([]),
+            ownId: stateStore.state.deviceId, now: Double(clock()))
+        } catch let error where (error as? SyncError) != .stale {}
+      }
+      try check(g)
       var finalSettings = SyncedSettings(payload: savedSettings)
       finalSettings.merge(remote: settings)
       settings = finalSettings
       session = mergedSession
       icons = mergedIcons
+      sends = localSends(devices: mergedSendDevices)
       if settingsRevision != revisionBeforeWrite { rerunRequested = true }
       for (store, value) in [
         (SyncStore.settings, settings.payload()), (.session, session), (.icons, icons),
-        (.bookmarks, mergedFavorites),
+        (.bookmarks, mergedFavorites), (.sends, sends),
       ] { try stateStore.save(store, value) }
       try stateStore.update {
         $0.lastError = nil
@@ -500,6 +549,18 @@ import Observation
           if let current { merged.merge(remote: SyncedSettings(payload: current.1)) }
           merged.merge(remote: settings)
           value = merged.payload()
+        } else if store == .sends {
+          let ownId = stateStore.state.deviceId
+          value = .object([
+            (
+              "devices",
+              SyncSends.applyBudget(
+                SyncSends.merge(
+                  local: value["devices"] ?? .object([]),
+                  remote: current?.1["devices"] ?? .object([]), ownId: ownId,
+                  now: Double(clock())), ownId: ownId)
+            )
+          ])
         } else {
           value = .object([
             (
@@ -607,6 +668,120 @@ import Observation
     remoteDevices = TabSnapshots.devices(
       session["devices"] ?? .object([]), excluding: stateStore.state.deviceId, names: names)
     favorites = SyncedFavorites.list(stateStore.load(.bookmarks) ?? .object([]))
+    let ownId = stateStore.state.deviceId
+    inbox = SyncSends.inbox(
+      sends["devices"] ?? .object([]), ownId: ownId, dismissed: dismissedIds, now: Double(clock()))
+    sendTargets = SyncSends.targets(
+      sends: sends["devices"] ?? .object([]), session: session["devices"] ?? .object([]),
+      ownId: ownId, names: names)
+  }
+
+  // MARK: Send to device (M7b)
+
+  private var dismissedIds: [String: Double] {
+    Dictionary(
+      uniqueKeysWithValues: (sends["dismissed"]?.pairs ?? []).compactMap { id, at in
+        at.number.map { (id, $0) }
+      })
+  }
+  private func localSends(devices: JSONValue) -> JSONValue {
+    let kept = SyncSends.pruneDismissed(dismissedIds, now: Double(clock()))
+    return .object([
+      ("devices", devices),
+      ("dismissed", .object(kept.sorted { $0.key < $1.key }.map { ($0.key, .number($0.value)) })),
+    ])
+  }
+  /// The phone's presence entry, refreshed once a day (it publishes "iPhone",
+  /// as it does for tab sync).
+  private func withOwnPresence(_ devices: JSONValue) -> JSONValue {
+    var out = devices
+    out[stateStore.state.deviceId] =
+      SyncSends.ownEntry(
+        previous: devices[stateStore.state.deviceId], name: "iPhone", platform: "ios",
+        now: Double(clock())
+      ).entry
+    return out
+  }
+  private func ownHasItems(_ devices: JSONValue) -> Bool {
+    !(devices[stateStore.state.deviceId]?["items"]?.array.isEmpty ?? true)
+  }
+
+  /// Send a page to another device of this account (M7b §6): one immediate
+  /// PUT with the usual conflict re-merge. "Sent" never means delivered.
+  func send(url: String, title: String, to target: String) async -> SendResult {
+    guard stateStore.state.enabled, !transitioning,
+      sendTargets.contains(where: { $0.id == target })
+    else { return .invalid }
+    // Let a pass already on the wire finish, so this send hears its own result.
+    if let task = passTask { await task.value }
+    guard !transitioning else { return .failed }
+    do {
+      let snap = try snapshot()
+      let ownId = stateStore.state.deviceId
+      let item = try await request { try await client.get(snap.accountId, .sends) }
+      try check(snap.generation)
+      let remote = try item.map { ($0.version, try decode($0.blob, key: snap.key)) }
+      let merged = SyncSends.merge(
+        local: sends["devices"] ?? .object([]), remote: remote?.1["devices"] ?? .object([]),
+        ownId: ownId, now: Double(clock()))
+      let now = Double(clock())
+      guard
+        case .success(let added) = SyncSends.addItem(
+          to: SyncSends.ownEntry(previous: merged[ownId], name: "iPhone", platform: "ios", now: now)
+            .entry,
+          url: url, title: title, to: target, ownId: ownId, now: now,
+          makeId: { UUID().uuidString.lowercased() })
+      else { return .invalid }
+      var devices = merged
+      devices[ownId] = added.entry
+      let uploaded = try await writeMerged(
+        .sends, payload: .object([("devices", SyncSends.applyBudget(devices, ownId: ownId))]),
+        remote: remote, snapshot: snap)
+      try check(snap.generation)
+      sends = localSends(
+        devices: SyncSends.merge(
+          local: devices, remote: uploaded["devices"] ?? .object([]), ownId: ownId,
+          now: Double(clock())))
+      try? stateStore.save(.sends, sends)
+      refreshViews()
+      onChanged?()
+      return .sent
+    } catch SyncError.unknownStore {
+      return .unavailable
+    } catch {
+      return .failed
+    }
+  }
+
+  /// Hide a page sent here, opened or dismissed alike; kept on this phone only.
+  func dismiss(_ id: String) {
+    guard inbox.contains(where: { $0.id == id }) else { return }
+    var dismissed = dismissedIds
+    dismissed[id] = Double(clock())
+    sends["dismissed"] = .object(
+      dismissed.sorted { $0.key < $1.key }.map { ($0.key, .number($0.value)) })
+    try? stateStore.save(.sends, sends)
+    refreshViews()
+    onChanged?()
+  }
+
+  /// Leaving a sync: publish this phone's sends entry as retracted, so other
+  /// devices stop offering it and drop its pages. Never creates the store.
+  private func retractSendsBestEffort() async {
+    let ownId = stateStore.state.deviceId
+    // Only a phone that published to the store has anything to take back;
+    // otherwise leaving sends nothing to the old account.
+    guard sends["devices"]?[ownId] != nil, let snap = try? snapshot() else { return }
+    guard let item = try? await request({ try await client.get(snap.accountId, .sends) }),
+      generation == snap.generation, let current = try? decode(item.blob, key: snap.key),
+      let own = current["devices"]?[ownId], own["retracted"]?.isTruthy != true
+    else { return }
+    var devices = current["devices"] ?? .object([])
+    let previous = own["updatedAt"]?.number ?? 0
+    devices[ownId] = SyncSends.retraction(now: max(Double(clock()), previous + 1))
+    _ = try? await writeMerged(
+      .sends, payload: .object([("devices", devices)]), remote: (item.version, current),
+      snapshot: snap)
   }
 }
 
