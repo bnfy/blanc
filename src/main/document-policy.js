@@ -32,19 +32,29 @@ function inertPageUrl(url, title = '') {
   return `blanc://error/?${q}`;
 }
 
+/** Exactly Blanc's inert explanation page, parsed rather than prefix-matched:
+ * the blanc scheme, host `error` with no credentials or port, path `/`, no
+ * fragment, and a single `kind=inert`. `blanc://error@newtab/` (host
+ * `newtab`) and an ordinary error page that could offer Retry both fail. */
 function isInertPageUrl(url) {
-  if (typeof url !== 'string' || !url.startsWith('blanc://error')) return false;
+  if (typeof url !== 'string') return false;
+  let parsed;
   try {
-    return new URL(url).searchParams.get('kind') === INERT_KIND;
+    parsed = new URL(url);
   } catch {
     return false;
   }
+  if (parsed.protocol !== 'blanc:' || parsed.username || parsed.password) return false;
+  if (parsed.hostname !== 'error' || parsed.port || parsed.pathname !== '/' || parsed.hash) return false;
+  const kinds = parsed.searchParams.getAll('kind');
+  return kinds.length === 1 && kinds[0] === INERT_KIND;
 }
 
-/** What an inert tab's view may show: Blanc's error page and nothing else,
- * so no link, favorite, history step or redirect reaches the page itself. */
+/** What an inert tab's view may show: its explanation page and nothing else,
+ * so no link, favorite, history step, redirect or recovery page reaches the
+ * page itself or offers to load it. */
 function inertViewMayShow(url) {
-  return typeof url === 'string' && url.startsWith('blanc://error');
+  return isInertPageUrl(url);
 }
 
 /** The stamp and marker column a saved multi-tab record writes beside `urls`. */

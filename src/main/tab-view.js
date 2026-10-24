@@ -321,6 +321,9 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // An inert tab keeps its own title: a page that briefly committed before
+    // the lock put the explanation back doesn't get to rename it.
+    if (tab.inert && !inertViewMayShow(wc.getURL())) return;
     tab.title = title;
     if (tab.historyEligible && !noteWakeSuppressed(tab)) history.updateTitle(tab.url, title);
     broadcastTabs();
@@ -518,11 +521,12 @@ function wireTabView(tab, view, { owner, adopted }) {
   // that controlled cancellation with an error page.
   wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    // The inert lock's cancelled request (main.js inertRequestVeto) commits
-    // Chromium's own error page, not the page. Put the explanation back
-    // rather than an error page that would offer to load it.
-    if (tab.inert && isMainFrame && !inertViewMayShow(String(validatedURL))) {
-      restoreInertPage();
+    // An inert tab never gets an error page, which could offer to load the
+    // page. The lock's cancelled request (main.js inertRequestVeto) commits
+    // Chromium's own error page, so the explanation goes back; if the
+    // explanation itself failed, the tab is left as it is, without a loop.
+    if (tab.inert && isMainFrame) {
+      if (!inertViewMayShow(String(validatedURL))) restoreInertPage();
       return;
     }
     if (noteWakeSuppressed(tab)) return;
@@ -585,6 +589,12 @@ function wireTabView(tab, view, { owner, adopted }) {
     clearTabCaptureState(tab);
     if (details.reason === 'clean-exit') return;
     recordRendererCrash('tab', details);
+    // An inert tab recovers to its explanation page, never the crash page,
+    // whose Retry would offer to load the page (document-policy.js).
+    if (tab.inert) {
+      restoreInertPage();
+      return;
+    }
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: deps.t('error.crashed') });
     queueTabNavigation(wc, {
       isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),

@@ -218,6 +218,19 @@ async function assertInertLocked(id, url, label) {
   // Reload and Back stay on Blanc's page too.
   await app.evaluate(({ webContents }, wcId) => { webContents.fromId(wcId).reload(); }, wcId);
   await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: reload`);
+  // Look-alikes of the explanation page: another internal page behind a
+  // credentials prefix, and an ordinary error page whose Retry would load it.
+  for (const target of ['blanc://error@newtab/', `blanc://error/?url=${encodeURIComponent(url)}&code=-105`]) {
+    await app.evaluate(({ webContents }, { wcId, target }) => webContents.fromId(wcId)
+      .loadURL(target).catch(() => {}), { wcId, target });
+    await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: ${target} put back`, 10_000);
+  }
+  // A crash of the inert view recovers to the explanation, not the crash page.
+  await app.evaluate(({ webContents }, wcId) => webContents.fromId(wcId).forcefullyCrashRenderer(), wcId);
+  await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: crash recovers inert`, 20_000);
+  await waitForValue(() => callTestHook(app, 'workspacePageScript', [id,
+    "!document.getElementById('retryLink') && !!document.getElementById('copyLink')"]),
+  (value) => value === true, `${label}: recovered page offers no Retry`, 10_000);
   // Back and Forward: the cancelled attempts' entries are cleared once the
   // page is back, and stepping through history never requests the page.
   const hitsBefore = pageHits.get(path(url)) ?? 0;

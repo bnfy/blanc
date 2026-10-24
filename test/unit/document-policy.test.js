@@ -138,11 +138,26 @@ test('only createTabView builds a tab WebContentsView', () => {
   assert.match(body, /if \(!mayBuildFreshView\(tab\)\) return null;/);
 });
 
-test('an inert view may show only Blanc\'s error page', () => {
-  assert.equal(policy.inertViewMayShow(policy.inertPageUrl('https://a.test/')), true);
-  assert.equal(policy.inertViewMayShow('blanc://error/?url=x&code=crashed'), true);
-  for (const url of ['https://a.test/', 'blanc://newtab/', 'blanc://bookmarks/', 'about:blank', '', null]) {
+test('an inert view may show only its exact explanation page', () => {
+  const page = policy.inertPageUrl('https://a.test/', 'A');
+  assert.equal(policy.inertViewMayShow(page), true);
+  assert.equal(policy.inertViewMayShow('blanc://error/?kind=inert'), true);
+  for (const url of [
+    // Prefix tricks: the host is what follows the credentials.
+    'blanc://error@newtab/', 'blanc://error@history/', 'blanc://error@newtab/?kind=inert',
+    'blanc://user:pass@error/?kind=inert', 'blanc://error:pass@error/?kind=inert',
+    'blanc://errors/?kind=inert', 'blanc://error.evil/?kind=inert', 'blanc://ERROR/?kind=inert',
+    'blanc://error:81/?kind=inert', 'blanc://error/x?kind=inert', 'blanc://error//?kind=inert',
+    'blanc://error/?kind=inert#retry', 'blanc://error/?kind=inert&kind=certificate',
+    'blanc://error/?kind=INERT', 'blanc://error/?kind=inert%20',
+    // Ordinary error pages can offer Retry.
+    'blanc://error/?url=https%3A%2F%2Fa.test%2F&code=-105', 'blanc://error/?url=x&code=crashed',
+    'blanc://error/?kind=certificate&url=https%3A%2F%2Fa.test%2F', 'blanc://error/',
+    // Everything else.
+    'https://a.test/', 'blanc://newtab/', 'blanc://bookmarks/', 'about:blank', 'not a url', '', null, undefined, 7,
+  ]) {
     assert.equal(policy.inertViewMayShow(url), false, String(url));
+    assert.equal(policy.isInertPageUrl(url), false, String(url));
   }
 });
 
@@ -153,8 +168,10 @@ test('every navigation path of a tab view enforces the inert lock', () => {
   assert.match(handler('will-navigate'), /tab\.inert && !inertViewMayShow\(String\(targetUrl\)\)\) \{\n\s*event\.preventDefault\(\);/);
   assert.match(handler('will-redirect'), /tab\.inert && !inertViewMayShow\(String\(url\)\)\) event\.preventDefault\(\);/);
   // The cancelled request commits Chromium's own error page: Blanc's page is
-  // put back, and once it commits history holds only it.
-  assert.match(handler('did-fail-load'), /if \(tab\.inert && isMainFrame && !inertViewMayShow\(String\(validatedURL\)\)\) \{\n\s*restoreInertPage\(\);\n\s*return;/);
+  // put back, and once it commits history holds only it. An inert tab never
+  // gets an error or crash page, whose Retry would offer to load the page.
+  assert.match(handler('did-fail-load'), /if \(tab\.inert && isMainFrame\) \{\n\s*if \(!inertViewMayShow\(String\(validatedURL\)\)\) restoreInertPage\(\);\n\s*return;/);
+  assert.match(handler('render-process-gone'), /if \(tab\.inert\) \{\n\s*restoreInertPage\(\);\n\s*return;/);
   assert.match(handler('did-navigate'), /if \(tab\.inert && !inertViewMayShow\(String\(url\)\)\) \{\n\s*restoreInertPage\(\);\n\s*return;/);
   assert.match(handler('did-navigate'), /if \(tab\.inert\) setImmediate\(\(\) => \{ if \(!wc\.isDestroyed\(\) && tab\.inert\) wc\.navigationHistory\.clear\(\); \}\);/);
   // Everything else (main-process loads, history, reloads, redirect hops) is
@@ -162,6 +179,7 @@ test('every navigation path of a tab view enforces the inert lock', () => {
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
   assert.match(main, /\nblockingCoordinator\.setVeto\(inertRequestVeto\);\n/);
   assert.match(main, /return !!tab\?\.inert && !documentPolicy\.inertViewMayShow\(details\.url\);/);
+  assert.match(main.match(/async function failWake\([\s\S]*?\n\}/)[0], /if \(wc && !tab\.inert\) \{/);
 });
 
 test('the coordinator veto cancels before any gate or provider is asked', async () => {

@@ -2724,7 +2724,9 @@ function commitWake(tab, generation) {
 async function failWake(tab, generation, { failedUrl = tab.url } = {}) {
   if (tab.wakeGeneration !== generation) return false;
   const wc = liveContents(tab);
-  if (wc) {
+  // An inert tab never gets an error page offering to load its page: it
+  // stays as it is (document-policy.js).
+  if (wc && !tab.inert) {
     const q = new URLSearchParams({
       url: failedUrl ?? '', code: 'wake-failed',
       desc: mainI18n.t('error.reloadFailed'), title: tab.title ?? '',
