@@ -1,3 +1,5 @@
+> October23 08:00 PM EDT: [fresh L4 Google offer check](evidence/l4-google-offer-20261023/README.md) returns HTTP200/`noupdate` for Bitwarden2026.10.0. Isolated profile/backup preserved; no updater or restart. L4 stays open;9/12(75%),delta0.
+
 > October23 L12: [decision packet](preview-release-decision-20261023.md) and [tester guide](preview-user-guide.md) prepared. Final acceptance remains NO-GO pending L4, blocked L11, replacement-artifact qualification and Decision2. **9/12(75%),delta0.** No release/build/profile changes.
 
 > October23: [native clone sandbox investigation](evidence/l11-sandbox-duplication-20261023/README.md) also fails the unchanged duplication assertion; trial reverted. L11 blocked on safe runtime policy preservation; owner explicitly keeps Electron builds pending. **9/12(75%),delta0.** Google separate; latency/Electron pending.
@@ -47,7 +49,7 @@ Scoring: one filled cell per fully accepted L-row, no partial credit for code wr
 | L1 Scope/identity | **Accepted October 22** | [Owner approval](mac-preview-scope-approval-20261022.md); implementation verified under L2/L8 |
 | L2 Isolation | **Accepted October22 — signed artifact plus owner hand check** | [Evidence and artifact identity](evidence/l2-owner-acceptance-20261022/README.md); reopen if a candidate change invalidates this acceptance |
 | L3 Security/maintenance | **Accepted October23 — selected preview baseline** | [Current Beta/source/dependency and maintenance reconciliation](evidence/l3-closeout-20261023/README.md); Decision 2 billing/capacity and L4 remain separate |
-| L4 Google extension upgrade | Open — external upgrade gate | Actual native version increase and required Google/restart/popup evidence; baseline remains separate |
+| L4 Google extension upgrade | **Open — fresh official response is `noupdate`** | [October23 evening offer check](evidence/l4-google-offer-20261023/README.md); require actual native version increase and Google/restart/popup evidence. Baseline remains separate. |
 | L5 Physical input/accessibility | **Accepted October23 — current signed artifact plus owner hand check** | [Visual/input/VoiceOver, theme, permission Cancel/retry and popup-focus record](evidence/l5-owner-acceptance-20261023/README.md), candidate `8439cabc`, archive `8783c93501a1`; [unchanged-control mapping in the L6 replacement](evidence/l6-close-warning-repair-20261023/README.md) |
 | L6 Recovery | **Accepted October 23 — startup scheduling repair and frozen signed acceptance** | [125 checks, deterministic old/new ordering control and unchanged owner-approved UI](evidence/l6-restore-scheduling-20261023/README.md), source `6b9a05a0` / archive `a7fe468c648e`. Exact one-off callback mechanism is not asserted; bounded recovery qualification passes. |
 | L7 Security/privacy | **Accepted October23 — exact signed candidate** | [Owner acceptance](evidence/l7-owner-acceptance-20261023/README.md), candidate `4c86c89e7ec8`; requalify relevant changes |
