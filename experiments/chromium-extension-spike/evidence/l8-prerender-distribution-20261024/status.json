@@ -8,15 +8,13 @@
   },
   "hostedAssetsVerified": 6,
   "freshAnonymousDownloadsVerified": 6,
-  "nativeDownloadAccepted": false,
-  "ownerAcceptanceComplete": false,
-  "pending": [
-    "Actual MacBook Safari download/quarantine and exact inventory",
-    "Owner ordinary launch, two restarts, tabs/selection/Shelf and Bitwarden popup focus",
-    "Shipping preservation read-back"
-  ],
+  "nativeDownloadAccepted": true,
+  "ownerAcceptanceComplete": true,
+  "pending": [],
   "electron": "paused",
   "latency": "deferred",
   "googleBaseline": "separate; untouched",
-  "readiness": "historical 9/12; no new gate delta; replacement L8 acceptance pending"
+  "readiness": "9/12 (75%); delta 0; replacement L8 reaccepted",
+  "nativeDownloadVerified": true,
+  "gate": "L8 accepted for exact replacement"
 }

@@ -1,3 +1,5 @@
+> October24 L8 replacement binding: [source14706b0e/archive18a0c2ca accepted](evidence/l8-prerender-distribution-20261024/README.md) after authenticated hosted and native Safari download, exact running-byte verification and owner two-restart/popup/Shipping checks. No new full VoiceOver, permission-install, real upgrade or hermetic-build claim. Earlier mappings retain their scope.
+
 > October24 replacement: source14706b0e/archive18a0c2ca is now notarized with72post-staple checks. [Exact replacement record](evidence/f12-prerender-notarized-20261024/README.md). L7 technical requalification and explicit owner approval are complete for this candidate; other artifact-specific gates remain separate. Earlier mappings below retain their original artifact scope.
 
 > October24 repair update: source14706b0e passes72DeveloperID-signed checks for the corrected activation gate and regressions. [Repair evidence](evidence/f12-prerender-repair-20261024/README.md). The replacement is not yet notarized; this does not replace the earlier artifact acceptance or close L7.

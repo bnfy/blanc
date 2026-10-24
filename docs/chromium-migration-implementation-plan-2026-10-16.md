@@ -1,8 +1,13 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — replacement L8 accepted
+
+The [exact replacement distribution record](../experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md) is complete for source `14706b0e` / archive `18a0c2ca`. Pinned manifest authentication, both real tamper controls, all six hosted/fresh downloads and native Safari quarantine/inventory/signature/staple/Gatekeeper pass. The owner confirms ordinary launch, two normal restarts retaining Example tabs/selection/Shelf, Bitwarden popup Tab focus and Shipping tabs. Read-back verifies the exact translocated running app and unchanged Shipping code against today's preflight. **9/12 (75%), delta 0: L8 reaccepted for replacement bytes.** L4/L11/L12 and Decision2 remain open; no release or merge approval. No build/profile mutation; Electron paused, Google baseline separate, latency deferred. Earlier pending checkpoints below are historical.
+
+
 ## Current October24 — replacement L8 distribution in progress
 
-The [prerender replacement packet](../experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md) passes exact archive/source/license audit and pinned Sigstore authentication; both real tamper controls reject. All six uploaded digests and six fresh anonymous HTTPS downloads match; the downloaded manifest also authenticates. Native MacBook Safari download/launch acceptance is the next step. Source `14706b0e`, archive `18a0c2ca`; no new build or profile mutation. Existing L8 acceptance is artifact-specific and does not certify this replacement. Historical accepted-gate count remains9/12; current replacement not release-ready. Google baseline separate, Electron paused, latency deferred.
+The [prerender replacement packet](../experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md) passes exact archive/source/license audit and pinned Sigstore authentication; both real tamper controls reject. All six uploaded digests and six fresh anonymous HTTPS downloads match; the downloaded manifest also authenticates. Native MacBook Safari download is verified (458files/five links, quarantine, signature, staple, Gatekeeper; app closed). The owner launch/two-restart/popup/Shipping walkthrough is pending. Source `14706b0e`, archive `18a0c2ca`; no new build or profile mutation. Existing L8 acceptance is artifact-specific and does not certify this replacement. Historical accepted-gate count remains9/12; current replacement not release-ready. Google baseline separate, Electron paused, latency deferred.
 
 
 ## Current October24 — prerender replacement notarized; final72checks pass

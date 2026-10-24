@@ -15,5 +15,10 @@ assert all(x['rejected'] and x['exitCode']!=0 for x in read('negative-verificati
 u=read('draft-uploaded.json');assert u['draft'] and u['target_commitish']==e['source'] and len(u['assets'])==6
 assert len(read('uploaded-byte-verification.json'))==6 and all(x['matched'] for x in read('uploaded-byte-verification.json'))
 f=read('fresh-hosted-byte-verification.json');assert len(f)==6 and all(x['anonymousAssetGET']==200 and not x['accountAuthorizationForwarded'] for x in f)
-s=read('status.json');assert not s['nativeDownloadAccepted'] and not s['ownerAcceptanceComplete'] and s['electron']=='paused' and s['latency']=='deferred'
-print(json.dumps({'evidenceMembers':len(entries),'hostedAssets':6,'pinnedIdentityVerified':True,'nativeAndOwnerAcceptance':'pending'}))
+n=read('native-download.json');assert n['source']==e['source'] and n['regularFilesVerified']==458 and n['symlinksVerified']==5 and 'Safari' in n['quarantine']['stdout'] and all(n[k]['exitCode']==0 for k in ['quarantine','codesign','gatekeeper','stapler'])
+assert read('native-prelaunch.json')['matchingReplacementProcesses']==[]
+s=read('status.json');assert s['nativeDownloadVerified'];assert s['nativeDownloadAccepted'] and s['ownerAcceptanceComplete'] and s['pending']==[] and s['electron']=='paused' and s['latency']=='deferred'
+o=read('owner-acceptance.json');assert o['answer']=='All checks passed' and all(o['criteria'].values()) and o['sourceRevision']==e['source'] and o['archiveSha256']==e['archiveSha256']
+p=read('owner-restart-postcheck.json')['runningCandidate'];assert p['source']==e['source'] and p['regularFilesMatched']==458 and p['symlinksMatched']==5
+assert read('owner-state-replacement-owner-passed.json')['shippingFilesUnchangedSinceCurrentPreflight']
+print(json.dumps({'evidenceMembers':len(entries),'hostedAssets':6,'pinnedIdentityVerified':True,'nativeAndOwnerAcceptance':'passed; L8 reaccepted, delta 0'}))
