@@ -1,5 +1,10 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — production update attribution source mapping complete
+
+[Hashed production chain](../experiments/chromium-extension-spike/evidence/f12-production-attribution-20261024/README.md) traces registration scope/creator restrictions through the owning BrowserContext’s service-worker factory to the production blocker Request gate. The research identity wrapper is a pass-through when disabled; it does not remove enforcement. No active-tab identity substitution or new source defect found. Twelve historical token joins remain historical; arbitrary current-production/cache/multi-client observational parity is not claimed. No tests/builds/profile changes or private logs enabled. Next evidence must target a genuinely missing production case with independent identity, not repeat accepted runs.9/12 unchanged; Electron paused, Google separate, latency deferred.
+
+
 ## Current October24 — F12 path/attribution gaps narrowed
 
 [Current-source disposition](../experiments/chromium-extension-spike/evidence/f12-path-attribution-20261024/README.md) corrects a stale blanket native service-update gap:12existing uniquely token-linked joins already passed (8same-URL unchanged-byte collision,4changed-byte). These are historical research proofs, not new runs or current production/private logging claims; Electron comparison stays open/paused. Pre-prefetch source remains a conditional bypass behind default-disabled main/forced-test features, with the recorded production caller in Android WebView. One new signed-Mac fresh-profile check confirms both features effectively disabled via current-process FeatureList overrides plus source defaults. This is not enabled-route protection or a future configuration guarantee. One fixture-routing timeout was corrected; both profiles exited cleanly and were removed.9/12unchanged; Google separate; latency deferred; no source/build changes or repeated passing tests.
