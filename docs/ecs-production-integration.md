@@ -9,6 +9,20 @@ that source update and do not by themselves qualify the merged result.
 
 ## Current gate status — October 23
 
+**Startup-gate race fixed (owner-approved, narrowly scoped).**
+`src/main/gate-refusals.js` remembers navigations the startup or profile gate
+actually refused and queued (per WebContents and exact URL, at most eight,
+for 30 s). The tab's failure handler drops only that refusal's own late
+`ERR_BLOCKED_BY_CLIENT`, once; a failure that arrives while the gate is still
+active settles the record as before; destroyed contents forget theirs. Any
+other `-20` (a blocking provider), any other code, URL or tab, and every
+security check reach the error page exactly as before; nothing is retried
+and the gates' replay is unchanged. In the traced local reproduction, three
+gate-refused rounds recorded `gate-refused-late` and showed the replayed page
+with no error page (the same probe showed the error page in three earlier
+runs), while a closed-port control showed its error page every round. This
+changes the candidate: the Linux pass covers `e2a83b241`, not this commit.
+
 **Linux public-ECS validation `40041114105` (d96f7426d): not passed overall.**
 Public-package acceptance passed: unmuted protected playback advanced 4.961 s
 with no media errors (Linux reports `PLATFORM_UNVERIFIED`, as expected), the

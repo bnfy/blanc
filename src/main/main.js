@@ -1610,6 +1610,9 @@ let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
 // Default-off gate diagnostics (BLANC_NAVIGATION_TRACE); never alters a decision.
 const { navigationTrace } = require('./navigation-trace');
+// Navigations the startup/profile gate refused and queued: their own failure
+// can arrive after the gate replayed them (src/main/gate-refusals.js).
+const gateRefusals = require('./gate-refusals').createGateRefusals();
 const profileNavigationGates = require('./profile-navigation-gates').createProfileNavigationGates({
   coordinator: blockingCoordinator, queued: startupQueuedNavigations,
   resolveContents: id => {
@@ -1621,6 +1624,7 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   enabled: () => settings.getSettings().adblockEnabled,
   startupActive: () => startupNavigationGateActive,
   trace: navigationTrace,
+  onRefused: (webContentsId, url) => gateRefusals.noteRefused(webContentsId, url),
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1636,6 +1640,7 @@ function installStartupNavigationGate(sessions) {
     let queued = false;
     if (details.method === 'GET' && Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
       startupQueuedNavigations.set(details.webContentsId, details.url);
+      gateRefusals.noteRefused(details.webContentsId, details.url);
       queued = true;
     }
     const gateTab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
@@ -8293,6 +8298,7 @@ initTabView({
   isStartupGateActive: (tab) => startupNavigationGateActive || profileNavigationGates.active(tab),
   startupQueuedNavigations,
   navigationTrace,
+  gateRefusals,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,

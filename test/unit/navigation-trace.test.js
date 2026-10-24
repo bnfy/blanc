@@ -111,15 +111,15 @@ test('missing end, broken sequence, malformed lines, count mismatch, cap and ret
   assert.equal(capped.capReached, true); assert.equal(capped.complete, false);
 });
 
-test('the tab load-failure handler keeps its three guards and returns; tracing only observes them', () => {
+test('the tab load-failure handler keeps its guards and returns; tracing only observes them', () => {
   const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
   const handler = source.slice(source.indexOf("wc.on('did-fail-load'"), source.indexOf('const canContinue', source.indexOf("wc.on('did-fail-load'")));
   assert.match(handler, /if \(!shouldPresentTabLoadFailure\(wc, errorCode, validatedURL\)\) \{ traceFailure\('not-presented'\); return; \}/);
-  assert.match(handler, /if \(isStartupGateActive\(tab\) && startupQueuedNavigations\.has\(wc\.id\) && \/\^https\?:\/i\.test\(validatedURL\)\) \{ traceFailure\('gate-suppressed'\); return; \}/);
+  assert.match(handler, /if \(isStartupGateActive\(tab\) && startupQueuedNavigations\.has\(wc\.id\) && \/\^https\?:\/i\.test\(validatedURL\)\) \{\n\s+deps\.gateRefusals\?\.settle\(wc\.id, validatedURL\);\n\s+traceFailure\('gate-suppressed'\);\n\s+return;\n\s+\}/);
   assert.match(handler, /traceFailure\('error-page'\);/);
   assert.match(handler, /deps\.navigationTrace\?\.record\('did-fail-load'/);
   // main passes the shared default-off trace.
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
   assert.match(main, /startupQueuedNavigations,\n  navigationTrace,/);
-  assert.match(main, /trace: navigationTrace,\n\}\);/);
+  assert.match(main, /trace: navigationTrace,\n  onRefused: \(webContentsId, url\) => gateRefusals\.noteRefused\(webContentsId, url\),\n\}\);/);
 });

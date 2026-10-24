@@ -486,7 +486,19 @@ function wireTabView(tab, view, { owner, adopted }) {
     const traceFailure = outcome => deps.navigationTrace?.record('did-fail-load', { webContentsId: wc.id, navEpoch: tab.navEpoch, private: tab.private,
       url: validatedURL, code: errorCode, outcome, gate: isStartupGateActive(tab) ? 'active' : 'inactive', queued: startupQueuedNavigations.has(wc.id) });
     if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) { traceFailure('not-presented'); return; }
-    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) { traceFailure('gate-suppressed'); return; }
+    if (isStartupGateActive(tab) && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) {
+      deps.gateRefusals?.settle(wc.id, validatedURL);
+      traceFailure('gate-suppressed');
+      return;
+    }
+    // A navigation the gate refused and queued can report its own -20 after the
+    // gate opened and replayed it. That failure is the refusal's, not the
+    // replay's: never show it as an error page. Matches only that exact
+    // refusal (same contents, same URL, -20, once); everything else continues.
+    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {
+      traceFailure('gate-refused-late');
+      return;
+    }
     traceFailure('error-page');
     const canContinue = !!tab.certificateError && certificateExceptions.isEligible({
       url: tab.certificateError.url,
@@ -531,6 +543,9 @@ function wireTabView(tab, view, { owner, adopted }) {
     }
     callback(false);
   }));
+  // A destroyed view's gate refusals can never fail late into another tab.
+  const refusalContentsId = wc.id;
+  wc.once('destroyed', () => deps.gateRefusals?.forget(refusalContentsId));
   // Adopted window.open children can die outside closeTab. A sleeping tab
   // deliberately destroys its own view, so it must not prune the tab record.
   wc.once('destroyed', boundToTab(() => {
