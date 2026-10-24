@@ -161,8 +161,11 @@ class ActivationGate : public content::CommitDeferringCondition {
  private:
   void Decide() {
     auto& navigation = GetNavigationHandle();
+    // Activation conditions run before the sanitized referrer is initialized.
+    // The browser-provided initiator origin is already available at this stage.
+    const auto& initiator = navigation.GetInitiatorOrigin();
     Engine::Get().Decide(navigation.GetURL().spec(), "mainFrame",
-        navigation.GetReferrer().url.spec(),
+        initiator && !initiator->opaque() ? initiator->GetURL().spec() : "",
         base::BindOnce(&ActivationGate::Complete, weak_.GetWeakPtr()));
   }
   void Complete(int result) {
