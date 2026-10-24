@@ -23,6 +23,10 @@ actor MemorySyncTransport: SyncTransport {
     func install(_ account: String, _ store: SyncStore, _ value: JSONValue, key: SymmetricKey) throws {
         blobs["v1/blob/\(account)/\(store.rawValue)"] = (1, try SyncCrypto.seal(Data(value.jsStringify().utf8), key: key))
     }
+    func value(_ account: String, _ store: SyncStore, key: SymmetricKey) throws -> JSONValue? {
+        guard let (_, blob) = blobs["v1/blob/\(account)/\(store.rawValue)"] else { return nil }
+        return try JSONValue(data: SyncCrypto.open(blob, key: key))
+    }
     func remove(_ account: String, _ store: SyncStore) { blobs["v1/blob/\(account)/\(store.rawValue)"] = nil }
     func fail(_ method: String, _ path: String, statuses: [Int]) { failures[method + " " + path] = statuses }
     func suspendNext(_ method: String, _ path: String) { heldMethod = method; heldPath = path }
@@ -101,6 +105,69 @@ actor MemorySyncTransport: SyncTransport {
     }
     private func putCount(_ transport: MemorySyncTransport, suffix: String? = nil) async -> Int {
         await transport.records().filter { $0.method == "PUT" && (suffix == nil || $0.path.hasSuffix(suffix!)) }.count
+    }
+    private func favoriteURLs(_ store: JSONValue?) -> [String] {
+        (store?["items"]?.array ?? []).compactMap { $0["url"]?.string }
+    }
+    private func addFavorite(_ engine: SyncEngine, _ url: String) {
+        engine.editFavorites { SyncedFavorites.toggle($0, url: url, title: "Fav", favicon: nil, now: Double(self.now), makeId: { UUID().uuidString }).store }
+    }
+    func testFavoriteAddedOnPhoneIsUploaded() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://fav.example/")
+        XCTAssertTrue(f.engine.isFavorite(url: "https://fav.example/"))
+        await f.engine.syncNow()
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://fav.example/"])
+    }
+    func testLocalFavoriteEditSurvivesOlderRemoteTombstone() async throws {
+        let f = try await make()
+        try await f.transport.install(accountA, .bookmarks, .object([("items", .array([])), ("tombstones", .array([.object([("url", .string("https://fav.example/")), ("deletedAt", .number(Double(now - 1)))])]))]), key: f.key)
+        addFavorite(f.engine, "https://fav.example/")
+        await f.engine.syncNow()
+        XCTAssertEqual(favoriteURLs(f.state.load(.bookmarks)), ["https://fav.example/"])
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://fav.example/"])
+        XCTAssertEqual(uploaded?["tombstones"]?.array.count, 0)
+    }
+    func testFavoriteEditDuringPullIsNotLost() async throws {
+        let f = try await make()
+        await f.transport.suspendNext("GET", "v1/blob/\(accountA)/bookmarks")
+        let pass = Task { await f.engine.syncNow() }
+        try await waitSuspended(f.transport)
+        addFavorite(f.engine, "https://during.example/")
+        await f.transport.release()
+        await pass.value
+        let uploaded = try await f.transport.value(accountA, .bookmarks, key: f.key)
+        XCTAssertEqual(favoriteURLs(uploaded), ["https://during.example/"])
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://during.example/"])
+    }
+    func testDisableKeepsFavorites() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://keep.example/")
+        _ = await f.engine.disable()
+        XCTAssertFalse(f.state.state.enabled)
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://keep.example/"])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: f.directory.appendingPathComponent("sync-favorites.json").path))
+    }
+    func testJoinMergesLocalFavoritesIntoAccount() async throws {
+        let f = try await make()
+        addFavorite(f.engine, "https://local.example/")
+        let keyB = SymmetricKey(data: Data(repeating: 7, count: 32))
+        try await f.transport.install(accountB, .settings, settings("dark"), key: keyB)
+        try await f.transport.install(accountB, .bookmarks, .object([("items", .array([.object([("id", .string("b1")), ("url", .string("https://b.example/")), ("title", .string("B")), ("favicon", .null), ("addedAt", .number(50)), ("updatedAt", .number(50)), ("folder", .null)])])), ("tombstones", .array([]))]), key: keyB)
+        _ = await f.engine.switchWithCode(try code(accountB, key: keyB))
+        XCTAssertEqual(f.state.state.accountId, accountB)
+        let uploaded = try await f.transport.value(accountB, .bookmarks, key: keyB)
+        XCTAssertEqual(Set(favoriteURLs(uploaded)), ["https://local.example/", "https://b.example/"])
+    }
+    func testEditWithSyncOffStaysLocal() async throws {
+        let f = try await make(enabled: false)
+        addFavorite(f.engine, "https://off.example/")
+        XCTAssertEqual(f.engine.favorites.map(\.url), ["https://off.example/"])
+        try await Task.sleep(for: .milliseconds(400))
+        let requests = await f.transport.records()
+        XCTAssertTrue(requests.isEmpty)
     }
     func testUnclockedRemoteSettingsSurviveFirstPull() async throws {
         let f = try await make()

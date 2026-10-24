@@ -34,6 +34,7 @@ import Observation
   private var firstPending: Int64?
   private var lastForeground: Int64?
   private var settingsRevision = 0
+  private var favoritesRevision = 0
   private var rerunRequested = false
   private var settings: SyncedSettings
   private var session: JSONValue
@@ -54,6 +55,8 @@ import Observation
     session = state.load(.session) ?? .object([("devices", .object([]))])
     icons = state.load(.icons) ?? .object([("devices", .object([]))])
     if state.state.enabled { refreshViews() }
+    // Favorites are the phone's own and stay when sync is off.
+    favorites = SyncedFavorites.list(state.load(.bookmarks) ?? .object([]))
   }
   var status: JSONValue {
     let s = stateStore.state
@@ -214,7 +217,7 @@ import Observation
       })
     do {
       try secrets.writeKey(key)
-      try stateStore.clearData()
+      try stateStore.clearData(keeping: [.bookmarks])
       try stateStore.update {
         $0.enabled = true
         $0.handle = handle
@@ -232,7 +235,6 @@ import Observation
     session = .object([("devices", .object([]))])
     icons = .object([("devices", .object([]))])
     remoteDevices = []
-    favorites = []
     onChanged?()
   }
   func beginPairing() async -> JSONValue {
@@ -317,7 +319,7 @@ import Observation
           $0.lastError = nil
           $0.lastSyncedAt = nil
         }
-        try stateStore.clearData()
+        try stateStore.clearData(keeping: [.bookmarks])
         try secrets.deleteKey()
       } catch {
         if let oldKey { try? secrets.writeKey(oldKey) }
@@ -329,7 +331,6 @@ import Observation
       session = .object([])
       icons = .object([])
       remoteDevices = []
-      favorites = []
       onChanged?()
       return reply()
     } catch { return reply(error) }
@@ -408,15 +409,32 @@ import Observation
               remote: pulled[.icons]?.1["devices"] ?? .object([]), now: clock())
           )
         ])
+      let favoritesBeforeWrite = favoritesRevision
       let mergedFavorites = SyncedFavorites.merge(
         local: stateStore.load(.bookmarks) ?? .object([]),
-        remote: pulled[.bookmarks]?.1 ?? .object([]))
+        remote: pulled[.bookmarks]?.1 ?? .object([]), now: Double(clock()))
       // Preserve a concurrent local settings edit made during a GET.
       mergedSettings.merge(remote: settings)
       let revisionBeforeWrite = settingsRevision
       let savedSettings = try await writeMerged(
         .settings, payload: mergedSettings.payload(), remote: pulled[.settings], snapshot: snap)
       try check(g)
+      // Never create an account's Favorites store just to hold nothing.
+      var savedFavorites = mergedFavorites
+      if pulled[.bookmarks] != nil || !(mergedFavorites["items"]?.array ?? []).isEmpty
+        || !(mergedFavorites["tombstones"]?.array ?? []).isEmpty
+      {
+        savedFavorites = try await writeMerged(
+          .bookmarks, payload: mergedFavorites, remote: pulled[.bookmarks], snapshot: snap)
+        try check(g)
+      }
+      // A Favorites edit made during the upload is merged back and published next.
+      if favoritesRevision != favoritesBeforeWrite {
+        savedFavorites = SyncedFavorites.merge(
+          local: stateStore.load(.bookmarks) ?? .object([]), remote: savedFavorites,
+          now: Double(clock()))
+        rerunRequested = true
+      }
       if stateStore.state.syncTabs {
         let uploadedSession = try await writeMerged(
           .session,
@@ -448,7 +466,7 @@ import Observation
       if settingsRevision != revisionBeforeWrite { rerunRequested = true }
       for (store, value) in [
         (SyncStore.settings, settings.payload()), (.session, session), (.icons, icons),
-        (.bookmarks, mergedFavorites),
+        (.bookmarks, savedFavorites),
       ] { try stateStore.save(store, value) }
       try stateStore.update {
         $0.lastError = nil
@@ -500,6 +518,9 @@ import Observation
           if let current { merged.merge(remote: SyncedSettings(payload: current.1)) }
           merged.merge(remote: settings)
           value = merged.payload()
+        } else if store == .bookmarks {
+          value = SyncedFavorites.merge(
+            local: value, remote: current?.1 ?? .object([]), now: Double(clock()))
         } else {
           value = .object([
             (
@@ -578,6 +599,22 @@ import Observation
     settings.stampLocal(key: key, value: value, now: clock(), tie: UUID().uuidString.lowercased())
     try? stateStore.save(.settings, settings.payload())
     schedulePublish(delay: 250)
+  }
+  /// A Favorites edit on the phone. Favorites are local when sync is off and
+  /// published to the account when it is on.
+  func editFavorites(_ change: (JSONValue) -> JSONValue) {
+    let empty: JSONValue = .object([("items", .array([])), ("tombstones", .array([]))])
+    let current = stateStore.load(.bookmarks) ?? empty
+    let next = change(current)
+    guard next.canonical() != current.canonical() else { return }
+    try? stateStore.save(.bookmarks, next)
+    favoritesRevision += 1
+    refreshViews()
+    onChanged?()
+    if stateStore.state.enabled, !transitioning { schedulePublish(delay: 250) }
+  }
+  func isFavorite(url: String) -> Bool {
+    favorites.contains { $0.url == url }
   }
   func tabsChanged() {
     guard stateStore.state.enabled, stateStore.state.syncTabs, !transitioning else { return }
