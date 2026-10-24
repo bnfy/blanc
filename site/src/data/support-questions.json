@@ -3,7 +3,7 @@
     "id": "architecture",
     "q": "What is Blanc built on?",
     "a": [
-      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. It uses official, unmodified Electron releases.",
+      "Blanc uses Chromium to render websites and Electron to package that engine with a desktop runtime. Blanc supplies the floating island, tab management, settings and network-layer blocker. Since Blanc 1.43 it runs on castLabs’ Electron for Content Security, a build of Electron that can play Widevine-protected video and music.",
       "This lets one small team maintain an app for macOS, Windows and Linux. The trade-off is a bundled runtime and a multi-process memory footprint; it is not a separate web engine or a native system-webview browser."
     ]
   },
