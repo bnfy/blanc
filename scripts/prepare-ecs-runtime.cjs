@@ -3,7 +3,6 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const { createHash } = require('node:crypto');
-const { execFileSync } = require('node:child_process');
 const pin = require('../build/ecs-runtime.json');
 const pending = new Map();
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -28,8 +27,11 @@ async function prepare(platform, arch) {
     const patched = require('./ecs-linux-cdm-zygote-trial.cjs').patchVerifiedRuntime(await fs.readFile(executable));
     await fs.writeFile(executable, patched.bytes);
     nativePatch = patched.receipt;
-    execFileSync('cc', ['-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-fvisibility=hidden',
-      '-Wl,-z,relro,-z,now', path.join(__dirname, 'ecs-linux-cdm-preload.c'), '-o', path.join(directory, 'blanc-cdm-preload.so'), '-ldl'], { stdio: 'inherit' });
+    // Built in the pinned glibc 2.28 image, then checked from its ELF headers
+    // (linux-native-build.cjs): a runner-glibc build kept 1.43.0 off Ubuntu 22.04.
+    const { buildCdmPreload, assertLinuxBaseline } = require('./linux-native-build.cjs');
+    const preload = buildCdmPreload(path.join(__dirname, 'ecs-linux-cdm-preload.c'), path.join(directory, 'blanc-cdm-preload.so'));
+    assertLinuxBaseline(preload, { kind: 'shared' });
   }
   return { directory, platform, arch, version: pin.version, archiveSha256: pin.archives[target],
     frameworkSha256: hash(await fs.readFile(executable)), nativePatch, url };

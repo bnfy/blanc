@@ -88,9 +88,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
-test('Arc page welcome resolves to public v1.42.1 evidence, with the app icon line as an expiring owner waiver', () => {
+test('Arc page welcome resolves to public v1.43.1 evidence; any owner waiver expires when a release ships it', () => {
   const record = arcWelcomeLedger;
-  assert.equal(record.publicRelease, 'v1.42.1');
+  assert.equal(record.publicRelease, 'v1.43.1');
   assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
   assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
   const newestRelease = JSON.parse(read('site/src/data/releases.json'))[0].tag;
@@ -577,6 +577,30 @@ test('every sentence on the bangs page is recorded', () => {
     const value = source.match(new RegExp(`\\b${attribute}=\\{"([^"]+)"\\}`))?.[1];
     assert.ok(value && recorded.includes(value), `bangs page ${attribute} is not recorded`);
   }
+});
+
+// The runtime Blanc is built on, reworded once public v1.43.0 moved to
+// castLabs' Electron for Content Security.
+test('v1.43 runtime copy resolves to verified public v1.43.1 evidence', () => {
+  const v143 = JSON.parse(read('docs/website-v1.43-claims.json'));
+  assert.equal(v143.publicRelease, 'v1.43.1');
+  assert.equal(execFileSync('git', ['rev-parse', `${v143.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v143.sourceSha);
+  assert.ok(read(v143.releaseEvidence).includes(v143.sourceSha));
+  for (const claim of v143.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v143.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v143.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of ['site/src/components/guides/foundations.astro', 'site/src/data/support-questions.json']) {
+    const text = normalize(read(file));
+    for (const retired of v143.prohibitedClaims) assert.ok(!text.includes(retired), `${file} still says “${retired}”`);
+  }
+  const runtime = JSON.parse(execFileSync('git', ['show', `${v143.publicRelease}:build/ecs-runtime.json`], { cwd: root, encoding: 'utf8' }));
+  assert.match(runtime.version, /\+wvcus$/);
 });
 
 // The clock's Font & color (F54) and the hero gallery of customized Start

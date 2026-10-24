@@ -1008,23 +1008,15 @@ jobs:
               xvfb-run -a npm run test:packaged:browser-compatibility
           fi
 
-      - name: Upload to release
-        if: ${{ inputs.mode == 'release' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          gh release upload "${{ inputs.tag }}" \
-            "dist/$PRODUCT_NAME-$VERSION.AppImage" \
-            "dist/latest-linux.yml" \
-            --repo "${{ github.repository }}"
-
-      - name: Attest Linux release artifacts
-        if: ${{ inputs.mode == 'release' }}
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      # The release upload and attestation happen in linux-legacy-launch, after
+      # this exact AppImage has launched on Ubuntu 22.04.
+      - name: Hand the AppImage to the Ubuntu 22.04 launch check
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          subject-path: |
+          name: Blanc-Linux-${{ github.run_id }}-built
+          if-no-files-found: error
+          retention-days: 1
+          path: |
             dist/Blanc-*.AppImage
             dist/latest-linux.yml
 
@@ -1052,6 +1044,81 @@ jobs:
             dist/latest-linux.yml
             dist/ublock-noscript-linux.json
             dist/ublock-installed-linux.json
+
+  # Blanc 1.43.0's AppImage didn't start on glibc older than 2.38 (Ubuntu 22.04,
+  # Debian 12), and only the hosted smoke after publication found it. The exact
+  # AppImage built above must now launch on Ubuntu 22.04 before it is uploaded
+  # to the release or attested.
+  linux-legacy-launch:
+    needs: [validate-inputs, linux]
+    if: ${{ !inputs.ecs_candidate && !inputs.ecs_production && (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
+    runs-on: ubuntu-22.04
+    env:
+      BLANC_UPDATE_CHANNEL: ${{ inputs.runtime == 'ecs' && 'ecs-qualification-disabled' || '' }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
+
+      - name: Bind the ECS build to the exact approved source commit
+        if: ${{ inputs.runtime == 'ecs' }}
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          [ "$ACTUAL" = "$SOURCE_SHA" ] || {
+            echo "::error::Checkout resolved to $ACTUAL, not the approved source $SOURCE_SHA"
+            exit 1
+          }
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install AppImage runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libfuse2 xvfb
+
+      - name: Download the AppImage built for this run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Blanc-Linux-${{ github.run_id }}-built
+          path: dist
+
+      - name: Enable Chromium user namespaces in this disposable Linux runner
+        run: bash scripts/ci-enable-linux-sandbox.sh
+
+      - name: Launch the built AppImage on Ubuntu 22.04
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          chmod +x "dist/$PRODUCT_NAME-$VERSION.AppImage"
+          node scripts/smoke-public-appimage.mjs "dist/$PRODUCT_NAME-$VERSION.AppImage" "$VERSION"
+
+      - name: Upload to release
+        if: ${{ inputs.mode == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          gh release upload "${{ inputs.tag }}" \
+            "dist/$PRODUCT_NAME-$VERSION.AppImage" \
+            "dist/latest-linux.yml" \
+            --repo "${{ github.repository }}"
+
+      - name: Attest Linux release artifacts
+        if: ${{ inputs.mode == 'release' }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/Blanc-*.AppImage
+            dist/latest-linux.yml
 
   linux-sandbox:
     needs: validate-inputs
