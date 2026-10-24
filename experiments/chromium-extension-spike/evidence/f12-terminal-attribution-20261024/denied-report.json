@@ -1,0 +1,553 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-terminal-join-20261024/profile-denied-regular",
+      "origin": "http://127.0.0.1:51548",
+      "browserContextId": null,
+      "beforeVersions": [
+        {
+          "versionId": "2",
+          "registrationId": "2",
+          "scriptURL": "http://127.0.0.1:51548/worker.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792868179.703794,
+          "controlledClients": [
+            "FFF4984A43E3ED66C9ACD836EB1F9549"
+          ],
+          "targetId": "E279D601929606BCFCA88CD959A8FBDD"
+        },
+        {
+          "versionId": "3",
+          "registrationId": "3",
+          "scriptURL": "http://127.0.0.1:51548/worker.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792868179.802672,
+          "controlledClients": [
+            "F469377CD58E6217DFC8E68AB9448EA0"
+          ],
+          "targetId": "59B94725DFA956E9A684E8248DFB87B8"
+        }
+      ],
+      "registrations": {
+        "http://127.0.0.1:51548/alpha/": "2",
+        "http://127.0.0.1:51548/beta/": "3"
+      },
+      "updateOutcomes": [
+        "rejected",
+        "rejected"
+      ],
+      "attribution": [
+        {
+          "args": {
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514386204,
+          "tts": 852392
+        },
+        {
+          "args": {
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514386379,
+          "tts": 852533
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514387357,
+          "tts": 852898
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514387592,
+          "tts": 853073
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514391464,
+          "tts": 853974
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514391852,
+          "tts": 854361
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "mode": "private",
+      "profile": "/private/tmp/blanc-f12-terminal-join-20261024/profile-denied-private",
+      "origin": "http://127.0.0.1:51548",
+      "browserContextId": "E0DFB7F8C41EEEE1813E33B441BE728E",
+      "beforeVersions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://127.0.0.1:51548/worker.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792868185.073882,
+          "controlledClients": [
+            "4A8E2A1EAC49732D3DBCBA4EDA30A6DA"
+          ],
+          "targetId": "AF1DE219EB1141808381D69372F1DA5C"
+        },
+        {
+          "versionId": "1",
+          "registrationId": "1",
+          "scriptURL": "http://127.0.0.1:51548/worker.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 0,
+          "scriptResponseTime": 1792868185.14191,
+          "controlledClients": [
+            "AFB27BEF360BA5698FE36ECD8548DA89"
+          ],
+          "targetId": "F2282312E9C51E4E07686BADE2B57ED2"
+        }
+      ],
+      "registrations": {
+        "http://127.0.0.1:51548/alpha/": "0",
+        "http://127.0.0.1:51548/beta/": "1"
+      },
+      "updateOutcomes": [
+        "rejected",
+        "rejected"
+      ],
+      "attribution": [
+        {
+          "args": {
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "version_id": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778016,
+          "tts": 997011
+        },
+        {
+          "args": {
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "version_id": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778151,
+          "tts": 997115
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778805,
+          "tts": 997403
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778978,
+          "tts": 997533
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520782173,
+          "tts": 998051
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520782473,
+          "tts": 998348
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "regular: both updates refuse completion",
+      "pass": true,
+      "detail": [
+        "rejected",
+        "rejected"
+      ]
+    },
+    {
+      "name": "regular: two refused requests have distinct opaque identities",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "private": false,
+            "registration_id": 3,
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "version_id": 3
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514386204,
+          "tts": 852392
+        },
+        {
+          "args": {
+            "private": false,
+            "registration_id": 2,
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "version_id": 2
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514386379,
+          "tts": 852533
+        }
+      ]
+    },
+    {
+      "name": "regular: terminal refusal joins each request identity",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514387357,
+          "tts": 852898
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514387592,
+          "tts": 853073
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/E90B00072AB8DC889318B9C6B6C8DCA7",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514391464,
+          "tts": 853974
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4BB94D7EE39BC4AF28E31E2206A5F087",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50063,
+          "s": "t",
+          "tid": 8580438,
+          "ts": 348514391852,
+          "tts": 854361
+        }
+      ]
+    },
+    {
+      "name": "regular: checked registration/version ownership is preserved",
+      "pass": true
+    },
+    {
+      "name": "regular: no denied target reaches fixture server",
+      "pass": true
+    },
+    {
+      "name": "private: both updates refuse completion",
+      "pass": true,
+      "detail": [
+        "rejected",
+        "rejected"
+      ]
+    },
+    {
+      "name": "private: two refused requests have distinct opaque identities",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "private": true,
+            "registration_id": 0,
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "version_id": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778016,
+          "tts": 997011
+        },
+        {
+          "args": {
+            "private": true,
+            "registration_id": 1,
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "version_id": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.ServiceWorkerUpdateRequest",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778151,
+          "tts": 997115
+        }
+      ]
+    },
+    {
+      "name": "private: terminal refusal joins each request identity",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778805,
+          "tts": 997403
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520778978,
+          "tts": 997533
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/4CDAD64267283E29D120FAFECEB45899",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520782173,
+          "tts": 998051
+        },
+        {
+          "args": {
+            "request_token": "blanc-trace-update/3598DBD32D2233DB8DFA49AC8A9959BB",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.BlockerDecision",
+          "ph": "I",
+          "pid": 50090,
+          "s": "t",
+          "tid": 8581044,
+          "ts": 348520782473,
+          "tts": 998348
+        }
+      ]
+    },
+    {
+      "name": "private: checked registration/version ownership is preserved",
+      "pass": true
+    },
+    {
+      "name": "private: no denied target reaches fixture server",
+      "pass": true
+    }
+  ],
+  "serverHits": [
+    {
+      "generation": 1,
+      "url": "/worker.js",
+      "traceHeaderPresent": false
+    },
+    {
+      "generation": 1,
+      "url": "/worker.js",
+      "traceHeaderPresent": false
+    },
+    {
+      "generation": 2,
+      "url": "/worker.js",
+      "redirect": true
+    },
+    {
+      "generation": 2,
+      "url": "/worker.js",
+      "redirect": true
+    },
+    {
+      "generation": 1,
+      "url": "/worker.js",
+      "traceHeaderPresent": false
+    },
+    {
+      "generation": 1,
+      "url": "/worker.js",
+      "traceHeaderPresent": false
+    },
+    {
+      "generation": 2,
+      "url": "/worker.js",
+      "redirect": true
+    },
+    {
+      "generation": 2,
+      "url": "/worker.js",
+      "redirect": true
+    }
+  ]
+}

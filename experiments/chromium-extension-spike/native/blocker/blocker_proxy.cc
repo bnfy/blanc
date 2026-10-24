@@ -651,7 +651,26 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),
       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));
   }
+  void TraceDecision(int result, bool timed_out = false) {
+    constexpr std::string_view prefix = "blanc-trace-update/";
+    if (request_.devtools_request_id &&
+        request_.devtools_request_id->size() == prefix.size() + 32 &&
+        base::StartsWith(*request_.devtools_request_id, prefix) &&
+        base::ContainsOnlyChars(request_.devtools_request_id->substr(prefix.size()),
+                                "0123456789ABCDEF")) {
+      const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
+      TRACE_EVENT_INSTANT(category,
+                          "Blanc.BlockerDecision",
+                          "request_token", *request_.devtools_request_id,
+                          "result", result);
+      if (timed_out) {
+        TRACE_EVENT_INSTANT(category, "Blanc.BlockerTimeout",
+                            "request_token", *request_.devtools_request_id);
+      }
+    }
+  }
   void TimedOut() {
+    TraceDecision(-1, true);
     Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();
   }
   void Log(int result) {
@@ -690,18 +709,7 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
     if (completed_) return;
     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }
     timeout_.Stop();
-    constexpr std::string_view prefix = "blanc-trace-update/";
-    if (request_.devtools_request_id &&
-        request_.devtools_request_id->size() == prefix.size() + 32 &&
-        base::StartsWith(*request_.devtools_request_id, prefix) &&
-        base::ContainsOnlyChars(request_.devtools_request_id->substr(prefix.size()),
-                                "0123456789ABCDEF")) {
-      const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
-      TRACE_EVENT_INSTANT(category,
-                          "Blanc.BlockerDecision",
-                          "request_token", *request_.devtools_request_id,
-                          "result", result);
-    }
+    TraceDecision(result);
     // Measure through application of the decision, not just receipt of the Mojo
     // reply. Capture time before optional context/logging work adds overhead.
     if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);
