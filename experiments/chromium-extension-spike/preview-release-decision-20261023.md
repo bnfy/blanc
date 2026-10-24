@@ -2,7 +2,7 @@
 
 Prepared October 23, 2026. **Decision: NO-GO. L12 is prepared for review, not accepted. No publication, merge, release tag or updater change is authorized.**
 
-The [primary implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) governs this packet. The [supporting checklist](mac-preview-release-checklist.md) currently records **9/12 gates (75%), delta 0**. The count tracks dated acceptance records; it does not transfer every earlier approval to new artifact bytes.
+The [primary implementation plan](../../docs/chromium-migration-implementation-plan-2026-10-16.md) governs this packet. The [supporting checklist](mac-preview-release-checklist.md) currently records **8/12 gates (66.7%), delta -1 L7**. The count tracks dated acceptance records; it does not transfer every earlier approval to new artifact bytes.
 
 ## Artifact and source boundary
 
@@ -25,6 +25,7 @@ The source checkpoint is not an artifact digest. This L8 record binds the exact 
 
 | Requirement | Current disposition | Evidence needed to change it |
 | --- | --- | --- |
+| L7 native prerender activation | Repaired and72signed checks pass; corrected candidate notarization pending | [Repair and retained failures](evidence/f12-prerender-repair-20261024/README.md); finish Apple submission/ticket validation and replacement acceptance after1Passwordauthorization. |
 | L4 authentic Google extension upgrade | Open; separate baseline remains untouched | Actual old-to-new installed version increase from Google, native updater network evidence, enabled state, restart and popup focus. A fresh install or no-change callback is insufficient. |
 | L11 native evidence / repository CI | Native artifact verified; shared CI remains open; Electron paused | [Applicability matrix](evidence/l11-native-reconciliation-20261024/README.md). Publish scoped undici repair and verify exact-head checks. Electron failures remain merge obligations, not native defect evidence; no waiver or all-green claim. |
 | Replacement artifact | [Notarized;46checks and bounded replacement L8 acceptance pass](evidence/l8-certificate-distribution-20261023/README.md) | Reconcile any remaining affected gate mappings against these exact bytes. Signing, authentication and native download checks are complete; do not repeat them absent a changed artifact or new finding. |

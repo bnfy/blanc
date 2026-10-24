@@ -1,3 +1,7 @@
+> October24 repair: [signed prerender revalidation](evidence/f12-prerender-repair-20261024/README.md) now passes healthy/loss controls in regular/private profiles and a delayed-reply timeout control. No aggregate spike acceptance; corrected replacement notarization is pending.
+
+> October24: [Default signed prerender tests](evidence/f12-prerender-activation-20261024/README.md) prove healthy activation and a real fail-closed gap after blocker loss. Earlier statements that activation is wholly unobserved are superseded; complete enforcement remains unaccepted. L7 reopened,8/12; next repair is the activation commit boundary. No latency or Electron work.
+
 # F12 acceptance consolidation — October 21, 2026
 
 > October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.

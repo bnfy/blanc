@@ -1,0 +1,226 @@
+{
+  "app": "/private/tmp/blanc-l11-signed-replacement/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [
+        {
+          "name": "entry document ready",
+          "pass": true
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [
+        {
+          "method": "Preload.preloadEnabledStateUpdated",
+          "params": {
+            "disabledByPreference": false,
+            "disabledByDataSaver": false,
+            "disabledByBatterySaver": false,
+            "disabledByHoldbackPrefetchSpeculationRules": false,
+            "disabledByHoldbackPrerenderSpeculationRules": false
+          }
+        },
+        {
+          "method": "Preload.prefetchStatusUpdated",
+          "params": {
+            "key": {
+              "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+              "action": "Prefetch",
+              "url": "http://127.0.0.1:61743/target"
+            },
+            "pipelineId": "7B6A8FB44F7B830D989C908FCEB4725F",
+            "initiatingFrameId": "46D58266A00A36C586C0563FEEF6ABB9",
+            "prefetchUrl": "http://127.0.0.1:61743/target",
+            "status": "Running",
+            "prefetchStatus": "PrefetchNotFinishedInTime",
+            "requestId": "0210BDC6988E0003D4121F867876D627"
+          }
+        },
+        {
+          "method": "Preload.prerenderStatusUpdated",
+          "params": {
+            "key": {
+              "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+              "action": "Prerender",
+              "url": "http://127.0.0.1:61743/target"
+            },
+            "pipelineId": "7B6A8FB44F7B830D989C908FCEB4725F",
+            "status": "Failure",
+            "prerenderStatus": "PrerenderingDisabledByDevTools"
+          }
+        },
+        {
+          "method": "Preload.ruleSetUpdated",
+          "params": {
+            "ruleSet": {
+              "id": "22607.0",
+              "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+              "sourceText": "{\"prerender\":[{\"source\":\"list\",\"urls\":[\"/target\"],\"eagerness\":\"immediate\"}]}",
+              "backendNodeId": 5
+            }
+          }
+        },
+        {
+          "method": "Preload.preloadingAttemptSourcesUpdated",
+          "params": {
+            "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+            "preloadingAttemptSources": [
+              {
+                "key": {
+                  "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+                  "action": "Prerender",
+                  "url": "http://127.0.0.1:61743/target"
+                },
+                "ruleSetIds": [
+                  "22607.0"
+                ],
+                "nodeIds": []
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ],
+      "beforeClickHits": [],
+      "prerenderOutcome": {
+        "method": "Preload.prerenderStatusUpdated",
+        "params": {
+          "key": {
+            "loaderId": "F27374B9085211F6D637D8379F9F3F47",
+            "action": "Prerender",
+            "url": "http://127.0.0.1:61743/target"
+          },
+          "pipelineId": "7B6A8FB44F7B830D989C908FCEB4725F",
+          "status": "Failure",
+          "prerenderStatus": "PrerenderingDisabledByDevTools"
+        }
+      },
+      "disposition": "No Ready prerender in default candidate; no activation pass claimed",
+      "hits": []
+    },
+    {
+      "mode": "private",
+      "checks": [
+        {
+          "name": "entry document ready",
+          "pass": true
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [
+        {
+          "method": "Preload.preloadEnabledStateUpdated",
+          "params": {
+            "disabledByPreference": false,
+            "disabledByDataSaver": false,
+            "disabledByBatterySaver": false,
+            "disabledByHoldbackPrefetchSpeculationRules": false,
+            "disabledByHoldbackPrerenderSpeculationRules": false
+          }
+        },
+        {
+          "method": "Preload.prefetchStatusUpdated",
+          "params": {
+            "key": {
+              "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+              "action": "Prefetch",
+              "url": "http://127.0.0.1:61743/target"
+            },
+            "pipelineId": "47208C9BB9CCD285E94D972D7B1A32D9",
+            "initiatingFrameId": "242CA8DFBCC3DBCEFC4CDF03B7252E7A",
+            "prefetchUrl": "http://127.0.0.1:61743/target",
+            "status": "Running",
+            "prefetchStatus": "PrefetchNotFinishedInTime",
+            "requestId": "1321FC7593CDF48D1CE4C242D0990D31"
+          }
+        },
+        {
+          "method": "Preload.prerenderStatusUpdated",
+          "params": {
+            "key": {
+              "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+              "action": "Prerender",
+              "url": "http://127.0.0.1:61743/target"
+            },
+            "pipelineId": "47208C9BB9CCD285E94D972D7B1A32D9",
+            "status": "Failure",
+            "prerenderStatus": "PrerenderingDisabledByDevTools"
+          }
+        },
+        {
+          "method": "Preload.ruleSetUpdated",
+          "params": {
+            "ruleSet": {
+              "id": "22627.0",
+              "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+              "sourceText": "{\"prerender\":[{\"source\":\"list\",\"urls\":[\"/target\"],\"eagerness\":\"immediate\"}]}",
+              "backendNodeId": 5
+            }
+          }
+        },
+        {
+          "method": "Preload.preloadingAttemptSourcesUpdated",
+          "params": {
+            "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+            "preloadingAttemptSources": [
+              {
+                "key": {
+                  "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+                  "action": "Prerender",
+                  "url": "http://127.0.0.1:61743/target"
+                },
+                "ruleSetIds": [
+                  "22627.0"
+                ],
+                "nodeIds": []
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/private/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run",
+        "--incognito"
+      ],
+      "beforeClickHits": [],
+      "prerenderOutcome": {
+        "method": "Preload.prerenderStatusUpdated",
+        "params": {
+          "key": {
+            "loaderId": "3936ACA6FF53642451454E5EF8F76468",
+            "action": "Prerender",
+            "url": "http://127.0.0.1:61743/target"
+          },
+          "pipelineId": "47208C9BB9CCD285E94D972D7B1A32D9",
+          "status": "Failure",
+          "prerenderStatus": "PrerenderingDisabledByDevTools"
+        }
+      },
+      "disposition": "No Ready prerender in default candidate; no activation pass claimed",
+      "hits": []
+    }
+  ],
+  "complete": true
+}

@@ -2,7 +2,7 @@
 
 > October 22 reconciliation: [Decision 2 package](decision2-review-package-20261022.md) and [gate reconciliation](mac-preview-gate-reconciliation-20261022.md) define the finite closeout queue. Existing evidence is credited; final acceptance remains open. Fresh October 22 authoritative footprint is 58 files/137 hunks; see [provenance reconciliation](evidence/decision2-provenance-20261022/README.md). Earlier counters/source-absence statements are dated history. Latency deferred; Electron diagnostic build pending approval.
 
-Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. The original 49/120 ceiling below is historical. Current October24 counter is **73 files/179 hunks**, with151clean resolved Git dependencies ([fresh inventory](evidence/decision2-closeout-20261024/README.md)); further increases use standing owner authorization and must be recorded.
+Status: design draft for Decision 2, October 20, 2026. No layout move, patch deletion, build, GN change, or budget increase is authorized by this document. The original 49/120 ceiling below is historical. Current October24 counter is **73 files/180 hunks**, with151clean resolved Git dependencies ([fresh inventory](evidence/decision2-closeout-20261024/README.md)); further increases use standing owner authorization and must be recorded.
 
 ## Measured starting point
 

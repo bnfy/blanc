@@ -1,3 +1,7 @@
+> October24 repair update: source14706b0e passes72DeveloperID-signed checks for the corrected activation gate and regressions. [Repair evidence](evidence/f12-prerender-repair-20261024/README.md). The replacement is not yet notarized; this does not replace the earlier artifact acceptance or close L7.
+
+> October24 supersession: L7 is reopened by [signed prerender activation after utility loss](evidence/f12-prerender-activation-20261024/README.md). Source/byte equivalence remains valid, but no longer establishes complete current security acceptance. Readiness8/12; prior mapping below is a dated record.
+
 # Acceptance mapping for the certificate-patched Preview
 
 October 23, 2026. This maps existing acceptance to source `7c427328100d1ba76cb7e8b651a1f36d74ec86c6`, archive SHA-256 `ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed`. It is part of the L12 review packet, not a new test run, gate waiver or release approval.

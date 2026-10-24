@@ -1,5 +1,17 @@
 # Migrate to a Chromium fork: implementation plan
 
+## Current October24 — prerender repair passes signed checks; notarization pending
+
+[Activation repair evidence](../experiments/chromium-extension-spike/evidence/f12-prerender-repair-20261024/README.md): source14706b0e revalidates prerender activation with a navigation-owned commit condition, explicit allow, weak callbacks and35-second timeout. Final72DeveloperID-signed assertions pass, including healthy/loss regular/private cases, delayed-reply refusal, startup/recovery/core/notice. The initial signed GetReferrer crash was repaired using the early-available initiator origin; original failure retained. Builds remain incremental45.55s/8steps and31.42s/6steps, guard0,73files180hunks. No Electron work or latency benchmark.
+
+**8/12 gates (66.7%), delta0.** L7 remains open until the corrected replacement finishes notarization/acceptance;1Passwordauthorization is pending, before Apple submission. Google baseline stays separate. Prior failing-candidate records below remain historical; do not treat the earlier activation gap as unfixed in this corrected source or the new candidate as fully accepted.
+
+## Current October24 — native prerender activation gap; L7 reopened
+
+**`[■■■■■■■■□□□□] 8/12 gates (66.7%), delta -1 L7`.** [Signed prerender evidence](../experiments/chromium-extension-spike/evidence/f12-prerender-activation-20261024/README.md) proves healthy regular/private activation but also activation after the exact disposable blocker utility is terminated, while fresh fetches refuse. The earlier L7 acceptance remains historical; current security acceptance is reopened for this newly demonstrated path. No accepted artifact bytes changed, no new candidate is approved, and no latency measurement is implied.
+
+On150055d9, substrate and tab-handoff pass. The two reported Linux/Windows modified-link failures remain Electron-only and paused; remaining checks were pending. Next native work is an activation-specific commit gate with denial/timeout/owner-teardown handling, an incremental build and affected signed-candidate requalification. No repair is claimed yet. Google baseline remains separate. Earlier dated progress bars below are historical.
+
 ## October24 follow-up — CI resolver fix and Decision2 closeout
 
 Head6a9781bd's hosted substrate passes. A new worker install failure is reproduced with CI npm10.9.9 and repaired by moving the unchanged undici7.30.1 pin to a top-level override; original negative control fails, corrected clean install and five Workers tests pass. [Evidence](../experiments/chromium-extension-spike/evidence/l11-npm10-followup-20261024/README.md). Electron's two sandbox failures remain paused shared-CI obligations. No Chromium/Electron build.
@@ -22,7 +34,7 @@ The [review package](../experiments/chromium-extension-spike/decision2-review-pa
 
 ### Running Mac preview release-candidate readiness
 
-`[■■■■■■■■■□□□] 9/12 launch gates cleared (75%) · Δ +1 L8 signed distribution accepted, October 23, 2026`
+`[■■■■■■■■□□□□] 8/12 launch gates cleared (66.7%) · Δ -1 L7 reopened, October 24, 2026`
 
 This counts accepted L1–L12 gates in the [supporting readiness tracker](../experiments/chromium-extension-spike/mac-preview-release-checklist.md#running-mac-preview-rc-readiness), not engineering completion or time remaining. Prototype features and extensive bounded tests are implemented, but no frozen candidate has complete launch-gate acceptance. L2 signed-artifact acceptance: [owner record](../experiments/chromium-extension-spike/evidence/l2-owner-acceptance-20261022/README.md), native checkpoint `78f92ceb`, automated evidence `04a88217`. L9 is now accepted through the [signed notice/live withdrawal route](../experiments/chromium-extension-spike/evidence/preview-notice-20261023/README.md). Current CI is a separate L11 gate. Decision 2 remains open; preview scope was approved October 22.
 

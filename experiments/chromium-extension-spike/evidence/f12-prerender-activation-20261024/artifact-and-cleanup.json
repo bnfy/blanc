@@ -1,0 +1,19 @@
+{
+  "candidateSource": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "archiveSha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed",
+  "allAcceptedAppMembersUnchanged": 463,
+  "removedOwnedProfiles": [
+    "utility-loss-private/private/profile",
+    "no-page-debugger/private/profile",
+    "no-page-debugger/regular/profile",
+    "final-loss/regular/profile",
+    "final-verified-loss/private/profile",
+    "final-verified-loss/regular/profile",
+    "utility-loss/regular/profile",
+    "private/profile",
+    "regular/profile"
+  ],
+  "permanentProfilesTouched": false,
+  "googleBaselineTouched": false,
+  "buildsStarted": 0
+}
