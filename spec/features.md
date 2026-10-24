@@ -1629,3 +1629,21 @@ dismiss it; nothing opens by itself
   (no new timer).
 - **Portability.** `src/main/sends-model.js` (no Electron dependency) holds
   every rule; the iOS port is checked against vectors generated from it.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
