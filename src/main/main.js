@@ -8175,8 +8175,12 @@ function onMainFrameCommit(tab, { url, httpResponseCode }) {
   // Leaving the file (or, on a DRM build, its inert placeholder) ends the grant.
   if (!keepsLocalFile(tab, url)) {
     tab.localFile = false;
+    tab.localFileUrl = null;
     tab.inertLocalFileUrl = null;
     tab.inertLocalFileTitle = null;
+  } else if (tab.localFile && isSupportedLocalHtmlUrl(url)) {
+    // Official builds: the grant now names the document actually showing.
+    tab.localFileUrl = new URL(url).href;
   }
   refreshSiteMute(tab, url);
   // "This document has played media" is cleared ONLY here — clearing on pause
@@ -8441,6 +8445,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Main-process grant, never copied from an IPC option. Cleared when the
     // document leaves this local file; only an OS handoff can originate it.
     localFile: localPlan.localFile,
+    // The file the grant names (main-only), so Blanc's own placeholder for that
+    // same file keeps the grant across commits (inert-local-file.js).
+    localFileUrl: localPlan.localFileUrl,
     // DRM builds: the saved file URL this tab keeps as a record while it shows
     // the inert placeholder. Null otherwise.
     inertLocalFileUrl: localPlan.inertLocalFileUrl,

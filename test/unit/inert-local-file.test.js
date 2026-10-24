@@ -54,6 +54,7 @@ function tabFromPlan(url, { drm, allowLocalFile, title = '', pinned = false, gro
     private: false,
     localFile: plan.localFile,
     inertLocalFileUrl: plan.inertLocalFileUrl,
+    localFileUrl: plan.localFileUrl,
     inertLocalFileTitle: plan.inertLocalFileUrl ? title : null,
     pinnedHomeUrl: pinned ? pinnedHomeFor(loaded, { localFile: plan.localFile }) : null,
     plan,
@@ -93,7 +94,7 @@ test('the plan: official builds admit a granted file, DRM builds never do', () =
   const href = pathToFileURL(file).href;
 
   const official = localFileTabPlan(href, { drm: false, allowLocalFile: true });
-  assert.deepEqual(official, { url: href, localFile: true, inertLocalFileUrl: null, admitted: true });
+  assert.deepEqual(official, { url: href, localFile: true, inertLocalFileUrl: null, localFileUrl: href, admitted: true });
 
   const drm = localFileTabPlan(href, { drm: true, allowLocalFile: true });
   assert.equal(drm.admitted, false);
@@ -302,7 +303,8 @@ test('createTab wiring: DRM plan first, forbidden URLs never loaded, inert tabs 
   ].map((needle) => { const at = body.indexOf(needle); assert.ok(at >= 0, needle); return at; });
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   assert.match(source, /setLocalFilesRecordOnly\(drmSupport\.enabled\)/);
-  assert.match(source, /if \(!keepsLocalFile\(tab, url\)\) \{\s*tab\.localFile = false;\s*tab\.inertLocalFileUrl = null;/);
+  assert.match(source, /if \(!keepsLocalFile\(tab, url\)\) \{\s*tab\.localFile = false;\s*tab\.localFileUrl = null;\s*tab\.inertLocalFileUrl = null;/);
+  assert.match(source, /localFileUrl: localPlan\.localFileUrl,/);
 });
 
 test('untrusted file: navigation is still refused in tabs and by the policy', () => {
@@ -591,4 +593,103 @@ test('Reopen Closed Tab while the held view survives keeps the saved title on sc
   const plain = { inertLocalFileUrl: null, title: 'Old' };
   vm.runInNewContext('tab.title = recordTitle(tab, wc.getTitle() || tab.title);', { tab: plain, wc: { getTitle: () => 'Fresh' }, recordTitle });
   assert.equal(plain.title, 'Fresh');
+});
+
+// ─── A local-file record that is also a page-opened tab (document-policy.js):
+// both placeholders apply to the same tab (audit of 714a50145). ──────────────
+const documentPolicy = require('../../src/main/document-policy');
+const { keepsLocalFile: keeps } = require('../../src/main/inert-local-file');
+
+/** main.js's commit handler, with its non-record side effects stubbed. */
+function commitThrough(tab, url) {
+  const sandbox = {
+    keepsLocalFile: keeps, isSupportedLocalHtmlUrl: localFiles.isSupportedLocalHtmlUrl, URL,
+    refreshSiteMute() {}, clearCaptureState() {}, liveContents: () => null, lastMainFrameMethod: new Map(),
+  };
+  vm.runInNewContext(`${lift('onMainFrameCommit')}\nthis.commit = onMainFrameCommit;`, sandbox);
+  tab.url = url; // tab-view's syncNavState runs first, so the old address is gone
+  sandbox.commit(tab, { url, httpResponseCode: 200 });
+}
+
+/** main.js's wakeTab with a fake view; each load commits through the handler. */
+async function wakeAndCommit(tab) {
+  const loads = [];
+  const wc = {
+    id: 9, isDestroyed: () => false, setAudioMuted() {}, setWebRTCIPHandlingPolicy() {},
+    loadURL: (url) => { loads.push(url); commitThrough(tab, url); return Promise.resolve(); },
+    reload() {}, navigationHistory: { restore: () => { throw new Error('history replay'); }, goToIndex() {} },
+  };
+  const sandbox = {
+    tabs: new Map([[tab.id, tab]]), sleepSnapshots: new Map(), isInertRecord, documentPolicy, persistableUrl,
+    windowRuntimes: { runtimeForTab: () => ({}) }, primaryRuntime: {},
+    startupNavigationGateActive: false, pendingWakes: new Set(),
+    liveContents: () => null, createTabView: () => ({ webContents: wc }),
+    primeTabLoadingBackground() {}, wireTabView() {}, rootManagedExtensionView() {},
+    watchUblockPopupOutsideContents() {}, tabIdByWebContentsId: new Map(),
+    effectiveTabMuted: () => false, webrtcPolicyFor: () => 'default',
+    settings: { getSettings: () => ({ webrtcPolicy: 'default' }) },
+    waitForRetainedNavigation: (_wc, action) => { action(); return Promise.resolve(); },
+    commitWake: () => true, failWake: () => false,
+  };
+  vm.runInNewContext(`${lift('wakeTab')}\nthis.wake = wakeTab;`, sandbox);
+  await sandbox.wake(tab.id);
+  return loads;
+}
+
+test('a page-opened local-file record survives wake, save and restart under every marker', async () => {
+  const dir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-inert-policy-')));
+  try {
+    const file = path.join(dir, 'report.html');
+    fs.writeFileSync(file, '<p>report</p>');
+    const href = pathToFileURL(file).href;
+    for (const drm of [true, false]) {
+      for (const marker of [false, null, true]) {
+        const label = `${drm ? 'DRM' : 'official'}, marker ${marker}`;
+        let saved = {
+          urls: [href], groupIds: [null], pinned: [false], meta: [{ title: 'Quarterly report' }],
+          localFiles: [true], documentPolicy: 1, inheritsDocumentPolicy: [marker], activeIndex: 0,
+        };
+        const run = async () => {
+          for (let restart = 0; restart < 3; restart++) {
+            const cleaned = filterRestoredSession(saved, shouldDrop);
+            assert.deepEqual(cleaned.urls, [href], `${label}, restart ${restart}: restored`);
+            const tab = {
+              ...tabFromPlan(cleaned.urls[0], { drm, allowLocalFile: cleaned.localFiles[0] === true, title: 'Quarterly report' }),
+              id: 'p', asleep: true, waking: false, wakeGeneration: 0,
+              inheritsDocumentPolicy: documentPolicy.restoredMarker(saved, 0),
+            };
+            const loads = await wakeAndCommit(tab);
+            const marked = marker !== false;
+            if (marked) assert.ok(documentPolicy.isInertPageUrl(loads[0]), `${label}: explanation page`);
+            assert.ok(loads.every((url) => !url.startsWith('file:') || !drm), `${label}: DRM never loads the file`);
+            if (marked) assert.ok(loads.every((url) => !url.startsWith('file:')), `${label}: inert never loads the file`);
+            assert.equal(tab.localFile, true, `${label}, restart ${restart}: grant kept`);
+            saved = { ...saveWindow([tab]), ...documentPolicy.stampedColumn([tab]) };
+            assert.deepEqual(saved.urls, [href], `${label}: file URL saved`);
+            assert.deepEqual(saved.localFiles, [true], `${label}: marker for the grant saved`);
+            if (drm) assert.equal(saved.meta[0].title, 'Quarterly report', `${label}: saved title`);
+          }
+        };
+        if (drm) await (async () => { localFiles.setLocalFilesRecordOnly(true); try { await run(); } finally { localFiles.setLocalFilesRecordOnly(false); } })();
+        else await run();
+      }
+    }
+    assert.equal(fs.readFileSync(file, 'utf8'), '<p>report</p>');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('an explanation page for any other address still ends the grant', () => {
+  const href = pathToFileURL(path.resolve('/tmp/a.html')).href;
+  const other = pathToFileURL(path.resolve('/tmp/b.html')).href;
+  for (const base of [{ localFileUrl: href }, { inertLocalFileUrl: href }]) {
+    assert.equal(keeps(base, documentPolicy.inertPageUrl(href, 'A')), true);
+    assert.equal(keeps(base, documentPolicy.inertPageUrl(other, 'B')), false, 'another file');
+    assert.equal(keeps(base, documentPolicy.inertPageUrl('https://example.com/', 'E')), false, 'a website');
+    assert.equal(keeps(base, `blanc://error/?${new URLSearchParams({ url: href, code: '-105' })}`), false, 'an ordinary error page');
+    assert.equal(keeps(base, `blanc://error@newtab/?kind=inert&url=${encodeURIComponent(href)}`), false, 'a look-alike');
+  }
+  assert.equal(keeps({ localFileUrl: null }, documentPolicy.inertPageUrl(href, 'A')), false, 'no grant, no record');
+  assert.equal(keeps({}, documentPolicy.inertPageUrl(href, 'A')), false);
+  // The explanation page is an internal page, never a file load.
+  assert.equal(isForbiddenTopLevelUrl(documentPolicy.inertPageUrl(href, 'A')), false);
 });

@@ -6,6 +6,7 @@
 // the original file URL back (session-snapshot's persistableUrl unwraps the
 // placeholder). A missing or changed file therefore never deletes the record.
 const { isSupportedLocalHtmlUrl } = require('./local-html-files');
+const { isInertPageUrl } = require('./document-policy');
 
 const PLACEHOLDER_CODE = 'local-file';
 
@@ -37,16 +38,33 @@ function placeholderTarget(url) {
 function localFileTabPlan(url, { drm = false, allowLocalFile = false } = {}) {
   if (drm && allowLocalFile === true) {
     const target = placeholderTarget(url) ?? (isSupportedLocalHtmlUrl(url) ? new URL(url).href : null);
-    if (target) return { url: placeholderUrl(target), localFile: true, inertLocalFileUrl: target, admitted: false };
+    if (target) {
+      return { url: placeholderUrl(target), localFile: true, inertLocalFileUrl: target, localFileUrl: target, admitted: false };
+    }
   }
   const admitted = !drm && allowLocalFile === true && isSupportedLocalHtmlUrl(url);
-  return { url, localFile: admitted, inertLocalFileUrl: null, admitted };
+  return { url, localFile: admitted, inertLocalFileUrl: null, localFileUrl: admitted ? new URL(url).href : null, admitted };
 }
 
-/** Whether a main-frame commit keeps the tab's local-file record. */
+/** The address a document-policy explanation page (document-policy.js) stands
+ * for, or null when the URL is not exactly that page. */
+function inertPageTarget(url) {
+  if (!isInertPageUrl(url)) return null;
+  try { return new URL(new URL(url).searchParams.get('url') || '').href; } catch { return null; }
+}
+
+/**
+ * Whether a main-frame commit keeps the tab's local-file record: a local HTML
+ * document, or Blanc's own placeholder for the very file the grant names —
+ * this module's DRM placeholder or document-policy's explanation page for a
+ * page-opened tab. `localFileUrl` is the granted file, set only by createTab.
+ */
 function keepsLocalFile(tab, committedUrl) {
   if (isSupportedLocalHtmlUrl(committedUrl)) return true;
-  return typeof tab?.inertLocalFileUrl === 'string' && placeholderTarget(committedUrl) === tab.inertLocalFileUrl;
+  const file = typeof tab?.localFileUrl === 'string' ? tab.localFileUrl
+    : typeof tab?.inertLocalFileUrl === 'string' ? tab.inertLocalFileUrl : null;
+  if (!file) return false;
+  return placeholderTarget(committedUrl) === file || inertPageTarget(committedUrl) === file;
 }
 
 /** Is this tab a DRM build's inert local-file record? */
