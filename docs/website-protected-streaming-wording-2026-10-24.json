@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-24",
+  "decision": "After the Linux and Windows checks of public v1.43.1 (the public AppImage played Widevine on hosted x64 Ubuntu 22.04 and 24.04; the x64 build under emulation on a Windows 11 on Arm VM failed VMP with PLATFORM_TAMPERED, so Netflix showed E100 / 1044), the owner asked for a support-page note that protected streaming on Windows needs an x64 PC. The homepage still said protected streaming doesn’t play, which stopped being true with v1.43.0, so its comparison row and answer were corrected in the same change.",
+  "claims": "docs/website-v1.43-claims.json (ecsRuntime and windowsX64 evidence groups; v143-003 to v143-006). cinema-data-27 moved to supersededClaims in docs/website-cinematic-homepage-claims-v1.34.json.",
+  "supportAnswersAdded": [
+    {
+      "id": "protected-streaming",
+      "q": "Does protected streaming video play in Blanc?",
+      "placedAfter": "architecture"
+    }
+  ],
+  "homepage": [
+    {
+      "where": "comparison row “Plays protected streaming video”",
+      "before": "no, no note",
+      "after": "yes, note “Since Blanc 1.43; on Windows, x64 PCs only”"
+    },
+    {
+      "where": "question “Will my websites work?”",
+      "before": "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc.",
+      "after": "Blanc runs on Chromium, the open-source engine Chrome is built on. Since Blanc 1.43 it can also play Widevine-protected streaming video and music; on Windows that needs an x64 PC."
+    }
+  ]
+}

@@ -229,3 +229,13 @@ Feature: Split View
     When I split the pinned tab with the ordinary one
     And Blanc relaunches
     Then the split is back with both its tabs pinned
+
+  @F53-28 @F53 @desktop @D11 @split-to-glance
+  Scenario Outline: A split pane can become a floating Glance over the remaining tab
+    Given two loaded tabs made into a split
+    When I open the <pane> split pane in Glance from its tab menu
+    Then that pane floats in Glance over the remaining tab without reloading either page
+    Examples:
+      | pane   |
+      | first  |
+      | second |
