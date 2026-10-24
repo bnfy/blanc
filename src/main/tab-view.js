@@ -30,7 +30,8 @@ const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 const { primeLoadingBackground } = require('./tab-loading-background');
-const { mayBuildFreshView } = require('./document-policy');
+const { mayBuildFreshView, inertViewMayShow, inertPageUrl } = require('./document-policy');
+const { persistableUrl } = require('./session-snapshot');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -211,6 +212,14 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Workspace residency can transfer a live view without navigation. Resolve
   // its current owner for each event, including shortcuts and popup policy.
   const boundToTab = (fn) => bindWindowRuntime(getOwner, fn);
+  /** Show an inert tab's explanation page again, keeping its real address. */
+  const restoreInertPage = () => {
+    const back = inertPageUrl(persistableUrl(tab.url), tab.title);
+    queueTabNavigation(wc, {
+      isCurrent: () => tab.inert && tab.view?.webContents === wc && !wc.isDestroyed(),
+      run: (contents) => contents.loadURL(back),
+    });
+  };
   wc.on('before-input-event', boundToTab((_event, input) => {
     const modifier = { Alt: 'alt', Shift: 'shift', Control: 'control', Meta: 'meta' }[input.key];
     if (!modifier) return;
@@ -359,6 +368,14 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // Only Blanc's page may commit in an inert view; anything else is put back.
+    if (tab.inert && !inertViewMayShow(String(url))) {
+      restoreInertPage();
+      return;
+    }
+    // Chromium keeps an entry for each cancelled attempt. Once Blanc's page
+    // commits, history holds only it: Back and Forward have nothing to reach.
+    if (tab.inert) setImmediate(() => { if (!wc.isDestroyed() && tab.inert) wc.navigationHistory.clear(); });
     tab.navEpoch++;
     deps.noteMainFrameCommitted?.(tab, wc, url);
     // The not-secure mark belongs to the history entry that committed
@@ -465,6 +482,20 @@ function wireTabView(tab, view, { owner, adopted }) {
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
   wc.on('will-navigate', boundToTab((event, targetUrl) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // An inert tab never leaves Blanc's page: a link on it (New Tab, then a
+    // favorite) opens in a new ordinary tab instead (document-policy.js).
+    if (tab.inert && !inertViewMayShow(String(targetUrl))) {
+      event.preventDefault();
+      // Not from inside this navigation event: a new tab's WebContents is
+      // built once it has returned.
+      setImmediate(boundToTab(() => {
+        if (isUtilityUrl(targetUrl)) openInternalPage(targetUrl);
+        else if (!isForbiddenTopLevelUrl(targetUrl) && !handOffToOs(targetUrl)) {
+          setActiveTab(createTab(targetUrl, { private: tab.private }));
+        }
+      }));
+      return;
+    }
     if (/^chrome-extension:/i.test(targetUrl) && !wc.getURL().startsWith('chrome-extension://')) { event.preventDefault(); return; }
     if (getOwner().resident && !/^https?:/i.test(targetUrl)) { event.preventDefault(); return; }
     if (isForbiddenTopLevelUrl(targetUrl)) {
@@ -478,11 +509,22 @@ function wireTabView(tab, view, { owner, adopted }) {
     }
     if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) event.preventDefault();
   }));
+  wc.on('will-redirect', boundToTab((event, url, _isInPlace, isMainFrame) => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if ((isMainFrame ?? event?.isMainFrame) && tab.inert && !inertViewMayShow(String(url))) event.preventDefault();
+  }));
   // ERR_ABORTED is an ordinary cancelled load. The startup gate deliberately
   // queues HTTP(S) navigation until the blocker is ready, so do not replace
   // that controlled cancellation with an error page.
   wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // The inert lock's cancelled request (main.js inertRequestVeto) commits
+    // Chromium's own error page, not the page. Put the explanation back
+    // rather than an error page that would offer to load it.
+    if (tab.inert && isMainFrame && !inertViewMayShow(String(validatedURL))) {
+      restoreInertPage();
+      return;
+    }
     if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || !validatedURL) return;
     if (!shouldPresentTabLoadFailure(wc, errorCode, validatedURL)) return;

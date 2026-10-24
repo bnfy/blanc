@@ -137,3 +137,47 @@ test('only createTabView builds a tab WebContentsView', () => {
   const body = tabView.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)[0];
   assert.match(body, /if \(!mayBuildFreshView\(tab\)\) return null;/);
 });
+
+test('an inert view may show only Blanc\'s error page', () => {
+  assert.equal(policy.inertViewMayShow(policy.inertPageUrl('https://a.test/')), true);
+  assert.equal(policy.inertViewMayShow('blanc://error/?url=x&code=crashed'), true);
+  for (const url of ['https://a.test/', 'blanc://newtab/', 'blanc://bookmarks/', 'about:blank', '', null]) {
+    assert.equal(policy.inertViewMayShow(url), false, String(url));
+  }
+});
+
+test('every navigation path of a tab view enforces the inert lock', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
+  const handler = (name) => source.match(new RegExp(`wc\\.on\\('${name}', boundToTab\\([\\s\\S]*?\\n  \\}\\)\\);`))?.[0] ?? '';
+  // Page-initiated: a link on the inert page opens beside it.
+  assert.match(handler('will-navigate'), /tab\.inert && !inertViewMayShow\(String\(targetUrl\)\)\) \{\n\s*event\.preventDefault\(\);/);
+  assert.match(handler('will-redirect'), /tab\.inert && !inertViewMayShow\(String\(url\)\)\) event\.preventDefault\(\);/);
+  // The cancelled request commits Chromium's own error page: Blanc's page is
+  // put back, and once it commits history holds only it.
+  assert.match(handler('did-fail-load'), /if \(tab\.inert && isMainFrame && !inertViewMayShow\(String\(validatedURL\)\)\) \{\n\s*restoreInertPage\(\);\n\s*return;/);
+  assert.match(handler('did-navigate'), /if \(tab\.inert && !inertViewMayShow\(String\(url\)\)\) \{\n\s*restoreInertPage\(\);\n\s*return;/);
+  assert.match(handler('did-navigate'), /if \(tab\.inert\) setImmediate\(\(\) => \{ if \(!wc\.isDestroyed\(\) && tab\.inert\) wc\.navigationHistory\.clear\(\); \}\);/);
+  // Everything else (main-process loads, history, reloads, redirect hops) is
+  // cancelled before it leaves the browser, by the coordinator's veto.
+  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  assert.match(main, /\nblockingCoordinator\.setVeto\(inertRequestVeto\);\n/);
+  assert.match(main, /return !!tab\?\.inert && !documentPolicy\.inertViewMayShow\(details\.url\);/);
+});
+
+test('the coordinator veto cancels before any gate or provider is asked', async () => {
+  const { createBlockingCoordinator } = require('../../src/main/blocking-coordinator');
+  const handlers = {};
+  const session = { webRequest: new Proxy({}, { get: (_t, event) => (_filter, fn) => { handlers[event] = fn; } }) };
+  const coordinator = createBlockingCoordinator();
+  const asked = [];
+  coordinator.setProvider(session, { decide: async () => { asked.push('provider'); return {}; } });
+  coordinator.setGate(session, () => { asked.push('gate'); return false; });
+  coordinator.setVeto((details) => details.webContentsId === 7);
+  const decide = (details) => new Promise((resolve) => handlers.onBeforeRequest(details, resolve));
+  assert.deepEqual(await decide({ webContentsId: 7, resourceType: 'mainFrame', url: 'https://a.test/' }), { cancel: true });
+  assert.deepEqual(asked, []);
+  assert.deepEqual(await decide({ webContentsId: 8, resourceType: 'mainFrame', url: 'https://a.test/' }), {});
+  assert.deepEqual(asked, ['gate', 'provider']);
+  coordinator.setVeto(null);
+  assert.deepEqual(await decide({ webContentsId: 7, resourceType: 'mainFrame', url: 'https://a.test/' }), {});
+});

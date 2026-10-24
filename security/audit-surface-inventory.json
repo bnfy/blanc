@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "c4f6ef72faa3ec140b51c8083a484af21792ca042e42a463aa256935676262ca",
+      "sha256": "e8da192d72e9a251a578d7b7abe382c81ac678cd30c78c44dbffce975916ae65",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -991,7 +991,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "3b2ebfed4317abc1e566d622a0d4615f962ef3fc492ef0d763052bd3f07e9647",
+      "sha256": "46d6e1b58746e82126c57a1c9385c98d8fceb81457717f7949b75f18dcf43317",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",
@@ -1016,7 +1016,8 @@
         "page-title-updated",
         "render-process-gone",
         "will-navigate",
-        "will-prevent-unload"
+        "will-prevent-unload",
+        "will-redirect"
       ],
       "role": "privileged implementation or service"
     },

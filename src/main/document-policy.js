@@ -41,6 +41,12 @@ function isInertPageUrl(url) {
   }
 }
 
+/** What an inert tab's view may show: Blanc's error page and nothing else,
+ * so no link, favorite, history step or redirect reaches the page itself. */
+function inertViewMayShow(url) {
+  return typeof url === 'string' && url.startsWith('blanc://error');
+}
+
 /** The stamp and marker column a saved multi-tab record writes beside `urls`. */
 function stampedColumn(tabList) {
   return {
@@ -88,6 +94,7 @@ module.exports = {
   mayBuildFreshView,
   inertPageUrl,
   isInertPageUrl,
+  inertViewMayShow,
   stampedColumn,
   restoredMarker,
   savedPolicyColumns,

@@ -3107,6 +3107,16 @@ function restoreArchivedEntry(entryId) {
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+// An inert tab's view shows only Blanc's own page (document-policy.js). Its
+// will-navigate guard turns a click into a new tab; this cancels every other
+// main-frame request it would make (main-process loads, history, reloads,
+// redirect hops) before it leaves the browser, in every session.
+function inertRequestVeto(details) {
+  if (details.resourceType !== 'mainFrame' || !Number.isInteger(details.webContentsId)) return false;
+  const tab = tabs.get(tabIdByWebContentsId.get(details.webContentsId));
+  return !!tab?.inert && !documentPolicy.inertViewMayShow(details.url);
+}
+blockingCoordinator.setVeto(inertRequestVeto);
 
 /** Stop allowing (certificate spec §4.5): forget the active tab's origin in
  *  its session, drop pooled connections, and reload so the warning returns.

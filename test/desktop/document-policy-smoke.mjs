@@ -32,10 +32,17 @@ const variants = [
   { name: 'unsandboxed', sandbox: null, restricted: false, storage: 'allowed' },
 ];
 const formHits = new Set();
+const pageHits = new Map();
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://fixture.test');
+  pageHits.set(req.url, (pageHits.get(req.url) ?? 0) + 1);
   if (url.pathname === '/favicon.ico') {
     res.writeHead(404);
+    res.end();
+    return;
+  }
+  if (url.pathname === '/redirect') {
+    res.writeHead(302, { Location: url.searchParams.get('to') ?? '/target' });
     res.end();
     return;
   }
@@ -179,6 +186,54 @@ async function assertLoads(id, url, label) {
 const settled = (id, label) => waitForValue(async () => (await callTestHook(app, 'state')).tabs
   ?.find((tab) => tab.id === id), (tab) => tab && !tab.loading, `${label} settled`, 10_000);
 
+/** The inert view never leaves Blanc's page: not through its New Tab link
+ * (and a favorite from there), a main-process load, a redirect, or history. */
+async function assertInertLocked(id, url, label) {
+  const wcId = await callTestHook(app, 'workspacePageIdentity', [id]);
+  const inertHref = await hrefOf(id);
+  const before = new Set((await tabsNow()).map((tab) => tab.id));
+  await callTestHook(app, 'workspacePageScript', [id,
+    "setTimeout(() => document.getElementById('safetyLink').click(), 0); true"]);
+  const opened = await waitForValue(async () => (await tabsNow()).find((tab) => !before.has(tab.id)),
+    Boolean, `${label}: New Tab opens beside it`);
+  assert.equal(await hrefOf(id), inertHref, `${label}: New Tab leaves the inert view alone`);
+  // A favorite from that new tab loads there, never in the inert view.
+  await waitForValue(() => hrefOf(opened.id), (value) => value?.startsWith('blanc://newtab'), `${label}: new tab ready`);
+  await callTestHook(app, 'workspacePageScript', [opened.id,
+    `setTimeout(() => { location.href = ${JSON.stringify(url)}; }, 0); true`]);
+  await waitForValue(() => hrefOf(opened.id), (value) => value === url, `${label}: favorite opens in the new tab`);
+  assert.equal(await hrefOf(id), inertHref, `${label}: the favorite never reaches the inert view`);
+  await callTestHook(app, 'closeTab', [opened.id]);
+  // A main-process load of the page, directly or through a redirect.
+  // The request never leaves the browser, and the explanation comes back.
+  const path = (value) => value.slice(origin.length);
+  for (const target of [url, `${origin}/redirect?to=${encodeURIComponent(url)}`]) {
+    const hitsBefore = pageHits.get(path(target)) ?? 0;
+    await app.evaluate(({ webContents }, { wcId, target }) => webContents.fromId(wcId)
+      .loadURL(target).catch(() => {}), { wcId, target });
+    await sleep(500);
+    assert.equal(pageHits.get(path(target)) ?? 0, hitsBefore, `${label}: ${target} was never requested`);
+    await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: explanation back after ${target}`);
+  }
+  // Reload and Back stay on Blanc's page too.
+  await app.evaluate(({ webContents }, wcId) => { webContents.fromId(wcId).reload(); }, wcId);
+  await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: reload`);
+  // Back and Forward: the cancelled attempts' entries are cleared once the
+  // page is back, and stepping through history never requests the page.
+  const hitsBefore = pageHits.get(path(url)) ?? 0;
+  await app.evaluate(({ webContents }, wcId) => {
+    const nav = webContents.fromId(wcId).navigationHistory;
+    if (nav.canGoBack()) nav.goBack();
+  }, wcId);
+  await sleep(500);
+  await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: Back`);
+  assert.equal(pageHits.get(path(url)) ?? 0, hitsBefore, `${label}: Back never requested the page`);
+  await waitForValue(() => app.evaluate(({ webContents }, wcId) => webContents.fromId(wcId)
+    .navigationHistory.getAllEntries().map((entry) => entry.url), wcId),
+  (entries) => entries.every((entry) => entry.startsWith('blanc://error')), `${label}: history holds only Blanc's page`);
+  checks++;
+}
+
 const restoredWithUrl = async (url, label) => waitForValue(async () => (await tabsNow()).find((tab) => tab.url === url),
   Boolean, `${label} restored`);
 
@@ -240,10 +295,19 @@ try {
 
     // Tab crash and Retry stay in the same WebContents.
     const wcId = await callTestHook(app, 'workspacePageIdentity', [child.id]);
-    await app.evaluate(({ webContents }, id) => webContents.fromId(id).forcefullyCrashRenderer(), wcId);
+    // Record the renderer's death in main, so a failure says whether the
+    // crash happened or Blanc's recovery stalled.
+    await app.evaluate(({ webContents }, id) => {
+      globalThis.__policyCrash = null;
+      const wc = webContents.fromId(id);
+      wc.once('render-process-gone', (_event, details) => { globalThis.__policyCrash = details?.reason ?? 'gone'; });
+      wc.forcefullyCrashRenderer();
+    }, wcId);
+    const reason = await waitForValue(() => app.evaluate(() => globalThis.__policyCrash), Boolean,
+      `${variant.name} renderer gone`, 20_000);
     await waitForValue(() => hrefOf(child.id), (value) => typeof value === 'string'
       && value.startsWith('blanc://error/') && new URL(value).searchParams.get('kind') !== 'inert',
-    `${variant.name} crash page`);
+    `${variant.name} crash page after the renderer was ${reason}`, 20_000);
     // The person's Retry: the link on the page. Clicked after the script
     // returns, so the navigation can't stall the call.
     await callTestHook(app, 'workspacePageScript', [child.id,
@@ -270,6 +334,7 @@ try {
     await callTestHook(app, 'reopenClosed');
     const reopened = await restoredWithUrl(closed.url, `${variant.name} reopened`);
     await assertInert(reopened.id, closed.url, `${variant.name} reopened`);
+    await assertInertLocked(reopened.id, closed.url, `${variant.name} reopened`);
     await callTestHook(app, 'closeTab', [reopened.id]);
 
     // A closed split reopens inert beside an ordinary pane that loads.
@@ -338,7 +403,9 @@ try {
   assert.equal(savedWindow.inheritsDocumentPolicy[savedWindow.urls.indexOf(kept.url)], true);
   assert.equal('documentPolicy' in saved, false, 'the rollback mirror never gets the stamp');
   await launch();
-  await assertInert((await restoredWithUrl(kept.url, 'relaunch')).id, kept.url, 'relaunch');
+  const relaunched = (await restoredWithUrl(kept.url, 'relaunch')).id;
+  await assertInert(relaunched, kept.url, 'relaunch');
+  await assertInertLocked(relaunched, kept.url, 'relaunch');
   await assertLoads((await restoredWithUrl(ordinaryUrl, 'relaunch control')).id, ordinaryUrl, 'relaunch control');
 
   // A stamped record with a malformed mark restores inert, even the control.
