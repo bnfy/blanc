@@ -334,6 +334,17 @@ BeforeAll({ timeout: 120_000 }, async () => {
     if (ctx.app) await closeApp(ctx.app);
     ctx.app = await launchApp();
   };
+  // A crash, not a quit: the process is killed, so nothing gets a chance to
+  // flush on the way out, and the next launch sees only what was on disk.
+  ctx.crashAndRelaunch = async () => {
+    const child = ctx.app?.process();
+    if (child && child.exitCode === null) {
+      const exited = new Promise((resolve) => child.once('exit', resolve));
+      child.kill('SIGKILL');
+      await exited;
+    }
+    ctx.app = await launchApp();
+  };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
   // clipboard now and restore it in AfterAll so a local run doesn't clobber it.
@@ -389,6 +400,7 @@ AfterAll(async () => {
   }
   ctx.app = null;
   ctx.relaunch = null;
+  ctx.crashAndRelaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (untrustedFixturesHandle) await untrustedFixturesHandle.close();

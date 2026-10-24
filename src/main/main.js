@@ -225,6 +225,7 @@ const { siteKey: topSiteKey } = require('./top-sites');
 const startPagePins = require('./start-page-pins');
 const { JsonStore, discardProfileStoreEntries, enableTempSweep } = require('./store');
 const { persistableUrl, persistableEntries, sessionTabMeta, metaAfterHistoryClear } = require('./session-snapshot');
+const { runSpaceMove, appendTabToCapture, emptiedCapture } = require('./space-move');
 const documentPolicy = require('./document-policy');
 const { pinnedHomeFor, applyPinnedHomes } = require('./pinned-home');
 const { normalizeTabName, displayTitle, resolveTabRename } = require('./tab-name');
@@ -12288,60 +12289,137 @@ function canMoveTabToSpace(tab, owner) {
  * where it is. The page itself moves, never a copy: a space shown in another
  * window or set aside receives the tab, and a space open nowhere is first set
  * aside from its saved tabs (born quiet, as a switch materializes them), then
- * kept within the set-aside budget like a switch. The space's record is
- * written at once, while this window's session follows on its usual debounce,
- * so a crash in between can duplicate the page but never lose it. Returns
- * whether it moved. */
+ * kept within the set-aside budget like a switch.
+ *
+ * Persistence runs in space-move.js's order: the space's record is written
+ * first, already holding the tab, and checked; only then does the tab move.
+ * A failed write moves nothing. Returns { ok: true } only when the write and
+ * the live transfer both succeed, otherwise { ok: false, error, moved }. */
 function moveTabToSpace(id, workspaceId) {
   const tab = tabs.get(id);
   const source = windowRuntimes.runtimeForTab(id);
-  if (!source || !canMoveTabToSpace(tab, source) || source.workspaceId === workspaceId) return false;
+  if (!tab || !source) return { ok: false, error: 'refused', moved: false };
   return withWindowRuntime(source, () => {
     const workspace = namedWorkspaces.get(workspaceId);
-    if (!workspace) return false;
-    let target = workspaceOwner(source, workspaceId);
-    if (target && (target.closing || target.workspaceTransition)) return false;
+    let target = null;
+    let materialized = false;
     let floorId = null;
-    if (!target) {
-      target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: source.profileId });
-      target.resident = true;
-      target.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
-      try {
-        withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
-      } catch {
-        disposeResident(target);
-        return false;
-      }
-      target.workspaceId = workspace.id;
-      // A space saved empty comes back as one blank start page (the floor
-      // applyWorkspaceToWindow lays); the moved tab replaces it.
-      const [only] = target.tabOrder;
-      if (target.tabOrder.length === 1 && tabs.get(only)?.url === NEW_TAB_URL) floorId = only;
-    }
-    if (tab.splitId) removeTabFromSplit(id);
-    detachTabForMove(source, id);
-    withWindowRuntime(target, () => {
-      target.tabOrder = [...target.tabOrder, id];
-      rehomeTab(tab, target);
-      if (floorId != null) {
-        closeTab(floorId, { record: false, selectReplacement: false });
-        target.activeTabId = id;
-      }
-      if (target.resident && !target.activeTabId) target.activeTabId = id;
-      namedWorkspaces.saveCapture(workspace.id, workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }));
-      broadcastTabs();
-    });
-    broadcastWorkspacesUpdated();
-    if (target.resident) {
-      setImmediate(() => {
-        makeRoomForSpaces(source.profileId).catch((error) => {
-          lastRoomPass = { outcome: 'failed', at: Date.now() };
-          console.debug('[spaces] making room after a move failed', error);
+    let origin = null;
+    return runSpaceMove({
+      check() {
+        if (!canMoveTabToSpace(tab, source) || source.workspaceId === workspaceId) return { ok: false, error: 'refused' };
+        origin = { index: source.tabOrder.indexOf(id), groupId: tab.groupId ?? null, wasActive: source.activeTabId === id };
+        if (!workspace) return { ok: false, error: 'not-found' };
+        if (!persistableUrl(tab.url)) return { ok: false, error: 'refused' };
+        target = workspaceOwner(source, workspaceId);
+        if (target && (target.closing || target.workspaceTransition)) return { ok: false, error: 'busy' };
+        return { ok: true };
+      },
+      prepare() {
+        if (!target) {
+          target = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId: source.profileId });
+          target.resident = true;
+          target.residentSince = Date.now(); // makeRoomForSpaces quiets the oldest first
+          materialized = true;
+          withWindowRuntime(target, () => applyWorkspaceToWindow(target, workspace));
+          target.workspaceId = workspace.id;
+          // A space saved empty comes back as one blank start page (the floor
+          // applyWorkspaceToWindow lays); the moved tab replaces it.
+          const [only] = target.tabOrder;
+          if (target.tabOrder.length === 1 && tabs.get(only)?.url === NEW_TAB_URL) floorId = only;
+        }
+        const base = workspaceCapture(target, { previousActiveIndex: workspace.activeIndex });
+        const next = appendTabToCapture(floorId != null ? emptiedCapture(base) : base, {
+          url: persistableUrl(tab.url),
+          pinned: !!tab.pinned,
+          meta: sessionTabMeta(tab),
+          localFile: tab.localFile === true,
+          inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true,
         });
-      });
-    }
-    return true;
+        // A set-aside space with no selection shows the moved tab when opened.
+        if (floorId != null || (target.resident && !target.activeTabId)) next.activeIndex = next.urls.length - 1;
+        return { ok: true, next };
+      },
+      discard() {
+        if (materialized && target) disposeResident(target);
+      },
+      write(next) {
+        const fault = takeSpaceMoveFault('write');
+        if (fault) return { ok: false, error: fault };
+        return namedWorkspaces.saveCapture(workspace.id, next);
+      },
+      transfer() {
+        if (tab.splitId) removeTabFromSplit(id);
+        detachTabForMove(source, id);
+        if (takeSpaceMoveFault('transfer')) throw new Error('injected: transfer failed after detaching');
+        withWindowRuntime(target, () => {
+          target.tabOrder = [...target.tabOrder, id];
+          rehomeTab(tab, target);
+          if (floorId != null) {
+            closeTab(floorId, { record: false, selectReplacement: false });
+            target.activeTabId = id;
+          }
+          if (target.resident && !target.activeTabId) target.activeTabId = id;
+        });
+      },
+      reconcile() {
+        // Whole in the space: it moved. Otherwise it belongs in its window,
+        // never half in each and never in neither.
+        if (target && windowRuntimes.runtimeForTab(id) === target && target.tabOrder.includes(id)) {
+          source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
+          withWindowRuntime(target, () => broadcastTabs());
+          return true;
+        }
+        if (target) target.tabOrder = target.tabOrder.filter((tid) => tid !== id);
+        if (!source.tabOrder.includes(id)) {
+          const order = [...source.tabOrder];
+          order.splice(Math.min(Math.max(origin.index, 0), order.length), 0, id);
+          source.tabOrder = order;
+        }
+        if (windowRuntimes.runtimeForTab(id) !== source) rehomeTab(tab, source);
+        // Its group, if that group is still here (detaching prunes a group it emptied).
+        if (origin.groupId && source.groups.some((g) => g.id === origin.groupId)) tab.groupId = origin.groupId;
+        withWindowRuntime(source, () => {
+          if (origin.wasActive) setActiveTab(id, { focusContent: false });
+          broadcastTabs();
+        });
+        return false;
+      },
+      rewrite() {
+        const fault = takeSpaceMoveFault('rewrite');
+        if (fault) return { ok: false, error: fault };
+        return namedWorkspaces.saveCapture(workspace.id, workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }));
+      },
+      finish() {
+        withWindowRuntime(target, () => broadcastTabs());
+        broadcastWorkspacesUpdated();
+        if (target.resident) {
+          setImmediate(() => {
+            makeRoomForSpaces(source.profileId).catch((error) => {
+              lastRoomPass = { outcome: 'failed', at: Date.now() };
+              console.debug('[spaces] making room after a move failed', error);
+            });
+          });
+        }
+      },
+    });
   });
+}
+
+// Acceptance-only faults for Move to Space (space-move.js's steps): each armed
+// step fails once with its error. Never armed outside BLANC_TEST=1.
+const spaceMoveFaults = new Map();
+function armSpaceMoveFault(step, error = 'storage-failed') {
+  if (!acceptanceTestMode) return false;
+  if (!['write', 'transfer', 'rewrite'].includes(step)) return false;
+  spaceMoveFaults.set(step, String(error));
+  return true;
+}
+function takeSpaceMoveFault(step) {
+  if (!acceptanceTestMode || !spaceMoveFaults.has(step)) return null;
+  const error = spaceMoveFaults.get(step);
+  spaceMoveFaults.delete(step);
+  return error;
 }
 
 /** "New Tab in Group" (group menu): a new tab at the end of the group,
@@ -14017,7 +14095,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'undo-remove') return announced(undoRemoveNamedWorkspace(args[0]));
         if (action === 'update') return announced(namedWorkspaces.update(args[0], args[1]));
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
+        // Move to Space: one saved record's URLs, and its one-shot step faults.
+        if (action === 'saved-urls') return namedWorkspaces.get(args[0])?.urls ?? null;
+        if (action === 'arm-move-fault') return { ok: armSpaceMoveFault(args[0], args[1]) };
         if (action === 'reset') {
+          spaceMoveFaults.clear();
           for (const r of windowRuntimes.all()) {
             if (r.resident) {
               withWindowRuntime(r, () => { r.closing = true; for (const id of [...r.tabOrder]) closeTab(id, { record: false, selectReplacement: false }); });

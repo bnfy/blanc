@@ -4,7 +4,8 @@
 // ("spaces named …", "this window is showing a web page …") live in
 // spaces-redesign.steps.js and leave the page's id in this.pageId.
 const assert = require('node:assert/strict');
-const { When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then } = require('@cucumber/cucumber');
+const ctx = require('../support/context');
 const { waitForValue } = require('../support/poll');
 
 async function spaceId(world, name) {
@@ -19,10 +20,13 @@ When('I move that page to {string} from its tab menu', async function (name) {
   assert.ok(this.pageIdentity, 'the page has a live view before the move');
   const item = await this.call('tabMenuItem', this.pageId, 'space');
   assert.deepEqual(item, { label: 'Move to Space', enabled: true });
-  await this.call('runTabMenuItem', this.pageId, 'space-move', { workspaceId: await spaceId(this, name) });
+  this.pageUrl = (await this.state()).tabs.find((t) => t.id === this.pageId)?.url;
+  this.moveTarget = name;
+  this.moveResult = await this.call('runTabMenuItem', this.pageId, 'space-move', { workspaceId: await spaceId(this, name) });
 });
 
 Then('this window no longer has that page and is still in {string}', async function (name) {
+  assert.deepEqual(this.moveResult, { ok: true });
   // state().tabs lists every window's tabs; tabOrder is this window's.
   await this.waitForState((st) => !st.tabOrder.includes(this.pageId));
   const data = await this.call('workspaceAction', 'list');
@@ -60,6 +64,7 @@ Then('the other window has that page last, without selecting it', async function
 });
 
 Then('this window no longer has that page', async function () {
+  assert.deepEqual(this.moveResult, { ok: true });
   await this.waitForState((st) => !st.tabOrder.includes(this.pageId));
 });
 
@@ -76,4 +81,52 @@ Then("a private tab's menu has no {string}", async function (_label) {
   const id = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
   await this.waitForState((st) => st.activeTabId === id);
   assert.equal(await this.call('tabMenuItem', id, 'space'), null);
+});
+
+// ---- Saving a move (space-move.js): failures, recovery, and a crash ----
+
+Given("the move's save will fail once", async function () {
+  assert.deepEqual(await this.call('workspaceAction', 'arm-move-fault', 'write', 'storage-failed'), { ok: true });
+});
+
+Given("the move's transfer and its recovery save will both fail once", async function () {
+  assert.deepEqual(await this.call('workspaceAction', 'arm-move-fault', 'transfer'), { ok: true });
+  assert.deepEqual(await this.call('workspaceAction', 'arm-move-fault', 'rewrite', 'storage-failed'), { ok: true });
+});
+
+Then('the move reports that it failed and that nothing moved', async function () {
+  assert.equal(this.moveResult?.ok, false, JSON.stringify(this.moveResult));
+  assert.equal(this.moveResult.moved, false, JSON.stringify(this.moveResult));
+});
+
+Then('this window still has that page, live and selected', async function () {
+  const st = await this.waitForState((s) => s.tabOrder.includes(this.pageId) && s.activeTabId === this.pageId);
+  assert.equal(st.tabs.find((t) => t.id === this.pageId)?.asleep, false);
+  assert.ok(await this.call('workspacePageIdentity', this.pageId), 'the same live page');
+});
+
+Then('{string}\'s saved tabs list that page {int} time(s)', async function (name, count) {
+  const urls = await this.call('workspaceAction', 'saved-urls', await spaceId(this, name));
+  assert.ok(Array.isArray(urls), `${name} has a saved record`);
+  assert.equal(urls.filter((url) => url === this.pageUrl).length, count, JSON.stringify(urls));
+});
+
+When('Blanc crashes and starts again', { timeout: 120_000 }, async function () {
+  // Let the debounced saves that would have run before a crash run (session
+  // and spaces both save on a 250 ms debounce), then kill the process.
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  assert.equal(typeof ctx.crashAndRelaunch, 'function', 'the harness can crash and relaunch');
+  await ctx.crashAndRelaunch();
+});
+
+Then('the restored window has that page', async function () {
+  const st = await this.waitForState((s) => s.tabOrder.some((id) => s.tabs.find((t) => t.id === id)?.url === this.pageUrl), { timeout: 15000 });
+  const copies = st.tabOrder.filter((id) => st.tabs.find((t) => t.id === id)?.url === this.pageUrl);
+  assert.equal(copies.length, 1, 'exactly one copy in the window');
+});
+
+Then('the restored window does not have that page', async function () {
+  const st = await this.waitForState((s) => s.tabOrder.length > 0, { timeout: 15000 });
+  const inWindow = st.tabOrder.some((id) => st.tabs.find((t) => t.id === id)?.url === this.pageUrl);
+  assert.equal(inWindow, false, JSON.stringify(st.tabOrder.map((id) => st.tabs.find((t) => t.id === id)?.url)));
 });

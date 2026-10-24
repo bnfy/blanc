@@ -295,3 +295,38 @@ Feature: Named workspace preservation and recovery
     When this window is showing a web page
     Then the tab menu's "Move to Space" is enabled for that page
     And a private tab's menu has no "Move to Space"
+
+  @F41-43
+  Scenario: A move whose save fails leaves the page where it was, across a crash
+    Given spaces named "One" and "Reading", with this window in "One"
+    And this window is showing a web page
+    And the move's save will fail once
+    When I move that page to "Reading" from its tab menu
+    Then the move reports that it failed and that nothing moved
+    And this window still has that page, live and selected
+    And "Reading"'s saved tabs list that page 0 times
+    When Blanc crashes and starts again
+    Then the restored window has that page
+    And "Reading"'s saved tabs list that page 0 times
+
+  @F41-44
+  Scenario: A move whose transfer and recovery save both fail keeps the page across a crash
+    Given spaces named "One" and "Reading", with this window in "One"
+    And this window is showing a web page
+    And the move's transfer and its recovery save will both fail once
+    When I move that page to "Reading" from its tab menu
+    Then the move reports that it failed and that nothing moved
+    And this window still has that page, live and selected
+    When Blanc crashes and starts again
+    Then the restored window has that page
+    And "Reading"'s saved tabs list that page 1 time
+
+  @F41-45
+  Scenario: A move that succeeds survives a crash
+    Given spaces named "One" and "Reading", with this window in "One"
+    And this window is showing a web page
+    When I move that page to "Reading" from its tab menu
+    Then this window no longer has that page and is still in "One"
+    When Blanc crashes and starts again
+    Then the restored window does not have that page
+    And "Reading"'s saved tabs list that page 1 time
