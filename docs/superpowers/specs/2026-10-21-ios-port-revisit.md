@@ -239,6 +239,7 @@ TestFlight build is the companion, not a generic browser.
 | **M9** | Private tabs | F4 | |
 | **M10** | Groups and Spaces from sync, shown read-only on the phone; Bangs; the full shared slash-command set; Find in page | F3, F41 (read), F47, F7, F8 | |
 | **Duo-2** | Two-pane Split View and floating Glance at regular width (the Duo's inner display) | F53, F34, D30 | With M10 |
+| **M11** | Tab gestures: swipe the pill sideways to switch tabs, flick a tab up to close it ([feedback plan §7](2026-10-23-ios-user-feedback-plan.md)) | F56 | Added 2026-10-24 from Arc users' requests; switcher layout is the owner's choice |
 | **Beta** | First TestFlight upload, with the default-browser entitlement | D4 | Cut line |
 | Later | Editing groups and Spaces on the phone, downloads, permissions, passkeys, Quiet Tabs semantics, interface language (D27), the full filter pipeline (M15, now including `WKWebExtension` DNR and user-script cosmetics as options) | F3, F11, F13, F24, F31, F44, F12 | After the beta |
 | Later (Duo-3) | The side list from synced groups and Spaces, tabletop video, multiple windows | F28, F32, D30 | After the beta |
@@ -249,6 +250,9 @@ ladder ([plan](2026-10-23-ios-user-feedback-plan.md)): Tab Sync on iPhone and
 an explicit Send to device stay in M7; M10's Spaces need a desktop Spaces sync
 step first (opt-in, end-to-end encrypted, reversing F41's "never sync"); a
 Pill position Bottom/Top setting joins *Later*; AI summaries are declined.
+On 2026-10-24 Arc users' two tab gestures (swipe the bottom bar to switch tabs,
+swipe up to close one) became F56 in a new milestone, **M11**, before the
+beta.
 
 ### M6.5: the re-baseline
 

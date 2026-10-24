@@ -1599,3 +1599,23 @@ made.
 - **Acceptance:** `test/desktop/billboard-clock-smoke.mjs`,
   `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
   `test/unit/clock-font.test.js`.
+
+## F56 — Tab gestures (iPhone)
+
+Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
+(2026-10-24; `docs/superpowers/specs/2026-10-23-ios-user-feedback-plan.md` §7).
+
+- **Switch tabs from the pill.** A sideways swipe on the resting pill moves to
+  the previous or next tab in the order the pill's dots show (the active tab's
+  group or run of ungrouped tabs), the page following the finger; the pill
+  resists at either end. A tap still opens the palette. Back and forward stay
+  the page-edge gestures (D7).
+- **Flick up to close.** A tab card in the palette's switcher closes when
+  flicked up, like the iOS app switcher; a closed tab reopens like one closed
+  with `/close`. The switcher's layout (cards in a strip, or a flick up on the
+  pill) is open.
+- **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
+  `/close`; Reduce Motion replaces the slide with a cross-fade.
+- **Desktop.** Not applicable: trackpad and keyboard tab switching already
+  exist, and the Island has no bottom bar.
+
