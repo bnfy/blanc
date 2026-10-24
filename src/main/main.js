@@ -8865,6 +8865,28 @@ function setActiveTab(id, {
   }
 }
 
+/** A two-pane split can release either pane into a floating Glance. */
+async function openTabMenuGlance(id) {
+  const runtime = rt();
+  const split = visibleSplitOf(runtime);
+  if (split) {
+    const tab = tabs.get(id);
+    // Validate before changing the split. Other rows (and larger splits)
+    // cannot float over a split that would still be visible afterward.
+    if (split.tabIds.length !== 2 || !split.tabIds.includes(id)
+      || !tab || tab.sleeping || tab.asleep || !liveContents(tab)
+      || windowRuntimes.runtimeForTab(id) !== runtime) return false;
+    // Removing the active pane must hand the window to its survivor. Do not
+    // dissolve the split while that handoff would be refused by setActiveTab
+    // (notably during Quiet Tabs teardown or before a wake has live contents).
+    const survivor = tabs.get(split.tabIds.find((tabId) => tabId !== id));
+    if (!hasLiveWindow() || !survivor || survivor.sleeping || survivor.asleep
+      || !liveContents(survivor) || windowRuntimes.runtimeForTab(survivor.id) !== runtime) return false;
+    if (!removeTabFromSplit(id)) return false;
+  }
+  return setGlanceTab(id);
+}
+
 async function setGlanceTab(id) {
   if (visibleSplitOf()) {
     // Glance and a visible split never share a window (F53).
@@ -11639,6 +11661,7 @@ function buildMenuForRuntime(runtime) {
  * is the window runtime the menu belongs to. Null if the tab isn't in it. */
 function tabContextData(tab, owner) {
   if (!tab || tab.runtimeId !== owner.id) return null;
+  const visibleSplit = visibleSplitOf(owner);
   const home = tab.pinnedHomeUrl;
   const candidate = pinnedHomeFor(tab.url, { localFile: tab.localFile === true });
   const startPin = withLocalProfile(tab.profileId ?? DEFAULT_PROFILE_ID, () => startPagePins.pinState(tab.url));
@@ -11662,6 +11685,8 @@ function tabContextData(tab, owner) {
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
     glanceTabId: owner.glanceTabId ?? null,
+    canGlance: !visibleSplit || (visibleSplit.tabIds.length === 2
+      && visibleSplit.tabIds.includes(tab.id)),
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     // A page-opened tab can't be copied into a fresh view (document-policy.js).
@@ -11715,10 +11740,9 @@ function menuContextActions(owner) {
     beginNewGroup: b((id) => beginNewGroup(id)),
     rename: b((id) => beginRenameTab(id)),
     resetTitle: b((id) => renameTab(id, null)),
-    // Mirrors the row's glance chip: once the pane actually opens, dismiss the
-    // panel so it isn't left floating over the fresh Glance split (a quiet tab
-    // wakes first inside setGlanceTab, so success can take a beat).
-    glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
+    // A split pane first becomes an ordinary tab; dismiss the panel only once
+    // Glance opens (a background quiet tab may need to wake first).
+    glance: b(async (id) => { if (await openTabMenuGlance(id)) hideOverlay(); }),
     closeGlance: b(() => closeGlance()),
     splitWith: b((id, otherId) => { if (splitTabWith(id, otherId)) hideOverlay(); }),
     removeFromSplit: b((id) => removeTabFromSplit(id)),
@@ -14300,6 +14324,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
         sliding: !!rt().islandSlide,
+        reducedMotion: prefersReducedMotion(),
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
           && rt().islandAutoHideIntroGeneration === rt().tooltipGeneration,
         stripHidden: islandStripHidden(),
@@ -14453,7 +14478,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const tab = tabs.get(tabId);
         if (!hasLiveWindow() || !liveContents(tab)) return false;
         rt().window.contentView.addChildView(tab.view);
-        return true;
+        // Read the injected disorder in the same main-process turn: a queued
+        // layout may already repair it before a second inspector call.
+        const children = rt().window.contentView.children;
+        const pill = liveFloatRecord(rt(), 'pill')?.view;
+        return { paneIndex: children.indexOf(tab.view), pillIndex: children.indexOf(pill) };
       },
       /** Click a corner tab's × ('close') or body ('tab') through its own
        *  input events, as a real click arrives. */

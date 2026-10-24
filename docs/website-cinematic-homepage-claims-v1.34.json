@@ -7,7 +7,7 @@
   "accessed": "2026-10-15",
   "prohibitedClaims": [
     "battery life, speed, page-load, benchmark or fastest-browser claims beyond the one dated memory run",
-    "4K, HDR or protected streaming playback, or any hint that streaming support is coming",
+    "4K or HDR playback, or a promise that a named streaming service plays (protected playback itself ships since v1.43.0, recorded in docs/website-v1.43-claims.json)",
     "automatic tab organization, page-change alerts or any other AI feature",
     "more private, more secure or better than Chrome without a measured, qualified basis",
     "what Chrome does with user data, unless a current first-party source says exactly that",
@@ -851,16 +851,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "cinema-data-27",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "engine"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-data-28",
       "source": "site/src/pages/index.astro",
       "exactWording": "Yes. Every feature, including Blanc Spaces, is free. Blanc Patron is optional support at US$30 a year or US$4 a month, plus tax, and unlocks nothing.",
@@ -1141,6 +1131,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 21, 2026, after public v1.40.0: the homepage’s first screen became the floating Island (Auto-hide, float style), and its lead now says so. The replacement wording is recorded in docs/website-v1.40-claims.json."
+    },
+    {
+      "id": "cinema-data-27",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Blanc runs on Chromium, the open-source engine Chrome is built on. Protected streaming video, such as Netflix, doesn’t play in Blanc.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "engine"
+      ],
+      "verdict": "qualified",
+      "reason": "October 24, 2026, after public v1.43.0 moved Blanc to castLabs’ Electron for Content Security: protected streaming plays since Blanc 1.43, and on Windows it needs an x64 PC. The replacement wording is recorded in docs/website-v1.43-claims.json (v143-005)."
     }
   ]
 }

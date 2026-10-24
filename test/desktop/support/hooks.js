@@ -358,11 +358,19 @@ BeforeAll({ timeout: 120_000 }, async () => {
   };
   // A crash, not a quit: the process is killed, so nothing gets a chance to
   // flush on the way out, and the next launch sees only what was on disk.
+  // The whole tree goes: on Windows, kill() reaches only the browser process,
+  // and its orphaned GPU and renderer processes keep the stdio pipes (and so
+  // this runner) open until the job times out (pinned-home-recovery-smoke
+  // kills the same way).
   ctx.crashAndRelaunch = async () => {
     const child = ctx.app?.process();
     if (child && child.exitCode === null) {
       const exited = new Promise((resolve) => child.once('exit', resolve));
-      child.kill('SIGKILL');
+      if (process.platform === 'win32') {
+        try { execFileSync('taskkill.exe', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' }); } catch { child.kill('SIGKILL'); }
+      } else {
+        child.kill('SIGKILL');
+      }
       await exited;
     }
     ctx.app = await launchApp({}, { recoveryChoice: 'restore' });
