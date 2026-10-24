@@ -121,5 +121,5 @@ test('the tab load-failure handler keeps its guards and returns; tracing only ob
   // main passes the shared default-off trace.
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
   assert.match(main, /startupQueuedNavigations,\n  navigationTrace,/);
-  assert.match(main, /trace: navigationTrace,\n  onRefused: \(webContentsId, url\) => gateRefusals\.noteRefused\(webContentsId, url\),\n  onReplay: \(webContentsId, url, generation\) => gateRefusals\.armReplay\(webContentsId, url, generation\),\n\}\);/);
+  assert.match(main, /trace: navigationTrace,\n  onRefused: \(webContentsId, url\) => gateRefusals\.noteRefused\(webContentsId, url\),\n  onReplay: \(webContentsId, url\) => gateRefusals\.armReplay\(webContentsId, url\),\n\}\);/);
 });

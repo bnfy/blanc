@@ -1627,7 +1627,7 @@ const profileNavigationGates = require('./profile-navigation-gates').createProfi
   startupActive: () => startupNavigationGateActive,
   trace: navigationTrace,
   onRefused: (webContentsId, url) => gateRefusals.noteRefused(webContentsId, url),
-  onReplay: (webContentsId, url, generation) => gateRefusals.armReplay(webContentsId, url, generation),
+  onReplay: (webContentsId, url) => gateRefusals.armReplay(webContentsId, url),
 });
 
 function installStartupNavigationGate(sessions) {
@@ -1696,7 +1696,7 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
       continue;
     }
     navigationTrace.record('startup-gate-replay', { webContentsId, navEpoch: tab.navEpoch, private: tab.private, url, outcome: 'replayed' });
-    gateRefusals.armReplay(webContentsId, url, tab.navEpoch);
+    gateRefusals.armReplay(webContentsId, url);
     wc.loadURL(url).catch(() => {});
   }
 }

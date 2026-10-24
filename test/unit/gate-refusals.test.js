@@ -1,9 +1,9 @@
 'use strict';
 // A navigation the startup/profile gate refused, queued and replayed may
-// report its own ERR_BLOCKED_BY_CLIENT after the replay began. Only that
-// failure, on the replay's own navigation generation, is kept off the error
-// page; every other failure, including a genuine later block of the same URL,
-// is presented as before.
+// report its own ERR_BLOCKED_BY_CLIENT after the replay began, before or after
+// the replay commits. Only that failure, while no other navigation has
+// started, is kept off the error page; every other failure, including a
+// genuine later block of the same URL, is presented as before.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -51,9 +51,13 @@ function harness() {
     release() {
       state.gateActive = false;
       const url = queued.get(wc.id); queued.delete(wc.id);
-      if (url) refusals.armReplay(wc.id, url, tab.navEpoch);
+      if (url) refusals.armReplay(wc.id, url);
     },
-    start() { tab.navEpoch += 1; },          // did-start-navigation (main frame)
+    // did-start-navigation, main frame, new document: bumps navEpoch and is
+    // counted for attribution (tab-view.js feeds noteNavigationStart).
+    start() { tab.navEpoch += 1; refusals.noteNavigationStart(wc.id); },
+    // did-navigate (commit) or a same-document start: bumps navEpoch only.
+    commit() { tab.navEpoch += 1; },
     fail(code, url) { sandbox.fail({}, code, 'desc', url, true); },
   };
 }
@@ -80,6 +84,23 @@ test('audit sequence: a superseded refusal whose failure was ignored never hides
   g.state.superseded = true; g.fail(BLOCKED, A); g.state.superseded = false;
   g.start(); g.fail(BLOCKED, A);
   assert.deepEqual(g.outcomes, ['not-presented', 'error-page']); assert.equal(g.shown.length, 1);
+});
+
+test('audit sequence: the replay starting and then committing does not turn its late -20 into an error page', () => {
+  const h = harness();
+  h.refuse(A); h.release(); h.start(); h.commit();   // replay starts (epoch 2), commits (epoch 3)
+  h.fail(BLOCKED, A);                                 // the refusal's own delayed failure
+  assert.deepEqual(h.outcomes, ['gate-refused-late']); assert.equal(h.shown.length, 0);
+  // Same-document navigations inside the replayed page do not supersede it either.
+  const g = harness();
+  g.refuse(A); g.release(); g.start(); g.commit(); g.commit(); g.commit();
+  g.fail(BLOCKED, A);
+  assert.deepEqual(g.outcomes, ['gate-refused-late']);
+  // But another new-document navigation starting after the commit does.
+  const k = harness();
+  k.refuse(A); k.release(); k.start(); k.commit(); k.start();
+  k.fail(BLOCKED, A);
+  assert.deepEqual(k.outcomes, ['error-page']); assert.equal(k.shown.length, 1);
 });
 
 test('a newer navigation invalidates the armed refusal even when its failure never arrived', () => {
@@ -120,24 +141,29 @@ test('a failure while the gate is active is kept off the page as before, and set
 test('the tracker: arming, generations, single use, disarm, settle, forget, expiry and bounds', () => {
   const r = createGateRefusals();
   r.noteRefused(4, A);
-  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 1), false, 'pending (not replayed) never matches');
-  r.armReplay(4, A, 5);
-  assert.equal(r.consumeLateFailure(4, A, -3, 6), false, 'other codes never match');
-  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 6), true);
-  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 6), false, 'once');
-  r.noteRefused(4, A); r.armReplay(4, A, 5);
-  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 7), false, 'two generations later');
-  assert.equal(r.pending(4), 0, 'and the record is gone');
-  r.noteRefused(4, A); r.noteRefused(4, B); r.armReplay(4, B, 2);
+  r.noteNavigationStart(4);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), false, 'pending (not replayed) never matches, and pending ignores starts');
+  r.armReplay(4, A);
+  assert.equal(r.consumeLateFailure(4, A, -3), false, 'other codes never match');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), true, 'before the replay has even started');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), false, 'once');
+  r.noteRefused(4, A); r.armReplay(4, A); r.noteNavigationStart(4);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), true, 'after the replay started');
+  r.noteRefused(4, A); r.armReplay(4, A); r.noteNavigationStart(4); r.noteNavigationStart(4);
+  assert.equal(r.pending(4), 0, 'a second start supersedes the replay and drops the record');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), false);
+  r.noteRefused(4, A); r.noteRefused(4, B); r.armReplay(4, B);
   assert.equal(r.pending(4), 1, 'replaying B drops the superseded A');
-  assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false);
-  r.disarm(4, B); assert.equal(r.consumeLateFailure(4, B, BLOCKED, 3), false, 'disarmed');
-  r.noteRefused(4, A); r.armReplay(4, A, 2); r.settle(4, A); assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false, 'settled');
-  r.noteRefused(4, A); r.armReplay(4, A, 2); r.forget(4); assert.equal(r.consumeLateFailure(4, A, BLOCKED, 3), false, 'forgotten');
-  r.armReplay(4, A, 2); assert.equal(r.pending(4), 0, 'arming without a refusal arms nothing');
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), false);
+  r.disarm(4, B); assert.equal(r.consumeLateFailure(4, B, BLOCKED), false, 'disarmed');
+  r.noteRefused(4, A); r.armReplay(4, A); r.settle(4, A); assert.equal(r.consumeLateFailure(4, A, BLOCKED), false, 'settled');
+  r.noteRefused(4, A); r.armReplay(4, A); r.forget(4); assert.equal(r.consumeLateFailure(4, A, BLOCKED), false, 'forgotten');
+  r.armReplay(4, A); assert.equal(r.pending(4), 0, 'arming without a refusal arms nothing');
+  r.noteRefused(4, A); r.armReplay(4, A); r.noteNavigationStart(5); r.noteNavigationStart(5);
+  assert.equal(r.consumeLateFailure(4, A, BLOCKED), true, 'starts in other contents do not count');
   let clock = 0; const timed = createGateRefusals({ now: () => clock });
-  timed.noteRefused(4, A); timed.armReplay(4, A, 2); clock = WINDOW_MS + 1;
-  assert.equal(timed.consumeLateFailure(4, A, BLOCKED, 3), false, 'expired');
+  timed.noteRefused(4, A); timed.armReplay(4, A); clock = WINDOW_MS + 1;
+  assert.equal(timed.consumeLateFailure(4, A, BLOCKED), false, 'expired');
   for (let i = 0; i < MAX_PER_CONTENTS + 3; i += 1) r.noteRefused(9, `https://example.test/${i}`);
   assert.equal(r.pending(9), MAX_PER_CONTENTS);
   for (const [id, url] of [[0, A], [-1, A], [1.5, A], ['4', A], [6, 'blanc://newtab/'], [6, 'file:///etc/passwd'], [6, null]]) r.noteRefused(id, url);
@@ -171,7 +197,7 @@ test('the startup gate notes only queued GET main-frame loads and arms only what
   assert.equal(listener({ resourceType: 'mainFrame', url: B, method: 'GET', webContentsId: 7 }), true, 'queued for a contents with no tab');
   assert.deepEqual(noted, [[4, A], [7, B]]);
   sandbox.release([], { blockerAttached: true });
-  assert.deepEqual(armed, [[4, A, 3]], 'armed at the tab generation before its replay');
+  assert.deepEqual(armed, [[4, A]], 'armed before its replay');
   assert.deepEqual(loaded, [A], 'replay unchanged');
   assert.deepEqual(forgotten, [7], 'a contents without a live tab is forgotten');
 });
@@ -205,4 +231,15 @@ test('the profile gate notes held GETs and arms its replay; the coordinator repo
   assert.deepEqual(cancels, [['provider', 'onBeforeRequest', 4], ['policy-exception', 'onHeadersReceived', 4]], 'gate refusals and subresources are not reported');
   coordinator.observeCancel(() => { throw new Error('observer bug'); });
   assert.deepEqual(await request2('onHeadersReceived', main), { cancel: true }, 'an observer failure never changes a decision');
+});
+
+test('tab-view counts only new-document main-frame starts for gate-refusal attribution', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
+  const start = source.indexOf("wc.on('did-start-navigation'");
+  const body = source.slice(start, source.indexOf('}));', start));
+  assert.match(body, /\(_e, url, isInPlace, isMainFrame\) =>/);
+  assert.match(body, /if \(isMainFrame && !isInPlace\) deps\.gateRefusals\?\.noteNavigationStart\(wc\.id\);/);
+  // Commits never feed attribution.
+  const commit = source.slice(source.indexOf("wc.on('did-navigate'"), source.indexOf("wc.on('did-navigate-in-page'"));
+  assert.doesNotMatch(commit, /noteNavigationStart/);
 });

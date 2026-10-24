@@ -409,8 +409,11 @@ function wireTabView(tab, view, { owner, adopted }) {
     broadcastTabs();
     if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
   }));
-  wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
+  wc.on('did-start-navigation', boundToTab((_e, url, isInPlace, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // Gate-refusal attribution counts new-document starts only, never commits
+    // or same-document navigations (src/main/gate-refusals.js).
+    if (isMainFrame && !isInPlace) deps.gateRefusals?.noteNavigationStart(wc.id);
     if (isMainFrame) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
@@ -499,9 +502,9 @@ function wireTabView(tab, view, { owner, adopted }) {
     // A navigation the gate refused, queued and replayed can report its own -20
     // after the replay began. That failure is the refusal's, not the replay's:
     // never show it as an error page. Matches only the replayed refusal of this
-    // URL on the replay's own navigation generation, once, unless a provider
+    // URL while no other navigation has started, once, unless a provider
     // blocked the replay itself (src/main/gate-refusals.js).
-    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode, tab.navEpoch)) {
+    if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {
       traceFailure('gate-refused-late');
       return;
     }

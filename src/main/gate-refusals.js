@@ -7,11 +7,12 @@
 //
 // Attribution is navigation-aware, not URL-and-time alone:
 // - a refusal is only pending until the gate replays that exact URL, which
-//   arms it at the tab's navigation generation at that moment; refusals that
-//   were superseded and never replayed can never match;
-// - a late -20 matches only an armed record for that URL while the tab is
-//   still on the replay's generation (the one at replay, or the one the replay
-//   started); any newer navigation invalidates it;
+//   arms it; refusals that were superseded and never replayed can never match;
+// - after arming, new-document main-frame navigation starts in that contents
+//   are counted (commits and same-document navigations are not). The replay's
+//   own start is the first; a late -20 matches only while at most that one
+//   start has happened, so the replay committing does not invalidate it but
+//   any other navigation starting does;
 // - if a blocking provider (or a policy failure) cancels the replayed request
 //   itself, the record is disarmed so that block is shown;
 // - a failure for that URL already handled elsewhere (while the gate was
@@ -45,17 +46,27 @@ function createGateRefusals({ now = () => Date.now(), windowMs = WINDOW_MS } = {
       while (list.length > MAX_PER_CONTENTS) list.shift();
       byContents.set(id, list);
     },
-    // The gate is replaying `url` in this contents at navigation `generation`.
-    // Only a pending refusal of that exact URL is armed; every other refusal
-    // of this contents was superseded and is dropped.
-    armReplay(id, url, generation) {
+    // The gate is about to replay `url` in this contents (called before its
+    // loadURL). Only a pending refusal of that exact URL is armed; every other
+    // refusal of this contents was superseded and is dropped.
+    armReplay(id, url) {
       const list = live(id);
       const entry = list.find(item => item.url === url && item.armed === null);
       byContents.delete(id);
-      if (!entry || !Number.isInteger(generation)) return;
-      entry.armed = generation;
+      if (!entry) return;
+      entry.armed = true;
+      entry.starts = 0;
       entry.at = now();
       byContents.set(id, [entry]);
+    },
+    // A new-document main-frame navigation started in this contents. The
+    // first after arming is the replay itself; a second supersedes it.
+    noteNavigationStart(id) {
+      for (const entry of [...live(id)]) {
+        if (entry.armed !== true) continue;
+        entry.starts += 1;
+        if (entry.starts > 1) remove(id, entry);
+      }
     },
     // A provider or policy cancelled the replayed request itself: show it.
     disarm(id, url) {
@@ -66,13 +77,14 @@ function createGateRefusals({ now = () => Date.now(), windowMs = WINDOW_MS } = {
       const entry = live(id).find(item => item.url === url);
       if (entry) remove(id, entry);
     },
-    // True only for the armed refusal's own late -20 on the replay's generation.
-    consumeLateFailure(id, url, code, generation) {
-      const entry = live(id).find(item => item.url === url && item.armed !== null);
+    // True only for the armed refusal's own late -20 while no navigation other
+    // than the replay has started.
+    consumeLateFailure(id, url, code) {
+      const entry = live(id).find(item => item.url === url && item.armed === true);
       if (!entry) return false;
       if (code !== ERR_BLOCKED_BY_CLIENT) return false;
       remove(id, entry);
-      return generation === entry.armed || generation === entry.armed + 1;
+      return entry.starts <= 1;
     },
     forget(id) { byContents.delete(id); },
     pending(id) { return live(id).length; },
