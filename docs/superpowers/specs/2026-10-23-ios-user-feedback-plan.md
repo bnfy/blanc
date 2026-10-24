@@ -129,15 +129,14 @@ audience the companion is meant to win.
   the way Safari's bottom bar does. At either end the pill resists and springs
   back. A tap still opens the palette. Back and forward stay WebKit's page-edge
   gestures (D7): the pill swipe starts on the pill, never at the screen edge.
-- **Swipe up to close a tab.** In the palette's tab switcher, each tab is a
-  card that closes when flicked up, as apps close in the iOS app switcher and
-  tabs do in Arc. The swipe-left Delete on list rows goes. A closed tab can be
-  reopened like one closed with `/close`.
-- **Design question for the owner:** the switcher today is a list of rows, which
-  scrolls vertically and so can't also take an upward flick. Option A (proposed):
-  the resting switcher becomes a horizontal strip of page cards, flicked up to
-  close, with groups as labeled runs. Option B: keep the list, and a flick up on
-  the resting pill closes the current tab. The F56 contract holds either way.
+- **Swipe up to close a tab.** The palette's resting tab switcher becomes a
+  horizontal strip of page cards (decided by the owner on 2026-10-24, over
+  keeping the list and flicking the pill): each card closes when flicked up,
+  as apps close in the iOS app switcher and tabs do in Arc. Groups show as
+  labeled runs of cards, and the strip scrolls sideways, so an upward flick
+  never fights scrolling. The list's swipe-left Delete goes. A closed tab can
+  be reopened like one closed with `/close`. Pages sent here, other devices'
+  tabs and the slash and search lists stay lists below the strip.
 - **Accessibility.** Both gestures have equivalents: VoiceOver's actions on the
   pill (Next tab, Previous tab) and on each card (Close), and the existing
   `/close`. Reduce Motion drops the page's follow-the-finger slide for a

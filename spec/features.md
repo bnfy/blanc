@@ -1610,10 +1610,9 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   group or run of ungrouped tabs), the page following the finger; the pill
   resists at either end. A tap still opens the palette. Back and forward stay
   the page-edge gestures (D7).
-- **Flick up to close.** A tab card in the palette's switcher closes when
-  flicked up, like the iOS app switcher; a closed tab reopens like one closed
-  with `/close`. The switcher's layout (cards in a strip, or a flick up on the
-  pill) is open.
+- **Flick up to close.** The palette's resting switcher is a horizontal strip
+  of page cards, groups as labeled runs; a card closes when flicked up, like
+  the iOS app switcher, and reopens like a tab closed with `/close`.
 - **Equivalents.** VoiceOver actions (Next tab, Previous tab, Close) and
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
