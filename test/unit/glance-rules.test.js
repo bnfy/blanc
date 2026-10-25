@@ -57,7 +57,7 @@ test('a closing card is hidden before anything else runs', () => {
 
 test('every way a Glance ends saves the card and hides it through endGlance', () => {
   assert.equal((main.match(/glanceTabId = null/g) ?? []).length, 1, 'only endGlance clears glanceTabId');
-  assert.match(between(main, "app.on('before-quit', (event) => {", '\n});\n'), /glanceCards\.flush\(\);/);
+  assert.match(between(main, "app.on('before-quit',", '\n});\n'), /glanceCards\.flush\(\);/);
 });
 
 test('a fill message for the Glance page sits at the bottom of the card', () => {
