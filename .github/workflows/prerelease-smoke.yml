@@ -38,6 +38,7 @@ jobs:
           path: |
             flatpak-evidence/*.log
             flatpak-evidence/*.json
+            flatpak-evidence/*.jsonl
             flatpak-evidence/*.txt
             flatpak-evidence/*.png
             flatpak-evidence/*.overrides

@@ -33,15 +33,16 @@ for(const mode of modes){
   // Use the application's normal navigation path. DevTools Page.navigate can
   // race or bypass the tab coordinator and legitimately hit its fail-closed guard.
   await delay(3500);
-  for(const args of [['key','--clearmodifiers','ctrl+l'],['type','--clearmodifiers','--delay','1','http://127.0.0.1:8771/probe'],['key','Return']]){
+  const previousTargets=new Set(pages.map(p=>p.id));
+  for(const args of [['key','--clearmodifiers','ctrl+t'],['key','--clearmodifiers','ctrl+l'],['type','--clearmodifiers','--delay','1','http://127.0.0.1:8771/probe'],['key','Return']]){
    const input=spawnSync('xdotool',args,{encoding:'utf8'});if(input.status)throw Error(input.stderr);
   }
   for(let i=0;i<25;i++){
    await delay(1000);pages=await(await fetch('http://127.0.0.1:9222/json/list')).json();
-   if(pages.some(p=>p.url==='http://127.0.0.1:8771/probe'))break;
+   if(pages.some(p=>!previousTargets.has(p.id)&&p.url==='http://127.0.0.1:8771/probe'&&p.title==='Blanc Flatpak sandbox probe'))break;
   }
   result.afterInputPages=pages;
-  const target=pages.find(p=>p.type==='page'&&p.url==='http://127.0.0.1:8771/probe');
+  const target=pages.find(p=>p.type==='page'&&!previousTargets.has(p.id)&&p.url==='http://127.0.0.1:8771/probe');
   if(!target)throw Error('No real content page');
   const client=await cdp(target.webSocketDebuggerUrl);
   await client.send('Page.enable');await delay(1500);
@@ -58,6 +59,8 @@ for(const mode of modes){
  fs.writeFileSync(`${root}/${mode}.result.json`,JSON.stringify(result,null,2));outcomes.push(result);
  console.log(JSON.stringify({mode,ready,exitCode:result.exitCode,browsing:result.browsing,browsingError:result.browsingError}));
  run(['kill','com.blancbrowser.Blanc']);await delay(1000);fs.closeSync(log);
+ const trace=path.join(process.env.HOME,'.var/app/com.blancbrowser.Blanc/config',`trace-${mode}.jsonl`);
+ if(fs.existsSync(trace))fs.copyFileSync(trace,`${root}/${mode}.trace.jsonl`);
 }
 server.close();fs.writeFileSync(`${root}/results.json`,JSON.stringify(outcomes,null,2));
 const candidate=outcomes.find(r=>r.mode==='wrapper-integration');

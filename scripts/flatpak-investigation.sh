@@ -53,6 +53,8 @@ export LD_LIBRARY_PATH="/app/lib/blanc/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PA
 export BLANC_UPDATE_CHANNEL=flatpak BLANC_TEST=1
 export BLANC_TEST_UNCAUGHT_LOG="$XDG_CONFIG_HOME/uncaught.log"
 mode=${BLANC_FLATPAK_CASE:?}
+export BLANC_NAVIGATION_TRACE="$XDG_CONFIG_HOME/trace-$mode.jsonl"
+export BLANC_NAVIGATION_TRACE_HOSTS=127.0.0.1
 profile="$XDG_CONFIG_HOME/Blanc-$mode"
 mkdir -p "$profile"
 chmod 700 "$profile"
