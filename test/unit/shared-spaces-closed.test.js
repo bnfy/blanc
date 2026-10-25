@@ -43,3 +43,9 @@ test('the combined band orders local and remote rows together by closing time',(
  const code=source.slice(source.indexOf('function sharedClosedBand('),source.indexOf('function reopenSharedClosedEntry('));vm.runInNewContext(code+'\nthis.band=sharedClosedBand;',sandbox);
  assert.deepEqual(Array.from(sandbox.band(runtime),row=>row.id),['local','shared:remote']);
 });
+test('a local close does not reappear through a peer after its native entry expires or Clear all',async t=>{
+ const {syncDevice}=require('./support/sync-device'),d=syncDevice();t.after(()=>d.dispose());const ctx={accountId:d.record.accountId,deviceId:'desktop',deviceName:'A',platform:'darwin'},now=Date.now();
+ const item={id:'event-id',url:'https://one.test/',title:'One',closedAt:now};d.closed.addOwnItem(ctx,item);
+ d.closed.mergeFromSync({devices:{peer:{name:'B',platform:'linux',updatedAt:now,items:[item]}}},ctx);assert.equal(d.closed.inbox(ctx).length,0);
+ d.closed.clear(ctx);d.closed.mergeFromSync({devices:{peer2:{name:'C',platform:'linux',updatedAt:now+1,items:[item]}}},ctx);assert.equal(d.closed.inbox(ctx).length,0);
+});

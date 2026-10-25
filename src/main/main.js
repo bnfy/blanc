@@ -9460,7 +9460,7 @@ function pushClosedEntry(entry) {
     const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext(),deleted=context?.blob.tabs[entry.sharedTabId]?.deleted;
     entry.syncedId=entry.sharedTabId??require('node:crypto').randomUUID();
     entry.sharedRemote=entry.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
-    entry.sharedFrom=entry.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??deleted.by):null;
+    entry.sharedFrom=entry.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??syncedClosed.rebind(ctx.accountId).data.devices[deleted.by]?.name??deleted.by):null;
     syncedClosed.addOwnItem(ctx,{id:entry.syncedId,url:entry.url,title:entry.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
   }
   entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
