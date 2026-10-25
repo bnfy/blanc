@@ -45,6 +45,12 @@ test('shared Space links and zipped tab ids survive normalization without changi
   assert.equal(normalizeWorkspace(VALID()).sharedId,undefined);
   assert.equal(normalizeWorkspace({...VALID(),tabIds:['b'.repeat(32)]}).tabIds,undefined,'a mismatched column cannot bind the wrong page');
 });
+test('normalization preserves a transient 26th shared Space but ordinary creation stays capped',()=>{
+  const rows=Array.from({length:26},(_,n)=>({...VALID(),id:'shared-'+n,name:'Shared '+n,sharedId:(n+1).toString(16).padStart(32,'0'),sharedLink:'active'}));
+  const file=normalizeFile({version:2,groupNamesRecased:1,workspaces:rows});
+  assert.equal(file.workspaces.length,26);
+  assert.equal(createWorkspace(file,{id:'new',name:'New',profileId:'default',capture:{urls:[]},now:300}).error,'limit');
+});
 
 test('EMPTY_FILE is a versioned, empty, non-shared shape', () => {
   const a = EMPTY_FILE();

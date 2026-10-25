@@ -36,6 +36,17 @@ test('workspaceCapture zips shared record ids through the same private-tab filte
   const result=context.capture({tabOrder:[1,2,3]});
   assert.deepEqual(JSON.parse(JSON.stringify(result)).tabIds,['a'.repeat(32),'c'.repeat(32)]);
 });
+test('the Space projection carries admission status only in the Personal profile',()=>{
+  const source=slice('function workspacesProjection() {','\n/** Freshness:');
+  const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
+  const context={rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+    namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
+    sync:{sharedStatus:()=>({enabled:true,spaces:26,spaceLimit:25,canAdd:false}),spaceStatus:id=>({reason:'tabs',unsyncedTabIds:[id]})}};
+  vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
+  const result=JSON.parse(JSON.stringify(context.project()));
+  assert.deepEqual(result.sharedSync,{count:26,limit:25,canAdd:false});assert.deepEqual(result.items[0].sharedSync,{reason:'tabs',unsyncedTabIds:[sharedId]});
+  runtime.profileId='named';const other=context.project();assert.equal(other.sharedSync,undefined);assert.equal(other.items[0].sharedSync,undefined);
+});
 
 const applySource = slice(
   'function applyWorkspaceToWindow(runtime, workspace) {',

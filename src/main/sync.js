@@ -11,6 +11,7 @@ const sharedSpaces = require('./shared-spaces');
 const syncedClosed = require('./synced-closed');
 const { createScheduler } = require('./sync-scheduler');
 const { createRequestQueue } = require('./sync-request-queue');
+const { unsyncedTabIds } = require('./shared-spaces-adapter');
 const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
@@ -752,9 +753,17 @@ function cancelledRequest(gen,ctx,desc) {
   return null;
 }
 function sharedStatus() {
-  const ctx=tabSyncContext();
+  if(!isDefaultLocalProfile())return {enabled:false,available:false,spaces:0,spaceLimit:25,canAdd:false,waiting:0,running:0,windowFreesAt:0,backoff:false};
+  const ctx={accountId:ensureStore().data.accountId};
   return {enabled:sharedSpaces.isEnabled(ctx),available:!spacesUnavailable,
+    spaces:sharedSpaces.spaceCount(ctx),spaceLimit:25,canAdd:sharedSpaces.canAddSpace(ctx),
     ...(requestQueue?.status()??{waiting:0,running:0,windowFreesAt:0,backoff:false})};
+}
+function spaceStatus(id) {
+  if(!isDefaultLocalProfile())return {unsyncedTabIds:[],reason:null};
+  const entry=sharedSpaces.rebind(ensureStore().data.accountId).data.blobs[id];
+  const reason=['full','tombstones','tabs','remote-over-budget','required-state-over-budget'].includes(entry?.reason)?entry.reason:null;
+  return {unsyncedTabIds:unsyncedTabIds(entry),reason};
 }
 function setSyncSpaces(on) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>setSyncSpaces(on));
@@ -1125,6 +1134,7 @@ module.exports = {
   copyRecoveryCode,
   syncNow,
   sharedStatus,
+  spaceStatus,
   setSyncSpaces,
   status,
   setSyncTabs,

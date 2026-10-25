@@ -304,14 +304,14 @@ function admit({candidate,changes=[],encryptFn}) {
     clearInvalidActive(out);
     held.add(key);unsynced.add(unit.id);return true;
   }
-  for(const unit of [...byKey.values()].sort((a,b)=>b.clock-a.clock || (a.key<b.key?-1:1))) {
+  for(const unit of [...byKey.values()].sort((a,b)=>(b.admissionRank??b.clock)-(a.admissionRank??a.clock) || (a.key<b.key?-1:1))) {
     hold(unit);
     if(fits()&&complete())return {blob:out,unsynced,reason:initialReason};
   }
   for (const unit of changes) unsynced.add(unit.id);
   return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
 }
-function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable}) {
+function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[]}) {
   const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob);
   // Only an actual missing blob may start an empty remote. An unreadable
   // response must not be overwritten with a locally understood older schema.
@@ -351,6 +351,10 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   }
   const mergedBlob=expireTombstones(replayed,now);
   const changes=admissionUnits(mergedBlob,fetched,deviceId,expireTombstones(published,now));
+  if(Array.isArray(admissionOrder)&&admissionOrder.length) {
+    const ranks=new Map(admissionOrder.map((key,n)=>[key,n]));let next=ranks.size;
+    for(const unit of [...changes].sort((a,b)=>a.clock-b.clock || (a.key<b.key?-1:1)))unit.admissionRank=ranks.get(unit.key)??next++;
+  }
   const admission=admit({candidate:mergedBlob,changes,encryptFn});
   const changed=admission.blob && canonical(admission.blob)!==canonical(fetched);
   const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;

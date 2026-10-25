@@ -127,8 +127,10 @@ function normalizeFile(raw) {
     const workspace = normalizeWorkspace(entry);
     if (!workspace || seen.has(workspace.id)) continue;
     seen.add(workspace.id);
+    // A remote concurrent addition or a preservation copy must not disappear
+    // on the next disk read. Ordinary local creation still uses the cap.
+    if(workspaces.length>=MAX_WORKSPACES&&!workspace.sharedId&&!workspace.recoveredFrom)continue;
     workspaces.push(workspace);
-    if (workspaces.length === MAX_WORKSPACES) break;
   }
   // v1 displayed most-recently-saved first; migrate that order once.
   if (source.version === 1) workspaces.sort((a, b) => b.updatedAt - a.updatedAt);

@@ -853,6 +853,21 @@
         }
       }
     },
+    "SharedSpaceAdmission": {
+      "doc": "Local writes held from sync, without page contents; only present on a shared Space in Personal.",
+      "fields": {
+        "unsyncedTabIds": { "type": "string[]" },
+        "reason": { "type": "'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null" }
+      }
+    },
+    "SharedSpaceLibraryStatus": {
+      "doc": "Shared-library capacity. Concurrent remote additions are retained even above the local creation limit.",
+      "fields": {
+        "count": { "type": "number" },
+        "limit": { "type": "number" },
+        "canAdd": { "type": "boolean" }
+      }
+    },
     "WorkspaceListItem": {
       "doc": "A Named Workspace row.",
       "fields": {
@@ -886,6 +901,10 @@
         "symbol": {
           "type": "string",
           "doc": "A space-identity.js symbol id."
+        },
+        "sharedSync": {
+          "type": "SharedSpaceAdmission",
+          "optional": true
         }
       }
     },
@@ -907,6 +926,10 @@
         },
         "tint": {
           "type": "SpaceTint"
+        },
+        "sharedSync": {
+          "type": "SharedSpaceLibraryStatus",
+          "optional": true
         }
       }
     },

@@ -678,6 +678,25 @@ A space row's right-click choice, run by the open Spaces menu.
 | `kind` | `'edit' \| 'delete'` |  |
 | `id` | `WorkspaceId` |  |
 
+### `SharedSpaceAdmission`
+
+Local writes held from sync, without page contents; only present on a shared Space in Personal.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `unsyncedTabIds` | `string[]` |  |
+| `reason` | `'full' \| 'tombstones' \| 'tabs' \| 'remote-over-budget' \| 'required-state-over-budget' \| null` |  |
+
+### `SharedSpaceLibraryStatus`
+
+Shared-library capacity. Concurrent remote additions are retained even above the local creation limit.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `count` | `number` |  |
+| `limit` | `number` |  |
+| `canAdd` | `boolean` |  |
+
 ### `WorkspaceListItem`
 
 A Named Workspace row.
@@ -693,6 +712,7 @@ A Named Workspace row.
 | `tabCount` | `number` |  |
 | `color` | `string` | Stored #rrggbb, drawn exactly as its tile's fill (D21). |
 | `symbol` | `string` | A space-identity.js symbol id. |
+| `sharedSync?` | `SharedSpaceAdmission` |  |
 
 ### `WorkspacesPayload`
 
@@ -705,6 +725,7 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `items` | `WorkspaceListItem[]` |  |
 | `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint` | `SpaceTint` |  |
+| `sharedSync?` | `SharedSpaceLibraryStatus` |  |
 
 ### `ThemeAppearance`
 

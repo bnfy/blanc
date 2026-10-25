@@ -20,7 +20,11 @@ const isEnabled=ctx=>rebind(ctx.accountId).data.enabled===true;
 function noteLocalSpace(id,blob,edits,ctx) {
   const clean=model.sanitizeBlob(blob);if(!clean || clean.spaceId!==id)throw new TypeError('Invalid local Space');
   const s=rebind(ctx.accountId);
-  s.update(d=>{const prev=d.blobs[id];d.blobs[id]={...prev,blob:prev?model.mergeBlob(prev.blob,clean):clean,mergedAt:prev?.mergedAt??Date.now()};
+  s.update(d=>{const prev=d.blobs[id],retryOrder=Array.isArray(prev?.retryOrder)?[...prev.retryOrder]:[];
+    for(const kind of ['groups','tabs'])for(const rid of Object.keys(edits?.[kind]??{})) {
+      const key=kind+':'+rid;if(!retryOrder.includes(key))retryOrder.push(key);
+    }
+    d.blobs[id]={...prev,blob:prev?model.mergeBlob(prev.blob,clean):clean,mergedAt:prev?.mergedAt??Date.now(),retryOrder};
     d.pending[id]=model.applyLocalEdits(d.pending[id],edits);});notify(changed);
 }
 function setIndex(index,ctx) {const s=rebind(ctx.accountId);s.update(d=>{d.index=model.mergeIndex(d.index,index);});notify(changed);}
@@ -46,18 +50,22 @@ function settleIndex(payload,ctx) {
 }
 function mergeSpace(id,remote,version,ctx,encryptFn) {
   const s=rebind(ctx.accountId),entry=s.data.blobs[id];
+  const retryOrder=Array.isArray(entry?.retryOrder)?entry.retryOrder:[];
   const local=entry?.blob??remote??{v:1,spaceId:id,tabs:{},groups:{}};
   const before=copy(s.data.pending[id]??{});
   const plan=model.pushPlan({fetchedBlob:remote,fetchedVersion:version,localBlob:local,pending:before,
-    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable});
+    lastMergeAt:entry?.mergedAt,now:Date.now(),deviceId:ctx.deviceId,encryptFn,lastPublishable:entry?.lastPublishable,admissionOrder:retryOrder});
   s.update(d=>{
     if(plan.recover.size) {
       const recovery=d.recoveries[id]??={tabs:{},groups:{}};
       for(const kind of ['tabs','groups'])for(const rid of plan.recover)if(local[kind][rid])recovery[kind][rid]=copy(local[kind][rid]);
     }
-    d.blobs[id]={...entry,blob:plan.mergedBlob,rev:remote?model.revisionOf(remote):null,mergedAt:plan.nextLastMergeAt,
-      lastPublishable:remote && model.blobFits(remote,encryptFn)?copy(remote):entry?.lastPublishable,
-      unsynced:[...plan.unsynced],reason:plan.reason};
+    d.blobs[id]={...entry,retryOrder,blob:plan.mergedBlob,rev:remote?model.revisionOf(remote):null,mergedAt:plan.nextLastMergeAt,
+      lastPublishable:remote && model.liveTabCount(remote)<=model.LIMITS.tabsPerSpace && model.blobFits(remote,encryptFn)?copy(remote):entry?.lastPublishable,
+      unsynced:[...plan.unsynced].sort((a,b)=>{
+        const rank=id=>retryOrder.findIndex(key=>key==='tabs:'+id||key==='groups:'+id);
+        const ar=rank(a),br=rank(b);return (ar<0?Infinity:ar)-(br<0?Infinity:br) || (a<b?-1:a>b?1:0);
+      }),reason:plan.reason};
     // A failed/no PUT cannot acknowledge unrelated writes. Retention cleanup
     // is independent, and must survive failure and process restart too.
     d.pending[id]=plan.upload?model.settleUpload(plan,before,{blobStored:false}).pending:copy(plan.pendingAfter);
@@ -71,12 +79,21 @@ function settleSpace(id,plan,outcome,ctx) {
   // Writes arriving after the plan was built must survive both success and
   // failure; a response only settles the snapshot it actually represented.
   for(const kind of ['tabs','groups'])for(const [rid,record] of Object.entries(current[kind]??{}))for(const [name,value] of Object.entries(record)) {
+    if(plan.expiredRecords[kind].includes(rid))continue;
     if(canonical(value)===canonical(plan.pendingBefore[kind]?.[rid]?.[name]))continue;
     delta[kind]??={};delta[kind][rid]??={};delta[kind][rid][name]=copy(value);
   }
   const result=model.settleUpload(plan,current,outcome);
   s.update(d=>{
     d.pending[id]=model.applyLocalEdits(result.pending,delta);
+    for(const kind of ['tabs','groups'])for(const rid of plan.expiredRecords[kind]) {
+      delete d.blobs[id].blob[kind][rid];
+      if(d.pending[id][kind])delete d.pending[id][kind][rid];
+    }
+    d.blobs[id].blob=model.sanitizeBlob(d.blobs[id].blob);
+    d.blobs[id].retryOrder=(d.blobs[id].retryOrder??[]).filter(key=>{
+      const [kind,rid]=key.split(':');return !!d.pending[id][kind]?.[rid] || d.blobs[id].unsynced.includes(rid);
+    });
     if(outcome.blobStored && plan.upload)d.blobs[id].lastPublishable=copy(plan.upload.blob);
   });return true;
 }
@@ -103,8 +120,10 @@ function mergeSidecar(remote,ctx) {
   s.update(d=>{d.sidecar=local;});notify(remoteChanged);
 }
 const exportSidecar=ctx=>sanitizeSidecar(rebind(ctx.accountId).data.sidecar);
+const spaceCount=ctx=>Object.values(rebind(ctx.accountId).data.index.spaces).filter(record=>record.deleted?.v!==true).length;
+const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
 module.exports={rebind,snapshot,setEnabled,isEnabled,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
-  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,exportSidecar,mergeSidecar,
+  mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,
   equals:(a,b)=>canonical(a)===canonical(b),hasPublishableContent:payload=>Object.keys(payload?.spaces??{}).length>0,
   onChanged:fn=>changed.add(fn),onRemoteChanged:fn=>remoteChanged.add(fn),
   onSyncDisabled:()=>{rebind('');notify(remoteChanged);}};

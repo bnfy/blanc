@@ -102,4 +102,5 @@ function planApply(displayedBaseline,mergedBlob,protectedTabIds=new Set()) {
   // cold materialization. Applying a remote nav must never steal live focus.
   return {apply,accept,nextBaseline:model.sanitizeBlob(nextBaseline)};
 }
-module.exports={diffWindow,planApply};
+const unsyncedTabIds=space=>(Array.isArray(space?.unsynced)?space.unsynced:[]).filter(id=>validId(id)&&!!space?.blob?.tabs?.[id]);
+module.exports={diffWindow,planApply,unsyncedTabIds};
