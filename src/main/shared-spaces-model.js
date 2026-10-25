@@ -154,9 +154,28 @@ module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex
 // Pending writes are namespaced by record kind/id/field; index publication is a
 // separate caller-owned entry. A fetched value, never a PUT response, settles a
 // field write. These functions never mutate a caller's retained state.
+function sanitizePending(pending = {}) {
+  const out = {};
+  for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(pending[kind] ?? {})) {
+    if (!isId(id) || !record || typeof record !== 'object') continue;
+    for (const [name, normalize] of Object.entries(schemas[kind])) {
+      const raw=record[name];
+      if (!isField(raw)) continue;
+      const v=normalize(raw.v);
+      if (v===undefined || (v===null && !['name','color','groupId'].includes(name))) continue;
+      if (name==='pos' && !validKey(v,id)) continue;
+      out[kind] ??= {}; out[kind][id] ??= {};
+      out[kind][id][name]=field(v,raw.c,raw.by);
+    }
+  }
+  if (isId(pending.index?.id) && typeof pending.index.rev==='string' && /^[0-9a-f]{16}$/.test(pending.index.rev)) {
+    out.index={id:pending.index.id,rev:pending.index.rev};
+  }
+  return out;
+}
 function applyLocalEdits(pending = {}, edits = {}) {
-  const out = copy(pending);
-  for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(edits[kind] ?? {})) {
+  const out = sanitizePending(pending);
+  for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(sanitizePending(edits)[kind] ?? {})) {
     if (!isId(id)) continue;
     out[kind] ??= {};
     out[kind][id] = mergeRecord(out[kind][id], record);
@@ -164,7 +183,7 @@ function applyLocalEdits(pending = {}, edits = {}) {
   return out;
 }
 function settlePending(pending = {}, fetched = {}) {
-  const out = copy(pending);
+  const out = sanitizePending(pending);
   for (const kind of ['tabs','groups']) {
     for (const [id, record] of Object.entries(out[kind] ?? {})) {
       for (const [name, value] of Object.entries(record)) {
@@ -212,7 +231,7 @@ function admissionUnits(candidate,fetched,deviceId) {
     // its dependency closure is mandatory rather than partially serializable.
     const required=!!base && !sanitizeRecord(base,kind);
     units.push({kind,id,key:kind+':'+id,before:base,after:copy(after),required,
-      clock:Math.max(0,...Object.values(after).filter(isField).map(v=>v.c)),dependencies:[]});
+      clock:Math.max(0,...Object.entries(after).filter(([name,v])=>isField(v) && v.by===deviceId && canonical(v)!==canonical(before[name])).map(([,v])=>v.c)),dependencies:[]});
   }
   const newGroups=new Set(units.filter(u=>u.kind==='groups'&&!u.before).map(u=>u.id));
   for(const unit of units)if(unit.kind==='tabs' && newGroups.has(unit.after.groupId?.v)) {
@@ -223,7 +242,16 @@ function admissionUnits(candidate,fetched,deviceId) {
 function admit({candidate,changes=[],encryptFn}) {
   const out=copy(candidate), held=new Set(), unsynced=new Set();
   const fits=()=>liveTabCount(out)<=LIMITS.tabsPerSpace && blobFits(out,encryptFn);
-  const complete=()=>['tabs','groups'].every(kind=>Object.values(out[kind]).every(r=>!!sanitizeRecord(r,kind)));
+  const complete=()=> {
+    if (canonical(sanitizeBlob(out))!==canonical(out)) return false;
+    return changes.every(unit=> {
+      const record=out[unit.kind]?.[unit.id];
+      if (!record || record.deleted?.v===true) return true;
+      if (canonical(record.pos)!==canonical(unit.before?.pos) && !validKey(record.pos?.v,unit.id)) return false;
+      const group=record.groupId?.v;
+      return unit.kind!=='tabs' || !group || !!out.groups[group] || unit.before?.groupId?.v===group;
+    });
+  };
   const initialReason=liveTabCount(out)>LIMITS.tabsPerSpace ? 'tabs'
     : ['tabs','groups'].some(k=>Object.values(out[k]).some(r=>r.deleted?.v===true)) ? 'tombstones' : 'full';
   if(fits()&&complete())return {blob:out,unsynced,reason:null};
@@ -242,6 +270,7 @@ function admit({candidate,changes=[],encryptFn}) {
     hold(unit);
     if(fits()&&complete())return {blob:out,unsynced,reason:initialReason};
   }
+  for (const unit of changes) unsynced.add(unit.id);
   return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
 }
 function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable}) {
@@ -252,7 +281,8 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   const fetched=remote??empty;
   const {recover}=recoveryDecision({localBlob:local??empty,fetchedBlob:remote,lastMergeAt,now});
   const retained=withoutRecords(local??empty,recover);
-  const eligiblePending=withoutRecords(pending,recover);
+  const eligiblePending=withoutRecords(sanitizePending(pending),recover);
+  if (eligiblePending.index?.id!==fetched.spaceId) delete eligiblePending.index;
   const baseMerged=mergeBlob(fetched,retained);
   const retainedOwn={};
   for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(retained[kind])) {
@@ -270,7 +300,7 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   // Proposal only: caller may publish this revision after the blob PUT succeeds.
   // Identity fields remain in the separately merged index, never guessed here.
   const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev}
-    : !admission.reason && pendingAfter.index?.rev === revisionOf(fetched) ? copy(pendingAfter.index) : null;
+    : !admission.reason && pendingAfter.index ? {id:fetched.spaceId,rev:revisionOf(fetched)} : null;
   return {upload,pendingAfter,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
 }
 Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,admit,pushPlan});
@@ -278,10 +308,10 @@ Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,adm
 // The orchestration layer calls this only after observing the real PUT result.
 // Index retry receipts are created by successful blob writes, never by planning.
 function settleUpload(plan, originalPending, {blobStored = false, indexStored = false} = {}) {
-  if (!blobStored) return {pending:copy(originalPending),indexEntry:null};
+  if (plan.upload && !blobStored) return {pending:copy(originalPending),indexEntry:null};
   const pending=copy(plan.pendingAfter);
   if (plan.indexEntry && !indexStored) pending.index=copy(plan.indexEntry);
-  else if (indexStored) delete pending.index;
+  else if (plan.indexEntry && indexStored) delete pending.index;
   return {pending,indexEntry:copy(plan.indexEntry)};
 }
 module.exports.settleUpload=settleUpload;

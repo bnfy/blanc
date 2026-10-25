@@ -17770,7 +17770,20 @@
         "pendingAfter": {
           "tabs": {
             "00000000000000000000000000000011": {
-              "deleted": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
                 "v": false,
                 "c": 100,
                 "by": "a"
@@ -17780,26 +17793,13 @@
                 "c": 100,
                 "by": "a"
               },
-              "name": {
-                "v": null,
-                "c": 100,
-                "by": "a"
-              },
-              "nav": {
-                "v": {
-                  "url": "https://example.test/",
-                  "title": "Example"
-                },
-                "c": 100,
-                "by": "a"
-              },
-              "pinned": {
-                "v": false,
-                "c": 100,
-                "by": "a"
-              },
               "pos": {
                 "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
                 "c": 100,
                 "by": "a"
               }

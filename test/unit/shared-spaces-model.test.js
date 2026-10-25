@@ -215,3 +215,64 @@ test('the 501st local live tab is held without dropping any remote tab', () => {
   assert.equal(p.upload,null);assert.equal(p.reason,'tabs');assert.ok(p.unsynced.has(id(501)));
   assert.equal(m.liveTabCount(p.mergedBlob),501);
 });
+
+test('persisted pending writes cannot upload unknown fields malformed ids or unbounded names', () => {
+  const local=blob({[id(1)]:tab()});
+  const pending={tabs:{[id(1)]:{name:f('x'.repeat(1000),200),unexpected:f('private page state',200)},bad:tab(2)}};
+  const p=m.pushPlan(input(local,local,pending));
+  assert.equal(p.upload.blob.tabs[id(1)].name.v,'x'.repeat(100));
+  assert.equal(p.upload.blob.tabs[id(1)].unexpected,undefined);
+  assert.equal(p.upload.blob.tabs.bad,undefined);
+});
+
+test('pending unsafe addresses and foreign position tags cannot replace valid fields', () => {
+  const local=blob({[id(1)]:tab()});
+  const pending={tabs:{[id(1)]:{nav:f({url:'file:///tmp/private',title:'Private'},200),pos:f(m.keyFor('','',id(2)),200)}}};
+  const p=m.pushPlan(input(local,local,pending));
+  assert.equal(p.upload,null);assert.deepEqual(p.mergedBlob,local);
+});
+
+test('a new missing group reference is withheld without losing the pending edit', () => {
+  const local=blob({[id(1)]:tab()});
+  const pending={tabs:{[id(1)]:{groupId:f(id(123),300)}}};
+  const p=m.pushPlan(input(local,local,pending));
+  assert.equal(p.upload,null);assert.ok(p.unsynced.has(id(1)));
+  assert.equal(p.pendingAfter.tabs[id(1)].groupId.v,id(123));
+});
+
+test('successful index-only retry clears its receipt and acknowledged writes', () => {
+  const local=blob({[id(1)]:tab()}),pending={tabs:local.tabs};
+  const initial=m.pushPlan(input(blob({}),local,pending));
+  const saved=m.settleUpload(initial,pending,{blobStored:true});
+  const retry=m.pushPlan(input(initial.upload.blob,local,saved.pending));
+  const done=m.settleUpload(retry,saved.pending,{indexStored:true});
+  assert.equal(done.pending.index,undefined);assert.equal(done.pending.tabs,undefined);
+});
+
+test('newer fetched content rebases an old index receipt without rewriting the blob', () => {
+  const local=blob({[id(1)]:tab()}),pending={tabs:local.tabs};
+  const initial=m.pushPlan(input(blob({}),local,pending));
+  const saved=m.settleUpload(initial,pending,{blobStored:true});
+  const remote=structuredClone(local);remote.tabs[id(1)].name=f('newer',300,'b');
+  const retry=m.pushPlan(input(remote,local,saved.pending));
+  assert.equal(retry.upload,null);assert.equal(retry.indexEntry.rev,m.revisionOf(remote));
+  assert.equal(m.settleUpload(retry,saved.pending,{indexStored:true}).pending.index,undefined);
+});
+
+test('required-state rejection reports every blocked local record as unsynced', () => {
+  const local=blob({[id(1)]:tab(1,{name:f('from another device',300,'b')})});
+  const pending={tabs:{[id(1)]:{nav:local.tabs[id(1)].nav}}};
+  const p=m.pushPlan(input(blob({}),local,pending,{encryptFn:()=>({ct:'x'.repeat(600000)})}));
+  assert.equal(p.upload,null);assert.equal(p.reason,'required-state-over-budget');
+  assert.ok(p.unsynced.has(id(1)));assert.ok(p.pendingAfter.tabs[id(1)].nav);
+});
+
+test('admission ranks local edits without borrowing an unchanged remote field clock', () => {
+  const remote=blob({[id(1)]:tab(1,{name:f('remote',10000,'b')})});
+  const local=structuredClone(remote);local.tabs[id(1)].nav=f({url:'https://long.test/',title:'Local'},200,'a');
+  local.tabs[id(2)]=Object.fromEntries(Object.entries(tab(2)).map(([k,v])=>[k,{...v,c:1000}]));
+  const budget=s=>{const b=JSON.parse(s);return {ct:'x'.repeat(10000+(b.tabs[id(1)].nav.v.url.includes('long')?250000:0)+(b.tabs[id(2)]?300000:0))};};
+  const p=m.pushPlan(input(remote,local,{},{encryptFn:budget}));
+  assert.ok(p.unsynced.has(id(2)));assert.equal(p.unsynced.has(id(1)),false);
+  assert.equal(p.upload.blob.tabs[id(1)].nav.v.url,'https://long.test/');
+});
