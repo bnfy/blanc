@@ -87,3 +87,16 @@ Then('the sheet reports Spaces unavailable and Favorites still sync',{timeout:18
  assert.equal(await this.sharedPage.locator('#sharedSpacesToggle').isChecked(),false);
  const result=await this.call('sharedSpacesTest','pull',['bookmarks']);assert.equal(result.ok,true);assert.ok(this.sharedFixture.requests.some(r=>r.store==='bookmarks'&&r.status===200));
 });
+When('the shared tab navigates to an internal page',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state'),sid=Object.keys(state.shared.blobs)[0];this.sid=sid;
+ const blob=state.shared.blobs[sid].blob;this.retainedRecord=Object.keys(blob.tabs).find(id=>blob.tabs[id].nav.v.url===this.fixtureUrl('shared-second'));
+ assert.ok(this.retainedRecord);this.retainedNav=blob.tabs[this.retainedRecord].nav.v;
+ await this.call('navigateTab',this.secondTab,'blanc://settings/');
+ await this.call('sharedSpacesTest','capture');
+});
+Then('device B still sees its last shareable web page',{timeout:180000},async function(){
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+ const response=await fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${this.sid}`);assert.equal(response.status,200);
+ const stored=await response.json(),blob=JSON.parse(decrypt(this.sharedKey.key,stored.blob)),record=blob.tabs[this.retainedRecord];
+ assert.equal(record.deleted.v,false);assert.deepEqual(record.nav.v,this.retainedNav);
+});

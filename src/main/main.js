@@ -7688,7 +7688,7 @@ function applySharedSpaceRow(runtime, row) {
 const syncedClosed=require('./synced-closed');
 const { createSharingService } = require('./shared-spaces-service');
 const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
-function isSharedSpacesOffered() { return !app.isPackaged; }
+function isSharedSpacesOffered() { return true; }
 function sharedSidecarSpace(tab,runtime) {
   if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
   const workspace=namedWorkspaces.get(runtime.workspaceId),ctx=sync.sharedContext();

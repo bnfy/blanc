@@ -295,6 +295,15 @@ PR C merges with the switch **unpackaged-only**: `isSharedSpacesOffered()` retur
 
 ## PR D: acceptance, records, security review, the switch in packaged builds
 
+**Owner decisions (2026-10-25):** a shared tab that moves to an internal page,
+local file or other excluded page retains its last shareable web record and
+does not publish deletion. Unbounded account storage is rejected: PR D adds a
+reviewed account-wide Worker quota and fixture enforcement, with
+`NEW_ACCOUNT_DAILY_LIMIT` independently set to 10. Worker deployment,
+real-device validation, merge and PR E remain separately blocked.
+The public privacy page remains release-backed and unchanged in PR D; its
+Shared Spaces disclosure is prepared only with the release evidence in PR E.
+
 **Merge gate:** PR D is the shipping feature PR. Keep it open until the Gate D below is satisfied against its exact head. Removing the packaged-build guard on this branch enables private validation candidates; it does not authorize merging or publishing that branch.
 
 ### Task 11: Two-device scenarios, two complete clients, crashes

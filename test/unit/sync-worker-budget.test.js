@@ -130,10 +130,10 @@ test('at the limit an existing account still uploads', async () => {
   assert.equal((await putBlob(env, accountA, 'settings')).status, 200);
 });
 
-test('a missing or unreadable limit falls back to 100', async () => {
+test('a missing or unreadable limit falls back to 10', async () => {
   for (const vars of [{}, { NEW_ACCOUNT_DAILY_LIMIT: 'lots' }]) {
     const env = storage(vars);
-    env.records.set(`new:${new Date().toISOString().slice(0, 10)}`, '99');
+    env.records.set(`new:${new Date().toISOString().slice(0, 10)}`, '9');
     assert.equal((await putBlob(env, accountA)).status, 200);
     assert.equal((await putBlob(env, accountB)).status, 503);
   }

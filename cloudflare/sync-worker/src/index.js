@@ -43,7 +43,7 @@ async function touchAccount(env, accountId, marker, now = Date.now()) {
 // marker is new; only new accounts are ever refused, so a flood can block
 // sign-ups for a day but never existing users. KV has no atomic increment,
 // so like bumpLimited this is an order-of-magnitude bound, not an exact one.
-const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 100;
+const DEFAULT_NEW_ACCOUNT_DAILY_LIMIT = 10;
 const NEW_COUNTER_TTL_SECONDS = 2 * 24 * 60 * 60;
 const utcDay = (now) => new Date(now).toISOString().slice(0, 10);
 
@@ -95,11 +95,19 @@ async function cleanupInactive(env) {
   const max = limitFrom(env.CLEANUP_MAX_DELETES, DEFAULT_CLEANUP_MAX_DELETES);
   const live = new Set((await listNames(env, 'seen:')).map((name) => name.slice('seen:'.length)));
   let deleted = 0;
+  const touchedAccounts = new Set();
   for (const name of await listNames(env, 'blob:')) {
     if (deleted >= max) break;
     if (live.has(name.split(':')[1])) continue;
+    const accountId = name.split(':')[1];
     await env.SYNC.delete(name);
+    touchedAccounts.add(accountId);
     deleted += 1;
+  }
+  if (env.ACCOUNT_QUOTA) for (const accountId of touchedAccounts) {
+    if ((await listNames(env, `blob:${accountId}:`)).length === 0) {
+      await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/', { method: 'DELETE' });
+    }
   }
   console.log(JSON.stringify({ event: 'sync-cleanup', deleted, live: live.size }));
   return { skipped: false, deleted };
@@ -147,7 +155,21 @@ async function handlePut(env, accountId, store, body) {
   const cur = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
   if ((body.ifVersion ?? null) !== (cur?.version ?? null)) return json({ version: cur?.version ?? null, error: 'conflict' }, 409);
   const version = crypto.randomUUID();
-  await env.SYNC.put(blobKey(accountId, store), JSON.stringify({ version, blob: body.blob }));
+  const stored = JSON.stringify({ version, blob: body.blob });
+  let reservation = null;
+  if (env.ACCOUNT_QUOTA) {
+    const quota = env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId));
+    const response = await quota.fetch('https://quota.invalid/reserve', { method: 'POST', body: JSON.stringify({ accountId, store, bytes: new TextEncoder().encode(stored).byteLength }) });
+    if (response.status === 413) return json({ error: 'account quota exceeded' }, 413);
+    if (!response.ok) return json({ error: 'quota unavailable' }, 503);
+    reservation = { quota, ...(await response.json()) };
+  }
+  try {
+    await env.SYNC.put(blobKey(accountId, store), stored);
+  } catch (error) {
+    if (reservation) await reservation.quota.fetch('https://quota.invalid/rollback', { method: 'POST', body: JSON.stringify({ store, previous: reservation.previous, token: reservation.token }) });
+    throw error;
+  }
   if (!marker) await countNewAccount(env);
   await touchAccount(env, accountId, marker);
   return json({ version });
@@ -162,7 +184,59 @@ async function handleDelete(env, accountId) {
   for (const key of await listNames(env, `blob:${accountId}:`)) keys.add(key);
   await Promise.all([...keys].map((key) => env.SYNC.delete(key)));
   await env.SYNC.delete(seenKey(accountId));
+  if (env.ACCOUNT_QUOTA) await env.ACCOUNT_QUOTA.get(env.ACCOUNT_QUOTA.idFromName(accountId)).fetch('https://quota.invalid/', { method: 'DELETE' });
   return new Response(null, { status: 204 });
+}
+
+const DEFAULT_ACCOUNT_QUOTA_BYTES = 20 * 1024 * 1024;
+const DEFAULT_ACCOUNT_QUOTA_STORES = 256;
+const QUOTA_KEY_OVERHEAD_BYTES = 256;
+
+// One instance per opaque account locator serializes reservations. KV's own
+// read-then-write version check remains non-atomic, but concurrent requests
+// cannot both spend the same quota. The first request inventories legacy KV
+// values so deployment cannot reset an existing account's usage to zero.
+export class AccountQuota {
+  constructor(state, env) { this.state = state; this.env = env; this.initializing = null; }
+  async bootstrap(accountId) {
+    let ledger = await this.state.storage.get('ledger');
+    if (ledger) return ledger;
+    const stores = {};
+    for (const name of await listNames(this.env, `blob:${accountId}:`)) {
+      const value = await this.env.SYNC.get(name);
+      if (value !== null) stores[name.slice(`blob:${accountId}:`.length)] = { bytes: new TextEncoder().encode(value).byteLength, token: null };
+    }
+    ledger = { accountId, stores };
+    await this.state.storage.put('ledger', ledger);
+    return ledger;
+  }
+  async fetch(request) {
+    if (request.method === 'DELETE') { await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }
+    if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
+    const body = await request.json();
+    if (new URL(request.url).pathname === '/rollback') {
+      const ledger = await this.state.storage.get('ledger');
+      if (!ledger) return json({}, 200);
+      if (ledger.stores[body.store]?.token !== body.token) return json({}, 200);
+      if (body.previous === null) delete ledger.stores[body.store]; else ledger.stores[body.store] = { bytes: body.previous, token: null };
+      await this.state.storage.put('ledger', ledger); return json({}, 200);
+    }
+    if (!body || !/^[0-9a-f]{64}$/.test(body.accountId) || typeof body.store !== 'string' || !Number.isSafeInteger(body.bytes) || body.bytes < 0) return json({ error: 'bad quota request' }, 400);
+    this.initializing ??= this.bootstrap(body.accountId);
+    const ledger = await this.initializing;
+    if (ledger.accountId !== body.accountId) return json({ error: 'wrong account' }, 400);
+    const previous = ledger.stores[body.store]?.bytes ?? null;
+    const nextStores = previous === null ? Object.keys(ledger.stores).length + 1 : Object.keys(ledger.stores).length;
+    const nextBytes = Object.values(ledger.stores).reduce((sum, row) => sum + row.bytes + QUOTA_KEY_OVERHEAD_BYTES, 0)
+      - (previous === null ? 0 : previous + QUOTA_KEY_OVERHEAD_BYTES) + body.bytes + QUOTA_KEY_OVERHEAD_BYTES;
+    const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
+    const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
+    if (nextBytes > byteLimit || nextStores > storeLimit) return json({ error: 'account quota exceeded' }, 413);
+    const token = crypto.randomUUID();
+    ledger.stores[body.store] = { bytes: body.bytes, token };
+    await this.state.storage.put('ledger', ledger);
+    return json({ previous, token }, 200);
+  }
 }
 
 async function readBoundedJson(request, maxBytes = MAX_REQUEST_BYTES) {

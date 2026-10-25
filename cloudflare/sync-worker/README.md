@@ -28,6 +28,13 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
 - `new:<UTC day>` counts new accounts. Past `NEW_ACCOUNT_DAILY_LIMIT`, a new
   account's upload gets `503 {"error":"busy"}` with `Retry-After`; existing
   accounts are never refused.
+- An account-scoped Durable Object reserves every blob write against
+  `ACCOUNT_STORAGE_QUOTA_BYTES` (20 MiB by default) and
+  `ACCOUNT_STORAGE_MAX_STORES` (256 by default). It inventories existing KV
+  blobs on first use, includes a fixed per-key allowance, serializes concurrent
+  reservations, and rolls a reservation back if the KV write fails. A full
+  account wipe clears both KV and its quota ledger. Quota exhaustion returns
+  `413 {"error":"account quota exceeded"}` without storing the candidate blob.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
   `CLEANUP_ENABLED = "true"`.
@@ -101,11 +108,11 @@ deletion fencing and authenticated migration are separate v2 work.
 
 ## M16 storage scenarios and deployment decision
 
-The desktop's 25 **live** Spaces limit is not a server quota. The Worker accepts
-arbitrary valid Space ids, and deleted or orphan blobs can accumulate under an
-active account. Inactive-account cleanup does not bound that growth. Reducing
-`NEW_ACCOUNT_DAILY_LIMIT` restricts account creation, not storage per existing
-account. R3/R5 and non-atomic counters remain unchanged.
+The desktop's 25 **live** Spaces limit is not the server quota. Deleted and
+orphan blobs count against the separate account-wide byte and store limits.
+`NEW_ACCOUNT_DAILY_LIMIT` starts at 10 and remains independently configurable;
+changing it does not change an existing account's storage allowance. R3/R5 and
+the underlying KV version race remain unchanged.
 
 Using the **historical pricing assumption** in the October 5 storage design
 ($0.50 per decimal GB-month after 1 GB included), the following is an occupancy
@@ -124,7 +131,8 @@ request charges and any price changes are excluded.
 Arithmetic: `33 * 524288 * dailyAccounts * 365 / 1e9`; price is
 `max(0, GB - 1) * 0.50`. More than 25 historical Space ids changes this scenario:
 1,000 capped Space blobs plus eight fixed blobs is 504 MiB per account, even
-if only 25 Spaces are live. There is no finite per-account byte bound here.
+if only 25 Spaces are live. That was the pre-quota exposure; the Worker now
+refuses growth beyond the configured 20 MiB or 256-store account ceilings.
 
 The October 5 listing measured 42 accounts and 138 blobs; it is historical,
 not a new production measurement. The design estimates 150–220 KiB for a
@@ -137,9 +145,8 @@ a wipe listing N keys needs approximately `ceil(N/P)` listings, deletion of the
 union of those keys and the eight fixed-store keys, and marker deletion. Missing
 fixed keys can therefore add up to eight delete calls; retries add requests.
 
-**Before deployment the owner must separately choose:** explicitly accept
-unbounded per-account blob growth, or require a reviewed, enforceable quota or
-retention mechanism first. No such mechanism is added here. Choosing a lower
-new-account limit is a separate decision and is not acceptance of this risk.
-The former four-store/$36 scenario in the design is historical and does not
-bound M16 storage. The full deployment gate is in the approved M16 plan.
+The owner rejected unbounded per-account growth and selected the quota above,
+separately selecting a daily new-account limit of 10. Both implementation and
+limits require review before deployment. The former four-store/$36 scenario is
+historical and does not bound M16 storage. The full deployment gate remains in
+the approved M16 plan; merging this code does not authorize deployment.

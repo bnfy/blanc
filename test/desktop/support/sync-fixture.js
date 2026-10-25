@@ -4,13 +4,17 @@
 const http=require('node:http');
 const fs=require('node:fs');
 const {AsyncLocalStorage}=require('node:async_hooks');
-const workerPromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../../cloudflare/sync-worker/src/index.js')).toString('base64')}`).then(m=>m.default);
+const workerModulePromise=import(`data:text/javascript;base64,${fs.readFileSync(require.resolve('../../../cloudflare/sync-worker/src/index.js')).toString('base64')}`);
+
+function quotaState() {
+  const values=new Map();return {storage:{get:async key=>structuredClone(values.get(key)),put:async(key,value)=>values.set(key,structuredClone(value)),deleteAll:async()=>values.clear()}};
+}
 
 async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
-  const worker=await workerPromise,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
+  const workerModule=await workerModulePromise,worker=workerModule.default,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
   const requests=[],rules=[];let race=null,url;
   const raw=k=>{if(expires.has(k)&&expires.get(k)<=now()){expires.delete(k);records.delete(k);}return records.get(k)??null;};
-  const env={records,SYNC:{
+  const env={records,NEW_ACCOUNT_DAILY_LIMIT:'10',ACCOUNT_STORAGE_QUOTA_BYTES:String(20*1024*1024),ACCOUNT_STORAGE_MAX_STORES:'256',SYNC:{
     get:async(key,options)=>{
       const context=scope.getStore();let value=raw(key);
       if(context?.fault?.type==='stale'&&key===context.blobKey)value=context.fault.frozen;
@@ -31,6 +35,11 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
       return {keys:all.slice(start,end).map(name=>({name})),list_complete:end>=all.length,...(end<all.length?{cursor:String(end)}:{})};
     },
   }};
+  const quotaObjects=new Map();
+  env.ACCOUNT_QUOTA={idFromName:name=>name,get:id=>({fetch:(url,init)=>{
+    let object=quotaObjects.get(id);if(!object){object=new workerModule.AccountQuota(quotaState(),env);quotaObjects.set(id,object);}
+    return object.fetch(new Request(url,init));
+  }})};
   function inject(input) {
     const rule={...input,remaining:input.times??1};
     if(rule.type==='stale') {
