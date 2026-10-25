@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "49da315fb09c68e9f82f13fb9d4f92513584d32bc010e0728d2ba35d74673526",
+      "sha256": "7b703c596ff0b96633cf6fdc8d5387698bd4b01b247d71a53d48f877595de753",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -337,6 +337,7 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-tab",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",
@@ -625,7 +626,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "70a5f02e134ae0d94efe0e9ee6575f09f5f6a46974cc1f6225ad4cdebd715034",
+      "sha256": "06a554adffd1f7e016376bd946b8ed351e6026c45aa1cda0940a663d6cd8cc62",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -703,6 +704,7 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-tab",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",

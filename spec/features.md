@@ -1219,6 +1219,11 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   or one being quieted, and a space whose window is closing or mid switch is
   a disabled row (#1060). The space's record is written, with the tab, and
   checked before the tab leaves its window; a failed write moves nothing.
+  **New Space…** at the end of the submenu opens the name, colour and symbol
+  editor with a fixed **With this tab** start. Creation saves the tab in the
+  new space before moving it live, without switching this window. It remains
+  available when the current space is the only one; creation is disabled at
+  25 spaces. Cancel creates nothing, and a failed save keeps the editor open.
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.

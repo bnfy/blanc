@@ -26,6 +26,7 @@ test('either pane of a visible two-pane split offers Glance, but unrelated rows 
     closableBeside: () => [], hostOf: () => null, splitCandidatesFor: () => [], sendTargetsFor: () => null,
     // Move to Space ▸ (#1060): no spaces, and a tab that can't move.
     spaceMoveTargets: () => [], canMoveTabToSpace: () => false,
+    namedWorkspaces: { list: () => [] }, MAX_WORKSPACES: 25,
   };
   vm.runInNewContext(`${splitSource}\n${contextSource}\nthis.context = tabContextData;`, sandbox);
   const menu = () => buildTabContextMenu({ ...sandbox.context(tab, owner), surface: 'row', t: englishT });

@@ -2252,4 +2252,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="sends_no_match">Nenhum dispositivo chamado “%1$s”.</string>
     <string name="slash_send_hint">Digite um espaço e depois o nome de um dispositivo — por exemplo, “iPhone”</string>
     <string name="slash_send_doc">Enviar a página desta aba para outro dispositivo sincronizado</string>
+    <string name="tab_menu_new_space">Novo Space…</string>
+    <string name="ws_new_with_tab">Com esta aba</string>
+    <string name="ws_error_saved_not_moved">%1$s foi salvo, mas não foi possível mover a aba.</string>
+    <string name="ws_error_move_failed">Não foi possível mover a aba para %1$s.</string>
 </resources>

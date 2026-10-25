@@ -330,3 +330,48 @@ Feature: Named workspace preservation and recovery
     When Blanc crashes and starts again
     Then the restored window does not have that page
     And "Reading"'s saved tabs list that page 1 time
+
+  @F41-46
+  Scenario: Create a space from a tab when the current space is the only one
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "book"
+    And this window is showing a web page that keeps session storage
+    When I choose New Space from that page's tab menu
+    And I create the tab's new space named "Reading"
+    Then the new space "Reading" has that same live page and this window stays in "One"
+
+  @F41-47
+  Scenario: Cancel creating a space from a tab
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "book"
+    And this window is showing a web page
+    When I choose New Space from that page's tab menu
+    And I cancel the tab's new space editor
+    Then the profile still has only the space "One" and the page stays here
+
+  @F41-48
+  Scenario: A duplicate space name leaves the tab's editor open
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "book"
+    And this window is showing a web page
+    When I choose New Space from that page's tab menu
+    And I create the tab's new space named "One"
+    Then the tab's new space editor stays open with its error and name "One"
+    And the profile still has only the space "One" and the page stays here
+
+  @F41-49
+  Scenario: A failed new-space write leaves the tab and editor intact
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "book"
+    And this window is showing a web page
+    When I choose New Space from that page's tab menu
+    Given the move's save will fail once
+    When I create the tab's new space named "Reading"
+    Then the tab's new space editor stays open with its error and name "Reading"
+    And the profile still has only the space "One" and the page stays here
+
+  @F41-50
+  Scenario: A failed transfer shows the saved new space without offering a duplicate retry
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "book"
+    And this window is showing a web page
+    When I choose New Space from that page's tab menu
+    Given the new space's transfer will fail once
+    When I create the tab's new space named "Reading"
+    Then the Spaces list shows the saved space "Reading" and the move error
+    And this window still has that page, live and selected

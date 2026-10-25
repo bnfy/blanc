@@ -130,3 +130,56 @@ Then('the restored window does not have that page', async function () {
   const inWindow = st.tabOrder.some((id) => st.tabs.find((t) => t.id === id)?.url === this.pageUrl);
   assert.equal(inWindow, false, JSON.stringify(st.tabOrder.map((id) => st.tabs.find((t) => t.id === id)?.url)));
 });
+
+// New Space… uses the real overlay editor, not a test-only create shortcut.
+const { overlayPage } = require('../support/overlay');
+When("I choose New Space from that page's tab menu", async function () {
+  this.pageIdentity = await this.call('workspacePageIdentity', this.pageId);
+  assert.equal(await this.call('runTabMenuItem', this.pageId, 'space-new'), true);
+  const page = await overlayPage();
+  await page.waitForSelector('#workspaceEditor', { state: 'visible' });
+  assert.equal(await page.locator('.ws-segmented').count(), 0, 'the start choice is fixed');
+  assert.match(await page.locator('#workspaceEditor').innerText(), /With this tab/);
+});
+When("I create the tab's new space named {string}", async function (name) {
+  const page = await overlayPage();
+  await page.fill('#workspaceName', name);
+  const submit = page.locator('#workspaceEditor button[type="submit"]');
+  // A duplicate is rejected as the name is typed, before submission.
+  if (await submit.isEnabled()) await submit.click();
+});
+When("I cancel the tab's new space editor", async function () {
+  const page = await overlayPage();
+  await page.locator('#workspaceName').press('Escape');
+  await this.waitForState((st) => st.overlayMode !== 'spaces');
+});
+Then('the new space {string} has that same live page and this window stays in {string}', async function (name, original) {
+  await this.waitForState((st) => !st.tabOrder.includes(this.pageId));
+  const data = await this.call('workspaceAction', 'list');
+  assert.equal(data.items.find(w => w.name === original)?.active, true);
+  assert.equal(data.items.find(w => w.name === name)?.tabCount, 1);
+  assert.equal(await this.call('workspacePageIdentity', this.pageId), this.pageIdentity);
+  const residents = await this.call('residentSpaces');
+  assert.equal(residents.find(w => w.name === name)?.tabs.at(-1)?.id, this.pageId);
+});
+Then('the profile still has only the space {string} and the page stays here', async function (name) {
+  const data = await this.call('workspaceAction', 'list');
+  assert.deepEqual(data.items.map(w => w.name), [name]);
+  const st = await this.state(); assert.ok(st.tabOrder.includes(this.pageId));
+});
+Then("the tab's new space editor stays open with its error and name {string}", async function (name) {
+  const page = await overlayPage();
+  await page.waitForFunction(() => !!document.querySelector('#workspaceEditor .ws-error')?.textContent);
+  assert.equal(await page.locator('#workspaceName').inputValue(), name);
+});
+Given("the new space's transfer will fail once", async function () {
+  assert.deepEqual(await this.call('workspaceAction', 'arm-move-fault', 'transfer'), { ok: true });
+});
+Then('the Spaces list shows the saved space {string} and the move error', async function (name) {
+  const page = await overlayPage();
+  await page.waitForFunction(() => document.querySelector('#workspaceSwitcher')?.dataset.view === 'list');
+  assert.match(await page.locator('#workspaceSwitcher').innerText(), new RegExp(`Saved ${name}`));
+  const data = await this.call('workspaceAction', 'list');
+  assert.ok(data.items.some(w => w.name === name));
+  assert.equal(await page.locator('#workspaceEditor').count(), 0);
+});
