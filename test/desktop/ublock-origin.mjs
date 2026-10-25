@@ -363,9 +363,23 @@ try {
       return result;
     };
     self.uboFixtureRestoreFirstInjections = () => { vAPI.tabs.executeScript = original; };
+    // The scriptlet asks the host for a one-use tool capability before it
+    // builds its iframe; record each request and how long its answer took.
+    self.uboFixtureToolRequests ??= [];
+    if (!self.uboFixtureToolListener) {
+      self.uboFixtureToolListener = (message) => {
+        if (message?.blancTool === 1) self.uboFixtureToolRequests.push({ action: message.action, tool: message.tool, at: Date.now() });
+      };
+      chrome.runtime.onMessage.addListener(self.uboFixtureToolListener);
+    }
   })()`);
   await logger.locator('#showdom').dispatchEvent('click');
   const findInspector = () => page.frames().find(frame => frame.url().includes('/dom-inspector.html'));
+  // How far uBO's inspector scriptlet got in the fixture tab, read from uBO's
+  // own content world, and the capability requests the host has seen.
+  const inspectorProgress = () => injectionLog(`new Promise(resolve => vAPI.tabs.executeScript(${Number(inspectorTab)}, {
+    code: 'JSON.stringify({ inspectorFrame: !!self.vAPI?.inspectorFrame, domFilterer: self.vAPI?.domFilterer instanceof Object, sessionId: typeof self.vAPI?.sessionId, iframes: document.documentElement.querySelectorAll(":scope > iframe").length })',
+  }).then(result => resolve({ tab: result?.[0] ?? null, toolRequests: self.uboFixtureToolRequests ?? null }), error => resolve({ error: String(error?.message || error), toolRequests: self.uboFixtureToolRequests ?? null })))`).catch(String);
   const inspectorClickedAt = Date.now();
   let inspector;
   try {
@@ -384,6 +398,7 @@ try {
       lateArrivalMs: late,
       clickedAt: inspectorClickedAt,
       injections,
+      progress: await inspectorProgress(),
       expectedTab: inspectorTab,
       selectedTab: await logger.locator('#pageSelector').inputValue().catch(String),
       showdomActive: await logger.locator('#showdom').evaluate(el => el.classList.contains('active')).catch(String),
@@ -455,7 +470,7 @@ try {
       })).catch(failure => String(failure));
       const tab = (await call('state').catch(() => null))?.tabs?.find(item => item.url.startsWith(fixture));
       console.error('DOM inspector reconnect diagnostics:', JSON.stringify({
-        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, logger: loggerState, page: pageState,
+        sinceReloadMs: Date.now() - reconnectStarted, reconnectStarted, injections: injections, progress: await inspectorProgress(), logger: loggerState, page: pageState,
         frames: page.frames().map(frame => frame.url()), tab: tab && { url: tab.url, isLoading: tab.isLoading },
       }));
       throw error;
