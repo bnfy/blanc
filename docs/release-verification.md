@@ -122,6 +122,16 @@ way. A real bug always means a fix and a full release.
 
 ### Private Windows and Linux validation before release
 
+For local production-config macOS installers that must be scanned before any
+release side effect, use the same operator command with
+`BLANC_RELEASE_BUILD_ONLY=1` and `BLANC_RELEASE_PLATFORMS=mac`. Both Mac
+architectures, a new version/build number, committed inputs, signing,
+notarization, the press gate and packaged checks remain required. This mode may
+build a clean candidate branch and exits before tag creation, draft creation,
+native workflow dispatch, Sigstore authorization or publication. It does not
+authorize a later release or bypass the ordinary origin/main requirement when
+publishing. Keep the resulting artifact digests with the scan evidence.
+
 When a platform feature needs affected-machine confirmation, build private
 candidates without creating a tag, draft, or public updater entry:
 

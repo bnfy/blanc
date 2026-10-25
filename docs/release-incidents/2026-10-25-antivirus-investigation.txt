@@ -1,5 +1,36 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+SIGNED-INSTALLER PREPARATION: Owner authorized building and scanning the final
+signed installer before release. Prepared version 1.43.2 / Mac build 1432, with
+both arm64 and x64 selected. Added explicit BLANC_RELEASE_BUILD_ONLY=1 to the
+existing release owner: production signing/notarization and packaged gates are
+retained, but execution stops before tag/draft creation, native dispatch,
+Sigstore or publication. A clean candidate branch is allowed only in this
+nonpublishing mode; normal releases still require exact origin/main. Fourteen
+release/build-only tests and bash syntax validation pass. The new version has
+no existing local tag or GitHub release/draft. Developer ID/provisioning-profile
+preflight and existing GitHub authentication pass.
+
+The official castLabs latest release was rechecked on October 25: it remains
+44.9.3+wvcus, published October 22 at 21:31:20Z. Runtime pin and per-platform
+archive hashes remain unchanged in build/ecs-runtime.json; the existing
+security review/waivers are not replaced or broadened by this check.
+
+BUILD HAS NOT STARTED: local EVS configuration has no populated account name
+or authorization tokens. A private copy could not refresh noninteractively.
+The pinned castlabs-evs 1.3.2 client was restored in a temporary virtualenv;
+its supported empty signature cache is initialized, but no account was created
+and no credential was entered, reset or displayed. Signing-related 1Password
+item-name searches found no matching item. Prior ECS setup records name
+temporary EVS files which no longer exist. The GitHub ecs-signing environment
+still has EVS_CONFIG_JSON and EVS_CACHE_JSON secret names; their values are not
+available through the read API and were not exported. A narrow confirmation
+email search found no account message. The owner does not know the local
+configuration location. Existing EVS authentication must be restored, or a
+separately reviewed protected signing route used, before the production VMP
+signing and Apple build can proceed. No signed 1.43.2 installer or installer
+scan is claimed. No tag, draft, publication, feed change or reset occurred.
+
 COMPLETED COMBINED CONTROL: 0/61, with Avast, AVG and Kaspersky all explicitly
 Undetected. The combined 667-file runtime/source/license diagnostic ZIP is
 SHA256 9565e943e7bc482671306450b248b76292ff39284e79a3e5c93903185d1596af,

@@ -24,7 +24,16 @@ MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
 MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.43.1}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
+BUILD_ONLY="${BLANC_RELEASE_BUILD_ONLY:-0}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
+case "$BUILD_ONLY" in
+  0|1) ;;
+  *) echo "BLANC_RELEASE_BUILD_ONLY must be 0 or 1." >&2; exit 1 ;;
+esac
+if [ "$BUILD_ONLY" = 1 ] && [ "$PLATFORM_CSV" != mac ]; then
+  echo "Build-only mode builds local macOS artifacts; use platforms=mac." >&2
+  exit 1
+fi
 
 if [ "$(uname -s)" = "Darwin" ]; then
   case "$RELEASE_OPERATOR" in
@@ -323,7 +332,7 @@ fi
 
 git fetch origin --quiet
 LOCAL_HEAD="$(git rev-parse HEAD)"
-if [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
+if [ "$BUILD_ONLY" != 1 ] && [ "$LOCAL_HEAD" != "$(git rev-parse origin/main)" ]; then
   echo "HEAD is not origin/main. Push the exact release commit first." >&2
   exit 1
 fi
@@ -548,6 +557,14 @@ if should_run ecs-acceptance; then
       BLANC_PACKAGED_EXECUTABLE="$ECS_APP/Contents/MacOS/Blanc" \
       node test/desktop/ecs-production-drm-smoke.mjs
   fi
+fi
+
+if [ "$BUILD_ONLY" = 1 ]; then
+  echo "==> Signed/notarized build and packaged checks complete for $LOCAL_HEAD."
+  echo "    Build-only stop: no tag, draft, native dispatch, Sigstore or publication."
+  echo "    Scan these exact artifacts before authorizing any release:"
+  shasum -a 256 "${MAC_ASSETS[@]}"
+  exit 0
 fi
 
 # A draft release's requested tag is not exposed as a Git ref. Publish the
