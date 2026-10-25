@@ -8276,5 +8276,201 @@
   "sharedSpaces.recoveryNote": {
     "message": "A local recovery Space preserves tabs missing from an old shared copy.",
     "note": "Development-only Shared Spaces controls."
+  },
+  "ios.settings.privacy": {
+    "message": "Privacy",
+    "note": "Native iOS Settings sheet: privacy."
+  },
+  "ios.settings.blocker": {
+    "message": "Blanc Blocker",
+    "note": "Native iOS Settings sheet: blocker."
+  },
+  "ios.settings.connected": {
+    "message": "Connected",
+    "note": "Native iOS Settings sheet: connected."
+  },
+  "ios.settings.notConnected": {
+    "message": "Not connected",
+    "note": "Native iOS Settings sheet: notConnected."
+  },
+  "ios.settings.about": {
+    "message": "About",
+    "note": "Native iOS Settings sheet: about."
+  },
+  "ios.settings.version": {
+    "message": "Version",
+    "note": "Native iOS Settings sheet: version."
+  },
+  "ios.settings.website": {
+    "message": "Website",
+    "note": "Native iOS Settings sheet: website."
+  },
+  "ios.settings.privacyPolicy": {
+    "message": "Privacy policy",
+    "note": "Native iOS Settings sheet: privacyPolicy."
+  },
+  "ios.settings.support": {
+    "message": "Support",
+    "note": "Native iOS Settings sheet: support."
+  },
+  "ios.settings.removeSite": {
+    "message": "Remove site",
+    "note": "Native iOS Settings sheet: removeSite."
+  },
+  "ios.settings.site": {
+    "message": "example.com",
+    "note": "Native iOS Settings sheet: site."
+  },
+  "ios.settings.addSite": {
+    "message": "Add site",
+    "note": "Native iOS Settings sheet: addSite."
+  },
+  "ios.settings.exceptions": {
+    "message": "Allowed sites",
+    "note": "Native iOS Settings sheet: exceptions."
+  },
+  "ios.settings.invalidSite": {
+    "message": "Enter a valid website address.",
+    "note": "Native iOS Settings sheet: invalidSite."
+  },
+  "ios.settings.duplicateSite": {
+    "message": "This site is already allowed.",
+    "note": "Native iOS Settings sheet: duplicateSite."
+  },
+  "ios.settings.preview": {
+    "message": "Start Page preview",
+    "note": "Native iOS Settings sheet: preview."
+  },
+  "ios.settings.source": {
+    "message": "Source",
+    "note": "Native iOS Settings sheet: source."
+  },
+  "ios.settings.custom": {
+    "message": "Photo",
+    "note": "Native iOS Settings sheet: custom."
+  },
+  "ios.settings.choosePhoto": {
+    "message": "Choose photo",
+    "note": "Native iOS Settings sheet: choosePhoto."
+  },
+  "ios.settings.removePhoto": {
+    "message": "Remove photo",
+    "note": "Native iOS Settings sheet: removePhoto."
+  },
+  "ios.settings.treatment": {
+    "message": "Treatment",
+    "note": "Native iOS Settings sheet: treatment."
+  },
+  "ios.settings.saved": {
+    "message": "Saved",
+    "note": "Native iOS Settings sheet: saved."
+  },
+  "ios.settings.status": {
+    "message": "Status",
+    "note": "Native iOS Settings sheet: status."
+  },
+  "ios.settings.account": {
+    "message": "Account",
+    "note": "Native iOS Settings sheet: account."
+  },
+  "ios.settings.lastSynced": {
+    "message": "Last synced",
+    "note": "Native iOS Settings sheet: lastSynced."
+  },
+  "ios.settings.pairingCode": {
+    "message": "Pairing or recovery code",
+    "note": "Native iOS Settings sheet: pairingCode."
+  },
+  "ios.settings.switchAccount": {
+    "message": "Switch account",
+    "note": "Native iOS Settings sheet: switchAccount."
+  },
+  "ios.settings.passphrase": {
+    "message": "Passphrase",
+    "note": "Native iOS Settings sheet: passphrase."
+  },
+  "ios.settings.signIn": {
+    "message": "Sign in",
+    "note": "Native iOS Settings sheet: signIn."
+  },
+  "ios.settings.existingAccount": {
+    "message": "Use name and passphrase",
+    "note": "Native iOS Settings sheet: existingAccount."
+  },
+  "ios.settings.deviceName": {
+    "message": "Device name",
+    "note": "Native iOS Settings sheet: deviceName."
+  },
+  "ios.settings.saveName": {
+    "message": "Save name",
+    "note": "Native iOS Settings sheet: saveName."
+  },
+  "ios.settings.shareTabs": {
+    "message": "Share open tabs",
+    "note": "Native iOS Settings sheet: shareTabs."
+  },
+  "ios.settings.disconnect": {
+    "message": "Disconnect",
+    "note": "Native iOS Settings sheet: disconnect."
+  },
+  "ios.settings.working": {
+    "message": "Working",
+    "note": "Native iOS Settings sheet: working."
+  },
+  "ios.settings.expires": {
+    "message": "Time remaining",
+    "note": "Native iOS Settings sheet: expires."
+  },
+  "ios.settings.newCode": {
+    "message": "New code",
+    "note": "Native iOS Settings sheet: newCode."
+  },
+  "ios.settings.blockerHelp": {
+    "message": "Block ads and trackers on websites. Turning this off disables protection on all tabs and reloads web pages.",
+    "note": "Native iOS Settings sheet: blockerHelp."
+  },
+  "ios.settings.exceptionsHelp": {
+    "message": "Blanc Blocker is off on these sites. Adding or removing a site reloads its open pages.",
+    "note": "Native iOS Settings sheet: exceptionsHelp."
+  },
+  "ios.settings.clockHelp": {
+    "message": "Clock choices apply to the Billboard layout. Your choices are saved when you use another layout.",
+    "note": "Native iOS Settings sheet: clockHelp."
+  },
+  "ios.settings.photoHelp": {
+    "message": "Only the photo you choose is shared with Blanc. It stays on this device.",
+    "note": "Native iOS Settings sheet: photoHelp."
+  },
+  "ios.settings.saveFailed": {
+    "message": "Could not save this change. Try again.",
+    "note": "Native iOS Settings sheet: saveFailed."
+  },
+  "ios.settings.glassHelp": {
+    "message": "Glass uses the native effect on iOS 26 and later. Earlier versions and Reduce Transparency use the web fallback.",
+    "note": "Native iOS Settings sheet: glassHelp."
+  },
+  "ios.settings.syncHelp": {
+    "message": "Sync Favorites and supported settings with end-to-end encryption. History, private tabs, and wallpaper photos stay on this device.",
+    "note": "Native iOS Settings sheet: syncHelp."
+  },
+  "ios.settings.pairingHelp": {
+    "message": "On a device that already syncs, open Settings → Sync → Add another device. Enter its code here, or paste your recovery code.",
+    "note": "Native iOS Settings sheet: pairingHelp."
+  },
+  "ios.settings.shareTabsHelp": {
+    "message": "Share this phone’s regular open tabs with your other devices. Private tabs are never shared.",
+    "note": "Native iOS Settings sheet: shareTabsHelp."
+  },
+  "ios.settings.disconnectHelp": {
+    "message": "Disconnect this phone? Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "Native iOS Settings sheet: disconnectHelp."
+  },
+  "ios.settings.switchHelp": {
+    "message": "This phone will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected.",
+    "note": "Native iOS Settings sheet: switchHelp."
+  },
+  "ios.settings.timeOfDay": {
+    "message": "Time of day",
+    "note": "Native iOS Settings sheet: time-of-day."
   }
 }

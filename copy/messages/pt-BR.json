@@ -7992,5 +7992,201 @@
   "sharedSpaces.recoveryNote": {
     "message": "Um Space de recuperação local preserva as abas ausentes de uma cópia compartilhada antiga.",
     "source": "sha256:ca7b8b4278e3debe18cf507f99911dd03d156c3947f0c697cfbb5e8f21232e9d"
+  },
+  "ios.settings.privacy": {
+    "message": "Privacidade",
+    "source": "sha256:a54774194924512cd6da78251641574690dc0ca7699ba6a57e6c6238cf7cd527"
+  },
+  "ios.settings.blocker": {
+    "message": "Blanc Blocker",
+    "source": "sha256:5bd5bbb11a4c4ac998e0f76ec4d653e2dba3fb85f5d581c976917e881cf7c2f2"
+  },
+  "ios.settings.connected": {
+    "message": "Conectado",
+    "source": "sha256:e4011f9ddf1332ef0a8cf5de1a9e0e5f1a24eb6428bd73745dcb8326e896a1c9"
+  },
+  "ios.settings.notConnected": {
+    "message": "Não conectado",
+    "source": "sha256:b4fac9a01ea0918dd5daff378e1b6d88952dd406322e69a5ec464ae99b36d5a1"
+  },
+  "ios.settings.about": {
+    "message": "Sobre o Blanc",
+    "source": "sha256:1ac1e63d9d4c4a5e13203460f15ff8525baad1140d1a1787eb2ac696280b244a"
+  },
+  "ios.settings.version": {
+    "message": "Versão",
+    "source": "sha256:03220677c6da8c172ed0d108639c16d5d3a872e9060bc427b580ad836baa55c2"
+  },
+  "ios.settings.website": {
+    "message": "Site",
+    "source": "sha256:23d5206eb99b325eb2386012c95032ab28c44626c2d8cb0f7f5fc06eaeddf623"
+  },
+  "ios.settings.privacyPolicy": {
+    "message": "Política de privacidade",
+    "source": "sha256:d79393dde104184a49c2f906a78234f21acd3c837b63417421e79ea7c529bf5b"
+  },
+  "ios.settings.support": {
+    "message": "Suporte",
+    "source": "sha256:f062d9419e3477db51173193a8bce39bcc55b8814f24c63e1bdfe63caf9e09e0"
+  },
+  "ios.settings.removeSite": {
+    "message": "Remover site",
+    "source": "sha256:15b9586b8be965455a2007194acf3afc52c61823f0af7307e735e9a076643b23"
+  },
+  "ios.settings.site": {
+    "message": "example.com",
+    "source": "sha256:0963f153bc2579ae016a748737b55d4e0396ed28377d0f740dfdd947807eb8b0"
+  },
+  "ios.settings.addSite": {
+    "message": "Adicionar site",
+    "source": "sha256:7c49c5e913ea5d1b4e7aed6129d700af12188883bb68c7aaadece958905c3ae2"
+  },
+  "ios.settings.exceptions": {
+    "message": "Sites permitidos",
+    "source": "sha256:bfa4b4b79a3f74bee0f0870046de5ba617b01dfde27c9a9962eb8b80a727ebc7"
+  },
+  "ios.settings.invalidSite": {
+    "message": "Digite um endereço de site válido.",
+    "source": "sha256:25f0e510cbcbadf9dc7fa7f8d57334629787fccf24f2ebb37b32c65a969cbb54"
+  },
+  "ios.settings.duplicateSite": {
+    "message": "Este site já está permitido.",
+    "source": "sha256:12285355d7e959a6d2816e6e33178d8c09d0598a20563a4512eae0022cfb88f1"
+  },
+  "ios.settings.preview": {
+    "message": "Prévia da página inicial",
+    "source": "sha256:2f187954048214be6a36a82d047d5f7c85286224648237778d3ae66d67562513"
+  },
+  "ios.settings.source": {
+    "message": "Origem",
+    "source": "sha256:3e8a2d5725d2ad87c649365dbcd061e30828dbd01809ffc8f9615120a42fac17"
+  },
+  "ios.settings.custom": {
+    "message": "Foto",
+    "source": "sha256:949572ac6d9d7cde2df69979de5153624ac56c000baf29f91a984163479ab2b2"
+  },
+  "ios.settings.choosePhoto": {
+    "message": "Escolher foto",
+    "source": "sha256:4fce8a611e7e598a491c9402f1628c64e17476d49a78584c3d56db2a1881d626"
+  },
+  "ios.settings.removePhoto": {
+    "message": "Remover foto",
+    "source": "sha256:38be585c93d8d4020ed24b9b205215cf1a2d99014ba68a40c6dbb3ac0412066d"
+  },
+  "ios.settings.treatment": {
+    "message": "Aparência",
+    "source": "sha256:b4569290a120889ae1006c9dc7f46d7e270160264aadee6dbca5363956e8a751"
+  },
+  "ios.settings.saved": {
+    "message": "Salvo",
+    "source": "sha256:b362ad25a70993beae1c9a72d2e3058223086d4d514c1fdd7baf4153fe51424d"
+  },
+  "ios.settings.status": {
+    "message": "Status",
+    "source": "sha256:521ea5c4fe54bc19c54b4833c927e3e3bd0e4a498d54dc48df46dabbfcd81fe5"
+  },
+  "ios.settings.account": {
+    "message": "Conta",
+    "source": "sha256:1de790597456e91282f706c1ad5e51a4fbf3511288a79e10482fecfc300756e7"
+  },
+  "ios.settings.lastSynced": {
+    "message": "Última sincronização",
+    "source": "sha256:a7d1ca5badb1ff34532f66aa5344166e44cbde676b37f84378bf7340a112f1ca"
+  },
+  "ios.settings.pairingCode": {
+    "message": "Código de pareamento ou recuperação",
+    "source": "sha256:5118c6192e0410bd19ec2ba4e0dcbf49fed533097bf146f673cdea648619edcc"
+  },
+  "ios.settings.switchAccount": {
+    "message": "Trocar de conta",
+    "source": "sha256:e979c588a82eed0c84e787bdd43a59fbd774cac6864823ffc07bcebc7de4862a"
+  },
+  "ios.settings.passphrase": {
+    "message": "Frase-senha",
+    "source": "sha256:2f44d6dd3387fd0be1ffbc653544caf9827f35503843a80c6b3da992241e49af"
+  },
+  "ios.settings.signIn": {
+    "message": "Entrar",
+    "source": "sha256:b0b5baa73c589ce33ffd59b9cc2ecbec8540cd49b36a9d66b18680c5b99c5fad"
+  },
+  "ios.settings.existingAccount": {
+    "message": "Usar nome e frase-senha",
+    "source": "sha256:4fb2905d7c016132da5db86ec2c60471a4b5ce7a015912f8778d2b31b6d5c0f0"
+  },
+  "ios.settings.deviceName": {
+    "message": "Nome do dispositivo",
+    "source": "sha256:193c2abb9a4a2c5f821838b0acbbe3c4f99794724a95044b69a356f6fbdc55c5"
+  },
+  "ios.settings.saveName": {
+    "message": "Salvar nome",
+    "source": "sha256:3b299d0b5d314f8c1a740b6037e7446d4183f904e696d4859f70e89b8af5b0e0"
+  },
+  "ios.settings.shareTabs": {
+    "message": "Compartilhar abas abertas",
+    "source": "sha256:d1a22aa51df6d7ef5e86c824d0e2d59edc93f82d3c33923d1a8f2129e1ebbbd2"
+  },
+  "ios.settings.disconnect": {
+    "message": "Desconectar",
+    "source": "sha256:c1a7f3172132fc0b6acd8d87631680ee4f4b9dd582c5993ca6b6e9314b554bc5"
+  },
+  "ios.settings.working": {
+    "message": "Em andamento",
+    "source": "sha256:0309c3399ba88afe470ed9ecc49ab4c3308f2f640c2c269f7223bda752faee41"
+  },
+  "ios.settings.expires": {
+    "message": "Tempo restante",
+    "source": "sha256:fcd0d956909d3589349aec51adfb7c6cb7f844cebfb5a98cfb72543de059b14c"
+  },
+  "ios.settings.newCode": {
+    "message": "Novo código",
+    "source": "sha256:db09c25ae87137b8dced5dec24494ac13b82a24f3b8775c95091d4a1cc908242"
+  },
+  "ios.settings.blockerHelp": {
+    "message": "Bloqueie anúncios e rastreadores nos sites. Ao desativar, a proteção é desligada em todas as abas e as páginas web são recarregadas.",
+    "source": "sha256:7f6922ef020abf7d0533e7c3104d0153482f0b9a920c1ea73d2da29f832882fe"
+  },
+  "ios.settings.exceptionsHelp": {
+    "message": "O Blanc Blocker está desativado nestes sites. Adicionar ou remover um site recarrega suas páginas abertas.",
+    "source": "sha256:a20f4a891c4b64439597e1f7874197086222b9118eed13c5d19349db6e0c5112"
+  },
+  "ios.settings.clockHelp": {
+    "message": "As opções do relógio se aplicam ao layout Billboard. Suas escolhas ficam salvas quando você usa outro layout.",
+    "source": "sha256:1d68bf380b123cb5531ef0ac24c9caf6a387d288816876c5adb22844c9affeeb"
+  },
+  "ios.settings.photoHelp": {
+    "message": "O Blanc recebe apenas a foto que você escolhe. Ela fica neste dispositivo.",
+    "source": "sha256:7db47e41ae98080120f22dc18f32f53fe686bfe6b333ac51d7f5490ffe3e5846"
+  },
+  "ios.settings.saveFailed": {
+    "message": "Não foi possível salvar a alteração. Tente novamente.",
+    "source": "sha256:4d1c3b8006d131f6820f5f00339dcbe9103862534cee214e42224af640f53812"
+  },
+  "ios.settings.glassHelp": {
+    "message": "Vidro usa o efeito nativo a partir do iOS 26. Versões anteriores e Reduzir Transparência usam a alternativa web.",
+    "source": "sha256:e86bf1efbfc1110387850d3ef69ca600fe1420957f693fd41e1be8d0a8a87366"
+  },
+  "ios.settings.syncHelp": {
+    "message": "Sincronize Favoritos e ajustes compatíveis com criptografia de ponta a ponta. Histórico, abas privadas e fotos de fundo ficam neste dispositivo.",
+    "source": "sha256:d5cc2e2129cff8899ddbc4ee394c452ae9060498f0de8a277a3bcc4695702a1b"
+  },
+  "ios.settings.pairingHelp": {
+    "message": "Em um dispositivo já sincronizado, abra Ajustes → Sync → Adicionar outro dispositivo. Digite o código aqui ou cole seu código de recuperação.",
+    "source": "sha256:d432e4a3c44c6419df05bb640405f1c5bd48d3ee06af09fa36d7b4b61e9fc824"
+  },
+  "ios.settings.shareTabsHelp": {
+    "message": "Compartilhe as abas abertas normais deste iPhone com seus outros dispositivos. Abas privadas nunca são compartilhadas.",
+    "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
+  },
+  "ios.settings.disconnectHelp": {
+    "message": "Desconectar este iPhone? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
+    "source": "sha256:0d8334eb54e8e7eb72a963a6d65e2b3f72ddcf351d20fe7ec101467fc4b4b1dd"
+  },
+  "ios.settings.switchHelp": {
+    "message": "Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados.",
+    "source": "sha256:82889fc299ef71255083ed05c51921fbfccc2eb8977562d6a8ae7c56b793c272"
+  },
+  "ios.settings.timeOfDay": {
+    "message": "Hora do dia",
+    "source": "sha256:a63140cd67b709307ec00e3b47a43a3c21f83ae9f61fa0dc82d64b4046761936"
   }
 }

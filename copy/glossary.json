@@ -223,7 +223,14 @@
       "newtab.clock.font.inter",
       "newtab.clock.font.flex",
       "settings.general.surfaceStyle.sunrise",
-      "settings.general.surfaceStyle.neutral"
+      "settings.general.surfaceStyle.neutral",
+      "ios.settings.blocker",
+      "ios.settings.version",
+      "ios.settings.website",
+      "ios.settings.support",
+      "ios.settings.site",
+      "ios.settings.status",
+      "ios.settings.passphrase"
     ],
     "es": [
       "about.chromium",
@@ -270,7 +277,9 @@
       "newtab.clock.font.inter",
       "newtab.clock.color",
       "newtab.clock.font.flex",
-      "settings.general.surfaceStyle.sunrise"
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.site"
     ],
     "fr": [
       "about.chromium",
@@ -324,7 +333,12 @@
       "newtab.clock.font.inter",
       "newtab.clock.style",
       "newtab.clock.font.flex",
-      "settings.general.surfaceStyle.sunrise"
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.version",
+      "ios.settings.site",
+      "ios.settings.source",
+      "ios.settings.custom"
     ],
     "pt-BR": [
       "about.chromium",
@@ -370,7 +384,10 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.font.flex",
-      "settings.general.surfaceStyle.sunrise"
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.blocker",
+      "ios.settings.site",
+      "ios.settings.status"
     ],
     "it": [
       "about.chromium",
@@ -427,7 +444,12 @@
       "newtab.clock.font.instrument",
       "newtab.clock.font.inter",
       "newtab.clock.font.flex",
-      "settings.general.surfaceStyle.sunrise"
+      "settings.general.surfaceStyle.sunrise",
+      "ios.settings.privacy",
+      "ios.settings.blocker",
+      "ios.settings.site",
+      "ios.settings.account",
+      "ios.settings.passphrase"
     ]
   }
 }
