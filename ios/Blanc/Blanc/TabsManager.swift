@@ -153,6 +153,14 @@ final class TabsManager {
         return tabs.first { $0.id == activeTabId }
     }
 
+    /// The tab `offset` places from `id` in tab order, without wrapping (M11's
+    /// sideways swipe on the Island).
+    func neighbor(of id: UUID?, offset: Int) -> TabModel? {
+        guard let id, let index = tabs.firstIndex(where: { $0.id == id }),
+              tabs.indices.contains(index + offset) else { return nil }
+        return tabs[index + offset]
+    }
+
     var isAdBlockReady: Bool {
         contentBlocker.isReady && contentBlocker.enabled
     }

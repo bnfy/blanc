@@ -97,4 +97,15 @@ import XCTest
         SlashCommand.available.first { $0.command == "/reopen" }?.execute(m)
         XCTAssertEqual(m.activeTab?.currentURL.host, "b.example")
     }
+
+    func testNeighborFollowsTabOrder() {
+        let m = manager()
+        let first = m.tabs[0]
+        let b = open(m, "b.example"), c = open(m, "c.example")
+        XCTAssertTrue(m.neighbor(of: b.id, offset: 1) === c)
+        XCTAssertTrue(m.neighbor(of: b.id, offset: -1) === first)
+        XCTAssertNil(m.neighbor(of: c.id, offset: 1), "no wrap past the last tab")
+        XCTAssertNil(m.neighbor(of: first.id, offset: -1), "no wrap before the first tab")
+        XCTAssertNil(m.neighbor(of: nil, offset: 1))
+    }
 }
