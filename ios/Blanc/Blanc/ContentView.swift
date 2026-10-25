@@ -12,6 +12,10 @@ struct ContentView: View {
     /// M11: how far the page has followed a sideways swipe on the Island.
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwiping = false
+    /// True while a switch's slide finishes; a new swipe waits for it.
+    @State private var isCommitting = false
+    /// Resets on its own when the drag ends or is cancelled.
+    @GestureState private var isDragging = false
     @State private var pageWidth: CGFloat = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -76,25 +80,18 @@ struct ContentView: View {
                     .accessibilityAddTraits(.updatesFrequently)
                     .accessibilityIdentifier("send.banner")
             }
-            if manager.lastClosed != nil {
-                // M11: a closed tab can come back for five seconds.
-                HStack(spacing: 14) {
-                    Text(SyncCopy.text("tabs.closedToast")).font(BrowserStyle.font(13))
-                    Button(SyncCopy.text("menu.undo")) { withAnimation { manager.undoClose() } }
-                        .font(BrowserStyle.font(13, semibold: true))
-                        .frame(minHeight: 32)
-                        .contentShape(Rectangle())
-                        .accessibilityIdentifier("banner.undo")
-                }
-                .padding(.horizontal, 16).padding(.vertical, 4)
-                .background(style.raised, in: Capsule())
-                .overlay(Capsule().strokeBorder(style.border, lineWidth: 0.5))
-                .transition(.opacity)
-            }
+            UndoBanner(manager: manager, style: style)
             addressPill
                 .simultaneousGesture(DragGesture(minimumDistance: 12)
+                    .updating($isDragging) { _, dragging, _ in dragging = true }
                     .onChanged(swipeChanged)
                     .onEnded(swipeEnded))
+                .onChange(of: isDragging) { _, dragging in
+                    // A cancelled drag (a call, Control Center) gets no onEnded.
+                    guard !dragging, isSwiping else { return }
+                    isSwiping = false
+                    if !isCommitting { withAnimation(Self.swipeSpring) { swipeOffset = 0 } }
+                }
                 .accessibilityAction(named: "Show all tabs") { openTabGrid() }
                 .accessibilityAction(named: SyncCopy.text("menu.nextTab")) { switchTab(by: 1) }
                 .accessibilityAction(named: SyncCopy.text("menu.previousTab")) { switchTab(by: -1) }
@@ -122,6 +119,7 @@ struct ContentView: View {
     }
 
     private func swipeChanged(_ value: DragGesture.Value) {
+        guard !isCommitting else { return }
         if !isSwiping {
             guard IslandSwipe.isSideways(value.translation) else { return }
             isSwiping = true
@@ -134,6 +132,7 @@ struct ContentView: View {
     }
 
     private func swipeEnded(_ value: DragGesture.Value) {
+        guard !isCommitting else { return }
         guard isSwiping else {
             // The Island's upward swipe opens the tab grid.
             if value.translation.height < -40 && abs(value.translation.height) > abs(value.translation.width) {
@@ -160,6 +159,7 @@ struct ContentView: View {
     /// Goes to the next (1) or previous (-1) tab: the page slides the rest of
     /// the way, or cross-fades with Reduce Motion.
     private func switchTab(by offset: Int) {
+        guard !isCommitting else { return }
         guard let target = manager.neighbor(of: manager.activeTabId, offset: offset) else {
             withAnimation(Self.swipeSpring) { swipeOffset = 0 }
             return
@@ -169,9 +169,11 @@ struct ContentView: View {
             withAnimation(.easeInOut(duration: 0.2)) { manager.setActive(target.id) }
             return
         }
+        isCommitting = true
         withAnimation(Self.swipeSpring) {
             swipeOffset = offset > 0 ? -pageWidth : pageWidth
         } completion: {
+            isCommitting = false
             var settle = Transaction()
             settle.disablesAnimations = true
             withTransaction(settle) {

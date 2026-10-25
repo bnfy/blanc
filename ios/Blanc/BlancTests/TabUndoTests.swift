@@ -108,4 +108,14 @@ import XCTest
         XCTAssertNil(m.neighbor(of: first.id, offset: -1), "no wrap before the first tab")
         XCTAssertNil(m.neighbor(of: nil, offset: 1))
     }
+
+    func testReopenDuringTheUndoWindowRestoresTheLiveTab() {
+        let m = manager()
+        let b = open(m, "b.example"), _ = open(m, "c.example")
+        m.closeTab(b.id)
+        XCTAssertTrue(m.reopenLast())
+        XCTAssertTrue(m.tabs.contains { $0 === b }, "the same tab, not a fresh load of its address")
+        XCTAssertNil(m.lastClosed)
+        XCTAssertTrue(m.reopenList.isEmpty)
+    }
 }

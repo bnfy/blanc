@@ -52,6 +52,9 @@ struct TabGridView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
+        .overlay(alignment: .bottom) {
+            UndoBanner(manager: manager, style: style).padding(.bottom, 76)
+        }
         .foregroundStyle(style.text)
         .background(style.surface.ignoresSafeArea())
         .background(TabPreviewRenderer(tabs: manager.tabs).allowsHitTesting(false).accessibilityHidden(true))
@@ -89,6 +92,9 @@ struct TabGridView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { select(tab) }
+            .accessibilityAction(named: SyncCopy.text("settings.gesture.action.closeTab")) {
+                withAnimation { manager.closeTab(tab.id) }
+            }
             .accessibilityIdentifier("tab.card")
             .accessibilityLabel("Switch to \(title(tab))")
             .accessibilityAddTraits(manager.activeTabId == tab.id ? .isSelected : [])
@@ -131,12 +137,20 @@ private struct SwipeToClose<Content: View>: View {
     @ViewBuilder let content: Content
     @State private var dx: CGFloat = 0
     @State private var isSwiping = false
+    @GestureState private var isDragging = false
 
     var body: some View {
         content
             .offset(x: reduceMotion ? 0 : dx)
             .opacity(1 - min(abs(dx) / 240, 0.7))
+            .onChange(of: isDragging) { _, dragging in
+                // A cancelled drag gets no onEnded: put the card back.
+                guard !dragging, isSwiping else { return }
+                isSwiping = false
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { dx = 0 }
+            }
             .simultaneousGesture(DragGesture(minimumDistance: 20)
+                .updating($isDragging) { _, dragging, _ in dragging = true }
                 .onChanged { value in
                     if !isSwiping {
                         guard IslandSwipe.isSideways(value.translation) else { return }

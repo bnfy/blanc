@@ -359,6 +359,8 @@ final class TabsManager {
     /// Opens the newest closed tab again (/reopen).
     @discardableResult
     func reopenLast() -> Bool {
+        // While Undo still holds the live tab, bring that back exactly.
+        if lastClosed != nil { undoClose(); return true }
         expireUndo()
         guard !reopenList.isEmpty else { return false }
         createTab(url: reopenList.removeFirst().url)
