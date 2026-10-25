@@ -1,5 +1,57 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+EXACT KASPERSKY ARCHIVED MEMBER IDENTIFIED (17:14 EDT).
+A one-member ZIP of unchanged uAssets tools/update-3rdparties.sh completed
+1/63 and reproduces Kaspersky UDS:Trojan-PSW.Win32.Mimikatz. The original member
+is 1,099 bytes, SHA256
+3d7f5cc541a347155ec15a88c6172dda0100a415883127d9c60ed77aaec53f77.
+The positive ZIP preserves its complete original upstream directory path,
+uassets-update-3rdparties-only.zip, 763 bytes, SHA256
+8401c1b7590260c9158d54f6beea8f9c88c93556604cc008d9e0c7c12d388c78.
+https://www.virustotal.com/gui/file/8401c1b7590260c9158d54f6beea8f9c88c93556604cc008d9e0c7c12d388c78/detection
+This is a fresh archived-member reproduction, not a fresh positive scan of the
+bare script; its older cached bare-file scan was clean. The fresh one-member
+make-diffpatch.sh and update-diffpatches.sh ZIP controls each completed 0/64,
+Kaspersky Undetected. The filter-build-script pair completed 0/64; the three
+update/publishing scripts completed 1/64. make-validate.sh separately completed
+0/59, Kaspersky Undetected.
+
+The entire identified helper was inspected, not executed. It fetches newer
+third-party filter/suffix snapshots into a temporary file. Its only upstream
+reference is .github/workflows/update-3rd-party-assets.yml, an owner-restricted
+daily publishing workflow. The Makefile and source build/test tools do not call
+it. Both pinned asset snapshots and all filter-build inputs remain present.
+A diagnostic source archive omitting only this unused live-update publisher
+helper retains all other 101 entries / 85 files, comparing every byte, mode,
+type and size with the authenticated original. Its SHA256 is
+9a82d98674423e99c6527c900820f1afb786a56cd75eddf7905afdd72ba8df17.
+It is selected for upload, but a new CAPTCHA blocks submission; owner approval
+has been requested. No clean result or completed uAssets packaging fix is yet
+claimed. The repository's original uAssets archive remains unchanged.
+
+The exact 763-byte reproducer and filename/verdict screenshot were sent to
+newvirus@kaspersky.com under KL-3111306, from/reply-to support@blanc.day.
+Resend message ID 01a174eb-704d-7013-9fdf-9e7373920a5a; delivery confirmed. The report distinguishes
+the archived result from the old bare-file cache and requests rule correction
+for the public upstream source and immutable installer. No private files or
+customer data were submitted.
+
+SHELL PARTITION UPDATE (17:09 EDT): The approved shell/JavaScript challenge
+checkboxes completed successfully and both controls were submitted. The six
+shell scripts completed 1/63 with the exact Kaspersky Mimikatz label, SHA256
+7483af12aec01d1b53eaef8cc021dd5569ea249fa87ffef52a231e3fda777fbc.
+The five-file JavaScript control completed 0/64, Kaspersky Undetected, SHA256
+c85e3cc1c8e2c07212a2b26656f08e90ecffdaebf5f450cd609c835d650fc0fd.
+Five shell scripts have old cached individual clean scans; these are not a
+substitute for fresh controls. Two new samples are selected and blocked at
+new CAPTCHAs: the unchanged tools/make-validate.sh alone, 372 bytes, SHA256
+718330ee7674326484e2894b2a36e0204ff8dde592ff2138ac8a43869f52c1e0;
+and the other five shell scripts together, SHA256
+fa0cfc1b9a879d0f6f27a67ae359d070b3e1549ba9f8ac80bdcd375b5f5c5524.
+No individual culprit or verdict for these two pending controls is claimed.
+The new action-time approval was requested for both challenges.
+The KL-3111306 screenshot/sample follow-up delivery is confirmed.
+
 LATEST KASPERSKY UPDATE: TOOLS-ONLY CONTROL REPRODUCES, 1/64.
 All three owner-approved CAPTCHAs completed and their samples were submitted.
 The 11-file uassets-tools-only.zip, SHA256
