@@ -118,3 +118,23 @@ test('Windows and Linux go Back and Forward with Alt+Left/Right and leave Ctrl+[
     assert.equal(matchBrowserShortcut(input('ArrowLeft', { alt: true, control: true }), platform), null);
   }
 });
+
+test('Copy Link is a browser command on every platform, under the Edit menu label', () => {
+  // Arc's Copy URL key; Chrome gives the same chord to DevTools' element
+  // picker everywhere, so no page expects to receive it.
+  for (const platform of ['darwin', 'win32', 'linux']) {
+    const definition = browserCommandDefinition('copy-link', platform);
+    assert.equal(definition.primary, 'CmdOrCtrl+Shift+C');
+    assert.deepEqual(definition.aliases, []);
+    assert.equal(definition.labelKey, 'tabMenu.copyLink');
+  }
+  assert.equal(matchBrowserShortcut(input('c', { meta: true, shift: true }), 'darwin'), 'copy-link');
+  assert.equal(matchBrowserShortcut(input('c', { control: true, shift: true }), 'darwin'), null);
+  for (const platform of ['win32', 'linux']) {
+    assert.equal(matchBrowserShortcut(input('c', { control: true, shift: true }), platform), 'copy-link');
+    assert.equal(matchBrowserShortcut(input('C', { control: true, shift: true }), platform), 'copy-link');
+    // Plain copy and the editing chords stay with the page.
+    assert.equal(matchBrowserShortcut(input('c', { control: true }), platform), null);
+    assert.equal(matchBrowserShortcut(input('c', { control: true, shift: true, alt: true }), platform), null);
+  }
+});

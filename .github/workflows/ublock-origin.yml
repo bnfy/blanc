@@ -42,6 +42,13 @@ on:
         description: "Capture Linux native stacks from repeated isolated real-blocking fixtures"
         type: boolean
         default: false
+# A new push to a pull request cancels that PR's older run. Pushes to main,
+# schedules and manual dispatches each get their own group (run_id), so
+# none is ever cancelled or queued behind another.
+concurrency:
+  group: ublock-origin-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:

@@ -17,6 +17,7 @@ function storage() {
     get: async (key, options) => { const value = records.get(key) ?? null; return value && options?.type === 'json' ? JSON.parse(value) : value; },
     put: async (key, value) => { writes.push(key); records.set(key, value); },
     delete: async (key) => records.delete(key),
+    list: async ({ prefix = '' } = {}) => ({ keys: [...records.keys()].filter(k => k.startsWith(prefix)).map(name => ({ name })), list_complete: true }),
   } };
 }
 async function send(env, body, headers = {}) {

@@ -198,7 +198,10 @@ final class TabsManagerTests: XCTestCase {
         observer.finished = { loaded.fulfill() }
         webView.navigationDelegate = observer
         webView.loadHTMLString("<html><body>Page state must survive sync.</body></html>", baseURL: nil)
-        await fulfillment(of: [loaded], timeout: 10)
+        // A cold CI simulator can take well over 10 s to launch the first WebContent
+        // process; the wait ends as soon as the page finishes, so a generous bound only
+        // costs time when WebKit is slow.
+        await fulfillment(of: [loaded], timeout: 60)
         observer.finished = nil
         let reloaded = expectation(description: "unchanged sync preference must not reload")
         reloaded.isInverted = true

@@ -460,11 +460,20 @@ From the desktop `DEFAULTS`:
   and **Paste and Go** (clipboard text through the full typed-address pipeline —
   OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
   closes).
+- **Copy Link shortcut (desktop only — D7):** ⇧⌘C (Ctrl+Shift+C on
+  Windows and Linux) and Edit → **Copy Link** copy the current page's exact
+  address without opening the command bar, for web and `file:` pages (nothing
+  for a blank or internal page, as in the tab menu); the pill says **Link
+  copied** for a moment. Chrome gives this chord to DevTools' element picker,
+  so no page expects it.
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
   without switching away, ungrouped even when the opener is in a group.
 - **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
   params yields the URL without them, other params intact; Paste and Go with a
   URL on the clipboard navigates the active tab and closes the island.
+- **Acceptance (desktop):** Copy Link on a web page puts its address on the
+  clipboard; on a blank tab the clipboard is unchanged
+  (`test/desktop/browser-shortcuts-smoke.mjs`).
 
 ## F20 — HTTP authentication policy
 
@@ -1610,6 +1619,36 @@ made.
   `test/unit/start-clock-style.test.js`, `test/unit/clock-art.test.js` and
   `test/unit/clock-font.test.js`.
 
+## F55 — Send to device
+
+A person sends the page they're on to one of their other synced Blanc devices,
+where it waits in a short **Sent to this device** list until they open or
+dismiss it; nothing opens by itself
+(`docs/superpowers/specs/2026-10-24-ios-m7b-send-to-device-design.md`).
+
+- **Sending.** Desktop: the tab menu's **Send to Device ▸** and
+  `/send <device>` (device names match without regard to case). iPhone: a
+  **Send** menu on the pill. Private tabs, internal pages and inert
+  page-opened tabs can't be sent, and the controls don't appear for them.
+- **Targets.** Every other device of the sync account that publishes
+  presence in the `sends` store or a tab list, named as the Other devices
+  drawer names it. With none, the menu item says **No other devices**.
+- **Result.** "Sent to {device}." — never "delivered" — or "Sending isn't
+  available yet." when the sync Worker doesn't serve the store, or
+  "Couldn't send. Check your connection and try again." A page that didn't go
+  is taken back.
+- **Receiving.** At most 20 pages per sender, each kept 7 days. Desktop shows
+  them first in the ⌘L Other devices drawer (whose button then counts them)
+  and above Other devices on the Ledger start page; the phone at the top of
+  the palette. Opening one opens a new ordinary tab; opening or dismissing it
+  hides it on that device only.
+- **Sync.** A new optional store, `sends`, end-to-end encrypted like the
+  others; each device writes only its own entry. Presence alone never creates
+  it, and leaving a sync publishes a retraction. Pulled with the focus refresh
+  (no new timer).
+- **Portability.** `src/main/sends-model.js` (no Electron dependency) holds
+  every rule; the iOS port is checked against vectors generated from it.
+
 ## F56 — Tab gestures (iPhone)
 
 Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
@@ -1627,4 +1666,3 @@ Two gestures Arc's iPhone users rely on, asked for on r/ArcBrowser
   `/close`; Reduce Motion replaces the slide with a cross-fade.
 - **Desktop.** Not applicable: trackpad and keyboard tab switching already
   exist, and the Island has no bottom bar.
-

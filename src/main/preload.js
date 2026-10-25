@@ -125,6 +125,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:glance-status', listener);
     return () => ipcRenderer.removeListener('chrome:glance-status', listener);
   },
+  onPillNotice: (callback) => {
+    const listener = (_event, kind) => callback(kind);
+    ipcRenderer.on('chrome:pill-notice', listener);
+    return () => ipcRenderer.removeListener('chrome:pill-notice', listener);
+  },
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openIslandCommands: () => ipcRenderer.send('chrome:open-island-commands'),
@@ -163,6 +168,12 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   renameDevice: (deviceId, name) => ipcRenderer.invoke('chrome:rename-device', deviceId, name),
+  // Send to device (M7b): main resolves the tab's address itself.
+  listSendTargets: () => ipcRenderer.invoke('chrome:send-targets'),
+  sendTabToDevice: (tabId, deviceId) => ipcRenderer.invoke('chrome:send-tab', tabId, deviceId),
+  listSentToThisDevice: () => ipcRenderer.invoke('chrome:sent-list'),
+  openSentItem: (id) => ipcRenderer.invoke('chrome:sent-open', id),
+  dismissSentItem: (id) => ipcRenderer.invoke('chrome:sent-dismiss', id),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
@@ -194,6 +205,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);
     return () => ipcRenderer.removeListener('chrome:remote-tabs-updated', listener);
+  },
+  onSentToThisDeviceUpdated: (callback) => {
+    const listener = (_event, items) => callback(items);
+    ipcRenderer.on('chrome:sent-updated', listener);
+    return () => ipcRenderer.removeListener('chrome:sent-updated', listener);
   },
   onWorkspacesUpdated: (callback) => {
     const listener = (_event, payload) => callback(payload);

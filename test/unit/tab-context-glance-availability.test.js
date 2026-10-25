@@ -23,7 +23,7 @@ test('either pane of a visible two-pane split offers Glance, but unrelated rows 
     withLocalProfile: (_profile, fn) => fn(), DEFAULT_PROFILE_ID: 'personal',
     startPagePins: { pinState: () => ({ pinned: false, full: false }) },
     shownMuted: () => false, closableTabIds: () => [], explicitSleepEligible: () => false,
-    closableBeside: () => [], hostOf: () => null, splitCandidatesFor: () => [],
+    closableBeside: () => [], hostOf: () => null, splitCandidatesFor: () => [], sendTargetsFor: () => null,
     // Move to Space ▸ (#1060): no spaces, and a tab that can't move.
     spaceMoveTargets: () => [], canMoveTabToSpace: () => false,
   };

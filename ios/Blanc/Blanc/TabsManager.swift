@@ -65,6 +65,10 @@ final class TabsManager {
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         #if DEBUG
+        if UITestSeed.sends {
+            UITestSeed.seedSends(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
         if UITestSeed.favorites {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]

@@ -14,7 +14,7 @@ const NATIVE_HEADERS = process.platform === 'darwin'
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, otherTabId, workspaceId, cleanedUrl, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, otherTabId, deviceId, workspaceId, cleanedUrl, actions }) {
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
     // The model computed cleanedUrl when it decided to SHOW the item — copy
@@ -38,6 +38,7 @@ function runTabContextMenuItem(id, { tab, groupId, otherTabId, workspaceId, clea
     case 'glance': return actions.glance(tab.id);
     case 'close-glance': return actions.closeGlance();
     case 'split-with-tab': return actions.splitWith(tab.id, otherTabId);
+    case 'send-to-device': return actions.sendToDevice(tab.id, deviceId);
     case 'remove-from-split': return actions.removeFromSplit(tab.id);
     case 'close-split': return actions.closeSplit(tab.id);
     case 'quiet': return actions.quiet(tab.id);
@@ -64,6 +65,8 @@ function toElectronTemplate(modelItems, { tab, actions }) {
     // data, not Blanc text. The id marks it so (the pseudo-locale sweep reads it).
     if (item.id === 'split-with-tab') el.id = `split-with-tab:${item.tabId}`;
     if (item.id === 'split-with-group') el.id = `split-with-group:${item.label}`;
+    // Send to Device ▸ lists device names, which are user data too.
+    if (item.id === 'send-to-device') el.id = `send-to-device:${item.deviceId}`;
     if (item.accelerator) el.accelerator = item.accelerator;
     if (item.enabled === false) el.enabled = false;
     if (item.type === 'radio') { el.type = 'radio'; el.checked = !!item.checked; }
@@ -71,7 +74,7 @@ function toElectronTemplate(modelItems, { tab, actions }) {
       el.submenu = toElectronTemplate(item.submenu, { tab, actions });
     } else {
       el.click = () => runTabContextMenuItem(item.id,
-        { tab, groupId: item.groupId, otherTabId: item.tabId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, actions });
+        { tab, groupId: item.groupId, otherTabId: item.tabId, deviceId: item.deviceId, workspaceId: item.workspaceId, cleanedUrl: item.cleanedUrl, actions });
     }
     return el;
   });

@@ -598,6 +598,29 @@
     return tabDomain(tab) ? 'domain' : 'placeholder';
   }
 
+  // A brief confirmation ("Link copied") shown in the label's place, over
+  // whatever mode the tab is in. It outlives the ~10/s tabs:updated renders
+  // through this flag rather than a DOM state, and the timer re-renders the
+  // real label when it ends.
+  const PILL_NOTICE_KEYS = { 'link-copied': 'pill.notice.linkCopied' };
+  const PILL_NOTICE_MS = 1600;
+  let pillNoticeKey = null;
+  let lastActiveTab = null;
+  let pillNoticeTimer = null;
+  function showPillNotice(kind) {
+    const key = PILL_NOTICE_KEYS[kind];
+    if (!key) return;
+    pillNoticeKey = key;
+    clearTimeout(pillNoticeTimer);
+    pillNoticeTimer = setTimeout(() => {
+      pillNoticeKey = null;
+      pillNoticeTimer = null;
+      renderPillLabel(lastActiveTab);
+    }, PILL_NOTICE_MS);
+    renderPillLabel(lastActiveTab);
+    glanceStatus.textContent = blancI18n.t(key);
+  }
+
   // No transition guard here, deliberately. The placeholder's motion is a CSS
   // animation on #pillDomain itself — an element that is never recreated — so
   // the ~10/s tabs:updated broadcasts cannot restart it. (The caret this
@@ -607,14 +630,17 @@
   // touch the animation. classList.toggle with an unchanged force value is a
   // no-op, so the class does not churn either.
   function renderPillLabel(tab) {
-    const next = pillLabelMode(tab);
-    pillDomain.textContent = next === 'loading' ? blancI18n.t('tab.loading')
-      : next === 'domain' ? tabDomain(tab)
-        : blancI18n.t('pill.placeholder');
+    lastActiveTab = tab;
+    const next = pillNoticeKey ? 'notice' : pillLabelMode(tab);
+    pillDomain.textContent = next === 'notice' ? blancI18n.t(pillNoticeKey)
+      : next === 'loading' ? blancI18n.t('tab.loading')
+        : next === 'domain' ? tabDomain(tab)
+          : blancI18n.t('pill.placeholder');
     // A host name is page data, not interface copy (pseudo-locale sweep).
     pillDomain.toggleAttribute('data-i18n-ignore', next === 'domain');
     pillDomain.classList.toggle('dim', next === 'loading');
     pillDomain.classList.toggle('placeholder', next === 'placeholder');
+    pillDomain.classList.toggle('notice', next === 'notice');
     pillSlash.hidden = next !== 'placeholder';
   }
 
@@ -1497,6 +1523,7 @@
   window.browserAPI.onGlanceStatus((message) => {
     glanceStatus.textContent = message;
   });
+  window.browserAPI.onPillNotice(showPillNotice);
   // The panel expanded in place ('panel') covers the pill, so the pill hides,
   // but only once main reports that the overlay has actually drawn the panel
   // over it. The two are separate views painting on their own schedules:
