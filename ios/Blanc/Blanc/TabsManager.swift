@@ -36,6 +36,13 @@ final class TabsManager {
     var settingsDestination: SettingsDestination?
     var pendingSettingsDestination: SettingsDestination?
 
+    /// The Start Page was held: open its settings (see `StartPageHold`).
+    func startPageHeld(_ tab: TabModel) {
+        guard tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" else { return }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        showSettings(.startPage)
+    }
+
     func showSettings(_ destination: SettingsDestination = .root) {
         if isPalettePresented {
             pendingSettingsDestination = destination
@@ -120,6 +127,7 @@ final class TabsManager {
 
     @ObservationIgnored private let schemeHandler: BlancSchemeHandler
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
+    @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
     @ObservationIgnored private let contentBlocker = ContentBlocker()
     @ObservationIgnored private let sessionStore: SessionStore
     @ObservationIgnored private var isRestoringSession = false
@@ -228,6 +236,10 @@ final class TabsManager {
             UITestSeed.seedSends(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
+        if UITestSeed.startPage {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [TabsManager.newTabURL]
+        }
         if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -276,7 +288,8 @@ final class TabsManager {
         if !isRestoringSession, activeTabId != nil, routeSettings(url) { return activeTabId! }
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
-            dataStore: isPrivate ? privateDataStore : .default())
+            dataStore: isPrivate ? privateDataStore : .default(),
+            startPageHold: startPageHold)
         if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)

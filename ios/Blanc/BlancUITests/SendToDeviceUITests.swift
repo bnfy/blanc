@@ -12,10 +12,11 @@ final class SendToDeviceUITests: XCTestCase {
     app.launch()
   }
 
-  /// The Send button opens its own menu, never the palette next to it.
-  func testSendButtonOpensItsMenuNotThePalette() {
-    let send = app.buttons["pill.send"]
-    XCTAssertTrue(send.waitForExistence(timeout: 10))
+  /// Send to Device in the Sunrise menu lists the targets, never the palette.
+  func testSendMenuListsTheTargetNotThePalette() {
+    app.openIslandMenu()
+    let send = app.buttons["Send to Device"]
+    XCTAssertTrue(send.waitForExistence(timeout: 5))
     send.tap()
     XCTAssertTrue(app.buttons["MacBook Pro"].waitForExistence(timeout: 5), "the Send menu lists the target")
     XCTAssertFalse(app.buttons["Done"].exists, "the palette must not open")
@@ -24,8 +25,9 @@ final class SendToDeviceUITests: XCTestCase {
   /// Choosing a device always tells the sender what happened. With no key the
   /// send fails at once, so the banner says it couldn't send.
   func testChoosingADeviceShowsTheResultBanner() {
-    let send = app.buttons["pill.send"]
-    XCTAssertTrue(send.waitForExistence(timeout: 10))
+    app.openIslandMenu()
+    let send = app.buttons["Send to Device"]
+    XCTAssertTrue(send.waitForExistence(timeout: 5))
     send.tap()
     let target = app.buttons["MacBook Pro"]
     XCTAssertTrue(target.waitForExistence(timeout: 5))

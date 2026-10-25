@@ -61,6 +61,7 @@ final class ReaderModeTests: XCTestCase {
         let reader = ReaderController(article: article, sourceURL: URL(string: "https://reader.example/article")!,
             appearance: ReaderAppearance(), saveAppearance: { _ in }, onExit: {}, openLink: { openedLinks.append(($0, $1)) })
         defer { reader.dispose(); source.stopLoading() }
+        XCTAssertTrue(reader.webView.isFindInteractionEnabled, "the Island Find action searches the displayed reader")
         var text = ""
         for _ in 0..<100 {
             text = (try? await reader.webView.evaluateJavaScript("document.getElementById('article')?.textContent || ''")) as? String ?? ""

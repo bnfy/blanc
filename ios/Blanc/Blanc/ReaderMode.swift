@@ -102,6 +102,7 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
         """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self
+        webView.isFindInteractionEnabled = true
         backSwipe.name = "blanc.reader.back"
         backSwipe.edges = webView.effectiveUserInterfaceLayoutDirection == .rightToLeft ? .right : .left
         backSwipe.addTarget(self, action: #selector(handleBackSwipe(_:)))

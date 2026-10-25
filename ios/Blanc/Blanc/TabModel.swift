@@ -35,6 +35,7 @@ final class TabModel: Identifiable {
         self.addressText = url.absoluteString
         self.webView = WKWebView(frame: .zero, configuration: configuration)
         webView.allowsBackForwardNavigationGestures = true
+        webView.isFindInteractionEnabled = true
         self.navigationDelegate = TabNavigationDelegate()
         navigationDelegate.tab = self
         webView.navigationDelegate = navigationDelegate
