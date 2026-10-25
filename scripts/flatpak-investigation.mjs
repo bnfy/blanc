@@ -34,9 +34,19 @@ for(const mode of modes){
   // race or bypass the tab coordinator and legitimately hit its fail-closed guard.
   await delay(3500);
   const previousTargets=new Set(pages.map(p=>p.id));
-  for(const args of [['key','--clearmodifiers','ctrl+t'],['key','--clearmodifiers','ctrl+l'],['type','--clearmodifiers','--delay','1','http://127.0.0.1:8771/probe'],['key','Return']]){
-   const input=spawnSync('xdotool',args,{encoding:'utf8'});if(input.status)throw Error(input.stderr);
+  const key=args=>{const input=spawnSync('xdotool',args,{encoding:'utf8'});if(input.status)throw Error(input.stderr);};
+  key(['key','--clearmodifiers','ctrl+t']);await delay(1000);
+  key(['key','--clearmodifiers','ctrl+l']);await delay(500);
+  key(['key','--clearmodifiers','ctrl+a']);
+  key(['type','--clearmodifiers','--delay','30','http://127.0.0.1:8771/probe']);await delay(200);
+  result.addressInputs=[];
+  for(const chrome of pages.filter(p=>p.url.startsWith('blanc-chrome:'))){
+   const inspector=await cdp(chrome.webSocketDebuggerUrl);
+   const input=await inspector.send('Runtime.evaluate',{expression:'({active:document.activeElement?.value,values:[...document.querySelectorAll("input")].map(x=>x.value)})',returnByValue:true});
+   result.addressInputs.push(input.result?.value);inspector.close();
   }
+  if(!result.addressInputs.some(x=>x?.active==='http://127.0.0.1:8771/probe'))throw Error('Address field was not fully populated; refusing to submit');
+  key(['key','Return']);
   for(let i=0;i<25;i++){
    await delay(1000);pages=await(await fetch('http://127.0.0.1:9222/json/list')).json();
    if(pages.some(p=>!previousTargets.has(p.id)&&p.url==='http://127.0.0.1:8771/probe'&&p.title==='Blanc Flatpak sandbox probe'))break;
