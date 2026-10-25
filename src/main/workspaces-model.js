@@ -44,6 +44,9 @@ function sanitizeName(raw) {
 // Always a NEW array. Returning the caller's array by reference would let a
 // later updateCapture (or a store write) mutate the object we normalized from.
 const asArray = (value) => (Array.isArray(value) ? value.slice() : []);
+const sharedRecordId=value=>typeof value==='string'&&/^[0-9a-f]{32}$/.test(value);
+const sharedTabColumn=(source,length)=>Array.isArray(source.tabIds)&&source.tabIds.length===length
+  ? {tabIds:source.tabIds.map(id=>sharedRecordId(id)?id:null)} : {};
 /** Where the Recently closed band sits among the Space's groups; the default
  * (0, under Pinned) is never written. */
 const closedSlotColumn = (source) => ({
@@ -83,6 +86,10 @@ function normalizeWorkspace(raw) {
     // writer moved the URL column, so the record survives without its meta
     // rather than pairing a title with the wrong tab.
     meta: meta.length === urls.length ? meta : [],
+    ...sharedTabColumn(raw,urls.length),
+    ...(sharedRecordId(raw.sharedId)?{sharedId:raw.sharedId}:{}),
+    ...(sharedRecordId(raw.sharedId)&&['active','dormant'].includes(raw.sharedLink)?{sharedLink:raw.sharedLink}:{}),
+    ...(sharedRecordId(raw.recoveredFrom)?{recoveredFrom:raw.recoveredFrom}:{}),
     ...(Array.isArray(raw.localFiles) && raw.localFiles.length === urls.length
       ? { localFiles: raw.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(raw),
@@ -153,7 +160,7 @@ function loadFile(raw) {
   return { status: 'supported', file };
 }
 
-const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds', 'documentPolicy', 'inheritsDocumentPolicy'];
+const OPTIONAL_CAPTURE_COLUMNS = ['localFiles', 'closedSlot', 'sectionOrder', 'closedIndex', 'splits', 'splitIds', 'documentPolicy', 'inheritsDocumentPolicy', 'tabIds'];
 
 /** The tab columns a capture carries, copied so the record never aliases the
  * live arrays main.js built it from. */
@@ -168,6 +175,7 @@ const captureColumns = (capture) => {
     groupIds: asArray(source.groupIds),
     pinned: asArray(source.pinned),
     meta: meta.length === urls.length ? meta : [],
+    ...sharedTabColumn(source,urls.length),
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
     ...closedSlotColumn(source),

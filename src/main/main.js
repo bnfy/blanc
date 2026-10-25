@@ -7576,9 +7576,14 @@ function closeGroup(groupId) {
  * the workspaces store instead. */
 function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
+  const tabIds=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id))).map(item=>{
+    const id=tabs.get(item.id)?.sharedTabId;
+    return typeof id==='string'&&/^[0-9a-f]{32}$/.test(id)?id:null;
+  });
   return {
     ...entry,
     groups: entry.groups.map(groupRecord),
+    ...(tabIds.some(Boolean)?{tabIds}:{}),
   };
 }
 

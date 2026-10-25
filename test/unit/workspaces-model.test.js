@@ -38,6 +38,14 @@ const VALID = () => ({
   meta: [{ title: 'A', favicon: null }, { title: 'B', favicon: null }],
 });
 
+test('shared Space links and zipped tab ids survive normalization without changing old captures',()=>{
+  const sharedId='a'.repeat(32),tabIds=['b'.repeat(32),null];
+  const current=normalizeWorkspace({...VALID(),sharedId,tabIds,sharedLink:'dormant',recoveredFrom:'c'.repeat(32)});
+  assert.equal(current.sharedId,sharedId);assert.deepEqual(current.tabIds,tabIds);assert.equal(current.sharedLink,'dormant');assert.equal(current.recoveredFrom,'c'.repeat(32));
+  assert.equal(normalizeWorkspace(VALID()).sharedId,undefined);
+  assert.equal(normalizeWorkspace({...VALID(),tabIds:['b'.repeat(32)]}).tabIds,undefined,'a mismatched column cannot bind the wrong page');
+});
+
 test('EMPTY_FILE is a versioned, empty, non-shared shape', () => {
   const a = EMPTY_FILE();
   assert.deepEqual(a, { version: WORKSPACES_VERSION, groupNamesRecased: 1, workspaces: [], deleted: [] });
