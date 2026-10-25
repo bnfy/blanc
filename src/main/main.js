@@ -7070,7 +7070,7 @@ const browserCommandDeliveries = [];
 function observeBrowserCommand(delivery) {
   if (!acceptanceTestMode) return;
   browserCommandDeliveries.push(delivery);
-  if (browserCommandDeliveries.length > 100) browserCommandDeliveries.shift();
+  if (browserCommandDeliveries.length > 200) browserCommandDeliveries.shift();
 }
 
 function ownsBrowserShortcutSurface(runtime, wc) {

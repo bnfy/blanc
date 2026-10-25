@@ -37,7 +37,7 @@ fs.mkdirSync(crashDumps);
 const press = async (command, key, modifiers, surface = 'active') => {
   const commandState = await call(app, 'browserCommandState');
   const before = commandState.deliveries.length;
-  assert.ok(before < 100, 'Command regression exceeded the bounded diagnostic inventory');
+  assert.ok(before < 200, 'Command regression exceeded the bounded diagnostic inventory');
   lastCommandDiagnostics = { requested: { command, key, modifiers, surface }, state: commandState };
   // Deliver the command from its own event-loop turn. Inspector evaluation can
   // interrupt Node's timer dispatch, and a command that clears the timer being
