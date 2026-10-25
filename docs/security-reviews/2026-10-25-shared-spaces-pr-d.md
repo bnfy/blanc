@@ -32,16 +32,34 @@ must be updated with release evidence before Shared Spaces is released.
 
 ## Validation status
 
-The local Workers runtime passed with the checked-in configuration, migrations
-and SQLite object. All nine peer-driver cases passed their Cucumber bindings.
-All three crash cases passed (the index failure remains active through relaunch
-so a background retry cannot invalidate the intended fault). Focused source,
-quota and workflow regressions, lint, substrate and acceptance binding pass.
-The full unit suite and native two-client/window runs are being completed;
-the draft PR description records their resulting source SHA and final results.
-Linux CI and platform confirmations remain separate evidence.
+Local validation passed:
+
+- Full unit suite: 4,802 passed, 2 skipped, no failures.
+- Native window/UI run: 7 scenarios, 50 steps passed.
+- Final two-Electron run: 1 scenario, 11 steps passed, including the strict
+  per-client rolling window, combined fixed-minute limit and no 429 responses.
+- Final peer/crash run: 12 scenarios, 51 steps passed. The index failure stays
+  active through relaunch so a background retry cannot invalidate the fault.
+- Checked-in Wrangler configuration, migration and SQLite object: local
+  Workers runtime test passed, including eviction and quota recovery.
+- Lint, substrate and acceptance binding (550 scenarios / 4,187 steps) passed.
+
+The native results come from the targeted runs above on macOS; Linux CI and
+the held real-device/platform confirmations remain separate evidence. The draft
+PR description records the source commit submitted for review.
 
 Source review fixed an additional expiry edge case: an obsolete index
 publication receipt can no longer strand a deleted Space's slot after 30 days.
 The client cleans up only after the successful/fetched index excludes the
 expired id; a failed DELETE keeps local state for retry.
+
+Selective cleanup also requires the Worker's `X-Blanc-Space-Delete: 1`
+capability on its blob GET response. Earlier v1 Workers interpreted a DELETE
+with a store suffix as an account wipe. A regression verifies that a client
+retains the retired id and sends no selective DELETE to a headerless Worker.
+
+The strict two-client budget audit exposed a reservation/dispatch timing gap:
+variable request-log persistence latency could compress actual GETs inside a
+60-second window. The queue now charges each reservation through operation
+completion and persists that later timestamp. A virtual-clock regression
+reproduces the earlier failure without network timing or relaxed assertions.

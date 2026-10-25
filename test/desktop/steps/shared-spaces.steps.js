@@ -168,7 +168,7 @@ Then('both complete clients rejoin dormant edits without duplicate tabs',{timeou
 });
 Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
  const gets=this.sharedFixture.requests.filter(r=>r.method==='GET');
- for(const client of ['A','B']){const times=gets.filter(r=>r.client===client).map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10,client+' exceeded its rolling GET window');}
+ for(const client of ['A','B']){const rows=gets.filter(r=>r.client===client),times=rows.map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10,client+' exceeded its rolling GET window: '+JSON.stringify(rows.filter(r=>r.at>at-60000&&r.at<=at).map(r=>({store:r.store,offset:r.at-at,status:r.status}))));}
  const minutes=new Map();for(const r of gets){const minute=Math.floor(r.at/60000);minutes.set(minute,(minutes.get(minute)??0)+1);}for(const count of minutes.values())assert.ok(count<=20);
  assert.equal(this.sharedFixture.requests.some(r=>r.status===429),false);
 });

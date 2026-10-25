@@ -37,6 +37,10 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
   deletion window; fixed stores remain removable only by the account wipe.
+  Blob GET responses advertise `X-Blanc-Space-Delete: 1`. Clients require
+  that capability before selective cleanup: older v1 Workers interpreted
+  DELETE paths with a store suffix as an account-wide wipe. Without the
+  capability, clients retain the expired id for a later cleanup attempt.
   When the client learns a Space is deleted, it immediately replaces its
   encrypted content with an empty Space blob. This frees the content bytes
   while the encrypted index keeps the final deletion for 30 days. The compact

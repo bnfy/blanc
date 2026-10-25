@@ -15,6 +15,13 @@ async function environment(vars={}) {
 }
 const put=(h,store,blob={ct:'x'})=>h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/${store}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob}),duplex:'half'}),h.env);
 
+test('blob reads advertise selective DELETE support for present and absent stores',async()=>{
+ const h=await environment(),get=()=>h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/spaces`),h.env);
+ let response=await get();assert.equal(response.status,404);assert.equal(response.headers.get('X-Blanc-Space-Delete'),'1');
+ assert.equal((await put(h,'spaces')).status,200);
+ response=await get();assert.equal(response.status,200);assert.equal(response.headers.get('X-Blanc-Space-Delete'),'1');
+});
+
 test('per-account quota counts fixed and dynamic stores and refuses growth without storing it',async()=>{
  const h=await environment();assert.equal((await put(h,'spaces')).status,200);assert.equal((await put(h,sid(1))).status,200);
  const refused=await put(h,sid(2));assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});

@@ -718,7 +718,9 @@ async function responseText(res) {
 async function syncOne(accountId, key, desc, run, attempt = 0) {
   const url = `${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
   async function cleanupRetiredSpaces(payload) {
-    if(desc.name!=='spaces')return;
+    // Earlier v1 Workers treated every DELETE, even one with a store suffix,
+    // as an account wipe. A supported Spaces store alone is not sufficient.
+    if(desc.name!=='spaces'||!canDeleteSpaceStores)return;
     for(const id of sharedSpaces.retiredSpaceIds(run.ctx))if(!payload.spaces?.[id]) {
       const removed=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/space-${id}`,{method:'DELETE'});
       if(run.stale())throw new SyncError('stale');
@@ -728,6 +730,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   }
   const getRes = await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
+  const canDeleteSpaceStores=getRes.headers?.get?.('X-Blanc-Space-Delete')==='1';
   let version = null, remote = null, missing = false;
   if (getRes.status === 200) {
     let body;

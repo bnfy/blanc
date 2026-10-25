@@ -13,11 +13,13 @@ const tick=()=>new Promise(r=>setTimeout(r,5));
 async function environment(t) {
   let wall=1800000000000;t.mock.method(Date,'now',()=>wall);
   const fixture=await createSyncFixture(),devices=[];
-  function device(name,{seed=true}={}) {
+  function device(name,{seed=true,legacyDelete=false}={}) {
     const clock=virtualClock(wall);
-    const d=syncDevice({clock,key,endpoint:fixture.url,record:{deviceId:name},fetch:(url,options)=>{
+    const d=syncDevice({clock,key,endpoint:fixture.url,record:{deviceId:name},fetch:async(url,options)=>{
       assert.ok(String(url).startsWith(fixture.url+'/'),'integration requests must never leave the local fixture');
-      return fetch(url,options);
+      if(legacyDelete&&options?.method==='DELETE'&&String(url).includes('/space-'))throw new Error('legacy Worker would wipe the whole account');
+      const response=await fetch(url,options);if(!legacyDelete)return response;
+      const headers=new Headers(response.headers);headers.delete('X-Blanc-Space-Delete');return new Response(response.body,{status:response.status,headers});
     }});
     d.ctx={accountId:account,deviceId:name,deviceName:name,platform:'darwin'};d.clock=clock;
     if(seed)d.spaces.setEnabled(true,d.ctx);devices.push(d);return d;
@@ -35,6 +37,14 @@ async function environment(t) {
   return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
+test('a Worker without selective DELETE capability never receives a per-Space DELETE',async t=>{
+  const e=await environment(t),a=e.device('A',{legacyDelete:true});createSpace(a);await e.drive(a.sync.syncNow([store]));
+  a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);});
+  await e.drive(a.sync.syncNow(['spaces']));
+  assert.equal(e.fixture.requests.some(r=>r.method==='DELETE'&&r.store===store),false);
+  assert.ok(e.fixture.env.records.has(`blob:${account}:${store}`));
+  assert.ok(a.spaces.snapshot(a.ctx).index.spaces[sid],'retain the id until a capable Worker permits cleanup');
+});
 test('expired deletion frees its server slot despite an old pending index receipt',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
   a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);d.pending[sid]={index:{rev:'old-publication'}};});

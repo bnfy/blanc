@@ -135,9 +135,10 @@ const ipRateLimited = (env, ip) => (ip ? bumpLimited(env, `ip:${ip}`, IP_RATE_LI
 async function handleGet(env, accountId, store) {
   if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
   const rec = await env.SYNC.get(blobKey(accountId, store), { type: 'json' });
-  if (!rec) return new Response('not found', { status: 404 });
+  const capable=response=>{response.headers.set('X-Blanc-Space-Delete','1');return response;};
+  if (!rec) return capable(new Response('not found', { status: 404 }));
   await touchAccount(env, accountId, await readMarker(env, accountId));
-  return json({ version: rec.version, blob: rec.blob });
+  return capable(json({ version: rec.version, blob: rec.blob }));
 }
 
 // Optimistic concurrency: reject if the caller's ifVersion isn't current. The
