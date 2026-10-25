@@ -94,6 +94,31 @@ test('main routes remote creation and close through the ordinary quiet/parking p
   sandbox.apply(runtime,{op:'close',kind:'tabs',id:id(3)});
   assert.deepEqual(JSON.parse(JSON.stringify(calls[1])),['close','new',{record:true,selectReplacement:false}]);
 });
+test('cold restore applies deferred navigation while the selected tab is still quiet',async()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const match=source.match(/function applySharedSpaceRow\(runtime, row\) \{[\s\S]*?\n\}/);
+  const record=globalThis.structuredClone(recordForColdRestore());
+  const tab={id:'restored',sharedTabId:id(1),url:'https://old.test/',title:'Old',asleep:true};
+  const runtime={tabOrder:[tab.id],groups:[]},tabs=new Map([[tab.id,tab]]),calls=[];
+  const sandbox={tabs,sharedSpaceModel:model,withWindowRuntime:(_r,fn)=>fn(),sleepSnapshots:new Map(),
+    navigateTabToAddress:()=>{calls.push('load');return new Promise(()=>{});},persistableUrl:x=>x,
+    markPinned:()=>{},createTab:()=>{},closeTab:()=>{},groupRecord:x=>x};
+  vm.runInNewContext(match[0]+'\nthis.apply=applySharedSpaceRow;',sandbox);
+  const result=sandbox.apply(runtime,{op:'nav',kind:'tabs',id:id(1),field:'nav',value:record.nav});
+  assert.equal(result,true);assert.deepEqual(calls,[],'cold replay must not start a page load');
+  assert.equal(tab.url,record.nav.v.url);assert.equal(tab.sharedPendingNav,record.nav.v.url);
+});
+function recordForColdRestore(){return {nav:f({url:'https://restored.test/',title:'Restored'},500)};}
+test('startup replays shared state before it wakes restored tabs and resumes persistence afterwards',()=>{
+  const fs=require('node:fs');const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const begin=source.indexOf('const workspaceCandidates = new Map()'),end=source.indexOf('sessionPersistenceSuspended = false;',begin);
+  assert.ok(begin>0&&end>begin);const restore=source.slice(begin,end);
+  const select=restore.indexOf('runtime.activeTabId = target;');
+  const apply=restore.indexOf('await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}))');
+  const wake=restore.indexOf('setActiveTab(target, { focusContent: true })');
+  assert.ok(select>=0&&select<apply&&apply<wake,'quiet selection and shared replay must precede wake');
+});
 test('session checkpoints and filtering retain shared ids without putting them in the rollback mirror',()=>{
   const {entryFrom,buildSaveShape}=require('../../src/main/session-workspace');
   const {filterRestoredSession}=require('../../src/main/session-restore');

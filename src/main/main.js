@@ -15650,6 +15650,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
+    const restoredTargets = new Map(); // runtime -> quiet tab selected after shared replay
     for (const runtime of restorableRuntimes) {
       const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
@@ -15687,12 +15688,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }
         const target = restoreTargetId(restoredIds, saved.activeIndex);
         if (!target) return;
-        // Activate first, then close the startup tab. The inverse briefly wakes
-        // the wrong quiet tab and doubles renderer memory during restore.
-        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
-        else runtime.activeTabId = target;
+        restoredTargets.set(runtime, target);
         const startupTabId = startupTabIds.get(runtime.id);
-        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
+        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId, { selectReplacement: false });
+        // Select without waking. Deferred shared navigation must materialize
+        // record-only while every restored page is quiet; waking first would
+        // make startup await the page's load before persistence is resumed.
+        runtime.activeTabId = target;
       });
     }
     // De-duplicate: only one window may bind a given workspace id — a second
@@ -15715,6 +15717,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
       await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}));
+    }
+    for (const [runtime,target] of restoredTargets) {
+      if (!windowRuntimes.all().includes(runtime) || !tabs.has(target)) continue;
+      withWindowRuntime(runtime,()=>{
+        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
+        else runtime.activeTabId = target;
+      });
     }
 
     // Recovery is an ephemeral neutral host. Destroy it while persistence is
