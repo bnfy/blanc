@@ -249,7 +249,6 @@ final class TabsManager {
             config.userContentController.add(ruleList)
         }
         let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
-        startPageHold.attach(to: tab.webView)
         return add(tab)
     }
 
