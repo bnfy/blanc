@@ -1098,7 +1098,10 @@ let clockGlassTrail = 0;
 // The Weight thumb's value while it is dragged.
 let clockWeightPreview = null;
 async function drawClockArt() {
-  if (!clockState || state.layout !== 'billboard') return;
+  if (!clockState || state.layout !== 'billboard') {
+    globalThis.blancNativeClock?.render?.(null);
+    return;
+  }
   const art = globalThis.blancClockArt;
   const generation = ++clockDrawGeneration;
   const face = CLOCK_FACES[clockState.font] ?? CLOCK_FACES.instrument;
@@ -1138,6 +1141,19 @@ async function drawClockArt() {
   clockElement.style.setProperty('--clock-shadow', shadow);
 
   const glass = clockState.style === 'glass' && !reducedTransparency.matches;
+  if (globalThis.blancNativeClock?.render) {
+    dropClockArt();
+    const rect = clockElement.getBoundingClientRect();
+    const rendered = await globalThis.blancNativeClock?.render(glass && !document.getElementById('customizePopover').matches(':popover-open') ? {
+      text: clockElement.textContent, font: clockState.font,
+      x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+      size: parseFloat(computed.fontSize), spacing: parseFloat(computed.letterSpacing) || 0,
+      weight: type.weight, stretch: type.stretch, rgb: rgbOf(computed.color), tinted: clockState.color !== 'auto',
+    } : null);
+    clockElement.classList.toggle('native-clock-glass', rendered);
+    return;
+  }
+
   if (!glass) {
     dropClockArt();
     return;

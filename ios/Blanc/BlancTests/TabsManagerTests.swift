@@ -49,6 +49,36 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.historyStore.entries.first?.title, "blanc - Search")
     }
 
+    func testSiteProtectionTogglesForTheCurrentSite() {
+        let dir = tmpDir()
+        let m = makeManager(settingsDir: dir)
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://www.example.com/article")!
+        XCTAssertTrue(m.isSiteProtected(tab))
+        m.setSiteProtection(tab, on: false)
+        XCTAssertFalse(m.isSiteProtected(tab))
+        XCTAssertEqual(m.settingsStore.adblockExceptions, ["example.com"])
+        m.setSiteProtection(tab, on: true)
+        XCTAssertTrue(m.isSiteProtected(tab))
+        XCTAssertEqual(m.settingsStore.adblockExceptions, [])
+    }
+
+    func testSiteAllowsPersist() {
+        let dir = tmpDir()
+        let m = makeManager(settingsDir: dir)
+        m.activeTab!.currentURL = URL(string: "https://example.org/")!
+        m.setSiteProtection(m.activeTab!, on: false)
+        m.settingsStore.flush()
+        XCTAssertEqual(SettingsStore(directory: dir).adblockExceptions, ["example.org"])
+    }
+
+    func testBlockingOffEverywhereMeansNoSiteIsProtected() {
+        let m = makeManager()
+        m.activeTab!.currentURL = URL(string: "https://example.com/")!
+        m.applySettingsPatch(["adblockEnabled": false])
+        XCTAssertFalse(m.isSiteProtected(m.activeTab!))
+    }
+
     func testInitCreatesOneTab() {
         let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)
