@@ -41,28 +41,28 @@ new=old.replace(needle,'''    // Candidate: initialize zypak after preparing the
 PY
 g++ -std=c++20 -O2 -DBLANC_ECS_PRODUCTION -static "$ROOT/launcher.candidate.cc" -o "$ROOT/blanc-ecs-launcher-candidate"
 flatpak build-init --arch=x86_64 --base=org.electronjs.Electron2.BaseApp --base-version=26.08 "$ROOT/build" com.blancbrowser.Blanc org.freedesktop.Platform org.freedesktop.Platform 26.08
-mkdir -p "$ROOT/build/files/extra/blanc" "$ROOT/build/files/bin" "$ROOT/build/files/share/applications"
-cp -a "$ROOT/squashfs-root/." "$ROOT/build/files/extra/blanc/"
-cp "$ROOT/blanc-ecs-launcher-candidate" "$ROOT/build/files/extra/blanc/"
+mkdir -p "$ROOT/build/files/lib/blanc" "$ROOT/build/files/bin" "$ROOT/build/files/share/applications"
+cp -a "$ROOT/squashfs-root/." "$ROOT/build/files/lib/blanc/"
+cp "$ROOT/blanc-ecs-launcher-candidate" "$ROOT/build/files/lib/blanc/"
 printf '[Desktop Entry]\nType=Application\nName=Blanc Flatpak Test\nExec=blanc\n' > "$ROOT/build/files/share/applications/com.blancbrowser.Blanc.desktop"
 cat > "$ROOT/build/files/bin/blanc" <<'EOF'
 #!/bin/sh
 set -eu
 unset ELECTRON_RUN_AS_NODE
-export LD_LIBRARY_PATH="/app/extra/blanc/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH="/app/lib/blanc/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export BLANC_UPDATE_CHANNEL=flatpak BLANC_TEST=1
 export BLANC_TEST_UNCAUGHT_LOG="$XDG_CONFIG_HOME/uncaught.log"
 mode=${BLANC_FLATPAK_CASE:?}
 profile="$XDG_CONFIG_HOME/Blanc-$mode"
 mkdir -p "$profile"
 chmod 700 "$profile"
-export BLANC_ECS_FULL_PROFILE="$profile" BLANC_ECS_LAUNCHER_ROOT=/app/extra/blanc
+export BLANC_ECS_FULL_PROFILE="$profile" BLANC_ECS_LAUNCHER_ROOT=/app/lib/blanc
 set -- --remote-debugging-port=9222 --ozone-platform=x11 "$@"
 case "$mode" in
- baseline|unset) exec zypak-wrapper /app/extra/blanc/blanc "$@" ;;
- profile|profile-unset) exec zypak-wrapper /app/extra/blanc/blanc --user-data-dir="$profile" "$@" ;;
- original-launcher) exec zypak-wrapper /app/extra/blanc/blanc-ecs-launcher --user-data-dir="$profile" "$@" ;;
- integrated-launcher) exec /app/extra/blanc/blanc-ecs-launcher-candidate --user-data-dir="$profile" "$@" ;;
+ baseline|unset) exec zypak-wrapper /app/lib/blanc/blanc "$@" ;;
+ profile|profile-unset) exec zypak-wrapper /app/lib/blanc/blanc --user-data-dir="$profile" "$@" ;;
+ original-launcher) exec zypak-wrapper /app/lib/blanc/blanc-ecs-launcher --user-data-dir="$profile" "$@" ;;
+ integrated-launcher) exec /app/lib/blanc/blanc-ecs-launcher-candidate --user-data-dir="$profile" "$@" ;;
  *) exit 64 ;;
 esac
 EOF
@@ -72,6 +72,7 @@ flatpak build-finish --command=blanc "${permissions[@]}" "$ROOT/build"
 flatpak build-export "$ROOT/repo" "$ROOT/build"
 flatpak remote-add --user --no-gpg-verify blanc-test "$ROOT/repo"
 flatpak install --user -y --noninteractive blanc-test com.blancbrowser.Blanc
+flatpak run --command=sh com.blancbrowser.Blanc -c 'ls -la /app/lib/blanc/blanc /app/lib/blanc/blanc-ecs-launcher /app/lib/blanc/blanc-ecs-launcher-candidate; test -x /app/lib/blanc/blanc' > "$ROOT/installed-files.txt"
 flatpak info --user --show-permissions com.blancbrowser.Blanc > "$ROOT/permissions.txt"
 flatpak info --user --show-metadata com.blancbrowser.Blanc > "$ROOT/metadata.txt"
 export DISPLAY=:99
