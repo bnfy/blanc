@@ -19,6 +19,19 @@ enum SyncCopy {
     return result
   }
   static func text(_ key: String) -> String { messages[key] ?? key }
+  /// A catalog message with its `{name}` placeholders filled (the simple
+  /// arguments the sends.* strings use).
+  static func text(_ key: String, _ params: [String: String]) -> String {
+    params.reduce(text(key)) { $0.replacingOccurrences(of: "{\($1.key)}", with: $1.value) }
+  }
+  /// What the sender is told after a send (M7b §6): "Sent", never "delivered".
+  static func sendResult(_ result: SyncEngine.SendResult, device: String) -> String {
+    switch result {
+    case .sent: text("sends.sent", ["device": device])
+    case .unavailable: text("sends.unavailable")
+    case .failed, .invalid: text("sends.failed")
+    }
+  }
   static func error(_ code: String) -> String {
     let keys = [
       "bad-passphrase": "sync.error.badPassphrase", "pair-not-found": "sync.error.pairNotFound",
