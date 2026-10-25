@@ -150,3 +150,138 @@ const effectiveGroup = (blob,tab) => {
 };
 module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex, mid, tagOf, keyFor, validKey, orderOf,
   acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup };
+
+// Pending writes are namespaced by record kind/id/field; index publication is a
+// separate caller-owned entry. A fetched value, never a PUT response, settles a
+// field write. These functions never mutate a caller's retained state.
+function applyLocalEdits(pending = {}, edits = {}) {
+  const out = copy(pending);
+  for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(edits[kind] ?? {})) {
+    if (!isId(id)) continue;
+    out[kind] ??= {};
+    out[kind][id] = mergeRecord(out[kind][id], record);
+  }
+  return out;
+}
+function settlePending(pending = {}, fetched = {}) {
+  const out = copy(pending);
+  for (const kind of ['tabs','groups']) {
+    for (const [id, record] of Object.entries(out[kind] ?? {})) {
+      for (const [name, value] of Object.entries(record)) {
+        if (acknowledged(fetched[kind]?.[id]?.[name], value, name)) delete record[name];
+      }
+      if (!Object.keys(record).length) delete out[kind][id];
+    }
+    if (out[kind] && !Object.keys(out[kind]).length) delete out[kind];
+  }
+  return out;
+}
+function recoveryDecision({localBlob, fetchedBlob, lastMergeAt, now}) {
+  const keep = new Set(), recover = new Set();
+  const hasRemote = Object.keys(fetchedBlob?.tabs ?? {}).length + Object.keys(fetchedBlob?.groups ?? {}).length > 0;
+  const stale = Number.isFinite(lastMergeAt) ? now-lastMergeAt > LIMITS.tombstoneMs : hasRemote;
+  for(const kind of ['tabs','groups']) for(const id of Object.keys(localBlob?.[kind] ?? {})) {
+    (stale && !fetchedBlob?.[kind]?.[id] ? recover : keep).add(id);
+  }
+  return {keep,recover};
+}
+function withoutRecords(blob, ids) {
+  const out=copy(blob);
+  for(const kind of ['tabs','groups'])if(out?.[kind])for(const id of ids)delete out[kind][id];
+  return out;
+}
+function replayPending(blob,pending) {
+  const out=copy(blob);
+  for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(pending[kind]??{})) {
+    out[kind][id]=mergeRecord(out[kind][id],record);
+  }
+  return out;
+}
+// The rollback base is the fetched state plus every winning field that this
+// device did not write. lastPublishable must never displace that remote state.
+function admissionUnits(candidate,fetched,deviceId) {
+  const units=[];
+  for(const kind of ['groups','tabs'])for(const [id,after] of Object.entries(candidate[kind])) {
+    const before=copy(fetched[kind]?.[id]??{});
+    for(const [name,value] of Object.entries(after)) {
+      if(value.by!==deviceId)before[name]=copy(value);
+    }
+    if(canonical(before)===canonical(after))continue;
+    const base=Object.keys(before).length ? before : null;
+    // If removing local fields would leave somebody else's incomplete record,
+    // its dependency closure is mandatory rather than partially serializable.
+    const required=!!base && !sanitizeRecord(base,kind);
+    units.push({kind,id,key:kind+':'+id,before:base,after:copy(after),required,
+      clock:Math.max(0,...Object.values(after).filter(isField).map(v=>v.c)),dependencies:[]});
+  }
+  const newGroups=new Set(units.filter(u=>u.kind==='groups'&&!u.before).map(u=>u.id));
+  for(const unit of units)if(unit.kind==='tabs' && newGroups.has(unit.after.groupId?.v)) {
+    unit.dependencies.push('groups:'+unit.after.groupId.v);
+  }
+  return units;
+}
+function admit({candidate,changes=[],encryptFn}) {
+  const out=copy(candidate), held=new Set(), unsynced=new Set();
+  const fits=()=>liveTabCount(out)<=LIMITS.tabsPerSpace && blobFits(out,encryptFn);
+  const complete=()=>['tabs','groups'].every(kind=>Object.values(out[kind]).every(r=>!!sanitizeRecord(r,kind)));
+  const initialReason=liveTabCount(out)>LIMITS.tabsPerSpace ? 'tabs'
+    : ['tabs','groups'].some(k=>Object.values(out[k]).some(r=>r.deleted?.v===true)) ? 'tombstones' : 'full';
+  if(fits()&&complete())return {blob:out,unsynced,reason:null};
+  const byKey=new Map(changes.map(u=>[u.key??u.kind+':'+u.id,u]));
+  function hold(unit) {
+    const key=unit.key??unit.kind+':'+unit.id;
+    if(held.has(key)||unit.required)return false;
+    // A required dependent prevents withholding its dependency as well.
+    const dependents=changes.filter(u=>(u.dependencies??[]).includes(key)&&!held.has(u.key??u.kind+':'+u.id));
+    if(dependents.some(u=>u.required))return false;
+    for(const dependent of dependents)if(!hold(dependent))return false;
+    if(unit.before)out[unit.kind][unit.id]=copy(unit.before);else delete out[unit.kind][unit.id];
+    held.add(key);unsynced.add(unit.id);return true;
+  }
+  for(const unit of [...byKey.values()].sort((a,b)=>b.clock-a.clock || (a.key<b.key?-1:1))) {
+    hold(unit);
+    if(fits()&&complete())return {blob:out,unsynced,reason:initialReason};
+  }
+  return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
+}
+function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable}) {
+  const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob);
+  if(!local&&!remote)throw new TypeError('No valid Space');
+  if(local&&remote&&local.spaceId!==remote.spaceId)throw new TypeError('Space identity mismatch');
+  const empty={v:1,spaceId:(local??remote).spaceId,tabs:{},groups:{}};
+  const fetched=remote??empty;
+  const {recover}=recoveryDecision({localBlob:local??empty,fetchedBlob:remote,lastMergeAt,now});
+  const retained=withoutRecords(local??empty,recover);
+  const eligiblePending=withoutRecords(pending,recover);
+  const baseMerged=mergeBlob(fetched,retained);
+  const retainedOwn={};
+  for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(retained[kind])) {
+    for(const [name,value] of Object.entries(record))if(value.by===deviceId && !acknowledged(fetched[kind]?.[id]?.[name],value,name)) {
+      retainedOwn[kind] ??= {}; retainedOwn[kind][id] ??= {}; retainedOwn[kind][id][name]=value;
+    }
+  }
+  const pendingAfter=settlePending(applyLocalEdits(eligiblePending,retainedOwn),fetched);
+  const mergedBlob=replayPending(baseMerged,pendingAfter);
+  const candidate=expireTombstones(mergedBlob,now);
+  const changes=admissionUnits(candidate,fetched,deviceId);
+  const admission=admit({candidate,changes,encryptFn,lastPublishable});
+  const changed=admission.blob && canonical(admission.blob)!==canonical(fetched);
+  const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;
+  // Proposal only: caller may publish this revision after the blob PUT succeeds.
+  // Identity fields remain in the separately merged index, never guessed here.
+  const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev}
+    : !admission.reason && pendingAfter.index?.rev === revisionOf(fetched) ? copy(pendingAfter.index) : null;
+  return {upload,pendingAfter,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
+}
+Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,admit,pushPlan});
+
+// The orchestration layer calls this only after observing the real PUT result.
+// Index retry receipts are created by successful blob writes, never by planning.
+function settleUpload(plan, originalPending, {blobStored = false, indexStored = false} = {}) {
+  if (!blobStored) return {pending:copy(originalPending),indexEntry:null};
+  const pending=copy(plan.pendingAfter);
+  if (plan.indexEntry && !indexStored) pending.index=copy(plan.indexEntry);
+  else if (indexStored) delete pending.index;
+  return {pending,indexEntry:copy(plan.indexEntry)};
+}
+module.exports.settleUpload=settleUpload;

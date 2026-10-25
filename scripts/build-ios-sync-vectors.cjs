@@ -143,6 +143,14 @@ try {
   }
   vectors.spacesRevision=[entry('canonical keys',{b:2,a:1},spaces.revisionOf({b:2,a:1}))];
   vectors.spacesBudget=[320,400].map(kib=>entry('encrypted size',{kib},{bytes:Buffer.byteLength(JSON.stringify(crypt.encrypt(Buffer.alloc(32),'x'.repeat(kib*1024)))),fits:spaces.blobFits('x'.repeat(kib*1024),t=>crypt.encrypt(Buffer.alloc(32),t))}));
+  const pipeId=sid(17), pipeSpace=sid(99), pipeField=(v)=>spaces.field(v,100,'a');
+  const pipeTab={nav:pipeField({url:'https://example.test/',title:'Example'}),name:pipeField(null),pinned:pipeField(false),groupId:pipeField(null),pos:pipeField(spaces.keyFor('','',pipeId)),deleted:pipeField(false)};
+  const pipeInput={fetchedBlob:{v:1,spaceId:pipeSpace,groups:{},tabs:{}},fetchedVersion:'version-1',localBlob:{v:1,spaceId:pipeSpace,groups:{},tabs:{[pipeId]:pipeTab}},pending:{tabs:{[pipeId]:pipeTab}},lastMergeAt:1000,now:2000,deviceId:'a'};
+  vectors.spacesPipeline=[false,true].map(stale=>{
+    const input={...pipeInput,lastMergeAt:stale?1:1000,now:stale?spaces.LIMITS.tombstoneMs+2:2000};
+    const result=spaces.pushPlan({...input,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+    return entry(stale?'recovery excluded':'new record upload',input,{...result,recover:[...result.recover],unsynced:[...result.unsynced]});
+  });
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

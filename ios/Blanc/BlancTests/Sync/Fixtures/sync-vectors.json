@@ -17623,5 +17623,353 @@
         "fits": false
       }
     }
+  ],
+  "spacesPipeline": [
+    {
+      "name": "new record upload",
+      "input": {
+        "fetchedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "fetchedVersion": "version-1",
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "pending": {
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "lastMergeAt": 1000,
+        "now": 2000,
+        "deviceId": "a"
+      },
+      "expected": {
+        "upload": {
+          "blob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {
+              "00000000000000000000000000000011": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "name": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/",
+                    "title": "Example"
+                  },
+                  "c": 100,
+                  "by": "a"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111122",
+                  "c": 100,
+                  "by": "a"
+                }
+              }
+            }
+          },
+          "rev": "3eddc5f62172a85e",
+          "ifVersion": "version-1"
+        },
+        "pendingAfter": {
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "recover": [],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "nextLastMergeAt": 2000,
+        "indexEntry": {
+          "id": "00000000000000000000000000000063",
+          "rev": "3eddc5f62172a85e"
+        },
+        "reason": null
+      }
+    },
+    {
+      "name": "recovery excluded",
+      "input": {
+        "fetchedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "fetchedVersion": "version-1",
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "pending": {
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "lastMergeAt": 1,
+        "now": 2592000002,
+        "deviceId": "a"
+      },
+      "expected": {
+        "upload": null,
+        "pendingAfter": {},
+        "recover": [
+          "00000000000000000000000000000011"
+        ],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "nextLastMergeAt": 2592000002,
+        "indexEntry": null,
+        "reason": null
+      }
+    }
   ]
 }

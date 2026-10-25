@@ -101,3 +101,117 @@ test('shared custom names use the same code-point and whitespace rules as local 
   assert.equal(clean.tabs[id(1)].name.v,'A B');
   assert.equal(clean.tabs[id(2)].name.v,'🦊'.repeat(100));
 });
+
+const input = (remote,local,pending={},over={}) => ({fetchedBlob:remote,fetchedVersion:'v1',localBlob:local,pending,lastMergeAt:1000,now:2000,deviceId:'a',encryptFn:seal,lastPublishable:remote,...over});
+const countSeal = raw => { const b=JSON.parse(raw);return {ct:'x'.repeat((Object.keys(b.tabs).length+Object.keys(b.groups).length)*300000)}; };
+
+test('long-stale recovery excludes records and every pending field before merging', () => {
+  assert.equal(typeof m.pushPlan,'function');
+  const remote=blob({}),local=blob({[id(1)]:tab()});
+  const pending={tabs:{[id(1)]:tab()}};
+  const args=input(remote,local,pending,{lastMergeAt:1,now:m.LIMITS.tombstoneMs+2});
+  const p=m.pushPlan(args);
+  assert.deepEqual([...p.recover],[id(1)]);assert.equal(p.upload,null);
+  assert.equal(p.pendingAfter.tabs?.[id(1)],undefined);assert.equal(p.mergedBlob.tabs[id(1)],undefined);
+  assert.equal(args.lastMergeAt,1);assert.equal(p.nextLastMergeAt,args.now);
+});
+
+test('recent local records survive even when not pending, and no-op merges do not PUT', () => {
+  const remote=blob({}),local=blob({[id(1)]:tab()});
+  const p=m.pushPlan(input(remote,local));
+  assert.ok(p.upload.blob.tabs[id(1)]);assert.equal(p.indexEntry.rev,p.upload.rev);
+  assert.equal(m.pushPlan(input(local,local)).upload,null);
+});
+
+test('pending replay merges independent additions and acknowledges only fetched winners', () => {
+  const a=blob({[id(1)]:tab()}),b=blob({[id(2)]:tab(2)});
+  const pending={tabs:{[id(1)]:tab()}};
+  const p=m.pushPlan(input(b,a,pending));assert.deepEqual(Object.keys(p.upload.blob.tabs),[id(1),id(2)]);
+  assert.ok(p.pendingAfter.tabs[id(1)]);
+  assert.deepEqual(m.settlePending(p.pendingAfter,p.upload.blob),{});
+  assert.ok(m.settlePending({tabs:{[id(1)]:{deleted:f(true,1)}}},a).tabs[id(1)].deleted);
+  assert.equal(m.acknowledged(f(false,1000),f(true,1),'deleted'),false);
+});
+
+test('lost writes without any remaining local copy cannot be recovered', () => {
+  const remote=blob({}),local=blob({});
+  const p=m.pushPlan(input(remote,local,{}));assert.equal(p.upload,null);assert.deepEqual(p.mergedBlob.tabs,{});
+});
+
+test('recent replica may resurrect a record when the remote tombstone was lost or expired', () => {
+  const local=blob({[id(1)]:tab()});
+  const p=m.pushPlan(input(blob({}),local,{}, {now:m.LIMITS.tombstoneMs+100,lastMergeAt:m.LIMITS.tombstoneMs+99}));
+  assert.ok(p.upload.blob.tabs[id(1)]);
+});
+
+test('admission holds a new record atomically and keeps its complete pending write', () => {
+  const local=blob({[id(1)]:tab(1),[id(2)]:tab(2,{name:f('newest',200)})});
+  const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs},{encryptFn:countSeal}));
+  assert.deepEqual(Object.keys(p.upload.blob.tabs),[id(1)]);
+  assert.ok(p.unsynced.has(id(2)));assert.deepEqual(p.pendingAfter.tabs[id(2)],local.tabs[id(2)]);
+  assert.equal(p.reason,'full');
+});
+
+test('admission retains newer remote state rather than replaying an old publishable snapshot', () => {
+  const remote=blob({[id(1)]:tab(1,{name:f('remote',300,'b')})});
+  const local=blob({[id(1)]:tab(1),[id(2)]:tab(2,{name:f('new',400)})});
+  const p=m.pushPlan(input(remote,local,{tabs:{[id(2)]:local.tabs[id(2)]}},{encryptFn:countSeal,lastPublishable:local}));
+  const out=p.upload?.blob??p.mergedBlob;
+  assert.equal(out.tabs[id(1)].name.v,'remote');assert.ok(p.unsynced.has(id(2)));
+});
+
+test('mandatory remote over-budget content yields no PUT or new index revision', () => {
+  const remote=blob({[id(1)]:tab(),[id(2)]:tab(2)});
+  const p=m.pushPlan(input(remote,remote,{}, {encryptFn:countSeal}));
+  assert.equal(p.upload,null);assert.equal(p.indexEntry,null);assert.equal(p.reason,'remote-over-budget');
+  assert.deepEqual(p.mergedBlob.tabs,remote.tabs);
+});
+
+test('holding a new group holds its dependent new tab rather than emitting a dangling reference', () => {
+  const local=blob({[id(1)]:tab(1,{groupId:f(id(9),200)})});
+  local.groups[id(9)]={name:f('Group',300),color:f(null,300),collapsed:f(false,300),pos:f(m.keyFor('','',id(9)),300),deleted:f(false,300)};
+  const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs,groups:local.groups},{encryptFn:countSeal}));
+  const out=p.upload?.blob??blob({});
+  assert.equal(out.tabs[id(1)],undefined);assert.equal(out.groups[id(9)],undefined);
+  assert.ok(p.unsynced.has(id(1)));assert.ok(p.unsynced.has(id(9)));
+});
+
+test('a held update restores its fetched base rather than deleting a required field', () => {
+  const remote=blob({[id(1)]:tab()});
+  const local=blob({[id(1)]:tab(1,{nav:f({url:'https://long.test/',title:'Long'},300)})});
+  const budget=raw=>({ct:'x'.repeat(JSON.parse(raw).tabs[id(1)].nav.v.url.includes('long')?600000:10)});
+  const p=m.pushPlan(input(remote,local,{tabs:{[id(1)]:{nav:local.tabs[id(1)].nav}}},{encryptFn:budget}));
+  assert.equal(p.upload,null);assert.equal(p.reason,'full');assert.ok(p.unsynced.has(id(1)));
+  assert.ok(p.pendingAfter.tabs[id(1)].nav);
+});
+
+test('admission of retained non-pending local work requeues held writes durably', () => {
+  const local=blob({[id(1)]:tab(),[id(2)]:tab(2,{name:f('later',200)})});
+  const p=m.pushPlan(input(blob({}),local,{}, {encryptFn:countSeal}));
+  assert.deepEqual(p.pendingAfter.tabs[id(2)],local.tabs[id(2)]);
+});
+
+test('pipeline classifies and removes recovery records before encryption sees a candidate', () => {
+  const local=blob({[id(1)]:tab()});let seen;
+  const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs},{lastMergeAt:1,now:m.LIMITS.tombstoneMs+2,encryptFn:s=>{seen=JSON.parse(s);return seal(s);}}));
+  assert.deepEqual(seen.tabs,{});assert.equal(p.nextLastMergeAt,m.LIMITS.tombstoneMs+2);
+});
+
+test('index publication waits for blob success and survives an index failure', () => {
+  const pending={tabs:{[id(1)]:tab()}},local=blob({[id(1)]:tab()});
+  const p=m.pushPlan(input(blob({}),local,pending));
+  assert.equal(typeof m.settleUpload,'function');
+  assert.deepEqual(m.settleUpload(p,pending,{blobStored:false}),{pending,indexEntry:null});
+  const stored=m.settleUpload(p,pending,{blobStored:true,indexStored:false});
+  assert.equal(stored.pending.index.rev,p.upload.rev);assert.equal(stored.indexEntry.rev,p.upload.rev);
+  const retry=m.pushPlan(input(p.upload.blob,local,stored.pending));
+  assert.equal(retry.upload,null);assert.equal(retry.indexEntry.rev,p.upload.rev);
+});
+
+test('the 501st local live tab is held without dropping any remote tab', () => {
+  const rows={};for(let i=1;i<=500;i++)rows[id(i)]=tab(i);
+  const remote=blob(rows),local=structuredClone(remote);local.tabs[id(501)]=tab(501,{name:f('last',500)});
+  const p=m.pushPlan(input(remote,local,{tabs:{[id(501)]:local.tabs[id(501)]}}));
+  assert.equal(p.upload,null);assert.equal(p.reason,'tabs');assert.ok(p.unsynced.has(id(501)));
+  assert.equal(m.liveTabCount(p.mergedBlob),501);
+});
