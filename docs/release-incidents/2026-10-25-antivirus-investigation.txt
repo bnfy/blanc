@@ -1,5 +1,20 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+KASPERSKY FALSE POSITIVE ACKNOWLEDGED: The owner supplied the lab's October 25
+18:46 reply in case KL-3111306 to the exact single-file reproducer. It explicitly
+states this was a false detection and says the next update will fix it. This
+establishes the vendor's classification, not deployed-database verification or
+Avast/AVG clearance. Screenshot and nonsecret structured evidence are saved in
+outputs/antivirus-1431 in the original workspace. Final signed-DMG scans remain
+required before release.
+
+HOSTED ENVIRONMENT CORRECTION: Intel run 40242128073 passed substrate and then
+failed 12 updater unit tests because the job-wide BLANC_UPDATE_CHANNEL override
+disabled their production-default updater fixture. All other unit tests passed
+(4,778 passed, two skipped). The override now applies only to the packaged
+first-run smoke step, with a scope assertion in the workflow test. Canceled the
+obsolete attempt before signing. The updater/workflow focused rerun passes.
+
 PRE-SIGNING GATE CORRECTIONS: Run 40241202298 was canceled while both native
 Mac jobs remained queued after independent PR checks exposed an unchanged VEX
 payload digest and a Windows-only test-fixture dependency on shasum. Re-reviewed

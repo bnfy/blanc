@@ -1336,7 +1336,6 @@ jobs:
       APPROVED_SOURCE_SHA: ${{ inputs.source_sha }}
       TARGET_ARCH: ${{ matrix.arch }}
       APP_DIR: dist/${{ matrix.app_dir }}/Blanc.app
-      BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -1399,6 +1398,7 @@ jobs:
       - name: Smoke-test the signed packaged first-run experience
         env:
           BLANC_PACKAGED_EXECUTABLE: ${{ github.workspace }}/dist/${{ matrix.app_dir }}/Blanc.app/Contents/MacOS/Blanc
+          BLANC_UPDATE_CHANNEL: ecs-qualification-disabled
         run: npm run test:packaged:first-run
       - name: Record immutable installer digests and candidate source
         id: verified

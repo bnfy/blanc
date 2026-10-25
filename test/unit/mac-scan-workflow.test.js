@@ -50,6 +50,8 @@ test('Mac scan artifacts contain verified installers only, with credentials remo
   const smoke = job.steps.findIndex(x => x.run === 'npm run test:packaged:first-run');
   assert.equal(job.steps[cleanup].if, 'always()');
   assert(cleanup < smoke);
+  assert.equal(job.env.BLANC_UPDATE_CHANNEL, undefined, 'updater unit tests must exercise production defaults');
+  assert.equal(job.steps[smoke].env.BLANC_UPDATE_CHANNEL, 'ecs-qualification-disabled');
   const upload = job.steps.find(x => x.uses?.startsWith('actions/upload-artifact@'));
   assert.equal(upload.if, "success() && steps.verified.outcome == 'success'");
   assert.equal(upload.with['retention-days'], 3);
