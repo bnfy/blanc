@@ -184,6 +184,10 @@ module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex
 // field write. These functions never mutate a caller's retained state.
 function sanitizePending(pending = {}) {
   const out = {};
+  if(isField(pending.active)&&isId(pending.active.v)) {
+    out.active=field(pending.active.v,pending.active.c,pending.active.by);
+    if(pending.active.cleared===true)out.active.cleared=true;
+  }
   for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(pending[kind] ?? {})) {
     if (!isId(id) || !record || typeof record !== 'object') continue;
     for (const [name, normalize] of Object.entries(schemas[kind])) {
@@ -203,6 +207,7 @@ function sanitizePending(pending = {}) {
 }
 function applyLocalEdits(pending = {}, edits = {}) {
   const out = sanitizePending(pending);
+  const active=mergeField(out.active,sanitizePending(edits).active,'active');if(active)out.active=active;
   for (const kind of ['tabs','groups']) for (const [id, record] of Object.entries(sanitizePending(edits)[kind] ?? {})) {
     if (!isId(id)) continue;
     out[kind] ??= {};
@@ -212,6 +217,7 @@ function applyLocalEdits(pending = {}, edits = {}) {
 }
 function settlePending(pending = {}, fetched = {}) {
   const out = sanitizePending(pending);
+  if(out.active&&acknowledged(fetched.active,out.active,'active'))delete out.active;
   for (const kind of ['tabs','groups']) {
     for (const [id, record] of Object.entries(out[kind] ?? {})) {
       for (const [name, value] of Object.entries(record)) {
@@ -240,6 +246,7 @@ function withoutRecords(blob, ids) {
 }
 function replayPending(blob,pending) {
   const out=copy(blob);
+  const active=mergeField(out.active,pending.active,'active');if(active)out.active=active;
   for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(pending[kind]??{})) {
     out[kind][id]=mergeRecord(out[kind][id],record);
   }
@@ -329,6 +336,7 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   if (eligiblePending.index?.id!==fetched.spaceId) delete eligiblePending.index;
   const baseMerged=mergeBlob(fetched,retained);
   const retainedOwn={};
+  if(retained.active?.by===deviceId&&!acknowledged(fetched.active,retained.active,'active'))retainedOwn.active=retained.active;
   for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(retained[kind])) {
     for(const [name,value] of Object.entries(record))if(value.by===deviceId && !acknowledged(fetched[kind]?.[id]?.[name],value,name)) {
       retainedOwn[kind] ??= {}; retainedOwn[kind][id] ??= {}; retainedOwn[kind][id][name]=value;
@@ -350,6 +358,7 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
     if (pendingAfter[kind] && !Object.keys(pendingAfter[kind]).length) delete pendingAfter[kind];
   }
   const mergedBlob=expireTombstones(replayed,now);
+  if(pendingAfter.active)clearInvalidActive({tabs:mergedBlob.tabs,active:pendingAfter.active});
   const changes=admissionUnits(mergedBlob,fetched,deviceId,expireTombstones(published,now));
   if(Array.isArray(admissionOrder)&&admissionOrder.length) {
     const ranks=new Map(admissionOrder.map((key,n)=>[key,n]));let next=ranks.size;
@@ -378,6 +387,7 @@ function settleUpload(plan, originalPending, {blobStored = false, indexStored = 
       for (const id of [...(plan.expiredRecords?.[kind]??[]),...(plan.recover??[])]) if (pending[kind]) delete pending[kind][id];
       if (pending[kind] && !Object.keys(pending[kind]).length) delete pending[kind];
     }
+    if(pending.active&&[...(plan.expiredRecords?.tabs??[]),...(plan.recover??[])].includes(pending.active.v))pending.active.cleared=true;
     return {pending,indexEntry:null};
   }
   const pending=copy(plan.pendingAfter);

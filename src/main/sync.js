@@ -262,7 +262,11 @@ async function probeSettings(accountId) {
   const gen=syncGen;
   const promise=getRequestQueue().enqueue({class:'F',item:'settings',generation:'probe:'+gen+':'+accountId,
     cancelled:()=>suspended?'suspended':gen!==syncGen?'generation':null,
-    run:()=>net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/settings`)});
+    run:async()=>{
+      const response=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
+      if(response.status===429)throw new SyncError('rate-limited');
+      return response;
+    }});
   queueBarrier();const result=await promise;if(result.error)throw result.error;return result.outcome;
 }
 /** Resolves when the currently-running pass has fully settled — dispatched
@@ -613,7 +617,8 @@ async function preflight({ handle, passphrase }) {
       return { ok: false, outcome: 'rateLimited', error: errorCode(new SyncError('rate-limited')) };
     }
     return { ok: false, outcome: 'error', error: errorCode(new SyncError(`http-${res.status}`)) };
-  } catch {
+  } catch(error) {
+    if(error instanceof SyncError&&error.message==='rate-limited')return {ok:false,outcome:'rateLimited',error:'rate-limited'};
     return { ok: false, outcome: 'offline', error: errorCode(new Error('offline')) };
   } finally {
     key.fill(0);
@@ -724,16 +729,20 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
       payload = plan.upload.blob;
     } else {
+      // Rejecting an oversized sidecar for display must not let our smaller
+      // cache overwrite its peer bindings. Hold publication in that case.
+      if(desc.name==='shared'&&remote&&Buffer.byteLength(JSON.stringify(remote),'utf8')>65536)return {blocked:true};
       if (remote) {
         applyingRemote = true;
         try { desc.merge(remote, run.ctx); } finally { applyingRemote = false; }
       }
       payload = desc.export(run.ctx);
+      if(desc.name==='shared'&&payload===null)return {blocked:true};
       if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) return { missing: true };
       if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx); return; }
     }
     const blob = encrypt(key, JSON.stringify(payload));
-    if (desc.spaceId && Buffer.byteLength(JSON.stringify(blob),'utf8') > 524288-4096) throw new SyncError('payload-too-large');
+    if (Buffer.byteLength(JSON.stringify(blob),'utf8') > 524288-4096) throw new SyncError('payload-too-large');
     if (run.stale()) throw new SyncError('stale');
     const putRes = await net.fetch(url, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },

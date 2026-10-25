@@ -21,6 +21,10 @@ function rebind(accountId) {
   for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','sidecar','cursors'])if(!container(s.data[name]))repairs[name]=defaults[name];
   const index=repairs.index??s.data.index,sidecar=repairs.sidecar??s.data.sidecar;
   if(!container(index.spaces))repairs.index={...index,spaces:{}};
+  if(index.v===1) {
+    const clean=model.sanitizeIndex(repairs.index??index);
+    if(canonical(clean)!==canonical(index))repairs.index=clean;
+  }
   if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
   if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
   return s;
@@ -53,7 +57,8 @@ function mergeIndex(index,ctx) {
   if(before!==canonical(s.data.index))notify(remoteChanged);
 }
 function exportIndex(ctx) {
-  const d=rebind(ctx.accountId).data,index=copy(d.index);
+  const d=rebind(ctx.accountId).data,index=model.sanitizeIndex(d.index);
+  if(!index)throw new TypeError('Invalid or unsupported Spaces index');
   for(const id of Object.keys(index.spaces)) {
     if(!d.knownIndex[id] && !d.blobs[id]?.lastPublishable){delete index.spaces[id];continue;}
     if(d.pending[id]?.index)index.spaces[id].rev=d.pending[id].index.rev;
@@ -98,6 +103,7 @@ function mergeSpace(id,remote,version,ctx,encryptFn) {
 function settleSpace(id,plan,outcome,ctx) {
   const s=ensure();if(s.data.accountId!==ctx.accountId || plan.accountId!==ctx.accountId)return false;
   const current=s.data.pending[id]??{},delta={};
+  if(current.active&&canonical(current.active)!==canonical(plan.pendingBefore.active))delta.active=copy(current.active);
   // Writes arriving after the plan was built must survive both success and
   // failure; a response only settles the snapshot it actually represented.
   for(const kind of ['tabs','groups'])for(const [rid,record] of Object.entries(current[kind]??{}))for(const [name,value] of Object.entries(record)) {
@@ -121,6 +127,7 @@ function settleSpace(id,plan,outcome,ctx) {
     }
     for(const kind of ['tabs','groups'])if(d.pending[id][kind]&&!Object.keys(d.pending[id][kind]).length)delete d.pending[id][kind];
     d.blobs[id].blob=model.sanitizeBlob(d.blobs[id].blob);
+    if(d.pending[id].active)d.pending[id].active=model.sanitizeBlob({...d.blobs[id].blob,active:d.pending[id].active}).active;
     d.blobs[id].retryOrder=(d.blobs[id].retryOrder??[]).filter(key=>{
       const [kind,rid]=key.split(':');return !!d.pending[id][kind]?.[rid] || d.blobs[id].unsynced.includes(rid);
     });
@@ -128,8 +135,8 @@ function settleSpace(id,plan,outcome,ctx) {
   });return true;
 }
 function spaceIds(ctx) {
-  const d=rebind(ctx.accountId).data;
-  return [...new Set([...Object.keys(d.index.spaces),...Object.keys(d.blobs)])].filter(id=>d.index.spaces[id]?.deleted?.v!==true).sort();
+  const d=rebind(ctx.accountId).data,index=model.sanitizeIndex(d.index)?.spaces??{};
+  return [...new Set([...Object.keys(index),...Object.keys(d.blobs)])].filter(id=>index[id]?.deleted?.v!==true).sort();
 }
 function sanitizeSidecar(payload) {
   const devices={};
@@ -142,6 +149,8 @@ function sanitizeSidecar(payload) {
   return {devices};
 }
 function mergeSidecar(remote,ctx) {
+  // An oversized snapshot cannot be trusted for hiding any F27 occurrence.
+  if(Buffer.byteLength(canonical(remote),'utf8')>65536)return;
   const s=rebind(ctx.accountId),local=sanitizeSidecar(s.data.sidecar),incoming=sanitizeSidecar(remote);
   for(const [id,entry] of Object.entries(incoming.devices)) {
     const prev=local.devices[id];
@@ -149,8 +158,15 @@ function mergeSidecar(remote,ctx) {
   }
   s.update(d=>{d.sidecar=local;});notify(remoteChanged);
 }
-const exportSidecar=ctx=>sanitizeSidecar(rebind(ctx.accountId).data.sidecar);
-const spaceCount=ctx=>Object.values(rebind(ctx.accountId).data.index.spaces).filter(record=>record.deleted?.v!==true).length;
+function exportSidecar(ctx) {
+  const payload=sanitizeSidecar(rebind(ctx.accountId).data.sidecar);
+  const fits=()=>Buffer.byteLength(canonical(payload),'utf8')<=65536;
+  if(!fits())delete payload.devices[ctx.deviceId];
+  // Peer entries are mandatory. If omitting ours still cannot fit, hold
+  // publication rather than trim somebody else's occurrence bindings.
+  return fits()?payload:null;
+}
+const spaceCount=ctx=>Object.values(model.sanitizeIndex(rebind(ctx.accountId).data.index)?.spaces??{}).filter(record=>record.deleted.v!==true).length;
 const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
 module.exports={rebind,snapshot,setEnabled,isEnabled,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
   mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,

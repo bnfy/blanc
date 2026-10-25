@@ -18887,6 +18887,230 @@
         },
         "reason": null
       }
+    },
+    {
+      "name": "selection-only pending write is replayed",
+      "input": {
+        "fetchedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "fetchedVersion": "version-1",
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000011",
+            "c": 2000,
+            "by": "a"
+          }
+        },
+        "pending": {
+          "active": {
+            "v": "00000000000000000000000000000011",
+            "c": 2000,
+            "by": "a"
+          }
+        },
+        "lastMergeAt": 1000,
+        "now": 2000,
+        "deviceId": "a"
+      },
+      "expected": {
+        "upload": {
+          "blob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {
+              "00000000000000000000000000000011": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "name": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/",
+                    "title": "Example"
+                  },
+                  "c": 100,
+                  "by": "a"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111122",
+                  "c": 100,
+                  "by": "a"
+                }
+              }
+            },
+            "active": {
+              "v": "00000000000000000000000000000011",
+              "c": 2000,
+              "by": "a"
+            }
+          },
+          "rev": "6e22be9a81d02a47",
+          "ifVersion": "version-1"
+        },
+        "pendingAfter": {
+          "active": {
+            "v": "00000000000000000000000000000011",
+            "c": 2000,
+            "by": "a"
+          }
+        },
+        "expiredRecords": {
+          "tabs": [],
+          "groups": []
+        },
+        "recover": [],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000011",
+            "c": 2000,
+            "by": "a"
+          }
+        },
+        "nextLastMergeAt": 2000,
+        "indexEntry": {
+          "id": "00000000000000000000000000000063",
+          "rev": "6e22be9a81d02a47"
+        },
+        "reason": null
+      }
     }
   ],
   "spacesSelections": [
