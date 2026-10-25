@@ -6,6 +6,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { callTestHook: call } = hook;
 const { waitForValue: wait } = polling;
@@ -40,7 +41,7 @@ const launch = async userData => {
 };
 const loaded = async (id, label) => {
   const wcId = await call(app, 'workspacePageIdentity', [id]);
-  const result = await wait(() => app.evaluate(async ({ webContents }, id) => {
+  const result = await wait(() => inMainTurn(app, async ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     if (!wc || wc.isLoadingMainFrame()) return null;
     // Newly created or quiet-restored guests can have no committed URL yet.

@@ -9,6 +9,7 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import popupFocusTrace from './support/popup-focus-trace.js';
 import hooks from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 const { waitForValue, clickWhenSettled } = poll;
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-shield-provider-'));
 fs.mkdirSync(dir + '-Dev');
@@ -430,7 +431,7 @@ try {
   overlay = await openShield(); await clickWhenSettled(overlay.locator('#shieldPopUblock'), '#shieldPopUblock');
   const outsidePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for outside click');
   await outsidePopup.locator('body:not(.loading)').waitFor();
-  await electron.evaluate(({ webContents }, id) => {
+  await inMainTurn(electron, ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     wc.sendInputEvent({ type: 'mouseDown', x: 1000, y: 150, button: 'left', clickCount: 1 });
     wc.sendInputEvent({ type: 'mouseUp', x: 1000, y: 150, button: 'left', clickCount: 1 });
@@ -446,7 +447,7 @@ try {
   const laterContents = (await call('state')).tabs.find(tab => tab.id === laterTab).webContentsId;
   assert.equal(await electron.evaluate(({ webContents }, id) => webContents.fromId(id).listenerCount('before-mouse-event'), laterContents), outsideListeners + 1, 'newly woken view is observed while controls remain open');
   assert((await electron.windows()).some(page => page.url().includes('/popup-fenix.html')), 'creating and waking a background tab does not dismiss controls');
-  await electron.evaluate(({ webContents }, id) => {
+  await inMainTurn(electron, ({ webContents }, id) => {
     const wc = webContents.fromId(id);
     wc.sendInputEvent({ type: 'mouseDown', x: 300, y: 150, button: 'left', clickCount: 1 });
     wc.sendInputEvent({ type: 'mouseUp', x: 300, y: 150, button: 'left', clickCount: 1 });
@@ -459,7 +460,7 @@ try {
   const escapePopup = await waitForValue(async () => (await electron.windows()).find(page => page.url().includes('/popup-fenix.html')), Boolean, 'popup for Escape');
   await escapePopup.locator('body:not(.loading)').waitFor();
   await escapePopup.locator('#switch').waitFor();
-  await electron.evaluate(({ webContents }) => {
+  await inMainTurn(electron, ({ webContents }) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL().includes('/popup-fenix.html'));
     wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
   });

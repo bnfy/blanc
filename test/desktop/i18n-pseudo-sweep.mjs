@@ -8,6 +8,7 @@ import { _electron } from 'playwright';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
 import sweep from './support/pseudo-sweep.js';
+import { inMainTurn } from './support/main-turn.js';
 import sessionFixture from '../support/chromium-session-fixture.js';
 import browserImport from '../../src/main/browser-data-import.js';
 import syncFixture from './support/sync-fixture.js';
@@ -387,7 +388,7 @@ const ERROR_SURFACES = [
     open: async ({ app }) => {
       const query = new URLSearchParams({ kind: 'certificate', url: 'https://blanc-sweep.invalid/', continue: '1',
         subject: 'blanc-sweep.invalid', issuer: 'Sweep Fixture CA', validTo: String(Date.UTC(2030, 0, 1)) });
-      await app.evaluate(({ webContents }, url) => webContents.getAllWebContents()
+      await inMainTurn(app, ({ webContents }, url) => webContents.getAllWebContents()
         .find((wc) => wc.getURL().startsWith('blanc://error/')).loadURL(url), `blanc://error/?${query}`);
       const page = await findPage(app, 'blanc://error/?kind=certificate', 'certificate page');
       await page.locator('.advanced-toggle').click();

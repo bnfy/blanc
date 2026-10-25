@@ -9,6 +9,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 
 const { callTestHook } = testHookCall;
 const { waitForValue } = poll;
@@ -85,7 +86,7 @@ try {
       }), (s) => !s.hidden && s.active && !s.minimized && s.focused, `restore ${mode}`);
       console.log(`external-links ${mode} PASS`);
     }
-    await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+    await inMainTurn(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows()
       .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').close());
     await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
       .some((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/')),
@@ -114,7 +115,7 @@ try {
     }, path.resolve('.'));
     try {
       for (const mode of ['hidden', 'minimized']) {
-        await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
+        await inMainTurn(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows()
           .find((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/').close());
         await waitForValue(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()
           .some((window) => window.webContents.getURL() !== 'blanc-chrome://display-capture-helper/')),
