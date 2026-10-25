@@ -50,7 +50,10 @@ function createRequestQueue({scheduler,persist=()=>{},now=Date.now,setTimer=setT
       else if(outcome?.retry){op.attempt++;op.state='waiting';waiting.push(op);}
       else complete(op,outcome,null);
     } catch(error) {
-      if(['rate-limited','http-429'].includes(error.message)){scheduler.onRateLimited();persist(scheduler.snapshot());}
+      if(['rate-limited','http-429'].includes(error.message)) {
+        scheduler.onRateLimited();
+        try {persist(scheduler.snapshot());}catch(persistError){error=persistError;}
+      }
       const reason=op.cancelled?.();complete(op,null,reason?makeError('cancelled:'+reason):error);
     } finally {running=null;settleDrain();wake();}
   }

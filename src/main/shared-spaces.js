@@ -11,21 +11,40 @@ let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
 const notify=listeners=>{for(const fn of listeners)fn();};
+const container=value=>value!==null && typeof value==='object' && !Array.isArray(value);
 function rebind(accountId) {
-  const s=ensure();if(s.data.accountId!==accountId)s.update(d=>Object.assign(d,empty(),{accountId,requestLog:d.requestLog??[]}));return s;
+  const s=ensure();if(s.data.accountId!==accountId)s.update(d=>Object.assign(d,empty(),{accountId,requestLog:d.requestLog??[]}));
+  // JsonStore repairs unreadable JSON, but a readable file can still contain
+  // invalid optional containers. Repair only those containers, preserving
+  // unrelated records and any readable future version marker.
+  const defaults=empty(),repairs={};
+  for(const name of ['index','knownIndex','blobs','pending','windows','recoveries','sidecar','cursors'])if(!container(s.data[name]))repairs[name]=defaults[name];
+  const index=repairs.index??s.data.index,sidecar=repairs.sidecar??s.data.sidecar;
+  if(!container(index.spaces))repairs.index={...index,spaces:{}};
+  if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
+  if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
+  return s;
 }
 const snapshot=ctx=>copy(rebind(ctx.accountId).data);
 function setEnabled(on,ctx) {rebind(ctx.accountId).update(d=>{d.enabled=!!on;});notify(changed);}
 const isEnabled=ctx=>rebind(ctx.accountId).data.enabled===true;
 function noteLocalSpace(id,blob,edits,ctx) {
   const clean=model.sanitizeBlob(blob);if(!clean || clean.spaceId!==id)throw new TypeError('Invalid local Space');
-  const s=rebind(ctx.accountId);
+  const s=rebind(ctx.accountId),eligible=copy(edits??{});
   s.update(d=>{const prev=d.blobs[id],retryOrder=Array.isArray(prev?.retryOrder)?[...prev.retryOrder]:[];
-    for(const kind of ['groups','tabs'])for(const rid of Object.keys(edits?.[kind]??{})) {
+    // Once classified, an id belongs to the durable recovery copy. A local
+    // edit arriving during I/O must stay there even if the process exits
+    // before settlement; advancing mergedAt cannot make it publishable again.
+    for(const kind of ['groups','tabs'])for(const rid of Object.keys(d.recoveries[id]?.[kind]??{})) {
+      const incoming=model.mergeRecord(clean[kind][rid],eligible[kind]?.[rid]);
+      d.recoveries[id][kind][rid]=model.mergeRecord(d.recoveries[id][kind][rid],incoming);
+      delete clean[kind][rid];if(eligible[kind])delete eligible[kind][rid];
+    }
+    for(const kind of ['groups','tabs'])for(const rid of Object.keys(eligible[kind]??{})) {
       const key=kind+':'+rid;if(!retryOrder.includes(key))retryOrder.push(key);
     }
     d.blobs[id]={...prev,blob:prev?model.mergeBlob(prev.blob,clean):clean,mergedAt:prev?.mergedAt??Date.now(),retryOrder};
-    d.pending[id]=model.applyLocalEdits(d.pending[id],edits);});notify(changed);
+    d.pending[id]=model.applyLocalEdits(d.pending[id],eligible);});notify(changed);
 }
 function setIndex(index,ctx) {const s=rebind(ctx.accountId);s.update(d=>{d.index=model.mergeIndex(d.index,index);});notify(changed);}
 function mergeIndex(index,ctx) {
@@ -59,7 +78,9 @@ function mergeSpace(id,remote,version,ctx,encryptFn) {
   s.update(d=>{
     if(plan.recover.size) {
       const recovery=d.recoveries[id]??={tabs:{},groups:{}};
-      for(const kind of ['tabs','groups'])for(const rid of plan.recover)if(local[kind][rid])recovery[kind][rid]=copy(local[kind][rid]);
+      for(const kind of ['tabs','groups'])for(const rid of plan.recover)if(local[kind][rid]) {
+        recovery[kind][rid]=model.mergeRecord(recovery[kind][rid],model.mergeRecord(local[kind][rid],before[kind]?.[rid]));
+      }
     }
     d.blobs[id]={...entry,retryOrder,blob:plan.mergedBlob,rev:remote?model.revisionOf(remote):null,mergedAt:plan.nextLastMergeAt,
       lastPublishable:remote && model.liveTabCount(remote)<=model.LIMITS.tabsPerSpace && model.blobFits(remote,encryptFn)?copy(remote):entry?.lastPublishable,
@@ -80,17 +101,25 @@ function settleSpace(id,plan,outcome,ctx) {
   // Writes arriving after the plan was built must survive both success and
   // failure; a response only settles the snapshot it actually represented.
   for(const kind of ['tabs','groups'])for(const [rid,record] of Object.entries(current[kind]??{}))for(const [name,value] of Object.entries(record)) {
-    if(plan.expiredRecords[kind].includes(rid))continue;
+    if(plan.expiredRecords[kind].includes(rid)||plan.recover.has(rid))continue;
     if(canonical(value)===canonical(plan.pendingBefore[kind]?.[rid]?.[name]))continue;
     delta[kind]??={};delta[kind][rid]??={};delta[kind][rid][name]=copy(value);
   }
   const result=model.settleUpload(plan,current,outcome);
   s.update(d=>{
     d.pending[id]=model.applyLocalEdits(result.pending,delta);
-    for(const kind of ['tabs','groups'])for(const rid of plan.expiredRecords[kind]) {
+    for(const kind of ['tabs','groups'])for(const rid of plan.recover) {
+      const record=model.mergeRecord(d.blobs[id].blob[kind][rid],current[kind]?.[rid]);
+      if(Object.keys(record).length) {
+        const recovery=d.recoveries[id]??={tabs:{},groups:{}};
+        recovery[kind][rid]=model.mergeRecord(recovery[kind][rid],record);
+      }
+    }
+    for(const kind of ['tabs','groups'])for(const rid of [...plan.expiredRecords[kind],...plan.recover]) {
       delete d.blobs[id].blob[kind][rid];
       if(d.pending[id][kind])delete d.pending[id][kind][rid];
     }
+    for(const kind of ['tabs','groups'])if(d.pending[id][kind]&&!Object.keys(d.pending[id][kind]).length)delete d.pending[id][kind];
     d.blobs[id].blob=model.sanitizeBlob(d.blobs[id].blob);
     d.blobs[id].retryOrder=(d.blobs[id].retryOrder??[]).filter(key=>{
       const [kind,rid]=key.split(':');return !!d.pending[id][kind]?.[rid] || d.blobs[id].unsynced.includes(rid);

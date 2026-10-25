@@ -123,13 +123,17 @@ function normalizeFile(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
   const seen = new Set();
   const workspaces = [];
+  let ordinaryCount=0;
   for (const entry of asArray(source.workspaces)) {
     const workspace = normalizeWorkspace(entry);
     if (!workspace || seen.has(workspace.id)) continue;
     seen.add(workspace.id);
     // A remote concurrent addition or a preservation copy must not disappear
     // on the next disk read. Ordinary local creation still uses the cap.
-    if(workspaces.length>=MAX_WORKSPACES&&!workspace.sharedId&&!workspace.recoveredFrom)continue;
+    if(!workspace.sharedId&&!workspace.recoveredFrom) {
+      if(ordinaryCount>=MAX_WORKSPACES)continue;
+      ordinaryCount++;
+    }
     workspaces.push(workspace);
   }
   // v1 displayed most-recently-saved first; migrate that order once.

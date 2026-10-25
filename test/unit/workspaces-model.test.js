@@ -51,6 +51,17 @@ test('normalization preserves a transient 26th shared Space but ordinary creatio
   assert.equal(file.workspaces.length,26);
   assert.equal(createWorkspace(file,{id:'new',name:'New',profileId:'default',capture:{urls:[]},now:300}).error,'limit');
 });
+test('shared and recovery Spaces cannot evict ordinary Spaces when their order changes',()=>{
+  const ordinary=Array.from({length:25},(_,n)=>({...VALID(),id:'local-'+n,name:'Local '+n}));
+  const shared={...VALID(),id:'shared',sharedId:'a'.repeat(32)};
+  const recovery={...VALID(),id:'recovery',recoveredFrom:'b'.repeat(32)};
+  for(const rows of [[shared,...ordinary,recovery],[...ordinary,shared,recovery],[...ordinary.slice(0,10),recovery,shared,...ordinary.slice(10)]]) {
+    const file=normalizeFile({version:2,groupNamesRecased:1,workspaces:rows});
+    assert.equal(file.workspaces.length,27);
+    assert.deepEqual(file.workspaces.filter(w=>w.id.startsWith('local-')).map(w=>w.id),ordinary.map(w=>w.id));
+    assert.equal(createWorkspace(file,{id:'new',name:'New',profileId:'default',capture:{urls:[]},now:300}).error,'limit');
+  }
+});
 
 test('EMPTY_FILE is a versioned, empty, non-shared shape', () => {
   const a = EMPTY_FILE();

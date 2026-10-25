@@ -63,3 +63,38 @@ test('successful settlement cannot discard an edit made while the upload was in 
   spaces.settleSpace(id(99),p,{blobStored:true},c);
   assert.equal(spaces.rebind(c.accountId).data.pending[id(99)].tabs[id(1)].name.v,'Changed during PUT');
 });
+test('failed recovery uploads and a restart cannot return preserved records to sync',async()=>{
+  const c={...ctx,accountId:'recovery-failure'},local=blob({[id(1)]:tab(1),[id(2)]:tab(2)});
+  local.tabs[id(1)].pinned=f(true,200);
+  spaces.noteLocalSpace(id(99),local,{tabs:local.tabs},c);
+  spaces.rebind(c.accountId).update(d=>{d.blobs[id(99)].mergedAt=Date.now()-model.LIMITS.tombstoneMs-1;});
+  const remote=blob({[id(1)]:tab(1)});remote.tabs[id(1)].name=f('Remote',101);
+  const plan=spaces.mergeSpace(id(99),remote,'remote',c,seal);
+  assert.ok(plan.recover.has(id(2)));assert.ok(plan.upload);
+  assert.equal(spaces.snapshot(c).pending[id(99)].tabs?.[id(2)],undefined,'exclusion is durable before PUT');
+  const late=structuredClone(local);late.tabs[id(2)].name=f('Edited during PUT',200);
+  spaces.noteLocalSpace(id(99),late,{tabs:{[id(2)]:{name:late.tabs[id(2)].name}}},c);
+  assert.equal(spaces.snapshot(c).pending[id(99)].tabs?.[id(2)],undefined,'in-flight edits stay in recovery before settlement or crash');
+  assert.equal(spaces.snapshot(c).blobs[id(99)].blob.tabs[id(2)],undefined);
+  spaces.settleSpace(id(99),plan,{blobStored:false},c);
+  const saved=spaces.snapshot(c);
+  assert.equal(saved.pending[id(99)].tabs?.[id(2)],undefined);
+  assert.equal(saved.blobs[id(99)].blob.tabs[id(2)],undefined);
+  assert.equal(saved.recoveries[id(99)].tabs[id(2)].name.v,'Edited during PUT');
+  const {syncDevice}=require('./support/sync-device');
+  const restarted=syncDevice({files:{'shared-spaces.json':saved}});
+  try {
+    const retry=restarted.spaces.mergeSpace(id(99),remote,'remote',c,seal);
+    assert.equal(retry.upload?.blob.tabs[id(2)],undefined);
+    assert.equal(restarted.spaces.snapshot(c).recoveries[id(99)].tabs[id(2)].name.v,'Edited during PUT');
+  } finally {await restarted.dispose();}
+});
+test('invalid inactive shared-store containers cannot break the ordinary workspace status',()=>{
+  const c={...ctx,accountId:'damaged'},s=spaces.rebind(c.accountId);
+  s.update(d=>{d.enabled=false;d.index=null;d.knownIndex=[];d.pending=null;d.windows=7;d.sidecar=null;d.blobs.saved={preserved:true};});
+  assert.equal(spaces.isEnabled(c),false);
+  assert.equal(spaces.spaceCount(c),0);
+  assert.deepEqual(spaces.exportIndex(c),{v:1,spaces:{}});
+  assert.deepEqual(spaces.exportSidecar(c),{devices:{}});
+  assert.equal(spaces.snapshot(c).blobs.saved.preserved,true,'repair must retain unrelated valid containers');
+});

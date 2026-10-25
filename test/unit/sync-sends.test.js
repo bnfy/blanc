@@ -9,6 +9,15 @@ const path = require('node:path');
 const { trackJsonStores } = require('./support/track-json-stores');
 const { encrypt, decrypt } = require('../../src/main/sync-crypto');
 
+// These legacy Send tests exercise available-capacity behavior. Advance both
+// clocks between cases so requests from earlier tests cannot consume this
+// case's budget; the rolling-window and exhausted-departure tests cover waits.
+// Strictly increasing stamps also make the two sequential sends deterministic.
+let clock=Date.now();
+test.mock.method(Date,'now',()=>++clock);
+test.mock.method(performance,'now',()=>clock);
+test.beforeEach(()=>{clock+=61000;});
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-sends-'));
 const key = Buffer.alloc(32, 9);
 const OWN = '0a0b0c0d-1111-4222-8333-444455556666';

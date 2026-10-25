@@ -371,11 +371,11 @@ Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,adm
 function settleUpload(plan, originalPending, {blobStored = false, indexStored = false} = {}) {
   if (plan.upload && !blobStored) {
     // Retention does not depend on an upload acknowledgement. Apply only the
-    // plan's expiry decision to the caller's pending snapshot; preserve other
+    // plan's expiry/recovery decision to the caller's pending snapshot; preserve other
     // writes and any previous index receipt, including edits added in flight.
     const pending=copy(originalPending);
     for (const kind of ['tabs','groups']) {
-      for (const id of plan.expiredRecords?.[kind]??[]) if (pending[kind]) delete pending[kind][id];
+      for (const id of [...(plan.expiredRecords?.[kind]??[]),...(plan.recover??[])]) if (pending[kind]) delete pending[kind][id];
       if (pending[kind] && !Object.keys(pending[kind]).length) delete pending[kind];
     }
     return {pending,indexEntry:null};

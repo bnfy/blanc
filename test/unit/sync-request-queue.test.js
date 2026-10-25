@@ -54,6 +54,23 @@ test('a request-log persistence failure prevents the GET and leaves the queue dr
   const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),30))]);
   assert.equal(result.error.message,'disk full');assert.equal(ran,false);assert.equal(queue.status().running,0);
 });
+test('failed persistence of a 429 backoff still completes every caller and drains',async()=>{
+  const scheduler=createScheduler();let writes=0,callbacks=0;
+  const queue=createRequestQueue({scheduler,persist:()=>{if(++writes===2)throw new Error('disk full during backoff');}});
+  const op=queue.enqueue({class:'F',item:'settings',run:()=>{throw new Error('http-429');},onOutcome:()=>callbacks++});
+  const result=await Promise.race([op,new Promise(r=>setTimeout(()=>r({error:new Error('queue wedged')}),50))]);
+  assert.equal(result.error.message,'disk full during backoff');assert.equal(callbacks,1);
+  assert.equal(queue.status().running,0);assert.equal(scheduler.snapshot().windowLimit,5);
+  await queue.settled();
+});
+test('a fractional persisted window limit is repaired and waiting requests eventually run',async()=>{
+  let t=0,wake;const scheduler=createScheduler({windowLimit:3.5,now:()=>t,monotonic:()=>t});
+  const queue=createRequestQueue({scheduler,now:()=>t,setTimer:fn=>{wake=fn;return 1;},clearTimer:()=>{wake=null;}});
+  let runs=0;
+  const calls=Array.from({length:5},(_,n)=>queue.enqueue({class:'F',item:'item'+n,run:()=>++runs}));
+  await tick();assert.equal(runs,3);assert.equal(scheduler.snapshot().windowLimit,3);
+  t+=60000;wake?.();await tick();await Promise.all(calls);assert.equal(runs,5);await queue.settled();
+});
 test('continuous requested work and focus refreshes cannot starve any class or item',async()=>{
   const {scheduler,queue,advance}=setup(1),events=[],calls=[];let outcomes=0;
   const work={I:['spaces'],S:['s1','s2'],F:['bookmarks','settings','session','icons','sends','closed','shared'],R:Array.from({length:25},(_,i)=>'r'+String(i).padStart(2,'0'))};

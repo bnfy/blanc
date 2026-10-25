@@ -65,6 +65,23 @@ test('a real 409 re-enters the queue and preserves both devices independent fiel
   assert.ok(e.fixture.requests.some(x=>x.store===store&&x.method==='PUT'&&x.status===409));
   assert.equal(e.read(store).tabs[id(1)].name.v,'Named on A');assert.equal(e.read(store).tabs[id(1)].pinned.v,true);
 });
+test('a real 409 cannot replay long-stale recovery records into the next upload',async t=>{
+  const e=await environment(t),a=e.device('A'),b=e.device('B');createSpace(a);
+  await e.drive(a.sync.syncNow([store]));await e.drive(b.sync.syncNow());
+  const local=structuredClone(a.spaces.snapshot(a.ctx).blobs[sid].blob);
+  local.tabs[id(1)].name=field('Retained edit',300,'A');local.tabs[id(2)]=tab(2);
+  a.spaces.noteLocalSpace(sid,local,{tabs:{[id(1)]:{name:local.tabs[id(1)].name},[id(2)]:local.tabs[id(2)]}},a.ctx);
+  a.spaces.rebind(account).update(d=>{d.blobs[sid].mergedAt=Date.now()-model.LIMITS.tombstoneMs-1;});
+  const peer=structuredClone(b.spaces.snapshot(b.ctx).blobs[sid].blob);peer.tabs[id(1)].pinned=field(true,301,'B');
+  b.spaces.noteLocalSpace(sid,peer,{tabs:{[id(1)]:{pinned:peer.tabs[id(1)].pinned}}},b.ctx);
+  e.fixture.beforeNextPut(store,async()=>{await b.sync.syncNow([store]);});
+  await e.drive(a.sync.syncNow([store]));
+  assert.ok(e.fixture.requests.some(x=>x.store===store&&x.method==='PUT'&&x.status===409));
+  assert.equal(e.read(store).tabs[id(2)],undefined);
+  assert.equal(e.read(store).tabs[id(1)].name.v,'Retained edit');assert.equal(e.read(store).tabs[id(1)].pinned.v,true);
+  const saved=a.spaces.snapshot(a.ctx);
+  assert.equal(saved.pending[sid].tabs?.[id(2)],undefined);assert.ok(saved.recoveries[sid].tabs[id(2)]);
+});
 test('reconciliation discovers a blob update even when its acknowledged index write disappears',async t=>{
   const e=await environment(t),a=e.device('A'),b=e.device('B');createSpace(a);await e.drive(a.sync.syncNow([store]));await e.drive(b.sync.syncNow());
   const local=structuredClone(a.spaces.snapshot(a.ctx).blobs[sid].blob);local.tabs[id(1)].name=field('Missed index update',400,'A');

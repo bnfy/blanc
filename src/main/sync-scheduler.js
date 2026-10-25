@@ -7,7 +7,7 @@ function createScheduler({limit=10,windowMs=60000,log=[],nextClass='I',cursors={
   if(!Number.isFinite(windowLimit))windowLimit=limit;
   if(!Number.isFinite(backoffUntil))backoffUntil=null;
   let next=CLASSES.includes(nextClass)?nextClass:'I',items={...cursors},indexDue=false;
-  let cap=Math.min(limit,Math.max(Math.min(3,limit),windowLimit)),recoverAt=null;
+  let cap=Math.min(limit,Math.max(Math.min(3,limit),Math.floor(windowLimit))),recoverAt=null;
   const start=monotonic();
   // Restarts conservatively charge every recent/future wall timestamp for a
   // whole monotonic window. Neither a restart nor wall-clock rollback refills it.
