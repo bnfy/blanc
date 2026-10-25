@@ -208,6 +208,31 @@ try {
     }
     return entry(name,{a,b,c},expected);
   });
+  // The index revision hint merges by its own clock and writer (revAt, revBy).
+  const revEntry=(rev,revAt,revBy)=>({name:pipeField('Work'),color:pipeField('#426c4c'),symbol:pipeField('briefcase'),
+    pos:pipeField(spaces.keyFor('','',pipeSpace)),deleted:pipeField(false),rev,...(revAt===undefined?{}:{revAt}),...(revBy===undefined?{}:{revBy})});
+  const revIndex=e=>({v:1,spaces:{[pipeSpace]:e}});
+  vectors.spacesIndexRevision=[
+    ['newer hint wins though its hash sorts later',revEntry('0000ffffffffffff',10,'a'),revEntry('ffffffffffff0000',20,'b')],
+    ['newer hint wins though its hash sorts earlier',revEntry('ffff000000000000',10,'a'),revEntry('0000ffffffffffff',20,'b')],
+    ['equal clock: smaller writer wins',revEntry('1111111111111111',5,'b'),revEntry('2222222222222222',5,'a')],
+    ['unclocked hint ranks below a clocked one',revEntry('0000000000000000'),revEntry('ffffffffffffffff',0,'a')],
+  ].map(([name,a,b])=>{
+    const expected=spaces.mergeIndex(revIndex(a),revIndex(b));
+    assert.deepEqual(spaces.mergeIndex(revIndex(b),revIndex(a)),expected);
+    return entry(name,{a:revIndex(a),b:revIndex(b)},expected);
+  });
+  // Uploads relay what this version can't interpret, unchanged.
+  const relayTab=(n,over={})=>({...selectionTab(n),...over});
+  const partialTab=relayTab(1);delete partialTab.name;
+  const relayRemote={v:1,spaceId:pipeSpace,groups:{},tabs:{[sid(1)]:partialTab,[sid(2)]:relayTab(2,{muted:spaces.field(true,100,'b')}),
+    [sid(3)]:relayTab(3,{nav:spaces.field({url:'https://example.test/'+'x'.repeat(2100),title:'Long'},300,'b')})}};
+  const ownTab=relayTab(4,{nav:spaces.field({url:'https://example.test/4',title:'Four'},150,'a')});
+  const relayInput={fetchedBlob:relayRemote,fetchedVersion:'version-1',localBlob:{v:1,spaceId:pipeSpace,groups:{},tabs:{[sid(3)]:relayTab(3),[sid(4)]:ownTab}},
+    pending:{tabs:{[sid(4)]:{nav:ownTab.nav}}},lastMergeAt:1000,now:2000,deviceId:'a'};
+  const relayResult=spaces.pushPlan({...relayInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+  vectors.spacesRelay=[entry('unknown field, incomplete record and uninterpretable newer value are relayed',relayInput,
+    {...relayResult,recover:[...relayResult.recover],unsynced:[...relayResult.unsynced]})];
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

@@ -18629,7 +18629,9 @@
         "nextLastMergeAt": 2000,
         "indexEntry": {
           "id": "00000000000000000000000000000063",
-          "rev": "3eddc5f62172a85e"
+          "rev": "3eddc5f62172a85e",
+          "at": 2000,
+          "by": "a"
         },
         "reason": null
       }
@@ -18883,7 +18885,9 @@
         "nextLastMergeAt": 2592000200,
         "indexEntry": {
           "id": "00000000000000000000000000000063",
-          "rev": "79fd3888cde66f21"
+          "rev": "79fd3888cde66f21",
+          "at": 2592000200,
+          "by": "a"
         },
         "reason": null
       }
@@ -19107,7 +19111,9 @@
         "nextLastMergeAt": 2000,
         "indexEntry": {
           "id": "00000000000000000000000000000063",
-          "rev": "6e22be9a81d02a47"
+          "rev": "6e22be9a81d02a47",
+          "at": 2000,
+          "by": "a"
         },
         "reason": null
       }
@@ -19246,7 +19252,9 @@
           "nextLastMergeAt": 2592000200,
           "indexEntry": {
             "id": "00000000000000000000000000000063",
-            "rev": "79fd3888cde66f21"
+            "rev": "79fd3888cde66f21",
+            "at": 2592000200,
+            "by": "a"
           },
           "reason": null
         },
@@ -20217,6 +20225,978 @@
           "c": 300,
           "by": "a"
         }
+      }
+    }
+  ],
+  "spacesIndexRevision": [
+    {
+      "name": "newer hint wins though its hash sorts later",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "0000ffffffffffff",
+              "revAt": 10,
+              "revBy": "a"
+            }
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "ffffffffffff0000",
+              "revAt": 20,
+              "revBy": "b"
+            }
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaces": {
+          "00000000000000000000000000000063": {
+            "color": {
+              "v": "#426c4c",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": "Work",
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111174",
+              "c": 100,
+              "by": "a"
+            },
+            "symbol": {
+              "v": "briefcase",
+              "c": 100,
+              "by": "a"
+            },
+            "rev": "ffffffffffff0000",
+            "revAt": 20,
+            "revBy": "b"
+          }
+        }
+      }
+    },
+    {
+      "name": "newer hint wins though its hash sorts earlier",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "ffff000000000000",
+              "revAt": 10,
+              "revBy": "a"
+            }
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "0000ffffffffffff",
+              "revAt": 20,
+              "revBy": "b"
+            }
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaces": {
+          "00000000000000000000000000000063": {
+            "color": {
+              "v": "#426c4c",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": "Work",
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111174",
+              "c": 100,
+              "by": "a"
+            },
+            "symbol": {
+              "v": "briefcase",
+              "c": 100,
+              "by": "a"
+            },
+            "rev": "0000ffffffffffff",
+            "revAt": 20,
+            "revBy": "b"
+          }
+        }
+      }
+    },
+    {
+      "name": "equal clock: smaller writer wins",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "1111111111111111",
+              "revAt": 5,
+              "revBy": "b"
+            }
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "2222222222222222",
+              "revAt": 5,
+              "revBy": "a"
+            }
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaces": {
+          "00000000000000000000000000000063": {
+            "color": {
+              "v": "#426c4c",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": "Work",
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111174",
+              "c": 100,
+              "by": "a"
+            },
+            "symbol": {
+              "v": "briefcase",
+              "c": 100,
+              "by": "a"
+            },
+            "rev": "2222222222222222",
+            "revAt": 5,
+            "revBy": "a"
+          }
+        }
+      }
+    },
+    {
+      "name": "unclocked hint ranks below a clocked one",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "0000000000000000"
+            }
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaces": {
+            "00000000000000000000000000000063": {
+              "name": {
+                "v": "Work",
+                "c": 100,
+                "by": "a"
+              },
+              "color": {
+                "v": "#426c4c",
+                "c": 100,
+                "by": "a"
+              },
+              "symbol": {
+                "v": "briefcase",
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111174",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "rev": "ffffffffffffffff",
+              "revAt": 0,
+              "revBy": "a"
+            }
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaces": {
+          "00000000000000000000000000000063": {
+            "color": {
+              "v": "#426c4c",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": "Work",
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111174",
+              "c": 100,
+              "by": "a"
+            },
+            "symbol": {
+              "v": "briefcase",
+              "c": 100,
+              "by": "a"
+            },
+            "rev": "ffffffffffffffff",
+            "revAt": 0,
+            "revBy": "a"
+          }
+        }
+      }
+    }
+  ],
+  "spacesRelay": [
+    {
+      "name": "unknown field, incomplete record and uninterpretable newer value are relayed",
+      "input": {
+        "fetchedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "muted": {
+                "v": true,
+                "c": 100,
+                "by": "b"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                  "title": "Long"
+                },
+                "c": 300,
+                "by": "b"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "fetchedVersion": "version-1",
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000004": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/4",
+                  "title": "Four"
+                },
+                "c": 150,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111115",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "pending": {
+          "tabs": {
+            "00000000000000000000000000000004": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/4",
+                  "title": "Four"
+                },
+                "c": 150,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "lastMergeAt": 1000,
+        "now": 2000,
+        "deviceId": "a"
+      },
+      "expected": {
+        "upload": {
+          "blob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {
+              "00000000000000000000000000000001": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/",
+                    "title": "Example"
+                  },
+                  "c": 100,
+                  "by": "a"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111112",
+                  "c": 100,
+                  "by": "a"
+                }
+              },
+              "00000000000000000000000000000002": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "muted": {
+                  "v": true,
+                  "c": 100,
+                  "by": "b"
+                },
+                "name": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/",
+                    "title": "Example"
+                  },
+                  "c": 100,
+                  "by": "a"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111113",
+                  "c": 100,
+                  "by": "a"
+                }
+              },
+              "00000000000000000000000000000003": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "name": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                    "title": "Long"
+                  },
+                  "c": 300,
+                  "by": "b"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111114",
+                  "c": 100,
+                  "by": "a"
+                }
+              },
+              "00000000000000000000000000000004": {
+                "deleted": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "groupId": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "name": {
+                  "v": null,
+                  "c": 100,
+                  "by": "a"
+                },
+                "nav": {
+                  "v": {
+                    "url": "https://example.test/4",
+                    "title": "Four"
+                  },
+                  "c": 150,
+                  "by": "a"
+                },
+                "pinned": {
+                  "v": false,
+                  "c": 100,
+                  "by": "a"
+                },
+                "pos": {
+                  "v": "i11111111111111111111111111111115",
+                  "c": 100,
+                  "by": "a"
+                }
+              }
+            }
+          },
+          "rev": "11d749521135c707",
+          "ifVersion": "version-1"
+        },
+        "pendingAfter": {
+          "tabs": {
+            "00000000000000000000000000000004": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/4",
+                  "title": "Four"
+                },
+                "c": 150,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111115",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "expiredRecords": {
+          "tabs": [],
+          "groups": []
+        },
+        "recover": [],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000002": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000004": {
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "nav": {
+                "v": {
+                  "url": "https://example.test/4",
+                  "title": "Four"
+                },
+                "c": 150,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111115",
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "nextLastMergeAt": 2000,
+        "indexEntry": {
+          "id": "00000000000000000000000000000063",
+          "rev": "11d749521135c707",
+          "at": 2000,
+          "by": "a"
+        },
+        "reason": null
       }
     }
   ]
