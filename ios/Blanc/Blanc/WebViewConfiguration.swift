@@ -27,10 +27,9 @@ enum WebViewConfiguration {
             forMainFrameOnly: true)
         config.userContentController.addUserScript(userScript)
         config.userContentController.add(bridge, name: PagesBridge.messageHandlerName)
-        if let startPageHold {
+        if startPageHold != nil {
             config.userContentController.addUserScript(WKUserScript(
                 source: StartPageHold.userScriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-            config.userContentController.add(startPageHold, name: StartPageHold.messageHandlerName)
         }
         return config
     }
