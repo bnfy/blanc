@@ -32,9 +32,11 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         case ("", "clearBrowsingData"): return .value(.null)
 
         case ("bookmarks", "list"): return .value(.array([]))
-        case ("bookmarks", "capabilities"): return .value(.object([("editable", .bool(false))]))
+        // Favorites edit on the phone; importing (F30) and Start Page pins stay on the computer.
+        case ("bookmarks", "capabilities"):
+            return .value(.object([("editable", .bool(true)), ("import", .bool(false)), ("pins", .bool(false))]))
         case ("bookmarks", "clearFavicon"): return .value(.null)
-        case ("bookmarks", "remove"), ("bookmarks", "setFolder"), ("bookmarks", "renameFolder"), ("bookmarks", "removeFolder"), ("bookmarks", "import"), ("bookmarks", "importBrowser"):
+        case ("bookmarks", "import"), ("bookmarks", "importBrowser"), ("bookmarks", "browserSources"):
             return .reject(SyncCopy.text("favorites.editOnComputer"))
 
         case ("history", "list"): return .value(.array([]))
@@ -272,20 +274,65 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             }
             return
         }
-        let result: BridgeResult
-        if group == "settings", method == "get" {
-            result = .value(liveSettingsBootstrap())
-        } else if group == "settings", method == "set" {
+        resolve(id, result: liveResponse(group: group, method: method, args: args, appVersion: version), in: webView, host: host)
+    }
+
+    /// The answer to a call the sender checks above allowed, using live app state.
+    func liveResponse(group: String?, method: String, args: [Any], appVersion: String = "0") -> BridgeResult {
+        let text = { (index: Int) in args.indices.contains(index) ? args[index] as? String : nil }
+        let now = Date().timeIntervalSince1970 * 1000
+        switch (group ?? "", method) {
+        case ("settings", "get"): return .value(liveSettingsBootstrap())
+        case ("settings", "set"):
             if let patch = args.first as? [String: Any] { manager?.applySettingsPatch(patch) }
-            result = .value(.null)
-        } else if group == "bookmarks", method == "list" {
-            result = .value(favoritesPayload())
-        } else if group == "start", method == "data" {
-            result = .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0)), ("remoteDevices", remoteDevicesPayload()), ("sentItems", sentItemsPayload()), ("bookmarks", favoritesPayload())]))
-        } else if group == "start", method == "openSent" || method == "dismissSent" {
-            result = .value(.bool(handleSent(method: method, id: args.first as? String ?? "")))
-        } else { result = Self.response(group: group, method: method, appVersion: version) }
-        resolve(id, result: result, in: webView, host: host)
+            return .value(.null)
+        case ("bookmarks", "list"): return .value(favoritesPayload())
+        case ("start", "data"):
+            return .value(.object([("groups", .array([])), ("blockedThisWeek", .number(0)), ("remoteDevices", remoteDevicesPayload()), ("sentItems", sentItemsPayload()), ("bookmarks", favoritesPayload())]))
+        case ("start", "openSent"), ("start", "dismissSent"):
+            return .value(.bool(handleSent(method: method, id: text(0) ?? "")))
+        case ("history", "list"):
+            let options = args.first as? [String: Any] ?? [:]
+            let entries = manager?.historyStore.list(
+                query: options["query"] as? String ?? "", limit: (options["limit"] as? NSNumber)?.intValue ?? 500) ?? []
+            return .value(.array(entries.map {
+                .object([("url", .string($0.url)), ("title", .string($0.title)), ("visitedAt", .number(Double($0.visitedAt))), ("favicon", .null)])
+            }))
+        case ("history", "remove"):
+            guard let url = text(0), args.count > 1, let visitedAt = args[1] as? NSNumber else { return .value(.null) }
+            manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
+        case ("history", "clear"):
+            manager?.historyStore.clear()
+        case ("bookmarks", "remove"):
+            guard let id = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.remove($0, id: id, now: now) }
+        case ("bookmarks", "setFolder"):
+            guard let id = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.setFolder($0, id: id, folder: text(1), now: now) }
+        case ("bookmarks", "renameFolder"):
+            guard let from = text(0), let to = text(1) else { return .value(.null) }
+            editFavorites { SyncedFavorites.renameFolder($0, from: from, to: to, now: now) }
+        case ("bookmarks", "removeFolder"):
+            guard let name = text(0) else { return .value(.null) }
+            editFavorites { SyncedFavorites.removeFolder($0, name: name, now: now) }
+        case ("bookmarks", "clearFavicon"):
+            guard let url = text(0) else { return .value(.null) }
+            editFavorites { store in
+                var next = store
+                next["items"] = .array((store["items"]?.array ?? []).map { item in
+                    guard item["url"]?.string == url, item["favicon"] != .null else { return item }
+                    var cleared = item
+                    cleared["favicon"] = .null
+                    return cleared
+                })
+                return next
+            }
+        default: return Self.response(group: group, method: method, appVersion: appVersion)
+        }
+        return .value(.null)
+    }
+    private func editFavorites(_ change: (JSONValue) -> JSONValue) {
+        manager?.syncEngine.editFavorites(change)
     }
 
     private func resolve(_ id: Int, result: BridgeResult, in webView: WKWebView, host: String) {

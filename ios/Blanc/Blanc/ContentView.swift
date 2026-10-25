@@ -64,6 +64,15 @@ struct ContentView: View {
 
             Spacer(minLength: 0)
 
+            if let tab = manager.activeTab, TabsManager.canFavorite(tab.currentURL) {
+                let favorited = manager.isFavorite(tab)
+                Button { manager.toggleFavorite(tab) } label: {
+                    Image(systemName: favorited ? "heart.fill" : "heart")
+                }
+                .accessibilityLabel(SyncCopy.text(favorited ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"))
+                .accessibilityValue(favorited ? "on" : "off")
+                .accessibilityIdentifier("pill.favorite")
+            }
             sendMenu
 
             Button {

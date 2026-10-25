@@ -9,8 +9,13 @@
   const browserImportBtn = document.getElementById('browserImportBtn');
   const browserFindBtn = document.getElementById('browserFindBtn');
 
-  const { editable } = await window.bowserPages.bookmarks.capabilities();
-  document.querySelector('.import-actions').hidden = !editable;
+  // iOS edits Favorites but has no import and no Start Page pins; desktop
+  // leaves both flags out.
+  const capabilities = await window.bowserPages.bookmarks.capabilities();
+  const { editable } = capabilities;
+  const canImport = editable && capabilities.import !== false;
+  const canPin = editable && capabilities.pins !== false;
+  document.querySelector('.import-actions').hidden = !canImport;
   document.getElementById('readOnlyNote').hidden = editable;
   const showEditError = (error) => {
     importStatus.textContent = error?.message || t('favorites.editOnComputer');
@@ -27,7 +32,7 @@
 
   /** Re-read the pins; resolves to whether they changed. */
   async function loadPins() {
-    if (!editable) return false;
+    if (!canPin) return false;
     const listed = await window.bowserPages.pins.list().catch(() => null);
     if (!Array.isArray(listed?.pins)) return false;
     const urls = listed.pins.map((pin) => pin.url);
@@ -37,7 +42,7 @@
     return changed;
   }
 
-  if (editable) window.bowserPages.pins.onChanged(() => {
+  if (canPin) window.bowserPages.pins.onChanged(() => {
     // This page's own pin redraws when its request returns.
     if (ownPinChange) return;
     loadPins().then((changed) => {
@@ -358,7 +363,7 @@
       } catch (error) { showEditError(error); }
     });
     if (editable) actions.append(folderBtn);
-    if (editable && isWebPage(b.url)) {
+    if (canPin && isWebPage(b.url)) {
       const pinBtn = document.createElement('button');
       pinBtn.type = 'button';
       pinBtn.className = 'pin-toggle';

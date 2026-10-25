@@ -22,8 +22,8 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F6 | Command palette & Quick Switcher | SHIPPED | PARTIAL | PLANNED | ⌘L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs. | D7 |
 | F7 | Slash commands | SHIPPED | PARTIAL | PLANNED | Shared commands keep identical names + hints; `/1password` is available only on desktop under D26. | D7, D26 |
 | F8 | Find in page | SHIPPED | PLANNED | PLANNED | Capsule over content, match nav, page stays interactive. | — |
-| F9 | Favorites | SHIPPED | PLANNED | PLANNED | Heart toggle, "Add all open tabs", favorites page + newtab favorites. Internal id stays `bookmarks`. | — |
-| F10 | History | SHIPPED | PLANNED | PLANNED | Per-visit record + title update, capped 5000, clearable, excluded for private tabs. | — |
+| F9 | Favorites | SHIPPED | PARTIAL | PLANNED | Heart toggle, "Add all open tabs", favorites page + newtab favorites. Internal id stays `bookmarks`. M8 iOS client implemented, unreleased: Favorites are edited on the phone (the pill's heart and the Favorites page) and sync both ways; importing and Start Page pins stay on the computer. | — |
+| F10 | History | SHIPPED | PARTIAL | PLANNED | Per-visit record + title update, capped 5000, clearable, excluded for private tabs. M8 iOS client implemented, unreleased: local History on the phone, never synced, on the History page and last in the Quick Switcher. | — |
 | F11 | Downloads | SHIPPED | PLANNED | PLANNED | Downloads list UI + progress, capped 200. | D3 |
 | F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; shield chip opens a site-protection popover (desktop); global toggle. Filter data shared. | D1, D2, D13, D14 |
 | F13 | Permissions | SHIPPED | PLANNED | PLANNED | Explicit per-permission prompts with the same policy/copy. | — |

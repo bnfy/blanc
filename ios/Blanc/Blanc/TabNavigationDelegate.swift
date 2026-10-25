@@ -7,6 +7,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     private var lastRequested: URL?
     var onTitleChange: (() -> Void)?
     var onURLChange: ((URL) -> Void)?
+    /// Every finished main-frame load, even to the address already shown (a
+    /// typed search, a reload): the History visit, with that page's own title.
+    var onVisit: ((URL, String) -> Void)?
 
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
@@ -21,7 +24,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  didFinish navigation: WKNavigation!) {
-        sync(webView)
+        sync(webView, finished: true)
     }
 
     func webView(_ webView: WKWebView,
@@ -49,18 +52,31 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         decisionHandler(.allow)
     }
 
-    private func sync(_ webView: WKWebView) {
+    private func sync(_ webView: WKWebView, finished: Bool = false) {
         guard let tab else { return }
         tab.isLoading = webView.isLoading
         tab.canGoBack = webView.canGoBack
         tab.canGoForward = webView.canGoForward
-        let oldTitle = tab.pageTitle
-        tab.pageTitle = webView.title ?? ""
-        if oldTitle != tab.pageTitle { onTitleChange?() }
-        if let u = webView.url {
+        apply(url: webView.url, title: webView.title ?? "", finished: finished)
+    }
+
+    /// Test seam: what a finished main-frame load reports.
+    func finishedLoad(url: URL, title: String) {
+        apply(url: url, title: title, finished: true)
+    }
+
+    /// The address moves first, so a title change is always about the page
+    /// now showing, never the one before it.
+    private func apply(url: URL?, title: String, finished: Bool) {
+        guard let tab else { return }
+        if let u = url {
             lastRequested = u
             applyURL(u, to: tab)
         }
+        let oldTitle = tab.pageTitle
+        tab.pageTitle = title
+        if finished, let u = url { onVisit?(u, title) }
+        if oldTitle != tab.pageTitle { onTitleChange?() }
     }
 
     /// Updates the tab's URL fields and fires `onURLChange` only when the URL

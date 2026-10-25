@@ -47,8 +47,8 @@ nonisolated struct SyncState: Codable, Equatable, Sendable {
     try Data(value.jsStringify().utf8).write(
       to: url(store), options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
   }
-  func clearData() throws {
-    for store in SyncStore.allCases {
+  func clearData(keeping kept: Set<SyncStore> = []) throws {
+    for store in SyncStore.allCases where !kept.contains(store) {
       let file = url(store)
       if FileManager.default.fileExists(atPath: file.path) {
         try FileManager.default.removeItem(at: file)

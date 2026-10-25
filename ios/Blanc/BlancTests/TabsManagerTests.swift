@@ -15,6 +15,40 @@ final class TabsManagerTests: XCTestCase {
         )
     }
 
+    @MainActor func testToggleFavoriteFlipsState() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://example.com/")!
+        tab.pageTitle = "Example"
+        XCTAssertFalse(m.isFavorite(tab))
+        m.toggleFavorite(tab)
+        XCTAssertTrue(m.isFavorite(tab))
+        XCTAssertEqual(m.syncEngine.favorites.map(\.title), ["Example"])
+        m.toggleFavorite(tab)
+        XCTAssertFalse(m.isFavorite(tab))
+    }
+
+    @MainActor func testVisitsRecordHistory() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        // The delegate's real order at each finished load: title, then address.
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/")!, title: "News")
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/story")!, title: "Story")
+        XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://news.example/story", "https://news.example/"])
+        XCTAssertEqual(m.historyStore.entries.map(\.title), ["Story", "News"], "each page keeps its own title")
+    }
+
+    @MainActor func testVisitToTheSameAddressIsRecorded() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        // A typed address moves currentURL before the load finishes.
+        let typed = URL(string: "https://search.example/?q=blanc")!
+        tab.currentURL = typed
+        tab.navigationDelegate.finishedLoad(url: typed, title: "blanc - Search")
+        XCTAssertEqual(m.historyStore.entries.map(\.url), [typed.absoluteString])
+        XCTAssertEqual(m.historyStore.entries.first?.title, "blanc - Search")
+    }
+
     func testInitCreatesOneTab() {
         let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)

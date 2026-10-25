@@ -6315,6 +6315,778 @@
       }
     }
   ],
+  "favoritesEdit": [
+    {
+      "name": "toggle on",
+      "input": {
+        "store": {
+          "items": [],
+          "tombstones": []
+        },
+        "operation": "toggle",
+        "args": {
+          "url": "https://new.test/",
+          "title": "",
+          "favicon": "https://new.test/icon.png"
+        },
+        "now": 1800000000000,
+        "id": "new-1"
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "new-1",
+            "url": "https://new.test/",
+            "title": "https://new.test/",
+            "favicon": null,
+            "addedAt": 1800000000000,
+            "updatedAt": 1800000000000,
+            "folder": null
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "toggle off",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "toggle",
+        "args": {
+          "url": "https://a.test/",
+          "title": "A",
+          "favicon": null
+        },
+        "now": 1800000000000,
+        "id": "unused"
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "b",
+            "url": "https://b.test/",
+            "title": "B",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": null
+          }
+        ],
+        "tombstones": [
+          {
+            "url": "https://a.test/",
+            "deletedAt": 1800000000000
+          }
+        ]
+      }
+    },
+    {
+      "name": "toggle on after delete",
+      "input": {
+        "store": {
+          "items": [],
+          "tombstones": [
+            {
+              "url": "https://a.test/",
+              "deletedAt": 100
+            },
+            {
+              "url": "https://b.test/",
+              "deletedAt": 100
+            }
+          ]
+        },
+        "operation": "toggle",
+        "args": {
+          "url": "https://a.test/",
+          "title": "A",
+          "favicon": null
+        },
+        "now": 1800000000000,
+        "id": "new-2"
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "new-2",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 1800000000000,
+            "updatedAt": 1800000000000,
+            "folder": null
+          }
+        ],
+        "tombstones": [
+          {
+            "url": "https://b.test/",
+            "deletedAt": 100
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove by id",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "remove",
+        "args": {
+          "id": "b"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": null
+          }
+        ],
+        "tombstones": [
+          {
+            "url": "https://b.test/",
+            "deletedAt": 1800000000000
+          }
+        ]
+      }
+    },
+    {
+      "name": "remove unknown id",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "remove",
+        "args": {
+          "id": "zzz"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": null
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder trims",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "a",
+          "folder": "  Work  "
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Work"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder too long is a no-op",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Home"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "a",
+          "folder": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": "Home"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder joins existing spelling",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 50,
+              "updatedAt": 50,
+              "folder": "Work"
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "b",
+          "folder": "work"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 50,
+            "updatedAt": 50,
+            "folder": "Work"
+          },
+          {
+            "id": "b",
+            "url": "https://b.test/",
+            "title": "B",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Work"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder null ungroups",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "a",
+          "folder": null
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": null
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder same is unchanged",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "a",
+          "folder": "Work"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": "Work"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "set folder unknown id",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": null
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "setFolder",
+        "args": {
+          "id": "zzz",
+          "folder": "Work"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": null
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "rename folder",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "work"
+            },
+            {
+              "id": "c",
+              "url": "https://c.test/",
+              "title": "C",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Home"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "renameFolder",
+        "args": {
+          "from": "WORK",
+          "to": " Projects "
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Projects"
+          },
+          {
+            "id": "b",
+            "url": "https://b.test/",
+            "title": "B",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Projects"
+          },
+          {
+            "id": "c",
+            "url": "https://c.test/",
+            "title": "C",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": "Home"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "rename folder merges into existing",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 50,
+              "updatedAt": 50,
+              "folder": "Home"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "renameFolder",
+        "args": {
+          "from": "Work",
+          "to": "home"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Home"
+          },
+          {
+            "id": "b",
+            "url": "https://b.test/",
+            "title": "B",
+            "favicon": null,
+            "addedAt": 50,
+            "updatedAt": 50,
+            "folder": "Home"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "rename folder case only",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "work"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "renameFolder",
+        "args": {
+          "from": "work",
+          "to": "Work"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": "Work"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "rename folder to empty is a no-op",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "renameFolder",
+        "args": {
+          "from": "Work",
+          "to": "   "
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": "Work"
+          }
+        ],
+        "tombstones": []
+      }
+    },
+    {
+      "name": "remove folder",
+      "input": {
+        "store": {
+          "items": [
+            {
+              "id": "a",
+              "url": "https://a.test/",
+              "title": "A",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Work"
+            },
+            {
+              "id": "b",
+              "url": "https://b.test/",
+              "title": "B",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "WORK"
+            },
+            {
+              "id": "c",
+              "url": "https://c.test/",
+              "title": "C",
+              "favicon": null,
+              "addedAt": 100,
+              "updatedAt": 100,
+              "folder": "Home"
+            }
+          ],
+          "tombstones": []
+        },
+        "operation": "removeFolder",
+        "args": {
+          "name": "work"
+        },
+        "now": 1800000000000,
+        "id": ""
+      },
+      "expected": {
+        "items": [
+          {
+            "id": "a",
+            "url": "https://a.test/",
+            "title": "A",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": null
+          },
+          {
+            "id": "b",
+            "url": "https://b.test/",
+            "title": "B",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 1800000000000,
+            "folder": null
+          },
+          {
+            "id": "c",
+            "url": "https://c.test/",
+            "title": "C",
+            "favicon": null,
+            "addedAt": 100,
+            "updatedAt": 100,
+            "folder": "Home"
+          }
+        ],
+        "tombstones": []
+      }
+    }
+  ],
   "canonical": [
     {
       "name": "canonical",
