@@ -13,6 +13,10 @@ body { margin: 0; background: var(--paper); color: var(--ink); }
 .toolbar, button, select, input, output { font-family: 'Instrument Sans', system-ui, sans-serif; font-stretch: 98%; letter-spacing: .01em; font-size: 14px; }
 .toolbar { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding: 12px 20px; background: var(--paper); border-bottom: 1px solid var(--border); }
 button, select { min-height: 44px; color: var(--ink); background: var(--paper); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; cursor: pointer; }
+select { appearance: none; padding-inline-end: 36px; }
+label:has(select) { position: relative; }
+label:has(select)::after { content: ''; position: absolute; inset-inline-end: 14px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+@media (forced-colors: active) { select { appearance: auto; padding-inline-end: 12px; } label:has(select)::after { display: none; } }
 button:hover { border-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 main:focus { outline: none; }
