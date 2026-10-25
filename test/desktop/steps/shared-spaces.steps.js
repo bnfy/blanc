@@ -9,6 +9,11 @@ const {waitForValue}=require('../support/poll');
 const handle='Shared Spaces acceptance',passphrase='correct horse battery staple Shared Spaces';
 Before({tags:'@F57',timeout:180000},async function(){
  this.sharedFixture=await createSyncFixture();await ctx.relaunch({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+ if(process.platform==='linux'){
+  const storage=await ctx.app.evaluate(({safeStorage})=>({available:safeStorage.isEncryptionAvailable(),backend:safeStorage.getSelectedStorageBackend()}));
+  assert.equal(storage.available,true,`Shared Spaces requires secure OS storage (${storage.backend})`);
+  assert.equal(storage.backend,'gnome_libsecret','Shared Spaces Linux acceptance must use the real GNOME keyring');
+ }
  await this.call('reset');
  this.sharedKey=deriveKeys(handle,passphrase);
 });
@@ -23,7 +28,8 @@ async function setup(world,shared){
  const saved=await world.call('workspaceAction','save','Work');assert.equal(saved.ok,true);
  const listing=await world.call('workspaceAction','list'),workspace=listing.items.find(row=>row.name==='Work');
  world.expectedSharedTabCount=(await world.call('workspaceAction','saved-urls',workspace.id)).filter(url=>/^https?:/.test(url)).length;
- await world.call('sharedSpacesTest','enable',{handle,passphrase});
+ const enabled=await world.call('sharedSpacesTest','enable',{handle,passphrase});
+ assert.equal(enabled.ok,true,`Shared Spaces fixture could not enable sync: ${enabled.error || 'unknown error'}`);
  if(shared){const state=await world.call('sharedSpacesTest','state');const row=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await world.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);}
 }
 Given('a Shared Spaces fixture with a local Work Space',{timeout:180000},async function(){await setup(this,false);});

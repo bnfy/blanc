@@ -1,4 +1,12 @@
 const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
+// Playwright's loader forces --password-store=basic before loading this entry.
+// Sync acceptance uses a real, unlocked CI keyring: select it before ready,
+// after that loader, without relaxing safeStorage's plaintext-fallback guard.
+if (!app.isPackaged && process.platform === 'linux' && process.env.BLANC_TEST === '1'
+    && process.env.BLANC_TEST_SECURE_STORAGE === '1') {
+  app.commandLine.removeSwitch('password-store');
+  app.commandLine.appendSwitch('password-store', 'gnome-libsecret');
+}
 const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');

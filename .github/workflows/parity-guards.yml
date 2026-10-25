@@ -264,8 +264,9 @@ jobs:
           sudo apt-get install -y gnome-keyring dbus-x11 libsecret-1-0
           bash scripts/ci-enable-linux-sandbox.sh
           dbus-run-session -- bash -c '
+            set -euo pipefail
             printf "%s\n" "blanc-ci-fixture" | gnome-keyring-daemon --unlock --components=secrets
-            XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57
+            BLANC_TEST_SECURE_STORAGE=1 XDG_CURRENT_DESKTOP=GNOME xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable --tags @F57
           '
       # Linux runs the same smoke in the tab-handoff job.
       - name: Closing the last window quits Blanc and keeps its tabs (Windows)
