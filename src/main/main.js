@@ -11059,6 +11059,7 @@ function registerIpcHandlers() {
   chromeHandle('groups:set-color', (_e, id, color) => setGroupColor(id, color));
   chromeHandle('groups:new-tab', (_e, id) => newTabInGroup(id) !== null);
   chromeHandle('groups:move-to-new-window', (_e, id) => moveGroupToNewWindow(id));
+  chromeHandle('groups:space-menu', (_e, id, point) => openGroupSpaceMenu(id, point));
   chromeHandle('groups:ungroup', (_e, id) => ungroupGroup(id));
   chromeOn('overlay:drag-state', (event, active) => {
     acceptOverlayDragState(rt(), event.sender, active);
@@ -13139,8 +13140,11 @@ function moveTabToSpace(id, workspaceId, creation = null) {
 }
 
 /** Several selected rows share one write-ahead capture. Splits transfer as
- * units; after an exception only complete units may remain in the target. */
-function moveTabsToSpace(ids, workspaceId, creation = null) {
+ * units; after an exception only complete units may remain in the target.
+ * With `group` (Move Group to Space ▸, D8) the tabs arrive as that group,
+ * with its name and colour, or join the target's group of the same name
+ * (two groups never differ only by case); the window's selection is kept. */
+function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {}) {
   const source = rt(), members = batchMembers(ids);
   if (!members || !members.every(tab => canMoveTabToSpace(tab, source, true))) return { ok: false, error: 'busy', movedCount: 0 };
   ids = source.tabOrder.filter(id => ids.includes(id));
@@ -13149,7 +13153,8 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
   const units = selectionRows(members);
   let workspace = creation ? null : namedWorkspaces.get(workspaceId);
   let target = null, materialized = false, targetFloor = null, sourceFloor = null;
-  let movedCount = 0, reconciled = false;
+  let movedCount = 0, reconciled = false, landing = null;
+  const priorSelection = [...(source.selectedTabIds ?? [])];
   const suspended = sessionPersistenceSuspended;
   sessionPersistenceSuspended = true; tabStateBroadcastSuppressionDepth++;
   let result;
@@ -13176,6 +13181,15 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
           next = appendTabToCapture(next, { url: persistableUrl(tab.url), pinned: tab.pinned, meta: sessionTabMeta(tab),
             localFile: tab.localFile === true, inheritsDocumentPolicy: tab.inheritsDocumentPolicy === true });
         }
+        if (group) {
+          const same = target.groups.find(g => sameGroupName(g.name, group.name));
+          // A fresh id: group pruning looks at every tab, so a shared id would
+          // keep the emptied source group alive behind the moved tabs.
+          const id = same?.id ?? crypto.randomUUID();
+          landing = { id, record: same ? null : { ...groupRecord(group), id } };
+          next.groupIds = next.groupIds.map((gid, index) => index >= before ? id : gid);
+          if (landing.record) next.groups = [...(next.groups ?? []), landing.record];
+        }
         const captured = captureSplits(origin.splits, ids);
         if (captured.splits.length) {
           next.splits = [...(next.splits ?? []), ...captured.splits];
@@ -13198,6 +13212,10 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
           for (const id of unit) detachTabForMove(source, id, { keepSpacesEditor: !!creation });
           for (const id of unit) {
             target.tabOrder.push(id); rehomeTab(tabs.get(id), target);
+            if (landing) {
+              tabs.get(id).groupId = landing.id;
+              if (!target.groups.some(g => g.id === landing.id)) target.groups.push({ ...landing.record });
+            }
             if (takeSpaceMoveFault('transfer-pane')) throw new Error('injected: incomplete split transfer');
           }
           const split = origin.splits.find(split => split.tabIds.every(id => unit.includes(id)));
@@ -13225,6 +13243,7 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
         source.groups = origin.groups.filter(group => source.tabOrder.some(id => tabs.get(id)?.groupId === group.id));
         source.splits = origin.splits.filter(split => split.tabIds.every(id => !moved.has(id)));
         target.splits = target.splits.filter(split => split.tabIds.every(id => windowRuntimes.runtimeForTab(id) === target));
+        target.groups = target.groups.filter(g => target.tabOrder.some(id => tabs.get(id)?.groupId === g.id));
         if (sourceFloor && ids.some(id => !moved.has(id))) {
           closeTab(sourceFloor, { record: false, selectReplacement: false }); sourceFloor = null;
         }
@@ -13247,7 +13266,8 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
   // If the exception came after the final row arrived and reconciliation
   // confirmed every tab, the requested move is complete.
   if (!result.ok && reconciled && movedCount === ids.length) result = { ok: true };
-  Object.assign(source, selectionState(result.ok ? [] : ids.filter(id => windowRuntimes.runtimeForTab(id) === source), null, tabLayoutList(source)));
+  const kept = group ? priorSelection : result.ok ? [] : ids;
+  Object.assign(source, selectionState(kept.filter(id => windowRuntimes.runtimeForTab(id) === source), null, tabLayoutList(source)));
   source.selectionRevision = (source.selectionRevision ?? 0) + 1;
   broadcastTabs();
   if (target && (!materialized || movedCount)) {
@@ -13265,8 +13285,14 @@ function moveTabsToSpace(ids, workspaceId, creation = null) {
 }
 
 function createSpaceWithTabs(name, identity, ids) {
+  // New Space… from the group menu: the editor was opened for exactly this
+  // group's tabs, so they arrive as the group.
+  const groupId = rt().overlayMode === 'spaces' ? rt().overlayPurpose?.newSpaceGroupId : null;
+  const group = groupId ? rt().groups.find(g => g.id === groupId) : null;
+  const members = group ? groupMemberIds(rt(), group.id) : [];
+  const asGroup = group && Array.isArray(ids) && members.length === ids.length && members.every(id => ids.includes(id));
   const result = moveTabsToSpace(ids, null, { name, color: typeof identity?.color === 'string' ? identity.color : undefined,
-    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined });
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined }, { group: asGroup ? group : null });
   const error = result.workspaceId && !result.ok ? 'saved-not-moved' : ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error);
   return { ok: result.ok, movedCount: result.movedCount ?? 0, ...(error ? { error } : {}), ...(result.workspaceId ? { workspaceId: result.workspaceId } : {}), ...workspacesProjection() };
 }
@@ -13445,6 +13471,78 @@ function moveGroupToNewWindow(groupId) {
   }
   for (const id of ids) detachTabForMove(source, id);
   openNewWindow({ profileId: source.profileId, adoptTabIds: ids, group: record, activeTabId });
+  return true;
+}
+
+function groupMemberIds(runtime, groupId) {
+  return runtime.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+}
+
+/** Move Group to Space ▸ (D8) can take this group: every member could go
+ * through Move to Space ▸ on its own, and the group can be the window's
+ * whole content (the window keeps a blank start page, as D7 allows). */
+function canMoveGroupToSpace(source, groupId) {
+  const ids = groupMemberIds(source, groupId);
+  const members = ids.length ? batchMembers(ids) : null;
+  return !!members && members.every((tab) => canMoveTabToSpace(tab, source, true)) ? ids : null;
+}
+
+/** Move Group to Space ▸ (D8): every member, in order, into `workspaceId`
+ * as the same group (moveTabsToSpace's `group`), through the §3 write-first
+ * orchestrator. A failure opens the Spaces menu with its reason, as Move to
+ * Space ▸ does for tabs. */
+function moveGroupToSpace(groupId, workspaceId) {
+  const source = rt();
+  const group = source.groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(source, groupId) : null;
+  if (!ids || workspaceId === source.workspaceId) return { ok: false, error: 'busy', movedCount: 0 };
+  const result = moveTabsToSpace(ids, workspaceId, null, { group });
+  if (result.ok) {
+    announceSplit(mainI18n.t('ws.announce.groupMovedTo', { space: namedWorkspaces.get(workspaceId)?.name ?? '' }));
+  } else {
+    showOverlay('spaces', { purpose: { spaceMoveError: {
+      name: namedWorkspaces.get(workspaceId)?.name ?? '', error: result.error, movedCount: result.movedCount ?? 0,
+    } } });
+  }
+  scheduleMenuRebuild();
+  return result;
+}
+
+/** New Space… under Move Group to Space ▸: the Spaces editor, bound to this
+ * group (createSpaceWithTabs reads the purpose back). */
+function beginNewSpaceForGroup(groupId) {
+  const group = rt().groups.find((g) => g.id === groupId);
+  const ids = group ? canMoveGroupToSpace(rt(), groupId) : null;
+  if (!ids || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+  showOverlay('spaces', { purpose: { newSpaceTabIds: ids, newSpaceGroupId: groupId, newSpaceGroupName: group.name } });
+  return true;
+}
+
+/** The group menu's Move Group to Space ▸: a native menu of the profile's
+ * spaces at `point` (overlay coordinates, from the group menu's button).
+ * Space names are radio items, which the pseudo-locale sweep skips. */
+function openGroupSpaceMenu(groupId, point) {
+  const source = rt();
+  if (!hasLiveWindow() || !source.groups.some((g) => g.id === groupId)) return false;
+  const spaces = spaceMoveTargets(source);
+  if (!spaces.length) return false;
+  const movable = !!canMoveGroupToSpace(source, groupId);
+  const template = [
+    ...spaces.map((space) => ({
+      label: space.name, type: 'radio', checked: space.current,
+      enabled: movable && !space.current && space.enabled,
+      click: () => withWindowRuntime(source, () => moveGroupToSpace(groupId, space.id)),
+    })),
+    { type: 'separator' },
+    { id: 'group-space-new', label: mainI18n.t('tabMenu.newSpace'), enabled: movable && spaces.length < MAX_WORKSPACES,
+      click: () => withWindowRuntime(source, () => beginNewSpaceForGroup(groupId)) },
+  ];
+  // The group menu has closed by now; its view keeps the bounds it had.
+  const bounds = source.overlayView?.getBounds() ?? { x: 0, y: 0 };
+  const menu = Menu.buildFromTemplate(template);
+  try {
+    menu.popup({ window: source.window, x: Math.round(bounds.x + (Number(point?.x) || 0)), y: Math.round(bounds.y + (Number(point?.y) || 0)) });
+  } catch { return false; /* window died mid-popup */ }
   return true;
 }
 
@@ -15107,6 +15205,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (action === 'flush') { autosaveWorkspaceBindings(); return namedWorkspaces.flushPending(); }
         // Move to Space: one saved record's URLs, and its one-shot step faults.
         if (action === 'saved-urls') return namedWorkspaces.get(args[0])?.urls ?? null;
+        if (action === 'saved-groups') {
+          const saved = namedWorkspaces.get(args[0]);
+          return saved ? { groups: saved.groups ?? [], groupIds: saved.groupIds ?? [], urls: saved.urls ?? [] } : null;
+        }
         if (action === 'arm-move-fault') return { ok: armSpaceMoveFault(args[0], args[1]) };
         if (action === 'reset') {
           spaceMoveFaults.clear();
@@ -15301,7 +15403,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .sort((a, b) => (a.residentSince ?? 0) - (b.residentSince ?? 0))
         .map((r) => ({
           name: namedWorkspaces.get(r.workspaceId)?.name ?? null,
-          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep }; }),
+          tabs: r.tabOrder.map((id) => { const tab = tabs.get(id); return { id, url: tab?.url ?? '', pinned: !!tab?.pinned, live: !!liveContents(tab), asleep: !!tab?.asleep, groupId: tab?.groupId ?? null }; }),
+          groups: r.groups.map(groupRecord),
         })),
       getRoomPass: () => lastRoomPass,
       // Starts quieting a set-aside space's active tab, waits until its
@@ -15375,6 +15478,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createSplitFromTabs,
       keepGlanceAsSplit,
       moveGroupToNewWindowForTest: (groupId) => moveGroupToNewWindow(groupId),
+      moveGroupToSpaceForTest: (groupId, workspaceId) => moveGroupToSpace(groupId, workspaceId),
+      beginNewSpaceForGroupForTest: (groupId) => beginNewSpaceForGroup(groupId),
       /** Tab ids whose splitId names no split in their own window. */
       straySplitIds: () => [...tabs.values()].filter((tab) => tab.splitId
         && !(windowRuntimes.runtimeForTab(tab.id)?.splits ?? []).some((s) => s.id === tab.splitId)).map((tab) => tab.id),

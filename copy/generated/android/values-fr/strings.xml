@@ -508,6 +508,7 @@
     <string name="group_menu_color_none">Aucune couleur</string>
     <string name="group_menu_new_tab">Nouvel onglet dans le groupe</string>
     <string name="group_menu_move_to_new_window">Déplacer le groupe dans une nouvelle fenêtre</string>
+    <string name="group_menu_move_to_space">Déplacer le groupe dans le Space</string>
     <string name="device_menu_rename">Renommer l’appareil…</string>
     <string name="tab_menu_reset_title">Réinitialiser le titre de l’onglet</string>
     <string name="tab_menu_pin">Épingler l’onglet</string>
@@ -2338,6 +2339,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ws_error_move_failed">L’onglet n’a pas pu être déplacé vers %1$s.</string>
     <string name="context_menu_open_link_in_space">Ouvrir le lien dans un Space</string>
     <string name="ws_announce_opened_in">Ouvert dans %1$s</string>
+    <string name="ws_announce_group_moved_to">Groupe déplacé dans %1$s</string>
     <string name="ws_new_with_link">Avec ce lien</string>
     <string name="ws_error_open_link_failed">Impossible d’ouvrir le lien dans %1$s.</string>
     <string name="rail_state_selected">sélectionné</string>

@@ -592,3 +592,52 @@ Feature: Named workspace preservation and recovery
     When I move the selected pages to space "Reading"
     Then space "Reading" has all selected pages in order
     And the selection is empty
+
+  @F41-75 @group-space
+  Scenario: A group moves to a space with its name and colour
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the first two selection pages are in the group "Research" colored "sage"
+    When I move the group "Research" to space "Reading"
+    Then space "Reading" has the group "Research" colored "sage" holding the first two selection pages last, in order
+    And this window has no group "Research" and still has the third selection page
+    When Blanc crashes and starts again
+    Then "Reading"'s saved record has the group "Research" colored "sage" holding the first two selection pages
+
+  @F41-76 @group-space
+  Scenario: A group joins the space's group of the same name
+    Given spaces named "One" and "Reading", with this window in "One"
+    And space "Reading" has a page in the group "research"
+    And three pages for multi-tab selection
+    And the first two selection pages are in the group "Research" colored "sage"
+    When I move the group "Research" to space "Reading"
+    Then space "Reading" has one group "research", holding its own page and then the first two selection pages
+
+  @F41-77 @group-space
+  Scenario: A group move whose save fails leaves the group where it was
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the first two selection pages are in the group "Research" colored "sage"
+    And the move's save will fail once
+    When I move the group "Research" to space "Reading"
+    Then the group move reports that nothing moved
+    And this window's group "Research" still holds the first two selection pages, colored "sage"
+
+  @F41-78 @group-space
+  Scenario: New Space from the group menu takes the group along
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "briefcase"
+    And three pages for multi-tab selection
+    And the first two selection pages are in the group "Research" colored "sage"
+    When I create a new space for the group "Research" named "Reading"
+    Then space "Reading" has the group "Research" colored "sage" holding the first two selection pages last, in order
+
+  @F41-79 @group-space
+  Scenario: The group menu offers Move Group to Space once a space exists
+    Given three pages for multi-tab selection
+    And the first two selection pages are in the group "Research" colored "sage"
+    When I open the group menu for "Research" in the island
+    Then the group menu has no "Move Group to Space"
+    When I press Escape in the group menu
+    And this window is saved as the space "One"
+    And I open the group menu for "Research" in the island
+    Then the group menu has "Move Group to Space"

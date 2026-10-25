@@ -1870,6 +1870,10 @@
     "message": "Move Group to New Window",
     "note": "Item in a tab group’s menu; moves every tab of the group, in order, into a new window."
   },
+  "groupMenu.moveToSpace": {
+    "message": "Move Group to Space",
+    "note": "Item in a tab group’s menu, shown once the profile has a space (Blanc Spaces); opens a menu of spaces, and choosing one moves every tab of the group, in order, into that space as the same group."
+  },
   "deviceMenu.rename": {
     "message": "Rename Device…",
     "note": "Only item in the right-click menu of a synced device's header in the ⌘L panel's Other devices drawer; opens the panel to rename that device on every synced device. Menu items use title case, like Rename Group…."
@@ -8497,6 +8501,10 @@
   "ws.announce.openedIn": {
     "message": "Opened in {space}",
     "note": "Screen-reader confirmation. {space} is a user-provided space name."
+  },
+  "ws.announce.groupMovedTo": {
+    "message": "Group moved to {space}",
+    "note": "Screen-reader confirmation after Move Group to Space. {space} is a user-provided space name."
   },
   "ws.new.withLink": {
     "message": "With this link",

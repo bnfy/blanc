@@ -50,6 +50,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   setGroupColor: (groupId, color) => ipcRenderer.invoke('groups:set-color', groupId, color),
   newTabInGroup: (groupId) => ipcRenderer.invoke('groups:new-tab', groupId),
   moveGroupToNewWindow: (groupId) => ipcRenderer.invoke('groups:move-to-new-window', groupId),
+  openGroupSpaceMenu: (groupId, point) => ipcRenderer.invoke('groups:space-menu', groupId, point),
   ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),

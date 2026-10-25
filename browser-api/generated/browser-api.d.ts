@@ -1009,6 +1009,11 @@ export interface BlancBrowserAPI {
    */
   moveGroupToNewWindow(groupId: GroupId): Promise<boolean>;
   /**
+   * Move Group to Space: a native menu of the profile's spaces at an overlay point; choosing one moves every tab of the group, in order, into that space as the same group (or into its group of the same name), and New Space… opens the Spaces editor bound to the group. False when the window, the group or every space is gone.
+   * IPC: invoke `groups:space-menu`.
+   */
+  openGroupSpaceMenu(groupId: GroupId, point: Point): Promise<boolean>;
+  /**
    * Make every tab in a group ungrouped; the empty group goes away.
    * IPC: invoke `groups:ungroup`.
    */

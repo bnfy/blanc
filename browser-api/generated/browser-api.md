@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-150 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+151 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -28,6 +28,7 @@
 | `setGroupColor` | groups | invoke | `groups:set-color` | `(groupId: GroupId, color: string \| null) => Promise<GroupColorResult>` | all |
 | `newTabInGroup` | groups | invoke | `groups:new-tab` | `(groupId: GroupId) => Promise<boolean>` | all |
 | `moveGroupToNewWindow` | groups | invoke | `groups:move-to-new-window` | `(groupId: GroupId) => Promise<boolean>` | all |
+| `openGroupSpaceMenu` | groups | invoke | `groups:space-menu` | `(groupId: GroupId, point: Point) => Promise<boolean>` | all |
 | `ungroupGroup` | groups | invoke | `groups:ungroup` | `(groupId: GroupId) => Promise<void>` | all |
 | `activateTabFromRail` | tabs | invoke | `tabs:activate-from-rail` | `(id: TabId) => Promise<boolean>` | all |
 | `setGlanceTab` | glance | invoke | `tabs:set-glance` | `(id: TabId) => Promise<boolean>` | all |

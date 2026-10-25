@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "7c4ea181a18e23196f7596f8a8fb0aa5050b0b47bbe690c76822e3821ea536fa",
+      "sha256": "900657a8544d1915ecaed011f90d41ea2edac37515f0986a388079e6806b3f32",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -367,6 +367,7 @@
         "groups:rename",
         "groups:reorder",
         "groups:set-color",
+        "groups:space-menu",
         "groups:ungroup",
         "input-event",
         "login",
@@ -637,7 +638,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "62d64a375f9ba075ef13efb604f06ca5bddfb7a949c4cf22e099e40abc734812",
+      "sha256": "a6f1014a351985d08f480208ca4c4f1d1350d10d97ee4e916fc8ed43b6d1cbc6",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -736,6 +737,7 @@
         "groups:rename",
         "groups:reorder",
         "groups:set-color",
+        "groups:space-menu",
         "groups:ungroup",
         "overlay:close",
         "overlay:drag-state",
