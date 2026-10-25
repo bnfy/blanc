@@ -4163,7 +4163,11 @@
                 "unsyncedTabIds": [
                   "shared-space-admission-1"
                 ],
-                "reason": "full"
+                "reason": "full",
+                "state": "shared",
+                "lastSyncedAt": 1,
+                "failed": true,
+                "pending": true
               }
             }
           ],
@@ -4172,8 +4176,11 @@
           "sharedSync": {
             "count": 1,
             "limit": 1,
-            "canAdd": true
-          }
+            "canAdd": true,
+            "busy": true,
+            "slowed": true
+          },
+          "recoveryNotice": true
         }
       ]
     },
