@@ -167,8 +167,15 @@ struct ContentView: View {
             }
             .frame(width: 22, height: 22)
             .frame(width: 48, height: 48)
-            .contentShape(Rectangle())
+            // A round shape for the tap and for the menu's open and close: with
+            // a square one, iOS drew a square glass box flush against the
+            // Island's edge while the menu settled.
+            .contentShape(Circle())
+            .contentShape(.contextMenuPreview, Circle())
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .accessibilityLabel("Page actions")
         .accessibilityIdentifier("island.menu")
     }
