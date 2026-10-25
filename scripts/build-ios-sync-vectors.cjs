@@ -151,6 +151,12 @@ try {
     const result=spaces.pushPlan({...input,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
     return entry(stale?'recovery excluded':'new record upload',input,{...result,recover:[...result.recover],unsynced:[...result.unsynced]});
   });
+  const expiredTab={...pipeTab,deleted:pipeField(true)};
+  const expiredInput={...pipeInput,fetchedBlob:pipeInput.localBlob,localBlob:{...pipeInput.localBlob,tabs:{[pipeId]:expiredTab}},pending:{tabs:{[pipeId]:{deleted:expiredTab.deleted}}},lastMergeAt:spaces.LIMITS.tombstoneMs+199,now:spaces.LIMITS.tombstoneMs+200};
+  const expiredResult=spaces.pushPlan({...expiredInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
+  vectors.spacesPipeline.push(entry('expired deletion clears retained state and pending',expiredInput,{...expiredResult,recover:[...expiredResult.recover],unsynced:[...expiredResult.unsynced]}));
+  const selectedDeleted={...expiredInput.localBlob,active:pipeField(pipeId)};
+  vectors.spacesSelections=[entry('deleted selected tab is omitted',selectedDeleted,spaces.sanitizeBlob(selectedDeleted))];
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }

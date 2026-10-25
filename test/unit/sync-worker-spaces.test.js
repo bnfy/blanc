@@ -67,3 +67,26 @@ test('scheduled cleanup removes orphan Space blobs only for inactive accounts',a
   let job;(await worker).scheduled({},env,{waitUntil:p=>{job=p;}});await job;
   assert.equal(env.records.has(`blob:${account}:space-${sid(1)}`),false);assert.ok(env.records.has(`blob:${other}:space-${sid(2)}`));
 });
+
+test('account wipe directly removes fixed stores omitted by a stale listing',async()=>{
+  const env=storage();
+  const fixed=['bookmarks','settings','session','icons','sends','spaces','closed','shared'];
+  for(const store of fixed)env.records.set(`blob:${account}:${store}`,'{}');
+  env.records.set(`blob:${account}:space-${sid(1)}`,'{}');
+  env.records.set(`blob:${other}:bookmarks`,'{}');env.records.set(`seen:${account}`,'{}');
+  env.SYNC.list=async()=>({keys:[{name:`blob:${account}:space-${sid(1)}`}],list_complete:true});
+  assert.equal((await request(env,'DELETE')).status,204);
+  for(const store of fixed)assert.equal(env.records.has(`blob:${account}:${store}`),false,store);
+  assert.equal(env.records.has(`blob:${account}:space-${sid(1)}`),false);
+  assert.equal(env.records.has(`seen:${account}`),false);
+  assert.equal(env.records.has(`blob:${other}:bookmarks`),true);
+});
+
+test('a fixed-store delete failure does not erase the activity marker',async()=>{
+  const env=storage();env.records.set(`blob:${account}:bookmarks`,'{}');env.records.set(`seen:${account}`,'{}');
+  env.SYNC.list=async()=>({keys:[],list_complete:true});
+  const remove=env.SYNC.delete;
+  env.SYNC.delete=async key=>{if(key===`blob:${account}:bookmarks`)throw new Error('storage unavailable');return remove(key);};
+  await assert.rejects(request(env,'DELETE'),/storage unavailable/);
+  assert.equal(env.records.has(`seen:${account}`),true);
+});

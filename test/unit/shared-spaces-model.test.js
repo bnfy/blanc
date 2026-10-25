@@ -276,3 +276,96 @@ test('admission ranks local edits without borrowing an unchanged remote field cl
   assert.ok(p.unsynced.has(id(2)));assert.equal(p.unsynced.has(id(1)),false);
   assert.equal(p.upload.blob.tabs[id(1)].nav.v.url,'https://long.test/');
 });
+
+test('unreadable or unsupported fetched blobs are rejected before encryption', () => {
+  const local=blob({[id(1)]:tab()});
+  for (const remote of [
+    {...local,v:2}, {...local,spaceId:'bad'}, {...local,tabs:[]},
+    {v:1,spaceId:id(99)}, null,
+  ]) {
+    let encryptions=0;
+    const args=input(remote,local,{}, {encryptFn:s=>{encryptions++;return seal(s);}});
+    assert.throws(()=>m.pushPlan(args),/invalid|unsupported/i);
+    assert.equal(encryptions,0);
+  }
+  const missing=m.pushPlan(input(null,local,{}, {fetchedVersion:null}));
+  assert.ok(missing.upload.blob.tabs[id(1)],'a confirmed missing store can still be created');
+});
+
+test('merge helpers never downgrade an unsupported blob or index version', () => {
+  const local=blob({[id(1)]:tab()});
+  assert.throws(()=>m.mergeBlob(local,{...local,v:2}),/invalid|unsupported/i);
+  assert.throws(()=>m.mergeIndex({v:1,spaces:{}},{v:2,spaces:{}}),/invalid|unsupported/i);
+});
+
+test('admission restores a published short URL when the remote record is missing', () => {
+  const published=blob({[id(1)]:tab()});
+  const local=blob({[id(1)]:tab(1,{nav:f({url:'https://long.test/',title:'Long'},200)})});
+  const budget=s=>({ct:'x'.repeat(Object.values(JSON.parse(s).tabs).some(t=>t.nav.v.url.includes('long'))?600000:10)});
+  const pending={tabs:{[id(1)]:{nav:local.tabs[id(1)].nav}}};
+  const args=input(blob({}),local,pending,{lastPublishable:published,encryptFn:budget});
+  const original=structuredClone(args.localBlob);
+  const p=m.pushPlan(args);
+  assert.ok(p.upload,'the known fitting historical record remains publishable');
+  assert.equal(p.upload.blob.tabs[id(1)].nav.v.url,'https://example.com/');
+  assert.ok(p.unsynced.has(id(1)));assert.deepEqual(p.pendingAfter.tabs[id(1)].nav,local.tabs[id(1)].nav);
+  assert.deepEqual(local,original,'holding sync never rewinds the displayed/local state');
+});
+
+test('historical admission fallback never replaces newer fetched fields', () => {
+  const published=blob({[id(1)]:tab()});
+  const remote=blob({[id(1)]:tab(1,{name:f('Remote name',300,'b')})});
+  const local=blob({[id(1)]:tab(1,{nav:f({url:'https://long.test/',title:'Long'},200)})});
+  const budget=s=>({ct:'x'.repeat(JSON.parse(s).tabs[id(1)].nav.v.url.includes('long')?600000:10)});
+  const p=m.pushPlan(input(remote,local,{},{lastPublishable:published,encryptFn:budget}));
+  const admitted=p.upload?.blob??remote;
+  assert.equal(admitted.tabs[id(1)].name.v,'Remote name');
+  assert.equal(admitted.tabs[id(1)].nav.v.url,'https://example.com/');
+});
+
+test('expired tombstones leave both retained state and pending writes after upload', () => {
+  const now=m.LIMITS.tombstoneMs+200;
+  const remote=blob({[id(1)]:tab()});
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,100)})});
+  const pending={tabs:{[id(1)]:{deleted:f(true,100)}}};
+  const p=m.pushPlan(input(remote,local,pending,{now,lastMergeAt:now-1}));
+  assert.deepEqual(p.upload.blob.tabs,{});
+  assert.deepEqual(p.mergedBlob.tabs,{});
+  assert.equal(p.pendingAfter.tabs?.[id(1)],undefined);
+  const settled=m.settleUpload(p,pending,{blobStored:true,indexStored:true});
+  const next=m.pushPlan(input(p.upload.blob,p.mergedBlob,settled.pending,{now:now+1,lastMergeAt:now}));
+  assert.equal(next.upload,null);assert.deepEqual(next.pendingAfter,{});
+});
+
+test('expired records are not mistaken for recoverable long-stale work', () => {
+  const now=m.LIMITS.tombstoneMs+200;
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,100)})});
+  const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs},{now,lastMergeAt:1}));
+  assert.equal(p.recover.has(id(1)),false);assert.deepEqual(p.mergedBlob.tabs,{});
+  assert.deepEqual(p.pendingAfter,{});
+});
+
+test('live tombstones retain pending deletion until acknowledged or expired', () => {
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,1900)})});
+  const p=m.pushPlan(input(blob({[id(1)]:tab()}),local,{tabs:{[id(1)]:{deleted:local.tabs[id(1)].deleted}}}));
+  assert.equal(p.upload.blob.tabs[id(1)].deleted.v,true);
+  assert.equal(p.mergedBlob.tabs[id(1)].deleted.v,true);
+  assert.ok(p.pendingAfter.tabs[id(1)].deleted);
+});
+
+test('admission omits an active selection whose new tab is held', () => {
+  const local=blob({[id(1)]:tab(),[id(2)]:tab(2,{name:f('Newest',200)})});
+  local.active=f(id(2),200);
+  const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs},{encryptFn:countSeal}));
+  assert.deepEqual(Object.keys(p.upload.blob.tabs),[id(1)]);
+  assert.equal(p.upload.blob.active,undefined);
+  assert.equal(p.mergedBlob.active.v,id(2),'the still-visible local tab remains selected');
+});
+
+test('active selections are pruned when their tab is deleted or expires', () => {
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,100)})});local.active=f(id(1));
+  assert.equal(m.sanitizeBlob(local).active,undefined);
+  assert.equal(m.expireTombstones(local,m.LIMITS.tombstoneMs+200).active,undefined);
+  const live=blob({[id(1)]:tab()});live.active=f(id(1));
+  assert.deepEqual(m.sanitizeBlob(live).active,live.active);
+});

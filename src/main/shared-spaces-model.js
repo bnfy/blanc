@@ -61,6 +61,13 @@ const revisionOf = blob => crypto.createHash('sha256').update(canonical(blob), '
 const blobFits = (blob, encryptFn) => Buffer.byteLength(JSON.stringify(encryptFn(JSON.stringify(blob))), 'utf8') <= LIMITS.blobBytes;
 const liveTabCount = blob => Object.values(blob?.tabs ?? {}).filter(t => t?.deleted?.v !== true).length;
 const text = (v,n) => typeof v === 'string' ? v.slice(0,n) : null;
+const isMap = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+// A selection is optional; never invent a selection clock when its target is
+// absent, deleted, expired, or withheld from the publishable projection.
+function clearInvalidActive(blob) {
+  if (blob?.active && (!blob.tabs?.[blob.active.v] || blob.tabs[blob.active.v].deleted?.v === true)) delete blob.active;
+  return blob;
+}
 function nav(v) {
   if (!v || typeof v.url !== 'string' || v.url.length > 2048) return undefined;
   try { const u = new URL(v.url); if (u.protocol !== 'http:' && u.protocol !== 'https:') return undefined; } catch { return undefined; }
@@ -105,14 +112,18 @@ function sanitizeMap(raw,kind) {
   return out;
 }
 function sanitizeBlob(raw) {
-  if (!raw || raw.v !== 1 || !isId(raw.spaceId)) return null;
+  if (!isMap(raw) || raw.v !== 1 || !isId(raw.spaceId) || !isMap(raw.groups) || !isMap(raw.tabs)) return null;
   const out = { v:1, spaceId:raw.spaceId, groups:sanitizeMap(raw.groups,'groups'), tabs:sanitizeMap(raw.tabs,'tabs') };
   if (isField(raw.active) && isId(raw.active.v)) out.active = copy(raw.active);
-  return out;
+  return clearInvalidActive(out);
 }
-function sanitizeIndex(raw) { return {v:1,spaces:sanitizeMap(raw?.spaces,'spaces')}; }
+function sanitizeIndex(raw) {
+  if (!isMap(raw) || raw.v !== 1 || !isMap(raw.spaces)) return null;
+  return {v:1,spaces:sanitizeMap(raw.spaces,'spaces')};
+}
 function mergeBlob(a,b) {
   const left = sanitizeBlob(a), right = sanitizeBlob(b);
+  if ((a != null && !left) || (b != null && !right)) throw new TypeError('Invalid or unsupported Space blob');
   if (!left) return copy(right);
   if (!right) return copy(left);
   if (left.spaceId !== right.spaceId) throw new TypeError('Space identity mismatch');
@@ -121,10 +132,12 @@ function mergeBlob(a,b) {
     for(const id of [...new Set([...Object.keys(left[kind]),...Object.keys(right[kind])])].sort()) out[kind][id] = mergeRecord(left[kind][id],right[kind][id]);
   }
   const active=mergeField(left.active,right.active,'active'); if(active)out.active=active;
-  return out;
+  return clearInvalidActive(out);
 }
 function mergeIndex(a,b) {
-  const left=sanitizeIndex(a),right=sanitizeIndex(b),out={v:1,spaces:{}};
+  const cleanLeft=sanitizeIndex(a),cleanRight=sanitizeIndex(b);
+  if ((a != null && !cleanLeft) || (b != null && !cleanRight)) throw new TypeError('Invalid or unsupported Spaces index');
+  const left=cleanLeft??{v:1,spaces:{}},right=cleanRight??{v:1,spaces:{}},out={v:1,spaces:{}};
   for(const id of [...new Set([...Object.keys(left.spaces),...Object.keys(right.spaces)])].sort()) {
     const l=left.spaces[id]??{},r=right.spaces[id]??{};
     const record=mergeRecord(l,r);
@@ -142,8 +155,9 @@ function expireTombstones(blob,now) {
   for(const kind of ['tabs','groups','spaces'])if(out?.[kind])for(const [id,r] of Object.entries(out[kind])) {
     if(r.deleted?.v===true && now-r.deleted.c>=LIMITS.tombstoneMs)delete out[kind][id];
   }
-  return out;
+  return clearInvalidActive(out);
 }
+const expiredRecord = (record,now) => record?.deleted?.v === true && now-record.deleted.c >= LIMITS.tombstoneMs;
 const effectiveGroup = (blob,tab) => {
   const id=tab?.groupId?.v;
   return id && blob.groups?.[id] && blob.groups[id].deleted?.v!==true ? id : null;
@@ -200,6 +214,7 @@ function recoveryDecision({localBlob, fetchedBlob, lastMergeAt, now}) {
   const hasRemote = Object.keys(fetchedBlob?.tabs ?? {}).length + Object.keys(fetchedBlob?.groups ?? {}).length > 0;
   const stale = Number.isFinite(lastMergeAt) ? now-lastMergeAt > LIMITS.tombstoneMs : hasRemote;
   for(const kind of ['tabs','groups']) for(const id of Object.keys(localBlob?.[kind] ?? {})) {
+    if (expiredRecord(localBlob[kind][id],now)) continue;
     (stale && !fetchedBlob?.[kind]?.[id] ? recover : keep).add(id);
   }
   return {keep,recover};
@@ -216,20 +231,28 @@ function replayPending(blob,pending) {
   }
   return out;
 }
-// The rollback base is the fetched state plus every winning field that this
-// device did not write. lastPublishable must never displace that remote state.
-function admissionUnits(candidate,fetched,deviceId) {
+// Historical values fill only missing fetched fields and only when the
+// candidate supersedes them. Fetched fields always remain authoritative in
+// the rollback base, even when the historical snapshot has a higher clock.
+function admissionUnits(candidate,fetched,deviceId,lastPublishable) {
   const units=[];
   for(const kind of ['groups','tabs'])for(const [id,after] of Object.entries(candidate[kind])) {
     const before=copy(fetched[kind]?.[id]??{});
+    for (const [name,value] of Object.entries(lastPublishable?.[kind]?.[id]??{})) {
+      if (!Object.hasOwn(before,name) && acknowledged(after[name],value,name)) before[name]=copy(value);
+    }
     for(const [name,value] of Object.entries(after)) {
       if(value.by!==deviceId)before[name]=copy(value);
     }
-    if(canonical(before)===canonical(after))continue;
+    const sameAsBase=canonical(before)===canonical(after);
+    const hasLocalContribution=Object.entries(after).some(([name,value])=>value.by===deviceId && canonical(value)!==canonical(fetched[kind]?.[id]?.[name]));
+    if(sameAsBase && !hasLocalContribution)continue;
     const base=Object.keys(before).length ? before : null;
     // If removing local fields would leave somebody else's incomplete record,
     // its dependency closure is mandatory rather than partially serializable.
-    const required=!!base && !sanitizeRecord(base,kind);
+    // Restoring an unchanged published record may itself be unsynced, but it
+    // is not an admission candidate to drop in order to fit a newer change.
+    const required=sameAsBase || (!!base && !sanitizeRecord(base,kind));
     units.push({kind,id,key:kind+':'+id,before:base,after:copy(after),required,
       clock:Math.max(0,...Object.entries(after).filter(([name,v])=>isField(v) && v.by===deviceId && canonical(v)!==canonical(before[name])).map(([,v])=>v.c)),dependencies:[]});
   }
@@ -240,7 +263,7 @@ function admissionUnits(candidate,fetched,deviceId) {
   return units;
 }
 function admit({candidate,changes=[],encryptFn}) {
-  const out=copy(candidate), held=new Set(), unsynced=new Set();
+  const out=clearInvalidActive(copy(candidate)), held=new Set(), unsynced=new Set();
   const fits=()=>liveTabCount(out)<=LIMITS.tabsPerSpace && blobFits(out,encryptFn);
   const complete=()=> {
     if (canonical(sanitizeBlob(out))!==canonical(out)) return false;
@@ -264,6 +287,7 @@ function admit({candidate,changes=[],encryptFn}) {
     if(dependents.some(u=>u.required))return false;
     for(const dependent of dependents)if(!hold(dependent))return false;
     if(unit.before)out[unit.kind][unit.id]=copy(unit.before);else delete out[unit.kind][unit.id];
+    clearInvalidActive(out);
     held.add(key);unsynced.add(unit.id);return true;
   }
   for(const unit of [...byKey.values()].sort((a,b)=>b.clock-a.clock || (a.key<b.key?-1:1))) {
@@ -275,10 +299,16 @@ function admit({candidate,changes=[],encryptFn}) {
 }
 function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable}) {
   const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob);
+  // Only an actual missing blob may start an empty remote. An unreadable
+  // response must not be overwritten with a locally understood older schema.
+  if ((fetchedBlob != null && !remote) || (fetchedBlob == null && fetchedVersion != null)) throw new TypeError('Invalid or unsupported remote Space blob');
   if(!local&&!remote)throw new TypeError('No valid Space');
   if(local&&remote&&local.spaceId!==remote.spaceId)throw new TypeError('Space identity mismatch');
   const empty={v:1,spaceId:(local??remote).spaceId,tabs:{},groups:{}};
   const fetched=remote??empty;
+  const published=sanitizeBlob(lastPublishable);
+  if (lastPublishable != null && !published) throw new TypeError('Invalid or unsupported published Space blob');
+  if (published && published.spaceId !== fetched.spaceId) throw new TypeError('Published Space identity mismatch');
   const {recover}=recoveryDecision({localBlob:local??empty,fetchedBlob:remote,lastMergeAt,now});
   const retained=withoutRecords(local??empty,recover);
   const eligiblePending=withoutRecords(sanitizePending(pending),recover);
@@ -291,10 +321,19 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
     }
   }
   const pendingAfter=settlePending(applyLocalEdits(eligiblePending,retainedOwn),fetched);
-  const mergedBlob=replayPending(baseMerged,pendingAfter);
-  const candidate=expireTombstones(mergedBlob,now);
-  const changes=admissionUnits(candidate,fetched,deviceId);
-  const admission=admit({candidate,changes,encryptFn,lastPublishable});
+  const replayed=replayPending(baseMerged,pendingAfter);
+  // Expiry is a retention decision for persisted state too, not merely a
+  // smaller upload. Remove every field of retired records from pending so a
+  // later pass cannot recreate the tombstone or wait forever for its receipt.
+  for (const kind of ['tabs','groups']) {
+    for (const [id,record] of Object.entries(replayed[kind])) {
+      if (expiredRecord(record,now) && pendingAfter[kind]) delete pendingAfter[kind][id];
+    }
+    if (pendingAfter[kind] && !Object.keys(pendingAfter[kind]).length) delete pendingAfter[kind];
+  }
+  const mergedBlob=expireTombstones(replayed,now);
+  const changes=admissionUnits(mergedBlob,fetched,deviceId,expireTombstones(published,now));
+  const admission=admit({candidate:mergedBlob,changes,encryptFn});
   const changed=admission.blob && canonical(admission.blob)!==canonical(fetched);
   const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;
   // Proposal only: caller may publish this revision after the blob PUT succeeds.

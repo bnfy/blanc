@@ -156,8 +156,11 @@ async function handlePut(env, accountId, store, body) {
 async function handleDelete(env, accountId) {
   // List before deleting: cursors may be offset-based in local fixtures and
   // Space blobs can outlive their index entries. Never rely on the live index.
-  const keys = await listNames(env, `blob:${accountId}:`);
-  await Promise.all(keys.map((key) => env.SYNC.delete(key)));
+  // KV listings can omit recently written keys. Preserve the direct deletion
+  // of every known fixed store; enumeration supplements it for dynamic ids.
+  const keys = new Set([...STORES].map((store) => blobKey(accountId, store)));
+  for (const key of await listNames(env, `blob:${accountId}:`)) keys.add(key);
+  await Promise.all([...keys].map((key) => env.SYNC.delete(key)));
   await env.SYNC.delete(seenKey(accountId));
   return new Response(null, { status: 204 });
 }

@@ -67,9 +67,13 @@ meeting an older Worker gets `404 unknown store` and says sending isn't
 available yet. The M16 protocol additionally serves `spaces` (the library index), `closed`
 (per-device Recently closed), `shared` (the F27 deduplication sidecar), and
 `space-<32 lowercase hex>` (one immutable Space id per blob). Malformed or
-unknown store names return `404 unknown store`. Account DELETE lists every
-`blob:<accountId>:` key across all pages, including orphan Space blobs, before
-removing the activity marker; it does not depend on the index.
+unknown store names return `404 unknown store`. Account DELETE directly deletes
+every known fixed-store key and adds the `blob:<accountId>:` keys returned across
+all listing pages, including orphan Space blobs. It removes the activity marker
+only after those deletions succeed; it does not depend on the index. Direct
+fixed-store deletion does not depend on listing freshness. KV may still omit a
+dynamic Space key from a stale listing, and concurrent writes can recreate keys;
+the v1 protocol does not provide an atomic, immediately complete account wipe.
 
 Deploy these routes before a client release offers the Spaces switch. A client
 meeting an older Worker reports "Spaces sync isn't available yet"; Favorites,
@@ -129,8 +133,9 @@ tombstones and must be measured. Neither those estimates nor the old listing
 predict current usage. Likewise, one changed Space PUT plus an index PUT,
 periodic reads, and paginated account deletion are workload assumptions—not
 a guarantee of staying within an included request allowance. At page size P,
-a wipe of N keys needs approximately `ceil(N/P)` listings and N deletions,
-plus marker deletion; failed writes and retries add requests.
+a wipe listing N keys needs approximately `ceil(N/P)` listings, deletion of the
+union of those keys and the eight fixed-store keys, and marker deletion. Missing
+fixed keys can therefore add up to eight delete calls; retries add requests.
 
 **Before deployment the owner must separately choose:** explicitly accept
 unbounded per-account blob growth, or require a reviewed, enforceable quota or

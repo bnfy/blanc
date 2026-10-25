@@ -17970,6 +17970,231 @@
         "indexEntry": null,
         "reason": null
       }
+    },
+    {
+      "name": "expired deletion clears retained state and pending",
+      "input": {
+        "fetchedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "fetchedVersion": "version-1",
+        "localBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111122",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": true,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "pending": {
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "deleted": {
+                "v": true,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "lastMergeAt": 2592000199,
+        "now": 2592000200,
+        "deviceId": "a"
+      },
+      "expected": {
+        "upload": {
+          "blob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {}
+          },
+          "rev": "79fd3888cde66f21",
+          "ifVersion": "version-1"
+        },
+        "pendingAfter": {},
+        "recover": [],
+        "unsynced": [],
+        "mergedBlob": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {}
+        },
+        "nextLastMergeAt": 2592000200,
+        "indexEntry": {
+          "id": "00000000000000000000000000000063",
+          "rev": "79fd3888cde66f21"
+        },
+        "reason": null
+      }
+    }
+  ],
+  "spacesSelections": [
+    {
+      "name": "deleted selected tab is omitted",
+      "input": {
+        "v": 1,
+        "spaceId": "00000000000000000000000000000063",
+        "groups": {},
+        "tabs": {
+          "00000000000000000000000000000011": {
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111122",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": true,
+              "c": 100,
+              "by": "a"
+            }
+          }
+        },
+        "active": {
+          "v": "00000000000000000000000000000011",
+          "c": 100,
+          "by": "a"
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaceId": "00000000000000000000000000000063",
+        "groups": {},
+        "tabs": {
+          "00000000000000000000000000000011": {
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111122",
+              "c": 100,
+              "by": "a"
+            },
+            "deleted": {
+              "v": true,
+              "c": 100,
+              "by": "a"
+            }
+          }
+        }
+      }
     }
   ]
 }
