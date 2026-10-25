@@ -10,6 +10,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// Every finished main-frame load, even to the address already shown (a
     /// typed search, a reload): the History visit, with that page's own title.
     var onVisit: ((URL, String) -> Void)?
+    /// A main-frame navigation is about to load `url` (Blanc Blocker's per-site
+    /// switch puts the tab's blocking rules on or off for that site first).
+    var onWillLoadMainFrame: ((URL) -> Void)?
 
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
@@ -19,12 +22,17 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView,
                  didStartProvisionalNavigation navigation: WKNavigation!) {
+        tab?.nativeClock.hide()
         tab?.isLoading = true
     }
 
     func webView(_ webView: WKWebView,
                  didFinish navigation: WKNavigation!) {
         sync(webView, finished: true)
+        Task { @MainActor [weak tab] in
+            await Task.yield()
+            tab?.captureThumbnail()
+        }
     }
 
     func webView(_ webView: WKWebView,
@@ -48,6 +56,9 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
             UIApplication.shared.open(url)
             decisionHandler(.cancel)
             return
+        }
+        if navigationAction.targetFrame?.isMainFrame != false, let url = navigationAction.request.url {
+            onWillLoadMainFrame?(url)
         }
         decisionHandler(.allow)
     }

@@ -10,6 +10,12 @@ enum WebViewConfiguration {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "blanc")
 
+        if let url = Bundle.main.url(forResource: "ios-start-rules", withExtension: "js", subdirectory: "pages"),
+           let rules = try? String(contentsOf: url, encoding: .utf8) {
+            config.userContentController.addUserScript(WKUserScript(
+                source: "if (location.protocol === 'blanc:') {\n" + rules + "\n}",
+                injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
         let userScript = WKUserScript(
             source: PagesBridge.userScriptSource,
             injectionTime: .atDocumentStart,

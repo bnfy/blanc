@@ -16,6 +16,10 @@ final class SettingsStore {
     private(set) var theme: BlancThemePreference = BlancSettingsDefaults.theme
     private(set) var searchEngine: BlancSearchEngine = BlancSettingsDefaults.searchEngine
     private(set) var adblockEnabled: Bool = BlancSettingsDefaults.adblockEnabled
+    /// Sites where Blanc Blocker is off (desktop's `adblockExceptions`).
+    private(set) var adblockExceptions: [String] = []
+
+    private(set) var newtabLayout: BlancStartPageLayout = MobileStartPageDefaults.layout
 
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private var unknownKeys: [String: Any] = [:]
@@ -47,10 +51,17 @@ final class SettingsStore {
     /// still observe reads.
     func update(theme: BlancThemePreference? = nil,
                 searchEngine: BlancSearchEngine? = nil,
-                adblockEnabled: Bool? = nil) {
+                adblockEnabled: Bool? = nil,
+                adblockExceptions: [String]? = nil,
+                newtabLayout: BlancStartPageLayout? = nil) {
         if let theme { self.theme = theme }
         if let searchEngine { self.searchEngine = searchEngine }
         if let adblockEnabled { self.adblockEnabled = adblockEnabled }
+        if let adblockExceptions {
+            var seen = Set<String>()
+            self.adblockExceptions = adblockExceptions.compactMap(AdblockExceptions.normalize).filter { seen.insert($0).inserted }
+        }
+        if let newtabLayout { self.newtabLayout = newtabLayout }
         scheduleSave()
     }
 
@@ -77,8 +88,16 @@ final class SettingsStore {
         if let v = dict["adblockEnabled"] as? Bool {
             adblockEnabled = v
         }
+        if let list = dict["adblockExceptions"] as? [String] {
+            var seen = Set<String>()
+            adblockExceptions = list.compactMap(AdblockExceptions.normalize).filter { seen.insert($0).inserted }
+        }
 
-        let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled"]
+        if let raw = dict["newtabLayout"] as? String, let value = BlancStartPageLayout(rawValue: raw) {
+            newtabLayout = value
+        }
+
+        let knownKeys: Set<String> = ["theme", "searchEngine", "adblockEnabled", "adblockExceptions", "newtabLayout"]
         for (key, value) in dict where !knownKeys.contains(key) {
             unknownKeys[key] = value
         }
@@ -93,9 +112,11 @@ final class SettingsStore {
 
     private func save() {
         var dict: [String: Any] = unknownKeys
+        dict["newtabLayout"] = newtabLayout.rawValue
         dict["theme"] = theme.rawValue
         dict["searchEngine"] = searchEngine.rawValue
         dict["adblockEnabled"] = adblockEnabled
+        dict["adblockExceptions"] = adblockExceptions
 
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: [.sortedKeys]) else { return }
         // `.atomic` writes to a sibling temp file and renames it into place —
