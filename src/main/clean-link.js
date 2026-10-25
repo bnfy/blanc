@@ -65,4 +65,11 @@ function cleanLink(text) {
   return base + (kept.length ? `?${kept.join('&')}` : '') + fragment;
 }
 
-module.exports = { cleanLink };
+/** The link Copy Clean Link puts on the clipboard for a page address: the
+ * cleaned http(s) URL, or the exact address when cleaning doesn't apply
+ * (a file: page has no tracking parameters to strip). */
+function cleanLinkForCopy(url) {
+  return cleanLink(url) ?? url;
+}
+
+module.exports = { cleanLink, cleanLinkForCopy };

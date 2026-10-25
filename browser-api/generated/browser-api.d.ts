@@ -473,7 +473,7 @@ export interface DownloadsActivity {
 export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
 
 /** Fixed ids of the pill's brief confirmations; the strip owns their text. */
-export type PillNotice = 'link-copied';
+export type PillNotice = 'link-copied' | 'clean-link-copied';
 
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
