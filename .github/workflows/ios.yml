@@ -66,3 +66,11 @@ jobs:
             -scheme Blanc \
             -destination "id=${{ steps.sim.outputs.udid }}" \
             CODE_SIGNING_ALLOWED=NO
+      - name: Print app crash reports
+        # A UI test that ends with "application is not running" crashed the
+        # app; the simulator writes the report on the host.
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
+            echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
+          done

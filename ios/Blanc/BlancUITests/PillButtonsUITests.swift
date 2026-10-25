@@ -10,9 +10,11 @@ final class PillButtonsUITests: XCTestCase {
     app.launch()
     // The seeded tab is a web page, so it shows the heart; a new tab is the
     // start page, which can't be a Favorite.
-    XCTAssertTrue(app.buttons["pill.favorite"].waitForExistence(timeout: 10))
+    let site = app.buttons["pill.palette"]
+    XCTAssertTrue(site.waitForExistence(timeout: 10))
+    XCTAssertTrue(site.label.contains("example.com"), site.label)
     app.buttons["New tab"].tap()
-    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: app.buttons["pill.favorite"])
-    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "+ opened a new tab")
+    let startPage = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "Start Page"), object: site)
+    XCTAssertEqual(XCTWaiter().wait(for: [startPage], timeout: 5), .completed, "+ opened a new tab")
   }
 }
