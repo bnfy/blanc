@@ -124,6 +124,25 @@ try {
   ]) vectors.sendsOwn.push(entry(name,{previous,...args,now:fixedNow,force:!!options.force},sends.ownEntry(previous,args,fixedNow,options)));
   vectors.sendsOwn.push(entry('add item',{operation:'addItem',previous:sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),url:'https://x.test/',title:'X',to:'mac',ownId:'phone',now:fixedNow,id:'new'},sends.addItem(sEntry('iPhone',fixedNow-1000,[sItem('a')],'ios'),{url:'https://x.test/',title:'X',to:'mac'},'phone',fixedNow,()=>'new')));
   vectors.sendsOwn.push(entry('add to self',{operation:'addItem',previous:null,url:'https://x.test/',title:'X',to:'phone',ownId:'phone',now:fixedNow,id:'new'},sends.addItem(null,{url:'https://x.test/',title:'X',to:'phone'},'phone',fixedNow,()=>'new')));
+  const spaces = require('../src/main/shared-spaces-model');
+  const sid = n => n.toString(16).padStart(32, '0');
+  vectors.spacesPositions = [];
+  for (const [a,b] of [['a1','a11'],['a1','a2'],['a1z','a2'],['','1'],['','a1'],['ab',''],['a','a0i'],['i','i1'],['zz','']]) {
+    vectors.spacesPositions.push(entry('mid',{a,b},spaces.mid(a,b)));
+  }
+  let positionSeed=91234;
+  const prng=()=>((positionSeed=(Math.imul(positionSeed,1664525)+1013904223)>>>0)/4294967296);
+  const position=()=>Array.from({length:1+Math.floor(prng()*8)},()=> '0123456789abcdefghijklmnopqrstuvwxyz'[Math.floor(prng()*36)]).join('')+'1';
+  for(let i=0;i<1000;i++) {let a=position(),b=position(); if(a>b)[a,b]=[b,a]; if(a===b){i--;continue;} vectors.spacesPositions.push(entry('interval',{a,b},spaces.mid(a,b)));}
+  const ka=spaces.keyFor('','',sid(1)),kb=spaces.keyFor('','',sid(2));
+  vectors.spacesPositions.push(entry('concurrent inserts',{a:'',b:'',ids:[sid(1),sid(2),sid(3)]},{keys:[ka,kb],between:spaces.keyFor(ka,kb,sid(3))}));
+  vectors.spacesPositions.push(entry('wrong tag',{key:ka,id:sid(2)},spaces.validKey(ka,sid(2))));
+  vectors.spacesFields=[];
+  for(const [name,a,b] of [['name',spaces.field('older',1,'a'),spaces.field('newer',2,'b')],['name',spaces.field('z',1,'a'),spaces.field('a',1,'a')],['deleted',spaces.field(false,999,'a'),spaces.field(true,1,'b')]]) {
+    vectors.spacesFields.push(entry(name,{name,a,b},{merged:spaces.mergeField(a,b,name),acknowledged:spaces.acknowledged(a,b,name)}));
+  }
+  vectors.spacesRevision=[entry('canonical keys',{b:2,a:1},spaces.revisionOf({b:2,a:1}))];
+  vectors.spacesBudget=[320,400].map(kib=>entry('encrypted size',{kib},{bytes:Buffer.byteLength(JSON.stringify(crypt.encrypt(Buffer.alloc(32),'x'.repeat(kib*1024)))),fits:spaces.blobFits('x'.repeat(kib*1024),t=>crypt.encrypt(Buffer.alloc(32),t))}));
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }
