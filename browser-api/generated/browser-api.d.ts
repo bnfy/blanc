@@ -472,6 +472,9 @@ export interface DownloadsActivity {
 /** Overlay modes; every showOverlay() call in main.js passes one of these literals. */
 export type OverlayMode = 'panel' | 'palette' | 'find' | 'shield' | 'capture' | 'glance' | 'display-share' | 'spaces';
 
+/** Fixed ids of the pill's brief confirmations; the strip owns their text. */
+export type PillNotice = 'link-copied';
+
 /** Which strip control opened the shield popover. */
 export type ShieldTrigger = 'shield' | 'insecure';
 
@@ -1191,6 +1194,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:glance-status`.
    */
   onGlanceStatus(callback: (payload: string) => void): () => void;
+  /**
+   * Show a brief confirmation in the pill's label slot (Link copied).
+   * IPC: event `chrome:pill-notice`.
+   */
+  onPillNotice(callback: (payload: PillNotice) => void): () => void;
   /**
    * Expand the island panel.
    * IPC: send `chrome:open-island`.

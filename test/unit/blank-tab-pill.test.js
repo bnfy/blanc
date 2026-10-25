@@ -158,3 +158,52 @@ test('the markup carries the chip and loads the shared gate', () => {
   // unreachable by speech control.
   assert.match(indexHtml, /aria-label="Commands \(\/\)"/);
 });
+
+// Copy Link's "Link copied" takes the label's place for a moment and then the
+// real label comes back, whatever tabs:updated rendered in between.
+test('a pill notice overrides the label briefly and the label returns when it ends', () => {
+  const noticeSource = rendererSource.match(/const PILL_NOTICE_KEYS = [\s\S]*?\n  function showPillNotice\(kind\) \{[\s\S]*?\n  \}/)?.[0];
+  const renderSource = rendererSource.match(/function renderPillLabel\(tab\) \{[\s\S]*?\n  \}/)?.[0];
+  assert.ok(noticeSource, 'the pill notice block not found in renderer.js — update this test with it');
+  assert.ok(renderSource, 'renderPillLabel not found in renderer.js — update this test with it');
+  const element = () => {
+    const classes = new Set();
+    return {
+      textContent: '', attributes: new Set(), hidden: false,
+      classList: { toggle: (name, force) => { force ? classes.add(name) : classes.delete(name); }, contains: (name) => classes.has(name) },
+      toggleAttribute(name, force) { force ? this.attributes.add(name) : this.attributes.delete(name); },
+    };
+  };
+  const timers = [];
+  const sandbox = {
+    URL, pillDomain: element(), pillSlash: element(), glanceStatus: element(),
+    blancI18n: { t: (key) => `[${key}]` },
+    setTimeout: (fn, ms) => { timers.push({ fn, ms }); return timers.length; },
+    clearTimeout: () => {},
+  };
+  vm.runInNewContext(
+    `${viewSourceSource}\n${tabDomainSource}\n${modeSource}\n${noticeSource}\n${renderSource}\nthis.render = renderPillLabel; this.notice = showPillNotice;`,
+    sandbox,
+  );
+  sandbox.render(LOADED);
+  assert.equal(sandbox.pillDomain.textContent, 'example.com');
+  sandbox.notice('link-copied');
+  assert.equal(sandbox.pillDomain.textContent, '[pill.notice.linkCopied]');
+  assert.equal(sandbox.pillDomain.classList.contains('notice'), true);
+  assert.equal(sandbox.pillDomain.attributes.has('data-i18n-ignore'), false, 'the notice is interface copy');
+  assert.equal(sandbox.glanceStatus.textContent, '[pill.notice.linkCopied]', 'announced to assistive technology');
+  assert.equal(timers.length, 1);
+  assert.equal(timers[0].ms, 1600);
+  // A broadcast during the notice keeps it, and remembers the new tab.
+  sandbox.render(BLANK);
+  assert.equal(sandbox.pillDomain.textContent, '[pill.notice.linkCopied]');
+  assert.equal(sandbox.pillSlash.hidden, true);
+  timers[0].fn();
+  assert.equal(sandbox.pillDomain.textContent, '[pill.placeholder]');
+  assert.equal(sandbox.pillDomain.classList.contains('notice'), false);
+  assert.equal(sandbox.pillSlash.hidden, false);
+  // Unknown kinds are ignored.
+  sandbox.notice('something-else');
+  assert.equal(sandbox.pillDomain.textContent, '[pill.placeholder]');
+  assert.equal(timers.length, 1);
+});

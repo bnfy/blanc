@@ -59,6 +59,7 @@
     <string name="pill_insecure_open">%1$s. Website-Einstellungen öffnen.</string>
     <string name="pill_domain_default">neuer Tab</string>
     <string name="pill_placeholder">Suchen oder URL eingeben</string>
+    <string name="pill_notice_link_copied">Link kopiert</string>
     <string name="pill_commands">Befehle (/)</string>
     <string name="pill_private_chip">Privat</string>
     <string name="pill_private_title">Privaten Modus verlassen – schließt diesen Tab</string>
