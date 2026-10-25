@@ -137,11 +137,12 @@ test('every byte-checked text host input and package record is LF-pinned for def
 test('source inventory regeneration retains immutable component archives and rejects tampering', t => {
   const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
   const sources = sourceInputs(path.join(root, 'ublock'));
-  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0.tar.gz', 'sources/uAssets-1.75.0-main.tar.gz', 'sources/uAssets-1.75.0-prod.tar.gz']) assert(sources.some(source => source.path === member), member);
+  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0-source.zip', 'sources/uAssets-1.75.0-main-source.zip', 'sources/uAssets-1.75.0-prod.tar.gz']) assert(sources.some(source => source.path === member), member);
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(),'ubo-source-record-'));
   t.after(() => fs.rmSync(temporary,{recursive:true,force:true}));
   fs.mkdirSync(path.join(temporary,'sources'));
   fs.copyFileSync(path.join(root,'ublock/LICENSE.txt'),path.join(temporary,'LICENSE.txt'));
+  fs.copyFileSync(path.join(root,'ublock/repack-preferred-sources.py'),path.join(temporary,'repack-preferred-sources.py'));
   const record = JSON.parse(fs.readFileSync(path.join(root,'ublock/preferred-sources.json')));
   record.components = [record.components[0]];
   fs.copyFileSync(path.join(root,'ublock',record.components[0].sourcePath),path.join(temporary,record.components[0].sourcePath));
@@ -152,6 +153,32 @@ test('source inventory regeneration retains immutable component archives and rej
   record.components[0].sourcePath = '../escape.tar.gz';
   fs.writeFileSync(path.join(temporary,'preferred-sources.json'),JSON.stringify(record));
   assert.throws(() => sourceInputs(temporary), /preferred-source-integrity/);
+});
+
+test('the HSLuv source conversion requires its exact upstream provenance and output pin', t => {
+  const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-source-conversion-'));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(temporary, 'sources'));
+  for (const member of ['LICENSE.txt', 'repack-preferred-sources.py', 'sources/hsluv-0.1.0-source.zip']) {
+    fs.copyFileSync(path.join(root, 'ublock', member), path.join(temporary, member));
+  }
+  const record = JSON.parse(fs.readFileSync(path.join(root, 'ublock/preferred-sources.json')));
+  const original = record.components.find(component => component.name === 'hsluv-0.1.0');
+  record.components = [original];
+  fs.writeFileSync(path.join(temporary, 'preferred-sources.json'), JSON.stringify(record));
+  const legacy = path.join(temporary, 'sources/hsluv-0.1.0.tar.gz');
+  fs.writeFileSync(legacy, 'stale archive');
+  assert.throws(() => sourceInputs(temporary), /source-unlisted/);
+  fs.unlinkSync(legacy);
+  for (const change of [null, { upstreamSha256: '0'.repeat(64) }, { sourceFormat: undefined },
+    { repository: 'other/project', url: `https://codeload.github.com/other/project/tar.gz/${original.revision}` },
+    { repackScript: 'missing.py' }]) {
+    record.components = [{ ...original, ...change }];
+    fs.writeFileSync(path.join(temporary, 'preferred-sources.json'), JSON.stringify(record));
+    if (change === null) sourceInputs(temporary);
+    else assert.throws(() => sourceInputs(temporary), /preferred-source-conversion/);
+  }
 });
 
 

@@ -1,0 +1,87 @@
+Antivirus investigation and source-preserving candidate — 2026-10-25
+
+Published installer: Blanc-1.43.1-arm64.dmg
+SHA-256: 137821c40fd25771d1041fcb609af9993100ef9d8c363749774eeab4042777fb
+Release commit: 154d1db84a7d54d83b6dd40ef91ea7042636446f
+The public digest, authenticated checksum manifest, Developer ID signature,
+Gatekeeper acceptance and stapled notarization ticket were verified independently.
+The app was not launched during initial sample inspection.
+
+Confirmed triggers (not a blanket malware/false-positive determination):
+
+1. ublock/sources/hsluv-0.1.0.tar.gz
+   SHA-256 1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee
+   Immutable upstream revision: hsluv/hsluv 9cd8574fad8874828b3a8119843527d62d79887a
+   Individual VirusTotal result: 5/61. Avast and AVG return MacOS:Agent-GV [PUP].
+   The unchanged decompressed TAR also returns these labels (5/60).
+   Omitting only this archive from the full original uBO package removes the
+   related PUP results; Kaspersky remains positive (1/64).
+   https://www.virustotal.com/gui/file/1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee/detection
+   https://www.virustotal.com/gui/file/ce092b917b030c17e5b660ac4e6bbaa2267a9d2c5598156ede2ebfc68e9d9f47/detection
+
+2. ublock/sources/uAssets-1.75.0-main.tar.gz
+   SHA-256 1e0b65e660123f6015d84485d5ec6ac8571eeee957a0cbc0b5ea083850afe7d7
+   Immutable upstream revision: uBlockOrigin/uAssets f9bd781375aeefae03196d07d079c772fa15e3e6
+   A diagnostic ZIP containing only this unchanged archive reproduces the exact
+   Kaspersky UDS:Trojan-PSW.Win32.Mimikatz label, completed 1/63.
+   Wrapper SHA-256: 222201670e9b5a0757ad706b4a1d4ce1b625044f466260f02578d747453db215.
+   Direct gzip analysis remains uncompleted; this result is explicitly the
+   recursive one-member wrapper result. The exact inner member/rule is unknown.
+   https://www.virustotal.com/gui/file/222201670e9b5a0757ad706b4a1d4ce1b625044f466260f02578d747453db215/detection
+
+Controls: full original uBO ZIP reproduces all original labels (6/58); runtime-only
+uBO ZIP 0/64; metadata-only 0/63; first-party code 0/65; npm dependencies 0/63.
+The URLhaus defensive list freshly returned 0/58 with all three original
+engines Undetected. Do not remove its protective rules based on malware names.
+The code-source archive partition reports Kaspersky Undetected. The uAssets
+main+prod partition reproduces Kaspersky (1/63). The individual prod control
+is CAPTCHA-blocked, so this does not assert that main is the only uAssets trigger.
+Timeouts on the original DMG and app.asar rescans do not establish clearance.
+
+Candidate prepared on codex/antivirus-source-packaging:
+- Replace only the two confirmed gzip/TAR source containers with standard ZIPs.
+- Preserve all 186 entries, including 151 files, original paths, bytes,
+  permission bits, licenses, build scripts, tests and source snapshots.
+- Keep all 658 uBO runtime files and the existing adaptation unchanged.
+- Keep the other five source archives, GPL/LGPL texts and all notices bundled.
+- Record both original and redistributed digests, revisions and upstream URLs.
+- Bundle and hash-pin the offline converter; it authenticates the original
+  archives and independently compares every resulting entry, never executing
+  archived scripts.
+- Reject stale/unlisted source archives both in the checkout and actual ASAR.
+This changes source containers, not runtime detection behavior or source access.
+It does not replace bundled corresponding source with a network-only offer.
+
+Candidate ZIP digests:
+HSLuv: 00479f218504d20cc463ea169966c0c28b01c6492da77c43317fa794ab49678f
+uAssets main: a064e149e27bfdae081cd6bde41eaa31d5d7dcb1cacb297de5f24e4259b83d38
+
+Validation completed:
+- 29 focused Node tests (package integrity, adaptation and distribution gates).
+- Three Python tests (completeness, wrong-digest rejection and unsafe members).
+- Real-source byte/permission comparison for every entry in both replacements.
+- uBO package and reproducible-adaptation checks; filtering code unchanged.
+- Rebuilt application ASAR passes packaged uBO/source/license/host verification.
+- Stale-source negative ASAR rejected for unlisted original HSLuv archive.
+- npm run lint and git diff --check.
+
+OPEN before shipping: neither replacement container nor final installer has
+antivirus clearance. A HSLuv source-file control upload requires a visible
+VirusTotal CAPTCHA; action-time approval was requested and is pending. No
+account is required for the anonymous scans that have succeeded. No protection,
+source file or filter rule has been removed to claim a clean result. No release
+assets have been changed and no release has been published.
+
+Vendor escalation:
+Avast/AVG exact HSLuv evidence delivered to DL-Virus@gendigital.com.
+Resend email 01a17447-577f-7a28-aabc-8a4d9ee9aa33.
+Kaspersky exact uAssets main evidence submitted to newvirus@kaspersky.com.
+Resend email 01a17449-7ca2-765a-a8e2-a40691d4a7b0.
+Both requests ask for the exact inner member/rule and correction of the unchanged
+public installer as well as the upstream archive. Analyst findings remain pending.
+
+Detailed local snapshots, screenshots, preservation inventories and earlier
+comparison records are retained in the original workspace under
+outputs/antivirus-1431/. Public sample extractions and candidate ASARs are under
+/tmp/blanc-av-review-1431/. These local paths are evidence, not release artifacts.
+

@@ -48,6 +48,11 @@ function verifyPackagedUblock(asarPath, { root = ROOT } = {}) {
   for (const [name, bytes] of files) assert(read('ublock/upstream/' + name).equals(bytes), 'Packaged upstream mismatch: ' + name);
   for (const raw of listPackage(asarPath)) {
     const member = raw.replaceAll('\\', '/').replace(/^\//, '');
+    if (member.startsWith('ublock/sources/')) {
+      const source = statFile(asarPath, member.split('/').join(path.sep));
+      assert(!source.link, 'Symlink in packaged uBO source');
+      if (!source.files) assert(pin.sources.some(entry => 'ublock/' + entry.path === member), 'Unlisted packaged uBO source: ' + member);
+    }
     if (!member.startsWith('ublock/upstream/')) continue;
     const entry = statFile(asarPath, member.split('/').join(path.sep));
     assert(!entry.link, 'Symlink in packaged uBO');
