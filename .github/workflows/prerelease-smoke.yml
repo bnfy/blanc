@@ -1,212 +1,36 @@
-name: Pre-release smoke
-
-# Launches the real app headlessly on Linux and Windows with BLANC_TEST=1 and asserts
-# it starts and app.configureHostResolver ran without throwing — the pre-release
-# cross-platform execution path for the network-privacy DoH config (see the M2+M3 plan).
+name: Flatpak 1.43.1 isolated investigation
 on:
   workflow_dispatch:
-    inputs:
-      release_version:
-        description: Optional published version whose Linux AppImage should be launched and Apple Silicon and Intel macOS DMGs verified (for example, 1.8.1)
-        required: false
-        type: string
-  push:
-    branches: [main]
-    paths:
-      - 'src/main/**'
-      - 'test/desktop/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/prerelease-smoke.yml'
-
 permissions:
   contents: read
-  attestations: read
-
 jobs:
-  smoke:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - name: Enable Chromium user namespaces in this disposable Linux runner
-        if: runner.os == 'Linux'
-        run: bash scripts/ci-enable-linux-sandbox.sh
-      - run: npm ci
-      - name: DNS launch smoke (Linux, headless)
-        if: runner.os == 'Linux'
-        run: xvfb-run -a npm run test:dns-smoke
-      - name: DNS launch smoke (Windows)
-        if: runner.os == 'Windows'
-        run: npm run test:dns-smoke
-      - name: Window geometry persistence (Linux, headless)
-        if: runner.os == 'Linux'
-        run: xvfb-run -a npm run test:window-state
-      - name: Window geometry persistence (Windows)
-        if: runner.os == 'Windows'
-        run: npm run test:window-state
-
-  published-linux-appimage:
-    if: ${{ inputs.release_version != '' }}
+  flatpak:
     runs-on: ubuntu-22.04
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
-      - name: Validate release version
-        env:
-          VERSION: ${{ inputs.release_version }}
-        run: |
-          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
-            echo "Invalid release version: $VERSION" >&2
-            exit 1
-          }
-      - name: Install AppImage runtime
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes libfuse2 xvfb
-      - name: Download published AppImage and manifest
+      - name: Install native test tools
+        run: sudo apt-get update && sudo apt-get install -y flatpak xvfb squashfs-tools g++ python3
+      - name: Compare startup paths and inspect renderer sandbox
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.release_version }}
-        run: |
-          mkdir release-smoke
-          gh release download "v$VERSION" \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern "Blanc-$VERSION.AppImage" \
-            --pattern SHA256SUMS \
-            --dir release-smoke
-      - name: Verify published AppImage identity and digest
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.release_version }}
-        run: |
-          ARTIFACT="Blanc-$VERSION.AppImage"
-          cd release-smoke
-          EXPECTED=$(awk -v file="$ARTIFACT" '$2 == file { print $1 }' SHA256SUMS)
-          [ -n "$EXPECTED" ] || { echo "$ARTIFACT is missing from SHA256SUMS" >&2; exit 1; }
-          echo "$EXPECTED  $ARTIFACT" | sha256sum --check --strict
-          gh attestation verify "$ARTIFACT" --repo "$GITHUB_REPOSITORY"
-          chmod +x "$ARTIFACT"
-      - name: Enable Chromium user namespaces in this disposable Linux runner
-        run: bash scripts/ci-enable-linux-sandbox.sh
-      - name: Launch published AppImage
-        env:
-          VERSION: ${{ inputs.release_version }}
-        run: node scripts/smoke-public-appimage.mjs "release-smoke/Blanc-$VERSION.AppImage" "$VERSION"
-
-  published-macos-dmg:
-    if: ${{ inputs.release_version != '' }}
-    # Apple Silicon is the default Mac build; Intel ships alongside it in every
-    # release, so each published DMG is checked on its own native runner.
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            runner: macos-15
-            artifact_suffix: '-arm64'
-            binary_arch: arm64
-          - arch: x64
-            runner: macos-15-intel
-            artifact_suffix: ''
-            binary_arch: x86_64
-    name: published-macos-dmg (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Validate release version
-        env:
-          VERSION: ${{ inputs.release_version }}
-        run: |
-          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
-            echo "Invalid release version: $VERSION" >&2
-            exit 1
-          }
-      - name: Download published DMG and manifest
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.release_version }}
-          ARTIFACT_SUFFIX: ${{ matrix.artifact_suffix }}
-        run: |
-          mkdir release-smoke-mac
-          gh release download "v$VERSION" \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern "Blanc-$VERSION$ARTIFACT_SUFFIX.dmg" \
-            --pattern SHA256SUMS \
-            --dir release-smoke-mac
-      - name: Verify published DMG digest, signing identity, architecture and launch
-        env:
-          VERSION: ${{ inputs.release_version }}
-          ARTIFACT_SUFFIX: ${{ matrix.artifact_suffix }}
-          BINARY_ARCH: ${{ matrix.binary_arch }}
-        run: |
-          set -euo pipefail
-          ARTIFACT="Blanc-$VERSION$ARTIFACT_SUFFIX.dmg"
-          EXPECTED=$(awk -v file="$ARTIFACT" '$2 == file { print $1 }' release-smoke-mac/SHA256SUMS)
-          [ -n "$EXPECTED" ] || { echo "$ARTIFACT is missing from SHA256SUMS" >&2; exit 1; }
-          ACTUAL=$(shasum -a 256 "release-smoke-mac/$ARTIFACT" | awk '{ print $1 }')
-          [ "$ACTUAL" = "$EXPECTED" ] || {
-            echo "$ARTIFACT digest mismatch: expected $EXPECTED, got $ACTUAL" >&2
-            exit 1
-          }
-
-          # A known platform app is the positive control for the hosted verifier.
-          codesign --verify --deep --strict --verbose=4 /System/Applications/Utilities/Terminal.app
-
-          MOUNT_DIR="$RUNNER_TEMP/blanc-public-dmg"
-          CERT_PREFIX="$RUNNER_TEMP/blanc-release-cert-"
-          cleanup() {
-            hdiutil detach "$MOUNT_DIR" || true
-            rm -f "${CERT_PREFIX}"*
-          }
-          trap cleanup EXIT
-          mkdir -p "$MOUNT_DIR"
-          hdiutil attach "release-smoke-mac/$ARTIFACT" -mountpoint "$MOUNT_DIR" -readonly -nobrowse
-
-          APP="$MOUNT_DIR/Blanc.app"
-          codesign --verify --deep --strict --verbose=4 "$APP"
-          DETAILS=$(codesign -dv --verbose=4 "$APP" 2>&1)
-          printf '%s\n' "$DETAILS"
-          grep -F 'Authority=Developer ID Application: Anthony Loria (XYGUCY4498)' <<<"$DETAILS"
-          grep -F 'TeamIdentifier=XYGUCY4498' <<<"$DETAILS"
-
-          codesign -d --extract-certificates="$CERT_PREFIX" "$APP"
-          CERT_SHA1=$(shasum -a 1 "${CERT_PREFIX}0" | awk '{ print toupper($1) }')
-          [ "$CERT_SHA1" = '55283A84D3706D5A22386D5F002A0CD4845ECFD4' ] || {
-            echo "Unexpected Developer ID leaf certificate: $CERT_SHA1" >&2
-            exit 1
-          }
-          xcrun stapler validate "$APP"
-
-          EXECUTABLE="$APP/Contents/MacOS/Blanc"
-          ARCHS=$(lipo -archs "$EXECUTABLE")
-          [ "$ARCHS" = "$BINARY_ARCH" ] || {
-            echo "Expected a $BINARY_ARCH executable, found: $ARCHS" >&2
-            exit 1
-          }
-
-          # Native launch on this runner's architecture: the process must still
-          # be running (not crashed or exited) after startup settles.
-          PROFILE_DIR=$(mktemp -d "$RUNNER_TEMP/blanc-profile-XXXXXX")
-          "$EXECUTABLE" --user-data-dir="$PROFILE_DIR" >"$RUNNER_TEMP/blanc-launch.log" 2>&1 &
-          BLANC_PID=$!
-          sleep 20
-          STATE=$(ps -o stat= -p "$BLANC_PID" || true)
-          kill "$BLANC_PID" 2>/dev/null || true
-          wait "$BLANC_PID" 2>/dev/null || true
-          case "$STATE" in
-            ''|Z*)
-              cat "$RUNNER_TEMP/blanc-launch.log" >&2
-              echo "Published $ARTIFACT did not stay running on $BINARY_ARCH" >&2
-              exit 1
-              ;;
-          esac
+        run: bash scripts/flatpak-investigation.sh
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: flatpak-1431-evidence
+          path: |
+            flatpak-evidence/*.log
+            flatpak-evidence/*.json
+            flatpak-evidence/*.txt
+            flatpak-evidence/*.png
+            flatpak-evidence/*.overrides
+            flatpak-evidence/*.patch
+            flatpak-evidence/*.cc
+            flatpak-evidence/*.yml
+            flatpak-evidence/SHA256SUMS*
+          retention-days: 7
