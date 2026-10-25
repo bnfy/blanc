@@ -353,19 +353,107 @@ test('live tombstones retain pending deletion until acknowledged or expired', ()
   assert.ok(p.pendingAfter.tabs[id(1)].deleted);
 });
 
-test('admission omits an active selection whose new tab is held', () => {
+test('admission clears a held-tab selection without discarding its causal record', () => {
   const local=blob({[id(1)]:tab(),[id(2)]:tab(2,{name:f('Newest',200)})});
   local.active=f(id(2),200);
   const p=m.pushPlan(input(blob({}),local,{tabs:local.tabs},{encryptFn:countSeal}));
   assert.deepEqual(Object.keys(p.upload.blob.tabs),[id(1)]);
-  assert.equal(p.upload.blob.active,undefined);
+  assert.deepEqual(p.upload.blob.active,{...local.active,cleared:true});
+  assert.equal(m.activeTabId(p.upload.blob),null);
   assert.equal(p.mergedBlob.active.v,id(2),'the still-visible local tab remains selected');
 });
 
-test('active selections are pruned when their tab is deleted or expires', () => {
+test('deleted or expired selected tabs retain a cleared selection record', () => {
   const local=blob({[id(1)]:tab(1,{deleted:f(true,100)})});local.active=f(id(1));
-  assert.equal(m.sanitizeBlob(local).active,undefined);
-  assert.equal(m.expireTombstones(local,m.LIMITS.tombstoneMs+200).active,undefined);
+  assert.deepEqual(m.sanitizeBlob(local).active,{...local.active,cleared:true});
+  assert.deepEqual(m.expireTombstones(local,m.LIMITS.tombstoneMs+200).active,{...local.active,cleared:true});
+  assert.equal(m.activeTabId(m.sanitizeBlob(local)),null);
   const live=blob({[id(1)]:tab()});live.active=f(id(1));
   assert.deepEqual(m.sanitizeBlob(live).active,live.active);
+});
+
+test('failed upload after expiry cannot restore retired pending records', () => {
+  const now=m.LIMITS.tombstoneMs+200;
+  const remote=blob({[id(1)]:tab(),[id(2)]:tab(2)});
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,100)}),[id(2)]:tab(2,{name:f('Still pending',now-10)})});
+  const pending={tabs:structuredClone(local.tabs),index:{id:id(99),rev:'a'.repeat(16)}};
+  const original=structuredClone(pending);
+  const p=m.pushPlan(input(remote,local,pending,{now,lastMergeAt:now-1}));
+  assert.ok(p.upload);
+  const failed=m.settleUpload(p,pending,{blobStored:false});
+  assert.equal(failed.pending.tabs[id(1)],undefined);
+  assert.deepEqual(failed.pending.tabs[id(2)],pending.tabs[id(2)]);
+  assert.deepEqual(failed.pending.index,pending.index);
+  assert.equal(failed.indexEntry,null);
+  assert.deepEqual(m.settleUpload(p,failed.pending,{blobStored:false}),failed);
+  const withInFlightEdit=m.applyLocalEdits(pending,{tabs:{[id(3)]:tab(3)}});
+  const failedWithEdit=m.settleUpload(p,withInFlightEdit,{blobStored:false});
+  assert.equal(failedWithEdit.pending.tabs[id(1)],undefined);
+  assert.deepEqual(failedWithEdit.pending.tabs[id(3)],withInFlightEdit.tabs[id(3)]);
+  assert.deepEqual(pending,original,'settlement never mutates the caller snapshot');
+});
+
+test('failed upload preserves unexpired pending deletes and unacknowledged edits', () => {
+  const remote=blob({[id(1)]:tab(),[id(2)]:tab(2)});
+  const local=blob({[id(1)]:tab(1,{deleted:f(true,1900)}),[id(2)]:tab(2,{name:f('Pending',1900)})});
+  const pending={tabs:structuredClone(local.tabs)};
+  const p=m.pushPlan(input(remote,local,pending));
+  assert.ok(p.upload);
+  assert.deepEqual(m.settleUpload(p,pending,{blobStored:false}),{pending,indexEntry:null});
+});
+
+const permutations3 = ([a,b,c]) => [[a,b,c],[a,c,b],[b,a,c],[b,c,a],[c,a,b],[c,b,a]];
+test('three-way selection merge keeps the winning clock after its target is deleted', () => {
+  const a=blob({[id(1)]:tab(),[id(2)]:tab(2)});a.active=f(id(1),300);
+  const b=blob({[id(1)]:tab(1,{deleted:f(true,400)}),[id(2)]:tab(2)});b.active=f(id(2),200);
+  const c=blob({[id(2)]:tab(2),[id(3)]:tab(3)});c.active=f(id(3),100);
+  const expected=m.mergeBlob(m.mergeBlob(a,b),c);
+  assert.deepEqual(expected.active,{...a.active,cleared:true});
+  assert.equal(m.activeTabId(expected),null);
+  for(const [x,y,z] of permutations3([a,b,c])) {
+    assert.deepEqual(m.mergeBlob(m.mergeBlob(x,y),z),expected);
+    assert.deepEqual(m.mergeBlob(x,m.mergeBlob(y,z)),expected);
+  }
+  assert.deepEqual(m.mergeBlob(expected,c).active,expected.active,'an older selection cannot return');
+});
+
+test('clearing does not change the equal-clock target tie-breaker', () => {
+  for(const [deletedTarget,otherTarget] of [[1,2],[2,1]]) {
+    const a=blob({[id(deletedTarget)]:tab(deletedTarget)});a.active=f(id(deletedTarget),300,'a');
+    const b=blob({[id(deletedTarget)]:tab(deletedTarget,{deleted:f(true,400)})});
+    const c=blob({[id(otherTarget)]:tab(otherTarget)});c.active=f(id(otherTarget),300,'a');
+    const expected=m.mergeBlob(m.mergeBlob(a,b),c);
+    assert.equal(expected.active.v,id(1));
+    assert.equal(m.activeTabId(expected),deletedTarget===1?null:id(1));
+    for(const [x,y,z] of permutations3([a,b,c])) {
+      assert.deepEqual(m.mergeBlob(m.mergeBlob(x,y),z),expected);
+      assert.deepEqual(m.mergeBlob(x,m.mergeBlob(y,z)),expected);
+    }
+  }
+});
+
+test('selection clear markers survive serialization but a newer explicit choice wins', () => {
+  const live=blob({[id(1)]:tab()});live.active=f(id(1),300);
+  const cleared=structuredClone(live);cleared.active.cleared=true;
+  const expected=m.mergeBlob(live,JSON.parse(JSON.stringify(cleared)));
+  assert.deepEqual(expected.active,cleared.active);
+  assert.equal(m.activeTabId(expected),null);
+  const newer=structuredClone(live);newer.active.c=301;
+  assert.equal(m.activeTabId(m.mergeBlob(expected,newer)),id(1));
+});
+
+test('seeded same-record three-way merges remain associative with selection deletion and ties', () => {
+  for(let i=0;i<100;i++) {
+    const states=[0,1,2].map(n=>{
+      const state=blob({[id(1)]:tab(1,{name:f('name-'+n,100+i%5,'writer-'+n)}),[id(2)]:tab(2),[id(3)]:tab(3)});
+      state.active=f(id((n+i)%3+1),100+(n*i)%7,'writer-'+(n+i)%2);
+      if(n===1)state.tabs[id(i%3+1)].deleted=f(true,500+i);
+      return state;
+    });
+    const expected=m.mergeBlob(m.mergeBlob(states[0],states[1]),states[2]);
+    for(const [a,b,c] of permutations3(states)) {
+      assert.deepEqual(m.mergeBlob(m.mergeBlob(a,b),c),expected);
+      assert.deepEqual(m.mergeBlob(a,m.mergeBlob(b,c)),expected);
+    }
+  }
 });

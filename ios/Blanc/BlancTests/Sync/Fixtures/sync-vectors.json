@@ -17806,6 +17806,10 @@
             }
           }
         },
+        "expiredRecords": {
+          "tabs": [],
+          "groups": []
+        },
         "recover": [],
         "unsynced": [],
         "mergedBlob": {
@@ -17956,6 +17960,10 @@
       "expected": {
         "upload": null,
         "pendingAfter": {},
+        "expiredRecords": {
+          "tabs": [],
+          "groups": []
+        },
         "recover": [
           "00000000000000000000000000000011"
         ],
@@ -18086,6 +18094,12 @@
           "ifVersion": "version-1"
         },
         "pendingAfter": {},
+        "expiredRecords": {
+          "tabs": [
+            "00000000000000000000000000000011"
+          ],
+          "groups": []
+        },
         "recover": [],
         "unsynced": [],
         "mergedBlob": {
@@ -18105,7 +18119,7 @@
   ],
   "spacesSelections": [
     {
-      "name": "deleted selected tab is omitted",
+      "name": "deleted selection retains a cleared causal record",
       "input": {
         "v": 1,
         "spaceId": "00000000000000000000000000000063",
@@ -18193,6 +18207,1019 @@
               "by": "a"
             }
           }
+        },
+        "active": {
+          "v": "00000000000000000000000000000011",
+          "c": 100,
+          "by": "a",
+          "cleared": true
+        }
+      }
+    }
+  ],
+  "spacesSettlements": [
+    {
+      "name": "failed upload cannot restore expired pending records",
+      "input": {
+        "plan": {
+          "upload": {
+            "blob": {
+              "v": 1,
+              "spaceId": "00000000000000000000000000000063",
+              "groups": {},
+              "tabs": {}
+            },
+            "rev": "79fd3888cde66f21",
+            "ifVersion": "version-1"
+          },
+          "pendingAfter": {},
+          "expiredRecords": {
+            "tabs": [
+              "00000000000000000000000000000011"
+            ],
+            "groups": []
+          },
+          "recover": [],
+          "unsynced": [],
+          "mergedBlob": {
+            "v": 1,
+            "spaceId": "00000000000000000000000000000063",
+            "groups": {},
+            "tabs": {}
+          },
+          "nextLastMergeAt": 2592000200,
+          "indexEntry": {
+            "id": "00000000000000000000000000000063",
+            "rev": "79fd3888cde66f21"
+          },
+          "reason": null
+        },
+        "originalPending": {
+          "tabs": {
+            "00000000000000000000000000000011": {
+              "deleted": {
+                "v": true,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          }
+        },
+        "outcome": {
+          "blobStored": false
+        }
+      },
+      "expected": {
+        "pending": {},
+        "indexEntry": null
+      }
+    }
+  ],
+  "spacesSelectionMerge": [
+    {
+      "name": "deleted winning selection",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000001",
+            "c": 300,
+            "by": "a"
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": true,
+                "c": 400,
+                "by": "b"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000002",
+            "c": 200,
+            "by": "a"
+          }
+        },
+        "c": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000003",
+            "c": 100,
+            "by": "a"
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaceId": "00000000000000000000000000000063",
+        "groups": {},
+        "tabs": {
+          "00000000000000000000000000000001": {
+            "deleted": {
+              "v": true,
+              "c": 400,
+              "by": "b"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111112",
+              "c": 100,
+              "by": "a"
+            }
+          },
+          "00000000000000000000000000000002": {
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111113",
+              "c": 100,
+              "by": "a"
+            }
+          },
+          "00000000000000000000000000000003": {
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111114",
+              "c": 100,
+              "by": "a"
+            }
+          }
+        },
+        "active": {
+          "v": "00000000000000000000000000000001",
+          "c": 300,
+          "by": "a",
+          "cleared": true
+        }
+      }
+    },
+    {
+      "name": "equal-clock target rank survives clearing",
+      "input": {
+        "a": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000002",
+            "c": 300,
+            "by": "a"
+          }
+        },
+        "b": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": true,
+                "c": 400,
+                "by": "b"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000002",
+            "c": 300,
+            "by": "a"
+          }
+        },
+        "c": {
+          "v": 1,
+          "spaceId": "00000000000000000000000000000063",
+          "groups": {},
+          "tabs": {
+            "00000000000000000000000000000001": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111112",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000002": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111113",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            },
+            "00000000000000000000000000000003": {
+              "nav": {
+                "v": {
+                  "url": "https://example.test/",
+                  "title": "Example"
+                },
+                "c": 100,
+                "by": "a"
+              },
+              "name": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pinned": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              },
+              "groupId": {
+                "v": null,
+                "c": 100,
+                "by": "a"
+              },
+              "pos": {
+                "v": "i11111111111111111111111111111114",
+                "c": 100,
+                "by": "a"
+              },
+              "deleted": {
+                "v": false,
+                "c": 100,
+                "by": "a"
+              }
+            }
+          },
+          "active": {
+            "v": "00000000000000000000000000000001",
+            "c": 300,
+            "by": "a"
+          }
+        }
+      },
+      "expected": {
+        "v": 1,
+        "spaceId": "00000000000000000000000000000063",
+        "groups": {},
+        "tabs": {
+          "00000000000000000000000000000001": {
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111112",
+              "c": 100,
+              "by": "a"
+            }
+          },
+          "00000000000000000000000000000002": {
+            "deleted": {
+              "v": true,
+              "c": 400,
+              "by": "b"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111113",
+              "c": 100,
+              "by": "a"
+            }
+          },
+          "00000000000000000000000000000003": {
+            "deleted": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "groupId": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "name": {
+              "v": null,
+              "c": 100,
+              "by": "a"
+            },
+            "nav": {
+              "v": {
+                "url": "https://example.test/",
+                "title": "Example"
+              },
+              "c": 100,
+              "by": "a"
+            },
+            "pinned": {
+              "v": false,
+              "c": 100,
+              "by": "a"
+            },
+            "pos": {
+              "v": "i11111111111111111111111111111114",
+              "c": 100,
+              "by": "a"
+            }
+          }
+        },
+        "active": {
+          "v": "00000000000000000000000000000001",
+          "c": 300,
+          "by": "a"
         }
       }
     }

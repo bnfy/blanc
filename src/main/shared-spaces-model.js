@@ -21,6 +21,12 @@ function mergeField(a, b, name) {
   if (name === 'deleted' && a.v !== b.v) return copy(a.v === true ? a : b);
   if (a.c !== b.c) return copy(a.c > b.c ? a : b);
   if (a.by !== b.by) return copy(a.by < b.by ? a : b);
+  // A cleared selection retains the rank of its original target. Only when
+  // the entire write identity ties does the clear marker win over its live
+  // form; it must not reorder two different equal-clock targets.
+  if (name === 'active' && a.v === b.v && (a.cleared === true || b.cleared === true)) {
+    return copy(a.cleared === true ? a : b);
+  }
   return copy(canonical(a.v) <= canonical(b.v) ? a : b);
 }
 function mergeRecord(a = {}, b = {}) {
@@ -62,11 +68,16 @@ const blobFits = (blob, encryptFn) => Buffer.byteLength(JSON.stringify(encryptFn
 const liveTabCount = blob => Object.values(blob?.tabs ?? {}).filter(t => t?.deleted?.v !== true).length;
 const text = (v,n) => typeof v === 'string' ? v.slice(0,n) : null;
 const isMap = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-// A selection is optional; never invent a selection clock when its target is
-// absent, deleted, expired, or withheld from the publishable projection.
+// Keep the winning write, including its target tie-breaker, when the target
+// disappears. Deleting this field would allow older writes to win a later
+// merge. The marker is monotonic for this write, not for a newer selection.
 function clearInvalidActive(blob) {
-  if (blob?.active && (!blob.tabs?.[blob.active.v] || blob.tabs[blob.active.v].deleted?.v === true)) delete blob.active;
+  if (blob?.active && (!blob.tabs?.[blob.active.v] || blob.tabs[blob.active.v].deleted?.v === true)) blob.active.cleared = true;
   return blob;
+}
+function activeTabId(blob) {
+  const active=blob?.active;
+  return active && active.cleared !== true && isId(active.v) && blob.tabs?.[active.v]?.deleted?.v === false ? active.v : null;
 }
 function nav(v) {
   if (!v || typeof v.url !== 'string' || v.url.length > 2048) return undefined;
@@ -114,7 +125,10 @@ function sanitizeMap(raw,kind) {
 function sanitizeBlob(raw) {
   if (!isMap(raw) || raw.v !== 1 || !isId(raw.spaceId) || !isMap(raw.groups) || !isMap(raw.tabs)) return null;
   const out = { v:1, spaceId:raw.spaceId, groups:sanitizeMap(raw.groups,'groups'), tabs:sanitizeMap(raw.tabs,'tabs') };
-  if (isField(raw.active) && isId(raw.active.v)) out.active = copy(raw.active);
+  if (isField(raw.active) && isId(raw.active.v)) {
+    out.active = field(raw.active.v,raw.active.c,raw.active.by);
+    if (raw.active.cleared === true) out.active.cleared = true;
+  }
   return clearInvalidActive(out);
 }
 function sanitizeIndex(raw) {
@@ -163,7 +177,7 @@ const effectiveGroup = (blob,tab) => {
   return id && blob.groups?.[id] && blob.groups[id].deleted?.v!==true ? id : null;
 };
 module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex, mid, tagOf, keyFor, validKey, orderOf,
-  acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup };
+  acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup, activeTabId };
 
 // Pending writes are namespaced by record kind/id/field; index publication is a
 // separate caller-owned entry. A fetched value, never a PUT response, settles a
@@ -322,12 +336,16 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   }
   const pendingAfter=settlePending(applyLocalEdits(eligiblePending,retainedOwn),fetched);
   const replayed=replayPending(baseMerged,pendingAfter);
+  const expiredRecords={tabs:[],groups:[]};
   // Expiry is a retention decision for persisted state too, not merely a
   // smaller upload. Remove every field of retired records from pending so a
   // later pass cannot recreate the tombstone or wait forever for its receipt.
   for (const kind of ['tabs','groups']) {
     for (const [id,record] of Object.entries(replayed[kind])) {
-      if (expiredRecord(record,now) && pendingAfter[kind]) delete pendingAfter[kind][id];
+      if (expiredRecord(record,now)) {
+        expiredRecords[kind].push(id);
+        if (pendingAfter[kind]) delete pendingAfter[kind][id];
+      }
     }
     if (pendingAfter[kind] && !Object.keys(pendingAfter[kind]).length) delete pendingAfter[kind];
   }
@@ -340,14 +358,24 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   // Identity fields remain in the separately merged index, never guessed here.
   const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev}
     : !admission.reason && pendingAfter.index ? {id:fetched.spaceId,rev:revisionOf(fetched)} : null;
-  return {upload,pendingAfter,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
+  return {upload,pendingAfter,expiredRecords,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
 }
 Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,admit,pushPlan});
 
 // The orchestration layer calls this only after observing the real PUT result.
 // Index retry receipts are created by successful blob writes, never by planning.
 function settleUpload(plan, originalPending, {blobStored = false, indexStored = false} = {}) {
-  if (plan.upload && !blobStored) return {pending:copy(originalPending),indexEntry:null};
+  if (plan.upload && !blobStored) {
+    // Retention does not depend on an upload acknowledgement. Apply only the
+    // plan's expiry decision to the caller's pending snapshot; preserve other
+    // writes and any previous index receipt, including edits added in flight.
+    const pending=copy(originalPending);
+    for (const kind of ['tabs','groups']) {
+      for (const id of plan.expiredRecords?.[kind]??[]) if (pending[kind]) delete pending[kind][id];
+      if (pending[kind] && !Object.keys(pending[kind]).length) delete pending[kind];
+    }
+    return {pending,indexEntry:null};
+  }
   const pending=copy(plan.pendingAfter);
   if (plan.indexEntry && !indexStored) pending.index=copy(plan.indexEntry);
   else if (plan.indexEntry && indexStored) delete pending.index;

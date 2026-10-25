@@ -156,7 +156,26 @@ try {
   const expiredResult=spaces.pushPlan({...expiredInput,encryptFn:t=>crypt.encrypt(Buffer.alloc(32),t)});
   vectors.spacesPipeline.push(entry('expired deletion clears retained state and pending',expiredInput,{...expiredResult,recover:[...expiredResult.recover],unsynced:[...expiredResult.unsynced]}));
   const selectedDeleted={...expiredInput.localBlob,active:pipeField(pipeId)};
-  vectors.spacesSelections=[entry('deleted selected tab is omitted',selectedDeleted,spaces.sanitizeBlob(selectedDeleted))];
+  vectors.spacesSelections=[entry('deleted selection retains a cleared causal record',selectedDeleted,spaces.sanitizeBlob(selectedDeleted))];
+  const normalizedExpired={...expiredResult,recover:[...expiredResult.recover],unsynced:[...expiredResult.unsynced]};
+  vectors.spacesSettlements=[entry('failed upload cannot restore expired pending records',
+    {plan:normalizedExpired,originalPending:expiredInput.pending,outcome:{blobStored:false}},
+    spaces.settleUpload(expiredResult,expiredInput.pending,{blobStored:false}))];
+  const selectionTab=n=>({...pipeTab,pos:pipeField(spaces.keyFor('','',sid(n)))});
+  const selectionState=(target,clock,deleted)=>({v:1,spaceId:pipeSpace,groups:{},
+    tabs:Object.fromEntries([1,2,3].map(n=>[sid(n),{...selectionTab(n),...(n===deleted?{deleted:spaces.field(true,400,'b')}:{})}])),
+    active:spaces.field(sid(target),clock,'a')});
+  vectors.spacesSelectionMerge=[
+    ['deleted winning selection',selectionState(1,300),selectionState(2,200,1),selectionState(3,100)],
+    ['equal-clock target rank survives clearing',selectionState(2,300),selectionState(2,300,2),selectionState(1,300)],
+  ].map(([name,a,b,c])=>{
+    const expected=spaces.mergeBlob(spaces.mergeBlob(a,b),c);
+    for(const [x,y,z] of [[a,b,c],[a,c,b],[b,a,c],[b,c,a],[c,a,b],[c,b,a]]) {
+      assert.deepEqual(spaces.mergeBlob(spaces.mergeBlob(x,y),z),expected);
+      assert.deepEqual(spaces.mergeBlob(x,spaces.mergeBlob(y,z)),expected);
+    }
+    return entry(name,{a,b,c},expected);
+  });
   const output=JSON.stringify(vectors,null,2)+'\n';
   if (process.argv.includes('--write')) { fs.mkdirSync(path.dirname(dest),{recursive:true}); fs.writeFileSync(dest,output); }
   else if (fs.readFileSync(dest,'utf8') !== output) { throw new Error('iOS sync vectors are stale; run npm run ios:sync-vectors:build'); }
