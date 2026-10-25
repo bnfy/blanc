@@ -83,7 +83,7 @@ test('mandatory peer sidecars over budget cause no PUT and incoming oversized si
 test('the encrypted PUT guard also protects fixed-store payloads',async t=>{
   const events=[],d=device(t,{files:{'bookmarks.json':{items:[{id:'large',url:'https://example.test/',title:'t'.repeat(400*1024),addedAt:100}],tombstones:[]}},
     fetch:async(url,opts={})=>{events.push(opts.method??'GET');return response(404);}});
-  const result=await d.sync.syncNow(['bookmarks']);assert.equal(result.ok,false);assert.deepEqual(events,['GET']);
+  const result=await d.sync.syncNow(['bookmarks']);assert.equal(result.ok,false);assert.equal(result.error,'rejected:413');assert.deepEqual(events,['GET']);
 });
 test('an oversized fetched sidecar cannot be overwritten with a smaller local subset',async t=>{
   const entry=sidecarEntry(),remote={devices:{peer1:entry,peer2:entry,peer3:entry}},events=[];

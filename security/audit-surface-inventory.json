@@ -860,7 +860,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "7116f4c396eef9de6d33e1dba34c0f7a4b68f7e9c094f2519bb598e306f0769e",
+      "sha256": "e526562507497d6aa7aaedc7fd1048b6934e7312b056a27e40f798dbf00c244b",
       "literalChannels": [
         "before-quit"
       ],

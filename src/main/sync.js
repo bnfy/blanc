@@ -313,6 +313,7 @@ function passphraseStrong(p) {
 
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
+  if(code==='payload-too-large')return 'rejected:413';
   if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
