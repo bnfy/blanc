@@ -25,7 +25,11 @@ for(const mode of modes){
  if(ov.status)throw Error(ov.stderr);
  fs.writeFileSync(`${root}/${mode}.overrides`,run(['override','--user','--show','com.blancbrowser.Blanc']).stdout);
  const log=fs.openSync(`${root}/${mode}.log`,'w');
- const child=spawn('flatpak',['run',`--env=BLANC_FLATPAK_CASE=${mode}`,'com.blancbrowser.Blanc'],{stdio:['ignore',log,log]});
+ const production=process.env.BLANC_USE_PRODUCTION_WRAPPER==='1';
+ const tracePath=path.join(process.env.HOME,'.var/app/com.blancbrowser.Blanc/config',`trace-${mode}.jsonl`);
+ const child=spawn('flatpak',['run',`--env=BLANC_FLATPAK_CASE=${mode}`,
+  ...(production?['--env=BLANC_TEST=1',`--env=BLANC_NAVIGATION_TRACE=${tracePath}`,'--env=BLANC_NAVIGATION_TRACE_HOSTS=127.0.0.1']:[]),
+  'com.blancbrowser.Blanc',...(production?['--remote-debugging-port=9222','--ozone-platform=x11']:[])],{stdio:['ignore',log,log]});
  let pages=[];let ready=false;
  for(let i=0;i<45;i++){await delay(1000);try{pages=await(await fetch('http://127.0.0.1:9222/json/list',{signal:AbortSignal.timeout(1000)})).json();if(pages.some(p=>p.type==='page'&&!p.url.startsWith('devtools:'))){ready=true;break;}}catch{}if(child.exitCode!==null)break;}
  const result={mode,removeDesktop:remove,exitCode:child.exitCode,pages,ready};
