@@ -1239,6 +1239,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   `test/desktop/steps/move-to-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
+- **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
+
 ## F42 — Dark websites
 
 - When the person turns on **Dark websites** and Blanc is dark (the Dark

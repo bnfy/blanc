@@ -95,6 +95,41 @@ const schemas = {
     symbol: v => Identity.isSymbol(v) ? v : 'briefcase', pos: v => typeof v === 'string' ? v : undefined,
     deleted: v => typeof v === 'boolean' ? v : undefined },
 };
+// Index metadata. `rev` is a fetch hint that travels with the clock and writer
+// of the write that set it (`revAt`, `revBy`), so a newer hint always replaces
+// an older one whatever the hashes; `createdAt`/`createdBy` are immutable.
+function copyIndexMeta(raw, out) {
+  if (typeof raw.rev === 'string' && /^[0-9a-f]{16}$/.test(raw.rev)) {
+    out.rev = raw.rev;
+    if (Number.isSafeInteger(raw.revAt) && raw.revAt >= 0) out.revAt = raw.revAt;
+    if (typeof raw.revBy === 'string' && raw.revBy.length > 0 && raw.revBy.length <= 128) out.revBy = raw.revBy;
+  }
+  if (Number.isSafeInteger(raw.createdAt) && raw.createdAt >= 0) out.createdAt = raw.createdAt;
+  if (typeof raw.createdBy === 'string') out.createdBy = raw.createdBy.slice(0,128);
+  return out;
+}
+// The later of two revision hints: higher `revAt`, then the smaller writer,
+// then the smaller hash. A hint without a clock (written before clocks) ranks
+// below every clocked one.
+function newerRev(a, b) {
+  if (a?.rev === undefined) return b?.rev === undefined ? null : b;
+  if (b?.rev === undefined) return a;
+  const at = x => Number.isSafeInteger(x.revAt) ? x.revAt : -1;
+  if (at(a) !== at(b)) return at(a) > at(b) ? a : b;
+  const by = x => x.revBy ?? '';
+  if (by(a) !== by(b)) return by(a) < by(b) ? a : b;
+  return a.rev <= b.rev ? a : b;
+}
+function mergeIndexMeta(l, r, out) {
+  for (const key of ['rev','revAt','revBy']) delete out[key];
+  const rev = newerRev(l, r);
+  if (rev) for (const key of ['rev','revAt','revBy']) if (rev[key] !== undefined) out[key] = rev[key];
+  for (const key of ['createdAt','createdBy']) {
+    const values=[l?.[key],r?.[key]].filter(v=>v!==undefined).sort((x,y)=>canonical(x)<canonical(y)?-1:1);
+    if (values.length) out[key]=values[0]; else delete out[key];
+  }
+  return out;
+}
 function sanitizeRecord(raw, kind) {
   if (!raw || typeof raw !== 'object') return null;
   const out = {};
@@ -106,9 +141,7 @@ function sanitizeRecord(raw, kind) {
   if (!out.deleted) return null;
   if (!out.deleted.v && Object.keys(schemas[kind]).some(k => !Object.hasOwn(out,k))) return null;
   if (kind === 'spaces') {
-    if (typeof raw.rev === 'string' && /^[0-9a-f]{16}$/.test(raw.rev)) out.rev = raw.rev;
-    if (Number.isSafeInteger(raw.createdAt) && raw.createdAt >= 0) out.createdAt = raw.createdAt;
-    if (typeof raw.createdBy === 'string') out.createdBy = raw.createdBy.slice(0,128);
+    copyIndexMeta(raw, out);
   }
   return out;
 }
@@ -154,13 +187,7 @@ function mergeIndex(a,b) {
   const left=cleanLeft??{v:1,spaces:{}},right=cleanRight??{v:1,spaces:{}},out={v:1,spaces:{}};
   for(const id of [...new Set([...Object.keys(left.spaces),...Object.keys(right.spaces)])].sort()) {
     const l=left.spaces[id]??{},r=right.spaces[id]??{};
-    const record=mergeRecord(l,r);
-    // These are deterministic hints/immutable metadata, not independently edited fields.
-    for(const key of ['rev','createdAt','createdBy']) {
-      const values=[l[key],r[key]].filter(v=>v!==undefined).sort((x,y)=>canonical(x)<canonical(y)?-1:1);
-      if(values.length)record[key]=values[0];
-    }
-    out.spaces[id]=record;
+    out.spaces[id]=mergeIndexMeta(l,r,mergeRecord(l,r));
   }
   return out;
 }
@@ -176,8 +203,85 @@ const effectiveGroup = (blob,tab) => {
   const id=tab?.groupId?.v;
   return id && blob.groups?.[id] && blob.groups[id].deleted?.v!==true ? id : null;
 };
+
+// Relay. Strict sanitization is the view this version can display and apply;
+// it drops fields it doesn't know, values it can't interpret and records left
+// incomplete by that. An upload built only from that view would erase another
+// device's content (a newer client's field, a longer URL), so every upload is
+// finished by relaying the fetched blob's well-formed records and fields
+// unchanged, merged by the ordinary field rules. A relayed value is never
+// applied to a window: projection still reads the strict view.
+const isFieldName = name => /^[a-z][A-Za-z0-9]{0,31}$/.test(name);
+const RELAY_FIELDS = 32;
+function relayRecord(raw, kind) {
+  if (!isMap(raw)) return null;
+  const out = {};
+  for (const name of Object.keys(raw).sort()) {
+    if (Object.keys(out).length >= RELAY_FIELDS) break;
+    if (isFieldName(name) && isField(raw[name])) out[name] = field(raw[name].v, raw[name].c, raw[name].by);
+  }
+  if (kind === 'spaces') copyIndexMeta(raw, out);
+  return Object.keys(out).length ? out : null;
+}
+function relayMap(raw, kind) {
+  const out = {};
+  if (!isMap(raw)) return out;
+  for (const id of Object.keys(raw).sort()) {
+    if (!isId(id)) continue;
+    const record = relayRecord(raw[id], kind);
+    if (record) out[id] = record;
+  }
+  return out;
+}
+function relayBlob(raw) {
+  if (!isMap(raw) || raw.v !== 1 || !isId(raw.spaceId) || !isMap(raw.groups) || !isMap(raw.tabs)) return null;
+  const out = { v:1, spaceId:raw.spaceId, groups:relayMap(raw.groups,'groups'), tabs:relayMap(raw.tabs,'tabs') };
+  if (isField(raw.active) && isId(raw.active.v)) {
+    out.active = field(raw.active.v, raw.active.c, raw.active.by);
+    if (raw.active.cleared === true) out.active.cleared = true;
+  }
+  return out;
+}
+function relayIndex(raw) {
+  if (!isMap(raw) || raw.v !== 1 || !isMap(raw.spaces)) return null;
+  return { v:1, spaces:relayMap(raw.spaces,'spaces') };
+}
+// One field of the upload against the same field as fetched. The same write
+// (clock and writer equal) is the fetched original, not our normalized copy.
+function relayField(ours, theirs, name) {
+  if (isField(ours) && isField(theirs) && ours.c === theirs.c && ours.by === theirs.by && name !== 'active') return copy(theirs);
+  return mergeField(ours, theirs, name);
+}
+function relayRecordInto(ours = {}, theirs, kind) {
+  const out = {};
+  for (const name of [...new Set([...Object.keys(ours), ...Object.keys(theirs)])].sort()) {
+    const winner = relayField(ours[name], theirs[name], name);
+    if (winner) out[name] = winner;
+  }
+  return kind === 'spaces' ? mergeIndexMeta(ours, theirs, out) : out;
+}
+/** `upload` (strict) finished with everything `relay` holds that it lacks.
+ * Expired tombstones are not relayed, nor any record in `retired` (ids this
+ * pass expired: retention removes every copy of them). */
+function relayInto(upload, relay, now, retired = {}) {
+  const out = copy(upload);
+  if (!relay) return out;
+  for (const kind of ['groups','tabs','spaces']) if (relay[kind] && out[kind]) {
+    for (const [id, theirs] of Object.entries(relay[kind])) {
+      if (expiredRecord(theirs, now) || retired[kind]?.includes(id)) continue;
+      out[kind][id] = relayRecordInto(out[kind][id], theirs, kind);
+    }
+    out[kind] = Object.fromEntries(Object.keys(out[kind]).sort().map(id => [id, out[kind][id]]));
+  }
+  if (relay.active || out.active) {
+    const active = mergeField(out.active, relay.active, 'active');
+    if (active) out.active = active;
+  }
+  return out.tabs ? clearInvalidActive(out) : out;
+}
 module.exports = { LIMITS, field, mergeField, mergeRecord, mergeBlob, mergeIndex, mid, tagOf, keyFor, validKey, orderOf,
-  acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup, activeTabId };
+  acknowledged, revisionOf, blobFits, liveTabCount, sanitizeBlob, sanitizeIndex, expireTombstones, effectiveGroup, activeTabId,
+  relayBlob, relayIndex, relayInto, newerRev };
 
 // Pending writes are namespaced by record kind/id/field; index publication is a
 // separate caller-owned entry. A fetched value, never a PUT response, settles a
@@ -202,6 +306,8 @@ function sanitizePending(pending = {}) {
   }
   if (isId(pending.index?.id) && typeof pending.index.rev==='string' && /^[0-9a-f]{16}$/.test(pending.index.rev)) {
     out.index={id:pending.index.id,rev:pending.index.rev};
+    if (Number.isSafeInteger(pending.index.at) && pending.index.at >= 0) out.index.at=pending.index.at;
+    if (typeof pending.index.by==='string' && pending.index.by.length>0 && pending.index.by.length<=128) out.index.by=pending.index.by;
   }
   return out;
 }
@@ -283,9 +389,12 @@ function admissionUnits(candidate,fetched,deviceId,lastPublishable) {
   }
   return units;
 }
-function admit({candidate,changes=[],encryptFn}) {
+function admit({candidate,changes=[],encryptFn,finish=blob=>blob}) {
   const out=clearInvalidActive(copy(candidate)), held=new Set(), unsynced=new Set();
-  const fits=()=>liveTabCount(out)<=LIMITS.tabsPerSpace && blobFits(out,encryptFn);
+  // Limits apply to what is actually PUT: the strict candidate finished with
+  // the relayed remote content.
+  const fitsBlob=blob=>liveTabCount(blob)<=LIMITS.tabsPerSpace && blobFits(blob,encryptFn);
+  const fits=()=>fitsBlob(finish(out));
   const complete=()=> {
     if (canonical(sanitizeBlob(out))!==canonical(out)) return false;
     return changes.every(unit=> {
@@ -296,9 +405,18 @@ function admit({candidate,changes=[],encryptFn}) {
       return unit.kind!=='tabs' || !group || !!out.groups[group] || unit.before?.groupId?.v===group;
     });
   };
-  const initialReason=liveTabCount(out)>LIMITS.tabsPerSpace ? 'tabs'
-    : ['tabs','groups'].some(k=>Object.values(out[k]).some(r=>r.deleted?.v===true)) ? 'tombstones' : 'full';
-  if(fits()&&complete())return {blob:out,unsynced,reason:null};
+  // "Closed tabs free their room after 30 days" is true only when their
+  // expiry alone would let this change fit.
+  const withoutTombstones=blob=>{
+    const t=copy(blob);
+    for(const k of ['tabs','groups'])for(const [id,r] of Object.entries(t[k]))if(r.deleted?.v===true)delete t[k][id];
+    return clearInvalidActive(t);
+  };
+  const finished=finish(out);
+  const hasTombstones=['tabs','groups'].some(k=>Object.values(finished[k]).some(r=>r.deleted?.v===true));
+  const initialReason=liveTabCount(finished)>LIMITS.tabsPerSpace ? 'tabs'
+    : hasTombstones && fitsBlob(withoutTombstones(finished)) ? 'tombstones' : 'full';
+  if(fits()&&complete())return {blob:finish(out),unsynced,reason:null};
   const byKey=new Map(changes.map(u=>[u.key??u.kind+':'+u.id,u]));
   function hold(unit) {
     const key=unit.key??unit.kind+':'+unit.id;
@@ -313,13 +431,13 @@ function admit({candidate,changes=[],encryptFn}) {
   }
   for(const unit of [...byKey.values()].sort((a,b)=>(b.admissionRank??b.clock)-(a.admissionRank??a.clock) || (a.key<b.key?-1:1))) {
     hold(unit);
-    if(fits()&&complete())return {blob:out,unsynced,reason:initialReason};
+    if(fits()&&complete())return {blob:finish(out),unsynced,reason:initialReason};
   }
   for (const unit of changes) unsynced.add(unit.id);
   return {blob:null,unsynced,reason:changes.some(u=>u.required)?'required-state-over-budget':'remote-over-budget'};
 }
 function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, lastMergeAt, now, deviceId, encryptFn, lastPublishable, admissionOrder=[]}) {
-  const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob);
+  const local=sanitizeBlob(localBlob), remote=sanitizeBlob(fetchedBlob), relay=relayBlob(fetchedBlob);
   // Only an actual missing blob may start an empty remote. An unreadable
   // response must not be overwritten with a locally understood older schema.
   if ((fetchedBlob != null && !remote) || (fetchedBlob == null && fetchedVersion != null)) throw new TypeError('Invalid or unsupported remote Space blob');
@@ -330,19 +448,22 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
   const published=sanitizeBlob(lastPublishable);
   if (lastPublishable != null && !published) throw new TypeError('Invalid or unsupported published Space blob');
   if (published && published.spaceId !== fetched.spaceId) throw new TypeError('Published Space identity mismatch');
-  const {recover}=recoveryDecision({localBlob:local??empty,fetchedBlob:remote,lastMergeAt,now});
+  // What the Worker holds, including records this version can't display:
+  // presence and acknowledgement are judged against it, never the strict view.
+  const held=relay??empty;
+  const {recover}=recoveryDecision({localBlob:local??empty,fetchedBlob:relay,lastMergeAt,now});
   const retained=withoutRecords(local??empty,recover);
   const eligiblePending=withoutRecords(sanitizePending(pending),recover);
   if (eligiblePending.index?.id!==fetched.spaceId) delete eligiblePending.index;
   const baseMerged=mergeBlob(fetched,retained);
   const retainedOwn={};
-  if(retained.active?.by===deviceId&&!acknowledged(fetched.active,retained.active,'active'))retainedOwn.active=retained.active;
+  if(retained.active?.by===deviceId&&!acknowledged(held.active,retained.active,'active'))retainedOwn.active=retained.active;
   for(const kind of ['tabs','groups'])for(const [id,record] of Object.entries(retained[kind])) {
-    for(const [name,value] of Object.entries(record))if(value.by===deviceId && !acknowledged(fetched[kind]?.[id]?.[name],value,name)) {
+    for(const [name,value] of Object.entries(record))if(value.by===deviceId && !acknowledged(held[kind]?.[id]?.[name],value,name)) {
       retainedOwn[kind] ??= {}; retainedOwn[kind][id] ??= {}; retainedOwn[kind][id][name]=value;
     }
   }
-  const pendingAfter=settlePending(applyLocalEdits(eligiblePending,retainedOwn),fetched);
+  const pendingAfter=settlePending(applyLocalEdits(eligiblePending,retainedOwn),held);
   const replayed=replayPending(baseMerged,pendingAfter);
   const expiredRecords={tabs:[],groups:[]};
   // Expiry is a retention decision for persisted state too, not merely a
@@ -364,13 +485,14 @@ function pushPlan({fetchedBlob, fetchedVersion=null, localBlob, pending={}, last
     const ranks=new Map(admissionOrder.map((key,n)=>[key,n]));let next=ranks.size;
     for(const unit of [...changes].sort((a,b)=>a.clock-b.clock || (a.key<b.key?-1:1)))unit.admissionRank=ranks.get(unit.key)??next++;
   }
-  const admission=admit({candidate:mergedBlob,changes,encryptFn});
-  const changed=admission.blob && canonical(admission.blob)!==canonical(fetched);
+  const admission=admit({candidate:mergedBlob,changes,encryptFn,finish:blob=>relayInto(blob,relay,now,expiredRecords)});
+  const changed=admission.blob && canonical(admission.blob)!==canonical(relay??fetched);
   const upload=changed?{blob:admission.blob,rev:revisionOf(admission.blob),ifVersion:fetchedVersion}:null;
   // Proposal only: caller may publish this revision after the blob PUT succeeds.
   // Identity fields remain in the separately merged index, never guessed here.
-  const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev}
-    : !admission.reason && pendingAfter.index ? {id:fetched.spaceId,rev:revisionOf(fetched)} : null;
+  // The revision is of what the Worker holds afterwards, relayed content included.
+  const indexEntry=upload?{id:upload.blob.spaceId,rev:upload.rev,at:now,by:deviceId}
+    : !admission.reason && pendingAfter.index ? {id:fetched.spaceId,rev:revisionOf(relay??fetched),at:now,by:deviceId} : null;
   return {upload,pendingAfter,expiredRecords,recover,unsynced:admission.unsynced,mergedBlob,nextLastMergeAt:now,indexEntry,reason:admission.reason};
 }
 Object.assign(module.exports,{applyLocalEdits,settlePending,recoveryDecision,admit,pushPlan});

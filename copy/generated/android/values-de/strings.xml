@@ -2267,4 +2267,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ws_new_with_tab">Mit diesem Tab</string>
     <string name="ws_error_saved_not_moved">%1$s wurde gespeichert, aber der Tab konnte nicht verschoben werden.</string>
     <string name="ws_error_move_failed">Der Tab konnte nicht nach %1$s verschoben werden.</string>
+    <string name="context_menu_open_link_in_space">Link in Space öffnen</string>
+    <string name="ws_announce_opened_in">In %1$s geöffnet</string>
+    <string name="ws_new_with_link">Mit diesem Link</string>
+    <string name="ws_error_open_link_failed">Der Link konnte nicht in %1$s geöffnet werden.</string>
 </resources>

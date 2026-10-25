@@ -354,6 +354,7 @@ const { normalizeGroupName, sameGroupName, recaseSessionData } = require('./grou
 const { sanitizeGroupColor, groupRecord } = require('./group-color');
 const { deviceNamesEqual } = require('./device-names');
 const { attachDeviceHeaderMenu } = require('./device-context-menu');
+const { canOpenLinkInSpace, linkTitle, openLinkInSpace: openLinkInSpaceWith } = require('./space-open-link');
 const { openLinkInGlance: openLinkInGlanceWith } = require('./glance-open-link');
 const { acceptOverlayDragState, resetOverlayDragState, overlayDragActive } = require('./overlay-drag-state');
 const { HOVER_OPEN_DWELL_MS, initialHoverState, pointInRect, hoverStep } = require('./island-hover-open');
@@ -5517,6 +5518,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   bumpGlanceRequestEpoch();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
+  if (closingPurpose?.newSpaceLinkTitle != null) rt().newSpaceLink = null;
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
@@ -8648,7 +8650,7 @@ initTabView({
   dismissFillStatusForNavigation: (owner, tabId) => fillStatusSurface?.invalidatePending(owner.id, tabId),
   // Optional: the page context menu's Open Link in Glance (runs bound to the
   // opener's window runtime, so createTab and setGlanceTab act there).
-  openLinkInGlance,
+  openLinkInGlance, linkSpaceMenuItems,
   // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
   onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
   onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
@@ -11313,6 +11315,7 @@ function registerIpcHandlers() {
   // workspaces.json.
   chromeOn('chrome:workspaces-cancel', () => workspaceController.cancel(rt()));
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
+  chromeHandle('chrome:workspaces-create-with-link', (_e, name, identity) => createSpaceWithLink(name, identity));
   chromeHandle('chrome:workspaces-create-with-tab', (_e, name, identity, id) => createSpaceWithTab(name, identity, id));
   chromeHandle('chrome:workspaces-save-as', (_e, name, identity) => {
     const result = saveCurrentWindowAsWorkspace(rt(), name, {
@@ -12920,6 +12923,102 @@ function moveTabToSpace(id, workspaceId, creation = null) {
     }
     return result;
   });
+}
+
+/** Link menus retain their source runtime, but revalidate it on click. */
+function linkSpaceSource(opener, url) {
+  const source = windowRuntimes.runtimeForTab(opener?.id);
+  return canOpenLinkInSpace(opener, url) && tabs.get(opener.id) === opener
+    && source === rt() && !source.resident && !source.closing && !source.workspaceTransition
+    && !sessionReadOnly && !profileDeletions.hasPendingProfileDeletion(source.profileId);
+}
+
+function linkSpaceMenuItems(opener, url, text) {
+  if (!linkSpaceSource(opener, url)) return [];
+  const source = rt();
+  const spaces = namedWorkspaces.list();
+  if (!spaces.length) return [];
+  const submenu = spaces.filter(w => w.id !== source.workspaceId).map(w => ({
+    id: `link-space:${w.id}`, label: w.name, enabled: spaceCanReceive(source, w.id),
+    click: () => withWindowRuntime(source, () => openLinkInSpace(opener, url, w.id, text)),
+  }));
+  if (submenu.length) submenu.push({ type: 'separator' });
+  submenu.push({ id: 'link-space-new', label: mainI18n.t('tabMenu.newSpace'), enabled: spaces.length < MAX_WORKSPACES,
+    click: () => withWindowRuntime(source, () => {
+      if (!linkSpaceSource(opener, url) || namedWorkspaces.list().length >= MAX_WORKSPACES) return false;
+      // The URL stays in main. A renderer can submit identity, not substitute
+      // another link (or replay a local-file grant) at the create boundary.
+      source.newSpaceLink = { tabId: opener.id, url, title: linkTitle(url, text) };
+      showOverlay('spaces', { purpose: { newSpaceLinkTitle: linkTitle(url, text) } });
+      return true;
+    }),
+  });
+  return [{ label: mainI18n.t('contextMenu.openLinkInSpace'), submenu }];
+}
+
+function openLinkInSpace(opener, url, workspaceId, text) {
+  const source = rt();
+  let target = null, previousOrder = null;
+  const workspace = namedWorkspaces.get(workspaceId);
+  const result = openLinkInSpaceWith(opener, url, workspaceId, {
+    title: text,
+    check() {
+      if (!linkSpaceSource(opener, url) || source.workspaceId === workspaceId) return { ok: false, error: 'busy' };
+      if (!workspace) return { ok: false, error: 'not-found' };
+      if (!spaceCanReceive(source, workspaceId)) return { ok: false, error: 'busy' };
+      target = workspaceOwner(source, workspaceId);
+      previousOrder = target ? [...target.tabOrder] : null;
+      return { ok: true, visible: !!target && !target.resident, resident: !!target?.resident };
+    },
+    capture: () => target ? workspaceCapture(target, { previousActiveIndex: workspace.activeIndex }) : workspace,
+    write(next) {
+      const fault = takeSpaceMoveFault('write');
+      return fault ? { ok: false, error: fault } : namedWorkspaces.saveCapture(workspaceId, next);
+    },
+    create(link, title, asleep) {
+      const id = withWindowRuntime(target, () => createTab(link, { title, asleep }));
+      if (takeSpaceMoveFault('transfer')) throw new Error('injected: link creation failed after registration');
+      return id;
+    },
+    rollback() {
+      if (!target) return;
+      withWindowRuntime(target, () => {
+        for (const id of [...target.tabOrder]) {
+          if (!previousOrder.includes(id)) closeTab(id, { record: false, selectReplacement: false });
+        }
+      });
+    },
+  });
+  if (result.ok) {
+    if (target) withWindowRuntime(target, () => broadcastTabs());
+    announceSplit(mainI18n.t('ws.announce.openedIn', { space: workspace.name }));
+  } else showOverlay('spaces', { purpose: { spaceLinkError: { name: workspace?.name ?? '', error: result.error } } });
+  broadcastWorkspacesUpdated();
+  return result;
+}
+
+function createSpaceWithLink(name, identity) {
+  const source = rt();
+  const link = source.newSpaceLink;
+  const opener = tabs.get(link?.tabId);
+  if (!link || source.overlayMode !== 'spaces' || source.overlayPurpose?.newSpaceLinkTitle == null
+    || !linkSpaceSource(opener, link.url)) return { ok: false, error: 'not-found' };
+  const fault = takeSpaceMoveFault('write');
+  const result = fault ? { ok: false, error: fault } : namedWorkspaces.create({
+    name, color: typeof identity?.color === 'string' ? identity.color : undefined,
+    symbol: typeof identity?.symbol === 'string' ? identity.symbol : undefined,
+    capture: appendTabToCapture({ urls: [], groupIds: [], pinned: [], meta: [], groups: [], activeIndex: 0 }, {
+      url: link.url, pinned: false, meta: { title: link.title, favicon: null },
+    }),
+  });
+  if (result.ok) {
+    source.newSpaceLink = null;
+    noteSpaceCreated();
+    announceSplit(mainI18n.t('ws.announce.openedIn', { space: result.workspace.name }));
+    broadcastWorkspacesUpdated();
+  }
+  return { ok: result.ok, ...(result.error ? { error: result.error } : {}),
+    ...(result.workspace ? { workspaceId: result.workspace.id } : {}), ...workspacesProjection() };
 }
 
 /** The editor remembers the context-menu tab, not whichever tab is active later. */
@@ -14597,6 +14696,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           cardViewVisible: cardView?.getVisible?.() ?? false,
           stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
         };
+      },
+      runLinkSpaceMenuItem: (tabId, url, text, itemId) => {
+        const opener = tabs.get(tabId);
+        if (!opener) return null;
+        return withWindowRuntime(windowRuntimes.runtimeForTab(tabId) ?? rt(), () => {
+          const items = linkSpaceMenuItems(opener, url, text)[0]?.submenu ?? [];
+          if (!itemId) return items.map(item => ({ id: item.id, label: item.label, enabled: item.enabled !== false }));
+          const item = items.find(item => item.id === itemId);
+          return item && item.enabled !== false ? item.click() : null;
+        });
       },
       openLinkInGlance: (tabId, url) => {
         const opener = tabs.get(tabId);

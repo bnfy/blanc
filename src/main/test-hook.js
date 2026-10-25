@@ -120,7 +120,7 @@ function install(refs) {
     getGlanceTabId,
     getFocusedPaneTabId,
     getGlanceCard,
-    openLinkInGlance,
+    openLinkInGlance, runLinkSpaceMenuItem,
     groupTabByName,
     renameTab,
     beginRenameTab,
@@ -2532,6 +2532,7 @@ function install(refs) {
     // divider, and the overlay's picker when one is up.
     // The page context menu's Open Link in Glance, which Playwright cannot
     // click (a native menu): the same main-process action the item calls.
+    runLinkSpaceMenuItem(tabId, url, text, itemId) { return runLinkSpaceMenuItem(String(tabId), String(url), String(text ?? ""), itemId); },
     openLinkInGlance(tabId, url) { return openLinkInGlance(String(tabId), String(url)); },
     // The floating Glance card's computed motion, read in its own document.
     async glanceCardMotion() {

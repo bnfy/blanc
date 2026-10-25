@@ -2336,4 +2336,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ws_new_with_tab">Con questa scheda</string>
     <string name="ws_error_saved_not_moved">%1$s è stato salvato, ma non è stato possibile spostare la scheda.</string>
     <string name="ws_error_move_failed">Non è stato possibile spostare la scheda in %1$s.</string>
+    <string name="context_menu_open_link_in_space">Apri link in Space</string>
+    <string name="ws_announce_opened_in">Aperto in %1$s</string>
+    <string name="ws_new_with_link">Con questo link</string>
+    <string name="ws_error_open_link_failed">Impossibile aprire il link in %1$s.</string>
 </resources>

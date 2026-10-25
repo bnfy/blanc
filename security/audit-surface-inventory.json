@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "b55c8c4a267316cb3779502036c4f620fe9cc4273b7eb16feec609a8d85d4f90",
+      "sha256": "a6be74df58639c50c6580e8cc1d494a08c8ddc7038b3f41835098e6609abd620",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -337,6 +337,7 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-link",
         "chrome:workspaces-create-with-tab",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
@@ -633,7 +634,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "06a554adffd1f7e016376bd946b8ed351e6026c45aa1cda0940a663d6cd8cc62",
+      "sha256": "a3e960b2c55c04361ce104784e739a8e96829df2ce9cd9abc7b49ec168d49b3d",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -711,6 +712,7 @@
         "chrome:workspace-switcher",
         "chrome:workspaces-cancel",
         "chrome:workspaces-create-blank",
+        "chrome:workspaces-create-with-link",
         "chrome:workspaces-create-with-tab",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
@@ -1033,7 +1035,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "c239898f2878909566a745a1db4471e80af81b0addacfe6070860d0b138cf0dc",
+      "sha256": "713ba56ce4686801494e74d9e9b8c73ccd968beb1a4dabca9c4e1b6e9af133ff",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

@@ -37,9 +37,13 @@ test('export uses the upload pipeline and stages acknowledgements until settleme
   const p=spaces.exportSpace(id(99),blob(),null,c,seal);
   assert.equal(p.upload.blob.tabs[id(1)].nav.v.url,'https://example.test/1');
   assert.ok(spaces.rebind(c.accountId).data.pending[id(99)].tabs[id(1)]);
+  const beforePublish=Date.now();
   spaces.settleSpace(id(99),p,{blobStored:false},c);
+  assert.equal(spaces.rebind(c.accountId).data.blobs[id(99)].lastPublishedAt,undefined);
   assert.ok(spaces.rebind(c.accountId).data.pending[id(99)].tabs[id(1)]);
   spaces.settleSpace(id(99),p,{blobStored:true},c);
+  assert.ok(spaces.rebind(c.accountId).data.blobs[id(99)].lastPublishedAt>=beforePublish);
+  assert.equal(spaces.rebind(c.accountId).data.blobs[id(99)].rev,p.upload.rev);
   assert.equal(spaces.rebind(c.accountId).data.pending[id(99)].index.rev,p.upload.rev);
   const ack=spaces.exportSpace(id(99),p.upload.blob,'server-v',c,seal);
   spaces.settleSpace(id(99),ack,{indexStored:true},c);

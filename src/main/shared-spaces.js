@@ -58,7 +58,12 @@ function noteLocalSpace(id,blob,edits,ctx) {
     d.pending[id]=model.applyLocalEdits(d.pending[id],eligible);});notify(changed);
 }
 function setIndex(index,ctx) {const s=rebind(ctx.accountId);s.update(d=>{d.index=model.mergeIndex(d.index,index);});notify(changed);}
+// The fetched index as received, for the export that follows it in the same
+// pass (sync.js merges then exports with no await between). Consumed once, so
+// an export after a missing (404) index relays nothing stale.
+let indexRelay=null;
 function mergeIndex(index,ctx) {
+  indexRelay={accountId:ctx.accountId,index:model.relayIndex(index)};
   const s=rebind(ctx.accountId),before=canonical(s.data.index);
   s.update(d=>{d.index=model.mergeIndex(d.index,index);for(const id of Object.keys(index.spaces))d.knownIndex[id]=true;});
   if(before!==canonical(s.data.index))notify(remoteChanged);
@@ -68,15 +73,25 @@ function exportIndex(ctx) {
   if(!index)throw new TypeError('Invalid or unsupported Spaces index');
   for(const id of Object.keys(index.spaces)) {
     if(!d.knownIndex[id] && !d.blobs[id]?.lastPublishable){delete index.spaces[id];continue;}
-    if(d.pending[id]?.index)index.spaces[id].rev=d.pending[id].index.rev;
+    const receipt=d.pending[id]?.index,entry=index.spaces[id];
+    if(receipt&&entry.rev!==receipt.rev) {
+      // A newer hint must outrank every hint already published, even one
+      // from a device whose clock runs ahead.
+      entry.rev=receipt.rev;
+      entry.revAt=Math.max(receipt.at??0,(Number.isSafeInteger(entry.revAt)?entry.revAt:-1)+1);
+      entry.revBy=receipt.by??ctx.deviceId;
+    }
   }
-  return model.expireTombstones(index,Date.now());
+  const relay=indexRelay?.accountId===ctx.accountId?indexRelay.index:null;indexRelay=null;
+  return model.expireTombstones(model.relayInto(index,relay,Date.now()),Date.now());
 }
 function settleIndex(payload,ctx) {
   const s=ensure();if(s.data.accountId!==ctx.accountId)return;
   s.update(d=>{for(const [id,entry] of Object.entries(payload.spaces)) {
     d.knownIndex[id]=true;
-    if(d.index.spaces[id])d.index.spaces[id].rev=entry.rev;
+    if(d.index.spaces[id])for(const key of ['rev','revAt','revBy']) {
+      if(entry[key]!==undefined)d.index.spaces[id][key]=entry[key];else delete d.index.spaces[id][key];
+    }
     if(d.pending[id]?.index?.rev===entry.rev)delete d.pending[id].index;
   }});
 }
@@ -138,7 +153,9 @@ function settleSpace(id,plan,outcome,ctx) {
     d.blobs[id].retryOrder=(d.blobs[id].retryOrder??[]).filter(key=>{
       const [kind,rid]=key.split(':');return !!d.pending[id][kind]?.[rid] || d.blobs[id].unsynced.includes(rid);
     });
-    if(outcome.blobStored && plan.upload){d.blobs[id].lastPublishable=copy(plan.upload.blob);d.blobs[id].lastPublishedAt=Date.now();}
+    // Keep the published timestamp for UI status and the actual uploaded
+    // revision so the next index hint does not refetch our own write.
+    if(outcome.blobStored && plan.upload){d.blobs[id].lastPublishable=copy(plan.upload.blob);d.blobs[id].lastPublishedAt=Date.now();d.blobs[id].rev=plan.upload.rev;}
   });return true;
 }
 function spaceIds(ctx) {
