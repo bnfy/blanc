@@ -5,7 +5,7 @@ const callback=sourceText.slice(sourceText.indexOf('  recoverNative:(sid,recover
 function harness({existing=true,snapshot=false}={}) {
  const id='a'.repeat(32),source={profileId:'default',workspaceId:'shared',tabOrder:['original']},target={profileId:'default',workspaceId:'recovery',tabOrder:['copy'],activeTabId:'copy'};
  const record={nav:{v:{url:'https://original.test/',title:'Original'}},name:{v:null},pinned:{v:false},groupId:{v:null}};
- const original={id:'original',sharedTabId:id,view:{form:'source edits'}},duplicate={id:'copy',sharedTabId:id,url:record.nav.v.url,title:record.nav.v.title,asleep:true,...(existing&&!snapshot?{view:{form:'recovery edits'}}:{})};
+ const original={id:'original',sharedTabId:id,url:record.nav.v.url,title:record.nav.v.title,asleep:true,view:{form:'source edits'}},duplicate={id:'copy',sharedTabId:id,url:record.nav.v.url,title:record.nav.v.title,asleep:true,...(existing&&!snapshot?{view:{form:'recovery edits'}}:{})};
  const tabs=new Map([['original',original],['copy',duplicate]]),runtimes=existing?[source,target]:[source],closed=[],saved=[];
  let current,fail=false;
  const sandbox={isRecoveryPlaceholder:require('../../src/main/shared-spaces-sharing').isRecoveryPlaceholder,sessionPersistenceSuspended:false,DEFAULT_PROFILE_ID:'default',tabs,sleepSnapshots:new Map(snapshot?[['copy',{entries:['saved form']}]]:[]),windowRuntimes:{all:()=>runtimes},
@@ -45,4 +45,9 @@ test('a quiet recovery copy with local navigation or metadata edits is preserved
  for(const patch of [{url:'https://edited.test/'},{customTitle:'My name'},{pinned:true},{groupId:'local-group'},{muted:true},{splitId:'split'},{sleeping:true},{waking:true},{isLoading:true}]) {
   const h=harness();delete h.duplicate.view;Object.assign(h.duplicate,patch);h.run();assert.deepEqual(h.closed,[]);assert.equal(h.target.tabOrder.length,2);
  }
+});
+test('cold replay drops only the unchanged source placeholder when the recovery copy has work',()=>{
+ const h=harness();delete h.original.view;h.run();
+ assert.deepEqual(h.closed,['original']);assert.equal(h.tabs.get('copy'),h.duplicate);assert.deepEqual(h.target.tabOrder,['copy']);
+ h.run();assert.deepEqual(h.closed,['original']);assert.deepEqual(h.target.tabOrder,['copy']);
 });
