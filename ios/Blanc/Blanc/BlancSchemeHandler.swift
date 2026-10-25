@@ -77,8 +77,10 @@ enum BlancPageResolver {
         case "js": return "text/javascript"
         case "svg": return "image/svg+xml"
         case "png": return "image/png"
-        case "json": return "application/json"
+        case "jpg", "jpeg": return "image/jpeg"
         case "woff2": return "font/woff2"
+        case "woff": return "font/woff"
+        case "json": return "application/json"
         case "ttf": return "font/ttf"
         case "webp": return "image/webp"
         case "txt": return "text/plain"
@@ -90,11 +92,28 @@ enum BlancPageResolver {
 /// Serves the shared web bundle over `blanc://`. Stateless — one instance is
 /// safe to install on every tab's configuration.
 final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
+    private let wallpaperURL: URL?
+    private let wallpaperVersion: () -> String?
+
+    init(wallpaperURL: URL? = nil, wallpaperVersion: @escaping () -> String? = { nil }) {
+        self.wallpaperURL = wallpaperURL
+        self.wallpaperVersion = wallpaperVersion
+        super.init()
+    }
+
     /// The bundled folder-reference name (`src/renderer/pages` copies in as `pages`).
     private static let bundleSubdirectory = "pages"
 
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         let request = urlSchemeTask.request
+        if request.url?.lastPathComponent == "ios-wallpaper.jpg" {
+            let version = request.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }?
+                .queryItems?.first { $0.name == "v" }?.value
+            guard let version, version == wallpaperVersion() else {
+                urlSchemeTask.didFailWithError(URLError(.noPermissionsToReadFile))
+                return
+            }
+        }
         guard let url = request.url,
               let host = url.host,
               let requested = BlancPageResolver.resolvedFilename(host: host, path: url.path)
@@ -105,10 +124,7 @@ final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
         let isStrings = requested == "strings.js"
         let preferred = Locale.preferredLanguages
         let filename = isStrings ? BlancPageResolver.stringsFilename(preferred: preferred) : requested
-        guard let fileURL = Bundle.main.url(
-                  forResource: (filename as NSString).deletingPathExtension,
-                  withExtension: (filename as NSString).pathExtension,
-                  subdirectory: Self.bundleSubdirectory),
+        guard let fileURL = assetURL(filename: filename, host: host),
               var data = try? Data(contentsOf: fileURL)
         else {
             urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
@@ -130,6 +146,15 @@ final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
         urlSchemeTask.didReceive(response)
         urlSchemeTask.didReceive(data)
         urlSchemeTask.didFinish()
+    }
+
+    private func assetURL(filename: String, host: String) -> URL? {
+        if filename == "ios-wallpaper.jpg" {
+            return host == "newtab" ? wallpaperURL : nil
+        }
+        return Bundle.main.url(forResource: (filename as NSString).deletingPathExtension,
+                               withExtension: (filename as NSString).pathExtension,
+                               subdirectory: Self.bundleSubdirectory)
     }
 
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {

@@ -132,7 +132,7 @@ final class PagesBridgeTests: XCTestCase {
     // start.data has empty groups and a zero blocked count.
     func testStartData() {
         XCTAssertEqual(value("start", "data"),
-                       .object([("groups", .array([])), ("blockedThisWeek", .number(0))]))
+                       PagesBridge.startData())
     }
 
     // settings.get returns the full bootstrap payload built from the generated

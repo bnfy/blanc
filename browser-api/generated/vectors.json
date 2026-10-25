@@ -4041,11 +4041,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4152,11 +4163,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4267,11 +4289,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4382,11 +4415,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4450,11 +4494,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4518,11 +4573,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4586,11 +4652,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4681,11 +4758,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4751,11 +4839,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4819,11 +4918,22 @@
               "revision": 1,
               "tabCount": 1,
               "color": "workspace-list-item-1",
-              "symbol": "workspace-list-item-1"
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -5229,11 +5339,22 @@
                   "revision": 1,
                   "tabCount": 1,
                   "color": "workspace-list-item-1",
-                  "symbol": "workspace-list-item-1"
+                  "symbol": "workspace-list-item-1",
+                  "sharedSync": {
+                    "unsyncedTabIds": [
+                      "shared-space-admission-1"
+                    ],
+                    "reason": "full"
+                  }
                 }
               ],
               "windowTabCount": 1,
-              "tint": "mark"
+              "tint": "mark",
+              "sharedSync": {
+                "count": 1,
+                "limit": 1,
+                "canAdd": true
+              }
             }
           ],
           "callbacks": [
@@ -5259,11 +5380,22 @@
                     "revision": 1,
                     "tabCount": 1,
                     "color": "workspace-list-item-1",
-                    "symbol": "workspace-list-item-1"
+                    "symbol": "workspace-list-item-1",
+                    "sharedSync": {
+                      "unsyncedTabIds": [
+                        "shared-space-admission-1"
+                      ],
+                      "reason": "full"
+                    }
                   }
                 ],
                 "windowTabCount": 1,
-                "tint": "mark"
+                "tint": "mark",
+                "sharedSync": {
+                  "count": 1,
+                  "limit": 1,
+                  "canAdd": true
+                }
               }
             ]
           ]

@@ -415,6 +415,19 @@ export interface WorkspaceActionEvent {
   id: WorkspaceId;
 }
 
+/** Local writes held from sync, without page contents; only present on a shared Space in Personal. */
+export interface SharedSpaceAdmission {
+  unsyncedTabIds: string[];
+  reason: 'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null;
+}
+
+/** Shared-library capacity. Concurrent remote additions are retained even above the local creation limit. */
+export interface SharedSpaceLibraryStatus {
+  count: number;
+  limit: number;
+  canAdd: boolean;
+}
+
 /** A Named Workspace row. */
 export interface WorkspaceListItem {
   id: WorkspaceId;
@@ -430,6 +443,7 @@ export interface WorkspaceListItem {
   color: string;
   /** A space-identity.js symbol id. */
   symbol: string;
+  sharedSync?: SharedSpaceAdmission;
 }
 
 /** Named Workspaces projection, from workspacesProjection() in main.js. */
@@ -440,6 +454,7 @@ export interface WorkspacesPayload {
   /** This window's ordinary tabs, for the new-space editor. */
   windowTabCount: number;
   tint: SpaceTint;
+  sharedSync?: SharedSpaceLibraryStatus | undefined;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -548,6 +563,7 @@ export interface WorkspaceActionResult {
   /** This window's ordinary tabs, for the new-space editor. */
   windowTabCount?: number;
   tint?: SpaceTint;
+  sharedSync?: SharedSpaceLibraryStatus | undefined;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */

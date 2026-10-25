@@ -7587,9 +7587,14 @@ function closeGroup(groupId) {
  * the workspaces store instead. */
 function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = captureWindowEntry(runtime, { previousActiveIndex });
+  const tabIds=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id))).map(item=>{
+    const id=tabs.get(item.id)?.sharedTabId;
+    return typeof id==='string'&&/^[0-9a-f]{32}$/.test(id)?id:null;
+  });
   return {
     ...entry,
     groups: entry.groups.map(groupRecord),
+    ...(tabIds.some(Boolean)?{tabIds}:{}),
   };
 }
 
@@ -10326,6 +10331,7 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
+  const shared=rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
     // Recently Deleted shows each space as it was, so its tile keeps its colour and symbol.
@@ -10340,7 +10346,9 @@ function workspacesProjection() {
       tabCount: workspace.urls.length,
       color: workspace.color,
       symbol: workspace.symbol,
+      ...(shared&&workspace.sharedId?{sharedSync:sync.spaceStatus(workspace.sharedId)}:{}),
     })),
+    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd}:undefined,
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,

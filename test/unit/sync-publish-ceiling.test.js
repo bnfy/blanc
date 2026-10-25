@@ -17,6 +17,10 @@ const { trackJsonStores } = require('./support/track-json-stores');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-ceiling-'));
 const key = Buffer.alloc(32, 7);
 const requests = [];
+// The production request window deliberately uses monotonic time. Advance
+// that clock with this fixture's virtual wall clock, rather than leave nine
+// simulated minutes of requests inside one real millisecond-long window.
+mock.method(performance,'now',()=>Date.now());
 
 const electronId = require.resolve('electron');
 require.cache[electronId] = {
@@ -70,6 +74,7 @@ test.after(async () => {
   // sync.json, tab-sync.json and tab-icons.json are still being written when
   // the last test ends.
   await jsonStores.settle();
+  mock.restoreAll();
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

@@ -48,5 +48,12 @@ final class SendToDeviceUITests: XCTestCase {
     dismiss.tap()
     XCTAssertTrue(row.waitForNonExistence(timeout: 5), "the dismissed page leaves the inbox")
     XCTAssertTrue(app.buttons["sent.s1"].exists, "the other page stays")
+    XCTAssertTrue(app.textFields["island.address"].exists, "the expanded Island keeps its address field")
+    XCTAssertTrue(app.buttons["Collapse Island"].exists)
+    XCTAssertTrue(app.buttons["Settings"].exists, "the footer tools stay visible above the keyboard")
+    let capture = XCTAttachment(screenshot: app.screenshot())
+    capture.name = "Expanded Island on iOS"
+    capture.lifetime = .keepAlways
+    add(capture)
   }
 }

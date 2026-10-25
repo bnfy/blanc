@@ -7,6 +7,11 @@ const startPagePins = require('./start-page-pins');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const sends = require('./sends');
+const sharedSpaces = require('./shared-spaces');
+const syncedClosed = require('./synced-closed');
+const { createScheduler } = require('./sync-scheduler');
+const { createRequestQueue } = require('./sync-request-queue');
+const { unsyncedTabIds } = require('./shared-spaces-adapter');
 const { deviceName } = require('./device-name');
 const { resolveDeviceName } = require('./device-names');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
@@ -27,7 +32,16 @@ const { bananifyServiceAllowed } = require('./bananify-services');
 // Blanc-hosted E2EE profile sync. This module holds the only network calls;
 // the Worker (cloudflare/sync-worker) stores AES-GCM ciphertext keyed by an
 // opaque accountId and can't read anything. See the design spec.
-const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
+const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev';
+const ACTIVE_SYNC_ENDPOINT = (()=>{
+  if(!app.isPackaged && process.env.BLANC_TEST==='1' && process.env.BLANC_TEST_SYNC_ENDPOINT) {
+    try {
+      const url=new URL(process.env.BLANC_TEST_SYNC_ENDPOINT);
+      if(url.protocol==='http:' && ['127.0.0.1','[::1]','localhost'].includes(url.hostname) && !url.username && !url.password && !url.search && !url.hash && url.pathname==='/')return url.origin;
+    } catch { /* invalid acceptance configuration never redirects production traffic */ }
+  }
+  return SYNC_ENDPOINT;
+})();
 // A renamed build may not store data on Bananify's server (bananify-services.js).
 // disable() still lets it erase a copy that is already there.
 // Errors are codes (`error` in replies, `lastError` in the store); pages.js
@@ -152,6 +166,13 @@ const STORES = [
     merge: (remote, ctx) => sends.mergeFromSync(remote, ctx),
     equals: (exported, remote) => sends.equalsRemote(exported, remote),
   },
+  { name:'spaces', class:'I', optional:true, spaces:true, export:sharedSpaces.exportIndex,
+    merge:sharedSpaces.mergeIndex, equals:sharedSpaces.equals, hasPublishableContent:sharedSpaces.hasPublishableContent,
+    stored:sharedSpaces.settleIndex },
+  { name:'closed', optional:true, spaces:true, export:syncedClosed.exportForSync, merge:syncedClosed.mergeFromSync,
+    equals:syncedClosed.equalsRemote, hasPublishableContent:syncedClosed.hasOwnItems },
+  { name:'shared', optional:true, spaces:true, export:sharedSpaces.exportSidecar, merge:sharedSpaces.mergeSidecar,
+    equals:sharedSpaces.equals, hasPublishableContent:payload=>Object.values(payload?.devices??{}).some(x=>x.tabs?.length) },
 ];
 
 /** The settings payload plus the Personal profile's Start Page pins, when
@@ -168,7 +189,7 @@ function withStartPagePins(payload) {
   return out;
 }
 
-let syncing = false, timer = null, sessionTimer = null, iconTimer = null;
+let timer = null, sessionTimer = null, iconTimer = null;
 /** Tab-driven publishes are trailing debounces, re-armed on every change —
  * but bounded: a tab whose title changes more often than the delay (a ticker,
  * a timer, a flashing unread title) would otherwise postpone the publish
@@ -213,14 +234,41 @@ function noteOptionalStorePresent(accountId, storeName) {
 }
 /** Coalesced re-run request while a sync is in flight: undefined = none,
  * null = all stores, array = just those names. */
-let pendingNames;
-const unionNames = (a, b) => (a === null || b === null ? null : [...new Set([...a, ...b])]);
 /** Credential/consent generation. Bumped whenever the account identity or
  * the tab-share consent changes (enable, disable, setSyncTabs); every sync
  * run snapshots it and aborts at its next checkpoint once it's stale, so an
  * in-flight response from the OLD account can never be merged or re-uploaded
  * under the NEW one (or recreate a just-wiped account's blob). */
 let syncGen = 0;
+let requestQueue=null, requestScheduler=null, spacesUnavailable=false, spacesRetryAt=0;
+function invalidateGeneration(reason='generation') {
+  syncGen+=1;
+  requestQueue?.cancelWhere(()=>true,reason);
+}
+function getRequestQueue() {
+  if(requestQueue)return requestQueue;
+  const data=sharedSpaces.rebind(ensureStore().data.accountId).data;
+  requestScheduler=createScheduler({log:data.requestLog,nextClass:data.nextClass,cursors:data.cursors,
+    windowLimit:data.windowLimit,backoffUntil:data.backoffUntil});
+  requestQueue=createRequestQueue({scheduler:requestScheduler,makeError:message=>new SyncError(message),persist:state=>{
+    const s=sharedSpaces.rebind(ensureStore().data.accountId);
+    s.update(d=>{d.requestLog=state.log;d.nextClass=state.nextClass;d.cursors=state.cursors;d.windowLimit=state.windowLimit;d.backoffUntil=state.backoffUntil;});
+    if(!s.flush())throw new SyncError('request-log-save-failed');
+  }});
+  return requestQueue;
+}
+function queueBarrier() {passSettled=getRequestQueue().settled();return passSettled;}
+async function probeSettings(accountId) {
+  const gen=syncGen;
+  const promise=getRequestQueue().enqueue({class:'F',item:'settings',generation:'probe:'+gen+':'+accountId,
+    cancelled:()=>suspended?'suspended':gen!==syncGen?'generation':null,
+    run:async()=>{
+      const response=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
+      if(response.status===429)throw new SyncError('rate-limited');
+      return response;
+    }});
+  queueBarrier();const result=await promise;if(result.error)throw result.error;return result.outcome;
+}
 /** Resolves when the currently-running pass has fully settled — dispatched
  * network requests included. `disable()` awaits it before wiping: a PUT
  * already on the wire can't be recalled, so the DELETE must not race it. */
@@ -265,6 +313,7 @@ function passphraseStrong(p) {
 
 function errorCode(err) {
   const code = err instanceof SyncError ? err.message : '';
+  if(code==='payload-too-large')return 'rejected:413';
   if (['bad-passphrase', 'rate-limited', 'conflict', 'server', 'pair-not-found', 'pair-unavailable', 'pair-invalid'].includes(code)) return code;
   if (/^http-4/.test(code)) return `rejected:${code.slice(5)}`;
   if (/^http-5/.test(code)) return 'server-error';
@@ -291,7 +340,7 @@ async function enable({ handle, passphrase }) {
   // nothing was found. null = couldn't tell (offline).
   let created = null;
   try {
-    const probe = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
+    const probe = await probeSettings(accountId);
     if (probe.status === 200 || probe.status === 404) created = probe.status === 404;
   } catch { /* offline — leave created null */ }
   key.fill(0);
@@ -312,12 +361,14 @@ function protectKey(key) {
 }
 
 function adoptCredentials({ handle, accountId, key, protectedKey }) {
+  if(suspended)return {ok:false,error:'sync-off'};
   if (!protectedKey) {
     const protectedResult = protectKey(key);
     if (protectedResult.error) return { ok: false, error: protectedResult.error };
     ({ protectedKey } = protectedResult);
   }
-  syncGen += 1; // new identity — strand any in-flight run from the old one
+  invalidateGeneration(); // strand queued and running work from the old identity
+  spacesUnavailable=false;spacesRetryAt=0;
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   const syncStore = ensureStore();
@@ -345,7 +396,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
 const PAIR_ATTEMPTS = 3;
 let pairing = null; // { code, pairId, expiresAt }
 
-const pairUrl = (pairId) => `${SYNC_ENDPOINT}/v1/pair/${pairId}`;
+const pairUrl = (pairId) => `${ACTIVE_SYNC_ENDPOINT}/v1/pair/${pairId}`;
 
 /** A 404 from the pair route is JSON on a current Worker and plain text on
  * one that predates the route: the two mean different things to the person. */
@@ -560,14 +611,15 @@ async function preflight({ handle, passphrase }) {
   if (!passphraseStrong(p)) return { ok: false, outcome: 'invalid', error: 'weak-passphrase' };
   const { accountId, key } = deriveKeys(h, p);
   try {
-    const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
+    const res = await probeSettings(accountId);
     if (res.status === 200) return { ok: true, outcome: 'found' };
     if (res.status === 404) return { ok: true, outcome: 'notFound' };
     if (res.status === 429) {
       return { ok: false, outcome: 'rateLimited', error: errorCode(new SyncError('rate-limited')) };
     }
     return { ok: false, outcome: 'error', error: errorCode(new SyncError(`http-${res.status}`)) };
-  } catch {
+  } catch(error) {
+    if(error instanceof SyncError&&error.message==='rate-limited')return {ok:false,outcome:'rateLimited',error:'rate-limited'};
     return { ok: false, outcome: 'offline', error: errorCode(new Error('offline')) };
   } finally {
     key.fill(0);
@@ -592,7 +644,7 @@ async function disable({ wipeRemote = false } = {}) {
   // the active one at its next checkpoint, (3) WAIT for it to settle —
   // network included. Only then is the DELETE (or the credential clear) safe.
   suspended = true;
-  syncGen += 1;
+  invalidateGeneration('suspended');
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   if (pairing) cancelPairing().catch(() => {});
@@ -609,7 +661,7 @@ async function disable({ wipeRemote = false } = {}) {
       // sync-wipe.js and its unit test.
       let outcome;
       try {
-        const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
+        const res = await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
         outcome = { status: res.status };
       } catch {
         outcome = { error: true };
@@ -620,6 +672,7 @@ async function disable({ wipeRemote = false } = {}) {
       }
     } else if (d.enabled && d.accountId && d.protectedKey) {
       await retractSends(d).catch(() => {});
+      await retractSends(d,'closed',syncedClosed.retractedOwn).catch(() => {});
     }
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
@@ -633,6 +686,8 @@ async function disable({ wipeRemote = false } = {}) {
     tabsync.onSyncDisabled();
     tabicons.onSyncDisabled();
     sends.onSyncDisabled();
+    sharedSpaces.onSyncDisabled();
+    syncedClosed.onSyncDisabled();
     return { ok: true, status: status() };
   } finally {
     suspended = false; // a failed wipe keeps sync enabled — future passes must run
@@ -649,7 +704,7 @@ async function responseText(res) {
  * `run.stale()` is checked after every await so a stranded pass aborts
  * before it merges, exports, or writes anything. */
 async function syncOne(accountId, key, desc, run, attempt = 0) {
-  const url = `${SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
+  const url = `${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
   const getRes = await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
   let version = null, remote = null, missing = false;
@@ -663,152 +718,163 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   } else if (getRes.status === 429) {
     throw new SyncError('rate-limited');
   } else if (getRes.status === 404) {
-    // An older Worker answers an optional store it doesn't serve with this
-    // body; a missing blob in a served store answers "not found".
     if (desc.optional && await responseText(getRes) === 'unknown store') return { unavailable: true };
     if (run.stale()) throw new SyncError('stale');
     missing = true;
-  } else {
-    throw new SyncError(`http-${getRes.status}`);
-  }
-  if (remote) {
-    applyingRemote = true;
-    try { desc.merge(remote, run.ctx); } finally { applyingRemote = false; }
-  }
-  const payload = desc.export(run.ctx);
-  if (
-    missing &&
-    desc.optional &&
-    desc.hasPublishableContent &&
-    !desc.hasPublishableContent(payload, run.ctx)
-  ) {
-    return { missing: true };
-  }
-  if (remote && desc.equals?.(payload, remote)) return; // true no-op — skip the PUT
-  const blob = encrypt(key, JSON.stringify(payload));
-  if (run.stale()) throw new SyncError('stale'); // last gate before the write
-  const putRes = await net.fetch(url, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ifVersion: version, blob }),
-  });
-  if (putRes.status === 409 && attempt < 3) {
+  } else throw new SyncError(`http-${getRes.status}`);
+  let plan = null, stored = false;
+  try {
+    let payload;
+    if (desc.spaceId) {
+      plan = sharedSpaces.exportSpace(desc.spaceId,remote,version,run.ctx,text=>encrypt(key,text));
+      if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
+      payload = plan.upload.blob;
+    } else {
+      // Rejecting an oversized sidecar for display must not let our smaller
+      // cache overwrite its peer bindings. Hold publication in that case.
+      if(desc.name==='shared'&&remote&&Buffer.byteLength(JSON.stringify(remote),'utf8')>65536)return {blocked:true};
+      if (remote) {
+        applyingRemote = true;
+        try { desc.merge(remote, run.ctx); } finally { applyingRemote = false; }
+      }
+      payload = desc.export(run.ctx);
+      if(desc.name==='shared'&&payload===null)return {blocked:true};
+      if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) return { missing: true };
+      if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx); return; }
+    }
+    const blob = encrypt(key, JSON.stringify(payload));
+    if (Buffer.byteLength(JSON.stringify(blob),'utf8') > 524288-4096) throw new SyncError('payload-too-large');
     if (run.stale()) throw new SyncError('stale');
-    return syncOne(accountId, key, desc, run, attempt + 1); // re-pull-merge
+    const putRes = await net.fetch(url, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ifVersion: version, blob }),
+    });
+    if (run.stale()) throw new SyncError('stale');
+    if (putRes.status === 409 && attempt < 3) return { retry: true };
+    if (putRes.status === 409) throw new SyncError('conflict');
+    if (desc.optional && putRes.status === 404) return { unavailable: true };
+    if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
+    stored = true;
+    desc.stored?.(payload,run.ctx);
+    return desc.spaceId ? { spaceStored: true } : null;
+  } finally {
+    if (plan) sharedSpaces.settleSpace(desc.spaceId,plan,{blobStored:stored},run.ctx);
   }
-  if (putRes.status === 409) throw new SyncError('conflict');
-  if (desc.optional && putRes.status === 404) return { unavailable: true };
-  if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
 }
 
-/** `onOutcome(name, outcome, error)` reports each store this pass ran; it
- * is how sendTab learns its own PUT's result. */
+function spaceDescriptor(id,kind='S') {
+  return {name:'space-'+id,class:kind,spaceId:id,optional:true,spaces:true};
+}
+function cancelledRequest(gen,ctx,desc) {
+  if (suspended) return 'suspended';
+  if (gen!==syncGen) return 'generation';
+  if (!ensureStore().data.enabled) return 'disabled';
+  if (desc.spaces && !sharedSpaces.isEnabled(ctx)) return 'consent-off';
+  if (desc.spaces && spacesUnavailable && !desc.retryAvailability) return 'unavailable';
+  return null;
+}
+function sharedStatus() {
+  if(!isDefaultLocalProfile())return {enabled:false,available:false,spaces:0,spaceLimit:25,canAdd:false,waiting:0,running:0,windowFreesAt:0,backoff:false};
+  const ctx={accountId:ensureStore().data.accountId};
+  return {enabled:sharedSpaces.isEnabled(ctx),available:!spacesUnavailable,
+    spaces:sharedSpaces.spaceCount(ctx),spaceLimit:25,canAdd:sharedSpaces.canAddSpace(ctx),
+    ...(requestQueue?.status()??{waiting:0,running:0,windowFreesAt:0,backoff:false})};
+}
+function spaceStatus(id) {
+  if(!isDefaultLocalProfile())return {unsyncedTabIds:[],reason:null};
+  const entry=sharedSpaces.rebind(ensureStore().data.accountId).data.blobs[id];
+  const reason=['full','tombstones','tabs','remote-over-budget','required-state-over-budget'].includes(entry?.reason)?entry.reason:null;
+  return {unsyncedTabIds:unsyncedTabIds(entry),reason};
+}
+function setSyncSpaces(on) {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>setSyncSpaces(on));
+  sharedSpaces.setEnabled(on,tabSyncContext());
+  if (!on) requestQueue?.cancelWhere(op=>op.spaces,'consent-off');
+  else {spacesUnavailable=false;spacesRetryAt=0;if(ensureStore().data.enabled)schedule(1000);}
+  return sharedStatus();
+}
+
+/** Callers attach to queued operations, never to a stale in-flight fetch.
+ * Only a waiting operation can coalesce: its export will see every mutation
+ * that preceded dispatch. Running operations have their own immutable ctx. */
 async function syncNow(names = null, { onOutcome } = {}) {
-  if (!isDefaultLocalProfile()) {
-    return withLocalProfile(DEFAULT_PROFILE_ID, () => syncNow(names, { onOutcome }));
-  }
-  const d = ensureStore().data;
-  // `suspended` bars new passes while disable() drains and wipes — a fresh
-  // pass dispatching requests mid-drain would defeat the barrier.
-  if (suspended || !d.enabled || !d.accountId || !d.protectedKey) {
-    return { ok: false, error: keyProtectionError || 'sync-off' };
-  }
-  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return { ok: false, error: SERVICE_UNAVAILABLE };
-  // Palette open / Sync Now / scheduled session churn can fire before restore
-  // finishes. Skip only the tab-dependent stores; Favorites/settings still run.
-  if (names && names.length > 0 && names.every((name) => !tabSyncStoreReady(name))) {
-    return { ok: true };
-  }
-  if (syncing) { // coalesce concurrent triggers
-    pendingNames = pendingNames === undefined ? names : unionNames(pendingNames, names);
-    return { ok: true };
-  }
-  syncing = true;
-  // Everything below — network requests included — settles before this
-  // resolves; disable() awaits it as its drain barrier.
-  let settle;
-  let key;
-  passSettled = new Promise((resolve) => { settle = resolve; });
-  try {
-    const accountId = d.accountId;          // snapshot so a mid-flight disable can't redirect writes
-    try {
-      key = unprotectSyncKey(safeStorage, d.protectedKey);
-      keyProtectionError = null;
-    } catch (error) {
-      keyProtectionError = error instanceof SyncKeyStorageError ? `key:${error.code}` : 'local-key-unlock';
-      return { ok: false, error: keyProtectionError };
-    }
-    // The whole pass runs under ONE generation and ONE tab-sync context; a
-    // credential/consent change mid-flight strands it at the next checkpoint.
-    const gen = syncGen;
-    const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
-    let firstError = null, stranded = false, ranRequiredStore = false;
-    // A readiness skip of session (required) must not look like a full refresh:
-    // Favorites/settings alone must not clear lastError or advance lastSyncedAt.
-    let skippedRequiredSelected = false;
-    for (const desc of STORES) {
-      if (names && !names.includes(desc.name)) continue;
-      if (!tabSyncStoreReady(desc.name)) {
-        if (!desc.optional) skippedRequiredSelected = true;
-        continue;
-      }
-      if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
-      if (!desc.optional) ranRequiredStore = true;
-      try {
-        const outcome = await syncOne(accountId, key, desc, run);
-        onOutcome?.(desc.name, outcome ?? null, null);
-        if (desc.optional) {
-          if (outcome?.missing) {
-            scheduleOptionalMissingRetry(accountId, desc.name);
-          } else {
-            noteOptionalStorePresent(accountId, desc.name);
-          }
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>syncNow(names,{onOutcome}));
+  const d=ensureStore().data;
+  if (suspended || !d.enabled || !d.accountId || !d.protectedKey) return {ok:false,error:keyProtectionError||'sync-off'};
+  if (!bananifyServiceAllowed(SYNC_ENDPOINT)) return {ok:false,error:SERVICE_UNAVAILABLE};
+  const ctx=tabSyncContext(),gen=syncGen,queue=getRequestQueue(),jobs=[];
+  const consent=sharedSpaces.isEnabled(ctx),retryAvailability=spacesUnavailable && Date.now()>=spacesRetryAt;
+  let skippedRequiredSelected=false;
+  function enqueue(desc) {
+    const cancelled=()=>cancelledRequest(gen,ctx,desc);
+    const record=sharedSpaces.rebind(ctx.accountId).data;
+    const job=queue.enqueue({class:desc.class??'F',item:desc.name,generation:gen,spaces:!!desc.spaces,
+      priority:desc.spaceId && Object.keys(record.pending[desc.spaceId]??{}).some(k=>k!=='index')?0:1,cancelled,
+      run:async({attempt})=>{
+        let key;
+        try {
+          try {key=unprotectSyncKey(safeStorage,d.protectedKey);keyProtectionError=null;}
+          catch(error){keyProtectionError=error instanceof SyncKeyStorageError?`key:${error.code}`:'local-key-unlock';throw new SyncError(keyProtectionError);}
+          if(cancelled())throw new SyncError('stale');
+          return await syncOne(d.accountId,key,desc,{ctx,stale:()=>!!cancelled()},attempt);
+        } finally {key?.fill(0);}
+      },
+      onOutcome:(outcome,error)=>{
+        if(desc.spaces && outcome?.unavailable) {
+          spacesUnavailable=true;spacesRetryAt=Date.now()+OPTIONAL_MISSING_RETRY_MS;
+          queue.cancelWhere(op=>op.spaces,'unavailable');scheduleOptionalMissingRetry(ctx.accountId,'spaces');
+        } else if(!error && desc.optional) {
+          if(desc.name==='spaces'){spacesUnavailable=false;spacesRetryAt=0;}
+          if(outcome?.missing)scheduleOptionalMissingRetry(ctx.accountId,desc.name);
+          else noteOptionalStorePresent(ctx.accountId,desc.name);
         }
-      }
-      catch (err) {
-        if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
-        onOutcome?.(desc.name, null, err);
-        // Cosmetic sidecars degrade to fallback UI; they must never make
-        // Favorites/settings/session sync report a failure.
-        if (!desc.optional) firstError ??= err;
-      }
-    }
-    // If sync was turned off mid-flight, don't stamp status onto a disabled store.
-    if (!ensureStore().data.enabled) return { ok: false, error: 'sync-off' };
-    // A stranded pass stamps nothing: its results belong to a dead generation.
-    // Cosmetic-only passes must not erase a real required-store error or make
-    // lastSyncedAt imply that Favorites/settings/session were refreshed.
-    // Partial pre-restore passes (session gated) also must not stamp success.
-    if (!stranded && ranRequiredStore) {
-      ensureStore().update((s) => {
-        if (firstError) s.lastError = errorCode(firstError);
-        else if (!skippedRequiredSelected) {
-          s.lastError = null;
-          s.lastSyncedAt = Date.now();
-        }
-      });
-    }
-    if (pendingNames !== undefined) {
-      const next = pendingNames;
-      pendingNames = undefined;
-      // Start the coalesced pass only after this pass's outer finally releases
-      // the guard and drain barrier. Calling syncNow synchronously here would
-      // observe syncing=true and merely coalesce itself again.
-      return new Promise((resolve) => {
-        queueMicrotask(() => resolve(syncNow(next)));
-      });
-    }
-    if (stranded) return { ok: true };
-    return firstError ? { ok: false, error: errorCode(firstError) } : { ok: true };
-  } finally {
-    // This guard owns the entire pass, including credential unlock. Reset it
-    // here so every exit path can be retried; limiting the
-    // reset to the network/store loop permanently wedged sync after an unlock
-    // or credential-mismatch error.
-    syncing = false;
-    key?.fill(0);
-    settle();
+        onOutcome?.(desc.name,outcome??null,error??null);
+      }});
+    const pending=job.then(result=>({desc,...result}));jobs.push(pending);queueBarrier();return pending;
   }
+  for(const base of STORES) {
+    if(names && !names.includes(base.name))continue;
+    if(!tabSyncStoreReady(base.name)){if(!base.optional)skippedRequiredSelected=true;continue;}
+    if(base.spaces && (!consent || (spacesUnavailable && !(base.name==='spaces'&&retryAvailability))))continue;
+    enqueue({...base,retryAvailability:base.name==='spaces'&&retryAvailability});
+  }
+  const initialIds=new Set();
+  function addSpaces(ids) {
+    const state=sharedSpaces.rebind(ctx.accountId).data;
+    for(const id of ids) {
+      const name='space-'+id;
+      if(names && !names.includes(name))continue;
+      const pending=state.pending[id];
+      if(names || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
+      if(!names)enqueue(spaceDescriptor(id,'R'));
+      initialIds.add(id);
+    }
+  }
+  if(consent && !spacesUnavailable) {
+    const ids=sharedSpaces.spaceIds(ctx);
+    if(names)for(const name of names)if(/^space-[0-9a-f]{32}$/.test(name)&&!ids.includes(name.slice(6)))ids.push(name.slice(6));
+    addSpaces(ids);
+  }
+  let results=await Promise.all(jobs);
+  if(gen===syncGen && ensureStore().data.enabled && consent && !spacesUnavailable && !suspended) {
+    if(!names) {
+      const more=sharedSpaces.spaceIds(ctx).filter(id=>!initialIds.has(id));const offset=jobs.length;
+      addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
+    }
+    if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));
+  }
+  // A dead generation never stamps status onto its successor. Optional stores
+  // still cannot conceal a required-store error or advance its freshness.
+  if(gen!==syncGen || suspended)return {ok:true};
+  if(!ensureStore().data.enabled)return {ok:false,error:'sync-off'};
+  if(keyProtectionError)return {ok:false,error:keyProtectionError};
+  const required=results.filter(x=>!x.desc.optional);
+  const firstError=required.find(x=>x.error && !x.error.message.startsWith('cancelled:'))?.error;
+  if(required.length)ensureStore().update(state=>{
+    if(firstError)state.lastError=errorCode(firstError);
+    else if(!skippedRequiredSelected){state.lastError=null;state.lastSyncedAt=Date.now();}
+  });
+  return firstError?{ok:false,error:keyProtectionError||errorCode(firstError)}:{ok:true};
 }
 
 function schedule(delay = 4000) {
@@ -851,7 +917,7 @@ function setSyncTabs(on) {
   if (!isDefaultLocalProfile()) {
     return withLocalProfile(DEFAULT_PROFILE_ID, () => setSyncTabs(on));
   }
-  syncGen += 1; // consent changed — a stale in-flight export must not publish under the old setting
+  invalidateGeneration(); // queued and running work cannot publish under the old consent
   tabicons.cancelCaptures();
   ensureStore().update((d) => { d.syncTabs = !!on; });
   if (ensureStore().data.enabled) scheduleTabs(1000);
@@ -874,7 +940,8 @@ function refreshSession() {
   const now = Date.now();
   if (now - lastSessionRefresh < 60_000) return;
   lastSessionRefresh = now;
-  syncNow(['session', 'icons', 'settings', 'sends']).catch(() => {});
+  if(sharedSpaces.isEnabled(tabSyncContext())){getRequestQueue();requestScheduler.markIndexDue();}
+  syncNow(sharedSpaces.isEnabled(tabSyncContext())?['spaces','session','icons','settings','sends']:['session','icons','settings','sends']).catch(() => {});
 }
 
 /** A generation-bound capture run. Favicon rasterization is asynchronous,
@@ -940,31 +1007,33 @@ function renameRemoteDevice(deviceId, name, devices = listRemoteDevices()) {
  * best effort and bounded, so the account's other devices stop offering it
  * as a target and drop its items. Never creates the store. Runs inside
  * disable()'s barrier, after the last pass has settled. */
-async function retractSends(d) {
-  let key;
-  try { key = unprotectSyncKey(safeStorage, d.protectedKey); } catch { return; }
-  const ownId = tabSyncContext().deviceId;
-  const url = `${SYNC_ENDPOINT}/v1/blob/${d.accountId}/sends`;
-  const signal = () => AbortSignal.timeout(5000);
-  try {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const getRes = await net.fetch(url, { signal: signal() });
-      if (getRes.status !== 200) return; // nothing published, or an older Worker
-      const body = await getRes.json();
-      const remote = JSON.parse(decrypt(key, body.blob));
-      if (!remote?.devices?.[ownId] || remote.devices[ownId].retracted) return;
-      const devices = { ...remote.devices, [ownId]: sends.retractedOwn() };
-      const putRes = await net.fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ifVersion: body.version, blob: encrypt(key, JSON.stringify({ devices })) }),
-        signal: signal(),
-      });
-      if (putRes.status !== 409) return;
-    }
-  } finally {
-    key.fill(0);
-  }
+async function retractSends(d,storeName='sends',makeRetraction=sends.retractedOwn) {
+  const queue=getRequestQueue();
+  // Departure is already best effort (offline/old Workers may prevent it).
+  // Do not refill/bypass the request window, or leave a delayed GET behind
+  // after disable resolves. Erase-server-copy still uses the separate DELETE.
+  if(!requestScheduler.canRequest())return;
+  const accountId=d.accountId,protectedKey=d.protectedKey,gen=syncGen,ownId=tabSyncContext().deviceId;
+  const cancelled=()=>gen!==syncGen||ensureStore().data.accountId!==accountId?'generation':null;
+  const operation=queue.enqueue({class:'F',item:storeName,generation:'leave:'+storeName+':'+gen,cancelled,run:async({attempt})=>{
+    let key;
+    try {
+      try {key=unprotectSyncKey(safeStorage,protectedKey);}catch{return;}
+      const url=`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/${storeName}`,signal=()=>AbortSignal.timeout(5000);
+      const getRes=await net.fetch(url,{signal:signal()});if(cancelled())return;
+      if(getRes.status===429)throw new SyncError('rate-limited');
+      if(getRes.status!==200)return;
+      const body=await getRes.json();if(cancelled())return;
+      const remote=JSON.parse(decrypt(key,body.blob));
+      if(!remote?.devices?.[ownId]||remote.devices[ownId].retracted)return;
+      const devices={...remote.devices,[ownId]:makeRetraction()};
+      if(cancelled())return;
+      const putRes=await net.fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ifVersion:body.version,blob:encrypt(key,JSON.stringify({devices}))}),signal:signal()});
+      if(putRes.status===409 && attempt<1 && requestScheduler.canRequest())return {retry:true};
+    } finally {key?.fill(0);}
+  }});
+  queueBarrier();await operation;
 }
 
 /** Every other device of this account a page can be sent to ([] when sync
@@ -1009,8 +1078,8 @@ async function sendTab({ url, title, to } = {}) {
   if (!listSendTargets().some((target) => target.id === to)) return { status: 'invalid' };
   // Wait out a pass already on the wire (and any pass it coalesced), so this
   // send runs its own pass and hears its own result.
-  for (let i = 0; syncing && i < 5; i += 1) await passSettled;
-  if (syncing || suspended || !ensureStore().data.enabled) return { status: 'failed' };
+  await requestQueue?.runningSettled();
+  if (suspended || !ensureStore().data.enabled) return { status: 'failed' };
   const ctx = tabSyncContext();
   const added = sends.addOwnItem(ctx, { url, title, to }, () => crypto.randomUUID());
   if (added.error) return { status: 'invalid' };
@@ -1019,7 +1088,9 @@ async function sendTab({ url, title, to } = {}) {
     onOutcome: (name, outcome, error) => { if (name === 'sends') result = { outcome, error }; },
   });
   if (result && !result.error && !result.outcome?.unavailable && !result.outcome?.missing) return { status: 'sent' };
-  sends.removeOwnItem(ctx, added.item.id);
+  // The queue can be cancelled by adopting another account. Rebinding the
+  // old send here would erase the new account's cache during rollback.
+  if(ensureStore().data.accountId===ctx.accountId)sends.removeOwnItem(ctx, added.item.id);
   return { status: result?.outcome?.unavailable ? 'unavailable' : 'failed' };
 }
 
@@ -1034,6 +1105,9 @@ function init() {
     if (ensureStore().data.enabled && !applyingRemote) schedule();
   });
   settings.onSettingsChanged(onDefaultLocalChange);
+  sharedSpaces.onChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled && sharedSpaces.isEnabled(tabSyncContext()) && !applyingRemote)schedule();}));
+  syncedClosed.onChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled && !applyingRemote)schedule();}));
+  setInterval(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{if(ensureStore().data.enabled)syncNow().catch(()=>{});}),60000).unref?.();
   bookmarks.onChanged(() => {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
@@ -1082,6 +1156,9 @@ module.exports = {
   switchWithCode,
   copyRecoveryCode,
   syncNow,
+  sharedStatus,
+  spaceStatus,
+  setSyncSpaces,
   status,
   setSyncTabs,
   setTabStateReady,
