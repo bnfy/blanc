@@ -200,7 +200,10 @@ const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
 const deletedSpaceIds=ctx=>Object.entries(rebind(ctx.accountId).data.index.spaces).filter(([,record])=>record.deleted?.v===true).map(([id])=>id);
 function retiredSpaceIds(ctx,now=Date.now()) {
   const d=rebind(ctx.accountId).data;
-  return Object.entries(d.index.spaces).filter(([id,record])=>record.deleted?.v===true&&now-record.deleted.c>=model.LIMITS.tombstoneMs&&!d.pending[id]?.index).map(([id])=>id);
+  // Cleanup runs only after the index no longer names the expired record.
+  // An obsolete pre-deletion publication receipt must not retain its blob
+  // forever when the device was offline throughout the retention window.
+  return Object.entries(d.index.spaces).filter(([,record])=>record.deleted?.v===true&&now-record.deleted.c>=model.LIMITS.tombstoneMs).map(([id])=>id);
 }
 function forgetRetiredSpace(id,ctx) {
   const s=rebind(ctx.accountId);s.update(d=>{delete d.index.spaces[id];delete d.knownIndex[id];delete d.blobs[id];delete d.pending[id];delete d.recoveries[id];for(const [key,row] of Object.entries(d.windows))if(row?.spaceId===id)delete d.windows[key];});

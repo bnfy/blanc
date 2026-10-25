@@ -768,7 +768,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       }
       payload = desc.export(run.ctx);
       if(desc.name==='shared'&&payload===null)return {blocked:true};
-      if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) return { missing: true };
+      if (missing && desc.optional && desc.hasPublishableContent && !desc.hasPublishableContent(payload, run.ctx)) {await cleanupRetiredSpaces(payload);return { missing: true };}
       if (remote && desc.equals?.(payload, remote)) { desc.stored?.(payload,run.ctx);await cleanupRetiredSpaces(payload);return; }
     }
     const blob = encrypt(key, JSON.stringify(payload));

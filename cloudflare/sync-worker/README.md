@@ -162,8 +162,9 @@ a wipe listing N keys needs approximately `ceil(N/P)` listings, deletion of the
 union of those keys and the eight fixed-store keys, and marker deletion. Missing
 fixed keys can therefore add up to eight delete calls; retries add requests.
 
-The owner rejected unbounded per-account growth and selected the quota above,
-separately selecting a daily new-account limit of 10. Both implementation and
-limits require review before deployment. The former four-store/$36 scenario is
+The owner rejected unbounded per-account growth and required an enforceable
+quota, separately selecting a daily new-account limit of 10. This candidate
+proposes the 20 MiB / 256-store values above; implementation, limits and legacy
+migration require review before deployment. The former four-store/$36 scenario is
 historical and does not bound M16 storage. The full deployment gate remains in
 the approved M16 plan; merging this code does not authorize deployment.

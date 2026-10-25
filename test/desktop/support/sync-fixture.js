@@ -12,7 +12,7 @@ function quotaState() {
 
 async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   const workerModule=await workerModulePromise,worker=workerModule.default,records=new Map(),expires=new Map(),scope=new AsyncLocalStorage();
-  const requests=[],rules=[];let race=null,url;
+  const requests=[],rules=[],clientServers=[],clients=new Map();let race=null,url;
   const raw=k=>{if(expires.has(k)&&expires.get(k)<=now()){expires.delete(k);records.delete(k);}return records.get(k)??null;};
   const env={records,NEW_ACCOUNT_DAILY_LIMIT:'10',ACCOUNT_STORAGE_QUOTA_BYTES:String(20*1024*1024),ACCOUNT_STORAGE_MAX_STORES:'256',SYNC:{
     get:async(key,options)=>{
@@ -55,7 +55,7 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
   }
   async function dispatch(request) {
     const path=new URL(request.url).pathname,parts=path.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([^/]+))?$/);
-    const event={url:request.url,method:request.method,accountId:parts?.[1],store:parts?.[2],at:now()};requests.push(event);
+    const event={url:request.url,client:clients.get(new URL(request.url).origin)??'A',method:request.method,accountId:parts?.[1],store:parts?.[2],at:now()};requests.push(event);
     const fault=rules.find(rule=>matches(rule,event));if(fault)fault.remaining--;
     if(fault?.type==='network'){event.status='network';throw new Error('Injected network failure');}
     if(fault?.type==='429'){event.status=429;return Response.json({error:'rate-limited'},{status:429});}
@@ -67,25 +67,27 @@ async function createSyncFixture({pageSize=2,now=()=>Date.now()}={}) {
     if(fault?.type==='disappear'&&request.method==='PUT'&&response.ok)await env.SYNC.delete(blobKey);
     return response;
   }
-  const server=http.createServer(async(req,res)=>{
+  const handler=async(req,res)=>{
     try {
       const chunks=[];for await(const chunk of req)chunks.push(chunk);
       const body=chunks.length?Buffer.concat(chunks):undefined;
-      const request=new Request(url+req.url,{method:req.method,headers:req.headers,...(body?{body,duplex:'half'}:{})});
+      const request=new Request('http://127.0.0.1:'+req.socket.localPort+req.url,{method:req.method,headers:req.headers,...(body?{body,duplex:'half'}:{})});
       const response=await dispatch(request);
       res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
     } catch(error) {req.socket.destroy(error);}
-  });
+  };
+  const server=http.createServer(handler);
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   url='http://127.0.0.1:'+server.address().port;
   return {url,env,requests,inject,dispatch,
+    clientEndpoint:async name=>{const server=http.createServer(handler);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});clientServers.push(server);const origin='http://127.0.0.1:'+server.address().port;clients.set(origin,name);return origin;},
     beforeNextPut:(store,before)=>inject({type:'hook',store,before}),
     raceNextPuts:({accountId,store,count=2})=>{
       if(race)throw new Error('A concurrent PUT barrier is already pending');
       let release,fail;const ready=new Promise((resolve,reject)=>{release=resolve;fail=reject;});
       race={key:`blob:${accountId}:${store}`,count,arrived:0,release,ready,timer:setTimeout(()=>{race=null;fail(new Error('Concurrent PUT barrier timed out'));},10000)};
     },
-    close:async()=>{if(race){clearTimeout(race.timer);race.release();race=null;}server.closeAllConnections?.();await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));},
+    close:async()=>{if(race){clearTimeout(race.timer);race.release();race=null;}for(const item of [...clientServers,server]){item.closeAllConnections?.();await new Promise((resolve,reject)=>item.close(error=>error?reject(error):resolve()));}},
   };
 }
 module.exports={createSyncFixture};

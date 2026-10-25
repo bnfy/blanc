@@ -102,10 +102,10 @@ test('invalid inactive shared-store containers cannot break the ordinary workspa
   assert.deepEqual(spaces.exportSidecar(c),{devices:{}});
   assert.equal(spaces.snapshot(c).blobs.saved.preserved,true,'repair must retain unrelated valid containers');
 });
-test('only settled expired Space tombstones become server-store deletion candidates',()=>{
+test('expired Space cleanup is not stranded by an obsolete publication receipt',()=>{
   const c={...ctx,accountId:'retired-space'},now=Date.now(),sid=id(77),s=spaces.rebind(c.accountId);
   s.update(d=>{d.index={v:1,spaces:{[sid]:{name:f('Old'),color:f(null),symbol:f(null),pos:f('a'+sid),deleted:f(true,now-model.LIMITS.tombstoneMs-1),rev:'0'.repeat(16),revAt:1,revBy:'a'}}};d.blobs[sid]={blob:blob()};d.pending[sid]={index:{rev:'x'}};});
-  assert.deepEqual(spaces.retiredSpaceIds(c,now),[]);
+  assert.deepEqual(spaces.retiredSpaceIds(c,now),[sid]);
   s.update(d=>{delete d.pending[sid].index;});assert.deepEqual(spaces.retiredSpaceIds(c,now),[sid]);
   spaces.forgetRetiredSpace(sid,c);const saved=spaces.snapshot(c);
   assert.equal(saved.index.spaces[sid],undefined);assert.equal(saved.blobs[sid],undefined);assert.equal(saved.pending[sid],undefined);

@@ -119,7 +119,8 @@ Then('the next encrypted write succeeds without waiting for retention expiry',{t
  const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
 });
 Given('a second complete desktop client sharing Work',{timeout:300000},async function(){
- this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:this.sharedFixture.url});
+ const endpoint=await this.sharedFixture.clientEndpoint('B');
+ this.sharedPeer=await ctx.launchPeerApp({BLANC_TEST_SYNC_ENDPOINT:endpoint});
  this.peerCall=(method,...args)=>callTestHook(this.sharedPeer,method,args);
  await this.peerCall('reset');assert.equal((await this.peerCall('sharedSpacesTest','enable',{handle,passphrase})).ok,true);
  assert.equal((await this.peerCall('sharedSpacesTest','apply',{enabled:true,selections:[]})).ok,true);
@@ -155,7 +156,7 @@ Then('a complete client receives one remote close entry',{timeout:600000},async 
  await b('openTab',this.fixtureUrl('two-client-close-unprotect'));
  await a('closeTab',this.newA);await a('sharedSpacesTest','capture');await a('sharedSpacesTest','pull',['closed','space-'+this.sid]);await b('sharedSpacesTest','pull',['closed','space-'+this.sid]);
  await waitForValue(()=>b('state'),s=>!s.tabs.some(t=>t.url===this.fromA),'remote close applied',15000);
- const state=await b('sharedSpacesTest','state');assert.equal(state.closed.filter(row=>row.url===this.fromA).length,1);
+ const state=await b('sharedSpacesTest','state');assert.equal(state.closed.filter(row=>row.title.includes('two-client-a')).length,1,JSON.stringify(state.closed));
 });
 Then('both complete clients rejoin dormant edits without duplicate tabs',{timeout:600000},async function(){
  const a=this.call.bind(this),b=this.peerCall;
@@ -166,7 +167,9 @@ Then('both complete clients rejoin dormant edits without duplicate tabs',{timeou
  for(const call of [a,b]){const state=await call('state');for(const url of urls)assert.equal(state.tabs.filter(t=>t.url===url).length,1);}
 });
 Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
- for(const call of [this.call.bind(this),this.peerCall]){const state=await call('sharedSpacesTest','state'),times=state.shared.requestLog;for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10);}
+ const gets=this.sharedFixture.requests.filter(r=>r.method==='GET');
+ for(const client of ['A','B']){const times=gets.filter(r=>r.client===client).map(r=>r.at);assert.ok(times.length>10,'audit the complete history across multiple windows');for(const at of times)assert.ok(times.filter(time=>time>at-60000&&time<=at).length<=10,client+' exceeded its rolling GET window');}
+ const minutes=new Map();for(const r of gets){const minute=Math.floor(r.at/60000);minutes.set(minute,(minutes.get(minute)??0)+1);}for(const count of minutes.values())assert.ok(count<=20);
  assert.equal(this.sharedFixture.requests.some(r=>r.status===429),false);
 });
 Then('the Shared Spaces peer driver verifies {string}',{timeout:180000},async function(name){
@@ -188,7 +191,7 @@ Then('the merged remote tab survives the crash without a duplicate',async functi
  assert.equal(await this.call('startupReady'),true);
 });
 When('an index write fails after the new Space blob succeeds',{timeout:180000},async function(){
- this.sharedFixture.inject({type:'network',method:'PUT',store:'spaces'});
+ this.indexFault=this.sharedFixture.inject({type:'network',method:'PUT',store:'spaces',times:Infinity});
  const state=await this.call('sharedSpacesTest','state'),row=state.workspaces.items.find(w=>w.name==='Work');
  assert.equal((await this.call('sharedSpacesTest','apply',{enabled:true,selections:[{id:row.id,mode:'copy'}]})).ok,true);
  this.sid=Object.keys((await this.call('sharedSpacesTest','state')).shared.blobs)[0];
@@ -196,6 +199,7 @@ When('an index write fails after the new Space blob succeeds',{timeout:180000},a
  assert.equal(this.sharedFixture.env.records.has(`blob:${this.sharedKey.accountId}:spaces`),false);
 });
 Then('the restored client retries the missing index entry',{timeout:300000},async function(){
+ this.indexFault.remaining=0;
  await this.call('sharedSpacesTest','pull',['space-'+this.sid,'spaces']);
  const raw=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:spaces`);assert.ok(raw);
  const index=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(raw).blob));assert.ok(index.spaces[this.sid]);

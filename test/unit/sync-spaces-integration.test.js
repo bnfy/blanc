@@ -35,6 +35,14 @@ async function environment(t) {
   return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
+test('expired deletion frees its server slot despite an old pending index receipt',async t=>{
+  const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
+  a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);d.pending[sid]={index:{rev:'old-publication'}};});
+  await e.drive(a.sync.syncNow(['spaces']));
+  assert.equal(e.fixture.env.records.has(`blob:${account}:${store}`),false);
+  assert.equal(a.spaces.snapshot(a.ctx).index.spaces[sid],undefined);
+  assert.equal(a.spaces.snapshot(a.ctx).pending[sid],undefined);
+});
 test('optional Space quota failure reaches the account status and clears after successful retry',async t=>{
   const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
   e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES='1';

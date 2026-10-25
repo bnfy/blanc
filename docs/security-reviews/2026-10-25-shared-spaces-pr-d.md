@@ -32,6 +32,16 @@ must be updated with release evidence before Shared Spaces is released.
 
 ## Validation status
 
-Final source validation is in progress. The draft PR description will record
-the resulting source SHA and completed results; this document does not turn
-pending Linux CI or platform confirmation into a pass.
+The local Workers runtime passed with the checked-in configuration, migrations
+and SQLite object. All nine peer-driver cases passed their Cucumber bindings.
+All three crash cases passed (the index failure remains active through relaunch
+so a background retry cannot invalidate the intended fault). Focused source,
+quota and workflow regressions, lint, substrate and acceptance binding pass.
+The full unit suite and native two-client/window runs are being completed;
+the draft PR description records their resulting source SHA and final results.
+Linux CI and platform confirmations remain separate evidence.
+
+Source review fixed an additional expiry edge case: an obsolete index
+publication receipt can no longer strand a deleted Space's slot after 30 days.
+The client cleans up only after the successful/fetched index excludes the
+expired id; a failed DELETE keeps local state for retry.

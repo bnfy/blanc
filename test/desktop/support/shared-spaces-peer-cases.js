@@ -49,8 +49,10 @@ async function runPeerCase(name){
    assert.equal(rows.length,1);assert.equal(rows[0].urls.filter(u=>u==='https://example.test/2').length,1);assert.ok(a.workspaces.list().length>25);assert.equal(read(store).tabs[id(2)],undefined);return;
   }
   if(name==='lost index reconciliation'){
+   const b=device('B');await drive(b.sync.syncNow(['spaces',store]));
    fixture.inject({type:'disappear',store:'spaces'});const value=blob();value.tabs[id(1)].name=f('Changed',200);a.spaces.noteLocalSpace(sid,value,{tabs:{[id(1)]:{name:value.tabs[id(1)].name}}},a.ctx);await drive(a.sync.syncNow([store]));
-   const b=device('B');b.spaces.setIndex({v:1,spaces:{[sid]:index()}},b.ctx);await drive(b.sync.syncNow([store]));assert.equal(b.spaces.snapshot(b.ctx).blobs[sid].blob.tabs[id(1)].name.v,'Changed');return;
+   assert.equal(read('spaces'),null);
+   await drive(b.sync.syncNow());assert.equal(b.spaces.snapshot(b.ctx).blobs[sid].blob.tabs[id(1)].name.v,'Changed');return;
   }
   if(name==='stale read cannot roll back'){
    fixture.inject({type:'stale',accountId:account,store,times:1});const value=blob();value.tabs[id(1)].name=f('Newest',300);a.spaces.noteLocalSpace(sid,value,{tabs:{[id(1)]:{name:value.tabs[id(1)].name}}},a.ctx);
@@ -89,6 +91,6 @@ async function runPeerCase(name){
    assert.equal(scheduler.snapshot().windowLimit,10);return;
   }
   throw new Error('Unknown Shared Spaces peer scenario: '+name);
- } finally {for(const d of devices){await d.dispose();}await fixture.close();}
+ } finally {for(const d of devices){await drive(d.sync.disable({wipeRemote:false}));await d.dispose();}await fixture.close();}
 }
 module.exports={runPeerCase};
