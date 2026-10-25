@@ -23,7 +23,7 @@ final class TabsManager {
                 if let search = values?["searchEngine"]?.text { patch["searchEngine"] = search }
                 if let enabled = values?["adblockEnabled"]?.boolean { patch["adblockEnabled"] = enabled }
                 self.applySettingsPatch(patch)
-            }, tabsSource: { [weak self] in self?.tabs.map { ($0.currentURL.absoluteString, $0.pageTitle) } ?? [] })
+            }, tabsSource: { [weak self] in self?.syncedTabs ?? [] })
         engine.onChanged = { [weak self] in self?.bridge.emitSyncChanges() }
         return engine
     }()
@@ -36,6 +36,22 @@ final class TabsManager {
     @ObservationIgnored private var isRestoringSession = false
 
     static let newTabURL = URL(string: "blanc://newtab/")!
+    static let privateNewTabURL = URL(string: "blanc://newtab/?private=1")!
+
+    /// One in-memory web session shared by every private tab, forgotten when
+    /// the last private tab closes (and when Blanc quits).
+    @ObservationIgnored private var privateStore: WKWebsiteDataStore?
+    var privateDataStore: WKWebsiteDataStore {
+        if let privateStore { return privateStore }
+        let store = WKWebsiteDataStore.nonPersistent()
+        privateStore = store
+        return store
+    }
+
+    /// The open tabs other devices may see; private tabs never leave the phone.
+    var syncedTabs: [(url: String, title: String)] {
+        tabs.filter { !$0.isPrivate }.map { ($0.currentURL.absoluteString, $0.pageTitle) }
+    }
 
     var activeTab: TabModel? {
         guard let activeTabId else { return nil }
@@ -107,23 +123,26 @@ final class TabsManager {
     }
 
     @discardableResult
-    func createTab(url: URL = TabsManager.newTabURL) -> UUID {
-        let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+    func createTab(url: URL? = nil, isPrivate: Bool = false) -> UUID {
+        let url = url ?? (isPrivate ? Self.privateNewTabURL : Self.newTabURL)
+        let config = WebViewConfiguration.make(
+            schemeHandler: schemeHandler, bridge: bridge,
+            dataStore: isPrivate ? privateDataStore : .default())
         if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
-        let tab = TabModel(url: url, configuration: config)
+        let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
         if contentBlocker.enabled && !contentBlocker.isReady {
             contentBlocker.attach(to: tab.webView)
         }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         // The title arrives after the visit, so the visit starts untitled.
         tab.navigationDelegate.onURLChange = { [weak self] url in
-            self?.historyStore.addVisit(url: url, title: "")
+            if !isPrivate { self?.historyStore.addVisit(url: url, title: "") }
             self?.persistSession()
         }
         tab.navigationDelegate.onTitleChange = { [weak self, weak tab] in
-            if let tab { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
+            if let tab, !isPrivate { self?.historyStore.updateTitle(url: tab.currentURL, title: tab.pageTitle) }
             self?.syncEngine.tabsChanged()
         }
         tabs.append(tab)
@@ -139,6 +158,7 @@ final class TabsManager {
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         contentBlocker.cancelPending(for: tabs[index].webView)
         tabs.remove(at: index)
+        if !tabs.contains(where: \.isPrivate) { privateStore = nil }
 
         if tabs.isEmpty {
             createTab()
@@ -172,9 +192,12 @@ final class TabsManager {
     /// don't overwrite the saved session mid-rebuild.
     func persistSession() {
         guard !isRestoringSession else { return }
-        guard !tabs.isEmpty else { return }
-        let urls = tabs.map { $0.currentURL.absoluteString }
-        let activeIdx = tabs.firstIndex(where: { $0.id == activeTabId }) ?? 0
+        // Private tabs are never saved. With only private tabs open, the last
+        // ordinary session stays on disk.
+        let saved = tabs.filter { !$0.isPrivate }
+        guard !saved.isEmpty else { return }
+        let urls = saved.map { $0.currentURL.absoluteString }
+        let activeIdx = saved.firstIndex(where: { $0.id == activeTabId }) ?? 0
         sessionStore.save(urls: urls, activeIndex: activeIdx)
         syncEngine.tabsChanged()
     }

@@ -6,8 +6,12 @@ import WebKit
 /// shared (stateless / keyed off `message.webView`), so the same instances
 /// are installed on every tab's configuration.
 enum WebViewConfiguration {
-    static func make(schemeHandler: BlancSchemeHandler, bridge: PagesBridge) -> WKWebViewConfiguration {
+    static func make(
+        schemeHandler: BlancSchemeHandler, bridge: PagesBridge,
+        dataStore: WKWebsiteDataStore = .default()
+    ) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
+        config.websiteDataStore = dataStore
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "blanc")
 
         let userScript = WKUserScript(

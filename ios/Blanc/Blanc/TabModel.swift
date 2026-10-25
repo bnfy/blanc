@@ -11,11 +11,15 @@ final class TabModel: Identifiable {
     var canGoForward = false
     var isLoading = false
     var pageTitle = ""
+    /// Never saved, synced or recorded in History; its web data lives only in
+    /// memory (`TabsManager.privateDataStore`).
+    let isPrivate: Bool
 
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
 
-    init(url: URL, configuration: WKWebViewConfiguration) {
+    init(url: URL, configuration: WKWebViewConfiguration, isPrivate: Bool = false) {
+        self.isPrivate = isPrivate
         self.currentURL = url
         self.addressText = url.absoluteString
         self.webView = WKWebView(frame: .zero, configuration: configuration)

@@ -38,6 +38,75 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.historyStore.entries.first?.title, "Example page")
     }
 
+    @MainActor private func openPrivate(_ m: TabsManager, url: URL? = nil) -> TabModel {
+        let id = m.createTab(url: url, isPrivate: true)
+        return m.tabs.first { $0.id == id }!
+    }
+
+    @MainActor func testPrivateTabUsesNonPersistentStore() {
+        let m = makeManager()
+        let tab = openPrivate(m)
+        XCTAssertTrue(tab.isPrivate)
+        XCTAssertEqual(tab.currentURL, TabsManager.privateNewTabURL)
+        XCTAssertFalse(tab.webView.configuration.websiteDataStore.isPersistent)
+        XCTAssertTrue(m.tabs[0].webView.configuration.websiteDataStore.isPersistent, "ordinary tabs keep the default store")
+    }
+
+    @MainActor func testPrivateTabsShareOneStore() {
+        let m = makeManager()
+        let a = openPrivate(m), b = openPrivate(m)
+        XCTAssertTrue(a.webView.configuration.websiteDataStore === b.webView.configuration.websiteDataStore)
+    }
+
+    @MainActor func testClosingLastPrivateTabForgetsTheStore() {
+        let m = makeManager()
+        let a = openPrivate(m)
+        _ = openPrivate(m)
+        let first = a.webView.configuration.websiteDataStore
+        m.closeTab(a.id)
+        XCTAssertTrue(openPrivate(m).webView.configuration.websiteDataStore === first, "the store lives while any private tab is open")
+        for tab in m.tabs where tab.isPrivate { m.closeTab(tab.id) }
+        XCTAssertFalse(openPrivate(m).webView.configuration.websiteDataStore === first)
+    }
+
+    @MainActor func testSessionNeverPersistsPrivateTabs() {
+        let sessionDir = tmpDir()
+        let m = makeManager(sessionDir: sessionDir)
+        m.activeTab!.navigationDelegate.applyURL(URL(string: "https://ordinary.example/")!, to: m.activeTab!)
+        let privateId = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
+        m.flushSession()
+        XCTAssertEqual(SessionStore(directory: sessionDir).urls, ["https://ordinary.example/"])
+        m.closeTab(m.tabs[0].id)
+        XCTAssertEqual(m.tabs.map(\.id), [privateId], "only the private tab is left")
+        m.flushSession()
+        XCTAssertEqual(SessionStore(directory: sessionDir).urls, ["https://ordinary.example/"], "a private-only window keeps the last ordinary session")
+    }
+
+    @MainActor func testPrivateTabRecordsNoHistory() {
+        let m = makeManager()
+        let tab = openPrivate(m)
+        tab.navigationDelegate.applyURL(URL(string: "https://secret.example/")!, to: tab)
+        tab.pageTitle = "Secret"
+        tab.navigationDelegate.onTitleChange?()
+        XCTAssertTrue(m.historyStore.entries.isEmpty)
+    }
+
+    @MainActor func testPrivateTabIsNotInTheSyncSnapshot() {
+        let m = makeManager()
+        m.activeTab!.navigationDelegate.applyURL(URL(string: "https://ordinary.example/")!, to: m.activeTab!)
+        m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
+        XCTAssertEqual(m.syncedTabs.map(\.url), ["https://ordinary.example/"])
+    }
+
+    @MainActor func testClosingTheLastTabOpensAnOrdinaryOne() {
+        let m = makeManager()
+        let privateId = m.createTab(isPrivate: true)
+        m.closeTab(m.tabs[0].id)
+        m.closeTab(privateId)
+        XCTAssertEqual(m.tabs.count, 1)
+        XCTAssertFalse(m.tabs[0].isPrivate)
+    }
+
     func testInitCreatesOneTab() {
         let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)
