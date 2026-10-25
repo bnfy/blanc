@@ -10,7 +10,7 @@ async function cdp(url){
  const socket=new WebSocket(url);
  await new Promise((res,rej)=>{socket.onopen=res;socket.onerror=rej;});let id=0;const pending=new Map();
  socket.onmessage=e=>{const d=JSON.parse(e.data);const p=pending.get(d.id);if(p){pending.delete(d.id);d.error?p.reject(Error(JSON.stringify(d.error))):p.resolve(d.result);}};
- return {send:(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));}),close:()=>socket.close()};
+ return {send:(method,params={})=>new Promise((resolve,reject)=>{const n=++id;const timer=setTimeout(()=>{pending.delete(n);reject(Error(`CDP timeout: ${method}`));},15000);pending.set(n,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});socket.send(JSON.stringify({id:n,method,params}));}),close:()=>socket.close()};
 }
 let outcomes=[];
 for(const mode of ['baseline','profile','unset','profile-unset','original-launcher','integrated-launcher']){
@@ -22,7 +22,7 @@ for(const mode of ['baseline','profile','unset','profile-unset','original-launch
  const log=fs.openSync(`${root}/${mode}.log`,'w');
  const child=spawn('flatpak',['run',`--env=BLANC_FLATPAK_CASE=${mode}`,'com.blancbrowser.Blanc'],{stdio:['ignore',log,log]});
  let pages=[];let ready=false;
- for(let i=0;i<45;i++){await delay(1000);try{pages=await(await fetch('http://127.0.0.1:9222/json/list')).json();if(pages.some(p=>p.type==='page'&&!p.url.startsWith('devtools:'))){ready=true;break;}}catch{}if(child.exitCode!==null)break;}
+ for(let i=0;i<45;i++){await delay(1000);try{pages=await(await fetch('http://127.0.0.1:9222/json/list',{signal:AbortSignal.timeout(1000)})).json();if(pages.some(p=>p.type==='page'&&!p.url.startsWith('devtools:'))){ready=true;break;}}catch{}if(child.exitCode!==null)break;}
  const result={mode,removeDesktop:remove,exitCode:child.exitCode,pages,ready};
  if(ready){try{
   const target=pages.find(p=>p.type==='page'&&!p.url.startsWith('blanc-chrome:')&&!p.url.startsWith('devtools:'));

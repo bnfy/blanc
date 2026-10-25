@@ -9,7 +9,9 @@ sysctl kernel.unprivileged_userns_clone user.max_user_namespaces || true
 # No sysctl changes, AppArmor changes, or sandbox-disabling switches.
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//26.08 org.electronjs.Electron2.BaseApp//26.08
-flatpak list --user --columns=application,branch,commit > "$ROOT/runtime-commits.txt"
+flatpak list --user > "$ROOT/runtime-commits.txt"
+flatpak info --user --show-commit org.freedesktop.Platform//26.08 >> "$ROOT/runtime-commits.txt"
+flatpak info --user --show-commit org.electronjs.Electron2.BaseApp//26.08 >> "$ROOT/runtime-commits.txt"
 gh release download v1.43.1 --repo bnfy/blanc --pattern 'Blanc-1.43.1.AppImage' --pattern SHA256SUMS --pattern SHA256SUMS.sigstore.json --dir "$ROOT"
 (cd "$ROOT" && sha256sum --check --ignore-missing SHA256SUMS)
 chmod +x "$ROOT/Blanc-1.43.1.AppImage"
@@ -37,7 +39,7 @@ new=old.replace(needle,'''    // Candidate: initialize zypak after preparing the
 (r/'launcher.candidate.cc').write_text(new)
 (r/'launcher.patch').write_text(''.join(difflib.unified_diff(old.splitlines(True),new.splitlines(True),fromfile='a/scripts/ecs-linux-launcher.cc',tofile='b/scripts/ecs-linux-launcher.cc')))
 PY
-g++ -std=c++20 -O2 -DBLANC_ECS_PRODUCTION -static-libstdc++ -static-libgcc "$ROOT/launcher.candidate.cc" -o "$ROOT/blanc-ecs-launcher-candidate"
+g++ -std=c++20 -O2 -DBLANC_ECS_PRODUCTION -static "$ROOT/launcher.candidate.cc" -o "$ROOT/blanc-ecs-launcher-candidate"
 flatpak build-init --arch=x86_64 --base=org.electronjs.Electron2.BaseApp --base-version=26.08 "$ROOT/build" com.blancbrowser.Blanc org.freedesktop.Platform org.freedesktop.Platform 26.08
 mkdir -p "$ROOT/build/files/extra/blanc" "$ROOT/build/files/bin" "$ROOT/build/files/share/applications"
 cp -a "$ROOT/squashfs-root/." "$ROOT/build/files/extra/blanc/"
