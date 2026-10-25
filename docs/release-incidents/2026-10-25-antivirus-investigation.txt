@@ -1,5 +1,25 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+PROTECTED MAC SIGNING PROVISIONED: The owner explicitly approved adding only
+codex/antivirus-source-packaging to the existing ecs-signing branch allowlist
+and storing the pinned Apple signing identity and existing notarization
+credentials there. Exported one SecIdentity object whose certificate SHA-1 is
+55283A84D3706D5A22386D5F002A0CD4845ECFD4 into a randomly password-encrypted
+private P12 (duplicate keychain references were not bulk-exported). The P12
+passed the existing exact certificate/profile preflight. MAC_CSC_LINK,
+MAC_CSC_KEY_PASSWORD, APPLE_ID and APPLE_APP_SPECIFIC_PASSWORD were streamed
+to protected GitHub secrets without values in arguments, chat or logs. The
+existing EVS secrets stayed in GitHub. Verified the required bnfy reviewer and
+branch-policy configuration are unchanged, with only the exact approved branch
+added. Deleted the temporary local P12/password after secret-name verification.
+No credential was committed or included in any artifact.
+
+Draft PR https://github.com/bnfy/blanc/pull/1135 is open and attached for review.
+Its first ordinary-package/substrate checks correctly rejected stale 1.43.1
+SBOM version records after the package version bump; the pinned ignored blocker
+seed was prepared and both versioned SBOMs regenerated for 1.43.2. The protected
+Mac build has not yet been dispatched. No tag, release or feed was modified.
+
 GITHUB MAC SCAN ROUTE PREPARED: Owner asked whether the Mac installer can be
 built/signed in Actions using the existing EVS credentials, then scanned
 without publication. Added manual mac-scan mode to the existing native workflow
