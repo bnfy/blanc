@@ -2241,4 +2241,15 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_sync_create_on_computer">Avvia la sincronizzazione sul computer, poi aggiungi questo telefono con un codice.</string>
     <string name="settings_sync_enter_sync_name">Inserisci il nome della sincronizzazione</string>
     <string name="settings_sync_enter_passphrase">Inserisci la tua passphrase</string>
+    <string name="tab_menu_send_to_device">Invia a dispositivo</string>
+    <string name="sends_none">Nessun altro dispositivo</string>
+    <string name="sends_sent">Inviata a %1$s.</string>
+    <string name="sends_unavailable">L’invio non è ancora disponibile.</string>
+    <string name="sends_failed">Invio non riuscito. Controlla la connessione e riprova.</string>
+    <string name="sends_section">Inviate a questo dispositivo</string>
+    <string name="sends_from">Da %1$s · %2$s</string>
+    <string name="sends_dismiss">Ignora</string>
+    <string name="sends_no_match">Nessun dispositivo chiamato “%1$s”.</string>
+    <string name="slash_send_hint">Digita uno spazio, poi il nome di un dispositivo, ad es. “iPhone”</string>
+    <string name="slash_send_doc">Invia la pagina di questa scheda a un altro dispositivo sincronizzato</string>
 </resources>

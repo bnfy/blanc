@@ -2241,4 +2241,15 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_sync_create_on_computer">Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.</string>
     <string name="settings_sync_enter_sync_name">Saisissez le nom de votre synchronisation</string>
     <string name="settings_sync_enter_passphrase">Saisissez votre phrase secrète</string>
+    <string name="tab_menu_send_to_device">Envoyer vers un appareil</string>
+    <string name="sends_none">Aucun autre appareil</string>
+    <string name="sends_sent">Envoyé à %1$s.</string>
+    <string name="sends_unavailable">L’envoi n’est pas encore disponible.</string>
+    <string name="sends_failed">Échec de l’envoi. Vérifiez votre connexion et réessayez.</string>
+    <string name="sends_section">Envoyé à cet appareil</string>
+    <string name="sends_from">De %1$s · %2$s</string>
+    <string name="sends_dismiss">Ignorer</string>
+    <string name="sends_no_match">Aucun appareil nommé « %1$s ».</string>
+    <string name="slash_send_hint">Tapez une espace, puis un nom d’appareil, par ex. « iPhone »</string>
+    <string name="slash_send_doc">Envoyer la page de cet onglet vers un autre appareil synchronisé</string>
 </resources>

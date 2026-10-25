@@ -1,3 +1,5 @@
 {
-  "commands": {}
+  "commands": {
+    "/send": "Send to device (M7b), unreleased after public v1.42.1; needs the sync Worker deploy first."
+  }
 }

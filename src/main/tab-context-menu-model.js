@@ -96,7 +96,7 @@ function pinLabelKey(tab) {
   return tab?.pinned ? 'tabMenu.unpin' : 'tabMenu.pin';
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], spaces = [], canMoveToSpace = false, t }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null, surface, canCloseOthers, canMoveToNewWindow, canQuiet, canDuplicate = true, canGlance = true, canCloseAbove = false, canCloseBelow = false, siteMuted = null, splitCandidates = [], sendTargets = null, spaces = [], canMoveToSpace = false, t }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -150,6 +150,13 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
     label: t(tab.startPinned ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
     enabled: isFavoritable(tab) && (!!tab.startPinned || !tab.startPinsFull),
   });
+  // Send to Device ▸ (M7b): null when this tab can't be sent (sync off, a
+  // private, internal or inert tab); [] when there's no other device.
+  if (Array.isArray(sendTargets)) {
+    items.push(sendTargets.length
+      ? { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: sendTargets.map((d) => ({ id: 'send-to-device', label: d.name, deviceId: d.id })) }
+      : { id: 'send-to', label: t('tabMenu.sendToDevice'), submenu: [{ id: 'send-none', label: t('sends.none'), enabled: false }] });
+  }
   items.push({ id: 'group', label: t('tabMenu.moveToGroup'), submenu: buildGroupSubmenu(tab, groups, t) });
   // Shown once the profile has a space; a private tab never joins one. With
   // no other space able to take it, or a tab main refuses to move, it is

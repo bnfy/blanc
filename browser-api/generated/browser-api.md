@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-139 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+145 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -100,6 +100,11 @@
 | `listFavorites` | favorites | invoke | `chrome:favorites-list` | `() => Promise<FavoriteItem[]>` | all |
 | `listRemoteTabs` | sync | invoke | `chrome:remote-tabs-list` | `() => Promise<RemoteDevice[]>` | all |
 | `renameDevice` | sync | invoke | `chrome:rename-device` | `(deviceId: string, name: string \| null) => Promise<boolean>` | all |
+| `listSendTargets` | sync | invoke | `chrome:send-targets` | `() => Promise<SendTarget[]>` | all |
+| `sendTabToDevice` | sync | invoke | `chrome:send-tab` | `(tabId: TabId, deviceId: string) => Promise<SendResult>` | all |
+| `listSentToThisDevice` | sync | invoke | `chrome:sent-list` | `() => Promise<SentItem[]>` | all |
+| `openSentItem` | sync | invoke | `chrome:sent-open` | `(id: string) => Promise<boolean>` | all |
+| `dismissSentItem` | sync | invoke | `chrome:sent-dismiss` | `(id: string) => Promise<boolean>` | all |
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
@@ -117,6 +122,7 @@
 | `bangIcons` | search | invoke | `chrome:bang-icons` | `(hosts: string[]) => Promise<BangIcon[]>` | all |
 | `onBangIconsChanged` | search | event | `bang-icons:changed` | `(payload: BangIcon) => void` | all |
 | `onRemoteTabsUpdated` | sync | event | `chrome:remote-tabs-updated` | `(payload: RemoteDevice[]) => void` | all |
+| `onSentToThisDeviceUpdated` | sync | event | `chrome:sent-updated` | `(payload: SentItem[]) => void` | all |
 | `onWorkspacesUpdated` | workspaces | event | `chrome:workspaces-updated` | `(payload: WorkspacesPayload) => void` | all |
 | `onWorkspaceAction` | workspaces | event | `overlay:workspace-action` | `(payload: WorkspaceActionEvent) => void` | all |
 | `clearHistory` | history | invoke | `chrome:history-clear` | `() => Promise<void>` | all |
@@ -924,6 +930,42 @@ Another device's open tabs, from displayDevices() in tabsync-model.js. Newest fi
 | `updatedAt` | `number` | Epoch milliseconds. |
 | `tabs` | `RemoteTab[]` |  |
 | `groups` | `RemoteGroup[]` |  |
+
+### `SendStatus`
+
+What sending a page reports (M7b addendum §6): sent (never "delivered"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).
+
+`'sent' \| 'unavailable' \| 'failed' \| 'invalid'`
+
+### `SendResult`
+
+The reply to sendTabToDevice.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `status` | `SendStatus` |  |
+
+### `SendTarget`
+
+Another device of this sync account a page can be sent to, from sync.listSendTargets(): found in the sends store's presence entries or in tab sync, newest first, named as the Other devices drawer names it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `name` | `string` |  |
+| `platform` | `string` |  |
+
+### `SentItem`
+
+A page another device sent to this one that this device hasn't opened or dismissed, from sync.listSentToThisDevice(). Newest first, at most 20, each kept 7 days.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `url` | `string` | An http(s) address. |
+| `title` | `string` |  |
+| `sentAt` | `number` | Epoch milliseconds. |
+| `fromName` | `string` | The sending device's name as this device shows it. |
 
 ### `CustomBang`
 

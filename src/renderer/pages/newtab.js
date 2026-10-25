@@ -638,6 +638,58 @@ function renderRemote(remoteDevices) {
   }
 }
 
+// Send to device (M7b): pages other devices sent here wait above Other
+// devices until opened (a new tab, which hides them here) or dismissed. A
+// private Start Page gets none from main.
+const sentRelativeTime = new Intl.RelativeTimeFormat(blancI18n.formatLocale(), { style: 'narrow', numeric: 'always' });
+function sentAgo(ts) {
+  const mins = Math.max(1, Math.round((Date.now() - ts) / 60000));
+  if (mins < 60) return sentRelativeTime.format(-mins, 'minute');
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return sentRelativeTime.format(-hours, 'hour');
+  return sentRelativeTime.format(-Math.round(hours / 24), 'day');
+}
+
+function renderSent(items) {
+  const section = document.getElementById('sentSection');
+  const list = document.getElementById('sentList');
+  list.replaceChildren();
+  section.hidden = !items?.length;
+  if (section.hidden) return;
+  for (const sent of items) {
+    const item = document.createElement('div');
+    item.className = 'fav-item sent-item';
+    const row = document.createElement('a');
+    row.className = 'fav';
+    row.href = sent.url;
+    const tile = document.createElement('span');
+    tile.className = 'tile';
+    decorateTile(tile, { url: sent.url, title: sent.title }, { mode: 'synced' });
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = sent.title || sent.url;
+    name.dataset.i18nIgnore = ''; // a page title
+    const from = document.createElement('span');
+    from.className = 'host';
+    from.textContent = t('sends.from', { device: sent.fromName, time: sentAgo(sent.sentAt) });
+    row.append(tile, name, from);
+    row.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.bowserPages?.start.openSent(sent.id);
+    });
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'fav-pin sent-dismiss';
+    dismiss.title = t('sends.dismiss');
+    dismiss.setAttribute('aria-label', t('row.actionLabel', { action: t('sends.dismiss'), title: sent.title || sent.url }));
+    dismiss.dataset.i18nIgnore = 'aria-label'; // carries the page title
+    dismiss.appendChild(startPins.glyph(document, 'close'));
+    dismiss.addEventListener('click', () => window.bowserPages?.start.dismissSent(sent.id));
+    item.append(row, dismiss);
+    list.appendChild(item);
+  }
+}
+
 // Everything the three alternative layouts draw from. They render lazily —
 // only when their layout is first shown — so the cache is cleared whenever a
 // feed changes, or a layout drawn from stale data would never redraw.
@@ -1700,6 +1752,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   }
   renderLedgerGroups(state.groups);
   renderRemote(data.remoteDevices);
+  renderSent(data.sentItems);
   invalidate();
 });
 
@@ -1711,6 +1764,7 @@ Promise.all([favoritesReady, dataReady, pinsReady]).then(() => {
 
 window.bowserPages?.start.onVisibility((visible) => wallpaper.setVisible(visible));
 window.bowserPages?.start.onRemoteTabs(renderRemote);
+window.bowserPages?.start.onSentItems?.(renderSent);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status && 'wallpaper' in status) applyWallpaper(status.wallpaper);

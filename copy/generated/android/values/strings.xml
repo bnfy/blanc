@@ -2172,4 +2172,15 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_create_on_computer">Start your sync on your computer, then add this phone with a code.</string>
     <string name="settings_sync_enter_sync_name">Enter your sync name</string>
     <string name="settings_sync_enter_passphrase">Enter your passphrase</string>
+    <string name="tab_menu_send_to_device">Send to Device</string>
+    <string name="sends_none">No other devices</string>
+    <string name="sends_sent">Sent to %1$s.</string>
+    <string name="sends_unavailable">Sending isn\'t available yet.</string>
+    <string name="sends_failed">Couldn\'t send. Check your connection and try again.</string>
+    <string name="sends_section">Sent to this device</string>
+    <string name="sends_from">From %1$s · %2$s</string>
+    <string name="sends_dismiss">Dismiss</string>
+    <string name="sends_no_match">No device named “%1$s”.</string>
+    <string name="slash_send_hint">Type a space, then a device name — e.g. \"iPhone\"</string>
+    <string name="slash_send_doc">Send this tab\'s page to another synced device</string>
 </resources>
