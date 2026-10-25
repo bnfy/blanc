@@ -2236,4 +2236,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ws_new_with_tab">With this tab</string>
     <string name="ws_error_saved_not_moved">Saved %1$s, but the tab couldn’t move.</string>
     <string name="ws_error_move_failed">Couldn’t move the tab to %1$s.</string>
+    <string name="context_menu_open_link_in_space">Open Link in Space</string>
+    <string name="ws_announce_opened_in">Opened in %1$s</string>
+    <string name="ws_new_with_link">With this link</string>
+    <string name="ws_error_open_link_failed">Couldn’t open the link in %1$s.</string>
 </resources>

@@ -1392,6 +1392,11 @@ export interface BlancBrowserAPI {
    */
   listWorkspaces(): Promise<WorkspacesPayload>;
   /**
+   * Create a saved space with the link held by the current new-space editor, without loading it.
+   * IPC: invoke `chrome:workspaces-create-with-link`.
+   */
+  createSpaceWithLink(name: string, identity: SpaceIdentityInput): Promise<WorkspaceActionResult>;
+  /**
    * Create a space containing this window’s tab, then move the live tab without switching spaces.
    * IPC: invoke `chrome:workspaces-create-with-tab`.
    */

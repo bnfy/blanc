@@ -2305,4 +2305,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="ws_new_with_tab">Con esta pestaña</string>
     <string name="ws_error_saved_not_moved">Se guardó %1$s, pero no se pudo mover la pestaña.</string>
     <string name="ws_error_move_failed">No se pudo mover la pestaña a %1$s.</string>
+    <string name="context_menu_open_link_in_space">Abrir enlace en Space</string>
+    <string name="ws_announce_opened_in">Abierto en %1$s</string>
+    <string name="ws_new_with_link">Con este enlace</string>
+    <string name="ws_error_open_link_failed">No se pudo abrir el enlace en %1$s.</string>
 </resources>

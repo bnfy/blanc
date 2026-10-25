@@ -8364,5 +8364,22 @@
   "ws.error.moveFailed": {
     "message": "Couldn’t move the tab to {name}.",
     "note": "A single-tab Move to Space action failed. {name} is the destination space name."
+  },
+  "contextMenu.openLinkInSpace": {
+    "message": "Open Link in Space",
+    "note": "Link context submenu for opening in another space.",
+    "maxLength": 48
+  },
+  "ws.announce.openedIn": {
+    "message": "Opened in {space}",
+    "note": "Screen-reader confirmation. {space} is a user-provided space name."
+  },
+  "ws.new.withLink": {
+    "message": "With this link",
+    "note": "Fixed start line in the New Space editor opened from a link."
+  },
+  "ws.error.openLinkFailed": {
+    "message": "Couldn’t open the link in {name}.",
+    "note": "Spaces menu error. {name} is the destination space name."
   }
 }

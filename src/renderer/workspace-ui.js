@@ -193,7 +193,7 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || start === 'tab', tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -273,7 +273,7 @@
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
-      if (state.start === 'tab') { state = { kind: 'list' }; close({ force: true }); }
+      if (['tab', 'link'].includes(state.start)) { state = { kind: 'list' }; close({ force: true }); }
       else if (state.original) { state = state.original; render(); }
       else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
@@ -332,9 +332,10 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
-      if (state.start === 'tab') {
+      if (['tab', 'link'].includes(state.start)) {
+        const isLink = state.start === 'link';
         const tabId = state.tabId;
-        run(() => api.createSpaceWithTab(name, identity, tabId), () => {
+        run(() => isLink ? api.createSpaceWithLink(name, identity) : api.createSpaceWithTab(name, identity, tabId), () => {
           state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
         });
         return;
@@ -537,8 +538,8 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
-      if (isNew && state.start === 'tab') {
-        form.append(el('p', 'ws-label', t('ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      if (isNew && ['tab', 'link'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
@@ -691,6 +692,10 @@
         if (!same && !state.pending && !['new', 'edit'].includes(state.kind)) render();
       },
       open, close, cancel, render, layout,
+      showLinkError(name, error) {
+        state = { kind: 'list', error: `${t('ws.error.openLinkFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
       showMoveError(name, error) {
         state = { kind: 'list', error: `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
         open();

@@ -2305,4 +2305,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ws_new_with_tab">Com esta aba</string>
     <string name="ws_error_saved_not_moved">%1$s foi salvo, mas não foi possível mover a aba.</string>
     <string name="ws_error_move_failed">Não foi possível mover a aba para %1$s.</string>
+    <string name="context_menu_open_link_in_space">Abrir link em Space</string>
+    <string name="ws_announce_opened_in">Aberto em %1$s</string>
+    <string name="ws_new_with_link">Com este link</string>
+    <string name="ws_error_open_link_failed">Não foi possível abrir o link em %1$s.</string>
 </resources>

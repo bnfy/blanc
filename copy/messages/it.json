@@ -8080,5 +8080,21 @@
   "ws.error.moveFailed": {
     "message": "Non è stato possibile spostare la scheda in {name}.",
     "source": "sha256:1c2b2eaf09d540d8114e1f3a804d61175257295fdbdfb668e09484be5a6716e0"
+  },
+  "contextMenu.openLinkInSpace": {
+    "message": "Apri link in Space",
+    "source": "sha256:dfd3354808fb56f0cd305ec74da510991aa35c156ab4faf37466d5f803087d06"
+  },
+  "ws.announce.openedIn": {
+    "message": "Aperto in {space}",
+    "source": "sha256:8f76ceb49e97bf71194165ff6972196cd863831e7758f82ade9fd60fa4379344"
+  },
+  "ws.new.withLink": {
+    "message": "Con questo link",
+    "source": "sha256:fcc27d14b4e79be13724942582e71bfffa1a03616c64de0b75553584eda1d195"
+  },
+  "ws.error.openLinkFailed": {
+    "message": "Impossibile aprire il link in {name}.",
+    "source": "sha256:e6c27967cda3f3d7ca2a8af3e6fb3dbfcc95e08e8804579b11d046cf3ec209fc"
   }
 }

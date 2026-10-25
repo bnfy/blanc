@@ -69,7 +69,7 @@ const recordMenus = (app) => app.evaluate(({ Menu }) => {
   if (globalThis.__sweepMenus) return;
   globalThis.__sweepMenus = [];
   const entries = (menu) => menu.items.flatMap((item) => (item.type === 'separator' || !item.visible ? [] : [
-    { text: item.label, ignored: item.type === 'radio' || /^split-with-(tab|group|header)\b/.test(String(item.id ?? '')) },
+    { text: item.label, ignored: item.type === 'radio' || /^link-space:/.test(String(item.id ?? '')) || /^split-with-(tab|group|header)\b/.test(String(item.id ?? '')) },
     ...(item.submenu ? entries(item.submenu) : []),
   ]));
   Menu.prototype.popup = function popup(options) { globalThis.__sweepMenus.push(entries(this)); options?.callback?.(); };
@@ -257,6 +257,23 @@ const WORKSPACE_SURFACES = [
       for (const name of ['zzz-ws-a', 'zzz-ws-b']) assert.equal((await callTestHook(ctx.app, 'workspaceAction', ['save', name])).ok, true);
       const overlay = await openSwitcher(ctx);
       await overlay.locator('#workspaceSwitcher .ws-row + .ws-row').waitFor();
+      return overlay;
+    },
+  },
+  {
+    name: 'Open Link in Space menu',
+    native: async ({ app }) => {
+      const id = (await activeTab(app)).webContentsId;
+      return rightClick(app, id, { linkURL: 'https://example.com/', linkText: 'zzz-link' });
+    },
+  },
+  {
+    name: 'workspace editor (new from link)',
+    open: async ({ app }) => {
+      const tab = await activeTab(app);
+      assert.equal(await callTestHook(app, 'runLinkSpaceMenuItem', [tab.id, 'https://example.com/', 'zzz-link', 'link-space-new']), true);
+      const overlay = await findPage(app, 'blanc-chrome://overlay/', 'link editor');
+      await overlay.locator('#workspaceEditor').waitFor({ state: 'visible' });
       return overlay;
     },
   },
