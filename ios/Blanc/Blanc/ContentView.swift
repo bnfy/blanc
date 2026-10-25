@@ -5,8 +5,10 @@ struct ContentView: View {
     @State private var showPalette = false
     @Environment(\.colorScheme) private var colorScheme
 
+    private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
+
     private var theme: BlancTheme {
-        resolvedTheme(preference: manager.settingsStore.theme, systemScheme: colorScheme)
+        resolvedTheme(preference: manager.settingsStore.theme, systemScheme: colorScheme, isPrivate: isPrivate)
     }
 
     var body: some View {
@@ -41,6 +43,20 @@ struct ContentView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Open palette")
 
+            if let tab = manager.activeTab, tab.isPrivate {
+                // Leaving private mode closes the private tab, as on desktop.
+                Button { manager.closeTab(tab.id) } label: {
+                    Text(SyncCopy.text("pill.private.chip"))
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .overlay(Capsule().stroke(Color.primary.opacity(0.4)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(SyncCopy.text("pill.private.title"))
+                .accessibilityIdentifier("pill.private")
+            }
+
             if manager.isAdBlockReady {
                 Image(systemName: "shield.checkmark")
                     .foregroundStyle(.primary)
@@ -50,7 +66,7 @@ struct ContentView: View {
 
             Spacer(minLength: 0)
 
-            if let tab = manager.activeTab, TabsManager.canFavorite(tab.currentURL) {
+            if let tab = manager.activeTab, !tab.isPrivate, TabsManager.canFavorite(tab.currentURL) {
                 let favorited = manager.isFavorite(tab)
                 Button { manager.toggleFavorite(tab) } label: {
                     Image(systemName: favorited ? "heart.fill" : "heart")
@@ -78,6 +94,8 @@ struct ContentView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .modifier(PillStyle(theme: theme))
+        // The private theme is dark whatever the appearance setting.
+        .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }

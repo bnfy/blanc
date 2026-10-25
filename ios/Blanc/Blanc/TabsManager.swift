@@ -81,10 +81,11 @@ final class TabsManager {
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         #if DEBUG
-        if UITestSeed.favorites {
+        if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
         }
+        defer { if UITestSeed.privateTab { createTab(url: UITestSeed.pageURL, isPrivate: true) } }
         #endif
         if savedURLs.isEmpty {
             createTab()

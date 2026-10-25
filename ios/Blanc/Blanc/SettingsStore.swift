@@ -3,7 +3,9 @@ import Observation
 import SwiftUI
 import UIKit
 
-func resolvedTheme(preference: BlancThemePreference, systemScheme: ColorScheme) -> BlancTheme {
+/// A private tab always uses the private theme, whatever the appearance setting.
+func resolvedTheme(preference: BlancThemePreference, systemScheme: ColorScheme, isPrivate: Bool = false) -> BlancTheme {
+    if isPrivate { return .privateBrowsing }
     switch preference {
     case .system: return systemScheme == .dark ? .dark : .light
     case .light: return .light
