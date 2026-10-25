@@ -1,4 +1,5 @@
 import XCTest
+import CryptoKit
 import WebKit
 @testable import Blanc
 
@@ -156,6 +157,35 @@ import WebKit
         XCTAssertEqual(model.code, "")
         XCTAssertNil(model.error)
         XCTAssertFalse(model.busy)
+    }
+
+    func testSettingsUITestServiceMatchesDesktopPairingVector() async throws {
+        let vector = try XCTUnwrap(try SyncVectors.section("pairing").first)
+        let expected = try XCTUnwrap(vector["expected"])
+        XCTAssertEqual(SettingsUITestFixture.pairId, expected["pairId"]?.text)
+        let wrapHex = SettingsUITestFixture.wrapKey.withUnsafeBytes { bytes in
+            bytes.map { String(format: "%02x", $0) }.joined()
+        }
+        XCTAssertEqual(wrapHex, expected["wrapKey"]?.text)
+        let transport = SettingsUITestTransport()
+        let client = SyncWorkerClient(transport: transport)
+        let envelope = try await client.takePair(SettingsUITestFixture.pairId)
+        let payload = try SyncPairing.unwrap(envelope, wrapKey: SettingsUITestFixture.wrapKey)
+        XCTAssertEqual(payload, SettingsUITestFixture.payload)
+        let expectedPayload = try JSONDecoder().decode(PairPayload.self,
+            from: Data(try XCTUnwrap(vector["input"]?["payload"]).serialized.utf8))
+        XCTAssertEqual(payload, expectedPayload)
+        let account = try XCTUnwrap(try SyncVectors.section("deriveKeys").first?["expected"])
+        XCTAssertEqual(payload.accountId, account["accountId"]?.text)
+        let contentHex = SettingsUITestFixture.keys.contentKey.withUnsafeBytes { bytes in
+            bytes.map { String(format: "%02x", $0) }.joined()
+        }
+        XCTAssertEqual(contentHex, account["contentKey"]?.text)
+        let response = try await client.get(payload.accountId, .settings)
+        let settings = try XCTUnwrap(response)
+        XCTAssertEqual(try JSONValue(data: SyncCrypto.open(settings.blob, key: SettingsUITestFixture.keys.contentKey))["values"], .object([]))
+        let unknown = try await transport.send(method: "GET", path: "v1/pair/" + String(repeating: "0", count: 64), body: nil)
+        XCTAssertEqual(unknown.status, 404)
     }
 
     func testAllowedSiteInputValidation() {

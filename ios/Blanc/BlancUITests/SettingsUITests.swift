@@ -92,8 +92,9 @@ final class SettingsUITests: XCTestCase {
         // TextField(axis: .vertical) is exposed as a text view on current iOS.
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
+        XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
-        XCTAssertTrue(app.textFields["settings.deviceName"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.textFields["settings.deviceName"].waitForExistence(timeout: 20), app.debugDescription)
         capture("Native Settings — Sync connected")
         app.swipeUp()
         tap("settings.disconnect")
@@ -153,6 +154,7 @@ final class SettingsUITests: XCTestCase {
         let code = app.textViews["settings.syncCode"]
         let input = code.exists ? code : app.textFields["settings.syncCode"]
         input.tap(); input.typeText("K7MR-4PX2")
+        XCTAssertTrue(app.buttons["settings.connect"].isEnabled)
         tap("settings.connect")
         XCTAssertTrue(app.staticTexts["settings.syncError"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.buttons["settings.connect"].isEnabled)

@@ -53,3 +53,22 @@ simulator, and run the BlancTests target plus `SettingsUITests` in BlancUITests.
 UI fixtures are enabled only by those tests' DEBUG launch arguments and keep
 state in a dedicated temporary directory. Ordinary launches retain the existing
 production stores, Keychain and Sync transport.
+
+## CI fixture correction
+
+The first hosted iOS run passed all 271 unit tests but timed out waiting for the
+connected Sync UI. The fixture server repeated both an account-password KDF and
+the pairing KDF after the real client had already derived its pairing key. The
+hosted runner's existing crypto-vector tests measured several seconds per KDF,
+so this extra server-side work could exhaust the UI test's 20-second deadline.
+
+The DEBUG-only server now uses the existing public desktop pairing-vector keys
+and account. A unit test binds those constants to the committed vectors and
+checks the encrypted response and rejection of unknown pair IDs. The real
+client still derives its key, authenticates/decrypts the response, persists its
+account, and performs its normal sync. The 20-second connection assertion and
+production crypto are unchanged.
+
+After this correction, all 13 native Settings tests and both the successful
+pairing/disconnect and offline/retry UI scenarios passed locally. The hosted
+result is tracked on PR #1121.

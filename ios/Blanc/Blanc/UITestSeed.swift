@@ -50,23 +50,31 @@ extension UITestSeed {
     }
 }
 
+/// Public desktop test-vector material, not credentials. The client still runs
+/// its real pairing KDF. The fixture server must not repeat that expensive work
+/// (or derive an unrelated account password) while a UI test is waiting.
+nonisolated enum SettingsUITestFixture {
+    static let pairId = "3aaa18b580b04488b044c9e1276bb37ef2506dd7e55c814a0aa5bfcb7b71d47b"
+    static let wrapKey = SymmetricKey(data: Data(base64Encoded: "PTSH9f/rWuipVP/FKeWZQkLwMLue8d4c5foSKM/Tzhg=")!)
+    static let payload = PairPayload(v: 1, handle: "Anthony",
+        accountId: "ed29085a3fb2698b09382f8a6f4e9d1ee643036b7e8d5cd6eae89fa5c6bcafd4",
+        key: "Raq7E9RlUhFA31NZaxo4Y8XsY+uWeLOchqu+GlLnuAY=")
+    static let keys = SyncKeys(accountId: payload.accountId,
+        contentKey: SymmetricKey(data: Data(base64Encoded: payload.key)!))
+}
+
 /// Test-only service: real encrypted payloads, no production network or Keychain.
 actor SettingsUITestTransport: SyncTransport {
     private var blobs: [String: (Int, SyncEnvelope)] = [:]
-    private var cachedKeys: SyncKeys?
     func send(method: String, path: String, body: Data?) async throws -> (status: Int, body: Data) {
         if ProcessInfo.processInfo.arguments.contains("-BlancUITestSettingsOffline") { throw SyncError.offline }
-        if cachedKeys == nil { cachedKeys = try SyncCrypto.deriveKeys(handle: "Settings Test", passphrase: "a sufficiently long testing passphrase") }
-        let keys = cachedKeys!
+        let keys = SettingsUITestFixture.keys
         let settingsPath = "v1/blob/\(keys.accountId)/settings"
         if blobs[settingsPath] == nil {
             blobs[settingsPath] = (1, try SyncCrypto.seal(Data("{\"values\":{},\"clocks\":{}}".utf8), key: keys.contentKey))
         }
-        if method == "GET", path.hasPrefix("v1/pair/") {
-            let material = try SyncPairing.material(code: "K7MR4PX2")
-            let payload = PairPayload(v: 1, handle: "Settings Test", accountId: keys.accountId,
-                key: keys.contentKey.withUnsafeBytes { Data($0).base64EncodedString() })
-            let blob = try SyncPairing.wrap(payload, wrapKey: material.wrapKey)
+        if method == "GET", path == "v1/pair/" + SettingsUITestFixture.pairId {
+            let blob = try SyncPairing.wrap(SettingsUITestFixture.payload, wrapKey: SettingsUITestFixture.wrapKey)
             struct Response: Encodable { let blob: SyncEnvelope }
             return (200, try JSONEncoder().encode(Response(blob: blob)))
         }
