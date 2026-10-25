@@ -6,7 +6,7 @@ const model=require('./shared-spaces-model');
 const { canonical }=require('./tabsync-model');
 const copy=x=>structuredClone(x);
 const empty=()=>({accountId:'',enabled:false,index:{v:1,spaces:{}},knownIndex:{},blobs:{},pending:{},windows:{},
-  recoveries:{},sidecar:{devices:{}},requestLog:[],nextClass:'I',cursors:{}});
+  recoveries:{},sidecar:{devices:{}},dormantIds:[],requestLog:[],nextClass:'I',cursors:{}});
 let store;
 const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'});
 const changed=new Set(),remoteChanged=new Set();
@@ -26,12 +26,17 @@ function rebind(accountId) {
     if(canonical(clean)!==canonical(index))repairs.index=clean;
   }
   if(!container(sidecar.devices))repairs.sidecar={...sidecar,devices:{}};
+  if(!Array.isArray(s.data.dormantIds))repairs.dormantIds=[];
   if(Object.keys(repairs).length)s.update(d=>Object.assign(d,repairs));
   return s;
 }
 const snapshot=ctx=>copy(rebind(ctx.accountId).data);
 function setEnabled(on,ctx) {rebind(ctx.accountId).update(d=>{d.enabled=!!on;});notify(changed);}
 const isEnabled=ctx=>rebind(ctx.accountId).data.enabled===true;
+const isDormant=(id,ctx)=>(rebind(ctx.accountId).data.dormantIds??[]).includes(id);
+function setDormant(ids,ctx) {
+  rebind(ctx.accountId).update(data=>{data.dormantIds=[...new Set(ids.filter(id=>/^[0-9a-f]{32}$/.test(id)))];});
+}
 function noteLocalSpace(id,blob,edits,ctx) {
   const clean=model.sanitizeBlob(blob);if(!clean || clean.spaceId!==id)throw new TypeError('Invalid local Space');
   const s=rebind(ctx.accountId),eligible=copy(edits??{});
@@ -136,7 +141,7 @@ function settleSpace(id,plan,outcome,ctx) {
 }
 function spaceIds(ctx) {
   const d=rebind(ctx.accountId).data,index=model.sanitizeIndex(d.index)?.spaces??{};
-  return [...new Set([...Object.keys(index),...Object.keys(d.blobs)])].filter(id=>index[id]?.deleted?.v!==true).sort();
+  return [...new Set([...Object.keys(index),...Object.keys(d.blobs)])].filter(id=>index[id]?.deleted?.v!==true&&!isDormant(id,ctx)).sort();
 }
 function sanitizeSidecar(payload) {
   const devices={};
@@ -168,7 +173,7 @@ function exportSidecar(ctx) {
 }
 const spaceCount=ctx=>Object.values(model.sanitizeIndex(rebind(ctx.accountId).data.index)?.spaces??{}).filter(record=>record.deleted.v!==true).length;
 const canAddSpace=ctx=>spaceCount(ctx)<model.LIMITS.spaces;
-module.exports={rebind,snapshot,setEnabled,isEnabled,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
+module.exports={rebind,snapshot,setEnabled,isEnabled,setDormant,isDormant,noteLocalSpace,setIndex,mergeIndex,exportIndex,settleIndex,
   mergeSpace,exportSpace:mergeSpace,settleSpace,spaceIds,spaceCount,canAddSpace,exportSidecar,mergeSidecar,
   equals:(a,b)=>canonical(a)===canonical(b),hasPublishableContent:payload=>Object.keys(payload?.spaces??{}).length>0,
   onChanged:fn=>changed.add(fn),onRemoteChanged:fn=>remoteChanged.add(fn),

@@ -49,6 +49,7 @@ const ACTIVE_SYNC_ENDPOINT = (()=>{
 const SERVICE_UNAVAILABLE = 'service-unavailable';
 
 let store = null;
+const accountListeners=new Set();
 let keyProtectionError = null;
 // Session/icon sync must not run until main has restored the real tab set and
 // registered snapshot providers — except consent-off retractions, which are
@@ -68,7 +69,7 @@ function ensureStore() {
   store = new JsonStore('sync', {
     enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
     lastSyncedAt: 0, lastError: null,
-    deviceId: '', syncTabs: false,
+    deviceId: '', syncTabs: false, syncSpaces: false,
   });
   // One-time migration from pre-hardening profiles. The old field is erased
   // only after the wrapped replacement has reached disk; otherwise sync stays
@@ -372,9 +373,11 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
   clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   const syncStore = ensureStore();
+  const previousAccount=syncStore.data.accountId;
   syncStore.update((d) => {
     d.enabled = true; d.handle = handle; d.accountId = accountId;
     d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
+    if(previousAccount!==accountId)d.syncSpaces=false;
   });
   if (!syncStore.flush()) {
     syncStore.data.enabled = false;
@@ -384,6 +387,7 @@ function adoptCredentials({ handle, accountId, key, protectedKey }) {
     return { ok: false, error: 'credentials-save-failed' };
   }
   keyProtectionError = null;
+  if(previousAccount!==accountId)for(const listener of accountListeners)listener();
   refreshTabIcons().catch(() => {});
   return { ok: true };
 }
@@ -677,6 +681,7 @@ async function disable({ wipeRemote = false } = {}) {
     ensureStore().update((s) => {
       s.enabled = false; s.handle = ''; s.accountId = '';
       s.protectedKey = ''; s.key = ''; s.lastError = null;
+      s.syncSpaces = false;
     });
     keyProtectionError = null;
     // The cached device map must not outlive the account it came from — and
@@ -688,6 +693,7 @@ async function disable({ wipeRemote = false } = {}) {
     sends.onSyncDisabled();
     sharedSpaces.onSyncDisabled();
     syncedClosed.onSyncDisabled();
+    for(const listener of accountListeners)listener();
     return { ok: true, status: status() };
   } finally {
     suspended = false; // a failed wipe keeps sync enabled — future passes must run
@@ -770,6 +776,7 @@ function cancelledRequest(gen,ctx,desc) {
   if (gen!==syncGen) return 'generation';
   if (!ensureStore().data.enabled) return 'disabled';
   if (desc.spaces && !sharedSpaces.isEnabled(ctx)) return 'consent-off';
+  if(desc.spaceId&&sharedSpaces.isDormant(desc.spaceId,ctx))return 'consent-off';
   if (desc.spaces && spacesUnavailable && !desc.retryAvailability) return 'unavailable';
   return null;
 }
@@ -789,9 +796,40 @@ function spaceStatus(id) {
 function setSyncSpaces(on) {
   if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID,()=>setSyncSpaces(on));
   sharedSpaces.setEnabled(on,tabSyncContext());
+  ensureStore().update(data=>{data.syncSpaces=!!on;});
   if (!on) requestQueue?.cancelWhere(op=>op.spaces,'consent-off');
   else {spacesUnavailable=false;spacesRetryAt=0;if(ensureStore().data.enabled)schedule(1000);}
   return sharedStatus();
+}
+async function sharedIndexPreview() {
+  if(!isDefaultLocalProfile())return withLocalProfile(DEFAULT_PROFILE_ID,sharedIndexPreview);
+  if(!bananifyServiceAllowed(SYNC_ENDPOINT))return {ok:false,error:SERVICE_UNAVAILABLE};
+  const data=ensureStore().data,ctx=tabSyncContext(),gen=syncGen;
+  if(!data.enabled||!data.protectedKey)return {ok:false,error:'sync-off'};
+  const pending=getRequestQueue().enqueue({class:'I',item:'spaces',generation:'preview:'+gen,
+    cancelled:()=>suspended||gen!==syncGen?'generation':null,
+    run:async()=>{
+      let key;
+      try {
+        key=unprotectSyncKey(safeStorage,data.protectedKey);
+        const response=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${ctx.accountId}/spaces`);
+        if(gen!==syncGen||suspended)throw new SyncError('stale');
+        if(response.status===429)throw new SyncError('rate-limited');
+        if(response.status===404) {
+          if(await responseText(response)==='unknown store')return {ok:false,error:'unavailable'};
+          return {ok:true};
+        }
+        if(!response.ok)throw new SyncError('http-'+response.status);
+        const payload=await response.json();if(gen!==syncGen)throw new SyncError('stale');
+        sharedSpaces.mergeIndex(JSON.parse(decrypt(key,payload.blob)),ctx);return {ok:true};
+      } finally {key?.fill(0);}
+    }});
+  queueBarrier();const result=await pending;return result.error?{ok:false,error:errorCode(result.error)}:result.outcome;
+}
+function sharedPayloadFits(blob) {
+  let key;
+  try {key=unprotectSyncKey(safeStorage,ensureStore().data.protectedKey);return Buffer.byteLength(JSON.stringify(encrypt(key,JSON.stringify(blob))),'utf8')<=524288-4096;}
+  finally {key?.fill(0);}
 }
 
 /** Callers attach to queued operations, never to a stale in-flight fetch.
@@ -1146,6 +1184,9 @@ function init() {
 
 module.exports = {
   sharedContext: tabSyncContext,
+  sharedIndexPreview,
+  sharedPayloadFits,
+  onAccountChanged:listener=>accountListeners.add(listener),
   init,
   enable,
   preflight,
