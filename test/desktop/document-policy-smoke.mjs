@@ -125,6 +125,13 @@ async function stopApp() {
   await Promise.race([exited, deadline(5_000)]);
 }
 
+// Playwright runs an evaluate at the main process's next V8 interrupt, which
+// can fall inside a native callback: the focus event a committing navigation
+// fires mid frame-host swap (RenderFrameHostManager::CommitPending). A loadURL
+// there crashed the whole app in Chromium's NavigationRequest. So every
+// evaluate below that navigates, runs page script or sends input first waits
+// for its own event-loop turn, as Blanc's navigations (tab-navigation.js) and
+// the test hooks (test-call-bridge.js) do. Plain reads of main's state don't.
 const tabsNow = async () => (await callTestHook(app, 'windowRuntimes'))[0].tabs;
 // Read from main: page script can stall while a document is being replaced.
 async function hrefOf(id) {
@@ -140,6 +147,7 @@ async function openChild(variant, tag) {
   const sourceWcId = await callTestHook(app, 'workspacePageIdentity', [sourceId]);
   const targetUrl = `${origin}/target?${query}`;
   const point = await app.evaluate(async ({ webContents }, id) => {
+    await new Promise((resolve) => setImmediate(resolve));
     const wc = webContents.fromId(id);
     await new Promise((resolve) => { if (!wc.isLoading()) resolve(); else wc.once('did-stop-loading', resolve); });
     return wc.executeJavaScript(`(() => {
@@ -147,7 +155,8 @@ async function openChild(variant, tag) {
       return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
     })()`);
   }, sourceWcId);
-  await app.evaluate(({ webContents, BrowserWindow }, { id, point }) => {
+  await app.evaluate(async ({ webContents, BrowserWindow }, { id, point }) => {
+    await new Promise((resolve) => setImmediate(resolve));
     const wc = webContents.fromId(id);
     BrowserWindow.fromWebContents(wc)?.focus();
     wc.focus();
@@ -244,20 +253,27 @@ async function assertInertLocked(id, url, label) {
   const path = (value) => value.slice(origin.length);
   for (const target of [url, `${origin}/redirect${new URL(url).search}`]) {
     const hitsBefore = pageHits.get(path(target)) ?? 0;
-    await app.evaluate(({ webContents }, { wcId, target }) => webContents.fromId(wcId)
-      .loadURL(target).catch(() => {}), { wcId, target });
+    await app.evaluate(async ({ webContents }, { wcId, target }) => {
+      await new Promise((resolve) => setImmediate(resolve));
+      await webContents.fromId(wcId).loadURL(target).catch(() => {});
+    }, { wcId, target });
     await sleep(500);
     assert.equal(pageHits.get(path(target)) ?? 0, hitsBefore, `${label}: ${target} was never requested`);
     await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: explanation back after ${target}`);
   }
   // Reload and Back stay on Blanc's page too.
-  await app.evaluate(({ webContents }, wcId) => { webContents.fromId(wcId).reload(); }, wcId);
+  await app.evaluate(async ({ webContents }, wcId) => {
+    await new Promise((resolve) => setImmediate(resolve));
+    webContents.fromId(wcId).reload();
+  }, wcId);
   await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: reload`);
   // Look-alikes of the explanation page: another internal page behind a
   // credentials prefix, and an ordinary error page whose Retry would load it.
   for (const target of ['blanc://error@newtab/', `blanc://error/?url=${encodeURIComponent(url)}&code=-105`]) {
-    await app.evaluate(({ webContents }, { wcId, target }) => webContents.fromId(wcId)
-      .loadURL(target).catch(() => {}), { wcId, target });
+    await app.evaluate(async ({ webContents }, { wcId, target }) => {
+      await new Promise((resolve) => setImmediate(resolve));
+      await webContents.fromId(wcId).loadURL(target).catch(() => {});
+    }, { wcId, target });
     await waitForValue(() => hrefOf(id), (value) => value === inertHref, `${label}: ${target} put back`, 10_000);
   }
   // A crash of the inert view recovers to a new explanation document, not
@@ -272,7 +288,8 @@ async function assertInertLocked(id, url, label) {
   // Back and Forward: the cancelled attempts' entries are cleared once the
   // page is back, and stepping through history never requests the page.
   const hitsBefore = pageHits.get(path(url)) ?? 0;
-  await app.evaluate(({ webContents }, wcId) => {
+  await app.evaluate(async ({ webContents }, wcId) => {
+    await new Promise((resolve) => setImmediate(resolve));
     const nav = webContents.fromId(wcId).navigationHistory;
     if (nav.canGoBack()) nav.goBack();
   }, wcId);
