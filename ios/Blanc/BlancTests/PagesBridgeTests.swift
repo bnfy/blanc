@@ -44,14 +44,31 @@ final class PagesBridgeTests: XCTestCase {
         XCTAssertEqual(value("start", "focusGroup"), .null)
     }
 
-    func testBookmarksCapabilitiesReadOnlyAndEditsReject() {
-        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(false))]))
-        for method in ["remove", "setFolder", "renameFolder", "removeFolder", "import", "importBrowser"] {
-            guard case .reject = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
-                XCTFail("read-only Favorites accepted \(method)")
+    func testFavoritesAreEditableOnThePhone() {
+        XCTAssertEqual(value("bookmarks", "capabilities"), .object([("editable", .bool(true)), ("import", .bool(false)), ("pins", .bool(false))]))
+    }
+
+    func testImportStillRejects() {
+        for method in ["import", "importBrowser", "browserSources"] {
+            guard case .reject(let message) = PagesBridge.response(group: "bookmarks", method: method, appVersion: "test") else {
+                XCTFail("the phone accepted \(method)")
                 continue
             }
+            XCTAssertEqual(message, SyncCopy.text("favorites.editOnComputer"))
         }
+    }
+
+    @MainActor func testRemoveFavoriteReachesTheEngine() {
+        let manager = TabsManager(
+            settingsDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+            sessionDirectory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        manager.syncEngine.editFavorites {
+            SyncedFavorites.toggle($0, url: "https://fav.example/", title: "Fav", favicon: nil, now: 1, makeId: { "fav-1" }).store
+        }
+        XCTAssertEqual(manager.syncEngine.favorites.map(\.id), ["fav-1"])
+        let bridge = PagesBridge(manager: manager)
+        XCTAssertEqual(bridge.liveResponse(group: "bookmarks", method: "remove", args: ["fav-1"]), .value(.null))
+        XCTAssertTrue(manager.syncEngine.favorites.isEmpty)
     }
 
     // Structured sync/supporter/default-browser shapes match what settings.js reads.
