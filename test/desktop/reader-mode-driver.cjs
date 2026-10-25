@@ -40,6 +40,7 @@ app.whenReady().then(async () => {
       linksSafe: [...document.querySelectorAll('article a[href]')].every(a => /^(?:https?:|#)/i.test(a.getAttribute('href'))),
       source: document.getElementById('source').textContent, tables: document.querySelectorAll('article table').length })`);
     assert.equal(sanitized.unsafe, 0); assert.equal(sanitized.api, 'undefined'); assert.equal(sanitized.pages, 'undefined');
+    assert.ok(sanitized.text.includes('VISIBLE_CONTENTS_TEXT'), 'boxless containers retain visible text');
     assert.equal(sanitized.text.includes('HIDDEN_SECRET'), false); assert.equal(sanitized.source, '127.0.0.1');
     assert.equal(sanitized.tables, 1); assert.equal(sanitized.linksSafe, true);
     checks.push('sanitized article with tables, no hidden content or privileged bridge');
@@ -65,6 +66,30 @@ app.whenReady().then(async () => {
     assert.equal(await reader.executeJavaScript('document.getElementById("appearance").hidden'), false);
     await reader.executeJavaScript(`document.getElementById('fontToggle').click(); window.scrollTo(0,0);`);
     fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-fonts.png'), (await reader.capturePage()).toPNG());
+    const pickerWindow = BrowserWindow.getAllWindows().find(win => win.contentView.children.some(view => view.webContents === reader));
+    const pickerView = pickerWindow.contentView.children.find(view => view.webContents === reader);
+    const pickerBounds = pickerView.getBounds();
+    pickerView.setBounds({...pickerBounds, width:390, height:300});
+    await waitFor(() => reader.executeJavaScript('innerHeight === 300'), 'short reader viewport');
+    await reader.executeJavaScript(`document.getElementById('fontToggle').click(); document.getElementById('fontToggle').click();`);
+    const pickerGeometry = await reader.executeJavaScript(`(() => {
+      const r = document.getElementById('fontOptions').getBoundingClientRect();
+      return {top:r.top,bottom:r.bottom,height:innerHeight,scrollable:document.getElementById('fontOptions').scrollHeight > r.height};
+    })()`);
+    assert.ok(pickerGeometry.top >= 0 && pickerGeometry.bottom <= pickerGeometry.height);
+    assert.equal(pickerGeometry.scrollable, true);
+    // Scroll the list itself, then hit the real last option with native input.
+    const lastFont = await reader.executeJavaScript(`(() => {
+      const menu = document.getElementById('fontOptions'); menu.scrollTop = menu.scrollHeight;
+      const r = document.querySelector('.font-option input[value=mono]').getBoundingClientRect();
+      return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};
+    })()`);
+    assert.ok(lastFont.y > 0 && lastFont.y < 300);
+    reader.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...lastFont});
+    reader.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...lastFont});
+    await waitFor(() => reader.executeJavaScript('document.getElementById("font").value === "mono" && document.getElementById("fontOptions").hidden'), 'last font selectable in short pane');
+    pickerView.setBounds(pickerBounds);
+    await waitFor(() => reader.executeJavaScript(`innerHeight === ${pickerBounds.height}`), 'reader viewport restored');
     await reader.executeJavaScript(`document.getElementById('appearanceToggle').click()`);
     checks.push('font choices preview their typefaces and support keyboard selection and focus return');
     async function checkModifiedClicks(tabId, contents, isPrivate) {

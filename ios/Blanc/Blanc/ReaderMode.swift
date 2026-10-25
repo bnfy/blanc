@@ -54,7 +54,7 @@ final class ReaderPreferences {
 }
 
 @MainActor
-final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandlerWithReply, WKNavigationDelegate {
+final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandlerWithReply, WKNavigationDelegate, UIGestureRecognizerDelegate {
     private(set) var webView: WKWebView!
     private let token = UUID().uuidString.lowercased()
     private var article: [String: Any]
@@ -65,6 +65,7 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
     private let onExit: () -> Void
     private let openLink: (URL, String) -> Void
     private var closed = false
+    private let backSwipe = UIScreenEdgePanGestureRecognizer()
 
     init(article: [String: Any], sourceURL: URL, appearance: ReaderAppearance,
          saveAppearance: @escaping (ReaderAppearance) -> Void,
@@ -101,7 +102,35 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
         """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = self
+        backSwipe.name = "blanc.reader.back"
+        backSwipe.edges = webView.effectiveUserInterfaceLayoutDirection == .rightToLeft ? .right : .left
+        backSwipe.addTarget(self, action: #selector(handleBackSwipe(_:)))
+        backSwipe.delegate = self
+        webView.addGestureRecognizer(backSwipe)
+        webView.scrollView.panGestureRecognizer.require(toFail: backSwipe)
         webView.load(URLRequest(url: URL(string: "blanc-reader://\(token)/")!))
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === backSwipe, !closed else { return false }
+        let velocity = backSwipe.velocity(in: webView)
+        let direction: CGFloat = backSwipe.edges == .right ? -1 : 1
+        return velocity.x * direction > 0 && abs(velocity.x) > abs(velocity.y)
+    }
+
+    @objc private func handleBackSwipe(_ gesture: UIScreenEdgePanGestureRecognizer) {
+        guard gesture.state == .ended else { return }
+        completeBackSwipe(translation: gesture.translation(in: webView), velocity: gesture.velocity(in: webView))
+    }
+
+    // Shared completion path for the real edge gesture and deterministic tests.
+    func completeBackSwipe(translation: CGPoint, velocity: CGPoint) {
+        guard !closed else { return }
+        let direction: CGFloat = backSwipe.edges == .right ? -1 : 1
+        let distance = translation.x * direction
+        if distance >= max(44, webView.bounds.width * 0.15) || (distance > 0 && velocity.x * direction > 600) {
+            onExit()
+        }
     }
 
     func dispose() {
@@ -109,6 +138,8 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
         closed = true
         article = [:]; images = [:]
         webView.stopLoading()
+        webView.removeGestureRecognizer(backSwipe)
+        backSwipe.delegate = nil
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "reader", contentWorld: .page)
         webView.navigationDelegate = nil
     }

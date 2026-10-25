@@ -24,13 +24,13 @@ button:hover { border-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 main:focus { outline: none; }
 [hidden] { display: none !important; }
-#appearance { position: absolute; inset-inline-end: 16px; top: calc(100% + 8px); width: min(310px, calc(100vw - 32px)); padding: 18px; background: var(--paper); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px #0002; }
+#appearance { position: absolute; inset-inline-end: 16px; top: calc(100% + 8px); width: min(310px, calc(100vw - 32px)); overflow-y: auto; overscroll-behavior: contain; padding: 18px; background: var(--paper); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 32px #0002; }
 label, .appearance-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
 label:last-child, .appearance-row:last-child { margin-bottom: 0; }
 .font-picker { position: relative; min-width: 170px; max-width: calc(100% - 45px); }
 #fontToggle { position: relative; width: 100%; text-align: start; padding-inline-end: 36px; }
 #fontToggle::after { content: ''; position: absolute; inset-inline-end: 14px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
-.font-options { position: absolute; inset-inline-end: 0; top: calc(100% + 6px); z-index: 2; min-width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--paper); box-shadow: 0 8px 24px #0002; }
+.font-options { position: fixed; z-index: 2; overflow-y: auto; overscroll-behavior: contain; max-width: calc(100vw - 16px); padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--paper); box-shadow: 0 8px 24px #0002; }
 .font-option { min-height: 44px; padding: 8px; margin: 0; gap: 10px; justify-content: flex-start; border-radius: 6px; cursor: pointer; white-space: nowrap; }
 .font-option:hover, .font-option:focus-within { background: color-mix(in srgb, var(--accent) 12%, var(--paper)); }
 .font-option input { width: 16px; height: 16px; margin: 0; flex: none; }

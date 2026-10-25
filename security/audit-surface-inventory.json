@@ -811,7 +811,7 @@
     },
     {
       "file": "src/main/reader-extract.js",
-      "sha256": "0b6f7a0679819ad3879de765b9fcd4d84f85ba59365c48191078e9f0d83ce993",
+      "sha256": "ceadba6b5543af71becc90d1b1ca3cec79cf3c0b555c9f7ea2ce33c72dbf5dbc",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

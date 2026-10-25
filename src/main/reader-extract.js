@@ -34,8 +34,14 @@ function buildReaderExtraction() {
     for (let i = originals.length - 1; i >= 0; i--) {
       const original = originals[i], copy = copies[i];
       if (!copy || ['HTML', 'HEAD', 'BODY'].includes(original.tagName) || document.head?.contains(original)) continue;
-      if (original.hidden || original.getAttribute('aria-hidden') === 'true'
-          || (typeof original.checkVisibility === 'function' && !original.checkVisibility({checkVisibilityCSS: true, checkOpacity: true}))) copy.remove();
+      const style = getComputedStyle(original);
+      // display:contents has no box but can contain visible text. Check its
+      // hiding styles explicitly, and still filter each descendant separately.
+      const hiddenStyle = style.display === 'none' || style.visibility === 'hidden'
+        || style.visibility === 'collapse';
+      if (original.hidden || original.getAttribute('aria-hidden') === 'true' || hiddenStyle
+          || (style.display !== 'contents' && typeof original.checkVisibility === 'function'
+            && !original.checkVisibility({checkVisibilityCSS: true, checkOpacity: true}))) copy.remove();
       if (original.tagName === 'IMG' && original.currentSrc) copy.setAttribute('src', original.currentSrc);
     }
     const article = new Readability(clone, { maxElemsToParse: ${MAX_ARTICLE_ELEMENTS} }).parse();

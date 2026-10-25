@@ -111,7 +111,11 @@ alongside the complete `BlancTests` target. The desktop smoke covers local
 extraction/sanitization, Find, unchanged source DOM/scroll on return, appearance,
 private readers, Split View, Glance, and moving a live reader to another window. It also checks automatic detection
 after loading settles, regular/private modifier and middle-click dispositions,
-and the Reader context menu’s Glance action.
+and the Reader context menu’s Glance action. Extraction fixtures include visible
+`display: contents` containers and hidden descendants. The font list is positioned
+within the visual viewport, flips above its button when needed, and scrolls in
+short panes. Native tests cover the reader-owned back edge gesture, which exits
+to the unchanged source rather than navigating its history.
 
 Release acceptance remains pending for installed Apple Silicon and Intel
 candidates, Windows and Linux machines, physical iPhone/iPad, VoiceOver and other

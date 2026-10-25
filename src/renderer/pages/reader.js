@@ -29,10 +29,51 @@
     fontToggle.setAttribute('aria-expanded', 'false');
     if (restoreFocus) fontToggle.focus();
   }
+  function visibleViewport() {
+    const viewport = window.visualViewport;
+    return { left: viewport?.offsetLeft ?? 0, top: viewport?.offsetTop ?? 0,
+      width: viewport?.width ?? document.documentElement.clientWidth,
+      height: viewport?.height ?? window.innerHeight };
+  }
+  function placeFontPicker() {
+    if (fontOptions.hidden || popover.hidden) return;
+    const viewport = visibleViewport();
+    const button = fontToggle.getBoundingClientRect();
+    const margin = 8, gap = 6;
+    const left = viewport.left + margin, right = viewport.left + viewport.width - margin;
+    const top = viewport.top + margin, bottom = viewport.top + viewport.height - margin;
+    fontOptions.style.maxHeight = 'none';
+    fontOptions.style.width = 'max-content';
+    const width = Math.min(Math.max(button.width, fontOptions.getBoundingClientRect().width), right - left);
+    fontOptions.style.width = `${Math.max(0, width)}px`;
+    const height = fontOptions.scrollHeight + 2;
+    const below = Math.max(0, bottom - button.bottom - gap);
+    const above = Math.max(0, button.top - gap - top);
+    const downward = below >= height || below >= above;
+    const room = downward ? below : above;
+    fontOptions.style.maxHeight = `${room}px`;
+    const drawnHeight = fontOptions.getBoundingClientRect().height;
+    fontOptions.style.left = `${Math.max(left, Math.min(button.right - width, right - width))}px`;
+    fontOptions.style.top = `${Math.max(top, downward ? button.bottom + gap : button.top - gap - drawnHeight)}px`;
+  }
+  function placeAppearance() {
+    if (popover.hidden) return;
+    const viewport = visibleViewport();
+    popover.style.maxHeight = `${Math.max(0, viewport.top + viewport.height - popover.getBoundingClientRect().top - 8)}px`;
+    placeFontPicker();
+  }
+  window.addEventListener('resize', placeAppearance);
+  window.visualViewport?.addEventListener('resize', placeAppearance);
+  window.visualViewport?.addEventListener('scroll', placeAppearance);
+  popover.addEventListener('scroll', placeFontPicker);
   function openFontPicker() {
     fontOptions.hidden = false;
     fontToggle.setAttribute('aria-expanded', 'true');
-    fontRadios.find(radio => radio.checked)?.focus();
+    placeFontPicker();
+    const selected = fontRadios.find(radio => radio.checked);
+    selected?.focus({ preventScroll: true });
+    if (selected) fontOptions.scrollTop = Math.max(0, selected.parentElement.offsetTop - fontOptions.clientHeight / 2);
+
   }
   fontToggle.addEventListener('click', () => fontOptions.hidden ? openFontPicker() : closeFontPicker());
   fontToggle.addEventListener('keydown', event => {
@@ -60,7 +101,7 @@
   toggle.addEventListener('click', () => {
     popover.hidden = !popover.hidden;
     toggle.setAttribute('aria-expanded', String(!popover.hidden));
-    if (!popover.hidden) controls.theme.focus();
+    if (!popover.hidden) { placeAppearance(); controls.theme.focus(); }
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !popover.hidden) { event.preventDefault(); closeAppearance(); toggle.focus(); }
