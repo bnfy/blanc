@@ -167,7 +167,7 @@ Readability.prototype = {
     commas: /\u002C|\u060C|\uFE50|\uFE10|\uFE11|\u2E41|\u2E34|\u2E32|\uFF0C/g,
     // See: https://schema.org/Article
     jsonLdArticleTypes:
-      /^Article|AdvertiserContentArticle|NewsArticle|AnalysisNewsArticle|AskPublicNewsArticle|BackgroundNewsArticle|OpinionNewsArticle|ReportageNewsArticle|ReviewNewsArticle|Report|SatiricalArticle|ScholarlyArticle|MedicalScholarlyArticle|SocialMediaPosting|BlogPosting|LiveBlogPosting|DiscussionForumPosting|TechArticle|APIReference$/,
+      /^(?:Article|AdvertiserContentArticle|NewsArticle|AnalysisNewsArticle|AskPublicNewsArticle|BackgroundNewsArticle|OpinionNewsArticle|ReportageNewsArticle|ReviewNewsArticle|Report|SatiricalArticle|ScholarlyArticle|MedicalScholarlyArticle|SocialMediaPosting|BlogPosting|LiveBlogPosting|DiscussionForumPosting|TechArticle|APIReference)$/,
     // used to see if a node's content matches words commonly used for ad blocks or loading indicators
     adWords:
       /^(ad(vertising|vertisement)?|pub(licité)?|werb(ung)?|广告|Реклама|Anuncio)$/iu,
@@ -476,9 +476,9 @@ Readability.prototype = {
     this._forEachNode(links, function (link) {
       var href = link.getAttribute("href");
       if (href) {
-        // Remove links with javascript: URIs, since
-        // they won't work after scripts have been removed from the page.
-        if (href.indexOf("javascript:") === 0) {
+        // Blanc: retain only resolved HTTP(S) links and local fragments.
+        // Other schemes become text; final DOMPurify sanitization still applies.
+        if (!/^(?:https?:|#)/i.test(toAbsoluteURI(href))) {
           // if the link only contains simple text content, it can be converted to a text node
           if (
             link.childNodes.length === 1 &&

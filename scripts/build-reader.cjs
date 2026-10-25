@@ -46,7 +46,7 @@ for (const locale of ['en', 'de', 'es', 'fr', 'it', 'pt-BR']) {
 files['src/renderer/pages/reader-copy.generated.json'] = JSON.stringify(copy, null, 2) + '\n';
 const pins = Object.fromEntries(['src/renderer/pages/source-serif-4-regular.woff2', 'src/renderer/pages/source-serif-4-OFL.txt',
   'node_modules/@mozilla/readability/Readability.js', 'node_modules/@mozilla/readability/Readability-readerable.js',
-  'node_modules/dompurify/dist/purify.js'].map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex')]));
+  'node_modules/dompurify/dist/purify.js', 'src/main/reader-readability-adaptation.js'].map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex')]));
 files['reader-pinned.json'] = JSON.stringify({ readability: require('@mozilla/readability/package.json').version,
   dompurify: JSON.parse(fs.readFileSync(path.join(path.dirname(require.resolve('dompurify')), '../package.json'))).version, sha256: pins }, null, 2) + '\n';
 for (const [file, content] of Object.entries(files)) {

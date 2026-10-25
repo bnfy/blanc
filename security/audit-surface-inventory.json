@@ -811,7 +811,7 @@
     },
     {
       "file": "src/main/reader-extract.js",
-      "sha256": "4757267eac68731110f190341c13c993aaa1928ec6a80bcf0195fd69bbf09418",
+      "sha256": "0b6f7a0679819ad3879de765b9fcd4d84f85ba59365c48191078e9f0d83ce993",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -855,6 +855,12 @@
         "reader:open-link"
       ],
       "role": "preload"
+    },
+    {
+      "file": "src/main/reader-readability-adaptation.js",
+      "sha256": "6af0ae67f2801d139549c912303ea0ae6708c54ec96acf8b9e61378b827d07ec",
+      "literalChannels": [],
+      "role": "privileged implementation or service"
     },
     {
       "file": "src/main/scoped-capture-preload-linux.js",

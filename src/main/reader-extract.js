@@ -3,11 +3,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { MAX_ARTICLE_BYTES, MAX_ARTICLE_ELEMENTS } = require('./reader-model');
+const { adaptReadability } = require('./reader-readability-adaptation');
 let scripts;
 function sources() {
   return scripts ??= {
     heuristic: fs.readFileSync(require.resolve('@mozilla/readability/Readability-readerable.js'), 'utf8'),
-    readability: fs.readFileSync(require.resolve('@mozilla/readability/Readability.js'), 'utf8'),
+    readability: adaptReadability(fs.readFileSync(require.resolve('@mozilla/readability/Readability.js'), 'utf8')),
     purify: fs.readFileSync(path.join(path.dirname(require.resolve('dompurify')), 'purify.js'), 'utf8'),
     content: fs.readFileSync(path.join(__dirname, '../renderer/pages/reader-content.js'), 'utf8'),
   };

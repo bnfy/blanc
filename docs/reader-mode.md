@@ -31,6 +31,12 @@ removed. No alternate page, pagination, or hidden-content expansion is fetched.
 Readability can still misidentify pages or omit content; failure leaves the
 source intact and offers the ordinary page.
 
+Blanc adapts the executable copy of pinned Readability 0.6.0 to anchor the whole
+JSON-LD article-type expression and retain only resolved HTTP(S)/fragment links.
+`reader-readability-adaptation.js` checks each upstream replacement exactly once
+and fails on drift. The npm files remain unmodified; desktop and generated iOS
+extraction share these fixes. Both the upstream and adaptation inputs are pinned.
+
 ## Desktop ownership and networking
 
 `reader-mode.js` owns one sandboxed companion per active reader, separate from

@@ -34,7 +34,7 @@ final class ReaderModeTests: XCTestCase {
         configuration.websiteDataStore = .nonPersistent()
         let source = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: configuration)
         let paragraphs = (0..<20).map { "<p>Reader fixture \($0). " + String(repeating: "An article with useful context and clear writing. ", count: 8) + "</p>" }.joined()
-        source.loadHTMLString("<html><head><title>Reader fixture</title></head><body><article><h1>Reader fixture</h1>\(paragraphs)<p hidden>HIDDEN_SECRET</p><p style='display:none'>HIDDEN_SECRET</p><a href='javascript:alert(1)'>unsafe</a><table><tr><th>Example</th><td>Value</td></tr><tr><td>Second</td><td>Another useful value</td></tr></table></article></body></html>", baseURL: URL(string: "https://reader.example/article"))
+        source.loadHTMLString("<html><head><title>Reader fixture</title></head><body><article><h1>Reader fixture</h1>\(paragraphs)<p hidden>HIDDEN_SECRET</p><p style='display:none'>HIDDEN_SECRET</p><a href='javascript:alert(1)'>unsafe</a><a href='data:text/html,unsafe'>data link text</a><a href='vbscript:unsafe'>vbscript link text</a><table><tr><th>Example</th><td>Value</td></tr><tr><td>Second</td><td>Another useful value</td></tr></table></article></body></html>", baseURL: URL(string: "https://reader.example/article"))
         for _ in 0..<100 {
             if (try? await source.evaluateJavaScript("document.querySelectorAll('article p').length > 10")) as? Bool == true { break }
             try await Task.sleep(for: .milliseconds(100))
@@ -46,6 +46,8 @@ final class ReaderModeTests: XCTestCase {
         let content = try XCTUnwrap(article["content"] as? String)
         XCTAssertFalse(content.contains("HIDDEN_SECRET"))
         XCTAssertFalse(content.contains("javascript:"))
+        XCTAssertFalse(content.contains("data:"))
+        XCTAssertFalse(content.contains("vbscript:"))
         XCTAssertTrue(content.contains("<table>"))
         let reader = ReaderController(article: article, sourceURL: URL(string: "https://reader.example/article")!,
             appearance: ReaderAppearance(), saveAppearance: { _ in }, onExit: {}, openLink: { _, _ in })

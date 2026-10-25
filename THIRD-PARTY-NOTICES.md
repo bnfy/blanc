@@ -16,6 +16,11 @@ The desktop runtime license records are generated in the packaged compliance
 notices. Full upstream texts also ship in `src/renderer/pages/reader-*-LICENSE.txt`
 and `reader-dompurify-MPL.txt`, including in the native iOS bundle.
 
+Blanc's executable copy of Readability applies two documented changes through
+`src/main/reader-readability-adaptation.js`: fully anchored article-type matching
+and an HTTP(S)/fragment link allowlist. The pinned upstream npm files are unchanged;
+desktop and iOS share the adapted code and retain the upstream copyright notices.
+
 Source Serif 4 Regular is copyright Adobe and its contributors, distributed
 under SIL OFL 1.1; its full text is `src/renderer/pages/source-serif-4-OFL.txt`.
 Reader executable inputs and the font bytes are recorded in `reader-pinned.json`.

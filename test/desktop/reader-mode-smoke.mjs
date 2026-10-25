@@ -11,7 +11,7 @@ const userData = path.join(root, 'profile');
 fs.mkdirSync(userData + '-Dev');
 fs.writeFileSync(path.join(userData + '-Dev', 'settings.json'), JSON.stringify({ onboardingVersion: 1, usagePing: false, searchSuggestions: false }));
 const paragraphs = Array.from({ length: 24 }, (_, i) => `<p>Reader fixture paragraph ${i}. ${'An article about quiet, comfortable reading with clear typography and useful context. '.repeat(8)}</p>`).join('');
-const html = `<!doctype html><title>Reader fixture</title><article><h1>Reader fixture</h1>${paragraphs}<p hidden>HIDDEN_SECRET</p><p style="display:none">HIDDEN_SECRET</p><table><tr><th>Example</th><td>Value</td></tr></table><figure><img src="/image.png" alt="Article image"><figcaption>Figure caption</figcaption></figure><a href="javascript:alert(1)">unsafe link</a><iframe srcdoc="unsafe"></iframe></article>`;
+const html = `<!doctype html><title>Reader fixture</title><article><h1>Reader fixture</h1>${paragraphs}<p hidden>HIDDEN_SECRET</p><p style="display:none">HIDDEN_SECRET</p><table><tr><th>Example</th><td>Value</td></tr></table><figure><img src="/image.png" alt="Article image"><figcaption>Figure caption</figcaption></figure><a href="javascript:alert(1)">unsafe link</a><a href="data:text/html,unsafe">data link text</a><a href="vbscript:unsafe">vbscript link text</a><iframe srcdoc="unsafe"></iframe></article>`;
 const server = http.createServer((_req, res) => { res.writeHead(200, { 'content-type': 'text/html' }); res.end(html); });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;

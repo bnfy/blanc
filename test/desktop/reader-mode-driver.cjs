@@ -34,10 +34,11 @@ app.whenReady().then(async () => {
     const sanitized = await reader.executeJavaScript(`({ text: document.getElementById('article').textContent,
       unsafe: document.querySelectorAll('article script, article iframe, article form, article [onclick], article [onerror], article [style]').length,
       api: typeof window.browserAPI, pages: typeof window.bowserPages,
+      linksSafe: [...document.querySelectorAll('article a[href]')].every(a => /^(?:https?:|#)/i.test(a.getAttribute('href'))),
       source: document.getElementById('source').textContent, tables: document.querySelectorAll('article table').length })`);
     assert.equal(sanitized.unsafe, 0); assert.equal(sanitized.api, 'undefined'); assert.equal(sanitized.pages, 'undefined');
     assert.equal(sanitized.text.includes('HIDDEN_SECRET'), false); assert.equal(sanitized.source, '127.0.0.1');
-    assert.equal(sanitized.tables, 1);
+    assert.equal(sanitized.tables, 1); assert.equal(sanitized.linksSafe, true);
     checks.push('sanitized article with tables, no hidden content or privileged bridge');
     fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT, (await reader.capturePage()).toPNG());
     await reader.executeJavaScript(`(() => {
