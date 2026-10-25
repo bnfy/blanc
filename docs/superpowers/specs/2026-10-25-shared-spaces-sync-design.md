@@ -1,6 +1,6 @@
 # M16: Shared Spaces, groups and Recently closed — the desktop protocol
 
-**Date:** 2026-10-25 (third revision, after the owner's reviews of `e0ebe765` and `ea5b1f22`)
+**Date:** 2026-10-25 (fourth revision, after the owner's reviews of `e0ebe765`, `ea5b1f22` and `b7b3b076`)
 **Status:** proposed. The contract is `2026-10-24-ios-v1-companion-release-design.md` §4, §5 and §7 (merged in #1102, owner-decided 2026-10-24). This document chooses the mechanisms that contract left open. The owner has settled D1–D9 (§14); nothing here is built.
 **Ships as:** a public desktop feature release (its own What's New page and the feature-release gates in CLAUDE.md) before Blanc for iPhone, so the protocol gets real use first (§4.7 of the contract). M17 (Spaces on iPhone) builds on it.
 **Builds on:** Profile Sync (`2026-07-07-profile-sync-design.md`), Tab Sync (`2026-07-21-tab-sync-design.md`, F27), Send to device (`2026-10-24-ios-m7b-send-to-device-design.md`, the `sends` store), Blanc Spaces (F41), custom tab names (F46), Move to Space (#1097).
@@ -25,14 +25,14 @@ The contract fixes what; these are the hows, each with the reason.
 |---|---|---|
 | 2.1 | **One encrypted blob per Space, in a store named by the Space's immutable id** (`space-<32 hex>`), plus one `spaces` index blob (D1). | 25 Spaces × 500 tabs can't fit one 512 KiB blob (§5). Fixed slots would let two offline devices allocate the same slot to different Spaces, and a freed slot could take a stale device's write for its replacement. A small Worker route change buys a protocol with no allocation at all. |
 | 2.2 | **The library holds at most 25 Spaces per account**, desktop's existing cap, as a product limit enforced at creation, never by dropping. | One budget everywhere. Concurrent creation can pass it transiently (§3.7). |
-| 2.3 | **Records, not captures.** Each Space, group and tab is its own record with an id, per-field clocks and a final tombstone; order is a position string per item from a fully specified algorithm (§3.4). | The contract's §4.3. One clock per tab record would let a navigation on one device and a pin on another overwrite each other. |
+| 2.3 | **Records, not captures.** Each Space, group and tab is its own record with an id, per-field clocks and a final tombstone; order is a position key from one fully specified algorithm, every key ending in the writer's tag so concurrent inserts never collide (§3.4). | The contract's §4.3. One clock per tab record would let a navigation on one device and a pin on another overwrite each other; equal keys would lose the requested placement. |
 | 2.4 | **A shared Space's tabs get stable ids** that the local capture carries in a new `tabIds` column of `workspaces.json`. | The F27 entry has no tab ids and is frozen; the capture is Blanc's own file and may grow a column. |
-| 2.5 | **Budgets are measured on the serialized encrypted blob** against the Worker's 524,288-byte cap, with 320 KiB of plaintext as the planning guide. **Over budget is refused at the edge, loudly;** an oversized Space is not shared until it fits (D3). | `encrypt()`'s base64 envelope makes 400 KiB of plaintext a 546,208-byte blob; 320 KiB is 436,980 (§5). The contract requires over-budget behaviour that is never silent; a Space that quietly differs across devices breaks "the same set of tabs". |
-| 2.6 | **One bounded scheduler for every GET**: a fixed per-pass budget covers the fixed stores, the index and Space blobs, with fair rotation; the index carries a **content revision** per Space as a hint, and periodic reconciliation fetches blobs the hint missed (§6). | 30 GETs per account per minute, shared by every device. A clock maximum cannot detect every change; blob and index writes are not atomic. |
-| 2.7 | **Two baselines per window**: the **displayed** baseline (what the window shows) that local autosave diffs against, and an **accepted** set of remote targets waiting on the protected active tab. The displayed baseline advances only when a deferred change actually applies (§4.3–4.4). | Advancing one baseline to the remote target while the window still shows the old page would read as a local navigation back, the bug the first drafts recreated. |
-| 2.8 | **Local edits stay pending until a fetched blob contains them**, and are replayed on every push until then. The design claims that, not recovery from a lost write in general (§3.8). | The Worker's writes are not atomic (R5). Per-field clocks let a replay win cleanly; nothing stronger is true. |
-| 2.9 | **Tombstones are final.** A deleted record's id is retired; nothing revives it, and a reopened page is a new record. A device whose last merge is older than the tombstone retention treats its own copy as stale (§3.5). | Deterministic on every replica, and it removes the two resurrection paths (a concurrent edit, a long-offline copy). |
-| 2.10 | **A dormant (switched-off) Space keeps maintaining its records locally**, with real clocks, and publishes nothing; **Rejoin** resumes publishing by an ordinary merge (§4.6). | An off/on cycle must not double the library, and offline edits must carry the clocks they were made with, not a fresh stamp over the whole snapshot. |
+| 2.5 | **Budgets are measured on the serialized encrypted blob** against the Worker's 524,288-byte cap, with 320 KiB of plaintext as the planning guide. **Over budget is refused at the edge, loudly;** an oversized Space is not shared until it fits (D3). | `encrypt()`'s base64 envelope makes 400 KiB of plaintext a 546,208-byte blob; 320 KiB is 436,980 (§5). The contract requires over-budget behaviour that is never silent. |
+| 2.6 | **One rolling request budget per device, shared by every class of work in round robin with a reserved share each**; the index carries a **content revision** per Space as a hint, and periodic reconciliation fetches blobs the hint missed, as often as the budget allows (§6). | 30 GETs per account per minute, shared by every device. A fixed priority order let one class starve the others under backoff; a clock maximum cannot detect every change; blob and index writes are not atomic. |
+| 2.7 | **Two baselines per window**: the **displayed** baseline (what the window shows) that local autosave diffs against, and an **accepted** set of remote targets waiting on the protected active tab. The displayed baseline advances only when a deferred change actually applies (§4.3–4.4). | Advancing one baseline to the remote target while the window still shows the old page would read as a local navigation back. |
+| 2.8 | **Local edits stay pending until a fetched blob contains or provably supersedes them under the field's own merge rule**, and are replayed on every push until then (§3.8). The design claims that, not recovery from a lost write in general. | The Worker's writes are not atomic (R5). "Same clock or newer" would let a fetched `deleted: false` with a later clock clear a pending delete. |
+| 2.9 | **Tombstones are final.** A deleted record's id is retired; nothing revives it, and a reopened page is a new record (§3.5). **Resurrection after a tombstone expires is possible**, as it is for Favorites, and is bounded by a recovery copy, not prevented (§3.9). | Deterministic on every replica. A stronger guarantee needs a generation or checkpoint protocol, which is not in M16; the design says so rather than claiming it. |
+| 2.10 | **A dormant (switched-off) Space keeps maintaining its records locally**, with real clocks, and publishes nothing; **Rejoin** resumes publishing by an ordinary merge, after a fresh fetch (§4.6). | An off/on cycle must not double the library, and offline edits must carry the clocks they were made with, not a fresh stamp over the whole snapshot. |
 | 2.11 | **Synced Recently closed is a per-device store, `closed`**, in the `sends` shape (one writer per entry). | The contract's §5; no merge conflicts by construction. |
 | 2.12 | **Other-devices dedupe uses a `shared` sidecar bound to one F27 snapshot by its clock and listing tab occurrences by index**; a missing, stale or oversized sidecar leaves every tab visible (§8). | The contract forbids a new field in the F27 entry and asks for "shown once"; a URL match would hide an unrelated tab with the same address. |
 | 2.13 | **The Worker stays v1** with one route change (the `space-<id>` store pattern and a prefix-listing account DELETE); owner deploys before any client that needs it (§9). | The authenticated v2 protocol is its own project (CLAUDE.md). R3 and R5 stay open and are stated, not fixed (§12). |
@@ -52,7 +52,7 @@ One blob, the directory of the library:
       "name":   { "v": "Work",     "c": 1800000000000, "by": "<deviceId>" },
       "color":  { "v": "#426c4c",  "c": …, "by": … },
       "symbol": { "v": "briefcase","c": …, "by": … },
-      "pos":    { "v": "i",        "c": …, "by": … },          // order among Spaces (§3.4)
+      "pos":    { "v": "i7q2",     "c": …, "by": … },          // order among Spaces (§3.4)
       "createdAt": 1800000000000, "createdBy": "<deviceId>",
       "rev": "9f2a…",               // content revision of the Space's blob (§6.1), a hint
       "deleted": { "v": false, "c": …, "by": … }               // the tombstone field (§3.5)
@@ -73,7 +73,7 @@ One blob, the directory of the library:
       "name":      { "v": "Reading", "c": …, "by": … },
       "color":     { "v": null,      "c": …, "by": … },
       "collapsed": { "v": false,     "c": …, "by": … },
-      "pos":       { "v": "b",       "c": …, "by": … },
+      "pos":       { "v": "b7q2",    "c": …, "by": … },
       "deleted":   { "v": false,     "c": …, "by": … } } },
   "tabs": {
     "<tabId>": {
@@ -81,7 +81,7 @@ One blob, the directory of the library:
       "name":    { "v": null | "Custom name",  "c": …, "by": … },   // F46, ≤100
       "pinned":  { "v": false,  "c": …, "by": … },
       "groupId": { "v": "<groupId>" | null, "c": …, "by": … },
-      "pos":     { "v": "c2",   "c": …, "by": … },
+      "pos":     { "v": "c27q2", "c": …, "by": … },
       "deleted": { "v": false,  "c": …, "by": … } } },
   "active": { "v": "<tabId>", "c": …, "by": … }                   // the saved selection
 }
@@ -94,54 +94,53 @@ One blob, the directory of the library:
 
 ### 3.3 Merge rule
 
-Per field: the higher clock `c` wins; on a tie, the lexicographically smaller `by`; on a tie of both (the same device wrote the same field twice in one millisecond, or a replay), the lexicographically smaller canonical value (`canonical` from `tabsync-model.js`). Per record: the union of its fields, each merged by that rule; a record's existence is the union too, so a record present on either side is present after the merge. Per blob: the union of records by id. Every rule is deterministic and symmetric, so two devices merging the same two blobs in either order agree, and merging a blob with itself changes nothing.
+Per field: the higher clock `c` wins; on a tie, the lexicographically smaller `by`; on a tie of both (the same device wrote the same field twice in one millisecond, or a replay), the lexicographically smaller canonical value (`canonical` from `tabsync-model.js`). The one exception is `deleted`, where `true` wins whatever the clocks (§3.5). Per record: the union of its fields, each merged by its rule; a record present on either side is present after the merge. Per blob: the union of records by id. Every rule is deterministic and symmetric, so two devices merging the same two blobs in either order agree, and merging a blob with itself changes nothing.
 
 Clock skew between devices makes "last writer" approximate. This is accepted, as it is for Favorites; the merge never loses a record, only the older of two concurrent edits to the same field.
 
 ### 3.4 Order as positions
 
-Positions are the wire protocol's order and must agree byte for byte between desktop and iPhone, so the rules are complete here and pinned by shared vectors (§13).
+Positions are the wire protocol's order and must agree byte for byte between desktop and iPhone, so the rules are complete here, with a reference algorithm, and pinned by shared vectors (§13). The algorithm below was run against the cases in this section and a 200,000-case random check before this text was written; the vectors are generated from the same code.
 
-**Alphabet and keys.** The alphabet is the 36 characters `0123456789abcdefghijklmnopqrstuvwxyz`, in that order (ASCII order), each worth its index 0–35; `mid` is the character for 18, `i`. A **key** is a non-empty string over the alphabet whose last character is not `0`. Keys are compared as strings, character by character by alphabet index, a shorter key that is a prefix of a longer one sorting first (plain lexicographic order). Because no key ends in `0`, every key has keys below and above it, so a list can always grow at both ends and in every gap. A device that reads an invalid key (empty, foreign characters, trailing `0`) treats the record as having no position and orders it after every valid key, by id.
+**Alphabet and keys.** The alphabet is the 36 characters `0123456789abcdefghijklmnopqrstuvwxyz`, in that order (ASCII order), each worth its index 0–35. A **key** is a non-empty string over the alphabet whose last character is not `0`. Keys are compared as strings, character by character by alphabet index, a shorter key that is a prefix of a longer one sorting first (plain lexicographic order). Because no key ends in `0`, every key has keys below and above it, so a list can always grow at both ends and in every gap. A device that reads an invalid key (empty, foreign characters, trailing `0`) treats the record as having no position and orders it after every valid key, by id.
 
-**`append(last)`**, a key greater than `last` with room after it (`last` may be absent):
+**One algorithm, `mid(a, b)`.** Given keys `a` < `b`, or `a` absent (meaning the start, written `""`) or `b` absent (meaning the end), it returns a key `m` with `a` < `m` < `b`. Prepending is `mid("", first)`, appending is `mid(last, "")`, inserting between neighbours is `mid(a, b)`.
 
-1. If there is no `last`: return `i`.
-2. Let `c` be the last character of `last`. If `c` is below `z`: return `last` with `c` replaced by the next character. (`ab` → `ac`; room remains: `ab1`…`abz` lie between.)
-3. Otherwise (`c` is `z`): return `last` + `1`. (`abz` → `abz1`.)
+```
+mid(a, b):                      // digit(k, n): index of k's n-th character
+  out = ""; n = 0
+  loop:
+    da = n < len(a) ? digit(a, n) : 0          // a is padded with 0 (index 0)
+    db = b == "" ? 36 : (n < len(b) ? digit(b, n) : 36)   // b is padded with 36, past z
+    if da == db:  out += char(da); n += 1; continue
+    if db - da >= 2:  out += char(floor((da + db) / 2)); return out
+    // db == da + 1: take a's digit (so out < b from here on), then find
+    // something above the rest of a with no upper bound.
+    out += char(da); a = a[n+1 ..]; b = ""; n = 0
+```
 
-**`prepend(first)`**, a key less than `first` with room before it:
+Why it is right: `out` copies the common prefix, then at the first difference either takes a character strictly between the two (so `a` < `out` < `b` at that position, and nothing after it matters) or takes `a`'s character where `b`'s is one higher (so `out` < `b` whatever follows) and continues with only `a`'s remainder as a lower bound, where the same two cases apply with `b` unbounded. It terminates because each iteration consumes a character of `a`, and once `a` is exhausted its padding `0` against `36` returns `i` (index 18). The returned key never ends in `0`, because the final character is ⌊(`da` + `db`) / 2⌋ with `db` ≥ `da` + 2, which is at least 1. Examples the vectors pin: `mid("a1", "a11")` = `a10i`; `mid("a1", "a2")` = `a1i`; `mid("a1z", "a2")` = `a1zi`; `mid("", "1")` = `0i`; `mid("", "a1")` = `5`; `mid("ab", "")` = `n`; `mid("a", "a0i")` = `a09`; `mid("i", "i1")` = `i0i`; `mid("zz", "")` = `zzi`.
 
-1. If there is no `first`: return `i`.
-2. Let `c` be the last character of `first`. If `c` is above `1`: return `first` with `c` replaced by the previous character. (`ac` → `ab`.)
-3. Otherwise (`c` is `1`): return `first` with `c` replaced by `0`, then `i` appended. (`a1` → `a0i`; `1` → `0i`.) The result ends in `i`, so it is a valid key, and `a0i` < `a1`.
+**Writer tags, so inserts never collide.** Two devices inserting into the same gap at once compute the same `mid`, and equal keys would lose the requested placement. So every key a device writes is **`mid(a, b)` followed by the device's tag**: three characters over the 35-character alphabet `1-9a-z` (no `0`, so the key stays valid) derived from its `deviceId` (the first 15 bits of SHA-256 over the id, written in base 35, zero-padded with `1`). Appending any suffix to `mid(a, b)` keeps `a` < key < `b`, because `mid` already differs from both bounds at an earlier character (or is longer than `a` with `a` as a prefix), so the tagged key is strictly between the requested neighbours, and two devices' keys for the same gap differ in their tags. Later inserts between two tagged keys use `mid` on them as ordinary keys. A tag collision between two devices (about 1 in 42,875 pairs) can still produce equal keys; equal keys order by record id, and the design accepts that placement is then approximate for that one insert. The tag is part of the key string and of the vectors; the iPhone derives it the same way.
 
-**`between(a, b)`** for keys `a` < `b`, a key strictly between them:
-
-1. Let `n` be the length of the longer key. Pad `a` on the right with `0` and `b` with the character after `z` (index 36, written `{`, never stored) to length `n`, conceptually only.
-2. Find the first index `k` where the padded strings differ; let `x` = index of `a[k]`, `y` = index of `b[k]` (so `x` < `y`).
-3. If `y` − `x` ≥ 2: return the common prefix `a[0..k)` + the character for ⌊(`x` + `y`) / 2⌋. (It is ≥ `1`, so the key is valid; `a1` and `a9` → `a5`.)
-4. If `y` − `x` = 1: return `a[0..k]` (the prefix including `a[k]`) + `append(a[k+1..])`, where `a[k+1..]` is the rest of `a` after `k` (possibly empty, in which case `append` returns `i`). (`a1` and `a2` → `a1i`; `a1z` and `a2` → `a1z1`.)
-5. The padding guarantees `x` < `y` at `k` whenever `a` < `b`, so no other case exists.
-
-**Choosing a key.** A new item placed after the last item uses `append`; before the first, `prepend`; between two neighbours, `between`. Moving an item uses the same three rules on its new neighbours and changes only the moved item's `pos`. **Equal keys** happen when two devices insert into the same gap at once: items with equal keys order by id (the smaller tab id first). An insert between two items whose keys are equal, or an insert whose computed key already exists in the Space, is retried as `append` of the greater neighbour's key, so the result is a valid, distinct key that sorts directly after that neighbour; the person's next reorder, if any, replaces it. Keys grow by at most one character per insertion into the same gap, so 500 insertions into one gap are at most 500 characters: far inside the budget and acceptable.
+**Choosing a key.** A new item placed after the last item uses `mid(last, "")`; before the first, `mid("", first)`; between two neighbours, `mid(a, b)`; each plus the writer's tag. Moving an item uses the same rule on its new neighbours and changes only the moved item's `pos`. Keys grow slowly: 500 inserts into the front of one gap reach about 100 characters and 500 appends about 85, with tags adding 3 each; that is far inside the budget.
 
 **No renumbering in M16** (D7): a device cannot know that another has no offline edits, and rewriting every position and clock could overwrite a concurrent reorder. Compaction is a later protocol with its own safety argument.
 
-### 3.5 Tombstones: final, and bounded
+### 3.5 Tombstones: final
 
-`deleted` is a field like the others (`{v: true|false, c, by}`) with one extra rule: **once a replica has seen `deleted.v = true` for a record, that record is deleted on that replica for good**, whatever later clocks say. Concretely:
+`deleted` is a field like the others (`{v: true|false, c, by}`) with its own merge rule: **`true` wins**, whatever the clocks. Concretely:
 
-- Deleting sets `deleted` to `true` with the writer's clock. Nothing sets it back to `false`: no edit to another field revives the record, and no device writes `deleted.v = false` after `true`. A page reopened from Recently closed, or a tab re-added, is a **new record with a new id**. A group recreated with the same name is a new group. So liveness depends on one field's `v`, and every replica that has seen the tombstone agrees; a replica that hasn't yet seen it agrees as soon as it merges, because `true` wins over `false` whatever the clocks (this is the one field where the merge is "true wins", not last writer, so no later edit can resurrect by clock skew). Edits to a tombstoned record's other fields are merged and ignored; they are dropped with the record when its tombstone expires.
+- Deleting sets `deleted` to `true` with the writer's clock. Nothing sets it back to `false`: no edit to another field revives the record, and no device writes `deleted.v = false` after `true`. A page reopened from Recently closed, or a tab re-added, is a **new record with a new id**. A group recreated with the same name is a new group. So liveness depends on one field's `v`, and every replica that has seen the tombstone agrees; one that hasn't yet agrees as soon as it merges. Edits to a tombstoned record's other fields are merged and ignored; they are dropped with the record when its tombstone expires.
 - A tab whose `groupId` names a tombstoned group is shown ungrouped; it stays so, because the group is never revived. A tab moved into a group on one device while the group is deleted on another ends ungrouped on every replica, with no special case.
 - A tombstoned record is kept **30 days** after `deleted.c`, then dropped by every writer, with every field. The byte budget counts it until then (§5).
-- **Stale-replica guard.** A device whose last successful merge of a Space is older than 30 days may hold records whose tombstones have since expired. On its next merge of that Space it treats its copy as stale: any local record absent from the fetched blob is dropped, not re-added, and any local field edits older than the fetched blob's newest clock minus 30 days are discarded. The person sees the library's current state; the device's Recently closed records nothing for these (they were closed elsewhere long ago). This closes the resurrection path without a tombstone that lives forever.
+- **Resurrection is possible and bounded, not prevented.** A device that did not receive a tombstone before it expired (offline for the whole 30 days, or simply never fetching that Space's blob in that time) still holds the record with `deleted: false` and no evidence it was deleted; when it next merges, the record comes back on every device. This is the same bounded risk Favorites accept. §3.9 keeps the damage small; a real guarantee needs an explicit generation or checkpoint protocol, which is not in M16.
 
 ### 3.6 Who writes what, and in what order
 
 - Any device with the switch on may write any record. A device bumps a clock only on a field it changed; it never rewrites another device's unchanged field with a newer clock.
 - **Write order:** the Space blob first, then the index. A blob with no index entry is unreachable but harmless (the creating device retries the index on its next pass). An index entry whose blob is missing is shown as an empty Space until the blob arrives, never deleted by a reader; the writing device retries the blob on its next pass. Both retries come from the pending set (§3.8).
-- Every write is read-merge-write with the Worker's `ifVersion`. On 409 the device merges the newer blob and retries, as `syncOne` already does (three attempts). Each retry's GET counts against the scheduler's budget (§6.2).
+- Every write is read-merge-write with the Worker's `ifVersion`. On 409 the device merges the newer blob and retries, as `syncOne` already does (three attempts). Each retry's GET is spent from the request budget (§6.2).
 
 ### 3.7 The 25-Space cap
 
@@ -149,16 +148,29 @@ A device refuses to create or share a 26th Space while its merged index holds 25
 
 ### 3.8 Pending edits, and what "saved" means
 
-Each device keeps, per Space in `shared-spaces.json`, a **pending set**: the fields it changed, with their clocks, that it has not yet seen in a fetched blob. A push merges the pending set into the latest fetched blob and PUTs. A field leaves the pending set only when a fetched blob contains it with that clock or a newer one. Until then it is replayed on every push.
+Each device keeps, per Space in `shared-spaces.json`, a **pending set**: the field writes it made (each a complete `{v, c, by}`) that it has not yet seen confirmed in a fetched blob. A push merges the pending set into the latest fetched blob and PUTs.
+
+**Acknowledgement uses the field's full merge rule.** A pending write `p` for a field is cleared only when the fetched blob's value `f` for that field satisfies `merge(f, p) = f`: the fetched value already *is* the pending write, or beats it under that field's rule (§3.3). For a last-writer field that means `f` has a higher clock, or the same clock and a smaller or equal `by`, or all equal and a smaller or equal canonical value. For `deleted`, a pending `true` is cleared **only** by a fetched `true`; a fetched `false` never clears it, whatever its clock, and the pending delete is replayed. A pending write that is beaten is cleared because replaying it could never change the outcome. Until cleared, every pending write is replayed on every push.
 
 What this gives: a PUT the Worker lost to a racing writer (R5) is replayed on the next pass, and per-field clocks let the replay win over the racing writer's older values for the same fields. What it does not give: recovery of a field the Worker lost after the device had seen it stored and cleared it from the pending set, nor recovery for a device that is wiped or whose `shared-spaces.json` is lost. The Worker's own statement stands: reconciliation does not guarantee recovery. The settings status shows "Waiting to upload" while a pending set is non-empty, and "Not synced since {time}" when pushes have failed for more than an hour.
+
+### 3.9 Long-stale replicas: a recovery copy, not a guess
+
+A device whose last successful merge of a Space is older than the 30-day tombstone retention cannot tell, for a local record the fetched blob lacks, whether it is new offline work or a record deleted elsewhere whose tombstone has since expired. The design does not guess either way:
+
+- The device **fetches and merges before it publishes anything** for that Space (every push already does, §3.8), so it never publishes from a stale picture.
+- Local records that the fetched blob **has**: merged normally, field by field; the device's offline edits keep their clocks and win or lose by §3.3.
+- Local records that the fetched blob **lacks**, and the device's own pending writes that created them: **not published**. They are moved out of the shared Space into a local, unshared Space named "{Space} · kept on this device", with their tabs, so nothing is lost and nothing is resurrected onto other devices without the person choosing to. The Spaces menu says once what happened and where the tabs are; the person can move any of them back into the shared Space, which makes them new records, or leave them.
+- A device that fetched the Space within the retention window has seen every tombstone that could matter, so it publishes its new records normally; a record it holds that the blob lacks is then its own new work.
+
+This bounds resurrection to the case §3.5 names (a device that missed a tombstone but *did* merge within the window, so the record was still live when it last looked and the tombstone expired before its next fetch), and that case restores the record visibly, in the Space, where Recently closed and the person can act on it. Nothing stronger is claimed.
 
 ## 4. From the record to the window and back
 
 ### 4.1 Local state
 
 - `workspaces.json` stays the device's projection of each Space: the columns it has today plus three new ones for shared Spaces: `sharedId` (the library's spaceId), `tabIds` (parallel to `urls`) and `sharedLink` (`active` or `dormant`, §4.6). Unshared Spaces carry none. An older build ignores all three.
-- A new profile-scoped `shared-spaces.json` holds, bound to the sync `accountId` (the `rebind` guard every sync store has): the last merged index and Space blobs with each blob's content revision and the time of its last successful merge; per Space the pending set (§3.8); per window the displayed baseline, the accepted set and the deferred queue (§4.3–4.4); the scheduler's rotation cursor (§6.2).
+- A new profile-scoped `shared-spaces.json` holds, bound to the sync `accountId` (the `rebind` guard every sync store has): the last merged index and Space blobs with each blob's content revision and the time of its last successful merge; per Space the pending set (§3.8); per window the displayed baseline, the accepted set and the deferred queue (§4.3–4.4); the request budget's recent spend and the rotation cursors (§6.2).
 - Only the Personal profile syncs, as all of Profile Sync does. Named profiles' Spaces stay local.
 
 ### 4.2 Local change → record
@@ -202,7 +214,7 @@ The tab the person is looking at is the active tab of **each window** showing th
 Three things can happen to a deferred change before it applies:
 
 - **A newer remote value arrives** for the same field: the accepted set keeps only the newer one (the merge already did), and that is what applies.
-- **The person edits the same field locally** (they navigate the deferred tab themselves, or close it): §4.2 records a local edit with a newer clock, which wins over the accepted remote value under §3.3 everywhere; the deferred change is dropped as superseded. For a tab the person closes themselves while a remote tombstone is deferred, both sides agree the tab is deleted, and the local close records it in Recently closed once.
+- **The person edits the same field locally** (they navigate the deferred tab themselves, or close it): §4.2 records a local edit with a newer clock, which wins over the accepted remote value under §3.3 everywhere (for a close, both sides agree the tab is deleted); the deferred change is dropped as superseded, and the local close records it in Recently closed once.
 - **The window leaves the Space or closes**: the change applies on the way out (the window's tabs are being put away anyway).
 
 A deferred navigation keeps the person's page; when applied, the tab loads the newer URL. A deferred close files the page in Recently closed with the live view parked as a local close would (D5). Both are visible when they happen because the person has just left the tab.
@@ -214,8 +226,8 @@ Stays per device (contract §4.5). The library records no presence. "A Space is 
 ### 4.6 Switching the switch
 
 - **On, the first time:** a sheet lists this device's Personal Spaces with their tab counts and the library's remaining room (25 minus the Spaces already there). Every Space that fits the 500-tab and byte limits is ticked by default; the person unticks any they want to keep local (D2). An oversized Space is listed unticked and greyed with the reason, and the sheet offers to split it (D3): it stays local until it fits. Confirming uploads the ticked Spaces as new library Spaces (fresh `spaceId`s and `tabId`s, every field clocked now: this is the one moment a whole Space is stamped new, because it is new to the library). Two devices that each had "Work" end up with two "Work" Spaces (contract §4.2). If the ticked set would pass 25, the sheet says so and asks for fewer.
-- **Off:** the device keeps its current copies as local Spaces and publishes nothing further. Nothing is deleted anywhere, and nothing is retracted (contract §4.2; the settings text says so). Each copy keeps a **dormant link** (`sharedLink: dormant`, with `sharedId` and `tabIds`) and **keeps maintaining its records**: §4.2 runs on every autosave as before, so each edit the person makes while the switch is off becomes a field edit with the clock of the moment it was made, in the pending set. Only the upload stops; the merged copy of the library's blob is kept as of the last fetch.
-- **On again:** for each dormant Space the sheet shows the library's state and offers **Rejoin** (the default when the library still has that Space and it isn't tombstoned) or **Add as a copy**. *Rejoin* is nothing but the ordinary cycle resumed: fetch the Space's blob, merge it with the device's kept copy under §3.3 (the device's dormant-period edits carry their own clocks and win or lose field by field against what other devices did meanwhile; remote tombstones close the device's tabs into its Recently closed per §4.3), then push the pending set. Nothing is re-stamped. *Add as a copy* creates a new Space with fresh ids and clocks of now, as a first-time share does; it is the only choice when the library's Space was deleted. So an ordinary off/on cycle with no edits changes nothing in the library.
+- **Off:** the device keeps its current copies as local Spaces and publishes nothing further. Nothing is deleted anywhere, and nothing is retracted (contract §4.2; the settings text says so). Each copy keeps a **dormant link** (`sharedLink: dormant`, with `sharedId` and `tabIds`) and **keeps maintaining its records**: §4.2 runs on every autosave as before, so each edit the person makes while the switch is off becomes a field write with the clock of the moment it was made, in the pending set. Only the upload stops; the merged copy of the library's blob is kept as of the last fetch, with its merge time.
+- **On again:** for each dormant Space the sheet shows the library's state and offers **Rejoin** (the default when the library still has that Space and it isn't tombstoned) or **Add as a copy**. *Rejoin* is nothing but the ordinary cycle resumed: fetch the Space's blob first, merge it with the device's kept copy under §3.3 (the device's dormant-period writes carry their own clocks and win or lose field by field against what other devices did meanwhile; remote tombstones close the device's tabs into its Recently closed per §4.3), apply §3.9 if the last merge is older than the retention, then push the pending set. Nothing is re-stamped. *Add as a copy* creates a new Space with fresh ids and clocks of now, as a first-time share does; it is the only choice when the library's Space was deleted. So an ordinary off/on cycle with no edits changes nothing in the library.
 - **Sync off or account switch:** `shared-spaces.json` is cleared as `tab-sync.json` is; Spaces revert to local copies with no link.
 
 ### 4.7 Pairing
@@ -249,24 +261,30 @@ The Worker allows 30 GETs per account per minute, shared by every device on the 
 
 Each Space blob's **revision** is the first 16 hex characters of SHA-256 over the canonical form (`canonical`) of the blob's plaintext as written. The writer puts that revision in the index entry's `rev` when it writes the index after the blob (§3.6). A reader compares `rev` with the revision of the blob it last merged: different means fetch. Content that didn't change hashes the same, so a heartbeat or a no-op PUT costs no fetch; any change at all, by a slow-clock device, an equal-clock edit or a tombstone expiry, changes the hash.
 
-The index is a **hint**, not the only reason to fetch, because the blob and index writes are not atomic and a writer can fail between them. So:
+The index is a **hint**, not the only reason to fetch, because the blob and index writes are not atomic and a writer can fail between them. So every Space blob is also **reconciled** (fetched regardless of `rev`) in rotation, from the budget share §6.2 reserves for it; and a 404 for a Space blob the index names is treated as "not yet written" (§3.6), never as deleted.
 
-- any Space with a non-empty pending set is fetched before its push (the merge needs the latest);
-- every Space blob is **reconciled** at least once an hour per device: fetched regardless of `rev`, in rotation (§6.2), so a blob whose index write was lost is still seen within the hour;
-- a 404 for a Space blob the index names is treated as "not yet written" (§3.6), never as deleted.
+### 6.2 One rolling budget, four classes, round robin
 
-### 6.2 One scheduler for every GET
+Every GET a device makes for sync, of any store, for any reason (a scheduled pass, a focus refresh, a 409 retry), is spent from **one rolling budget of 10 requests per 60 seconds** (a token bucket: 10 tokens, refilled continuously at one per 6 s). Nothing bypasses it. A device runs a pass whenever it has work and at least one token; a pass spends what it can and leaves the rest for the next.
 
-A **pass** is one run of the sync loop. Each pass has a GET budget of **10**, spent in this order; what doesn't fit waits for the next pass:
+Work is in four **classes**, each with its own rotation cursor (persisted, §4.1):
 
-1. The fixed stores the loop already fetches, in their existing order (`bookmarks`, `settings`, `session`, `icons`, `sends`, then the new `closed` and `shared`): up to 7. The existing optional-store rules apply (a missing optional store costs its one GET).
-2. The `spaces` index: 1.
-3. Space blobs, in this priority, each costing 1 and **all counted against the same budget** (a pending Space never bypasses it): first Spaces with a pending set (oldest pending edit first); then Spaces whose `rev` differs from the local copy; then Spaces due for hourly reconciliation. Within each class, **fair rotation**: a persistent cursor over spaceIds (in id order) advances past each Space as it is fetched, so a Space that missed this pass is first in line next time and no Space starves behind a busy one.
-4. Each 409 retry re-fetches the blob it is retrying and costs 1 from the same budget (`syncOne`'s three attempts are inside this count); a pass that runs out of budget mid-retry leaves the pending set in place and finishes the retry next pass.
+| Class | Contents | Rotation |
+|---|---|---|
+| **F** fixed stores | `bookmarks`, `settings`, `session`, `icons`, `sends`, `closed`, `shared` | cursor over the seven, in that order |
+| **I** index | the `spaces` index | one item |
+| **S** Spaces to sync | Space blobs with a pending set, then Space blobs whose `rev` differs from the local copy | cursor over spaceIds in id order, pending ones first within a pass |
+| **R** reconciliation | every Space blob, for the hourly re-read that catches a lost index write | cursor over spaceIds in id order |
 
-**Cadence:** a device runs at most one pass per **60 s**, except that the existing focus refresh may run an **index-only** pass (1 GET) at any time; if the index shows changes or a Space is pending, the next full pass runs at its normal time. Tab Sync's 15 s/60 s debounce decides *when* the device's own Space blob is pushed; a push rides the next pass.
+Each pass spends its tokens **round robin across the four classes**, in the order I, S, F, R, repeating, skipping a class with nothing to fetch, until tokens run out or no class has work. So with a full budget of 10 and work everywhere, a pass fetches the index, three Spaces, three fixed stores, two reconciliations (plus one more wherever the round ends); with the budget cut to 5 under backoff it still fetches the index, one Space, one fixed store and one reconciliation (and one more). **No class can be starved by another**, whatever the budget, and within a class the cursor guarantees every item its turn. A 409 retry is a request in class S for that Space and takes its turn like any other.
 
-**Bound:** two devices at one full pass a minute spend at most 20 GETs a minute, under 30 with room for both devices' index-only focus refreshes. A third device makes 30 possible; the first device to see a **429** backs off that pass for 60 s and halves its next pass's budget (to 5, floor 3), recovering one per clean pass, so three or more devices settle into alternating passes rather than failing. The status line shows "Sync is busy; retrying" after two consecutive 429s. PUTs are not counted by the account GET limit, only by the per-IP limit of 120 requests a minute, which a single device cannot approach at this cadence.
+**Pushes** (PUTs) are not GETs and are not counted by the Worker's per-account GET limit; the budget does not throttle them beyond the one GET each push needs to merge first (class S). The per-IP limit of 120 requests a minute covers everything from one machine and is not approachable at this cadence.
+
+**Cadence and bounds.** A device spends at most 10 GETs a minute by construction, so two devices stay at or under 20 and three at 30. Tab Sync's 15 s/60 s debounce decides *when* the device's own Space blob is pushed; the push rides the next pass. The focus refresh is a pass like any other and spends from the same bucket; if the bucket is empty it waits.
+
+**Backoff.** A **429** empties the device's bucket and halves its refill rate for the next five minutes (one token per 12 s, so five a minute; floor three a minute), recovering to the full rate after five clean minutes. Round robin keeps every class moving at the reduced rate. The status line shows "Sync is busy; retrying" after two consecutive 429s.
+
+**What the reconciliation guarantee is.** With the full budget and 25 Spaces, class R gets about two tokens a pass and a pass a minute, so every blob is re-read within about 15 minutes, well inside the hour the design aims for. Under sustained backoff (three devices all active, or a shared network) the rate falls in proportion: at three tokens a minute, class R gets about one every two passes, so 25 Spaces take about 50 minutes, and under heavier limiting longer still. The guarantee is therefore **"every Space blob is re-read within an hour at the normal rate, and as often as the budget allows under rate limiting"**, and Settings → Sync shows "Checking for changes is slowed by rate limiting" when class R's last full rotation took longer than an hour.
 
 ## 7. Recently closed, synced (`closed` store)
 
@@ -310,34 +328,34 @@ Changes to `cloudflare/sync-worker/src/index.js`:
 
 Added to `sync.js`'s `STORES` table the way `sends` was, each `optional: true` with `hasPublishableContent` so a presence-only write never creates a store in KV's missing-read window. The loop's "fetch every store each pass" becomes the §6.2 scheduler, which also decides which Space stores (expanded from the merged index) a pass touches:
 
-- `spaces` and each `space-<id>`: `export`, `merge` and `equals` from a new `src/main/shared-spaces.js` (orchestration, `JsonStore`) over a pure `src/main/shared-spaces-model.js` (records, per-field merge, final tombstones and the stale-replica guard, positions, budgets, the pending set, the revision, the fetch plan; no electron; unit-tested).
+- `spaces` and each `space-<id>`: `export`, `merge` and `equals` from a new `src/main/shared-spaces.js` (orchestration, `JsonStore`) over a pure `src/main/shared-spaces-model.js` (records, per-field merge and acknowledgement, final tombstones, the recovery copy, positions with writer tags, budgets, the pending set, the revision, the scheduler; no electron; unit-tested).
 - `closed`: `src/main/synced-closed.js` over `synced-closed-model.js`, modelled on `sends`.
 - `shared`: in `shared-spaces.js`.
 
-`main.js` gains the record↔window adapter with its displayed baselines, accepted sets and deferred queues (§4.2–4.4) beside the existing Space machinery (`workspaceCapture`, `applyWorkspaceToWindow`, `makeResidentRuntime`), the switch, the §4.6 sheet, the pairing question and the status lines. The Spaces menu shows a sync mark on shared Spaces (D8) whose accessible text names the state: "Shared", "Waiting to upload", "Not synced since {time}", "Full for sync", "Spaces sync isn't available"; a glyph alone never stands for a state.
+`main.js` gains the record↔window adapter with its displayed baselines, accepted sets and deferred queues (§4.2–4.4) beside the existing Space machinery (`workspaceCapture`, `applyWorkspaceToWindow`, `makeResidentRuntime`), the switch, the §4.6 sheet, the §3.9 recovery copy, the pairing question and the status lines. The Spaces menu shows a sync mark on shared Spaces (D8) whose accessible text names the state: "Shared", "Waiting to upload", "Not synced since {time}", "Full for sync", "Spaces sync isn't available"; a glyph alone never stands for a state.
 
 ## 11. Interface text
 
-New `copy/messages` keys, all six languages in the same PR: the switch and its two lines; the §4.6 sheet (its title, the room line, Rejoin and Add as a copy, the oversized reason and "Split this Space…"); the five sync-mark states; "This Space is full for sync: {count} tabs stay on this device" and "Closed tabs free their room after 30 days"; "{count} of 25 Spaces are shared"; "Sync is busy; retrying"; "Spaces sync isn't available yet"; the pairing question, its line and two buttons; "Closed on {device}"; the settings note that turning the switch off keeps shared copies on other devices. F41's spec line is replaced; `spec/features.md`, `spec/parity-matrix.md` (F41 desktop SHIPPED with sync, iOS PLANNED M17) and the privacy label ("Spaces and groups: synced when you turn it on, end to end encrypted") are updated in the shipping PR.
+New `copy/messages` keys, all six languages in the same PR: the switch and its two lines; the §4.6 sheet (its title, the room line, Rejoin and Add as a copy, the oversized reason and "Split this Space…"); the five sync-mark states; "This Space is full for sync: {count} tabs stay on this device" and "Closed tabs free their room after 30 days"; "{count} of 25 Spaces are shared"; "Sync is busy; retrying" and "Checking for changes is slowed by rate limiting"; "Spaces sync isn't available yet"; the §3.9 Space name suffix "· kept on this device" and its notice; the pairing question, its line and two buttons; "Closed on {device}"; the settings note that turning the switch off keeps shared copies on other devices. F41's spec line is replaced; `spec/features.md`, `spec/parity-matrix.md` (F41 desktop SHIPPED with sync, iOS PLANNED M17) and the privacy label ("Spaces and groups: synced when you turn it on, end to end encrypted") are updated in the shipping PR.
 
 ## 12. Security and privacy (R3, R5)
 
 - **What travels:** Space names, colours, symbols, order; tab URLs, titles, custom names, pins, groups and order; Recently closed URLs and titles; device names. Never private tabs, page state, snapshots, splits, favicons' sources (icons go through their own sidecar), `blanc://` or `file://` pages, or anything from a named profile.
 - **Consent:** the switch is its own consent (contract §4.2), independent of "Share this device's open tabs". Off by default; an update never turns it on. The pairing question is a Turn on button that opens the sheet, not a default.
 - **R3 (the locator is a bearer capability):** unchanged and still open. Shared Spaces add nothing to its exposure beyond more ciphertext under the same locator; the v1 size and rate limits are unchanged. Said plainly in the privacy page and the release notes: no claim of authentication.
-- **R5 (non-atomic KV):** unchanged and still open. The design claims only §3.8: pending edits are replayed until a fetched blob contains them, and per-field clocks let a replay win. A write the Worker lost after the device saw it stored, or a device that lost its local state, is not recovered, and a delete racing a write can leave a record visible until the next pass merges the tombstone. The design never claims convergence stronger than that; the test plan (§13) includes the replay and the unrecoverable case, so the limitation is tested, not assumed.
+- **R5 (non-atomic KV):** unchanged and still open. The design claims only §3.8: pending writes are replayed until a fetched blob contains or supersedes them under the field's rule. A write the Worker lost after the device saw it stored, or a device that lost its local state, is not recovered; a delete racing a write can leave a record visible until the next pass merges the tombstone; a tombstone a device never received can resurrect a record after 30 days (§3.5), bounded by §3.9. The design never claims convergence stronger than that; the test plan (§13) includes the replay, the unrecoverable case and the resurrection case, so the limitations are tested, not assumed.
 - **Threats this adds:** a malicious or buggy device in the account can delete or rewrite every shared Space (as it can every Favorite today). Recently closed and the 30-day tombstones bound the loss; Recently deleted keeps a deleted Space for 7 days locally. A remote navigation could point a shared tab at a hostile page; it loads only when the person comes to that tab (§4.4), under the same navigation guards as a typed address (`handOffToOs`, `isForbiddenTopLevelUrl`, the blocker). Records are sanitized on merge like F27 entries, so a junk blob never reaches a renderer.
 - **`docs/security-assessment.md`** gets a row for shared Spaces under the Profile Sync entry, and the release's security review signs it.
 
 ## 13. Testing
 
-**Shared vectors.** The pure model's behaviour is pinned by vectors that desktop and iPhone both check, through the existing route: `scripts/build-ios-sync-vectors.cjs` generates them into `ios/Blanc/BlancTests/Sync/Fixtures/sync-vectors.json` and `test/unit/ios-sync-vectors.test.js` fails if the committed file drifts from the model. M16 adds vector groups for positions (every rule of §3.4, including prefix boundaries, `prepend` through `1` → `0i`, `between` adjacent characters, equal-key collision and the retry as `append`), per-field merge and tie-breaking, final tombstones and the stale-replica guard, the content revision, and the budget.
+**Shared vectors.** The pure model's behaviour is pinned by vectors that desktop and iPhone both check, through the existing route: `scripts/build-ios-sync-vectors.cjs` generates them into `ios/Blanc/BlancTests/Sync/Fixtures/sync-vectors.json` and `test/unit/ios-sync-vectors.test.js` fails if the committed file drifts from the model. M16 adds vector groups for positions (every example in §3.4, the reference `mid` on a fixed list of a thousand random pairs with the `a < m < b` invariant asserted, and the writer tag derivation from a fixed deviceId), per-field merge and tie-breaking, `deleted` true-wins, acknowledgement by the full rule, the content revision, and the budget.
 
-**Unit (pure model):** per-field merge is commutative, associative and idempotent; `deleted` true-wins in both orders and no later edit revives; group tombstone racing a tab move ends ungrouped everywhere; the stale-replica guard drops absent records on a >30-day-old replica and re-adds nothing; position rules and comparison as above; byte budget measured on `JSON.stringify(encrypt(…))` with 400 KiB of plaintext refused and 320 KiB accepted (the figures of §5, computed by the test, not typed in); tombstones counted in the budget; 25-Space and 500-tab caps and the transient 26; sanitization of junk; the pending-set replay (two devices PUT the same Space from the same version; the loser's next pass replays its pending fields and both converge) and the documented unrecoverable case (a field cleared from the pending set then lost upstream stays lost, asserted, so the claim stays honest); the revision changes on any content change including a slow-clock edit; the fetch plan spends exactly its budget in the §6.2 order, counts pending Spaces, rotates fairly, and reconciles every Space within an hour.
+**Unit (pure model):** per-field merge is commutative, associative and idempotent; `deleted` true-wins in both orders and no later edit revives; group tombstone racing a tab move ends ungrouped everywhere; `mid` satisfies `a < m < b` and validity on the §3.4 examples and 200,000 random pairs; a tagged key stays strictly between its neighbours; two devices' tags for the same gap differ and sort deterministically; acknowledgement clears a pending write only when `merge(f, p) = f`, and a fetched `deleted: false` with a later clock never clears a pending `deleted: true`; byte budget measured on `JSON.stringify(encrypt(…))` with 400 KiB of plaintext refused and 320 KiB accepted (the figures of §5, computed by the test, not typed in); tombstones counted in the budget; 25-Space and 500-tab caps and the transient 26; sanitization of junk; the pending-set replay (two devices PUT the same Space from the same version; the loser's next pass replays its pending fields and both converge) and the documented unrecoverable case (a write cleared from the pending set then lost upstream stays lost, asserted, so the claim stays honest); the resurrection case (a replica that missed a tombstone for 31 days brings the record back, asserted, and §3.9 routes a long-stale replica's absent records to the recovery copy instead of publishing them); the revision changes on any content change including a slow-clock edit; the scheduler spends exactly its tokens round robin, never starves a class at budget 10 or 3, counts 409 retries and focus refreshes, and completes a class R rotation within the stated bound at each rate.
 
-**Unit (adapter, lifted source like `tab-context-glance-availability.test.js`):** record→window diff produces the right `createTab`/`closeTab`/navigation calls; a protected tab's change goes to the accepted set and the displayed baseline stays put; **the displayed window then diffs to nothing** (no false navigation back, no resurrection); an unrelated local close while a remote close is deferred publishes only the local close; a local navigation of the deferred tab supersedes the remote one by clock; the deferred change applies and the baseline advances when the tab stops being active; an applied change produces no echo edit; a dormant Space keeps producing clocked pending edits and Rejoin pushes them unchanged.
+**Unit (adapter, lifted source like `tab-context-glance-availability.test.js`):** record→window diff produces the right `createTab`/`closeTab`/navigation calls; a protected tab's change goes to the accepted set and the displayed baseline stays put; **the displayed window then diffs to nothing** (no false navigation back, no resurrection); an unrelated local close while a remote close is deferred publishes only the local close; a local navigation of the deferred tab supersedes the remote one by clock; the deferred change applies and the baseline advances when the tab stops being active; an applied change produces no echo edit; a dormant Space keeps producing clocked pending edits and Rejoin fetches first and pushes them unchanged.
 
-**Acceptance (two sync "devices" in one run, as the F27 scenarios do):** the switch-on sheet lists Spaces with room and refuses an oversized one; two "Work" stay two; a tab opened on A appears quiet in B's open Space; a tab closed on A lands in B's Recently closed with its live view parked, and the band shows "Closed on A" once; a navigation on A updates B's quiet tab and defers on B's active tab (in an unfocused window too) until a switch, and B's autosave publishes nothing for it meanwhile; cold start applies a deferred close; a Space-full state shows, names the tombstone case, and clears after expiry (clock advanced by the test hook); turning the switch off, editing, and turning it on again rejoins with the edits and without duplicating; an older Worker (404) shows "isn't available yet"; a 429 backs off and recovers; a pass with every store changed spends 10 GETs and finishes the rest next pass; a lost index write is caught by reconciliation within the hour (clock advanced); the Other-devices drawer shows a shared tab once and a same-URL unshared tab still; a stale sidecar leaves tabs visible.
+**Acceptance (two sync "devices" in one run, as the F27 scenarios do):** the switch-on sheet lists Spaces with room and refuses an oversized one; two "Work" stay two; a tab opened on A appears quiet in B's open Space; a tab closed on A lands in B's Recently closed with its live view parked, and the band shows "Closed on A" once; a navigation on A updates B's quiet tab and defers on B's active tab (in an unfocused window too) until a switch, and B's autosave publishes nothing for it meanwhile; cold start applies a deferred close; a Space-full state shows, names the tombstone case, and clears after expiry (clock advanced by the test hook); turning the switch off, editing, and turning it on again rejoins with the edits and without duplicating; a replica stale past the retention gets a "kept on this device" Space and publishes none of its absent records; an older Worker (404) shows "isn't available yet"; a 429 slows every class evenly and recovers; a pass with every store changed spends its tokens round robin and finishes the rest next pass; a lost index write is caught by reconciliation (clock advanced); the Other-devices drawer shows a shared tab once and a same-URL unshared tab still; a stale sidecar leaves tabs visible.
 
 **Crash and restart:** a merge applied, then SIGKILL before the next save: records, baselines and window agree on restart and nothing is duplicated or lost; a deferred change in the accepted set applies at the cold start; a crash between the blob write and the index write leaves a reachable or retried Space, never a half one (the harness's `crashAndRelaunch` from #1097).
 
@@ -353,16 +371,18 @@ New `copy/messages` keys, all six languages in the same PR: the switch and its t
 | D4 | Protect the active tab of every window, or only the focused one? | **Every window**, every visible split pane (§4.4). |
 | D5 | A remotely closed tab: Recently closed only, or park the live view like a local close? | **Park it like a local close** (§4.3); never describe URL and title as preserving form contents. |
 | D6 | One Recently closed band or a separate one? | **One band**, newest first, remote rows labelled, own closes shown once (§7). |
-| D7 | Position renumbering? | **None in M16**; the fractional algorithm of §3.4 with deterministic ties and shared vectors. |
+| D7 | Position renumbering? | **None in M16**; the `mid` algorithm with writer tags, deterministic ties and shared vectors (§3.4). |
 | D8 | A sync mark on shared Spaces? | **Yes, with accessible text per state**; a glyph never implies a failed upload succeeded (§10). |
 | D9 | Ask the pairing question for any new device? | **Any new device, while this device's switch is off**, by its name, once, saying the library is account-wide (§4.7). |
 
+The owner also accepted true-wins deletion with immutable record ids (reopen creates a fresh id, §3.5) and rejected the earlier stale-replica rule; §3.9 replaces it with the recovery copy and no "never resurrects" claim.
+
 ## 15. Not in M16
 
-- The phone's side (M17): the mark and menu, groups in the switcher, Bring a Space, the per-device switch on iOS.
+- The phone's side (M17): the mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch on iOS.
 - Presence ("open on another device"), per the contract's §4.5.
 - Splits in shared Spaces (a split's tabs sync as plain tabs; the split itself stays local).
-- Position compaction (D7).
+- Position compaction (D7), and a generation or checkpoint protocol that would make tombstone expiry safe (§3.5).
 - Named profiles' Spaces.
 - The authenticated v2 protocol, atomic writes and deletion fencing (CLAUDE.md: their own project).
 - Any marketing claim before the release ships and its evidence exists (`docs/marketing-claims.md`).
@@ -373,6 +393,6 @@ New `copy/messages` keys, all six languages in the same PR: the switch and its t
 2. The plan (`superpowers:writing-plans`).
 3. Worker route and `STORES`, README; owner deploys.
 4. `shared-spaces-model.js` and `synced-closed-model.js` with their unit tests and the shared vectors.
-5. Desktop: the scheduler, stores, the adapter with baselines, accepted sets and deferred queues, the switch and its sheet, the status lines, the pairing question; acceptance scenarios.
+5. Desktop: the scheduler, stores, the adapter with baselines, accepted sets and deferred queues, the recovery copy, the switch and its sheet, the status lines, the pairing question; acceptance scenarios.
 6. Security review (§12) and the F41 / parity / privacy updates.
 7. The What's New page, then the feature release.
