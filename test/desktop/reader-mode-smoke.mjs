@@ -4,6 +4,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { collectDriverResult } from './support/smoke-driver-result.mjs';
 const require = createRequire(import.meta.url);
 const electron = require('electron');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-reader-'));
@@ -24,11 +25,19 @@ const child = spawn(electron, ['-r', path.resolve('test/desktop/reader-mode-driv
 let logs = '';
 child.stdout.on('data', data => { logs = (logs + data).slice(-12000); });
 child.stderr.on('data', data => { logs = (logs + data).slice(-12000); });
-const timer = setTimeout(() => child.kill('SIGKILL'), 90000);
-const code = await new Promise(resolve => child.on('exit', resolve));
-clearTimeout(timer); server.close();
-if (process.platform !== 'win32') { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }
-if (!fs.existsSync(result)) { console.error(logs); throw Error(`Reader smoke exited ${code} without results`); }
-const report = JSON.parse(fs.readFileSync(result));
-console.log(JSON.stringify(report, null, 2));
-if (report.error || code !== 0) { console.error(logs); process.exitCode = 1; }
+try {
+  const report = await collectDriverResult({ child, resultFile: result, expectedChecks: 8,
+    stop: () => {
+      if (process.platform === 'win32') child.kill();
+      else process.kill(-child.pid, 'SIGKILL');
+    },
+  });
+  console.log(JSON.stringify(report, null, 2));
+} catch (error) {
+  console.error(error.message);
+  console.error(logs);
+  process.exitCode = 1;
+} finally {
+  server.closeAllConnections();
+  server.close();
+}

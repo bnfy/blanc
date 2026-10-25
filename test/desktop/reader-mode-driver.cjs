@@ -14,6 +14,7 @@ async function waitFor(read, label, ms = 20000) {
 app.whenReady().then(async () => {
   const checks = [];
   let error;
+  let completed = false;
   try {
     const H = await waitFor(() => globalThis.__blanc, 'test hook');
     await waitFor(() => H.startupReady(), 'startup');
@@ -121,7 +122,9 @@ app.whenReady().then(async () => {
     assert.equal(reader.isDestroyed(), false);
     assert.equal(await source.executeJavaScript('window.readerOriginal'), undefined, 'source remains the navigated document');
     checks.push('moving a reader tab transfers its companion and source to the new window');
+    completed = true;
   } catch (caught) { error = String(caught.stack || caught); }
-  fs.writeFileSync(process.env.READER_SMOKE_RESULT, JSON.stringify({ checks, screenshot: process.env.READER_SMOKE_SCREENSHOT, error }, null, 2));
+  fs.writeFileSync(`${process.env.READER_SMOKE_RESULT}.tmp`, JSON.stringify({ completed, checks, screenshot: process.env.READER_SMOKE_SCREENSHOT, error }, null, 2));
+  fs.renameSync(`${process.env.READER_SMOKE_RESULT}.tmp`, process.env.READER_SMOKE_RESULT);
   app.exit(error ? 1 : 0);
 });

@@ -134,3 +134,11 @@ iOS Simulator run does not waive those gates.
   release press gate; native CI includes the new reader tests automatically.
 
 These are source and Simulator results, not installed-platform release evidence.
+
+The desktop smoke driver writes an atomic completion report only after all eight
+checks finish. Its launcher requires that complete report, rejects assertion
+errors, missing reports, and unexpected process exits, then gives Electron a
+bounded grace period to stop. Linux may require controlled process-group cleanup
+after a successful report (the same known test shutdown behavior handled by the
+PDF smoke). Other platforms' shutdown hangs still fail. This exception does not
+turn an incomplete or failed test into a pass and is covered by subprocess tests.
