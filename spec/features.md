@@ -1224,6 +1224,14 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   new space before moving it live, without switching this window. It remains
   available when the current space is the only one; creation is disabled at
   25 spaces. Cancel creates nothing, and a failed save keeps the editor open.
+- A tab group's menu has **Move Group to Space ▸** once the profile has a
+  space: the same spaces and New Space… in a native menu. Every member moves,
+  live and in order, to the end of the space as the same group, with its name
+  and colour; if the space already has a group of that name (in any case),
+  the tabs join it instead, keeping that group's name and colour. It is
+  disabled when any member couldn't move on its own; moving a window's every
+  tab leaves a blank start page. The same write-first rule applies (D8 of
+  `docs/superpowers/specs/2026-10-24-move-to-space-follow-ups-design.md`).
 - Entry points: the ⌘L panel footer's Spaces button, `/space` (alias
   `/workspace`), Bring Your Tabs (F40) and the Arc Spaces import (F45).
 - Spaces are device-local and profile-scoped; they never sync.
@@ -1236,7 +1244,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
   `test/desktop/steps/workspace-lifecycle.steps.js`,
   `test/desktop/steps/spaces-redesign.steps.js` and
-  `test/desktop/steps/move-to-space.steps.js`);
+  `test/desktop/steps/move-to-space.steps.js` and
+  `test/desktop/steps/group-space.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.

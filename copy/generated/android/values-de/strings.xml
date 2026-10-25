@@ -494,6 +494,7 @@
     <string name="group_menu_color_none">Keine Farbe</string>
     <string name="group_menu_new_tab">Neuer Tab in Gruppe</string>
     <string name="group_menu_move_to_new_window">Gruppe in neues Fenster verschieben</string>
+    <string name="group_menu_move_to_space">Gruppe in Space verschieben</string>
     <string name="device_menu_rename">Gerät umbenennen…</string>
     <string name="tab_menu_reset_title">Tabtitel zurücksetzen</string>
     <string name="tab_menu_pin">Tab anheften</string>
@@ -2269,6 +2270,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ws_error_move_failed">Der Tab konnte nicht nach %1$s verschoben werden.</string>
     <string name="context_menu_open_link_in_space">Link in Space öffnen</string>
     <string name="ws_announce_opened_in">In %1$s geöffnet</string>
+    <string name="ws_announce_group_moved_to">Gruppe in %1$s verschoben</string>
     <string name="ws_new_with_link">Mit diesem Link</string>
     <string name="ws_error_open_link_failed">Der Link konnte nicht in %1$s geöffnet werden.</string>
     <string name="rail_state_selected">ausgewählt</string>

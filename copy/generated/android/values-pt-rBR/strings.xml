@@ -508,6 +508,7 @@
     <string name="group_menu_color_none">Sem cor</string>
     <string name="group_menu_new_tab">Nova aba no grupo</string>
     <string name="group_menu_move_to_new_window">Mover o grupo para uma nova janela</string>
+    <string name="group_menu_move_to_space">Mover grupo para o Space</string>
     <string name="device_menu_rename">Renomear dispositivo…</string>
     <string name="tab_menu_reset_title">Redefinir título da aba</string>
     <string name="tab_menu_pin">Fixar aba</string>
@@ -2338,6 +2339,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ws_error_move_failed">Não foi possível mover a aba para %1$s.</string>
     <string name="context_menu_open_link_in_space">Abrir link em Space</string>
     <string name="ws_announce_opened_in">Aberto em %1$s</string>
+    <string name="ws_announce_group_moved_to">Grupo movido para %1$s</string>
     <string name="ws_new_with_link">Com este link</string>
     <string name="ws_error_open_link_failed">Não foi possível abrir o link em %1$s.</string>
     <string name="rail_state_selected">selecionada</string>

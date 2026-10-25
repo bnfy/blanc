@@ -958,6 +958,44 @@
         false
       ]
     },
+    "openGroupSpaceMenu": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "groups:space-menu",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "group-id-1",
+            {
+              "x": 1,
+              "y": 1
+            }
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "groups:space-menu",
+              "args": [
+                "group-id-1",
+                {
+                  "x": 1,
+                  "y": 1
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
     "ungroupGroup": {
       "kind": "invoke",
       "platforms": [

@@ -1144,8 +1144,9 @@
       button.addEventListener('click', async () => {
         // A refused name keeps the menu open with its notice; nothing runs.
         if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
         closeGroupMenu({ commit: false, closeOverlay: true });
-        run();
+        run(box);
       });
       return button;
     };
@@ -1154,6 +1155,14 @@
     actions.append(
       action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
       action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
       action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
       action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
     );
@@ -3001,7 +3010,9 @@
       } else if (purpose?.newSpaceLinkTitle != null) {
         workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
       } else if (Array.isArray(purpose?.newSpaceTabIds)) {
-        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds, tabTitle: blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
       } else if (purpose?.newSpaceTabId != null) {
         const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
         workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });

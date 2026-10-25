@@ -494,6 +494,7 @@
     <string name="group_menu_color_none">No color</string>
     <string name="group_menu_new_tab">New Tab in Group</string>
     <string name="group_menu_move_to_new_window">Move Group to New Window</string>
+    <string name="group_menu_move_to_space">Move Group to Space</string>
     <string name="device_menu_rename">Rename Device…</string>
     <string name="tab_menu_reset_title">Reset Tab Title</string>
     <string name="tab_menu_pin">Pin Tab</string>
@@ -2269,6 +2270,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ws_error_move_failed">Couldn’t move the tab to %1$s.</string>
     <string name="context_menu_open_link_in_space">Open Link in Space</string>
     <string name="ws_announce_opened_in">Opened in %1$s</string>
+    <string name="ws_announce_group_moved_to">Group moved to %1$s</string>
     <string name="ws_new_with_link">With this link</string>
     <string name="ws_error_open_link_failed">Couldn’t open the link in %1$s.</string>
     <string name="rail_state_selected">selected</string>

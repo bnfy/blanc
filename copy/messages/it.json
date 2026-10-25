@@ -1810,6 +1810,10 @@
     "message": "Sposta il gruppo in una nuova finestra",
     "source": "sha256:a68d093b78aba09b02776d83c51d2069d4055bf849ab2dc059c4d330b5f1084d"
   },
+  "groupMenu.moveToSpace": {
+    "message": "Sposta gruppo nello Space",
+    "source": "sha256:5ac5ef77c8776fc93b7789c4cdc1cadb9a3e8b410b84c2c364b7c16a08f44dff"
+  },
   "deviceMenu.rename": {
     "message": "Rinomina dispositivo…",
     "source": "sha256:9470f0d246edc1b11317686ed5cdf1eba468c3b8ba205e80b536df97f3cd5ce0"
@@ -8212,6 +8216,10 @@
   "ws.announce.openedIn": {
     "message": "Aperto in {space}",
     "source": "sha256:8f76ceb49e97bf71194165ff6972196cd863831e7758f82ade9fd60fa4379344"
+  },
+  "ws.announce.groupMovedTo": {
+    "message": "Gruppo spostato in {space}",
+    "source": "sha256:a775feea906f229d9ee11e4588feb97b3b237ec081b2f5ca68e4198aee712dd6"
   },
   "ws.new.withLink": {
     "message": "Con questo link",
