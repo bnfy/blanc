@@ -15,8 +15,14 @@ final class StartPageCustomizeUITests: XCTestCase {
     let page = app.webViews.firstMatch
     XCTAssertTrue(page.waitForExistence(timeout: 15))
     XCTAssertFalse(app.buttons["Customize"].exists, "the floating Customize button is gone on iPhone")
-    page.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).press(forDuration: 1.0)
-    XCTAssertTrue(app.buttons["settings.layout"].waitForExistence(timeout: 5), "Start Page settings opened")
+    // The web view exists before the Start Page and its hold script finish
+    // loading (slow on CI runners), so a first hold can land too early.
+    let layout = app.buttons["settings.layout"]
+    for _ in 0..<3 where !layout.exists {
+      page.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).press(forDuration: 1.0)
+      _ = layout.waitForExistence(timeout: 4)
+    }
+    XCTAssertTrue(layout.exists, "Start Page settings opened")
   }
 
   func testSunriseMenuOffersCustomize() {
