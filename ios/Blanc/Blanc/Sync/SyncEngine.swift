@@ -428,13 +428,6 @@ import Observation
           .bookmarks, payload: mergedFavorites, remote: pulled[.bookmarks], snapshot: snap)
         try check(g)
       }
-      // A Favorites edit made during the upload is merged back and published next.
-      if favoritesRevision != favoritesBeforeWrite {
-        savedFavorites = SyncedFavorites.merge(
-          local: stateStore.load(.bookmarks) ?? .object([]), remote: savedFavorites,
-          now: Double(clock()))
-        rerunRequested = true
-      }
       if stateStore.state.syncTabs {
         let uploadedSession = try await writeMerged(
           .session,
@@ -458,6 +451,14 @@ import Observation
         ])
       }
       try check(g)
+      // A Favorites edit made during any upload above is merged back and
+      // published next. Nothing awaits between here and the save.
+      if favoritesRevision != favoritesBeforeWrite {
+        savedFavorites = SyncedFavorites.merge(
+          local: stateStore.load(.bookmarks) ?? .object([]), remote: savedFavorites,
+          now: Double(clock()))
+        rerunRequested = true
+      }
       var finalSettings = SyncedSettings(payload: savedSettings)
       finalSettings.merge(remote: settings)
       settings = finalSettings

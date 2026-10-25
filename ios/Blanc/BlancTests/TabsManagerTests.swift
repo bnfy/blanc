@@ -31,11 +31,22 @@ final class TabsManagerTests: XCTestCase {
     @MainActor func testVisitsRecordHistory() {
         let m = makeManager()
         let tab = m.activeTab!
-        tab.navigationDelegate.applyURL(URL(string: "https://example.com/page")!, to: tab)
-        XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://example.com/page"])
-        tab.pageTitle = "Example page"
-        tab.navigationDelegate.onTitleChange?()
-        XCTAssertEqual(m.historyStore.entries.first?.title, "Example page")
+        // The delegate's real order at each finished load: title, then address.
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/")!, title: "News")
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://news.example/story")!, title: "Story")
+        XCTAssertEqual(m.historyStore.entries.map(\.url), ["https://news.example/story", "https://news.example/"])
+        XCTAssertEqual(m.historyStore.entries.map(\.title), ["Story", "News"], "each page keeps its own title")
+    }
+
+    @MainActor func testVisitToTheSameAddressIsRecorded() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        // A typed address moves currentURL before the load finishes.
+        let typed = URL(string: "https://search.example/?q=blanc")!
+        tab.currentURL = typed
+        tab.navigationDelegate.finishedLoad(url: typed, title: "blanc - Search")
+        XCTAssertEqual(m.historyStore.entries.map(\.url), [typed.absoluteString])
+        XCTAssertEqual(m.historyStore.entries.first?.title, "blanc - Search")
     }
 
     @MainActor private func openPrivate(_ m: TabsManager, url: URL? = nil) -> TabModel {
@@ -85,9 +96,8 @@ final class TabsManagerTests: XCTestCase {
     @MainActor func testPrivateTabRecordsNoHistory() {
         let m = makeManager()
         let tab = openPrivate(m)
-        tab.navigationDelegate.applyURL(URL(string: "https://secret.example/")!, to: tab)
-        tab.pageTitle = "Secret"
-        tab.navigationDelegate.onTitleChange?()
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://secret.example/")!, title: "Secret")
+        tab.navigationDelegate.finishedLoad(url: URL(string: "https://secret.example/next")!, title: "Next")
         XCTAssertTrue(m.historyStore.entries.isEmpty)
     }
 

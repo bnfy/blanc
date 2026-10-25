@@ -142,6 +142,18 @@ actor MemorySyncTransport: SyncTransport {
         XCTAssertEqual(favoriteURLs(uploaded), ["https://during.example/"])
         XCTAssertEqual(f.engine.favorites.map(\.url), ["https://during.example/"])
     }
+    func testFavoriteEditDuringSessionUploadIsNotLost() async throws {
+        let f = try await make(sharing: true)
+        addFavorite(f.engine, "https://first.example/")
+        await f.transport.suspendNext("PUT", "v1/blob/\(accountA)/session")
+        let pass = Task { await f.engine.syncNow() }
+        try await waitSuspended(f.transport)
+        addFavorite(f.engine, "https://second.example/")
+        await f.transport.release()
+        await pass.value
+        XCTAssertEqual(Set(favoriteURLs(f.state.load(.bookmarks))), ["https://first.example/", "https://second.example/"])
+        XCTAssertEqual(Set(f.engine.favorites.map(\.url)), ["https://first.example/", "https://second.example/"])
+    }
     func testDisableKeepsFavorites() async throws {
         let f = try await make()
         addFavorite(f.engine, "https://keep.example/")

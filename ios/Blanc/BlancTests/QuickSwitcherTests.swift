@@ -121,4 +121,15 @@ final class QuickSwitcherTests: XCTestCase {
         let history = (0..<20).map { HistoryEntry(url: "https://site.example/\($0)", title: "Match", visitedAt: Int64($0)) }
         XCTAssertEqual(QuickSwitcher.search(query: "match", tabs: [], remote: [], favorites: [], history: history).count, 12)
     }
+    func testGoNeverTradesATypedAddressForAHistoryMatch() {
+        let history = [HistoryEntry(url: "https://github.com/bnfy/blanc/pull/1097", title: "Move to Space", visitedAt: 1)]
+        for typed in ["github.com", "https://github.com", "localhost:3000", "192.168.1.1", "mailto:a@b.test"] {
+            let results = QuickSwitcher.search(query: typed, tabs: [], remote: [], favorites: [], history: history)
+            XCTAssertNil(QuickSwitcher.goTarget(query: typed, results: results), typed)
+        }
+        let words = QuickSwitcher.search(query: "move to space", tabs: [], remote: [], favorites: [], history: history)
+        XCTAssertEqual(QuickSwitcher.goTarget(query: "move to space", results: words)?.id, "history:https://github.com/bnfy/blanc/pull/1097")
+        let fuzzy = QuickSwitcher.search(query: "mvsp", tabs: [], remote: [], favorites: [], history: history)
+        XCTAssertNil(QuickSwitcher.goTarget(query: "mvsp", results: fuzzy), "a weak match never takes Go")
+    }
 }
