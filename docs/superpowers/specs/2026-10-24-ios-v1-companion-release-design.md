@@ -277,7 +277,7 @@ on a phone and gets `N/A`. "Exists" means the prototype already has it.
 | F44 | Interface language | **1.0** | The catalog is already served to the pages; 1.0 moves the few native strings (the pill placeholder, "Done," "New Tab") into it and follows the iOS per-app language setting (D27). Six languages, launched together as desktop did. |
 | F45 | Arc Spaces import | N/A | |
 | F46 | Custom tab names | after | Shown if a shared Space carries one; not editable on the phone in 1.0. |
-| F47 | Bangs | **1.0** | M10: the hint row and `!` picker in the palette, the synced setting. |
+| F47 | Bangs | After 1.0 | Owner, 2026-10-24: not a priority for the first iOS release. Later: the hint row and `!` picker in the palette, the synced setting. |
 | F48 | Pinned homes | N/A | |
 | F49 | Wallpaper image | N/A | Device-local by design. |
 | F50 | Color wallpaper | after | Synced; the shared page renders it, so it may simply work. Checked, not promised. |
@@ -316,8 +316,8 @@ documents stay correct.
 | M9 | Private tabs | |
 | **M16** | **Shared Spaces, groups and Recently closed: the desktop protocol** (its own design; Worker stores; desktop UI for the switch, merges, remote closes; desktop-to-desktop Spaces sync). Ships as a public desktop feature release first (§4.7). | New; built in the parallel desktop Spaces session |
 | **M17** | **Shared Spaces on iPhone**: the Space mark and menu, groups in the switcher, Bring a Space, the Recently closed band, the per-device switch | New |
-| M10 | Bangs, the full shared slash-command set, Find in page, the shield chip and per-site allow | |
-| M11 | Tab gestures and the card strip (F56) | |
+| M10 | The full shared slash-command set, Find in page, the shield chip and per-site allow (Bangs moved after 1.0, owner 2026-10-24) | After M11 |
+| M11 | Tab gestures and the card strip (F56) ([design](2026-10-24-ios-m11-tab-gestures-design.md), [plan](../plans/2026-10-24-ios-m11-tab-gestures.md)) | Next, before M10 (owner, 2026-10-24) |
 | Duo-1 | Edge to edge on both Duo displays, the regular-width pill and palette, fold continuity, CI on the Duo simulator | Only "no letterboxing" and the regular-width pill are in 1.0; the rest of the Duo design (Duo-2, Duo-3) is after |
 | **M18** | **First minute and release readiness**: the walkthrough (§3), default browser, share-sheet target, Background App Refresh, six languages, App Store listing | New |
 | Beta | TestFlight, the real-iPhone gate, kill criteria armed | |
