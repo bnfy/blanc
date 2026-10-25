@@ -100,3 +100,19 @@ Then('device B still sees its last shareable web page',{timeout:180000},async fu
  const stored=await response.json(),blob=JSON.parse(decrypt(this.sharedKey.key,stored.blob)),record=blob.tabs[this.retainedRecord];
  assert.equal(record.deleted.v,false);assert.deepEqual(record.nav.v,this.retainedNav);
 });
+When('the account storage is full and I delete Work',{timeout:180000},async function(){
+ const state=await this.call('sharedSpacesTest','state');this.sid=Object.keys(state.shared.blobs)[0];
+ const usage=[...this.sharedFixture.env.records].filter(([k])=>k.startsWith(`blob:${this.sharedKey.accountId}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);
+ this.sharedFixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(usage);
+ this.quotaProbe=()=>fetch(`${this.sharedFixture.url}/v1/blob/${this.sharedKey.accountId}/space-${'d'.repeat(32)}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:encrypt(this.sharedKey.key,JSON.stringify({probe:'x'.repeat(100)}))})});
+ const refused=await this.quotaProbe();assert.equal(refused.status,507);assert.deepEqual(await refused.json(),{error:'account-quota'});
+ const local=state.workspaces.items.find(row=>row.name==='Work');assert.ok(local);
+ assert.equal((await this.call('workspaceAction','remove',local.id)).ok,true);
+ await this.call('sharedSpacesTest','pull',['space-'+this.sid]);
+});
+Then('the next encrypted write succeeds without waiting for retention expiry',{timeout:180000},async function(){
+ const saved=this.sharedFixture.env.records.get(`blob:${this.sharedKey.accountId}:space-${this.sid}`);assert.ok(saved);
+ const compact=JSON.parse(decrypt(this.sharedKey.key,JSON.parse(saved).blob));assert.deepEqual(compact.tabs,{});assert.deepEqual(compact.groups,{});
+ assert.equal((await this.quotaProbe()).status,200);
+ const state=await this.call('sharedSpacesTest','state');assert.equal(state.shared.index.spaces[this.sid].deleted.v,true);
+});

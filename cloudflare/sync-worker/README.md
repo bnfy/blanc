@@ -37,6 +37,14 @@ Design: `docs/superpowers/specs/2026-10-05-sync-storage-budget-design.md`.
   `507 {"error":"account-quota"}` without storing the candidate blob. A
   per-Space DELETE releases its value and quota reservation after the retained
   deletion window; fixed stores remain removable only by the account wipe.
+  When the client learns a Space is deleted, it immediately replaces its
+  encrypted content with an empty Space blob. This frees the content bytes
+  while the encrypted index keeps the final deletion for 30 days. The compact
+  blob still uses one store slot until the final DELETE. Turning sharing off
+  on one device makes its link dormant and frees no server storage. Closed-tab
+  tombstones also remain until expiry, so removing tabs is not an immediate
+  storage-recovery action. Shrinking an existing blob is allowed even if legacy
+  usage or a subsequently lowered quota leaves the account above its allowance.
 - A daily Cron Trigger (04:17 UTC) deletes blobs of accounts with no marker,
   at most `CLEANUP_MAX_DELETES` per run. It does nothing unless
   `CLEANUP_ENABLED = "true"`.

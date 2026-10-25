@@ -42,6 +42,26 @@ test('failed KV writes roll quota back for the next reservation',async()=>{
  await assert.rejects(put(h,sid(1)),/write failed/);
  assert.equal((await put(h,sid(2))).status,200);
 });
+test('shrinking an existing store succeeds even when legacy usage exceeds the quota',async()=>{
+ const h=await environment({ACCOUNT_STORAGE_QUOTA_BYTES:'500',ACCOUNT_STORAGE_MAX_STORES:'1'});
+ h.records.set(`blob:${account}:${sid(1)}`,JSON.stringify({version:'legacy',blob:{ct:'x'.repeat(800)}}));
+ h.records.set(`blob:${account}:spaces`,JSON.stringify({version:'index',blob:{ct:'x'}}));
+ const response=await h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/${sid(1)}`,{method:'PUT',body:JSON.stringify({ifVersion:'legacy',blob:{}})}),h.env);
+ assert.equal(response.status,200);
+});
+test('release waits for an in-flight legacy bootstrap before removing its store',async()=>{
+ const mod=await modulePromise,storage=state(),legacy=sid(1);let resume,started;
+ const waiting=new Promise(resolve=>{started=resolve;}),gate=new Promise(resolve=>{resume=resolve;});
+ const env={ACCOUNT_STORAGE_QUOTA_BYTES:'1000',ACCOUNT_STORAGE_MAX_STORES:'1',SYNC:{
+  list:async()=>{started();await gate;return {keys:[{name:`blob:${account}:${legacy}`}],list_complete:true};},get:async()=> 'legacy',
+ }};
+ const quota=new mod.AccountQuota(storage,env),post=(path,body)=>quota.fetch(new Request('https://quota.invalid/'+path,{method:'POST',body:JSON.stringify(body)}));
+ const bootstrap=post('reserve',{accountId:account,store:sid(2),bytes:100});await waiting;
+ let released=false;const release=post('release',{accountId:account,store:legacy}).then(r=>{released=true;return r;});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(released,false);
+ resume();assert.equal((await bootstrap).status,507);assert.equal((await release).status,200);
+ assert.equal((await post('reserve',{accountId:account,store:sid(2),bytes:100})).status,200);
+});
 test('daily account creation default is ten and is independent of storage quota',async()=>{
  const h=await environment({NEW_ACCOUNT_DAILY_LIMIT:undefined,ACCOUNT_STORAGE_QUOTA_BYTES:'10000',ACCOUNT_STORAGE_MAX_STORES:'10'});
  h.records.set(`new:${new Date().toISOString().slice(0,10)}`,'9');assert.equal((await put(h,'spaces')).status,200);

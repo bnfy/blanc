@@ -224,6 +224,7 @@ export class AccountQuota {
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405 });
     const body = await request.json();
     if (new URL(request.url).pathname === '/release') {
+      if (this.initializing) await this.initializing;
       const ledger = await this.state.storage.get('ledger');
       if (ledger?.accountId !== body.accountId) return json({}, 200);
       delete ledger.stores[body.store];await this.state.storage.put('ledger',ledger);this.initializing=Promise.resolve(ledger);return json({},200);
@@ -245,7 +246,9 @@ export class AccountQuota {
       - (previous === null ? 0 : previous + QUOTA_KEY_OVERHEAD_BYTES) + body.bytes + QUOTA_KEY_OVERHEAD_BYTES;
     const byteLimit = limitFrom(this.env.ACCOUNT_STORAGE_QUOTA_BYTES, DEFAULT_ACCOUNT_QUOTA_BYTES);
     const storeLimit = limitFrom(this.env.ACCOUNT_STORAGE_MAX_STORES, DEFAULT_ACCOUNT_QUOTA_STORES);
-    if (nextBytes > byteLimit || nextStores > storeLimit) return json({ error: 'account-quota' }, 507);
+    // Shrinking an existing value must remain possible after a lowered limit
+    // or legacy bootstrap discovers an account already above its allowance.
+    if ((nextBytes > byteLimit || nextStores > storeLimit) && !(previous !== null && body.bytes <= previous)) return json({ error: 'account-quota' }, 507);
     const token = crypto.randomUUID();
     ledger.stores[body.store] = { bytes: body.bytes, token };
     await this.state.storage.put('ledger', ledger);

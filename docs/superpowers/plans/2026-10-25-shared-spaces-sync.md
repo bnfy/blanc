@@ -303,6 +303,9 @@ reviewed account-wide Worker quota and fixture enforcement, with
 real-device validation, merge and PR E remain separately blocked.
 The public privacy page remains release-backed and unchanged in PR D; its
 Shared Spaces disclosure is prepared only with the release evidence in PR E.
+Deleted Spaces immediately publish empty encrypted content to release bytes;
+their index tombstone and store slot remain for 30 days before final DELETE.
+Dormant links and tab-close tombstones do not immediately release storage.
 
 **Merge gate:** PR D is the shipping feature PR. Keep it open until the Gate D below is satisfied against its exact head. Removing the packaged-build guard on this branch enables private validation candidates; it does not authorize merging or publishing that branch.
 

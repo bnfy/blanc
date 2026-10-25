@@ -35,6 +35,22 @@ async function environment(t) {
   return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
+test('deleting a Space compacts its encrypted blob immediately and frees a full account for the next write',async t=>{
+  const e=await environment(t),a=e.device('A');createSpace(a);
+  await e.drive(a.sync.syncNow([store]));
+  const before=e.fixture.env.records.get(`blob:${account}:${store}`);
+  const used=[...e.fixture.env.records].filter(([k])=>k.startsWith(`blob:${account}:`)).reduce((sum,[,v])=>sum+Buffer.byteLength(v)+256,0);
+  e.fixture.env.ACCOUNT_STORAGE_QUOTA_BYTES=String(used);
+  const write=()=>fetch(`${e.fixture.url}/v1/blob/${account}/bookmarks`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob:{ct:'x'.repeat(100)}})});
+  assert.equal((await write()).status,507);
+  const deleted=index();deleted.spaces[sid].deleted=field(true,Date.now()+1,'A');a.spaces.setIndex(deleted,a.ctx);
+  await e.drive(a.sync.syncNow([store]));
+  assert.deepEqual(e.read(store),{v:1,spaceId:sid,groups:{},tabs:{}});
+  assert.ok(Buffer.byteLength(e.fixture.env.records.get(`blob:${account}:${store}`))<Buffer.byteLength(before));
+  assert.equal((await write()).status,200,'deletion frees bytes without advancing the 30-day clock');
+  assert.equal(a.spaces.snapshot(a.ctx).index.spaces[sid].deleted.v,true,'the index tombstone remains');
+  assert.ok(e.fixture.env.records.has(`blob:${account}:${store}`),'the retained store slot is removed after expiry');
+});
 test('the endpoint override requires explicit unpackaged acceptance mode and a loopback origin',async t=>{
   for(const [packaged,testMode,endpoint,wantLocal] of [[false,'1','http://127.0.0.1:12345',true],[true,'1','http://127.0.0.1:12345',false],[false,'true','http://127.0.0.1:12345',false],[false,'1','https://example.test',false]]) {
     const calls=[],d=syncDevice({packaged,testMode,endpoint,fetch:async(url,opts={})=>{calls.push(String(url));return {status:(opts.method??'GET')==='GET'?404:opts.method==='DELETE'?204:200,ok:(opts.method??'GET')!=='GET',text:async()=> 'not found'};}});

@@ -89540,37 +89540,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spaces sync storage is full. Stop sharing or delete a Space, then try again."
+            "value": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Beende die Freigabe oder lösche einen Space und versuche es erneut."
+            "value": "Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El almacenamiento de sincronización de Spaces está lleno. Deja de compartir o elimina un Space e inténtalo de nuevo."
+            "value": "El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’espace de stockage de synchronisation des Spaces est plein. Arrêtez de partager ou supprimez un Space, puis réessayez."
+            "value": "Le stockage de synchronisation des Spaces est plein. Supprimez un Space pour libérer le stockage de son contenu. Les Spaces supprimés comptent encore dans la limite des Spaces pendant 30 jours."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Interrompi la condivisione o elimina uno Space, quindi riprova."
+            "value": "Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Gli Spaces eliminati continuano a contare nel limite per 30 giorni."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O armazenamento da sincronização de Spaces está cheio. Pare de compartilhar ou exclua um Space e tente novamente."
+            "value": "O armazenamento da sincronização de Spaces está cheio. Exclua um Space para liberar o armazenamento do seu conteúdo. Spaces excluídos continuam contando para o limite por 30 dias."
           }
         }
       }

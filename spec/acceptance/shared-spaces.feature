@@ -36,3 +36,9 @@ Feature: Shared Spaces
     Given a Shared Spaces fixture with the Work Space shared
     When the shared tab navigates to an internal page
     Then device B still sees its last shareable web page
+
+  @F57-7
+  Scenario: Deleting a Space frees a full account immediately
+    Given a Shared Spaces fixture with the Work Space shared
+    When the account storage is full and I delete Work
+    Then the next encrypted write succeeds without waiting for retention expiry

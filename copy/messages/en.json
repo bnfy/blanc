@@ -8198,7 +8198,7 @@
     "note": "Development-only Shared Spaces controls."
   },
   "sharedSpaces.accountFull": {
-    "message": "Spaces sync storage is full. Stop sharing or delete a Space, then try again.",
+    "message": "Spaces sync storage is full. Delete a Space to free its content storage. Deleted Spaces still count toward the Space limit for 30 days.",
     "note": "Explains the account-wide encrypted storage quota and a recovery action."
   },
   "sharedSpaces.unavailable": {

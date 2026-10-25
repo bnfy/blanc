@@ -2263,7 +2263,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="shared_spaces_rejoin">Ricollega</string>
     <string name="shared_spaces_copy">Aggiungi come copia</string>
     <string name="shared_spaces_full">Questo Space è troppo grande. Dividilo prima in Spaces più piccoli.</string>
-    <string name="shared_spaces_account_full">Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Interrompi la condivisione o elimina uno Space, quindi riprova.</string>
+    <string name="shared_spaces_account_full">Lo spazio di archiviazione per la sincronizzazione degli Spaces è pieno. Elimina uno Space per liberare lo spazio occupato dai suoi contenuti. Gli Spaces eliminati continuano a contare nel limite per 30 giorni.</string>
     <string name="shared_spaces_unavailable">La sincronizzazione degli Spaces non è disponibile. Preferiti, impostazioni, schede aperte e Invia al dispositivo continuano a funzionare.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservato su questo dispositivo</string>
     <string name="shared_spaces_shared">Condiviso</string>

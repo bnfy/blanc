@@ -747,9 +747,17 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   try {
     let payload;
     if (desc.spaceId) {
-      plan = sharedSpaces.exportSpace(desc.spaceId,remote,version,run.ctx,text=>encrypt(key,text));
-      if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
-      payload = plan.upload.blob;
+      if(sharedSpaces.deletedSpaceIds(run.ctx).includes(desc.spaceId)) {
+        // Keep the encrypted index tombstone for 30 days, but release the
+        // content bytes as soon as deletion is known. Never replay tab edits
+        // from the deleted Space into this compact record.
+        payload={v:1,spaceId:desc.spaceId,groups:{},tabs:{}};
+        if(missing || sharedSpaces.equals(remote,payload))return {missing};
+      } else {
+        plan = sharedSpaces.exportSpace(desc.spaceId,remote,version,run.ctx,text=>encrypt(key,text));
+        if (!plan.upload) return { missing, needsIndex: !!plan.indexEntry };
+        payload = plan.upload.blob;
+      }
     } else {
       // Rejecting an oversized sidecar for display must not let our smaller
       // cache overwrite its peer bindings. Hold publication in that case.
@@ -793,7 +801,7 @@ function cancelledRequest(gen,ctx,desc) {
   if (gen!==syncGen) return 'generation';
   if (!ensureStore().data.enabled) return 'disabled';
   if (desc.spaces && !sharedSpaces.isEnabled(ctx)) return 'consent-off';
-  if(desc.spaceId&&(sharedSpaces.isDormant(desc.spaceId,ctx)||sharedSpaces.isDraft(desc.spaceId,ctx)))return 'consent-off';
+  if(desc.spaceId&&!sharedSpaces.deletedSpaceIds(ctx).includes(desc.spaceId)&&(sharedSpaces.isDormant(desc.spaceId,ctx)||sharedSpaces.isDraft(desc.spaceId,ctx)))return 'consent-off';
   if (desc.spaces && spacesUnavailable && !desc.retryAvailability) return 'unavailable';
   return null;
 }
@@ -904,20 +912,20 @@ async function syncNow(names = null, { onOutcome } = {}) {
       const name='space-'+id;
       if(names && !names.includes(name))continue;
       const pending=state.pending[id];
-      if(names || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
+      if(names || state.index.spaces[id]?.deleted?.v===true || pending && Object.keys(pending).some(k=>k!=='index') || state.index.spaces[id]?.rev!==state.blobs[id]?.rev)enqueue(spaceDescriptor(id));
       if(!names)enqueue(spaceDescriptor(id,'R'));
       initialIds.add(id);
     }
   }
   if(consent && !spacesUnavailable) {
-    const ids=sharedSpaces.spaceIds(ctx);
+    const ids=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])];
     if(names)for(const name of names)if(/^space-[0-9a-f]{32}$/.test(name)&&!ids.includes(name.slice(6)))ids.push(name.slice(6));
     addSpaces(ids);
   }
   let results=await Promise.all(jobs);
   if(gen===syncGen && ensureStore().data.enabled && consent && !spacesUnavailable && !suspended) {
     if(!names) {
-      const more=sharedSpaces.spaceIds(ctx).filter(id=>!initialIds.has(id));const offset=jobs.length;
+      const more=[...new Set([...sharedSpaces.spaceIds(ctx),...sharedSpaces.deletedSpaceIds(ctx)])].filter(id=>!initialIds.has(id));const offset=jobs.length;
       addSpaces(more);results.push(...await Promise.all(jobs.slice(offset)));
     }
     if(results.some(x=>x.outcome?.spaceStored||x.outcome?.needsIndex))results.push(await enqueue({...STORES.find(x=>x.name==='spaces')}));

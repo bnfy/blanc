@@ -2194,7 +2194,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="shared_spaces_rejoin">Erneut beitreten</string>
     <string name="shared_spaces_copy">Als Kopie hinzufügen</string>
     <string name="shared_spaces_full">Dieser Space ist zu groß. Teile ihn zuerst in kleinere Spaces auf.</string>
-    <string name="shared_spaces_account_full">Der Speicher für die Spaces-Synchronisierung ist voll. Beende die Freigabe oder lösche einen Space und versuche es erneut.</string>
+    <string name="shared_spaces_account_full">Der Speicher für die Spaces-Synchronisierung ist voll. Lösche einen Space, um seinen Inhaltsspeicher freizugeben. Gelöschte Spaces zählen noch 30 Tage zum Space-Limit.</string>
     <string name="shared_spaces_unavailable">Spaces-Synchronisierung ist nicht verfügbar. Favoriten, Einstellungen, offene Tabs und An Gerät senden funktionieren weiterhin.</string>
     <string name="shared_spaces_recovery_name">%1$s · auf diesem Gerät behalten</string>
     <string name="shared_spaces_shared">Geteilt</string>

@@ -2263,7 +2263,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="shared_spaces_rejoin">Volver a unirse</string>
     <string name="shared_spaces_copy">Añadir como copia</string>
     <string name="shared_spaces_full">Este Space es demasiado grande. Divídelo primero en Spaces más pequeños.</string>
-    <string name="shared_spaces_account_full">El almacenamiento de sincronización de Spaces está lleno. Deja de compartir o elimina un Space e inténtalo de nuevo.</string>
+    <string name="shared_spaces_account_full">El almacenamiento de sincronización de Spaces está lleno. Elimina un Space para liberar el almacenamiento de su contenido. Los Spaces eliminados siguen contando para el límite de Spaces durante 30 días.</string>
     <string name="shared_spaces_unavailable">La sincronización de Spaces no está disponible. Los favoritos, los ajustes, las pestañas abiertas y Enviar a dispositivo siguen funcionando.</string>
     <string name="shared_spaces_recovery_name">%1$s · conservado en este dispositivo</string>
     <string name="shared_spaces_shared">Compartido</string>
