@@ -8381,5 +8381,77 @@
   "ws.error.openLinkFailed": {
     "message": "Couldn’t open the link in {name}.",
     "note": "Spaces menu error. {name} is the destination space name."
+  },
+  "rail.state.selected": {
+    "message": "selected",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.count": {
+    "message": "{count, plural, one {# tab selected} other {# tabs selected}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.cleared": {
+    "message": "Selection cleared",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.failed": {
+    "message": "Couldn’t complete the action for these tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.quieted": {
+    "message": "Quieted {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsSelection.reloaded": {
+    "message": "Reloaded {count} of {total} tabs.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.header": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.newWindow": {
+    "message": "Move Tabs to New Window",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.pin": {
+    "message": "Pin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unpin": {
+    "message": "Unpin Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.mute": {
+    "message": "Mute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.unmute": {
+    "message": "Unmute Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.reload": {
+    "message": "Reload Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.quiet": {
+    "message": "Quiet Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.copy": {
+    "message": "Copy Links",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "tabsMenu.close": {
+    "message": "Close Tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.new.withTabs": {
+    "message": "With these tabs",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
+  },
+  "ws.error.movedPartly": {
+    "message": "Moved {count} tabs to {name}. The other tabs stayed here.",
+    "note": "Several-tab selection and batch actions. count/total are numbers; name is a user-provided space name."
   }
 }

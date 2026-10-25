@@ -209,6 +209,7 @@ function install(refs) {
     windowChildViewCount,
     menuContextActionsForTest,
     tabMenuItemsForTest,
+    selectTabRows, runTabsAction, getSelectedTabIds,
     closedEntrySummaries,
     splitLayoutForTest,
     splitCornerTabsForTest,
@@ -709,6 +710,9 @@ function install(refs) {
     pinnedHome(tabId) { return tabs.get(String(tabId))?.pinnedHomeUrl ?? null; },
     chooseSessionRecovery(choice) { return chooseSessionRecovery(String(choice)); },
     sessionRecoveryState() { return getSessionRecoveryState(); },
+    selectTabRows(id, mode) { return selectTabRows(id, mode); },
+    selectedTabIds() { return getSelectedTabIds(); },
+    runSelectedTabsAction(action, args = {}) { return runTabsAction(action, args); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {

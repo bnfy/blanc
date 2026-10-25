@@ -438,3 +438,157 @@ Feature: Named workspace preservation and recovery
     And the new space's transfer will fail once
     When I open the counted link in space "Reading"
     Then the link failure appears in Spaces and space "Reading" has no counted link
+
+  @F41-58 @tab-selection
+  Scenario Outline: Both lists toggle rows without changing the current page
+    Given three pages for multi-tab selection
+    When I select the first two rows in the "<surface>" list
+    Then all three pages are selected and the third remains current
+    And the selection has not been saved to the session
+    When I press Escape in the selection list
+    Then the selection is empty
+    Examples:
+      | surface |
+      | panel   |
+      | side    |
+
+  @F41-59 @tab-selection
+  Scenario: Pinning the selected pages applies to every page
+    Given three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I run the batch action "pin"
+    Then all three selected pages are pinned
+    And the selection is empty
+
+  @F41-60 @tab-selection
+  Scenario: A split selection closes and restores as one batch
+    Given three pages for multi-tab selection
+    And the first two selection pages form a split
+    When I select one pane of that split
+    Then all three pages are selected and the third remains current
+    And closing and reopening the selection restores the split
+
+  @F41-61 @tab-selection
+  Scenario: Several live pages move to a space in order
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I move the selected pages to space "Reading"
+    Then space "Reading" has all selected pages in order
+    And the selection is empty
+
+  @F41-62 @tab-selection
+  Scenario: Selected split moves whole to a space
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the first two selection pages form a split
+    When I select one pane of that split
+    And I move the selected pages to space "Reading"
+    Then space "Reading" has all selected pages in order
+    And the selected split is still whole in space "Reading"
+
+  @F41-63 @tab-selection
+  Scenario: A failed batch write changes no tabs or selection
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the move's save will fail once
+    When I select all three pages through the selection model
+    And I move the selected pages to space "Reading"
+    Then the failed batch move leaves all three pages selected here
+
+  @F41-64 @tab-selection
+  Scenario: A partial move and failed recovery write lose no page after restart
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the move's transfer and its recovery save will both fail once
+    When I select all three pages through the selection model
+    And I move the selected pages to space "Reading"
+    Then the partial batch move leaves two pages selected here
+    When Blanc crashes and starts again
+    Then every selection page survives the restart across both spaces
+
+  @F41-65 @tab-selection
+  Scenario: A failed new-window move restores the whole selection
+    Given three pages for multi-tab selection
+    And the new space's transfer will fail once
+    When I select all three pages through the selection model
+    And I run the batch action "new-window"
+    Then the batch window failure keeps every page in place
+
+  @F41-66 @tab-selection
+  Scenario: Shift-click selects a range from its anchor
+    Given three pages for multi-tab selection
+    When I extend the first row selection through the second row in the panel
+    Then all three pages are selected and the third remains current
+
+  @F41-67 @tab-selection
+  Scenario: Selected split moves to a new window without losing its panes
+    Given three pages for multi-tab selection
+    And the first two selection pages form a split
+    When I select one pane of that split
+    And I run the batch action "new-window"
+    Then the new window has the three pages in order
+
+  @F41-68 @tab-selection
+  Scenario: New Space accepts the complete selection
+    Given a space named "One" in this window, colored "#426c4c" with the symbol "briefcase"
+    And three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I create a new space for the selection named "Reading"
+    Then space "Reading" has all selected pages in order
+    And the selection is empty
+
+  @F41-69 @tab-selection
+  Scenario: New Group accepts the complete selection
+    Given three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I create a new group for the selection named "Reading"
+    Then all three pages belong to the group "Reading"
+    And the selection is empty
+
+  @F41-70 @tab-selection
+  Scenario Outline: Shift-arrow extends selection from the focused row
+    Given three pages for multi-tab selection
+    When I extend selection down from the first focused row in the "<surface>" list
+    Then all three pages are selected and the third remains current
+    Examples:
+      | surface |
+      | panel   |
+      | side    |
+
+  @F41-71 @tab-selection
+  Scenario: Quieting a selection retains the ineligible current page
+    Given three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I run the batch action "quiet"
+    Then only the current page remains selected after quieting the others
+
+  @F41-72 @tab-selection
+  Scenario: Muting applies to every selected page
+    Given three pages for multi-tab selection
+    When I select all three pages through the selection model
+    And I run the batch action "mute"
+    Then all selected pages are muted
+    And the selection is empty
+
+  @F41-73 @tab-selection
+  Scenario: Failure between panes restores the whole selected split
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the first two selection pages form a split
+    And the batch transfer will fail after one split pane
+    When I select one pane of that split
+    And I move the selected pages to space "Reading"
+    Then the failed batch move leaves all three pages selected here
+    And the selected split is restored whole in this window
+
+  @F41-74 @tab-selection
+  Scenario: Recovery confirms success when the final selected row already arrived
+    Given spaces named "One" and "Reading", with this window in "One"
+    And three pages for multi-tab selection
+    And the first two selection pages form a split
+    When I select only the split for the batch
+    Given the new space's transfer will fail once
+    When I move the selected pages to space "Reading"
+    Then space "Reading" has all selected pages in order
+    And the selection is empty

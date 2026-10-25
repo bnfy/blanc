@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "bd514ef6d5c2e0753b554cb83335b5e17a2084f7a3ad1f45397e4e98445ff120",
+      "sha256": "67da943ff1f0b8bf055b3fe11622363562df3c9a0ad5e702e078e2aefdaf6bba",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "bc614fc36771ee3d3a5872ad200421e9c4d1c2b0b51f85043dc5e80a88aca3da",
+      "sha256": "edd20d8b79d6d0ef3803c2e800fed292131888a307b4dec28b516bbb3dc2f2ce",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -339,6 +339,7 @@
         "chrome:workspaces-create-blank",
         "chrome:workspaces-create-with-link",
         "chrome:workspaces-create-with-tab",
+        "chrome:workspaces-create-with-tabs",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",
@@ -412,6 +413,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:group-many-by-name",
         "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-as-tab",
@@ -423,6 +425,7 @@
         "tabs:reopen-entry",
         "tabs:save-favorite",
         "tabs:search",
+        "tabs:select",
         "tabs:set-glance",
         "tabs:set-group",
         "tabs:stop",
@@ -627,7 +630,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "a3e960b2c55c04361ce104784e739a8e96829df2ce9cd9abc7b49ec168d49b3d",
+      "sha256": "62d64a375f9ba075ef13efb604f06ca5bddfb7a949c4cf22e099e40abc734812",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -707,6 +710,7 @@
         "chrome:workspaces-create-blank",
         "chrome:workspaces-create-with-link",
         "chrome:workspaces-create-with-tab",
+        "chrome:workspaces-create-with-tabs",
         "chrome:workspaces-forget",
         "chrome:workspaces-list",
         "chrome:workspaces-move-to",
@@ -752,6 +756,7 @@
         "tabs:forward",
         "tabs:get-all",
         "tabs:group-by-name",
+        "tabs:group-many-by-name",
         "tabs:move",
         "tabs:navigate",
         "tabs:open-glance-as-tab",
@@ -763,6 +768,7 @@
         "tabs:reopen-entry",
         "tabs:save-favorite",
         "tabs:search",
+        "tabs:select",
         "tabs:set-glance",
         "tabs:set-group",
         "tabs:stop",

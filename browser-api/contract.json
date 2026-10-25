@@ -568,6 +568,7 @@
         "tabs": {
           "type": "TabEntry[]"
         },
+        "selectedTabIds": { "type": "TabId[]" },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -614,6 +615,7 @@
         "tabs": {
           "type": "TabEntry[]"
         },
+        "selectedTabIds": { "type": "TabId[]" },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -1074,6 +1076,7 @@
     "WorkspaceActionResult": {
       "doc": "Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.",
       "fields": {
+        "movedCount": { "type": "number", "optional": true },
         "ok": {
           "type": "boolean"
         },
@@ -1837,6 +1840,24 @@
       "params": [],
       "returns": "boolean",
       "doc": "Forget every closed entry in this window."
+    },
+    {
+      "name": "selectTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:select",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId | null"
+        },
+        {
+          "name": "mode",
+          "type": "'toggle' | 'range' | 'extend-up' | 'extend-down' | 'clear'"
+        }
+      ],
+      "returns": "TabId | null",
+      "doc": "Change the window-local tab selection and return the focused row id."
     },
     {
       "name": "switchTab",
@@ -3119,6 +3140,46 @@
       ],
       "returns": "WorkspaceActionResult",
       "doc": "Create a saved space with the link held by the current new-space editor, without loading it."
+    },
+    {
+      "name": "createSpaceWithTabs",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-tabs",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        },
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a space and move the selected whole rows after one checked write."
+    },
+    {
+      "name": "groupTabsByName",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:group-many-by-name",
+      "params": [
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move the selected whole rows to a named group in one pass."
     },
     {
       "name": "createSpaceWithTab",

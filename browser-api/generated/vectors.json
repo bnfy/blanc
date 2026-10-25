@@ -250,6 +250,123 @@
         false
       ]
     },
+    "selectTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:select",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1",
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabId = null",
+          "args": [
+            null,
+            "toggle"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                null,
+                "toggle"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"range\"",
+          "args": [
+            "tab-id-1",
+            "range"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "range"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"extend-up\"",
+          "args": [
+            "tab-id-1",
+            "extend-up"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "extend-up"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"extend-down\"",
+          "args": [
+            "tab-id-1",
+            "extend-down"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "extend-down"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "mode = \"clear\"",
+          "args": [
+            "tab-id-1",
+            "clear"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:select",
+              "args": [
+                "tab-id-1",
+                "clear"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        "tab-id-1",
+        null
+      ]
+    },
     "switchTab": {
       "kind": "invoke",
       "platforms": [
@@ -1455,6 +1572,7 @@
       "replies": [
         {
           "tabs": [],
+          "selectedTabIds": [],
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
           "groups": [],
@@ -1522,6 +1640,9 @@
               },
               "splitId": "tab-entry-1"
             }
+          ],
+          "selectedTabIds": [
+            "tab-id-1"
           ],
           "activeTabId": "tab-id-1",
           "glanceTabId": "tab-id-1",
@@ -4115,6 +4236,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4162,6 +4284,191 @@
             "canAdd": true
           }
         }
+      ]
+    },
+    "createSpaceWithTabs": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:workspaces-create-with-tabs",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example",
+            {},
+            []
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {},
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "label": "identity = {\"color\":\"space-identity-input-1\",\"symbo",
+          "args": [
+            "example",
+            {
+              "color": "space-identity-input-1",
+              "symbol": "space-identity-input-1"
+            },
+            []
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {
+                  "color": "space-identity-input-1",
+                  "symbol": "space-identity-input-1"
+                },
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabIds = [\"tab-id-1\"]",
+          "args": [
+            "example",
+            {},
+            [
+              "tab-id-1"
+            ]
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:workspaces-create-with-tabs",
+              "args": [
+                "example",
+                {},
+                [
+                  "tab-id-1"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "movedCount": 1,
+          "ok": true,
+          "error": "activation-failed",
+          "cause": "activation-failed",
+          "reason": "permission-or-transition",
+          "tabCount": 1,
+          "privateCount": 1,
+          "decision": "workspace-action-result-1",
+          "action": "swap",
+          "windowId": "workspace-action-result-1",
+          "workspaceId": "workspace-id-1",
+          "status": "saved",
+          "deleted": [
+            {
+              "id": "workspace-id-1",
+              "name": "deleted-workspace-1",
+              "deletedAt": 1,
+              "color": "deleted-workspace-1",
+              "symbol": "deleted-workspace-1"
+            }
+          ],
+          "items": [
+            {
+              "id": "workspace-id-1",
+              "name": "workspace-list-item-1",
+              "active": true,
+              "openElsewhere": true,
+              "resident": true,
+              "revision": 1,
+              "tabCount": 1,
+              "color": "workspace-list-item-1",
+              "symbol": "workspace-list-item-1",
+              "sharedSync": {
+                "unsyncedTabIds": [
+                  "shared-space-admission-1"
+                ],
+                "reason": "full"
+              }
+            }
+          ],
+          "windowTabCount": 1,
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
+        }
+      ]
+    },
+    "groupTabsByName": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "tabs:group-many-by-name",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            [],
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:group-many-by-name",
+              "args": [
+                [],
+                "example"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "tabIds = [\"tab-id-1\"]",
+          "args": [
+            [
+              "tab-id-1"
+            ],
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "tabs:group-many-by-name",
+              "args": [
+                [
+                  "tab-id-1"
+                ],
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
       ]
     },
     "createSpaceWithTab": {
@@ -4223,6 +4530,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4345,6 +4653,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4471,6 +4780,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4597,6 +4907,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4676,6 +4987,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4755,6 +5067,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4834,6 +5147,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -4940,6 +5254,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -5021,6 +5336,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -5100,6 +5416,7 @@
           "ok": true
         },
         {
+          "movedCount": 1,
           "ok": true,
           "error": "activation-failed",
           "cause": "activation-failed",
@@ -6073,6 +6390,7 @@
           "emit": [
             {
               "tabs": [],
+              "selectedTabIds": [],
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
               "groups": [],
@@ -6125,6 +6443,7 @@
             [
               {
                 "tabs": [],
+                "selectedTabIds": [],
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",
                 "groups": [],
@@ -6231,6 +6550,9 @@
                   },
                   "splitId": "tab-entry-1"
                 }
+              ],
+              "selectedTabIds": [
+                "tab-id-1"
               ],
               "activeTabId": "tab-id-1",
               "glanceTabId": "tab-id-1",
@@ -6384,6 +6706,9 @@
                     },
                     "splitId": "tab-entry-1"
                   }
+                ],
+                "selectedTabIds": [
+                  "tab-id-1"
                 ],
                 "activeTabId": "tab-id-1",
                 "glanceTabId": "tab-id-1",

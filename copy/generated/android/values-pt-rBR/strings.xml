@@ -2309,4 +2309,30 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ws_announce_opened_in">Aberto em %1$s</string>
     <string name="ws_new_with_link">Com este link</string>
     <string name="ws_error_open_link_failed">Não foi possível abrir o link em %1$s.</string>
+    <string name="rail_state_selected">selecionada</string>
+    <plurals name="tabs_selection_count">
+        <item quantity="one">%1$d aba selecionada</item>
+        <item quantity="many">%1$d abas selecionadas</item>
+        <item quantity="other">%1$d abas selecionadas</item>
+    </plurals>
+    <string name="tabs_selection_cleared">Seleção limpa</string>
+    <string name="tabs_selection_failed">Não foi possível concluir a ação para estas abas.</string>
+    <string name="tabs_selection_quieted">%1$s de %2$s abas colocadas em repouso.</string>
+    <string name="tabs_selection_reloaded">%1$s de %2$s abas recarregadas.</string>
+    <plurals name="tabs_menu_header">
+        <item quantity="one">%1$d aba</item>
+        <item quantity="many">%1$d abas</item>
+        <item quantity="other">%1$d abas</item>
+    </plurals>
+    <string name="tabs_menu_new_window">Mover abas para nova janela</string>
+    <string name="tabs_menu_pin">Fixar abas</string>
+    <string name="tabs_menu_unpin">Desafixar abas</string>
+    <string name="tabs_menu_mute">Silenciar abas</string>
+    <string name="tabs_menu_unmute">Ativar som das abas</string>
+    <string name="tabs_menu_reload">Recarregar abas</string>
+    <string name="tabs_menu_quiet">Colocar abas em repouso</string>
+    <string name="tabs_menu_copy">Copiar links</string>
+    <string name="tabs_menu_close">Fechar abas</string>
+    <string name="ws_new_with_tabs">Com estas abas</string>
+    <string name="ws_error_moved_partly">%1$s abas movidas para %2$s. As outras ficaram aqui.</string>
 </resources>

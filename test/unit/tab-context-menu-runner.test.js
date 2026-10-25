@@ -97,3 +97,12 @@ test('space-new opens the editor for the context tab', () => {
   runTabContextMenuItem('space-new', { tab: { id: 7 }, actions });
   assert.deepEqual(calls, [['beginNewSpaceForTab', 7]]);
 });
+
+test('batch actions carry the menu selection and destination to the batch runner', () => {
+  const calls = [], selectedTabIds = ['a', 'b'];
+  const actions = { batch: (...args) => calls.push(args) };
+  for (const id of ['batch-space-move', 'batch-space-new', 'batch-new-window', 'batch-group-move', 'batch-group-none', 'batch-group-new', 'batch-pin', 'batch-mute', 'batch-reload', 'batch-quiet', 'batch-copy', 'batch-close']) {
+    runTabContextMenuItem(id, { tab, actions, selectedTabIds, groupId: 'g', workspaceId: 's' });
+    assert.deepEqual(calls.at(-1), [id, { groupId: 'g', workspaceId: 's' }, selectedTabIds]);
+  }
+});

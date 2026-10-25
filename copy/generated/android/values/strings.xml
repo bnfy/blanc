@@ -2240,4 +2240,28 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ws_announce_opened_in">Opened in %1$s</string>
     <string name="ws_new_with_link">With this link</string>
     <string name="ws_error_open_link_failed">Couldn’t open the link in %1$s.</string>
+    <string name="rail_state_selected">selected</string>
+    <plurals name="tabs_selection_count">
+        <item quantity="one">%1$d tab selected</item>
+        <item quantity="other">%1$d tabs selected</item>
+    </plurals>
+    <string name="tabs_selection_cleared">Selection cleared</string>
+    <string name="tabs_selection_failed">Couldn’t complete the action for these tabs.</string>
+    <string name="tabs_selection_quieted">Quieted %1$s of %2$s tabs.</string>
+    <string name="tabs_selection_reloaded">Reloaded %1$s of %2$s tabs.</string>
+    <plurals name="tabs_menu_header">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d tabs</item>
+    </plurals>
+    <string name="tabs_menu_new_window">Move Tabs to New Window</string>
+    <string name="tabs_menu_pin">Pin Tabs</string>
+    <string name="tabs_menu_unpin">Unpin Tabs</string>
+    <string name="tabs_menu_mute">Mute Tabs</string>
+    <string name="tabs_menu_unmute">Unmute Tabs</string>
+    <string name="tabs_menu_reload">Reload Tabs</string>
+    <string name="tabs_menu_quiet">Quiet Tabs</string>
+    <string name="tabs_menu_copy">Copy Links</string>
+    <string name="tabs_menu_close">Close Tabs</string>
+    <string name="ws_new_with_tabs">With these tabs</string>
+    <string name="ws_error_moved_partly">Moved %1$s tabs to %2$s. The other tabs stayed here.</string>
 </resources>

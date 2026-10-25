@@ -208,6 +208,28 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, glanceTabId = null
   return items;
 }
 
+/** A selection has its own deliberately small menu; no single-tab actions. */
+function buildTabsContextMenu({ members, groups = [], spaces = [], canPlace = false, canCreateSpace = false, canMutate = true, t }) {
+  const count = members.length;
+  const items = [{ id: 'batch-header', type: 'header', label: t('tabsMenu.header', { count }) }];
+  const item = (id, key, enabled = true) => ({ id: `batch-${id}`, label: t(key), enabled });
+  if (spaces.length) items.push({ id: 'batch-space', label: t('tabMenu.moveToSpace'), enabled: canPlace,
+    submenu: [...spaces.map(space => ({ id: 'batch-space-move', label: space.name, type: 'radio', checked: space.current,
+      enabled: canPlace && !space.current && space.enabled !== false, workspaceId: space.id })), { type: 'separator' }, item('space-new', 'tabMenu.newSpace', canPlace && canCreateSpace)] });
+  items.push(item('new-window', 'tabsMenu.newWindow', canPlace));
+  items.push({ id: 'batch-group', label: t('tabMenu.moveToGroup'), enabled: canPlace, submenu: [
+    ...groups.map(group => ({ id: 'batch-group-move', type: 'radio', checked: members.every(tab => tab.groupId === group.id), label: group.name, groupId: group.id })),
+    ...(groups.length ? [{ type: 'separator' }] : []),
+    ...(members.some(tab => tab.groupId) ? [item('group-none', 'tabMenu.removeFromGroup')] : []), item('group-new', 'tabMenu.newGroup'),
+  ] });
+  items.push({ type: 'separator' }, item('pin', members.every(tab => tab.pinned) ? 'tabsMenu.unpin' : 'tabsMenu.pin', canMutate),
+    item('mute', members.every(tab => tab.muted) ? 'tabsMenu.unmute' : 'tabsMenu.mute', canMutate),
+    item('reload', 'tabsMenu.reload', members.some(tab => tab.canReload)),
+    item('quiet', 'tabsMenu.quiet', members.some(tab => tab.canQuiet)),
+    item('copy', 'tabsMenu.copy', members.some(isCopyable)), { type: 'separator' }, item('close', 'tabsMenu.close', canMutate));
+  return items;
+}
+
 function closableTabIds({ tabOrder, tabsById, keepId }) {
   return tabOrder.filter((id) => id !== keepId && tabsById.get(id) && !tabsById.get(id).pinned);
 }
@@ -230,4 +252,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable };
+module.exports = { buildTabsContextMenu, buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable };
