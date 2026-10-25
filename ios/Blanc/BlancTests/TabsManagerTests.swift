@@ -15,6 +15,19 @@ final class TabsManagerTests: XCTestCase {
         )
     }
 
+    @MainActor func testToggleFavoriteFlipsState() {
+        let m = makeManager()
+        let tab = m.activeTab!
+        tab.currentURL = URL(string: "https://example.com/")!
+        tab.pageTitle = "Example"
+        XCTAssertFalse(m.isFavorite(tab))
+        m.toggleFavorite(tab)
+        XCTAssertTrue(m.isFavorite(tab))
+        XCTAssertEqual(m.syncEngine.favorites.map(\.title), ["Example"])
+        m.toggleFavorite(tab)
+        XCTAssertFalse(m.isFavorite(tab))
+    }
+
     func testInitCreatesOneTab() {
         let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)

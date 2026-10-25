@@ -61,7 +61,13 @@ final class TabsManager {
             contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
 
-        let savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        #if DEBUG
+        if UITestSeed.favorites {
+            UITestSeed.seedFavorites(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
+        #endif
         if savedURLs.isEmpty {
             createTab()
         } else {
@@ -79,6 +85,26 @@ final class TabsManager {
     }
 
     @discardableResult
+    /// Only web pages can be Favorites; Blanc's own pages can't.
+    static func canFavorite(_ url: URL) -> Bool {
+        ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+    }
+
+    func isFavorite(_ tab: TabModel) -> Bool {
+        syncEngine.isFavorite(url: tab.currentURL.absoluteString)
+    }
+
+    func toggleFavorite(_ tab: TabModel) {
+        guard Self.canFavorite(tab.currentURL) else { return }
+        let url = tab.currentURL.absoluteString, title = tab.pageTitle
+        syncEngine.editFavorites {
+            SyncedFavorites.toggle(
+                $0, url: url, title: title, favicon: nil, now: Date().timeIntervalSince1970 * 1000,
+                makeId: { UUID().uuidString.lowercased() }
+            ).store
+        }
+    }
+
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
         if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
