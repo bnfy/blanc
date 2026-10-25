@@ -12,7 +12,7 @@ const ensure=()=>store??=new JsonStore('shared-spaces',empty(),{scope:'profile'}
 const changed=new Set(),remoteChanged=new Set();
 const notify=listeners=>{for(const fn of listeners)fn();};
 function rebind(accountId) {
-  const s=ensure();if(s.data.accountId!==accountId)s.update(d=>Object.assign(d,empty(),{accountId}));return s;
+  const s=ensure();if(s.data.accountId!==accountId)s.update(d=>Object.assign(d,empty(),{accountId,requestLog:d.requestLog??[]}));return s;
 }
 const snapshot=ctx=>copy(rebind(ctx.accountId).data);
 function setEnabled(on,ctx) {rebind(ctx.accountId).update(d=>{d.enabled=!!on;});notify(changed);}
