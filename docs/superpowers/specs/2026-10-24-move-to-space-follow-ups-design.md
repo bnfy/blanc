@@ -1,6 +1,6 @@
 # Move to Space follow-ups: New Space…, Open Link in Space, and selecting several tabs
 
-**Date:** 2026-10-24 (revised the same day after review)
+**Date:** 2026-10-24 (revised 2026-10-25 after review)
 **Status:** proposed. Decisions D1–D10 (§7) are the owner's to make; nothing here is built.
 **Builds on:** PR #1097, Move to Space ▸ in the tab menu (one tab at a time), for issue #1060.
 **Issue:** #1060 asks to move "one or more" tabs to another space, and its title asks for the same from a link's right-click menu.
@@ -9,7 +9,7 @@
 
 | PR | What | Size |
 | --- | --- | --- |
-| 0 | **Checked persistence for Move to Space** (§3), for one tab. Done in #1097 before it merges: as first written, it ignored the result of its record write and reported success. | Small |
+| 0 | **Checked persistence for Move to Space** (§3), for one tab. Merged in #1097: as first written, it ignored the result of its record write and reported success. The follow-up guards a failure during reconciliation itself. | Small |
 | 1 | **New Space…** at the bottom of Move to Space ▸: make a space and move the tab into it in one step (§4). | Small |
 | 2 | **Open Link in Space ▸** in a page's link menu: send a link to another space without leaving this one (§5). | Small to medium |
 | 3 | **Selecting several tabs** in the ⌘L panel and the side list, with a tab menu that acts on all of them (§6). | Large |
@@ -66,7 +66,7 @@ A move of tabs T₁…Tₙ into space S runs in five steps. Only step 4 changes 
 
 **Success.** The result is `{ ok: true }` only when the write in step 3 **and** the transfer in step 4 both succeed. Broadcasts and set-aside housekeeping after the transfer can't turn a saved move into a failure.
 
-**If step 4 throws.** Only a programming error can do this, but tests inject it on purpose. Each tab is first put where it can be found, whole in one place: either S, if it got all the way there, or its window, at its old place, back in its group if that group still exists, and selected again if it was the current tab. It is never half in each and never in neither. Blanc then rewrites S's record from S's live tabs (a second, checked write), so disk matches memory.
+**If step 4 throws.** Only a programming error can do this, but tests inject it on purpose. Each tab is first put where it can be found, whole in one place: either S, if it got all the way there, or its window, at its old place, back in its group if that group still exists, and selected again if it was the current tab. It is never half in each and never in neither. Only after reconciliation succeeds does Blanc rewrite S's record from S's live tabs (a second, checked write), so disk matches memory. If reconciliation itself throws, ownership is uncertain: skip the rewrite, preserve the checked write-ahead record from step 3, and report `recorded: false`. Never replace that recovery copy with an incomplete live capture.
 - **One tab (#1097):** the result is `{ ok: false, error: 'move-failed', moved, recorded }`. `moved` says whether the tab ended up in S, and `recorded` whether the rewrite succeeded.
 - **Several tabs (§6):** the result is `{ ok: false, error: 'moved-partly', moved: k, total: n, recorded }`.
 
@@ -82,6 +82,7 @@ If the rewrite also fails (`recorded: false`), S's record still lists every tab 
   - Prepare fails or throws: `discard` runs before any write.
   - The transfer throws: `reconcile` and `rewrite` run, and the result is never `ok`.
   - The transfer and the rewrite both fail: `recorded: false`.
+  - The transfer and reconciliation both throw: no rewrite is attempted; `recorded: false`. A SIGKILL followed by a fresh process must still read the tab from the durable write-ahead record.
   - With several tabs (§6): the transfer throws on the second of three, the first stays moved, and the result is `moved-partly` with `moved: 1, total: 3`.
 - **Acceptance**, through one-shot faults on each step (`workspaceAction('arm-move-fault', step, error)`, honoured only when `!app.isPackaged && BLANC_TEST === '1'`). The harness's `crashAndRelaunch` kills the process with SIGKILL, so nothing flushes on the way out, and relaunches on the same profile.
   - **A failed write** leaves the tab in this window, live and selected. After a crash and restart, the window has the tab once and S's record doesn't list it (F41-43).
