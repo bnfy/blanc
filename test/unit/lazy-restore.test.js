@@ -59,7 +59,7 @@ test('the restored active tab is picked without indexing into a hole', () => {
   const closeStartup = mainSource.indexOf("closeTab(startupTabId, { selectReplacement: false })");
   const selectQuiet = mainSource.indexOf('runtime.activeTabId = target;', closeStartup);
   const replay = mainSource.indexOf('await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}))', selectQuiet);
-  const activate = mainSource.indexOf('setActiveTab(wakeTarget, { focusContent: true });', replay);
+  const activate = mainSource.indexOf('wakeRestoredTarget(runtime,wakeTarget)', replay);
   assert.ok(closeStartup > 0 && closeStartup < selectQuiet && selectQuiet < replay && replay < activate,
     'close without replacement, select quietly, replay Shared Spaces, then wake exactly the selected tab');
 });

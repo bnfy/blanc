@@ -7729,6 +7729,14 @@ function selectSharedLayoutFallback(runtime,selected) {
   if(runtime.resident||runtime.closing||runtime.sharedColdRestore)runtime.activeTabId=selected;
   else setActiveTab(selected,{focusContent:false});
 }
+function wakeRestoredTarget(runtime,target) {
+  if(!hasLiveWindow()){runtime.activeTabId=target;return;}
+  // activeTabId is only a quiet, record-level selection during cold replay.
+  // Clear it so setActiveTab performs the real attach/show/focus path instead
+  // of returning early after merely creating the renderer in wakeTab.
+  if(runtime.activeTabId===target)runtime.activeTabId=null;
+  setActiveTab(target,{focusContent:true});
+}
 function captureSharedSpaceEdits(runtime) {
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context?.window)return;
@@ -15732,10 +15740,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       const wakeTarget = tabs.has(target) ? target
         : (tabs.has(runtime.activeTabId) ? runtime.activeTabId : runtime.tabOrder.find(id=>tabs.has(id)));
       if (!wakeTarget) continue;
-      withWindowRuntime(runtime,()=>{
-        if (hasLiveWindow()) setActiveTab(wakeTarget, { focusContent: true });
-        else runtime.activeTabId = wakeTarget;
-      });
+      withWindowRuntime(runtime,()=>wakeRestoredTarget(runtime,wakeTarget));
     }
 
     // Recovery is an ephemeral neutral host. Destroy it while persistence is

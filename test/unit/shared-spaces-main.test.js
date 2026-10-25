@@ -116,7 +116,7 @@ test('startup replays shared state before it wakes restored tabs and resumes per
   assert.ok(begin>0&&end>begin);const restore=source.slice(begin,end);
   const select=restore.indexOf('runtime.activeTabId = target;');
   const apply=restore.indexOf('await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}))');
-  const wake=restore.indexOf('setActiveTab(wakeTarget, { focusContent: true })');
+  const wake=restore.indexOf('wakeRestoredTarget(runtime,wakeTarget)');
   assert.ok(select>=0&&select<apply&&apply<wake,'quiet selection and shared replay must precede wake');
 });
 test('cold replay selects a replacement without waking it after the saved target closes',()=>{
@@ -138,6 +138,17 @@ test('cold replay flag spans the forced pass and the wake loop falls back from a
   assert.ok(begin>0&&end>begin);const restore=source.slice(begin,end);
   assert.match(restore,/try \{ await withWindowRuntime\(runtime,\(\)=>applySharedSpaceChanges\(runtime,\{force:true\}\)\); \}\s*finally \{ runtime\.sharedColdRestore = false; \}/);
   assert.match(restore,/const wakeTarget = tabs\.has\(target\) \? target\s*: \(tabs\.has\(runtime\.activeTabId\) \? runtime\.activeTabId/);
+});
+test('the post-replay wake performs a real activation for the provisional selection',()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const code=source.match(/function wakeRestoredTarget\(runtime,target\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code);const calls=[];
+  const sandbox={hasLiveWindow:()=>true,setActiveTab:(id,options)=>calls.push({id,options,activeAtCall:runtime.activeTabId})};
+  const runtime={activeTabId:'selected'};
+  vm.runInNewContext(code+'\nthis.wake=wakeRestoredTarget;',sandbox);
+  sandbox.wake(runtime,'selected');
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)),[{id:'selected',options:{focusContent:true},activeAtCall:null}]);
 });
 test('session checkpoints and filtering retain shared ids without putting them in the rollback mirror',()=>{
   const {entryFrom,buildSaveShape}=require('../../src/main/session-workspace');
