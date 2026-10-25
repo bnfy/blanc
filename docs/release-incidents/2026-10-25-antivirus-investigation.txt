@@ -1,5 +1,46 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
+CURRENT UPDATE: EXACT HSLUV MEMBER IDENTIFIED; NARROW SOURCE FIX PREPARED.
+HSLuv scripts/secrets.sh, SHA256
+e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501,
+independently reproduces the five PUP detections (5/60), including the exact
+original Avast and AVG labels. It is an upstream publisher encryption utility,
+referenced only by the deployment README; no library build/test/runtime code
+references it. It is not needed to generate the HSLuv library bundled by uBO.
+https://www.virustotal.com/gui/file/e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501/detection
+
+The prepared HSLuv archive omits only that unused publisher utility, retaining
+all other 83 entries / 64 files, original bytes and permissions, including every
+library source, test, snapshot, license and build definition. Its SHA256 is
+013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570.
+Completed VirusTotal scan: 0/59, with Avast, AVG and Kaspersky explicitly
+Undetected. This is sample clearance, not final-installer clearance.
+https://www.virustotal.com/gui/file/013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570/detection
+
+The new source preparation authenticates the immutable original and exact
+omitted helper digest, verifies every retained member, and executes no upstream
+script. It is bundled and pinned with the source inventory. The original URL,
+revision, digest and precise source-selection reason are recorded. All 658 uBO
+runtime files, the host adaptation and the other six source archives are
+unchanged. The owner-distribution record has a candidate engineering source-scope
+review; no outside legal sign-off or new owner waiver is claimed. Validation:
+29 focused Node tests, two preparation tests, lint, package/adaptation checks,
+real-source member comparison and rebuilt ASAR verification passed.
+
+The approved member scans completed: five Maxima math files 0/64; twelve public
+encrypted deployment artifacts 0/63, with all original engines Undetected.
+The archived website control is clean on the original detecting engines.
+The exact helper was exposed through the positive code/build partition's
+Relations view. The earlier suspicion about encrypted artifacts is ruled out.
+
+Kaspersky's separate source warning remains OPEN. Both the complete uAssets
+ZIP (1/60) and an 86-file source-only ZIP (1/62) reproduce Mimikatz, confirming
+that a container-only change is not a solution for it either. URLhaus-only and
+without-URLhaus diagnostic controls are now prepared; both show new CAPTCHAs.
+Action-time approval was requested for those two challenges. Do not remove a
+protective rule or required filter source based on this untested suspicion.
+No release was made. Everything below describes earlier investigation stages.
+
 UPDATE: CANDIDATE REJECTED AFTER SCANNER VALIDATION.
 The approved CAPTCHA completed and the HSLuv source-file control was submitted.
 The complete 65-file ZIP returned 5/65, including the original Avast/AVG labels.

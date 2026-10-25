@@ -92,3 +92,26 @@ candidate acceptance. This does not waive sandbox, signing, notarization,
 updater, persistence, lifecycle or platform testing. CodeQL scanning stays on.
 The 39 approved alert dispositions remain deferred until PR #490 leaves draft;
 this decision does not authorize earlier dismissals, a merge or publication.
+
+## October 25 candidate source maintenance
+
+The antivirus investigation identified HSLuv's unrelated `scripts/secrets.sh`
+publisher encryption helper as the exact Avast/AVG PUP trigger. It is referenced
+only by the upstream deployment README, not by the library build, tests or uBO
+runtime. A candidate source selection omits only that helper and retains all 64
+other files and all 83 remaining archive entries byte-for-byte, with their
+permissions, including Haxe/JavaScript source, build definitions, tests,
+snapshots and licenses. The bundled preparation script authenticates the
+original upstream archive and verifies every retained member; original and
+prepared digests and the precise omission are recorded in
+`ublock/preferred-sources.json`.
+
+This records the engineering source-scope review for that candidate, not a new
+owner waiver or outside legal sign-off. All 658 uBO runtime files, the existing
+host adaptation, uBO's matching source tag, both complete uAssets snapshots,
+other preferred library sources, GPL/LGPL texts and notices remain unchanged.
+The prepared HSLuv archive returns 0/59, with Avast, AVG and Kaspersky explicitly
+Undetected; that is a sample result, not clearance of a final installer.
+Kaspersky's separate uAssets warning remains under investigation. No release
+was made and all release/acceptance requirements remain in force. See
+`docs/release-incidents/2026-10-25-antivirus-investigation.txt`.

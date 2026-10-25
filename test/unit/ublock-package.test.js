@@ -137,7 +137,7 @@ test('every byte-checked text host input and package record is LF-pinned for def
 test('source inventory regeneration retains immutable component archives and rejects tampering', t => {
   const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
   const sources = sourceInputs(path.join(root, 'ublock'));
-  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0.tar.gz', 'sources/uAssets-1.75.0-main.tar.gz', 'sources/uAssets-1.75.0-prod.tar.gz']) assert(sources.some(source => source.path === member), member);
+  for (const member of ['preferred-sources.json', 'sources/css-tree-2.2.1.tar.gz', 'sources/js-beautify-1.14.7.tar.gz', 'sources/hsluv-0.1.0-preferred.tar.gz', 'sources/uAssets-1.75.0-main.tar.gz', 'sources/uAssets-1.75.0-prod.tar.gz']) assert(sources.some(source => source.path === member), member);
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(),'ubo-source-record-'));
   t.after(() => fs.rmSync(temporary,{recursive:true,force:true}));
   fs.mkdirSync(path.join(temporary,'sources'));
@@ -156,6 +156,27 @@ test('source inventory regeneration retains immutable component archives and rej
   record.components[0].sourcePath = '../escape.tar.gz';
   fs.writeFileSync(path.join(temporary,'preferred-sources.json'),JSON.stringify(record));
   assert.throws(() => sourceInputs(temporary), /preferred-source-integrity/);
+});
+
+test('HSLuv source selection requires the exact upstream and publisher-only omission record', t => {
+  const { sourceInputs } = require('../../scripts/check-ublock-package.cjs');
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'ubo-hsluv-source-'));
+  t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(temporary, 'sources'));
+  for (const member of ['LICENSE.txt', 'prepare-hsluv-source.py', 'sources/hsluv-0.1.0-preferred.tar.gz']) {
+    fs.copyFileSync(path.join(root, 'ublock', member), path.join(temporary, member));
+  }
+  const record = JSON.parse(fs.readFileSync(path.join(root, 'ublock/preferred-sources.json')));
+  const component = record.components.find(entry => entry.name === 'hsluv-0.1.0');
+  record.components = [component];
+  fs.writeFileSync(path.join(temporary, 'preferred-sources.json'), JSON.stringify(record));
+  sourceInputs(temporary);
+  for (const change of [{ upstreamSha256: '0'.repeat(64) }, { omittedPath: 'haxe/src/hsluv/Hsluv.hx' },
+    { omittedSha256: '0'.repeat(64) }, { script: '../other.py' }]) {
+    record.components = [{ ...component, sourcePreparation: { ...component.sourcePreparation, ...change } }];
+    fs.writeFileSync(path.join(temporary, 'preferred-sources.json'), JSON.stringify(record));
+    assert.throws(() => sourceInputs(temporary), /source-preparation-invalid/);
+  }
 });
 
 

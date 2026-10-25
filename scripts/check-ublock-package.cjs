@@ -34,6 +34,21 @@ function sourceInputs(directory) {
       || !/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(component.repository)
       || component.url !== `https://codeload.github.com/${component.repository}/tar.gz/${component.revision}`
       || hash(fs.readFileSync(path.join(directory, member))) !== component.sha256) throw new Error('ubo-preferred-source-integrity');
+    if (member === 'sources/hsluv-0.1.0-preferred.tar.gz') {
+      const preparation = component.sourcePreparation;
+      if (component.name !== 'hsluv-0.1.0' || component.repository !== 'hsluv/hsluv'
+        || component.revision !== '9cd8574fad8874828b3a8119843527d62d79887a'
+        || component.sha256 !== '013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570'
+        || preparation?.script !== 'prepare-hsluv-source.py'
+        || preparation.upstreamSha256 !== '1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee'
+        || preparation.omittedPath !== 'hsluv-9cd8574fad8874828b3a8119843527d62d79887a/scripts/secrets.sh'
+        || preparation.omittedSha256 !== 'e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501') {
+        throw new Error('ubo-source-preparation-invalid');
+      }
+      sources.push({ path: preparation.script, sha256: hash(fs.readFileSync(path.join(directory, preparation.script))) });
+    } else if (component.sourcePreparation !== undefined) {
+      throw new Error('ubo-source-preparation-invalid');
+    }
     seen.add(member);
     sources.push({ path: member, url: component.url, sha256: component.sha256 });
   }

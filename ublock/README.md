@@ -69,6 +69,30 @@ Running `check-ublock-package.cjs --write` preserves and verifies this inventory
 Availability of these preferred sources does not establish exact build
 reproduction or close the remaining distribution assessment.
 
+HSLuv's `sources/hsluv-0.1.0-preferred.tar.gz` retains all library sources,
+tests, licenses, snapshots and build definitions from the pinned revision. Only
+`scripts/secrets.sh`, an unrelated publisher encryption utility, is omitted.
+It is referenced only by the upstream deployment README, not by the HSLuv build,
+tests or uBO runtime. Its individual scan reproduces Avast/AVG's PUP warning;
+the archive with only that helper omitted returns 0/59, including Avast, AVG
+and Kaspersky Undetected. This is a source selection, not a runtime patch or
+removal of any filtering rule. The separate uAssets/Kaspersky warning remains
+open; this result does not clear a final installer.
+
+`preferred-sources.json` records the original upstream digest, omitted helper's
+path and digest, and the prepared archive's digest. The bundled, hash-pinned
+`prepare-hsluv-source.py` authenticates that original archive and compares every
+retained file's bytes and permissions. It never executes archived scripts.
+Reproduce the prepared archive with Python 3.13 from the immutable upstream
+download recorded in the component entry:
+
+```
+python3 ublock/prepare-hsluv-source.py /path/to/hsluv-0.1.0.tar.gz /tmp/hsluv-preferred.tar.gz
+```
+
+The full original project remains available at that immutable upstream revision;
+the source required to build the bundled HSLuv library stays inside the app.
+
 
 The same inventory now pins uAssets main and production snapshots used by the
 1.75.0 release. All thirteen separately copied assets match those immutable

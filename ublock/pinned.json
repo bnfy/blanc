@@ -22,7 +22,7 @@
     },
     {
       "path": "preferred-sources.json",
-      "sha256": "a7e816a5fb2f8d896b68be9365c617de0433b21371ec332726b0072a8078521a"
+      "sha256": "4677beb9e3f92adf004cde8942d0a72ae1879ec1231ca5483805645e3ab606db"
     },
     {
       "path": "sources/css-tree-2.2.1.tar.gz",
@@ -35,9 +35,13 @@
       "sha256": "ab8dcf70a2969aa28d71d86e0eda478c405de091c6d9dde8a482bafc6f08538e"
     },
     {
-      "path": "sources/hsluv-0.1.0.tar.gz",
+      "path": "prepare-hsluv-source.py",
+      "sha256": "e101dcc83065a70d5bd82a075d9cb166927c17703a3fab0143e04cc5654a51d2"
+    },
+    {
+      "path": "sources/hsluv-0.1.0-preferred.tar.gz",
       "url": "https://codeload.github.com/hsluv/hsluv/tar.gz/9cd8574fad8874828b3a8119843527d62d79887a",
-      "sha256": "1691357d86b2bbeead0ad2e31f0c4eeb40497e50bcf0faa8e97e91df50b7f9ee"
+      "sha256": "013caa6074bc17d16678d46a8947769a740f43e15757f8fcd3de5e1774fa4570"
     },
     {
       "path": "sources/uAssets-1.75.0-main.tar.gz",
