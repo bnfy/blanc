@@ -68,16 +68,20 @@ final class ReaderModeTests: XCTestCase {
         XCTAssertTrue(text.contains("Reader fixture"))
         for (font, family) in [("inter", "Inter"), ("mono", "JetBrains Mono")] {
             let result = try await reader.webView.callAsyncJavaScript("""
-            const control = document.getElementById('font');
-            control.value = font;
-            control.dispatchEvent(new Event('change'));
+            if (document.getElementById('appearance').hidden) document.getElementById('appearanceToggle').click();
+            document.getElementById('fontToggle').click();
+            document.querySelector('.font-option input[value=' + font + ']').click();
             await document.fonts.load('20px "' + family + '"');
             return { family: getComputedStyle(document.getElementById('reading')).fontFamily,
-                     loaded: document.fonts.check('20px "' + family + '"') };
+                     loaded: document.fonts.check('20px "' + family + '"'),
+                     selectedFamily: getComputedStyle(document.getElementById('fontSelected')).fontFamily,
+                     closed: document.getElementById('fontOptions').hidden };
             """, arguments: ["font": font, "family": family], in: nil, contentWorld: .page)
             let rendered = try XCTUnwrap(result as? [String: Any])
             XCTAssertTrue((rendered["family"] as? String)?.contains(family) == true)
             XCTAssertEqual(rendered["loaded"] as? Bool, true)
+            XCTAssertTrue((rendered["selectedFamily"] as? String)?.contains(family) == true)
+            XCTAssertEqual(rendered["closed"] as? Bool, true)
         }
         for disposition in ["current-tab", "background-tab", "foreground-tab", "new-window"] {
             _ = try await reader.webView.callAsyncJavaScript("await window.readerAPI.openLink('https://reader.example/next', disposition);", arguments: ["disposition": disposition], in: nil, contentWorld: .page)

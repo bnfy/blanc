@@ -7,13 +7,55 @@
   const toggle = document.getElementById('appearanceToggle');
   const popover = document.getElementById('appearance');
   const controls = Object.fromEntries(['theme', 'font', 'size', 'width'].map(key => [key, document.getElementById(key)]));
+  const fontPicker = document.getElementById('fontPicker');
+  const fontToggle = document.getElementById('fontToggle');
+  const fontOptions = document.getElementById('fontOptions');
+  const fontSelected = document.getElementById('fontSelected');
+  const fontRadios = [...fontOptions.querySelectorAll('input[type=radio]')];
   function apply(value) {
     for (const key of ['theme', 'font', 'width']) document.documentElement.dataset[key] = value[key];
     document.documentElement.style.setProperty('--size', `${value.size}px`);
     for (const [key, control] of Object.entries(controls)) control.value = value[key];
     document.getElementById('sizeValue').value = String(value.size);
+    for (const radio of fontRadios) radio.checked = radio.value === value.font;
+    const selected = fontRadios.find(radio => radio.checked);
+    if (selected) {
+      fontSelected.textContent = blancI18n.t(selected.nextElementSibling.dataset.i18n);
+      fontSelected.dataset.font = value.font;
+    }
   }
-  function closeAppearance() { popover.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
+  function closeFontPicker(restoreFocus = false) {
+    fontOptions.hidden = true;
+    fontToggle.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) fontToggle.focus();
+  }
+  function openFontPicker() {
+    fontOptions.hidden = false;
+    fontToggle.setAttribute('aria-expanded', 'true');
+    fontRadios.find(radio => radio.checked)?.focus();
+  }
+  fontToggle.addEventListener('click', () => fontOptions.hidden ? openFontPicker() : closeFontPicker());
+  fontToggle.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); openFontPicker(); }
+  });
+  fontOptions.addEventListener('keydown', event => {
+    if (event.key === 'Escape' || event.key === 'Enter') {
+      event.preventDefault(); event.stopPropagation(); closeFontPicker(true);
+    }
+  });
+  for (const radio of fontRadios) {
+    radio.addEventListener('change', () => {
+      if (!radio.checked) return;
+      controls.font.value = radio.value;
+      controls.font.dispatchEvent(new Event('change'));
+    });
+    radio.addEventListener('click', event => {
+      // Native radio arrow/Space activation dispatches a zero-detail click.
+      // Keep the group open for keyboard browsing until Enter or Escape.
+      if (event.detail > 0 || !event.isTrusted) closeFontPicker(true);
+    });
+  }
+  function closeAppearance() { closeFontPicker(); popover.hidden = true; toggle.setAttribute('aria-expanded', 'false'); }
   document.getElementById('exit').addEventListener('click', () => api.exit());
   toggle.addEventListener('click', () => {
     popover.hidden = !popover.hidden;
@@ -24,6 +66,7 @@
     if (event.key === 'Escape' && !popover.hidden) { event.preventDefault(); closeAppearance(); toggle.focus(); }
   });
   document.addEventListener('pointerdown', event => {
+    if (!fontPicker.contains(event.target)) closeFontPicker();
     if (!popover.hidden && !popover.contains(event.target) && event.target !== toggle) closeAppearance();
   });
   let writeGeneration = 0;

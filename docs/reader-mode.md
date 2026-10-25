@@ -14,6 +14,8 @@ Desktop and iOS use Mozilla Readability 0.6.0, DOMPurify 3.4.17, the same HTML
 allowlist, and the same bundled reader document. Controls select System, Light,
 Dark, or Sepia; Source Serif 4, Instrument Sans, Inter, or JetBrains Mono; 16–28px text in 2px steps;
 and 560/720/880px maximum widths. Defaults are System, Serif, 20px, Comfortable.
+The font picker previews each choice and the selected value in its own typeface,
+with native radio semantics, arrow-key selection, and Escape focus return.
 Controls use Instrument Sans at width 98 with +0.01em spacing; numeric output
 uses Inter. Unsupported scripts use system font fallbacks.
 
@@ -139,7 +141,7 @@ iOS Simulator run does not waive those gates.
 
 These are source and Simulator results, not installed-platform release evidence.
 
-The desktop smoke driver writes an atomic completion report only after all twelve
+The desktop smoke driver writes an atomic completion report only after all thirteen
 checks finish. Its launcher requires that complete report, rejects assertion
 errors, missing reports, and unexpected process exits, then gives Electron a
 bounded grace period to stop. Linux may require controlled process-group cleanup

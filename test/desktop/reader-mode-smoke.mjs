@@ -26,7 +26,7 @@ let logs = '';
 child.stdout.on('data', data => { logs = (logs + data).slice(-12000); });
 child.stderr.on('data', data => { logs = (logs + data).slice(-12000); });
 try {
-  const report = await collectDriverResult({ child, resultFile: result, expectedChecks: 12,
+  const report = await collectDriverResult({ child, resultFile: result, expectedChecks: 13,
     stop: () => {
       if (process.platform === 'win32') child.kill();
       else process.kill(-child.pid, 'SIGKILL');

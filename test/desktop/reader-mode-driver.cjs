@@ -44,6 +44,29 @@ app.whenReady().then(async () => {
     assert.equal(sanitized.tables, 1); assert.equal(sanitized.linksSafe, true);
     checks.push('sanitized article with tables, no hidden content or privileged bridge');
     fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT, (await reader.capturePage()).toPNG());
+    await reader.executeJavaScript(`document.getElementById('appearanceToggle').click(); document.getElementById('fontToggle').click();`);
+    const preview = await reader.executeJavaScript(`Promise.all([...document.querySelectorAll('.font-option .font-preview')].map(async label => {
+      await document.fonts.load('14px ' + getComputedStyle(label).fontFamily.split(',')[0]);
+      return {font:label.dataset.font, family:getComputedStyle(label).fontFamily};
+    }))`);
+    for (const [font, family] of [['serif','Source Serif 4'],['sans','Instrument Sans'],['inter','Inter'],['mono','JetBrains Mono']]) {
+      assert.ok(preview.find(item => item.font === font)?.family.includes(family));
+    }
+    await reader.executeJavaScript(`document.querySelector('.font-option input[value=mono]').click()`);
+    await waitFor(async () => (await reader.executeJavaScript('window.readerAPI.initialize()')).appearance.font === 'mono', 'font picker saves selection');
+    assert.equal(await reader.executeJavaScript('document.getElementById("fontOptions").hidden'), true);
+    assert.ok((await reader.executeJavaScript('getComputedStyle(document.getElementById("fontSelected")).fontFamily')).includes('JetBrains Mono'));
+    reader.sendInputEvent({type:'keyDown',keyCode:'Down'}); reader.sendInputEvent({type:'keyUp',keyCode:'Down'});
+    await waitFor(() => reader.executeJavaScript('!document.getElementById("fontOptions").hidden'), 'keyboard opens font picker');
+    reader.sendInputEvent({type:'keyDown',keyCode:'Up'}); reader.sendInputEvent({type:'keyUp',keyCode:'Up'});
+    await waitFor(() => reader.executeJavaScript('document.getElementById("font").value === "inter"'), 'keyboard changes font');
+    reader.sendInputEvent({type:'keyDown',keyCode:'Escape'}); reader.sendInputEvent({type:'keyUp',keyCode:'Escape'});
+    await waitFor(() => reader.executeJavaScript('document.getElementById("fontOptions").hidden && document.activeElement.id === "fontToggle"'), 'Escape restores font button focus');
+    assert.equal(await reader.executeJavaScript('document.getElementById("appearance").hidden'), false);
+    await reader.executeJavaScript(`document.getElementById('fontToggle').click(); window.scrollTo(0,0);`);
+    fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT.replace('.png', '-fonts.png'), (await reader.capturePage()).toPNG());
+    await reader.executeJavaScript(`document.getElementById('appearanceToggle').click()`);
+    checks.push('font choices preview their typefaces and support keyboard selection and focus return');
     async function checkModifiedClicks(tabId, contents, isPrivate) {
       const modifier = process.platform === 'darwin' ? 'meta' : 'control';
       for (const {button, modifiers, background, newWindow} of [

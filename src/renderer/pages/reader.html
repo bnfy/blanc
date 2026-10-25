@@ -23,7 +23,19 @@
         <option value="system" data-i18n="reader.system">System</option><option value="light" data-i18n="reader.light">Light</option>
         <option value="dark" data-i18n="reader.dark">Dark</option><option value="sepia" data-i18n="reader.sepia">Sepia</option>
       </select></label>
-      <label><span data-i18n="reader.font">Font</span><select id="font"><option value="serif" data-i18n="reader.serif">Serif</option><option value="sans" data-i18n="reader.sans">Sans-serif</option><option value="inter" data-i18n="reader.inter">Inter</option><option value="mono" data-i18n="reader.mono">JetBrains Mono</option></select></label>
+      <div class="appearance-row">
+        <span id="fontLegend" data-i18n="reader.font">Font</span>
+        <div id="fontPicker" class="font-picker">
+          <input id="font" type="hidden" value="serif">
+          <button id="fontToggle" type="button" aria-expanded="false" aria-controls="fontOptions" aria-labelledby="fontLegend fontSelected"><span id="fontSelected" class="font-preview" data-font="serif"></span></button>
+          <div id="fontOptions" class="font-options" role="radiogroup" aria-labelledby="fontLegend" hidden>
+            <label class="font-option"><input type="radio" name="reader-font" value="serif" checked><span class="font-preview" data-font="serif" data-i18n="reader.serif">Serif</span></label>
+            <label class="font-option"><input type="radio" name="reader-font" value="sans"><span class="font-preview" data-font="sans" data-i18n="reader.sans">Sans-serif</span></label>
+            <label class="font-option"><input type="radio" name="reader-font" value="inter"><span class="font-preview" data-font="inter" data-i18n="reader.inter">Inter</span></label>
+            <label class="font-option"><input type="radio" name="reader-font" value="mono"><span class="font-preview" data-font="mono" data-i18n="reader.mono">JetBrains Mono</span></label>
+          </div>
+        </div>
+      </div>
       <label><span data-i18n="reader.size">Text size</span><input id="size" type="range" min="16" max="28" step="2" value="20"><output id="sizeValue" for="size">20</output></label>
       <label><span data-i18n="reader.width">Reading width</span><select id="width"><option value="narrow" data-i18n="reader.narrow">Narrow</option><option value="comfortable" data-i18n="reader.comfortable">Comfortable</option><option value="wide" data-i18n="reader.wide">Wide</option></select></label>
     </div>
