@@ -7,7 +7,7 @@
 const { JsonStore } = require('./store');
 const { deviceName } = require('./device-name');
 const model = require('./tabsync-model');
-const { syncSnapshot } = require('./session-snapshot');
+const { syncSnapshot, MAX_SYNC_TABS } = require('./session-snapshot');
 
 let store = null;
 const ensureStore = () => (store ??= new JsonStore('tab-sync', { accountId: '', devices: {} }));
@@ -20,6 +20,7 @@ const onChanged = (fn) => changeListeners.add(fn);
 const remoteListeners = new Set();
 const onRemoteChanged = (fn) => remoteListeners.add(fn);
 let lastFingerprint = null;
+const publishedBindings=new WeakMap();
 
 const currentSnapshot = () => {
   const { tabList, groups } = snapshotProvider();
@@ -56,7 +57,7 @@ function noteTabsChanged() {
 function rebind(accountId) {
   const s = ensureStore();
   const bound = model.rebindDevices(s.data, accountId);
-  if (bound !== s.data) s.update((d) => { d.accountId = bound.accountId; d.devices = bound.devices; });
+  if (bound !== s.data) s.update((d) => { d.accountId = bound.accountId; d.devices = bound.devices; delete d.sharedMembership; });
   return s;
 }
 
@@ -69,17 +70,36 @@ function exportForSync(ctx) {
   // Persist the FULL merged map; upload the budget-trimmed copy. The split
   // lives in the pure, regression-tested model.exportDevices — persisting
   // the trimmed copy would PUT on every refresh (spec §7).
+  const source=snapshotProvider?snapshotProvider():null;
   const { store: next, upload } = model.exportDevices({
     devices: s.data.devices,
     deviceId: ctx.deviceId,
     syncTabs: ctx.syncTabs,
-    snapshot: snapshotProvider ? currentSnapshot() : null,
+    snapshot: source ? syncSnapshot(source.tabList,source.groups) : null,
     name: ctx.deviceName,
     platform: ctx.platform,
     now: Date.now(),
   });
-  s.update((d) => { d.devices = next; });
-  return { devices: upload };
+  // Membership is not added to F27's wire schema. Changing the sidecar's
+  // meaning nevertheless needs a fresh snapshot clock so an older binding
+  // cannot tie and win after sharing is toggled or a held write is admitted.
+  const membership=source?model.canonical(source.tabList.filter(tab=>syncSnapshot([tab],[]).tabs.length).slice(0,MAX_SYNC_TABS).map(tab=>tab.sharedSpaceId??null)):null;
+  if(membership!==null&&s.data.sharedMembership!==undefined&&membership!==s.data.sharedMembership&&upload[ctx.deviceId]&&!upload[ctx.deviceId].retracted) {
+    const clock=Math.max(Date.now(),(s.data.devices[ctx.deviceId]?.updatedAt??0)+1);
+    upload[ctx.deviceId].updatedAt=clock;next[ctx.deviceId].updatedAt=clock;
+  }
+  s.update((d) => { d.devices = next;if(membership!==null)d.sharedMembership=membership; });
+  const payload={devices:upload},entry=upload[ctx.deviceId];
+  if(source&&entry&&!entry.retracted) {
+    const candidates=source.tabList.filter(tab=>syncSnapshot([tab],[]).tabs.length);
+    const bindings=[];
+    for(let i=0;i<entry.tabs.length;i++) {
+      const tab=candidates[i],single=syncSnapshot([tab],[]).tabs[0];
+      if(tab?.sharedSpaceId&&model.canonical(single)===model.canonical(entry.tabs[i]))bindings.push({i,spaceId:tab.sharedSpaceId});
+    }
+    publishedBindings.set(payload,{forUpdatedAt:entry.updatedAt,tabs:bindings});
+  }
+  return payload;
 }
 
 function mergeFromSync(remote, ctx) {
@@ -118,12 +138,13 @@ const heartbeatDue = (ctx) =>
 function onSyncDisabled() {
   const s = ensureStore();
   const hadDevices = Object.keys(s.data.devices).length > 0;
-  s.update((d) => { d.accountId = ''; d.devices = {}; });
+  s.update((d) => { d.accountId = ''; d.devices = {}; delete d.sharedMembership; });
   if (hadDevices) for (const fn of remoteListeners) fn(); // surfaces must clear
 }
 
 module.exports = {
   setSnapshotProvider, onChanged, onRemoteChanged, noteTabsChanged,
   exportForSync, mergeFromSync, equalsRemote,
+  publishedSidecar:payload=>publishedBindings.get(payload)??null,
   getRemoteDevices, getDeviceEntries, heartbeatDue, onSyncDisabled,
 };

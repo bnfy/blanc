@@ -453,3 +453,44 @@ test('upgrading assigns each existing space an identity once, keeping the origin
     assert.equal(workspaces.createRepository().list()[1].color, '#376694', 'changing one space never recolours another');
   });
 });
+
+test('shared imports and recovery copies preserve all 25 ordinary Spaces and allow duplicate names',()=>{
+  withLocalProfile('shared_records',()=>{
+    assert.equal(typeof workspaces.upsertShared,'function');
+    for(let n=0;n<25;n++)assert.equal(workspaces.create({name:'Local '+n,capture:CAPTURE()}).ok,true);
+    const shared=workspaces.upsertShared({sharedId:'a'.repeat(32),name:'Local 0',color:'#426c4c',symbol:'briefcase',capture:CAPTURE()});
+    const recovery=workspaces.upsertShared({recoveredFrom:'a'.repeat(32),name:'Work · kept on this device',color:'#426c4c',symbol:'briefcase',capture:CAPTURE()});
+    assert.equal(shared.ok,true);assert.equal(recovery.ok,true);assert.equal(workspaces.list().length,27);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(userData,'profiles','shared_records','workspaces.json'))).workspaces.length,27);
+    const again=workspaces.upsertShared({recoveredFrom:'a'.repeat(32),name:'Work · kept on this device',color:'#426c4c',symbol:'briefcase',capture:CAPTURE()});
+    assert.equal(again.workspace.id,recovery.workspace.id);assert.equal(workspaces.list().length,27);
+  });
+});
+test('dormant links keep tab ids, while account unlinking removes only shared bindings',()=>{
+  withLocalProfile('shared_links',()=>{
+    const created=workspaces.create({name:'Work',capture:{...CAPTURE(),tabIds:['b'.repeat(32)]}});
+    assert.equal(typeof workspaces.setSharedLink,'function');
+    assert.equal(workspaces.setSharedLink(created.workspace.id,{sharedId:'a'.repeat(32),sharedLink:'dormant'}).ok,true);
+    assert.equal(workspaces.get(created.workspace.id).sharedLink,'dormant');
+    assert.deepEqual(workspaces.get(created.workspace.id).tabIds,['b'.repeat(32)]);
+    assert.equal(workspaces.clearSharedLinks().ok,true);
+    assert.equal(workspaces.get(created.workspace.id).sharedId,undefined);
+    assert.equal(workspaces.get(created.workspace.id).tabIds,undefined);
+    assert.equal(workspaces.get(created.workspace.id).urls[0],'https://a.test/');
+  });
+});
+test('unlinking shared copies above the creation cap preserves every Space across reload and mutation',()=>{
+ withLocalProfile('unlink_over_cap',()=>{
+  for(let n=0;n<25;n++)assert.equal(workspaces.create({name:'Local '+n,capture:CAPTURE()}).ok,true);
+  workspaces.upsertShared({sharedId:'c'.repeat(32),name:'Remote',capture:CAPTURE()});assert.equal(workspaces.clearSharedLinks().ok,true);
+  const reopened=workspaces.createRepository();assert.equal(reopened.list().length,26);assert.equal(reopened.update(reopened.list()[0].id,{name:'Changed'}).ok,true);assert.equal(reopened.list().length,26);
+ });
+});
+test('remote shared ordering preserves the slots and order of local-only Spaces',()=>{
+ withLocalProfile('shared_order',()=>{
+  workspaces.create({name:'Local A',capture:CAPTURE()});workspaces.upsertShared({sharedId:'d'.repeat(32),name:'Shared A',capture:CAPTURE()});
+  workspaces.create({name:'Local B',capture:CAPTURE()});workspaces.upsertShared({sharedId:'e'.repeat(32),name:'Shared B',capture:CAPTURE()});
+  assert.equal(workspaces.reorderShared(['e'.repeat(32),'d'.repeat(32)]).ok,true);
+  assert.deepEqual(workspaces.list().map(row=>row.name),['Local A','Shared B','Local B','Shared A']);
+ });
+});

@@ -4400,3 +4400,7 @@ html[data-surface="glance"] .glance-header {
   border-bottom: 0;
   border-radius: calc(var(--glance-card-radius) - 1px) calc(var(--glance-card-radius) - 1px) 0 0;
 }
+
+.ws-sync-mark { font-size: 11px; opacity: .72; margin-inline-start: .4rem; }
+.ws-sync-status { font-size: 12px; margin: .5rem; }
+.sync-not-synced { margin-inline-start: .35rem; color: var(--accent, currentColor); }

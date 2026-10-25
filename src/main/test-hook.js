@@ -1495,6 +1495,7 @@ function install(refs) {
         spaceComplete: current.spaceMigrationCompleted === true,
       };
     },
+    sharedSpacesTest(action,payload) {return refs.sharedSpacesTest(action,payload);},
     syncEnabled() { return sync.status().enabled === true; },
     async readStartPageFontUsage() {
       const tab = tabs.get(getActiveTabId());
