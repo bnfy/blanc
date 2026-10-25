@@ -3145,6 +3145,19 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 .footer-new.devices[aria-expanded="true"] .devices-caret { transform: rotate(180deg); }
 .footer-new[hidden] { display: none; }
 
+/* Pages sent here (M7b): the drawer button's count is theirs, so it reads
+   at full strength. */
+.footer-new.devices.has-sent { color: var(--text); }
+
+/* A page sent here: title over "From {device} · {time}". */
+.island-row.sent-row .sent-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+.island-row.sent-row .sent-text .row-sub { flex: none; }
+
 /* The Other devices drawer, between the tab list and the footer. While the
    panel has room it grows, as unfolding a group does; at the panel's maximum
    the drawer keeps about six rows and the tab list above gives up the space.

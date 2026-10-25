@@ -1271,6 +1271,55 @@
         }
       }
     },
+    "SendStatus": {
+      "doc": "What sending a page reports (M7b addendum §6): sent (never \"delivered\"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).",
+      "ts": "'sent' | 'unavailable' | 'failed' | 'invalid'"
+    },
+    "SendResult": {
+      "doc": "The reply to sendTabToDevice.",
+      "fields": {
+        "status": {
+          "type": "SendStatus"
+        }
+      }
+    },
+    "SendTarget": {
+      "doc": "Another device of this sync account a page can be sent to, from sync.listSendTargets(): found in the sends store's presence entries or in tab sync, newest first, named as the Other devices drawer names it.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        }
+      }
+    },
+    "SentItem": {
+      "doc": "A page another device sent to this one that this device hasn't opened or dismissed, from sync.listSentToThisDevice(). Newest first, at most 20, each kept 7 days.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "doc": "An http(s) address."
+        },
+        "title": {
+          "type": "string"
+        },
+        "sentAt": {
+          "type": "number",
+          "doc": "Epoch milliseconds."
+        },
+        "fromName": {
+          "type": "string",
+          "doc": "The sending device's name as this device shows it."
+        }
+      }
+    },
     "CustomBang": {
       "doc": "A bang the person added in Settings, from settings.js normalizeCustomBangs().",
       "fields": {
@@ -2946,6 +2995,70 @@
       "doc": "Name another synced device as this profile's devices list it; an empty name or null restores the name it publishes. Refused (false) for a device the Other devices drawer does not list."
     },
     {
+      "name": "listSendTargets",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:send-targets",
+      "params": [],
+      "returns": "SendTarget[]",
+      "doc": "Other devices of this sync account a page can be sent to. Empty unless Profile Sync is on in the Personal profile."
+    },
+    {
+      "name": "sendTabToDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:send-tab",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId"
+        },
+        {
+          "name": "deviceId",
+          "type": "string"
+        }
+      ],
+      "returns": "SendResult",
+      "doc": "Send a tab's page to another device. Main reads the tab's own address and title; the renderer never passes a URL. Private, internal and inert tabs, and devices that aren't targets, answer invalid."
+    },
+    {
+      "name": "listSentToThisDevice",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-list",
+      "params": [],
+      "returns": "SentItem[]",
+      "doc": "Pages other devices sent here that this device hasn't opened or dismissed."
+    },
+    {
+      "name": "openSentItem",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-open",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Open a sent page in a new ordinary tab and hide it on this device. False when it is no longer waiting."
+    },
+    {
+      "name": "dismissSentItem",
+      "group": "sync",
+      "kind": "invoke",
+      "channel": "chrome:sent-dismiss",
+      "params": [
+        {
+          "name": "id",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Hide a sent page on this device without opening it. False when it is no longer waiting."
+    },
+    {
       "name": "cancelWorkspaceAction",
       "group": "workspaces",
       "kind": "send",
@@ -3172,6 +3285,14 @@
       "payload": "RemoteDevice[]",
       "doc": "Other devices' open tabs changed. Same projection as listRemoteTabs.",
       "payloadCheck": "fixtures"
+    },
+    {
+      "name": "onSentToThisDeviceUpdated",
+      "group": "sync",
+      "kind": "event",
+      "channel": "chrome:sent-updated",
+      "payload": "SentItem[]",
+      "doc": "Pages sent here changed: one arrived, or one was opened or dismissed. Same projection as listSentToThisDevice. Sent only to overlay views."
     },
     {
       "name": "onWorkspacesUpdated",

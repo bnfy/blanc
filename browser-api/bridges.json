@@ -785,6 +785,49 @@
         "unsubscribe": false
       },
       {
+        "name": "start.openSent",
+        "kind": "invoke",
+        "channel": "pages:start:open-sent",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Open a page another device sent here in a new ordinary tab, and hide it on this device."
+      },
+      {
+        "name": "start.dismissSent",
+        "kind": "invoke",
+        "channel": "pages:start:dismiss-sent",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "string"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Hide a page another device sent here without opening it."
+      },
+      {
+        "name": "start.onSentItems",
+        "kind": "event",
+        "channel": "pages:start:sent-items",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "Pages other devices sent here changed.",
+        "unsubscribe": false
+      },
+      {
         "name": "mahjong.played",
         "kind": "invoke",
         "channel": "pages:mahjong:played",

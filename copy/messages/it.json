@@ -7820,5 +7820,49 @@
   "settings.sync.enterPassphrase": {
     "message": "Inserisci la tua passphrase",
     "source": "sha256:9b8f303ef292e16cff4d4f1a2bdc05eb3313e91c006dd9de2697eb5ab70f0043"
+  },
+  "tabMenu.sendToDevice": {
+    "message": "Invia a dispositivo",
+    "source": "sha256:af8fa18eefb34ded8d8f7ee827a64e8b4bfed3b8b702fe2ced59e6e7584bdce8"
+  },
+  "sends.none": {
+    "message": "Nessun altro dispositivo",
+    "source": "sha256:1c86c36118c2f19b01920790c4459f8c0c0cc952f0afe8b94351b9c6ac21f25a"
+  },
+  "sends.sent": {
+    "message": "Inviata a {device}.",
+    "source": "sha256:2642592b6b45990ff7aeefc33df415acc76faa70abf8dbb16ab17ee6d83f78a9"
+  },
+  "sends.unavailable": {
+    "message": "L’invio non è ancora disponibile.",
+    "source": "sha256:d4f56a4ac3b7ccf26d6becb524ba5c36f12fced10d123c992f6c91ea1ff6ba80"
+  },
+  "sends.failed": {
+    "message": "Invio non riuscito. Controlla la connessione e riprova.",
+    "source": "sha256:3d4cd1317f9e1e0c08397479e88b9c35f7678a25b59542b7dd4bd4e6399685e7"
+  },
+  "sends.section": {
+    "message": "Inviate a questo dispositivo",
+    "source": "sha256:e8e078a7378d9be44f010271d697e6651db9f73771273aa4238ed651b2e71122"
+  },
+  "sends.from": {
+    "message": "Da {device} · {time}",
+    "source": "sha256:5444273448a49f1d452ae31bec2681222e9a508b95e23528ed68cfd02133e6d4"
+  },
+  "sends.dismiss": {
+    "message": "Ignora",
+    "source": "sha256:8cff7e813c949ea2ca622748fcbd027bab09a950ae281675f080bc7934a77b33"
+  },
+  "sends.noMatch": {
+    "message": "Nessun dispositivo chiamato “{name}”.",
+    "source": "sha256:5a952a5e537f074c778d3c0517a7a74b0e336245083b9d824cfd4df9bd9304cd"
+  },
+  "slash.send.hint": {
+    "message": "Digita uno spazio, poi il nome di un dispositivo, ad es. “iPhone”",
+    "source": "sha256:a5713532398f64b048e803614a7145389411ed68eafee931c4c31ee992c5cb6a"
+  },
+  "slash.send.doc": {
+    "message": "Invia la pagina di questa scheda a un altro dispositivo sincronizzato",
+    "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
   }
 }

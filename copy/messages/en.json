@@ -8103,5 +8103,49 @@
   "settings.sync.enterPassphrase": {
     "message": "Enter your passphrase",
     "note": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one."
+  },
+  "tabMenu.sendToDevice": {
+    "message": "Send to Device",
+    "note": "Tab context menu submenu listing the account's other synced devices; sends this tab's page to the chosen one (M7b)."
+  },
+  "sends.none": {
+    "message": "No other devices",
+    "note": "Disabled item in Send to Device ▸, and the /send result, when the sync account has no other device."
+  },
+  "sends.sent": {
+    "message": "Sent to {device}.",
+    "note": "Confirmation after sending a page to another device. {device} is that device's name. Say sent, never delivered: Blanc can't know the other device saw it."
+  },
+  "sends.unavailable": {
+    "message": "Sending isn't available yet.",
+    "note": "Result of sending a page when Blanc's sync server doesn't support sending yet."
+  },
+  "sends.failed": {
+    "message": "Couldn't send. Check your connection and try again.",
+    "note": "Result of sending a page that didn't go: offline, rate limited or a server error."
+  },
+  "sends.section": {
+    "message": "Sent to this device",
+    "note": "Heading of the list of pages other synced devices sent here, in the ⌘L Other devices drawer and on the Start Page."
+  },
+  "sends.from": {
+    "message": "From {device} · {time}",
+    "note": "Second line of a page sent here. {device} is the sending device's name; {time} is a short relative time such as \"5m ago\"."
+  },
+  "sends.dismiss": {
+    "message": "Dismiss",
+    "note": "Accessible name and tooltip of the × that hides a page sent here without opening it."
+  },
+  "sends.noMatch": {
+    "message": "No device named “{name}”.",
+    "note": "/send result when no other synced device has the typed name. {name} is what was typed."
+  },
+  "slash.send.hint": {
+    "message": "Type a space, then a device name — e.g. \"iPhone\"",
+    "note": "Slash command hint shown in the ⌘L palette for /send."
+  },
+  "slash.send.doc": {
+    "message": "Send this tab's page to another synced device",
+    "note": "Reference description of /send <device> on blanc://shortcuts and in Help → Slash Commands."
   }
 }
