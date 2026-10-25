@@ -4163,7 +4163,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4284,7 +4289,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4405,7 +4415,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4479,7 +4494,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4553,7 +4573,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4627,7 +4652,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4728,7 +4758,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4804,7 +4839,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },
@@ -4878,7 +4918,12 @@
             }
           ],
           "windowTabCount": 1,
-          "tint": "mark"
+          "tint": "mark",
+          "sharedSync": {
+            "count": 1,
+            "limit": 1,
+            "canAdd": true
+          }
         }
       ]
     },

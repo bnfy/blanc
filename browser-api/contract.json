@@ -1140,6 +1140,10 @@
         "tint": {
           "type": "SpaceTint",
           "optional": true
+        },
+        "sharedSync": {
+          "type": "SharedSpaceLibraryStatus | undefined",
+          "optional": true
         }
       }
     },

@@ -865,6 +865,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `items?` | `WorkspaceListItem[]` |  |
 | `windowTabCount?` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint?` | `SpaceTint` |  |
+| `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
 
 ### `SearchEngineId`
 

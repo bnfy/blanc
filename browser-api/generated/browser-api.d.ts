@@ -563,6 +563,7 @@ export interface WorkspaceActionResult {
   /** This window's ordinary tabs, for the new-space editor. */
   windowTabCount?: number;
   tint?: SpaceTint;
+  sharedSync?: SharedSpaceLibraryStatus | undefined;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
