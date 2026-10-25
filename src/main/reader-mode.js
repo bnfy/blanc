@@ -6,7 +6,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { JsonStore } = require('./store');
 const { withLocalProfile } = require('./local-profile-context');
-const { READER_WORLD_ID, READER_SCHEME, DEFAULT_APPEARANCE, normalizeAppearance, eligible, validArticle, webUrl } = require('./reader-model');
+const { READER_WORLD_ID, READER_SCHEME, DEFAULT_APPEARANCE, normalizeAppearance, eligible, validArticle, webUrl, LINK_DISPOSITIONS } = require('./reader-model');
 const { buildReaderProbe, buildReaderExtraction } = require('./reader-extract');
 const { createReaderImageBroker, rasterDimensions, MAX_IMAGE_PIXELS } = require('./reader-images');
 const { attachContextMenu } = require('./context-menu');
@@ -157,10 +157,10 @@ function createReaderMode(hooks) {
       const contents = view.webContents;
       const owner = () => hooks.owner(tab);
       hooks.wire(tab, contents, owner);
-      contents.setWindowOpenHandler(details => { hooks.openLink(tab, details.url, details.disposition === 'background-tab'); return { action: 'deny' }; });
+      contents.setWindowOpenHandler(details => { hooks.openLink(tab, details.url, LINK_DISPOSITIONS.includes(details.disposition) ? details.disposition : 'foreground-tab'); return { action: 'deny' }; });
       contents.on('will-navigate', (event, url) => {
         event.preventDefault();
-        if (webUrl(url)) hooks.openLink(tab, url, false);
+        if (webUrl(url)) hooks.openLink(tab, url, 'current-tab');
       });
       contents.on('will-redirect', event => event.preventDefault());
       contents.on('will-attach-webview', event => event.preventDefault());
@@ -174,8 +174,9 @@ function createReaderMode(hooks) {
         canGoForward: () => source(tab)?.navigationHistory.canGoForward() === true,
         goForward: () => { exit(tab); const nav = source(tab)?.navigationHistory; if (nav?.canGoForward()) nav.goForward(); },
         reload: () => { exit(tab); source(tab)?.reload(); },
-        openBackgroundTab: url => hooks.openLink(tab, url, true),
-        openTab: url => hooks.openLink(tab, url, false),
+        openBackgroundTab: url => hooks.openLink(tab, url, 'background-tab'),
+        openTab: url => hooks.openLink(tab, url, 'foreground-tab'),
+        openInGlance: url => hooks.openInGlance(tab, url),
       });
       const domReady = new Promise(resolve => contents.once('dom-ready', () => resolve(true)));
       void contents.loadURL(`${READER_SCHEME}://${record.token}/`).catch(() => {
@@ -221,9 +222,9 @@ function createReaderMode(hooks) {
     else withLocalProfile(record.tab.profileId, () => preferences.update(data => Object.assign(data, next)));
     return next;
   });
-  hooks.ipcMain.handle('reader:open-link', (event, url, background) => {
+  hooks.ipcMain.handle('reader:open-link', (event, url, disposition) => {
     const record = trusted(event);
-    if (record && webUrl(url)) hooks.openLink(record.tab, url, background === true);
+    if (record && webUrl(url) && LINK_DISPOSITIONS.includes(disposition)) hooks.openLink(record.tab, url, disposition);
   });
   return {
     toggle, exit, probe, invalidate,

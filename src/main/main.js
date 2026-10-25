@@ -342,6 +342,7 @@ const {
   commandTargetTab,
   focusedPane,
   glanceLayoutPayload,
+  foregroundOpenRole,
 } = require('./glance-focus');
 const { moveTab: resolveTabMove, reorderItems } = require('./tab-order');
 const { CLOSED_SECTION_ID, clampClosedSlot, reconcileClosedSlot } = require('./closed-slot');
@@ -2293,13 +2294,26 @@ const readerMode = createReaderMode({
       activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches,
     });
   },
-  openLink: (tab, url, background) => {
+  openInGlance: (tab, url) => {
+    const owner = windowRuntimes.runtimeForTab(tab.id);
+    if (owner && webReaderLink(url)) return withWindowRuntime(owner, () => openLinkInGlance(tab, url));
+  },
+  openLink: (tab, url, disposition) => {
     if (!webReaderLink(url)) return;
     const owner = windowRuntimes.runtimeForTab(tab.id);
     if (!owner) return;
     withWindowRuntime(owner, () => {
-      if (background) createTab(url, { private: tab.private });
-      else { readerMode.exit(tab); liveContents(tab)?.loadURL(url).catch(() => {}); }
+      if (disposition === 'current-tab') {
+        readerMode.exit(tab);
+        liveContents(tab)?.loadURL(url).catch(() => {});
+        return;
+      }
+      const id = createTab(url, { private: tab.private });
+      if (disposition === 'new-window') moveTabToNewWindow(id);
+      else if (disposition === 'foreground-tab') {
+        if (foregroundOpenRole(owner, tab.id) === 'glance') void setGlanceTab(id).catch(() => {});
+        else setActiveTab(id);
+      }
     });
   },
   allowImage: async (tab, url) => {

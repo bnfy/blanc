@@ -55,8 +55,9 @@ final class ReaderModeTests: XCTestCase {
         XCTAssertFalse(content.contains("data:"))
         XCTAssertFalse(content.contains("vbscript:"))
         XCTAssertTrue(content.contains("<table>"))
+        var openedLinks: [(URL, String)] = []
         let reader = ReaderController(article: article, sourceURL: URL(string: "https://reader.example/article")!,
-            appearance: ReaderAppearance(), saveAppearance: { _ in }, onExit: {}, openLink: { _, _ in })
+            appearance: ReaderAppearance(), saveAppearance: { _ in }, onExit: {}, openLink: { openedLinks.append(($0, $1)) })
         defer { reader.dispose(); source.stopLoading() }
         var text = ""
         for _ in 0..<100 {
@@ -78,6 +79,12 @@ final class ReaderModeTests: XCTestCase {
             XCTAssertTrue((rendered["family"] as? String)?.contains(family) == true)
             XCTAssertEqual(rendered["loaded"] as? Bool, true)
         }
+        for disposition in ["current-tab", "background-tab", "foreground-tab", "new-window"] {
+            _ = try await reader.webView.callAsyncJavaScript("await window.readerAPI.openLink('https://reader.example/next', disposition);", arguments: ["disposition": disposition], in: nil, contentWorld: .page)
+            XCTAssertEqual(openedLinks.last?.1, disposition)
+        }
+        _ = try await reader.webView.callAsyncJavaScript("await window.readerAPI.openLink('https://reader.example/next', true);", arguments: [:], in: nil, contentWorld: .page)
+        XCTAssertEqual(openedLinks.count, 4, "forged navigation dispositions are rejected")
         let bridge = try await reader.webView.evaluateJavaScript("typeof window.bowserPages")
         XCTAssertEqual(bridge as? String, "undefined")
     }

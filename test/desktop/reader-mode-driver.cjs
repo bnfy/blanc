@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
-const { app, webContents, BrowserWindow } = require('electron');
+const { app, webContents, BrowserWindow, Menu } = require('electron');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function waitFor(read, label, ms = 20000) {
   const until = Date.now() + ms;
@@ -26,6 +26,8 @@ app.whenReady().then(async () => {
     await waitFor(async () => !source.isLoading() && await source.executeJavaScript('document.querySelectorAll("article p").length > 10'), 'article');
     await source.executeJavaScript('window.readerOriginal = "preserved"; window.scrollTo(0, 300);');
     const before = await source.executeJavaScript('window.scrollY');
+    await waitFor(async () => (await call('getAllTabs')).tabs.find(tab => tab.id === id)?.readerAvailable, 'automatic article detection after full load');
+    checks.push('visible article is detected automatically after loading settles');
     const extraction = await source.executeJavaScriptInIsolatedWorld(1004, [{ code: require('../../src/main/reader-extract').buildReaderExtraction() }]);
     checks.push({ extraction: extraction && { title: extraction.title, length: extraction.textContent.length, images: extraction.images.length } });
     await sleep(200);
@@ -42,6 +44,58 @@ app.whenReady().then(async () => {
     assert.equal(sanitized.tables, 1); assert.equal(sanitized.linksSafe, true);
     checks.push('sanitized article with tables, no hidden content or privileged bridge');
     fs.writeFileSync(process.env.READER_SMOKE_SCREENSHOT, (await reader.capturePage()).toPNG());
+    async function checkModifiedClicks(tabId, contents, isPrivate) {
+      const modifier = process.platform === 'darwin' ? 'meta' : 'control';
+      for (const {button, modifiers, background, newWindow} of [
+        {button: 'left', modifiers: [modifier], background: true},
+        {button: 'middle', modifiers: [], background: true},
+        {button: 'left', modifiers: [modifier, 'shift'], background: false},
+        {button: 'middle', modifiers: ['shift'], background: false},
+        {button: 'left', modifiers: ['shift'], newWindow: true},
+      ]) {
+        H.activateTabInWindow('primary', tabId);
+        const point = await contents.executeJavaScript(`(() => {
+          const link = document.getElementById('reader-content-reader-test-link');
+          link.scrollIntoView({block:'center'}); const r = link.getBoundingClientRect();
+          return {x: Math.round(r.x+r.width/2), y: Math.round(r.y+r.height/2)};
+        })()`);
+        const before = new Set((await call('getAllTabs')).tabs.map(tab => tab.id));
+        const windowsBefore = new Set(H.windowRuntimes().map(runtime => runtime.id));
+        contents.sendInputEvent({type:'mouseDown', button, clickCount:1, modifiers, ...point});
+        contents.sendInputEvent({type:'mouseUp', button, clickCount:1, modifiers, ...point});
+        if (newWindow) {
+          const runtime = await waitFor(() => H.windowRuntimes().find(item => !windowsBefore.has(item.id)), 'Shift-click reader window');
+          assert.equal(runtime.tabs.length, 1); assert.equal(runtime.tabs[0].private, isPrivate);
+          assert.equal(runtime.tabs[0].url, process.env.READER_SMOKE_BASE + '/reader-click-target');
+          assert.equal(H.closeWindowRuntime(runtime.id), true);
+          await waitFor(() => !H.windowRuntimes().some(item => item.id === runtime.id), 'Shift-click window closes');
+          continue;
+        }
+        const child = await waitFor(async () => (await call('getAllTabs')).tabs.find(tab => !before.has(tab.id)), 'modified reader link child');
+        await waitFor(async () => (await call('getAllTabs')).activeTabId === (background ? tabId : child.id), 'modified reader link focus');
+        assert.equal(child.private, isPrivate);
+        assert.equal(child.url, process.env.READER_SMOKE_BASE + '/reader-click-target');
+        await call('closeTab', child.id);
+      }
+      checks.push(`${isPrivate ? 'private' : 'regular'} reader modifier/middle clicks preserve foreground focus and privacy`);
+    }
+    await checkModifiedClicks(id, reader, false);
+    const originalPopup = Menu.prototype.popup;
+    let linkMenu;
+    try {
+      Menu.prototype.popup = function () { linkMenu = this; };
+      reader.emit('context-menu', {}, {linkURL: process.env.READER_SMOKE_BASE + '/reader-glance-target',
+        linkText: 'Article reference', selectionText: '', isEditable: false, mediaType: 'none'});
+    } finally { Menu.prototype.popup = originalPopup; }
+    const glanceLabel = await chrome.executeJavaScript("blancI18n.t('contextMenu.openLinkInGlance')");
+    const glanceAction = linkMenu.items.find(item => item.label === glanceLabel);
+    assert.ok(glanceAction, 'Reader context menu offers Glance');
+    glanceAction.click();
+    const reference = await waitFor(async () => { const state = await call('getAllTabs');
+      return state.tabs.find(tab => tab.id === state.glanceTabId && tab.url.endsWith('/reader-glance-target')); }, 'Reader menu opens Glance');
+    assert.equal((await call('getAllTabs')).activeTabId, id);
+    await call('closeGlance'); await call('closeTab', reference.id);
+    checks.push('Reader link context menu opens Glance without replacing the article');
     await reader.executeJavaScript(`(() => {
       for (const [id, value] of Object.entries({theme:'sepia',font:'sans',size:'28',width:'wide'})) {
         const control = document.getElementById(id); control.value = value; control.dispatchEvent(new Event('change'));
@@ -76,7 +130,7 @@ app.whenReady().then(async () => {
     reader = await waitFor(() => webContents.getAllWebContents().find(wc => wc.getURL().startsWith('blanc-reader:')), 'second reader');
     const data = await reader.executeJavaScript('window.readerAPI.initialize()');
     assert.deepEqual(data.appearance, prefs);
-    void reader.executeJavaScript(`window.readerAPI.openLink(${JSON.stringify(process.env.READER_SMOKE_BASE + '/next')}, false)`).catch(() => {});
+    void reader.executeJavaScript(`window.readerAPI.openLink(${JSON.stringify(process.env.READER_SMOKE_BASE + '/next')}, 'current-tab')`).catch(() => {});
     await waitFor(() => source.getURL().endsWith('/next') && !source.isLoading(), 'outbound navigation');
     checks.push('appearance persists; links navigate original tab');
     const privateId = H.openTabInWindow('primary', `${process.env.READER_SMOKE_BASE}/article`, { private: true });
@@ -86,6 +140,8 @@ app.whenReady().then(async () => {
     assert.equal(await call('toggleReaderMode', privateId), true);
     reader = await waitFor(() => webContents.getAllWebContents().find(wc => wc.getURL().startsWith('blanc-reader:')), 'private reader');
     assert.deepEqual((await reader.executeJavaScript('window.readerAPI.initialize()')).appearance, prefs);
+    await waitFor(() => reader.executeJavaScript('!!document.getElementById("reader-content-reader-test-link")'), 'private reader links');
+    await checkModifiedClicks(privateId, reader, true);
     await reader.executeJavaScript(`window.readerAPI.appearance({theme:'dark',font:'serif',size:16,width:'narrow'})`);
     await call('toggleReaderMode', privateId);
     checks.push('private reader inherits preferences and uses memory-only overrides');

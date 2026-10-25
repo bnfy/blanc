@@ -7,9 +7,10 @@
     "initialize": { "channel": "reader:initialize", "arguments": [], "returns": "ReaderInitialization | null" },
     "exit": { "channel": "reader:exit", "arguments": [], "returns": "void" },
     "appearance": { "channel": "reader:appearance", "arguments": ["ReaderAppearance"], "returns": "ReaderAppearance | null" },
-    "openLink": { "channel": "reader:open-link", "arguments": ["string", "boolean (strict true)"], "returns": "void" }
+    "openLink": { "channel": "reader:open-link", "arguments": ["string", "ReaderLinkDisposition"], "returns": "void" }
   },
   "types": {
+    "ReaderLinkDisposition": "current-tab | background-tab | foreground-tab | new-window",
     "ReaderAppearance": { "theme": "system | light | dark | sepia", "font": "serif | sans | inter | mono", "size": "16 | 18 | 20 | 22 | 24 | 26 | 28", "width": "narrow | comfortable | wide" },
     "ReaderInitialization": { "sourceUrl": "http(s) source URL", "appearance": "ReaderAppearance", "article": "ReaderArticle" },
     "ReaderArticle": { "content": "Untrusted sanitized HTML, sanitized again before rendering", "textContent": "string", "title": "string", "byline": "string", "publishedTime": "string", "lang": "string", "dir": "ltr | rtl", "images": "Validated candidate HTTP(S) URLs, broker indexes only" }

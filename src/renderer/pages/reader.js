@@ -38,12 +38,15 @@
     const link = event.target.closest('a[href]');
     if (!link || link.getAttribute('href').startsWith('#')) return;
     event.preventDefault();
-    api.openLink(link.href, event.metaKey || event.ctrlKey || event.shiftKey);
+    const modified = event.metaKey || event.ctrlKey;
+    const disposition = event.shiftKey ? (modified ? 'foreground-tab' : 'new-window')
+      : modified ? 'background-tab' : 'current-tab';
+    api.openLink(link.href, disposition);
   });
   document.addEventListener('auxclick', event => {
     const link = event.target.closest('a[href]');
     if (event.button !== 1 || !link || link.getAttribute('href').startsWith('#')) return;
-    event.preventDefault(); api.openLink(link.href, true);
+    event.preventDefault(); api.openLink(link.href, event.shiftKey ? 'foreground-tab' : 'background-tab');
   });
   async function initialize() {
     const data = await api.initialize();

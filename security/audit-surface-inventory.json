@@ -251,7 +251,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "29e27df2c3445ad3ceb2a79b482e71ba1952c2f976256df3a727099b1d24ce38",
+      "sha256": "7f0a1a1fc50c9f4028cc42037492049a8a42eaf13245d8a7b5d6689b705ff0ca",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -828,7 +828,7 @@
     },
     {
       "file": "src/main/reader-mode.js",
-      "sha256": "375eb8d0408da9711a599a0e71c8b9e4b236836293ef8f239ed82b7d71ad5e0a",
+      "sha256": "6ba7a5cf3fb2f592be3aeadb5aada9a2e2cbb37ccb0a36f33bd338680cff1b5e",
       "literalChannels": [
         "destroyed",
         "focus",
@@ -847,7 +847,7 @@
     },
     {
       "file": "src/main/reader-preload.js",
-      "sha256": "fc953cd368e8373363b1c392d56dbdebf8b4b1d18358836b2ec5d37479702e05",
+      "sha256": "0738579b112c8d7f9b4b960eec9c804ac6547ba0b7bdae2d8e0f9fe90a9d6a58",
       "literalChannels": [
         "reader:appearance",
         "reader:exit",
@@ -1100,7 +1100,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "14485e56efeaff248cf580aea54cb8b6749c045e84d975a1515c2fa18d4c4130",
+      "sha256": "bbc50dd74a258414ebfa3579d98590685d02b3b00c143c13ce78c69c461d11b2",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

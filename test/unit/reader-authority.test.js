@@ -30,7 +30,11 @@ test('reader preload matches its contract and never exposes capabilities to sour
     assert.equal(calls.at(-1)[0], member.channel);
   }
   api.openLink('https://example.com/', 'truthy');
-  assert.equal(calls.at(-1)[2], false);
+  assert.equal(calls.at(-1)[2], null);
+  for (const disposition of ['current-tab', 'background-tab', 'foreground-tab', 'new-window']) {
+    api.openLink('https://example.com/', disposition);
+    assert.equal(calls.at(-1)[2], disposition);
+  }
 });
 
 function serviceHarness() {
@@ -38,6 +42,7 @@ function serviceHarness() {
   const readerSession = { setPermissionRequestHandler() {}, setPermissionCheckHandler() {}, on() {},
     webRequest: { onBeforeRequest() {} }, protocol: { handle() {} } };
   const views = [];
+  const menus = [], links = [], glance = [];
   class Contents extends EventEmitter {
     constructor() { super(); this.mainFrame = {}; this.session = readerSession; this.dead = false; }
     isDestroyed() { return this.dead; }
@@ -59,7 +64,7 @@ function serviceHarness() {
     electron: { WebContentsView: View, session: { fromPartition: () => readerSession } },
     './store': { JsonStore: Store }, './local-profile-context': { withLocalProfile: (_id, work) => work() },
     './reader-extract': { buildReaderProbe: () => '', buildReaderExtraction: () => '' },
-    './context-menu': { attachContextMenu() {} },
+    './context-menu': { attachContextMenu: (_wc, actions) => menus.push(actions) },
   };
   const localRequire = name => dependencies[name] || require(name.startsWith('./') ? path.join(root, 'src/main', name) : name);
   localRequire.resolve = require.resolve;
@@ -71,8 +76,10 @@ function serviceHarness() {
     ipcMain: { handle: (name, handler) => handlers.set(name, handler) }, tab: id => id === tab.id ? tab : null,
     visible: () => true, wire() {}, changed() {}, detach() {}, broadcast() {}, focused() {}, findResult() {},
     stringsScript: () => '', t: key => key, allowImage: async () => false,
+    openLink: (tab, url, disposition) => links.push({ tab, url, disposition }),
+    openInGlance: (tab, url) => glance.push({ tab, url }),
   });
-  return { handlers, mode, tab, views };
+  return { handlers, mode, tab, views, menus, links, glance };
 }
 
 test('reader initialization and settings require the exact reader and current source generation', async () => {
@@ -94,4 +101,29 @@ test('reader initialization and settings require the exact reader and current so
   mode.invalidate(tab);
   assert.equal(reader.isDestroyed(), true);
   assert.equal(mode.active(tab), false);
+});
+
+
+test('reader navigation validates dispositions and wires every offered link action', async () => {
+  const { handlers, mode, tab, views, menus, links, glance } = serviceHarness();
+  assert.equal(await mode.toggle(tab), true);
+  const reader = views[0].webContents;
+  reader.mainFrame.url = reader.getURL();
+  const event = { sender: reader, senderFrame: reader.mainFrame };
+  const navigate = handlers.get('reader:open-link');
+  for (const invalid of [true, false, null, {}, 'forged']) navigate(event, 'https://example.com/next', invalid);
+  navigate(event, 'file:///tmp/private', 'foreground-tab');
+  assert.equal(links.length, 0);
+  for (const disposition of ['current-tab', 'background-tab', 'foreground-tab', 'new-window']) {
+    navigate(event, 'https://example.com/next', disposition);
+    assert.equal(links.at(-1).disposition, disposition);
+    assert.equal(links.at(-1).tab, tab);
+  }
+  menus[0].openTab('https://example.com/search');
+  assert.equal(links.at(-1).disposition, 'foreground-tab');
+  const { linkMenuItems } = require('../../src/main/glance-open-link');
+  const items = linkMenuItems({ linkURL: 'https://example.com/glance' }, { ...menus[0], copyLink() {} }, key => key);
+  assert.doesNotThrow(() => items.find(item => item.label === 'contextMenu.openLinkInGlance').click());
+  assert.deepEqual(glance, [{ tab, url: 'https://example.com/glance' }]);
+  mode.exit(tab);
 });

@@ -63,12 +63,12 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
     private var appearance: ReaderAppearance
     private let saveAppearance: (ReaderAppearance) -> Void
     private let onExit: () -> Void
-    private let openLink: (URL, Bool) -> Void
+    private let openLink: (URL, String) -> Void
     private var closed = false
 
     init(article: [String: Any], sourceURL: URL, appearance: ReaderAppearance,
          saveAppearance: @escaping (ReaderAppearance) -> Void,
-         onExit: @escaping () -> Void, openLink: @escaping (URL, Bool) -> Void) {
+         onExit: @escaping () -> Void, openLink: @escaping (URL, String) -> Void) {
         var content = article
         let rawImages = content.removeValue(forKey: "imageData") as? [String: String] ?? [:]
         self.article = content
@@ -96,7 +96,7 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
         if (location.protocol === 'blanc-reader:' && location.host === '\(token)') {
           const call = (action, value) => window.webkit.messageHandlers.reader.postMessage({action, value});
           window.readerAPI = Object.freeze({ initialize: () => call('initialize'), exit: () => call('exit'),
-            appearance: value => call('appearance', value), openLink: (url, background) => call('openLink', {url, background}) });
+            appearance: value => call('appearance', value), openLink: (url, disposition) => call('openLink', {url, disposition}) });
         }
         """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
@@ -130,8 +130,10 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
             replyHandler(appearance.payload, nil)
         case "openLink":
             if let value = body["value"] as? [String: Any], let raw = value["url"] as? String,
-               raw.count <= 8192, let url = URL(string: raw), Self.isWebURL(url) {
-                openLink(url, value["background"] as? Bool == true)
+               raw.count <= 8192, let url = URL(string: raw), Self.isWebURL(url),
+               let disposition = value["disposition"] as? String,
+               ["current-tab", "background-tab", "foreground-tab", "new-window"].contains(disposition) {
+                openLink(url, disposition)
             }
             replyHandler(NSNull(), nil)
         default: replyHandler(nil, "unavailable")
@@ -152,7 +154,7 @@ final class ReaderController: NSObject, WKURLSchemeHandler, WKScriptMessageHandl
             decisionHandler(.allow); return
         }
         decisionHandler(.cancel)
-        if Self.isWebURL(url) { openLink(url, navigationAction.targetFrame == nil) }
+        if Self.isWebURL(url) { openLink(url, navigationAction.targetFrame == nil ? "foreground-tab" : "current-tab") }
     }
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { onExit() }
 

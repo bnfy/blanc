@@ -171,12 +171,12 @@ final class TabsManager {
                     guard let tab else { return }
                     self?.readerPreferences.set(value, isPrivate: tab.isPrivate)
                 }, onExit: { [weak tab] in tab?.exitReader() },
-                openLink: { [weak self, weak tab] link, background in
+                openLink: { [weak self, weak tab] link, disposition in
                     guard let self, let tab else { return }
-                    if background {
+                    if disposition != "current-tab" {
                         let active = activeTabId
                         createTab(url: link, isPrivate: tab.isPrivate)
-                        activeTabId = active
+                        if disposition == "background-tab" { activeTabId = active }
                     } else {
                         tab.exitReader()
                         tab.navigationDelegate.load(link, in: tab.webView)

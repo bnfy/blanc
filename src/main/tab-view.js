@@ -362,6 +362,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.isLoading = false;
     syncNavState();
+    deps.readerLoaded?.(tab);
     broadcastTabs();
     scheduleSampleTint(tab);
     sync.captureTabIcon(tab).catch(() => {});
@@ -471,7 +472,6 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-finish-load', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     deps.onFillHintLoad?.(tab);
-    deps.readerLoaded?.(tab);
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;

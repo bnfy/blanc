@@ -79,7 +79,9 @@ compatibility fallback.
 The native app retains its original WKWebView beneath a separate reader
 WKWebView with a nonpersistent data store. Its scheme handler serves only
 bundled files and in-memory image bytes; a per-reader reply handler exposes the
-same four capabilities as desktop. Extraction runs in a named WKContentWorld.
+same four capabilities as desktop. Link requests carry an explicit current,
+background-tab, foreground-tab, or new-window disposition; iOS opens a requested
+new window as a foreground tab within its existing single-window browser. Extraction runs in a named WKContentWorld.
 The palette offers a reader action on suitable articles, and `/reader` always
 permits a manual attempt. Source navigation invalidates the reader; page-opened
 children are excluded because they may inherit opener sandbox restrictions.
@@ -105,7 +107,9 @@ Verification commands: `npm run lint`, `npm run substrate:check`,
 and Cucumber's `@reader-mode` scenarios. Native tests live in `ReaderModeTests`
 alongside the complete `BlancTests` target. The desktop smoke covers local
 extraction/sanitization, Find, unchanged source DOM/scroll on return, appearance,
-private readers, Split View, Glance, and moving a live reader to another window.
+private readers, Split View, Glance, and moving a live reader to another window. It also checks automatic detection
+after loading settles, regular/private modifier and middle-click dispositions,
+and the Reader context menu’s Glance action.
 
 Release acceptance remains pending for installed Apple Silicon and Intel
 candidates, Windows and Linux machines, physical iPhone/iPad, VoiceOver and other
@@ -135,7 +139,7 @@ iOS Simulator run does not waive those gates.
 
 These are source and Simulator results, not installed-platform release evidence.
 
-The desktop smoke driver writes an atomic completion report only after all eight
+The desktop smoke driver writes an atomic completion report only after all twelve
 checks finish. Its launcher requires that complete report, rejects assertion
 errors, missing reports, and unexpected process exits, then gives Electron a
 bounded grace period to stop. Linux may require controlled process-group cleanup

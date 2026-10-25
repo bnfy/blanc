@@ -3,6 +3,7 @@
 const READER_WORLD_ID = 1004;
 const READER_SCHEME = 'blanc-reader';
 const DEFAULT_APPEARANCE = Object.freeze({ theme: 'system', font: 'serif', size: 20, width: 'comfortable' });
+const LINK_DISPOSITIONS = Object.freeze(['current-tab', 'background-tab', 'foreground-tab', 'new-window']);
 const MAX_ARTICLE_BYTES = 5 * 1024 * 1024;
 const MAX_ARTICLE_ELEMENTS = 50000;
 
@@ -35,4 +36,4 @@ function validArticle(article) {
 }
 
 module.exports = { READER_WORLD_ID, READER_SCHEME, DEFAULT_APPEARANCE,
-  MAX_ARTICLE_BYTES, MAX_ARTICLE_ELEMENTS, normalizeAppearance, webUrl, eligible, validArticle };
+  MAX_ARTICLE_BYTES, MAX_ARTICLE_ELEMENTS, LINK_DISPOSITIONS, normalizeAppearance, webUrl, eligible, validArticle };
