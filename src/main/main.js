@@ -7718,10 +7718,17 @@ const sharedRuntimeSync=createRuntimeSync({
     syncTabLayout(runtime);
     if(!tabs.has(runtime.activeTabId)) {
       const selected=runtime.tabOrder[0]??createTab(NEW_TAB_URL,{asleep:true});
-      if(runtime.resident||runtime.closing)runtime.activeTabId=selected;else setActiveTab(selected,{focusContent:false});
+      selectSharedLayoutFallback(runtime,selected);
     }
   }),
 });
+function selectSharedLayoutFallback(runtime,selected) {
+  // Cold restoration must materialize the entire accepted set before any
+  // page wakes. A close of the saved selection can otherwise wake its
+  // replacement in the middle of the pass, making a later nav await loadURL.
+  if(runtime.resident||runtime.closing||runtime.sharedColdRestore)runtime.activeTabId=selected;
+  else setActiveTab(selected,{focusContent:false});
+}
 function captureSharedSpaceEdits(runtime) {
   const context=sharedSpaceRuntimeContext(runtime);
   if(!context?.window)return;
@@ -15716,13 +15723,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (claimedWorkspaceIds.has(claim)) continue;
       claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
-      await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}));
+      runtime.sharedColdRestore = true;
+      try { await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true})); }
+      finally { runtime.sharedColdRestore = false; }
     }
     for (const [runtime,target] of restoredTargets) {
-      if (!windowRuntimes.all().includes(runtime) || !tabs.has(target)) continue;
+      if (!windowRuntimes.all().includes(runtime)) continue;
+      const wakeTarget = tabs.has(target) ? target
+        : (tabs.has(runtime.activeTabId) ? runtime.activeTabId : runtime.tabOrder.find(id=>tabs.has(id)));
+      if (!wakeTarget) continue;
       withWindowRuntime(runtime,()=>{
-        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
-        else runtime.activeTabId = target;
+        if (hasLiveWindow()) setActiveTab(wakeTarget, { focusContent: true });
+        else runtime.activeTabId = wakeTarget;
       });
     }
 

@@ -116,8 +116,28 @@ test('startup replays shared state before it wakes restored tabs and resumes per
   assert.ok(begin>0&&end>begin);const restore=source.slice(begin,end);
   const select=restore.indexOf('runtime.activeTabId = target;');
   const apply=restore.indexOf('await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true}))');
-  const wake=restore.indexOf('setActiveTab(target, { focusContent: true })');
+  const wake=restore.indexOf('setActiveTab(wakeTarget, { focusContent: true })');
   assert.ok(select>=0&&select<apply&&apply<wake,'quiet selection and shared replay must precede wake');
+});
+test('cold replay selects a replacement without waking it after the saved target closes',()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const code=source.match(/function selectSharedLayoutFallback\(runtime,selected\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code);const wakes=[];
+  const sandbox={setActiveTab:(id,options)=>wakes.push({id,options})};
+  vm.runInNewContext(code+'\nthis.select=selectSharedLayoutFallback;',sandbox);
+  const runtime={resident:false,closing:false,sharedColdRestore:true,activeTabId:'closed'};
+  sandbox.select(runtime,'replacement');
+  assert.equal(runtime.activeTabId,'replacement');assert.deepEqual(wakes,[]);
+  runtime.sharedColdRestore=false;sandbox.select(runtime,'ordinary');
+  assert.deepEqual(JSON.parse(JSON.stringify(wakes)),[{id:'ordinary',options:{focusContent:false}}]);
+});
+test('cold replay flag spans the forced pass and the wake loop falls back from a closed target',()=>{
+  const fs=require('node:fs');const source=fs.readFileSync(require.resolve('../../src/main/main.js'),'utf8');
+  const begin=source.indexOf('runtime.sharedColdRestore = true;'),end=source.indexOf('sessionPersistenceSuspended = false;',begin);
+  assert.ok(begin>0&&end>begin);const restore=source.slice(begin,end);
+  assert.match(restore,/try \{ await withWindowRuntime\(runtime,\(\)=>applySharedSpaceChanges\(runtime,\{force:true\}\)\); \}\s*finally \{ runtime\.sharedColdRestore = false; \}/);
+  assert.match(restore,/const wakeTarget = tabs\.has\(target\) \? target\s*: \(tabs\.has\(runtime\.activeTabId\) \? runtime\.activeTabId/);
 });
 test('session checkpoints and filtering retain shared ids without putting them in the rollback mirror',()=>{
   const {entryFrom,buildSaveShape}=require('../../src/main/session-workspace');
