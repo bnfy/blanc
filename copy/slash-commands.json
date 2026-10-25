@@ -81,6 +81,12 @@
       "command": "/close-group"
     },
     {
+      "command": "/send",
+      "doc": {
+        "command": "/send <device>"
+      }
+    },
+    {
       "command": "/find"
     },
     {

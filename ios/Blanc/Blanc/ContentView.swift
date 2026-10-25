@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     let manager: TabsManager
     @State private var showPalette = false
+    @State private var sendBanner: String?
     @Environment(\.colorScheme) private var colorScheme
 
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
@@ -22,7 +23,19 @@ struct ContentView: View {
                     .ignoresSafeArea(edges: .top)
             }
 
-            addressPill
+            VStack(spacing: 8) {
+                if let sendBanner {
+                    Text(sendBanner)
+                        .font(.footnote)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .modifier(PillStyle(theme: theme))
+                        .transition(.opacity)
+                        .accessibilityAddTraits(.updatesFrequently)
+                        .accessibilityIdentifier("send.banner")
+                }
+                addressPill
+            }
         }
         .sheet(isPresented: $showPalette) {
             PaletteSheet(manager: manager)
@@ -42,6 +55,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Open palette")
+            .accessibilityIdentifier("pill.palette")
 
             if let tab = manager.activeTab, tab.isPrivate {
                 // Leaving private mode closes the private tab, as on desktop.
@@ -75,6 +89,7 @@ struct ContentView: View {
                 .accessibilityValue(favorited ? "on" : "off")
                 .accessibilityIdentifier("pill.favorite")
             }
+            sendMenu
 
             Button {
                 if manager.activeTab?.isLoading == true {
@@ -98,6 +113,40 @@ struct ContentView: View {
         .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
+    }
+
+    /// Send to device (M7b): the page goes to one of the account's other
+    /// devices. Shown only for a web page while sync has somewhere to send it.
+    @ViewBuilder
+    private var sendMenu: some View {
+        let targets = manager.syncEngine.sendTargets
+        if let tab = manager.activeTab, manager.canSend(tab), !targets.isEmpty
+        {
+            Menu {
+                Section(SyncCopy.text("tabMenu.sendToDevice")) {
+                    ForEach(targets) { target in
+                        Button(target.name) { send(tab: tab, to: target) }
+                    }
+                }
+            } label: {
+                Image(systemName: "paperplane")
+            }
+            .accessibilityLabel(SyncCopy.text("tabMenu.sendToDevice"))
+            .accessibilityIdentifier("pill.send")
+        }
+    }
+
+    private func send(tab: TabModel, to target: SendTarget) {
+        let url = tab.currentURL.absoluteString
+        let title = tab.pageTitle
+        Task {
+            let result = await manager.syncEngine.send(url: url, title: title, to: target.id)
+            let message = SyncCopy.sendResult(result, device: target.name)
+            withAnimation { sendBanner = message }
+            UIAccessibility.post(notification: .announcement, argument: message)
+            try? await Task.sleep(for: .seconds(2.5))
+            if sendBanner == message { withAnimation { sendBanner = nil } }
+        }
     }
 
     private var displayDomain: String {

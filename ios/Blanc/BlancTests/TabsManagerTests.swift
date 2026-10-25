@@ -155,6 +155,16 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.activeTab?.isPrivate, false)
     }
 
+    @MainActor func testPrivateTabsAreNeverSent() {
+        let m = makeManager()
+        m.activeTab!.currentURL = URL(string: "https://ordinary.example/")!
+        XCTAssertTrue(m.canSend(m.activeTab!))
+        let secret = openPrivate(m, url: URL(string: "https://secret.example/")!)
+        XCTAssertFalse(m.canSend(secret), "as desktop's canSendTab: a private page never leaves the phone")
+        m.activeTab!.currentURL = URL(string: "blanc://newtab/")!
+        XCTAssertFalse(m.canSend(m.activeTab!))
+    }
+
     @MainActor func testClosingTheLastTabOpensAnOrdinaryOne() {
         let m = makeManager()
         let privateId = m.createTab(isPrivate: true)
@@ -313,7 +323,10 @@ final class TabsManagerTests: XCTestCase {
         observer.finished = { loaded.fulfill() }
         webView.navigationDelegate = observer
         webView.loadHTMLString("<html><body>Page state must survive sync.</body></html>", baseURL: nil)
-        await fulfillment(of: [loaded], timeout: 10)
+        // A cold CI simulator can take well over 10 s to launch the first WebContent
+        // process; the wait ends as soon as the page finishes, so a generous bound only
+        // costs time when WebKit is slow.
+        await fulfillment(of: [loaded], timeout: 60)
         observer.finished = nil
         let reloaded = expectation(description: "unchanged sync preference must not reload")
         reloaded.isInverted = true

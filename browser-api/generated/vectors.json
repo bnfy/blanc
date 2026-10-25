@@ -2762,6 +2762,27 @@
         }
       ]
     },
+    "onPillNotice": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:pill-notice",
+      "deliveries": [
+        {
+          "emit": [
+            "link-copied"
+          ],
+          "callbacks": [
+            [
+              "link-copied"
+            ]
+          ]
+        }
+      ]
+    },
     "openIsland": {
       "kind": "send",
       "platforms": [
@@ -3769,6 +3790,165 @@
               "args": [
                 "example",
                 null
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "listSendTargets": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:send-targets",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:send-targets",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "send-target-1",
+            "name": "send-target-1",
+            "platform": "send-target-1"
+          }
+        ]
+      ]
+    },
+    "sendTabToDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:send-tab",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "tab-id-1",
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:send-tab",
+              "args": [
+                "tab-id-1",
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "status": "sent"
+        }
+      ]
+    },
+    "listSentToThisDevice": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-list",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-list",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "id": "sent-item-1",
+            "url": "sent-item-1",
+            "title": "sent-item-1",
+            "sentAt": 1,
+            "fromName": "sent-item-1"
+          }
+        ]
+      ]
+    },
+    "openSentItem": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-open",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-open",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        true,
+        false
+      ]
+    },
+    "dismissSentItem": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-dismiss",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:sent-dismiss",
+              "args": [
+                "example"
               ]
             }
           ]
@@ -4931,6 +5111,53 @@
                       "name": "remote-group-1"
                     }
                   ]
+                }
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "onSentToThisDeviceUpdated": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:sent-updated",
+      "deliveries": [
+        {
+          "emit": [
+            []
+          ],
+          "callbacks": [
+            [
+              []
+            ]
+          ]
+        },
+        {
+          "emit": [
+            [
+              {
+                "id": "sent-item-1",
+                "url": "sent-item-1",
+                "title": "sent-item-1",
+                "sentAt": 1,
+                "fromName": "sent-item-1"
+              }
+            ]
+          ],
+          "callbacks": [
+            [
+              [
+                {
+                  "id": "sent-item-1",
+                  "url": "sent-item-1",
+                  "title": "sent-item-1",
+                  "sentAt": 1,
+                  "fromName": "sent-item-1"
                 }
               ]
             ]

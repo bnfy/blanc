@@ -58,6 +58,9 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.onStatus` | event | `pages:start:status` | newtab | Startup and blocker status changed. |
 | `start.onVisibility` | event | `pages:start:visibility` | newtab | The Start Page became visible or hidden. |
 | `start.onRemoteTabs` | event | `pages:start:remote-tabs` | newtab | Open tabs from other synced devices changed. |
+| `start.openSent` | invoke | `pages:start:open-sent` | newtab | Open a page another device sent here in a new ordinary tab, and hide it on this device. |
+| `start.dismissSent` | invoke | `pages:start:dismiss-sent` | newtab | Hide a page another device sent here without opening it. |
+| `start.onSentItems` | event | `pages:start:sent-items` | newtab | Pages other devices sent here changed. |
 | `mahjong.played` | invoke | `pages:mahjong:played` | mahjong | Record the once-per-session mahjong_play event after the first real move (subject to telemetry consent). |
 | `errorPage.continueUnsafe` | invoke | `pages:error:continue-unsafe` | error | Continue past this tab's certificate warning for the session. Takes no arguments: main reads the tab's own recorded failure and re-checks eligibility. |
 | `tabHandoff.get` | invoke | `pages:tab-handoff:get` | tab-handoff | The pending tab handoff to review. |

@@ -192,7 +192,7 @@ const { installDockMenu } = require('./dock-menu');
 const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
-const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -7027,6 +7027,18 @@ function reloadBrowserCommandTab(runtime, bypassCache = false, sender = null) {
   });
 }
 
+/** ⇧⌘C and Edit → Copy Link: the pane's address to the clipboard, with a
+ * moment's "Link copied" in the pill, since the clipboard itself shows
+ * nothing. Same eligibility as the tab menu's Copy Link (web and file pages;
+ * nothing for a blank or internal page). */
+function copyBrowserCommandLink(runtime, sender = null) {
+  const tab = browserCommandTab(runtime, sender);
+  if (!tab || !isCopyable(tab)) return false;
+  clipboard.writeText(tab.url);
+  stripSurfaces(runtime).send('chrome:pill-notice', 'link-copied');
+  return true;
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
@@ -7035,6 +7047,7 @@ const executeBrowserCommand = createBrowserCommandExecutor({
   'reopen-tab': reopenClosedTab,
   'next-tab': () => cycleTab(1),
   'previous-tab': () => cycleTab(-1),
+  'copy-link': copyBrowserCommandLink,
   address: toggleIsland,
   find: (runtime, sender) => openFindBar(browserCommandTab(runtime, sender)?.id),
   reload: (runtime, sender) => reloadBrowserCommandTab(runtime, false, sender),
@@ -7057,7 +7070,7 @@ const browserCommandDeliveries = [];
 function observeBrowserCommand(delivery) {
   if (!acceptanceTestMode) return;
   browserCommandDeliveries.push(delivery);
-  if (browserCommandDeliveries.length > 100) browserCommandDeliveries.shift();
+  if (browserCommandDeliveries.length > 200) browserCommandDeliveries.shift();
 }
 
 function ownsBrowserShortcutSurface(runtime, wc) {
@@ -7385,6 +7398,47 @@ let remoteDevicesSource = null;
 function knownRemoteDevices() {
   return remoteDevicesSource ? remoteDevicesSource() : sync.listRemoteDevices();
 }
+
+// Send to device (M7b addendum). Acceptance runs stand an injected source in
+// for sync's: { targets(), inbox(), hide(id), send({url, title, to}) }.
+let sendsSource = null;
+let pushSentItemsHook = null; // set once the surfaces exist; re-pushes the inbox
+const sendsBackend = () => sendsSource ?? {
+  targets: () => sync.listSendTargets(),
+  inbox: () => sync.listSentToThisDevice(),
+  hide: (id) => sync.hideSentItem(id),
+  send: (request) => sync.sendTab(request),
+};
+const knownSendTargets = () => sendsBackend().targets();
+const knownSentItems = () => sendsBackend().inbox();
+
+/** A tab whose page may be sent: an ordinary http(s) page. Private tabs never
+ * send (§2.6), and an inert page-opened tab only holds its address. */
+function canSendTab(tab) {
+  return !!tab && !tab.private && !tab.inert && /^https?:\/\//i.test(tab.url ?? '');
+}
+
+async function sendTabToDevice(tabId, deviceId) {
+  const tab = tabs.get(tabId);
+  if (!canSendTab(tab) || typeof deviceId !== 'string') return { status: 'invalid' };
+  if (!knownSendTargets().some((target) => target.id === deviceId)) return { status: 'invalid' };
+  const result = await sendsBackend().send({ url: tab.url, title: tab.title ?? '', to: deviceId });
+  return { status: SEND_STATUSES.has(result?.status) ? result.status : 'failed' };
+}
+const SEND_STATUSES = new Set(['sent', 'unavailable', 'failed', 'invalid']);
+
+/** Open a page another device sent here, in a new ordinary tab, and hide it
+ * on this device. */
+function openSentItem(id) {
+  const item = sendsBackend().hide(id);
+  if (!item || !/^https?:\/\//i.test(item.url)) return false;
+  const tabId = createTab(item.url);
+  if (tabId == null) return false;
+  setActiveTab(tabId, { focusContent: true, focusAddress: false });
+  return true;
+}
+
+const dismissSentItem = (id) => !!sendsBackend().hide(id);
 
 /** "Rename Device…": the panel's address field takes the device's shown name,
  * all of it selected (the overlay's name prompt). */
@@ -10927,6 +10981,11 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => knownRemoteDevices());
+  chromeHandle('chrome:send-targets', () => knownSendTargets());
+  chromeHandle('chrome:send-tab', (_e, tabId, deviceId) => sendTabToDevice(tabId, deviceId));
+  chromeHandle('chrome:sent-list', () => knownSentItems());
+  chromeHandle('chrome:sent-open', (_e, id) => openSentItem(id));
+  chromeHandle('chrome:sent-dismiss', (_e, id) => dismissSentItem(id));
   chromeHandle('chrome:rename-device', (_e, id, name) => sync.renameRemoteDevice(id, name, knownRemoteDevices()));
   if (ONE_PASSWORD_AVAILABLE) {
     chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
@@ -11301,6 +11360,7 @@ const SLASH_COMMANDS = [
   ['/group <name>', 'slash.group.doc'],
   ['/ungroup', 'slash.ungroup.hint'],
   ['/close-group', 'slash.closeGroup.hint'],
+  ['/send <device>', 'slash.send.doc'],
   ['/find', 'slash.find.hint'],
   ['/block-ads', 'slash.blockAds.hint'],
   ['/allow-ads', 'slash.allowAds.hint'],
@@ -11331,6 +11391,7 @@ const COMMON_KEYSTROKES = [
   ['menu.reopenClosedTab', 'CmdOrCtrl+Shift+T'],
   ['menu.searchCommands', 'CmdOrCtrl+L'],
   ['menu.findInPage', 'CmdOrCtrl+F'],
+  ['tabMenu.copyLink', 'CmdOrCtrl+Shift+C'],
   ...(ONE_PASSWORD_ACCELERATOR
     ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
@@ -11452,6 +11513,7 @@ function buildMenuForRuntime(runtime) {
         { type: 'separator' },
         { role: 'cut', label: t('menu.cut') },
         { role: 'copy', label: t('menu.copy') },
+        command('copy-link'),
         { role: 'paste', label: t('menu.paste') },
         ...(isMac ? [
           { role: 'pasteAndMatchStyle', label: t('menu.pasteAndMatchStyle') },
@@ -11697,10 +11759,34 @@ function tabContextData(tab, owner) {
     // null: not a web page, so no site to mute.
     siteMuted: hostOf(tab.url) ? siteMutes.has(siteMuteKey(tab), hostOf(tab.url)) : null,
     splitCandidates: splitCandidatesFor(tab, owner),
+    sendTargets: sendTargetsFor(tab),
     // Move to Space ▸ (the model hides it for a private tab).
     spaces: spaceMoveTargets(owner),
     canMoveToSpace: canMoveTabToSpace(tab, owner),
   };
+}
+
+/** Send to Device ▸'s devices for `tab`: null hides the item (sync is off,
+ * or the tab can't be sent), [] shows it disabled. */
+function sendTargetsFor(tab) {
+  if (!canSendTab(tab) || (!sendsSource && !sync.status().enabled)) return null;
+  return knownSendTargets().map(({ id, name }) => ({ id, name }));
+}
+
+/** The result of a send from the tab menu: read out always, and a native
+ * notice when the page didn't go. */
+function reportSendResult(owner, deviceId, status, targets) {
+  const name = targets.find((target) => target.id === deviceId)?.name ?? '';
+  const message = {
+    sent: mainI18n.t('sends.sent', { device: name }),
+    unavailable: mainI18n.t('sends.unavailable'),
+    invalid: mainI18n.t('sends.failed'),
+    failed: mainI18n.t('sends.failed'),
+  }[status] ?? mainI18n.t('sends.failed');
+  if (owner.window && !owner.window.isDestroyed()) stripSurfaces(owner).send('chrome:glance-status', message);
+  if (status !== 'sent' && owner.window && !owner.window.isDestroyed()) {
+    dialog.showMessageBox(owner.window, { type: 'info', message, buttons: [mainI18n.t('dialog.ok')] }).catch(() => {});
+  }
 }
 
 /** The action closures the context-menu runner calls, bound to `owner`. */
@@ -11745,6 +11831,11 @@ function menuContextActions(owner) {
     glance: b(async (id) => { if (await openTabMenuGlance(id)) hideOverlay(); }),
     closeGlance: b(() => closeGlance()),
     splitWith: b((id, otherId) => { if (splitTabWith(id, otherId)) hideOverlay(); }),
+    sendToDevice: b(async (id, deviceId) => {
+      const targets = knownSendTargets();
+      const { status } = await sendTabToDevice(id, deviceId);
+      reportSendResult(owner, deviceId, status, targets);
+    }),
     removeFromSplit: b((id) => removeTabFromSplit(id)),
     closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
@@ -13870,6 +13961,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       blockedByDay: () => [...adblockWeekStats().data.days],
       blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => knownRemoteDevices(),
+      sentItemsFor: (wc) => (tabs.get(tabIdByWebContentsId.get(wc.id))?.private ? [] : knownSentItems()),
+      openSent: (id) => openSentItem(id),
+      dismissSent: (id) => dismissSentItem(id),
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
@@ -14573,6 +14667,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return sleepThresholdOverrideMs;
       },
       setRemoteDevicesSource: (fn) => { remoteDevicesSource = typeof fn === 'function' ? fn : null; },
+      setSendsSource: (source) => {
+        sendsSource = source && typeof source === 'object' ? source : null;
+        pushSentItemsHook?.();
+      },
     });
   }
 
@@ -14749,6 +14847,20 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     tabsync.onRemoteChanged(pushRemoteDevices);
     tabicons.onRemoteChanged(pushRemoteDevices);
+    // Pages sent here arrived, or one was opened or dismissed: same surfaces.
+    const pushSentItems = () => {
+      forEachWindowRuntime((runtime) => {
+        const items = knownSentItems();
+        runtime.overlayView?.webContents.send('chrome:sent-updated', items);
+        for (const id of runtime.tabOrder) {
+          const tab = tabs.get(id);
+          if (tab?.private || !tab?.url?.startsWith('blanc://newtab')) continue;
+          liveContents(tab)?.send('pages:start:sent-items', items);
+        }
+      });
+    };
+    sync.onSendsChanged(pushSentItems);
+    pushSentItemsHook = pushSentItems;
     // A device renamed here or on another Mac re-labels the same surfaces.
     let shownDeviceNames = settings.getDeviceNames();
     settings.onSettingsChanged((next) => {

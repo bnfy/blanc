@@ -1392,6 +1392,9 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   text-overflow: ellipsis;
 }
 #pillDomain.dim { color: var(--text-dim); }
+/* A confirmation in the label's place (Link copied): plain ink, no ellipsis
+   games, since the string is short and chosen to fit. */
+#pillDomain.notice { color: var(--text); text-overflow: clip; }
 
 /* A blank tab's pill is a typing affordance, not a label. Dim ink is what
    separates a placeholder from real content — a prompt and a domain in the
@@ -3141,6 +3144,19 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 }
 .footer-new.devices[aria-expanded="true"] .devices-caret { transform: rotate(180deg); }
 .footer-new[hidden] { display: none; }
+
+/* Pages sent here (M7b): the drawer button's count is theirs, so it reads
+   at full strength. */
+.footer-new.devices.has-sent { color: var(--text); }
+
+/* A page sent here: title over "From {device} · {time}". */
+.island-row.sent-row .sent-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+.island-row.sent-row .sent-text .row-sub { flex: none; }
 
 /* The Other devices drawer, between the tab list and the footer. While the
    panel has room it grows, as unfolding a group does; at the panel's maximum

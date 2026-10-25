@@ -605,6 +605,9 @@ function setupPages(hooks = {}) {
     blockedByDay: hooks.startPage?.blockedByDay?.() ?? [0, 0, 0, 0, 0, 0, 0],
     blockedBarHeights: hooks.startPage?.blockedBarHeights?.() ?? [0, 0, 0, 0, 0, 0, 0],
     remoteDevices: hooks.startPage?.remoteDevices() ?? [],
+    // Pages other devices sent here (M7b), opened or dismissed through the
+    // two handlers below; never in a private Start Page.
+    sentItems: hooks.startPage?.sentItemsFor?.(event.sender) ?? [],
     // Least-privilege projection for the onboarding dialog: only the two
     // settings it can change, so a replay shows what is actually saved.
     onboarding: hooks.startPage?.onboardingState?.() ?? null,
@@ -716,6 +719,8 @@ function setupPages(hooks = {}) {
     'newtab',
     (id) => hooks.startPage?.focusGroup(String(id)),
   );
+  handle('pages:start:open-sent', 'newtab', (id) => hooks.startPage?.openSent?.(String(id)) === true);
+  handle('pages:start:dismiss-sent', 'newtab', (id) => hooks.startPage?.dismissSent?.(String(id)) === true);
   // The moving-in checklist's "Make your first space" opens the Spaces menu.
   handle('pages:start:open-spaces', 'newtab', () => hooks.startPage?.openSpaces?.() === true);
   // Type-to-open from the start page. Main re-validates the character in

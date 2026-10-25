@@ -81,6 +81,10 @@ final class TabsManager {
 
         var savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
         #if DEBUG
+        if UITestSeed.sends {
+            UITestSeed.seedSends(into: syncDirectory)
+            savedURLs = [UITestSeed.pageURL]
+        }
         if UITestSeed.favorites || UITestSeed.privateTab {
             UITestSeed.seedFavorites(into: syncDirectory)
             savedURLs = [UITestSeed.pageURL]
@@ -177,6 +181,12 @@ final class TabsManager {
     /// picked from a private tab, it opens privately.
     func openFromSwitcher(_ url: URL) {
         createTab(url: url, isPrivate: activeTab?.isPrivate ?? false)
+    }
+
+    /// Only an ordinary web page can be sent to another device (desktop's
+    /// `canSendTab`).
+    func canSend(_ tab: TabModel) -> Bool {
+        !tab.isPrivate && ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "")
     }
 
     func closeTab(_ id: UUID) {

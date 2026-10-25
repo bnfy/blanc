@@ -214,6 +214,20 @@ final class PagesBridgeTests: XCTestCase {
                        [PagesBridge.Member(name: "start.data", kind: "invoke", hosts: ["newtab"])])
         XCTAssertEqual(PagesBridge.members(fromBridgesJSON: Data("nope".utf8)), [])
     }
+    // Send to device (M7b): the start page's sent-page members exist on iOS,
+    // and the native strings come from the same catalog.
+    func testSendToDeviceMembersAndCopy() {
+        let names = Set(PagesBridge.bundledMembers.map(\.name))
+        for name in ["start.openSent", "start.dismissSent", "start.onSentItems"] {
+            XCTAssertTrue(names.contains(name), "missing \(name)")
+        }
+        for key in ["sends.section", "sends.dismiss", "tabMenu.sendToDevice", "sends.unavailable", "sends.failed"] {
+            XCTAssertNotEqual(SyncCopy.text(key), key, key)
+        }
+        XCTAssertEqual(SyncCopy.text("sends.sent", ["device": "Mac"]), "Sent to Mac.")
+        XCTAssertEqual(SyncCopy.sendResult(.unavailable, device: "Mac"), SyncCopy.text("sends.unavailable"))
+        XCTAssertFalse(SyncCopy.text("sends.from", ["device": "Mac", "time": "5m ago"]).contains("{"))
+    }
     func testNativeCopyReadsBundledCatalog() {
         XCTAssertNotEqual(SyncCopy.text("footer.devices"), "footer.devices")
         XCTAssertNotEqual(SyncCopy.text("settings.sync.createOnComputer"), "settings.sync.createOnComputer")

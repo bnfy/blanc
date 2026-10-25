@@ -18,6 +18,7 @@
 "slash_group" = "Type a space, then a group name — e.g. \"work\"";
 "slash_ungroup" = "Take this tab out of its group";
 "slash_close_group" = "Close every tab in this group";
+"slash_send" = "Type a space, then a device name — e.g. \"iPhone\"";
 "slash_find" = "Find in page";
 "slash_block_ads" = "Block ads here, or toggle blocking everywhere";
 "slash_allow_ads" = "Allow ads on this site";

@@ -59,6 +59,7 @@
     <string name="pill_insecure_open">%1$s. Website-Einstellungen öffnen.</string>
     <string name="pill_domain_default">neuer Tab</string>
     <string name="pill_placeholder">Suchen oder URL eingeben</string>
+    <string name="pill_notice_link_copied">Link kopiert</string>
     <string name="pill_commands">Befehle (/)</string>
     <string name="pill_private_chip">Privat</string>
     <string name="pill_private_title">Privaten Modus verlassen – schließt diesen Tab</string>
@@ -2170,4 +2171,15 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_sync_create_on_computer">Starte die Synchronisierung auf deinem Computer und füge dann dieses Telefon mit einem Code hinzu.</string>
     <string name="settings_sync_enter_sync_name">Gib deinen Sync-Namen ein</string>
     <string name="settings_sync_enter_passphrase">Gib deine Passphrase ein</string>
+    <string name="tab_menu_send_to_device">An Gerät senden</string>
+    <string name="sends_none">Keine anderen Geräte</string>
+    <string name="sends_sent">An %1$s gesendet.</string>
+    <string name="sends_unavailable">Senden ist noch nicht verfügbar.</string>
+    <string name="sends_failed">Senden fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="sends_section">An dieses Gerät gesendet</string>
+    <string name="sends_from">Von %1$s · %2$s</string>
+    <string name="sends_dismiss">Ausblenden</string>
+    <string name="sends_no_match">Kein Gerät namens „%1$s“.</string>
+    <string name="slash_send_hint">Leerzeichen, dann einen Gerätenamen eingeben – z. B. „iPhone“</string>
+    <string name="slash_send_doc">Die Seite dieses Tabs an ein anderes synchronisiertes Gerät senden</string>
 </resources>
