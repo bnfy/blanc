@@ -107,4 +107,12 @@ extension QuickSwitcher {
         }
         return Array((local + saved.sorted { $0.score > $1.score } + others.sorted { $0.score > $1.score } + visited.sorted { $0.score > $1.score }).prefix(12))
     }
+
+    /// What Go opens instead of the typed text: a strong match, and never when
+    /// the text is itself an address (as desktop's `looksLikeAddress`).
+    static func goTarget(query: String, results: [SyncedSwitcherResult]) -> SyncedSwitcherResult? {
+        guard !AddressNormalizer.looksLikeAddress(query),
+              let top = results.first, top.strength >= strongMatchScore else { return nil }
+        return top
+    }
 }

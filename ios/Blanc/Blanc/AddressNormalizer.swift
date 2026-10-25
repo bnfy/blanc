@@ -25,6 +25,22 @@ struct AddressNormalizer {
         return URL(string: base)!
     }
 
+    /// Whether `normalize` would treat the input as an address rather than a
+    /// search, or hand it to the system (desktop's `looksLikeAddress`).
+    static func looksLikeAddress(_ input: String) -> Bool {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        if OSHandoff.isHandoff(trimmed) { return true }
+        if let r = trimmed.range(of: "://") {
+            let scheme = String(trimmed[trimmed.startIndex..<r.lowerBound]).lowercased()
+            if scheme.range(of: #"^[a-z][a-z0-9+.\-]*$"#, options: .regularExpression) != nil {
+                return !["javascript", "data", "vbscript"].contains(scheme)
+            }
+        }
+        return [#"^localhost(:\d+)?(/|$)"#, #"^(\d{1,3}\.){3}\d{1,3}(:\d+)?(/|$)"#, #"^[^\s]+\.[a-zA-Z]{2,}(/[^\s]*)?$"#]
+            .contains { trimmed.range(of: $0, options: .regularExpression) != nil }
+    }
+
     func normalize(_ input: String) -> URL {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
 

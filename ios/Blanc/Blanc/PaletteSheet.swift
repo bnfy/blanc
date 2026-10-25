@@ -182,7 +182,7 @@ struct PaletteSheet: View {
         }
 
         let results = QuickSwitcher.search(query: trimmed, tabs: manager.tabs, remote: manager.syncEngine.remoteDevices, favorites: manager.syncEngine.favorites, history: manager.historyStore.entries)
-        if let top = results.first, top.strength >= QuickSwitcher.strongMatchScore {
+        if let top = QuickSwitcher.goTarget(query: trimmed, results: results) {
             open(top)
             dismiss()
             return
