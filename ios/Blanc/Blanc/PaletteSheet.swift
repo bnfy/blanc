@@ -288,7 +288,7 @@ struct PaletteSheet: View {
 
     private func open(_ result: SyncedSwitcherResult) {
         if let id = result.localTabID { manager.setActive(id) }
-        else if let url = result.url { manager.createTab(url: url) }
+        else if let url = result.url { manager.openFromSwitcher(url) }
     }
 
     private func handleSubmit() {

@@ -4,7 +4,9 @@ struct ContentView: View {
     let manager: TabsManager
     @State private var sendBanner: String?
     @Environment(\.colorScheme) private var colorScheme
-    private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
+    private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
+    /// A private tab uses the private (dark) look whatever the appearance setting.
+    private var style: BrowserStyle { BrowserStyle(scheme: isPrivate ? .dark : colorScheme) }
     @State private var showSiteProtection = false
     @State private var showTabGrid = false
 
@@ -103,17 +105,35 @@ struct ContentView: View {
             .accessibilityLabel("Search or switch tabs, \(displayDomain)")
             .accessibilityIdentifier("pill.palette")
 
+            if let tab = manager.activeTab, tab.isPrivate {
+                // Leaving private mode closes the private tab, as on desktop.
+                Button { manager.closeTab(tab.id) } label: {
+                    Text(SyncCopy.text("pill.private.chip"))
+                        .font(BrowserStyle.font(12, semibold: true))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .overlay(Capsule().stroke(style.text.opacity(0.4)))
+                        .frame(minHeight: 48)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(SyncCopy.text("pill.private.title"))
+                .accessibilityIdentifier("pill.private")
+            }
+
             blockerButton
 
-            if let tab = manager.activeTab, TabsManager.canFavorite(tab.currentURL) {
+            if let tab = manager.activeTab, !tab.isPrivate, TabsManager.canFavorite(tab.currentURL) {
                 let favorited = manager.isFavorite(tab)
                 Button { manager.toggleFavorite(tab) } label: {
+                    // The frame is the label's: on iOS 26 a bare ~20 pt symbol
+                    // as the tap target doesn't register taps at all.
                     Image(systemName: favorited ? "heart.fill" : "heart")
+                        .frame(width: 44, height: 48)
+                        .contentShape(Rectangle())
                 }
                 .accessibilityLabel(SyncCopy.text(favorited ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"))
                 .accessibilityValue(favorited ? "on" : "off")
                 .accessibilityIdentifier("pill.favorite")
-                .frame(width: 44, height: 48)
             }
             sendMenu
 
@@ -140,8 +160,9 @@ struct ContentView: View {
         .foregroundStyle(style.text)
         .background(style.raised, in: RoundedRectangle(cornerRadius: 17))
         .overlay(RoundedRectangle(cornerRadius: 17).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+        .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
         .frame(maxWidth: 600)
+        .environment(\.colorScheme, isPrivate ? .dark : colorScheme)
     }
 
     /// Blanc Blocker, as on desktop's pill: the cut shield, faded when the
@@ -176,8 +197,7 @@ struct ContentView: View {
     @ViewBuilder
     private var sendMenu: some View {
         let targets = manager.syncEngine.sendTargets
-        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? ""),
-            !targets.isEmpty
+        if let tab = manager.activeTab, manager.canSend(tab), !targets.isEmpty
         {
             Menu {
                 Section(SyncCopy.text("tabMenu.sendToDevice")) {

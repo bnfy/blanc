@@ -6,10 +6,12 @@ import Foundation
 /// device ("MacBook Pro") that sent two pages to this phone, and no key, so
 /// nothing reaches the network and a send fails fast.
 /// `-BlancUITestFavorites`: sync off and no Favorites, so the heart starts empty.
-/// Both start with one tab on example.com.
+/// `-BlancUITestPrivate`: as Favorites, plus a current private tab.
+/// All start with one tab on example.com.
 enum UITestSeed {
   static var sends: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSends") }
   static var favorites: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestFavorites") }
+  static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
   static let pageURL = URL(string: "https://example.com/")!
 
   static func seedSends(into directory: URL) {
