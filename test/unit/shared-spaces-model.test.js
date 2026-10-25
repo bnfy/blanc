@@ -94,3 +94,10 @@ test('deleted groups project as ungrouped; expiry removes records without mutati
   assert.equal(out.tabs[id(2)],undefined);assert.ok(a.tabs[id(2)]);
   assert.equal(m.liveTabCount(a),1);
 });
+
+test('shared custom names use the same code-point and whitespace rules as local F46 names', () => {
+  const a=blob({[id(1)]:tab(1,{name:f('  A\n\tB\u0000  ')}),[id(2)]:tab(2,{name:f('🦊'.repeat(101))})});
+  const clean=m.sanitizeBlob(a);
+  assert.equal(clean.tabs[id(1)].name.v,'A B');
+  assert.equal(clean.tabs[id(2)].name.v,'🦊'.repeat(100));
+});

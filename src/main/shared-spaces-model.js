@@ -5,6 +5,7 @@
 const crypto = require('node:crypto');
 const { canonical } = require('./tabsync-model');
 const Identity = require('../renderer/space-identity');
+const { normalizeTabName } = require('./tab-name');
 const LIMITS = Object.freeze({ tabsPerSpace: 500, spaces: 25, plaintextGuide: 320 * 1024,
   blobBytes: 524288 - 4096, tombstoneMs: 30 * 24 * 60 * 60 * 1000 });
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
@@ -66,7 +67,7 @@ function nav(v) {
   return { url: v.url, title: text(v.title,200) ?? '' };
 }
 const schemas = {
-  tabs: { nav, name: v => v === null ? null : text(v,100), pinned: v => typeof v === 'boolean' ? v : undefined,
+  tabs: { nav, name: normalizeTabName, pinned: v => typeof v === 'boolean' ? v : undefined,
     groupId: v => v === null || isId(v) ? v : undefined, pos: v => typeof v === 'string' ? v : undefined,
     deleted: v => typeof v === 'boolean' ? v : undefined },
   groups: { name: v => text(v,60), color: v => v === null ? null : Identity.normalizeHex(v),
