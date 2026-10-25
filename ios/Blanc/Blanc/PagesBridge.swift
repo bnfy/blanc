@@ -337,7 +337,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         let args = body["args"] as? [Any] ?? []
         let documentURL = webView.url
         if group == "start", method == "renderNativeClock" {
-            let tab = manager?.tabs.first { $0.webView === webView }
+            let tab = ((manager?.tabs ?? []) + (manager?.startPreviews ?? [])).first { $0.webView === webView }
             let rendered = tab?.nativeClock.render(args.first as? [String: Any], in: webView) ?? false
             resolve(id, result: .value(.bool(rendered)), in: webView, host: host)
             return
@@ -351,12 +351,11 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
                 guard let self, let webView, let manager else { return }
                 var reply: [String: Any] = ["cancelled": image == nil]
                 if let image {
-                    do { try manager.startAppearance.importImage(image); reply["ok"] = true }
+                    do { try manager.importWallpaper(image); reply["ok"] = true }
                     catch { reply["error"] = "unreadable" }
                 }
                 reply["appearance"] = manager.startAppearance.payload
                 if webView.url == documentURL { self.resolve(id, result: .value(.from(reply)), in: webView, host: host) }
-                self.broadcastAppearance()
             }
             manager.isWallpaperPickerPresented = true
             return
@@ -370,7 +369,12 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             }
             return
         }
-        resolve(id, result: liveResponse(group: group, method: method, args: args, appVersion: version), in: webView, host: host)
+        var result = liveResponse(group: group, method: method, args: args, appVersion: version)
+        if group == "start", method == "data", let layout = manager?.previewLayout(for: webView), case .value(var data) = result {
+            data["layout"] = .string(layout.rawValue)
+            result = .value(data)
+        }
+        resolve(id, result: result, in: webView, host: host)
     }
 
     /// The answer to a call the sender checks above allowed, using live app state.
@@ -396,8 +400,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             return .value(.bool(false))
         case ("start", "setLayout"):
             guard let raw = text(0), let layout = BlancStartPageLayout(rawValue: raw) else { return .reject("Unknown Start Page layout") }
-            manager?.settingsStore.update(newtabLayout: layout)
-            emit("start.onStatus", payload: .object([("layout", .string(layout.rawValue))]), host: "newtab")
+            manager?.setStartLayout(layout)
             return .value(.string(layout.rawValue))
         case ("start", "openIsland"):
             manager?.isPalettePresented = true
@@ -408,8 +411,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
              ("start", "setWallpaperColor"), ("start", "setWallpaperFill"), ("start", "setWallpaperStyle"),
              ("start", "setWallpaperWash"), ("start", "removeWallpaper"):
             do {
-                let payload = try manager?.startAppearance.change(method, value: args.first) ?? [:]
-                broadcastAppearance()
+                let payload = try manager?.changeStartAppearance(method, value: args.first) ?? [:]
                 return .value(.from(payload))
             } catch { return .reject("Could not save Start Page appearance") }
         case ("start", "openSent"), ("start", "dismissSent"):
@@ -458,7 +460,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         manager?.syncEngine.editFavorites(change)
     }
 
-    private func broadcastAppearance() {
+    func broadcastAppearance() {
         emit("start.onStatus", payload: .from(["appearance": manager?.startAppearance.payload ?? [:]]), host: "newtab")
     }
 
@@ -515,13 +517,16 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         return guardedScript("window.location.reload();", host: host)
     }
     private var lastFavoritesPayload: JSONValue = .array([])
-    func emitSyncChanges() {
+    func emitSettingsChanges() {
         if let engine = manager?.syncEngine {
             emit("settings.onAppearance", payload: .object([
                 ("settings", liveSettingsBootstrap()["settings"] ?? .object([])),
                 ("syncStatus", engine.status),
             ]), host: "settings")
         }
+    }
+    func emitSyncChanges() {
+        emitSettingsChanges()
         emitRemoteTabs()
         emit("start.onSentItems", payload: sentItemsPayload(), host: "newtab")
         let current = favoritesPayload()
@@ -535,8 +540,12 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
     }
     func emitRemoteTabs() { emit("start.onRemoteTabs", payload: remoteDevicesPayload(), host: "newtab") }
     func emit(_ event: String, payload: JSONValue, host: String) {
-        for tab in manager?.tabs ?? [] where tab.currentURL.scheme == "blanc" && tab.currentURL.host == host {
-            tab.webView.evaluateJavaScript(Self.guardedScript("window.__blancEmit(\(JSONValue.string(event).serialized), \(payload.serialized));", host: host))
+        for tab in (manager?.tabs ?? []) + (manager?.startPreviews ?? []) where tab.currentURL.scheme == "blanc" && tab.currentURL.host == host {
+            var delivered = payload
+            if event == "start.onStatus", delivered["layout"] != nil, let layout = manager?.previewLayout(for: tab.webView) {
+                delivered["layout"] = .string(layout.rawValue)
+            }
+            tab.webView.evaluateJavaScript(Self.guardedScript("window.__blancEmit(\(JSONValue.string(event).serialized), \(delivered.serialized));", host: host))
         }
     }
     private func syncResponse(method: String, args: [Any], engine: SyncEngine) async -> JSONValue {

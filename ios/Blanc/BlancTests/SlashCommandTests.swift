@@ -8,8 +8,9 @@ final class SlashCommandTests: XCTestCase {
         XCTAssertTrue(names.contains("/close"))
     }
 
-    func testAvailableCountIsTwo() {
-        XCTAssertEqual(SlashCommand.available.count, 2)
+    func testAvailableIncludesNativeSettingsRoutes() {
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/settings"))
+        XCTAssertTrue(SlashCommand.available.map(\.command).contains("/sync"))
     }
 
     func testFilterEmptyReturnsAll() {

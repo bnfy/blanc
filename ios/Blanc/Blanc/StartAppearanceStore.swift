@@ -1,7 +1,9 @@
 import Foundation
+import Observation
 import UIKit
 
 /// Device-local Start Page appearance. Image data never leaves the app.
+@Observable
 final class StartAppearanceStore {
     private(set) var values: [String: Any] = [:]
     let imageURL: URL
