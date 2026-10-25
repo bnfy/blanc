@@ -14,6 +14,9 @@ struct SlashCommand: Identifiable {
         SlashCommand(command: "/new", hintKey: "slash_new") { manager in
             manager.createTab()
         },
+        SlashCommand(command: "/private", hintKey: "slash_private") { manager in
+            manager.createTab(isPrivate: true)
+        },
         SlashCommand(command: "/close", hintKey: "slash_close") { manager in
             if let id = manager.activeTabId {
                 manager.closeTab(id)

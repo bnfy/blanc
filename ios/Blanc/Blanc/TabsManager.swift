@@ -132,6 +132,26 @@ final class TabsManager {
             config.userContentController.add(ruleList)
         }
         let tab = TabModel(url: url, configuration: config, isPrivate: isPrivate)
+        return add(tab)
+    }
+
+    /// A tab a page opened: last in the list and current, private when its
+    /// opener is.
+    private func openChild(of opener: TabModel, configuration: WKWebViewConfiguration, url: URL?) -> WKWebView {
+        let tab = TabModel(
+            url: url ?? URL(string: "about:blank")!, configuration: configuration,
+            isPrivate: opener.isPrivate, load: false)
+        add(tab)
+        return tab.webView
+    }
+
+    @discardableResult
+    private func add(_ tab: TabModel) -> UUID {
+        let isPrivate = tab.isPrivate
+        tab.uiDelegate.onOpenChild = { [weak self, weak tab] configuration, url in
+            guard let self, let tab else { return nil }
+            return self.openChild(of: tab, configuration: configuration, url: url)
+        }
         if contentBlocker.enabled && !contentBlocker.isReady {
             contentBlocker.attach(to: tab.webView)
         }

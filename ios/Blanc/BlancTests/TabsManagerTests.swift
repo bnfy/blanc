@@ -98,6 +98,42 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.syncedTabs.map(\.url), ["https://ordinary.example/"])
     }
 
+    /// WebKit hands the opener's configuration to `createWebViewWith`; the
+    /// returned view must be built from it.
+    private final class OpenAction: WKNavigationAction {
+        let target: URLRequest
+        init(_ url: URL) { target = URLRequest(url: url) }
+        override var request: URLRequest { target }
+    }
+
+    @MainActor func testChildOfPrivateTabIsPrivate() {
+        let m = makeManager()
+        let parent = openPrivate(m)
+        let child = parent.webView.uiDelegate?.webView?(
+            parent.webView, createWebViewWith: parent.webView.configuration,
+            for: OpenAction(URL(string: "https://child.example/")!), windowFeatures: WKWindowFeatures())
+        XCTAssertNotNil(child)
+        XCTAssertEqual(m.tabs.count, 3)
+        let tab = m.tabs.last!
+        XCTAssertTrue(tab.webView === child)
+        XCTAssertTrue(tab.isPrivate)
+        XCTAssertEqual(m.activeTabId, tab.id)
+        XCTAssertTrue(tab.webView.configuration.websiteDataStore === parent.webView.configuration.websiteDataStore)
+        XCTAssertFalse(m.syncedTabs.contains { $0.url == "https://child.example/" })
+    }
+
+    @MainActor func testChildOfOrdinaryTabIsOrdinary() {
+        let m = makeManager()
+        let parent = m.activeTab!
+        let child = parent.webView.uiDelegate?.webView?(
+            parent.webView, createWebViewWith: parent.webView.configuration,
+            for: OpenAction(URL(string: "https://child.example/")!), windowFeatures: WKWindowFeatures())
+        XCTAssertNotNil(child)
+        XCTAssertEqual(m.tabs.count, 2)
+        XCTAssertFalse(m.tabs.last!.isPrivate)
+        XCTAssertTrue(m.tabs.last!.webView.configuration.websiteDataStore.isPersistent)
+    }
+
     @MainActor func testClosingTheLastTabOpensAnOrdinaryOne() {
         let m = makeManager()
         let privateId = m.createTab(isPrivate: true)

@@ -17,8 +17,10 @@ final class TabModel: Identifiable {
 
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
+    let uiDelegate = TabUIDelegate()
 
-    init(url: URL, configuration: WKWebViewConfiguration, isPrivate: Bool = false) {
+    /// `load: false` is for a page-opened tab, whose request WebKit loads itself.
+    init(url: URL, configuration: WKWebViewConfiguration, isPrivate: Bool = false, load: Bool = true) {
         self.isPrivate = isPrivate
         self.currentURL = url
         self.addressText = url.absoluteString
@@ -27,7 +29,8 @@ final class TabModel: Identifiable {
         self.navigationDelegate = TabNavigationDelegate()
         navigationDelegate.tab = self
         webView.navigationDelegate = navigationDelegate
-        navigationDelegate.load(url, in: webView)
+        webView.uiDelegate = uiDelegate
+        if load { navigationDelegate.load(url, in: webView) }
     }
 
     /// Convenience initializer for tests and previews — uses a bare web-view
