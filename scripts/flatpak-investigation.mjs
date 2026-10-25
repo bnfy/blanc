@@ -71,7 +71,21 @@ for(const mode of modes){
  try{result.processes=JSON.parse(inspection.stdout);}catch{result.inspectionError=inspection.stderr;}
  fs.writeFileSync(`${root}/${mode}.result.json`,JSON.stringify(result,null,2));outcomes.push(result);
  console.log(JSON.stringify({mode,ready,exitCode:result.exitCode,browsing:result.browsing,browsingError:result.browsingError}));
+ if(ready){
+  try{
+   const livePages=await(await fetch('http://127.0.0.1:9222/json/list')).json();
+   const main=livePages.find(p=>p.url==='blanc-chrome://index/');
+   if(main){
+    const quitting=await cdp(main.webSocketDebuggerUrl);
+    void quitting.send('Runtime.evaluate',{expression:'window.browserAPI.closeWindow()'}).catch(()=>{});
+    for(let i=0;i<40&&child.exitCode===null;i++)await delay(250);
+    result.cleanExit=child.exitCode===0;quitting.close();
+   }
+  }catch(error){result.quitError=String(error);}
+ }
+ if(['wrapper-integration','wrapper-restart'].includes(mode)&&!result.cleanExit)throw Error('Normal window close did not produce a clean exit');
  run(['kill','com.blancbrowser.Blanc']);await delay(1000);fs.closeSync(log);
+ fs.writeFileSync(`${root}/${mode}.result.json`,JSON.stringify(result,null,2));
  const trace=path.join(process.env.HOME,'.var/app/com.blancbrowser.Blanc/config',`trace-${mode}.jsonl`);
  if(fs.existsSync(trace))fs.copyFileSync(trace,`${root}/${mode}.trace.jsonl`);
 }
