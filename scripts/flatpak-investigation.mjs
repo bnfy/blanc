@@ -13,9 +13,12 @@ async function cdp(url){
  return {send:(method,params={})=>new Promise((resolve,reject)=>{const n=++id;const timer=setTimeout(()=>{pending.delete(n);reject(Error(`CDP timeout: ${method}`));},15000);pending.set(n,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});socket.send(JSON.stringify({id:n,method,params}));}),close:()=>socket.close()};
 }
 let outcomes=[];
-for(const mode of ['baseline','profile','unset','profile-unset','original-launcher','integrated-launcher']){
+const allowed=['baseline','profile','unset','profile-unset','original-launcher','integrated-launcher','wrapper-integration'];
+const modes=process.env.BLANC_FLATPAK_MODES ? process.env.BLANC_FLATPAK_MODES.split(',') : allowed;
+if(modes.some(mode=>!allowed.includes(mode)))throw Error('Unknown startup variant');
+for(const mode of modes){
  run(['kill','com.blancbrowser.Blanc']); await delay(1000);
- const remove=['unset','profile-unset','original-launcher','integrated-launcher'].includes(mode);
+ const remove=['unset','profile-unset','original-launcher','integrated-launcher','wrapper-integration'].includes(mode);
  const ov=run(['override','--user',remove?'--unset-env=CHROME_DESKTOP':'--env=CHROME_DESKTOP=com.blancbrowser.Blanc.desktop','com.blancbrowser.Blanc']);
  if(ov.status)throw Error(ov.stderr);
  fs.writeFileSync(`${root}/${mode}.overrides`,run(['override','--user','--show','com.blancbrowser.Blanc']).stdout);
@@ -42,8 +45,9 @@ for(const mode of ['baseline','profile','unset','profile-unset','original-launch
  run(['kill','com.blancbrowser.Blanc']);await delay(1000);fs.closeSync(log);
 }
 server.close();fs.writeFileSync(`${root}/results.json`,JSON.stringify(outcomes,null,2));
-const candidate=outcomes.find(r=>r.mode==='integrated-launcher');
-if(!candidate?.ready||candidate.browsing?.result?.value?.probe!=='blanc-flatpak-1431')throw Error('Integrated launcher browsing failed');
+const candidate=outcomes.find(r=>r.mode==='wrapper-integration');
+if(!candidate?.ready||candidate.browsing?.result?.value?.probe!=='blanc-flatpak-1431')throw Error('Wrapper integration browsing failed');
+if(candidate.browsing.result.value.nodeExposed || candidate.reload?.result?.value?.storage!=='persisted')throw Error('Content isolation or reload failed');
 const rows=candidate.processes||[];const browser=rows.find(r=>!r.cmd.includes('--type='));const renderers=rows.filter(r=>r.cmd.includes('--type=renderer'));
 if(!browser||!renderers.length)throw Error('Missing browser/renderer process evidence');
 for(const renderer of renderers){

@@ -1,6 +1,11 @@
 name: Flatpak 1.43.1 isolated investigation
 on:
   workflow_dispatch:
+    inputs:
+      modes:
+        description: Comma-separated startup variants; blank runs the complete matrix
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -17,6 +22,7 @@ jobs:
       - name: Compare startup paths and inspect renderer sandbox
         env:
           GH_TOKEN: ${{ github.token }}
+          BLANC_FLATPAK_MODES: ${{ inputs.modes }}
         run: bash scripts/flatpak-investigation.sh
       - name: Preserve evidence
         if: always()
@@ -31,6 +37,7 @@ jobs:
             flatpak-evidence/*.overrides
             flatpak-evidence/*.patch
             flatpak-evidence/*.cc
+            flatpak-evidence/blanc-ecs-launcher-candidate
             flatpak-evidence/*.yml
             flatpak-evidence/SHA256SUMS*
           retention-days: 7

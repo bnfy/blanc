@@ -63,6 +63,16 @@ case "$mode" in
  profile|profile-unset) exec zypak-wrapper /app/lib/blanc/blanc --user-data-dir="$profile" "$@" ;;
  original-launcher) exec zypak-wrapper /app/lib/blanc/blanc-ecs-launcher --user-data-dir="$profile" "$@" ;;
  integrated-launcher) exec /app/lib/blanc/blanc-ecs-launcher-candidate --user-data-dir="$profile" "$@" ;;
+ wrapper-integration)
+   # Keep the published native launcher as the sole CDM selector. Its query
+   # uses the production default profile and verifies that profile's safety.
+   profile="$XDG_CONFIG_HOME/Blanc"
+   cdm=$(/app/lib/blanc/blanc-ecs-launcher --ecs-query-cdm)
+   export BLANC_ECS_FULL_PROFILE="$profile"
+   export BLANC_ECS_CDM_PRELOAD_PATH="$cdm"
+   export BLANC_ECS_CDM_EXECUTABLE=/app/lib/blanc/blanc
+   export ZYPAK_LD_PRELOAD=/app/lib/blanc/blanc-cdm-preload.so
+   exec zypak-wrapper /app/lib/blanc/blanc --user-data-dir="$profile" "$@" ;;
  *) exit 64 ;;
 esac
 EOF
