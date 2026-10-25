@@ -152,86 +152,60 @@ struct ContentView: View {
     /// site, reload and New tab. Drawn in the theme's ink through the shipped
     /// mark's alpha, as the interface always draws it.
     private var islandMark: some View {
-        let tab = manager.activeTab
-        return Menu {
-            ForEach(Array(IslandMenu.items(for: tab, manager: manager).enumerated()), id: \.offset) { _, item in
-                if let tab { menuEntry(item, tab: tab) } else if item == .newPrivateTab { menuEntry(item, tab: nil) }
-            }
-        } label: {
-            Group {
-                if let mark = Self.sunriseMark {
-                    Image(uiImage: mark).renderingMode(.template).resizable().scaledToFit()
-                } else {
-                    Image(systemName: "sun.horizon")
-                }
-            }
-            .frame(width: 22, height: 22)
+        IslandMarkButton(image: Self.sunriseMark, tint: style.text, menu: islandMenuElements)
             .frame(width: 48, height: 48)
-            // A round shape for the tap and for the menu's open and close: with
-            // a square one, iOS drew a square glass box flush against the
-            // Island's edge while the menu settled.
-            .contentShape(Circle())
-            .contentShape(.contextMenuPreview, Circle())
-        }
-        .menuStyle(.button)
-        .buttonStyle(.plain)
-        .menuIndicator(.hidden)
-        .accessibilityLabel("Page actions")
-        .accessibilityIdentifier("island.menu")
     }
 
-    @ViewBuilder
-    private func menuEntry(_ item: IslandMenuItem, tab: TabModel?) -> some View {
-        switch item {
-        case .customizeStartPage:
-            Button { manager.showSettings(.startPage) } label: {
-                Label(SyncCopy.text("newtab.customize.button"), systemImage: "slider.horizontal.3")
-            }
-        case .blocking(let on):
-            if let tab {
-                Toggle(isOn: Binding(get: { on }, set: { manager.setSiteProtection(tab, on: $0) })) {
-                    Label(SyncCopy.text("shield.adBlocking"), systemImage: "shield")
+    /// The Sunrise menu's entries for the current page (`IslandMenu`).
+    private func islandMenuElements() -> [UIMenuElement] {
+        let tab = manager.activeTab
+        func action(_ key: String, _ symbol: String, state: UIMenuElement.State = .off, _ run: @escaping () -> Void) -> UIAction {
+            UIAction(title: SyncCopy.text(key), image: UIImage(systemName: symbol), state: state) { _ in run() }
+        }
+        return IslandMenu.items(for: tab, manager: manager).compactMap { item -> UIMenuElement? in
+            switch item {
+            case .customizeStartPage:
+                return action("newtab.customize.button", "slider.horizontal.3") { manager.showSettings(.startPage) }
+            case .blocking(let on):
+                guard let tab else { return nil }
+                return action("shield.adBlocking", "shield", state: on ? .on : .off) { manager.setSiteProtection(tab, on: !on) }
+            case .blockingSettings:
+                return action("shield.settings", "shield.slash") { manager.showSettings(.privacy) }
+            case .favorite(let saved):
+                guard let tab else { return nil }
+                return action(saved ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite", saved ? "heart.fill" : "heart") {
+                    manager.toggleFavorite(tab)
                 }
-            }
-        case .blockingSettings:
-            Button { manager.showSettings(.privacy) } label: {
-                Label(SyncCopy.text("shield.settings"), systemImage: "shield.slash")
-            }
-        case .favorite(let saved):
-            if let tab {
-                Button { manager.toggleFavorite(tab) } label: {
-                    Label(SyncCopy.text(saved ? "tabMenu.removeFavorite" : "tabMenu.saveFavorite"),
-                          systemImage: saved ? "heart.fill" : "heart")
+            case .send:
+                guard let tab else { return nil }
+                return UIMenu(title: SyncCopy.text("tabMenu.sendToDevice"), image: UIImage(systemName: "paperplane"),
+                              children: manager.syncEngine.sendTargets.map { target in
+                                  UIAction(title: target.name) { _ in send(tab: tab, to: target) }
+                              })
+            case .share:
+                guard let tab else { return nil }
+                return action("share.picker.share", "square.and.arrow.up") { share(tab.currentURL) }
+            case .find:
+                guard let tab else { return nil }
+                return action("menu.findInPage", "magnifyingglass") {
+                    tab.webView.findInteraction?.presentFindNavigator(showingReplace: false)
                 }
-            }
-        case .send:
-            if let tab {
-                Menu {
-                    ForEach(manager.syncEngine.sendTargets) { target in
-                        Button(target.name) { send(tab: tab, to: target) }
-                    }
-                } label: {
-                    Label(SyncCopy.text("tabMenu.sendToDevice"), systemImage: "paperplane")
-                }
-            }
-        case .share:
-            if let tab {
-                ShareLink(item: tab.currentURL) {
-                    Label(SyncCopy.text("share.picker.share"), systemImage: "square.and.arrow.up")
-                }
-            }
-        case .find:
-            if let tab {
-                Button { tab.webView.findInteraction?.presentFindNavigator(showingReplace: false) } label: {
-                    Label(SyncCopy.text("menu.findInPage"), systemImage: "magnifyingglass")
-                }
-            }
-        case .newPrivateTab:
-            Divider()
-            Button { manager.createTab(isPrivate: true) } label: {
-                Label(SyncCopy.text("menu.newPrivateTab"), systemImage: "eye.slash")
+            case .newPrivateTab:
+                return UIMenu(options: .displayInline, children: [
+                    action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
+                ])
             }
         }
+    }
+
+    private func share(_ url: URL) {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+              var presenter = scene.windows.first(where: \.isKeyWindow)?.rootViewController else { return }
+        while let presented = presenter.presentedViewController { presenter = presented }
+        let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        sheet.popoverPresentationController?.sourceView = presenter.view
+        presenter.present(sheet, animated: true)
     }
 
     private static let sunriseMark: UIImage? = Bundle.main
