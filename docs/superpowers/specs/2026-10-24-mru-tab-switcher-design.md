@@ -1,7 +1,7 @@
 # Ctrl-Tab by most recent use
 
 **Date:** 2026-10-24
-**Status:** draft for the owner's review. Not yet implemented; nothing here has been seen by the owner. The decisions it needs are in §11.
+**Status:** draft for the owner's review. Not yet implemented. Revised 2026-10-25 with the Linux spike (§10): the release can't be detected the way the first draft assumed, and §3.4 now describes the approach that works on Linux. Windows and macOS are still to be measured. The decisions it needs are in §11.
 **Builds on:** the per-window activation history (`src/main/tab-activation.js`, which already powers ⌥⌘Z and the close-tab survivor rule), the overlay view (`src/renderer/overlay.js`), the shared browser-command table (`src/main/browser-shortcuts.js`) and the Windows/Linux shortcut router (`installBrowserShortcuts`).
 **Reference:** Arc, Firefox (*Ctrl+Tab cycles through tabs in recently used order*, on by default since Firefox 61) and every desktop window switcher (⌘-Tab, Alt-Tab). Chrome and Safari switch by position. The request came from r/ArcBrowser on 2026-10-24 (*"Ctrl-Tab for Most Recently Used tab switcher. This is probably the most irritating. Remembering the exact location of the last used tab is such a bad UX."*), asked of people who left Arc for Chrome.
 
@@ -55,12 +55,22 @@ Holding **Ctrl** and pressing **Tab** steps back through the window's tabs in th
 
 This is the part that decides whether the feature exists.
 
-- Windows and Linux already route Ctrl+Tab through `installBrowserShortcuts` on every chrome, overlay, sheet, permission and tab webContents (`before-input-event`). The same listeners receive `keyUp` for `Control` (tab-view.js tracks held modifiers this way for gestures). The switcher is a small state machine in main: *closed → stepping (Ctrl held) → landed or cancelled*. It arms on the first Ctrl+Tab and listens for `Control` `keyUp` on **every** webContents of the window, not only the one that saw the Tab, because Electron's menu accelerator path (macOS) delivers the Tab without an input event and the release arrives at whichever surface has focus.
-- macOS: Ctrl+Tab is a menu accelerator (`command('next-tab')`), so the Tab press arrives as a menu `click`, not as a key event. The release is still a `keyUp` on the focused webContents' `before-input-event`. The window's `before-input-event` listeners are installed on every surface already (`installChromeShortcuts`), so the state machine subscribes there for `Control` up while armed.
+**What the spike found (Linux, 2026-10-25; §10).** Today `installBrowserShortcuts` calls `event.preventDefault()` on the Ctrl+Tab key press, so the page never sees it and the native menu accelerator doesn't fire a second time. When it does that, **the same webContents receives no key releases at all** afterwards, neither Tab's nor Control's, until the next key press. Electron's lower-level `input-event` misses them too, so the drop happens below Blanc. Moving keyboard focus to another surface during the press, at once or a tick later, doesn't recover the release either. The first draft's plan (keep focus put and listen for `Control` `keyUp` on whichever surface has focus) therefore never sees the release.
+
+**What works on Linux.** For the two Tab-cycling commands only, and only while the setting says *in the order you used them*:
+
+- `installBrowserShortcuts` handles Ctrl+Tab and Ctrl+Shift+Tab without calling `preventDefault()`. The key releases then arrive on the focused surface, every time: a page, a quick tap, the ⌘L panel, the Settings sheet and the chrome strip all delivered `Control` `keyUp` in the spike.
+- The menu items keep showing Ctrl+Tab but are built with `registerAccelerator: false`. Without that, the unconsumed press also reaches the native menu accelerator and every Tab steps twice (measured).
+- **Trade-off:** web pages now receive Ctrl+Tab key events, which Chrome keeps from them. A page can't stop Blanc's step (Blanc has already acted when the page sees the key), but a web app that binds Ctrl+Tab itself (some web code editors do) reacts too. D6 in §11.
+
+**The state machine** is unchanged in shape: *closed → stepping (Ctrl held) → landed or cancelled*. It arms on the first Ctrl+Tab and listens for `Control` `keyUp` on **every** webContents of the window. The window's `before-input-event` listeners are already on every surface (`installChromeShortcuts`); tab-view.js already tracks held modifiers there for gestures.
+
+- **Windows** routes Ctrl+Tab through the same `installBrowserShortcuts` path as Linux, so the same fix is expected to hold; it still has to be measured with a real keyboard (§10).
+- **macOS** is unknown. Ctrl+Tab there is a native menu key equivalent (`command('next-tab')`), and `installBrowserShortcuts` isn't installed on macOS, so the press arrives as a menu `click`, not a key event. Whether the `Control` release then reaches `before-input-event` has to be measured (§10). If it doesn't, macOS needs its own path, for example handling Ctrl+Tab in `before-input-event` there as well and making the menu shortcut display-only as on the other platforms.
 - **Focus outside any webContents** (a native dialog, the menu bar opened with the mouse, a popup window): no `keyUp` arrives. The card then stays open until Esc, a click, or the next Ctrl+Tab, and `powerMonitor`/window `blur` cancels it. It never lands on its own by timer; a timer would switch tabs under a person who is still reading the card.
 - **Repeat.** Holding Tab auto-repeats; repeats step the pick (unlike Ctrl+W, where repeats are swallowed). Holding Ctrl alone does nothing.
 - **Held firewall.** A parked (Recently closed) guest already consumes these accelerators without acting (`installHeldFirewall`); unchanged.
-- The spike in §10 proves release delivery on all three platforms before any UI is built. If a platform cannot deliver `Control` `keyUp` reliably, that platform keeps positional Ctrl+Tab and says so in D-register, and the design does not ship a timer there.
+- The spike in §10 proves release delivery on each platform before any UI is built. If a platform cannot deliver `Control` `keyUp` reliably, that platform keeps positional Ctrl+Tab and says so in the D-register, and the design does not ship a timer there.
 
 ### 3.5 Setting
 
@@ -80,8 +90,9 @@ This is the part that decides whether the feature exists.
 
 - `src/main/tab-switcher.js` (pure, no Electron): `switcherOrder(history, tabOrder, isLive, splitOf)`, `step(state, direction, order)`, `onClose(state, closedId)`. Unit-tested.
 - `src/main/main.js`: the state machine and its listeners; `cycleTab` stays for the positional setting and PageDown/PageUp. `'next-tab'`/`'previous-tab'` dispatch to the switcher when the setting says so.
-- `src/main/browser-shortcuts.js`: `'next-tab'` loses its `Ctrl+PageDown` alias; `'next-tab-in-order'`/`'previous-tab-in-order'` take `Ctrl+PageDown`/`Ctrl+PageUp` (menu items, so the Shortcuts page lists them). `browser-api/contract.json` needs nothing for keys; the card needs one overlay message (`overlay:show` with mode `'switcher'` and a payload `{ entries, pick }`, pinned in the contract) and one reply (`chrome:switcher-pick` for a click).
+- `src/main/browser-shortcuts.js`: in *recent* order, `'next-tab'`/`'previous-tab'` are handled without `preventDefault()` (§3.4); every other command, and both of these in *list* order, keep consuming the press as today. `'next-tab'` loses its `Ctrl+PageDown` alias; `'next-tab-in-order'`/`'previous-tab-in-order'` take `Ctrl+PageDown`/`Ctrl+PageUp` (menu items, so the Shortcuts page lists them). `browser-api/contract.json` needs nothing for keys; the card needs one overlay message (`overlay:show` with mode `'switcher'` and a payload `{ entries, pick }`, pinned in the contract) and one reply (`chrome:switcher-pick` for a click).
 - `src/renderer/overlay.js`: the `'switcher'` mode renders the card from the payload only; it holds no order of its own.
+- `src/main/main.js` `command()`: in *recent* order, the Next Tab / Previous Tab menu items get `registerAccelerator: false` (shown, not registered; §3.4). The menu is rebuilt when the setting changes.
 - Settings: `tabSwitchOrder: 'recent' | 'list'` in `settings-schema/schema.json` and `settings.js` (substrate check), device-local.
 - Copy: the setting's two labels and description, the card's accessible name ("Tab switcher"), and the Shortcuts page rows, in `copy/messages/en.json` with the five translations in the same PR.
 
@@ -99,6 +110,7 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
 - Unit: `tab-switcher.js` order and stepping (splits as one entry, dead ids skipped, unseen tabs appended, Shift direction, close-while-open), the setting's sanitising, the shortcut table (PageDown no longer an alias).
 - Desktop: a scenario in `test/desktop/browser-shortcuts-smoke.mjs` (it runs on Windows and under xvfb on Linux and already drives Ctrl+Tab): open three tabs, activate them 1→2→3, press Ctrl+Tab twice with Ctrl held (`sendInputEvent` keyDown Control, keyDown Tab ×2, keyUp Control), assert the landing is tab 1; a single tap lands on 2; Esc cancels; the card never appears for a tap (overlay mode stays null). macOS lands the same through the acceptance suite's Playwright keyboard (`keyboard.down('Control')`).
+- **Synthetic input can't prove the release.** The spike showed the release being dropped on the native input path; `sendInputEvent` skips that path, so a green smoke scenario says nothing about it. The Linux job should drive the same scenario with real X11 events (`xdotool` under xvfb, as the spike did; one `apt-get install xdotool`), so a regression fails CI.
 - Manual before merge, per platform: a real keyboard, with the focus in a page input, in the ⌘L panel, in Settings, in DevTools, and with a native dialog open (the no-release case of §3.4).
 
 ## 9. Deliberately excluded
@@ -112,7 +124,21 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 
 ## 10. Delivery
 
-1. **Spike (half a day):** on each platform, confirm `Control` `keyUp` reaches `before-input-event` after a menu-accelerator Ctrl+Tab (macOS) and after an intercepted one (Windows, Linux), with focus in a page, in the overlay, in the utility sheet, and with a tab view that was just swapped by the first step. Record the results in this file.
+1. **Spike:** on each platform, confirm `Control` `keyUp` reaches `before-input-event` after a menu-accelerator Ctrl+Tab (macOS) and after an intercepted one (Windows, Linux), with focus in a page, in the overlay, in the utility sheet, and with a tab view that was just swapped by the first step. Record the results in this file.
+
+   **Linux, 2026-10-25: done.** Blanc at `4f989f0`/`28fc0a5`, Electron 44.9.3, xvfb with no window manager, the full Chromium sandbox (run as an unprivileged user), real X11 key events from `xdotool`. Every webContents was instrumented, including ones created later. A control step (Ctrl+A, which Blanc doesn't intercept) delivered the release normally, so the probe sees releases when they exist.
+
+   | Variant | Ctrl release seen (of 5: page held, page tap, ⌘L panel, Settings sheet, chrome strip) | Steps per Tab |
+   |---|---|---|
+   | Today's code: each Tab switches tabs at once | 3: lost on the quick tap and in the ⌘L panel | 1 |
+   | Ctrl+Tab only counts (focus stays put), press consumed | **0** | 1 |
+   | …plus focus moved to the strip during the press, at once or a tick later | 0 | 1 |
+   | Press not consumed | 5 | **2** (native menu accelerator also fires) |
+   | **Press not consumed + menu item `registerAccelerator: false`** | **5** | **1** |
+
+   The harness, the raw reports for rows 2–5 (row 1's was overwritten during the spike) and the throwaway patch are in [`assets/2026-10-24-mru-tab-switcher/`](assets/2026-10-24-mru-tab-switcher/README.md).
+
+   **Windows and macOS: pending.** `assets/2026-10-24-mru-tab-switcher/ctrl-tab-probe.mjs` is a manual version for a real keyboard: run from a checkout, it makes a throwaway worktree of `origin/main`, applies the two variants behind environment flags, and walks the tester through four scenarios per variant. It reproduces the Linux table with `--auto`.
 2. **PR 1:** the setting, `tab-switcher.js`, the state machine, landing on release, Esc, PageDown/PageUp split from Tab, the Shortcuts page rows, copy in six languages, the smoke scenario. No card yet: a tap and a held multi-step both work blind.
 3. **PR 2:** the card in the overlay, click-to-land, Ctrl+W while open, announcements.
 4. Website and What's New only after the release that carries both PRs (`docs/marketing-claims.md`).
@@ -124,6 +150,7 @@ Nothing new leaves main: the card's payload is the same `{id, title, favicon, pr
 - **D3 — The card.** The one-row favicon strip (§3.3), or a vertical list of titles like the ⌘L switcher. The strip is closer to ⌘-Tab and fits the Island; the list is easier to read with many tabs.
 - **D4 — Ctrl+W while the card is open** closes the picked tab (as proposed) or is ignored.
 - **D5 — Platforms.** Ship on a platform only if the spike shows reliable release delivery there (proposed), or ship everywhere with the stuck-open fallback of §3.4 as the known limit.
+- **D6 — Pages see Ctrl+Tab.** The Linux fix (§3.4) lets web pages receive Ctrl+Tab key events in *recent* order, unlike Chrome. Accept that (proposed: Blanc still steps first, and the page can't block it), or keep consuming the press and ship *recent* order only where another release signal exists.
 
 ## 12. Open questions
 
