@@ -104,7 +104,11 @@ try {
           }]);
           const sourceWcId = await callTestHook(app, 'workspacePageIdentity', [sourceId]);
           const targetUrl = `${origin}/target?case=${context.profileId}-${isPrivate}-${policy.name}-${index}`;
+          // Page script and input each start from their own main-process turn:
+          // Playwright's evaluate can otherwise land inside a native callback
+          // (see document-policy-smoke.mjs).
           const point = await app.evaluate(async ({ webContents }, { id, targetUrl, referrerPolicy }) => {
+            await new Promise((resolve) => setImmediate(resolve));
             const wc = webContents.fromId(id);
             await new Promise((resolve) => {
               if (!wc.isLoading()) resolve();
@@ -119,7 +123,8 @@ try {
             })()`);
           }, { id: sourceWcId, targetUrl, referrerPolicy: policy.referrerPolicy ?? '' });
           const before = await callTestHook(app, 'windowRuntimes');
-          await app.evaluate(({ webContents, BrowserWindow }, { id, point, click }) => {
+          await app.evaluate(async ({ webContents, BrowserWindow }, { id, point, click }) => {
+            await new Promise((resolve) => setImmediate(resolve));
             const wc = webContents.fromId(id);
             BrowserWindow.fromWebContents(wc)?.focus();
             wc.focus();

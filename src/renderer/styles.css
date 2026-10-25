@@ -4415,3 +4415,6 @@ html[data-surface="glance"] .glance-header {
   color: var(--text);
 }
 .island-row.selected .row-sub { color: var(--text); }
+.ws-sync-mark { font-size: 11px; opacity: .72; margin-inline-start: .4rem; }
+.ws-sync-status { font-size: 12px; margin: .5rem; }
+.sync-not-synced { margin-inline-start: .35rem; color: var(--accent, currentColor); }

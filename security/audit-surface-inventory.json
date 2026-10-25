@@ -171,7 +171,7 @@
     },
     {
       "file": "src/main/closed-tabs.js",
-      "sha256": "67da943ff1f0b8bf055b3fe11622363562df3c9a0ad5e702e078e2aefdaf6bba",
+      "sha256": "5c35b4c21cca7c07a6affa1fbc9ac25d52dae8f1a2a53bb0dc78af493e2cdc70",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -250,7 +250,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "edd20d8b79d6d0ef3803c2e800fed292131888a307b4dec28b516bbb3dc2f2ce",
+      "sha256": "7c4ea181a18e23196f7596f8a8fb0aa5050b0b47bbe690c76822e3821ea536fa",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -495,7 +495,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "ef4cac4094ee260501b86c368a3eb5d6c56f399f4c3ebaef39654b4107034590",
+      "sha256": "1e0e4ed381a9e590f29c2127aabe799ef09365b0025ee466a23691648ab6c57b",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -558,6 +558,11 @@
         "pages:settings:open-onepassword-app",
         "pages:settings:open-trust-link",
         "pages:settings:set",
+        "pages:settings:shared-spaces-acknowledge",
+        "pages:settings:shared-spaces-apply",
+        "pages:settings:shared-spaces-open",
+        "pages:settings:shared-spaces-preview",
+        "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
@@ -600,6 +605,8 @@
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:shared-question",
+        "pages:start:shared-question-answer",
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:top-sites",
@@ -870,7 +877,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "e526562507497d6aa7aaedc7fd1048b6934e7312b056a27e40f798dbf00c244b",
+      "sha256": "91db50538f7f3416c1c5a35dbc9357939934ce15d469dd564b542146ec931ddf",
       "literalChannels": [
         "before-quit"
       ],
@@ -884,7 +891,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "a0f92c375f551790fcbbe49a3a2d71881a9a29b9be6eee5742282bab2b7d6ad5",
+      "sha256": "c51ebcb4785ea2afe8d03176c884638559d47c377f4bcea40a63f20dfb266a6d",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -949,6 +956,11 @@
         "pages:settings:open-onepassword-app",
         "pages:settings:open-trust-link",
         "pages:settings:set",
+        "pages:settings:shared-spaces-acknowledge",
+        "pages:settings:shared-spaces-apply",
+        "pages:settings:shared-spaces-open",
+        "pages:settings:shared-spaces-preview",
+        "pages:settings:shared-spaces-status",
         "pages:settings:supporter-activate",
         "pages:settings:sync-device-name-set",
         "pages:settings:sync-disable",
@@ -993,6 +1005,8 @@
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:shared-question",
+        "pages:start:shared-question-answer",
         "pages:start:startup-continue",
         "pages:start:startup-retry",
         "pages:start:status",

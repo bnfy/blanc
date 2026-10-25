@@ -27,7 +27,8 @@ function hostTitle(url) {
   }
 }
 
-function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, splitIds, documentPolicy, inheritsDocumentPolicy, activeIndex = 0 } = {}, shouldDrop) {
+function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], localFiles, splitIds, tabIds, documentPolicy, inheritsDocumentPolicy, activeIndex = 0 } = {}, shouldDrop) {
+  const hasTabIds=Array.isArray(tabIds)&&tabIds.length===urls.length;
   const hasLocalFiles = Array.isArray(localFiles) && localFiles.length === urls.length;
   // Split View (F53): zipped like the others, so a dropped tab takes its id along.
   const hasSplitIds = Array.isArray(splitIds) && splitIds.length === urls.length;
@@ -51,6 +52,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
       marked: restoredMarker(policyRecord, i),
       meta: saved.title ? saved : { ...saved, title: hostTitle(url) },
       originalIndex: i,
+      sharedTabId:hasTabIds?tabIds[i]:null,
     });
   }
   const clamped = Math.min(Math.max(0, activeIndex), Math.max(0, urls.length - 1));
@@ -66,6 +68,7 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
     meta: survivors.map((s) => s.meta),
     ...(hasLocalFiles ? { localFiles: survivors.map((s) => s.localFile) } : {}),
     ...(hasSplitIds ? { splitIds: survivors.map((s) => s.splitId) } : {}),
+    ...(hasTabIds ? {tabIds:survivors.map(s=>s.sharedTabId)} : {}),
     ...(stamped ? {
       documentPolicy: DOCUMENT_POLICY_VERSION,
       inheritsDocumentPolicy: survivors.map((s) => s.marked),

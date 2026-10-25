@@ -87,6 +87,8 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
   const pinnedHomeUrl = closedPinnedHome(tab);
   const entry = {
     kind: 'tab',
+    ...(tab.sharedTabId ? {sharedTabId:tab.sharedTabId} : {}),
+    ...(tab.sharedRemoteClose ? {sharedRemoteClose:true} : {}),
     id: nextEntryId(),
     closedAt: now,
     url: tab.url,
@@ -135,6 +137,7 @@ function closedMembers(members) {
     .map((m) => {
       const pinnedHomeUrl = closedPinnedHome(m);
       return {
+        ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
         url: m.url,
         localFile: m.localFile === true,
         inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,
@@ -210,6 +213,7 @@ function buildBatchEntry(members, now = 0, splits = []) {
       .map((m) => {
         const pinnedHomeUrl = closedPinnedHome(m);
         const member = {
+          ...(m.sharedTabId ? { sharedTabId: m.sharedTabId } : {}),
           url: m.url,
           localFile: m.localFile === true,
           inheritsDocumentPolicy: m.inheritsDocumentPolicy === true,

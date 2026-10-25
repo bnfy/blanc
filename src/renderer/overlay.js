@@ -829,6 +829,7 @@
     primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
     if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
+    if(tab.syncNotSynced){const mark=document.createElement('span');mark.className='sync-not-synced';mark.textContent='•';mark.setAttribute('aria-label',blancI18n.t('sharedSpaces.unsyncedTab'));mark.title=blancI18n.t('sharedSpaces.unsyncedTab');primary.append(mark);}
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -1691,6 +1692,7 @@
     title.textContent = entry.tabCount > 1
       ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    if(entry.fromName)title.textContent+=' · '+blancI18n.t('sharedSpaces.closedOn',{device:entry.fromName});
     title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';

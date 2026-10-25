@@ -1,4 +1,12 @@
 const { app, BrowserWindow, View, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences, desktopCapturer, screen } = require('electron');
+// Playwright's loader forces --password-store=basic before loading this entry.
+// Sync acceptance uses a real, unlocked CI keyring: select it before ready,
+// after that loader, without relaxing safeStorage's plaintext-fallback guard.
+if (!app.isPackaged && process.platform === 'linux' && process.env.BLANC_TEST === '1'
+    && process.env.BLANC_TEST_SECURE_STORAGE === '1') {
+  app.commandLine.removeSwitch('password-store');
+  app.commandLine.appendSwitch('password-store', 'gnome-libsecret');
+}
 const { enforceLinuxSandbox } = require('./linux-sandbox-launch');
 if (!enforceLinuxSandbox({ app, dialog, shell, clipboard })) return;
 const path = require('path');
@@ -162,6 +170,9 @@ const { shouldRemindDefaultBrowser, REMINDER_DELAY_MS } = require('./default-bro
 const { execFileSync, spawn } = require('node:child_process');
 const diagnostics = require('./diagnostics');
 const sync = require('./sync');
+const sharedSpaceState = require('./shared-spaces');
+const sharedSpaceModel = require('./shared-spaces-model');
+const { createRuntimeSync } = require('./shared-spaces-runtime');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
@@ -2825,6 +2836,7 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   const tab = tabs.get(id);
   if (!tab) return false;
   if (!tab.asleep) return true;
+  if(tab.sharedPendingNav){navigateTo??=tab.sharedPendingNav;delete tab.sharedPendingNav;}
   // A page-opened tab is never rebuilt with its own page (document-policy.js):
   // its view only ever shows Blanc's explanation page, whatever was asked.
   if (tab.inheritsDocumentPolicy && !tab.inert) tab.inert = true;
@@ -6206,9 +6218,10 @@ function normalizeAddressInput(input) {
 
 /** The full typed-address routing pipeline — shared by the tabs:navigate IPC
  * handler and the address-bar menu's Paste and Go, so the two can't drift. */
-function navigateTabToAddress(id, rawText) {
+function navigateTabToAddress(id, rawText, { shared = false } = {}) {
   const tab = tabs.get(id);
   if (!tab) return;
+  if(!shared&&tab.sharedTabId)sharedRuntimeSync.supersede(windowRuntimes.runtimeForTab(id)??rt(),tab.sharedTabId,'nav');
   // Checked against the raw address-bar text, before normalizeAddressInput
   // — a bare mailto:/tel: URI has no "://" and would otherwise fall
   // through its domain-guessing heuristic into an unreachable https:// URL.
@@ -6288,6 +6301,7 @@ function serializeTabs() {
       // cross this boundary merely because they were added to a tab record.
       const rest = {
         id: tab.id,
+        syncNotSynced:tab.sharedUnsynced===true,
         // F46: the label to draw — the person's name when renamed, else the
         // page's title. pageTitle carries the page's own title only while the
         // tab is renamed (tooltips, Quick Switcher). Inline on purpose: tests
@@ -6437,6 +6451,8 @@ app.on('will-quit', () => {
   onePasswordBroker?.stop();
 });
 app.on('before-quit', () => {
+  // Shared targets were persisted before materialization. Leave them for
+  // restoration rather than starting or waiting on page loads during quit.
   glanceCards.flush(); // a card moved inside the save debounce keeps its place
   forEachWindowRuntime((runtime) => {
     if (!runtime.closing && !runtime.workspaceTransition && runtime.workspaceId) {
@@ -6462,7 +6478,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // and url-less adopted children drop out in lockstep with their metadata.
   syncTabLayout(runtime);
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-  const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
+  const persistedGroups = runtime.groups.filter(group=>entries.some(item=>item.groupId===group.id)||(runtime.sharedGroupPersistence&&runtime.sharedGroupIds?.includes(group.id)));
   // The band's place counts only items that are written, so a private tab or
   // a group held only by private tabs never shifts it on the next launch.
   // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
@@ -6487,6 +6503,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
     groupIds: entries.map((item) => item.groupId),
     pinned: entries.map((item) => item.pinned),
     meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
+    ...(entries.some(item=>tabs.get(item.id)?.sharedTabId)?{tabIds:entries.map(item=>tabs.get(item.id)?.sharedTabId??null)}:{}),
     ...(entries.some((item) => tabs.get(item.id)?.localFile === true) ? {
       localFiles: entries.map((item) => tabs.get(item.id)?.localFile === true),
     } : {}),
@@ -6765,12 +6782,35 @@ function selectTabRows(id, mode) {
   return focusId;
 }
 
+function sharedClosedBand(runtime) {
+  const local=projectEntries(runtime.closedEntries??[]).map((row,index)=>({...row,closedAt:runtime.closedEntries[index].closedAt}));
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!sync.sharedStatus().enabled)return local;
+  const ctx=sync.sharedContext(),entries=runtime.closedEntries??[],seen=new Set(entries.flatMap(row=>[row,...(row.tabs??[])].map(item=>item.syncedId??item.sharedTabId)).filter(Boolean));
+  const inbox=syncedClosed.inbox(ctx);
+  for(let i=0;i<local.length;i++)if(entries[i].sharedFrom)local[i].fromName=inbox.find(row=>row.id===entries[i].sharedTabId)?.fromName??entries[i].sharedFrom;
+  const unique=new Map(),state=sharedSpaceState.snapshot(ctx);
+  for(const row of inbox){const previous=unique.get(row.id),origin=state.blobs[row.spaceId]?.blob.tabs[row.id]?.deleted?.by;if(!previous||row.fromId===origin||(previous.fromId!==origin&&row.closedAt<previous.closedAt))unique.set(row.id,row);}
+  const remote=[...unique.values()].filter(row=>!seen.has(row.id)).map(row=>({id:'shared:'+row.id,title:row.title,fromName:row.fromName,favicon:null,tabCount:1,closedAt:row.closedAt}));
+  return [...remote,...local].sort((a,b)=>(a.closedAt??0)-(b.closedAt??0)).map(({closedAt:_time,...row})=>row);
+}
+function reopenSharedClosedEntry(id) {
+  if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID||!String(id).startsWith('shared:'))return false;
+  const row=syncedClosed.hide(sync.sharedContext(),String(id).slice(7));if(!row)return false;
+  const tabId=createTab(row.url,{title:row.title});if(tabId)setActiveTab(tabId);return true;
+}
+function clearSharedClosedEntries() {
+  if(isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled)syncedClosed.clear(sync.sharedContext());
+  return clearClosedEntries();
+}
 function currentTabsPayload() {
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
-  const serialized = serializeTabs();
   const runtime = rt();
+  const shared=sharedSpaceRuntimeContext(runtime);
+  const unsynced=new Set(shared&&isSharedSpacesOffered()&&sharedSpaceState.isEnabled(shared.ctx)?sync.spaceStatus(shared.spaceId).unsyncedTabIds:[]);
+  for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)tab.sharedUnsynced=unsynced.has(tab.sharedTabId);}
+  const serialized = serializeTabs();
   syncTabLayout(runtime);
   Object.assign(runtime, pruneSelection(runtime, tabLayoutList(runtime)));
   return {
@@ -6783,7 +6823,7 @@ function currentTabsPayload() {
     closedSlot: runtime.closedSlot,
     // Closed entries cross only as the five-field projection (spec §4.1);
     // snapshots, seeds, slot metadata, and view references stay in main.
-    closed: projectEntries(runtime.closedEntries ?? []),
+    closed: sharedClosedBand(runtime),
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
@@ -7541,6 +7581,7 @@ function closedMemberRecord(id) {
   snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
   return {
     url: tab.url, title: recordTitle(tab, tab.title), favicon: tab.favicon ?? null,
+    ...(tab.sharedTabId?{sharedTabId:tab.sharedTabId}:{}),
     customTitle: tab.customTitle ?? null,
     pinnedHomeUrl: tab.pinnedHomeUrl ?? null,
     localFile: tab.localFile === true,
@@ -7597,6 +7638,242 @@ function closeGroup(groupId) {
 // requires a main-issued, one-use decision for the current affected pages.
 // ---------------------------------------------------------------------------
 
+function applySharedSpaceRow(runtime, row) {
+  return withWindowRuntime(runtime, () => {
+    if(row.kind==='groups') {
+      let group=runtime.groups.find(item=>item.id===row.id);
+      if(row.op==='create-group') {
+        if(!group){group={id:row.id};runtime.groups.push(group);}
+        Object.assign(group,{name:row.record.name.v,color:row.record.color.v,collapsed:row.record.collapsed.v});
+      } else if(row.op==='delete-group') {
+        runtime.groups=runtime.groups.filter(item=>item.id!==row.id);
+        for(const id of runtime.tabOrder)if(tabs.get(id)?.groupId===row.id)tabs.get(id).groupId=null;
+      } else if(group&&row.field!=='pos')group[row.field]=row.value.v;
+      return true;
+    }
+    let tab=runtime.tabOrder.map(id=>tabs.get(id)).find(item=>item?.sharedTabId===row.id);
+    if(row.op==='create') {
+      if(!tab) {
+        const id=createTab(row.record.nav.v.url,{asleep:true,groupId:row.record.groupId.v,pinned:row.record.pinned.v,pinnedHomeUrl:row.record.pinned.v?row.record.nav.v.url:null,customTitle:row.record.name.v,title:row.record.nav.v.title});
+        tab=tabs.get(id);tab.sharedTabId=row.id;
+        return true;
+      }
+      tab.customTitle=row.record.name.v;tab.groupId=row.record.groupId.v;
+      if(row.record.pinned.v)markPinned(tab);else{tab.pinned=false;tab.pinnedHomeUrl=null;}
+      if(persistableUrl(tab.url)!==row.record.nav.v.url)return applySharedSpaceRow(runtime,{op:'nav',kind:'tabs',id:row.id,field:'nav',value:row.record.nav});
+      return true;
+    }
+    if(!tab)return true;
+    if(row.op==='close'){tab.sharedRemoteClose=true;closeTab(tab.id,{record:true,selectReplacement:false});return true;}
+    if(row.field==='nav') {
+      if(tab.asleep) {
+        tab.url=row.value.v.url;tab.title=row.value.v.title;tab.sharedPendingNav=row.value.v.url;
+        return true;
+      }
+      tab.sharedRemoteNavigation=row.value.v.url;
+      return Promise.resolve(navigateTabToAddress(tab.id,row.value.v.url,{shared:true})).then(result=>{
+        if(tab.sharedRemoteNavigation===row.value.v.url)delete tab.sharedRemoteNavigation;
+        return result!==false;
+      });
+    }
+    if(row.field==='name')tab.customTitle=row.value.v;
+    if(row.field==='groupId')tab.groupId=row.value.v;
+    if(row.field==='pinned') {
+      if(row.value.v)markPinned(tab);else{tab.pinned=false;tab.pinnedHomeUrl=null;}
+    }
+    return true;
+  });
+}
+
+const syncedClosed=require('./synced-closed');
+const { createSharingService } = require('./shared-spaces-service');
+const { isRecoveryPlaceholder } = require('./shared-spaces-sharing');
+function isSharedSpacesOffered() { return !app.isPackaged; }
+function sharedSidecarSpace(tab,runtime) {
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID)return null;
+  const workspace=namedWorkspaces.get(runtime.workspaceId),ctx=sync.sharedContext();
+  if(!workspace?.sharedId||!sharedSpaceState.isEnabled(ctx)||sharedSpaceState.isDormant(workspace.sharedId,ctx))return null;
+  const record=sharedSpaceState.rebind(ctx.accountId).data.blobs[workspace.sharedId]?.lastPublishable?.tabs[tab.sharedTabId];
+  return require('./shared-spaces-surfaces').publishedOccurrence(tab,record)?workspace.sharedId:null;
+}
+function sharedSpaceRuntimeContext(runtime) {
+  if(!isSharedSpacesOffered()||runtime.profileId!==DEFAULT_PROFILE_ID||!runtime.workspaceId)return null;
+  const workspace=namedWorkspaces.get(runtime.workspaceId);
+  if(!workspace?.sharedId||!sync.status().enabled)return null;
+  const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId),entry=store.data.blobs[workspace.sharedId];
+  if(!entry?.blob)return null;
+  runtime.sharedGroupPersistence=true;
+  runtime.sharedGroupIds=Object.keys(entry.blob.groups).filter(id=>!entry.blob.groups[id].deleted.v);
+  const state=Object.values(store.data.windows).find(item=>item?.spaceId===workspace.sharedId);
+  const protectedIds=runtime.resident?[]:[runtime.activeTabId,...visibleSplitTabIds(runtime)].map(id=>tabs.get(id)?.sharedTabId).filter(Boolean);
+  return {spaceId:workspace.sharedId,accountId:ctx.accountId,deviceId:ctx.deviceId,blob:entry.blob,window:state,protectedIds,ctx,store,workspace};
+}
+const sharedRuntimeSync=createRuntimeSync({
+  read:sharedSpaceRuntimeContext,
+  capture:runtime=>withWindowRuntime(runtime,()=>workspaceCapture(runtime)),
+  checkpoint:runtime=>withWindowRuntime(runtime,()=>{
+    if(!namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime)).ok)return false;
+    return flushWorkspaceSession().ok;
+  }),
+  saveWindow:(runtime,state)=>{
+    const context=sharedSpaceRuntimeContext(runtime);if(!context)return false;
+    context.store.update(data=>{
+      for(const [key,value] of Object.entries(data.windows))if(value?.spaceId===state.spaceId)delete data.windows[key];
+      data.windows[`${runtime.id}:${state.spaceId}`]=state;
+    });
+    return state.accepted?.length?context.store.flush():true;
+  },
+  writeLocal:(runtime,blob,edits,diff)=>{
+    const context=sharedSpaceRuntimeContext(runtime);if(!context)return;
+    const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
+    for(let i=0;i<entries.length;i++){const tab=tabs.get(entries[i].id);if(tab)tab.sharedTabId=diff.tabIds[i];}
+    sharedSpaceState.noteLocalSpace(context.spaceId,blob,edits,context.ctx);
+  },
+  applyRow:applySharedSpaceRow,
+  layout:(runtime,blob)=>withWindowRuntime(runtime,()=>{
+    if(!blob)return;
+    const order=sharedSpaceModel.orderOf(blob.tabs).filter(id=>blob.tabs[id].deleted.v!==true),rank=new Map(order.map((id,index)=>[id,index]));
+    runtime.tabOrder=runtime.tabOrder.map((id,index)=>({id,index,rank:rank.get(tabs.get(id)?.sharedTabId)??Infinity})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(item=>item.id);
+    for(const id of runtime.tabOrder){const tab=tabs.get(id),record=blob.tabs[tab?.sharedTabId];if(record&&!record.deleted.v)tab.groupId=sharedSpaceModel.effectiveGroup(blob,record);}
+    const groups=sharedSpaceModel.orderOf(blob.groups),groupRank=new Map(groups.map((id,index)=>[id,index]));
+    runtime.groups.sort((a,b)=>(groupRank.get(a.id)??Infinity)-(groupRank.get(b.id)??Infinity));
+    syncTabLayout(runtime);
+    if(!tabs.has(runtime.activeTabId)) {
+      const selected=runtime.tabOrder[0]??createTab(NEW_TAB_URL,{asleep:true});
+      selectSharedLayoutFallback(runtime,selected);
+    }
+  }),
+});
+function selectSharedLayoutFallback(runtime,selected) {
+  // Cold restoration must materialize the entire accepted set before any
+  // page wakes. A close of the saved selection can otherwise wake its
+  // replacement in the middle of the pass, making a later nav await loadURL.
+  if(runtime.resident||runtime.closing||runtime.sharedColdRestore)runtime.activeTabId=selected;
+  else setActiveTab(selected,{focusContent:false});
+}
+function wakeRestoredTarget(runtime,target) {
+  if(!hasLiveWindow()){runtime.activeTabId=target;return;}
+  // activeTabId is only a quiet, record-level selection during cold replay.
+  // Clear it so setActiveTab performs the real attach/show/focus path instead
+  // of returning early after merely creating the renderer in wakeTab.
+  if(runtime.activeTabId===target)runtime.activeTabId=null;
+  setActiveTab(target,{focusContent:true});
+}
+function captureSharedSpaceEdits(runtime) {
+  const context=sharedSpaceRuntimeContext(runtime);
+  if(!context?.window)return;
+  sharedRuntimeSync.local(runtime);
+}
+function closeSharedSpaceWindow(runtime, event, closeNormally) {
+  // Do not force the async apply queue here: even a previously started load
+  // can remain pending indefinitely. The durable accepted set survives the
+  // ordinary close checkpoint and is replayed when the Space is restored.
+  return closeNormally(event);
+}
+
+function hasDeferredSharedChanges(runtime) {
+  return !!sharedSpaceRuntimeContext(runtime)?.window?.accepted?.length;
+}
+function applySharedSpaceChanges(runtime, options={}) {
+  const context=sharedSpaceRuntimeContext(runtime);
+  if(!context||runtime.workspaceTransition||sharedSpaceState.isDormant(context.spaceId,context.ctx)||(!options.force&&!sharedSpaceState.isEnabled(context.ctx)))return Promise.resolve(false);
+  if(context.store.data.index.spaces[context.spaceId]?.deleted?.v===true) {
+    const removed=namedWorkspaces.remove(context.workspace.id);
+    if(!removed.ok)return Promise.resolve(false);
+    runtime.workspaceId=null;
+    if(runtime.resident)disposeResident(runtime);
+    broadcastWorkspacesUpdated();return Promise.resolve(true);
+  }
+  return sharedRuntimeSync.apply(runtime,options).then(result=>{
+    if(result&&windowRuntimes.all().includes(runtime))withWindowRuntime(runtime,()=>{scheduleBroadcastTabs();});
+    return result;
+  });
+}
+const sharedSharing=createSharingService({
+  sync,spaces:sharedSpaceState,workspaces:namedWorkspaces,offered:()=>isSharedSpacesOffered()&&require('./local-profile-context').isDefaultLocalProfile(),
+  devices:()=>sync.pairingDevices(),
+  ids:()=>require('node:crypto').randomUUID().replace(/-/g,''),
+  captureLocal:()=>{
+    for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId)withWindowRuntime(runtime,()=>{
+      captureSharedSpaceEdits(runtime);
+      namedWorkspaces.saveCapture(runtime.workspaceId,workspaceCapture(runtime));
+    });
+    return namedWorkspaces.flushPending();
+  },
+  isOpen:id=>windowRuntimes.all().some(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===id),
+  bind:item=>{
+    if(!item.blob)return;
+    const runtime=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===item.workspaceId);
+    if(!runtime)return;
+    runtime.sharedGroupPersistence=true;
+    runtime.sharedGroupIds=Object.keys(item.blob.groups).filter(id=>!item.blob.groups[id].deleted.v);
+    const ids=item.tabIds;
+    const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
+    for(let i=0;i<entries.length;i++)tabs.get(entries[i].id).sharedTabId=ids[i];
+    for(const group of runtime.groups)if(item.groupBindings[group.id]){const oldId=group.id;group.id=item.groupBindings[oldId];for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab?.groupId===oldId)tab.groupId=group.id;}}
+    // The window already displays this exact snapshot: seed its receipt
+    // without replaying creates into the existing native views.
+    const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId);
+    store.update(data=>{data.windows[`${runtime.id}:${item.spaceId}`]={spaceId:item.spaceId,displayed:item.blob,accepted:[],groupBindings:{}};});
+    if(!flushWorkspaceSession().ok||!store.flush())throw new Error('save-failed');
+    withWindowRuntime(runtime,()=>captureSharedSpaceEdits(runtime));
+  },
+  recoveryName:name=>mainI18n.t('sharedSpaces.recoveryName',{name}),
+  recoverNative:(sid,recovery,records)=>{
+    for(const source of [...windowRuntimes.all()]) {
+      if(source.profileId!==DEFAULT_PROFILE_ID||namedWorkspaces.get(source.workspaceId)?.sharedId!==sid)continue;
+      const moving=source.tabOrder.filter(id=>records.tabs?.[tabs.get(id)?.sharedTabId]);if(!moving.length&&!source.sharedRecoveryPending)continue;
+      let target=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===recovery.id);
+      if(!target){target=makeResidentRuntime(DEFAULT_PROFILE_ID);target.workspaceId=recovery.id;withWindowRuntime(target,()=>applyWorkspaceToWindow(target,recovery));}
+      source.sharedRecoveryPending=true;
+      const wasTransition=source.workspaceTransition,wasSuspended=sessionPersistenceSuspended;
+      source.workspaceTransition=true;sessionPersistenceSuspended=true;
+      try {
+        for(const id of moving) {
+          const tab=tabs.get(id),groupId=tab.groupId;
+          // A previously opened recovery copy may contain edits or page state:
+          // retain it, and preserve the incoming native page as an extra local
+          // tab without the retired shared identity.
+          const duplicate=target.tabOrder.find(other=>tabs.get(other)?.sharedTabId===tab.sharedTabId);
+          const replace=duplicate&&isRecoveryPlaceholder(tabs.get(duplicate),records.tabs[tab.sharedTabId],sleepSnapshots.has(duplicate));
+          // After a crash the source may itself be only a restored copy of
+          // the old record. It has no new work to preserve beside an edited
+          // recovery tab; leave the recovery tab untouched and retire this
+          // redundant source instead of manufacturing another local copy.
+          if(duplicate&&!replace&&isRecoveryPlaceholder(tab,records.tabs[tab.sharedTabId],sleepSnapshots.has(id))) {
+            withWindowRuntime(source,()=>closeTab(id,{record:false,selectReplacement:false}));
+            continue;
+          }
+          if(replace)withWindowRuntime(target,()=>closeTab(duplicate,{record:false,selectReplacement:false}));
+          detachTabForMove(source,id);
+          if(duplicate&&!replace)delete tab.sharedTabId;
+          rehomeTab(tab,target);target.tabOrder.push(id);tab.groupId=groupId;
+        }
+        if(!source.tabOrder.length)withWindowRuntime(source,()=>{const id=createTab(NEW_TAB_URL,{asleep:true});source.activeTabId=id;});
+        withWindowRuntime(target,()=>{if(!target.tabOrder.includes(target.activeTabId))target.activeTabId=target.tabOrder[0];});
+      } finally {source.workspaceTransition=wasTransition;sessionPersistenceSuspended=wasSuspended;}
+      if(!namedWorkspaces.saveCapture(recovery.id,workspaceCapture(target)).ok||
+        !namedWorkspaces.saveCapture(source.workspaceId,workspaceCapture(source)).ok||
+        !namedWorkspaces.flushPending().ok||!flushWorkspaceSession().ok)throw new Error('save-failed');
+      source.sharedRecoveryPending=false;
+    }
+  },
+  changed:()=>broadcastWorkspacesUpdated(),
+});
+sync.onPairingShown(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>sharedSharing.armPairing()));
+sync.setSharedVisibilityProvider(()=>isSharedSpacesOffered()?namedWorkspaces.list().filter(workspace=>workspace.sharedId&&workspace.sharedLink==='active').map(workspace=>workspace.sharedId):[]);
+sync.onAccountChanged(()=>withLocalProfile(DEFAULT_PROFILE_ID,()=>{
+  namedWorkspaces.clearSharedLinks();
+  for(const runtime of windowRuntimes.all())if(runtime.profileId===DEFAULT_PROFILE_ID)for(const id of runtime.tabOrder){const tab=tabs.get(id);if(tab)delete tab.sharedTabId;}
+}));
+syncedClosed.onChanged(()=>{forEachWindowRuntime(runtime=>{if(runtime.profileId===DEFAULT_PROFILE_ID)scheduleBroadcastTabs();});});
+sharedSpaceState.onRemoteChanged(()=>{
+  withLocalProfile(DEFAULT_PROFILE_ID,()=>{sharedSharing.reconcile().catch(error=>console.warn('[shared-spaces] reconcile:',error.message));});
+  for(const runtime of windowRuntimes.all())withWindowRuntime(runtime,()=>{
+    applySharedSpaceChanges(runtime).catch(error=>console.warn('[shared-spaces] apply:',error.message));
+  });
+});
+
 /** captureWindowEntry's `groups` field is main.js's own runtime.groups array
  * (filtered), so its elements are the SAME live objects toggleGroupCollapsed
  * (etc.) mutates in place. workspaces.js/workspaces-model.js only shallow-
@@ -7629,6 +7906,7 @@ function autosaveWorkspaceBindings() {
   const runtime = rt();
   if (!runtime.workspaceId || runtime.closing || runtime.workspaceTransition) return;
   const workspace = namedWorkspaces.get(runtime.workspaceId);
+  if(workspace?.sharedId)captureSharedSpaceEdits(runtime);
   if (workspace) namedWorkspaces.queueCapture(runtime.workspaceId,
     workspaceCapture(runtime, { previousActiveIndex: workspace.activeIndex }));
 }
@@ -7792,6 +8070,8 @@ function stageWorkspace(runtime, workspace) {
       }
       if (!outgoing.workspaceId) windowRuntimes.discardRuntime(outgoing);
       finishScope(); activate();
+      applySharedSpaceChanges(outgoing,{force:true}).catch(error=>console.warn('[shared-spaces] leave:',error.message));
+      applySharedSpaceChanges(runtime,{force:true}).catch(error=>console.warn('[shared-spaces] enter:',error.message));
       // The switch is done; now, out of sight, keep the spaces set aside
       // within budget (D22).
       scheduleMakeRoomForSpaces(runtime.profileId, 'a switch');
@@ -7817,6 +8097,7 @@ let lastRoomPass = null;
  * microphone, sound or media, a shared screen, a pending prompt or popup, or a
  * page with unsaved typing or an unload warning. */
 function residentHasLiveProtection(resident) {
+  if(hasDeferredSharedChanges(resident))return true;
   const pending = permissionPendingTabIds();
   return resident.tabOrder.some((id) => {
     const tab = tabs.get(id);
@@ -8102,6 +8383,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       groupIds: workspace.groupIds,
       pinned: workspace.pinned,
       meta: workspace.meta,
+      tabIds: workspace.tabIds,
       localFiles: workspace.localFiles,
       splitIds: workspace.splitIds,
       documentPolicy: workspace.documentPolicy,
@@ -8125,6 +8407,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
       managedExtension: restorableUblockTool(url),
       inheritsDocumentPolicy: documentPolicy.restoredMarker(cleaned, index),
     }));
+    if(cleaned.tabIds)restoredIds.forEach((id,index)=>{if(tabs.get(id))tabs.get(id).sharedTabId=cleaned.tabIds[index]??null;});
     pruneEmptyGroups();
     applySavedLayout(runtime, workspace, restoredIds);
     runtime.splits = [];
@@ -8137,6 +8420,7 @@ function applyWorkspaceToWindow(runtime, workspace) {
     const selected = target ?? createTab(NEW_TAB_URL, { asleep: true });
     if (runtime.resident) runtime.activeTabId = selected;
     else setActiveTab(selected, { focusContent: true });
+    if(workspace.sharedId)applySharedSpaceChanges(runtime,{force:true}).catch(error=>console.warn('[shared-spaces] restore:',error.message));
   });
 }
 
@@ -8153,8 +8437,10 @@ function removeNamedWorkspace(id) {
     const shown = switchWindowToWorkspace(rt(), id, { newWindow: true });
     if (!shown.ok) return shown;
   }
+  const removedWorkspace=namedWorkspaces.get(id);
   const result = namedWorkspaces.remove(id);
   if (result.ok) {
+    sharedSharing.metadata(removedWorkspace,{deleted:true});
     const unbound = [];
     for (const runtime of windowRuntimes.all()) {
       if (runtime.profileId === rt().profileId && runtime.workspaceId === id) {
@@ -8176,6 +8462,7 @@ function undoRemoveNamedWorkspace(id) {
   const key = `${rt().profileId}:${id}`;
   const result = namedWorkspaces.restore(id);
   if (!result.ok) return result;
+  if(!sharedSharing.restored(id))return {ok:false,error:'storage-failed'};
   const runtimeIds = removedWorkspaceBindings.get(key) ?? [];
   removedWorkspaceBindings.delete(key);
   const peers = windowRuntimes.all().filter((r) => r.profileId === rt().profileId);
@@ -8279,6 +8566,7 @@ function duplicateTab(id) {
  * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
  */
 function onMainFrameCommit(tab, { url, httpResponseCode }) {
+  if(tab.sharedTabId&&tab.sharedRemoteNavigation!==url)sharedRuntimeSync.supersede(windowRuntimes.runtimeForTab(tab.id)??rt(),tab.sharedTabId,'nav');
   // Leaving the file (or, on a DRM build, its inert placeholder) ends the grant.
   if (!keepsLocalFile(tab, url)) {
     tab.localFile = false;
@@ -8909,6 +9197,7 @@ function setActiveTab(id, {
   if (nextSplit) nextSplit.focusedIndex = nextSplit.tabIds.indexOf(id);
 
   rt().activeTabId = id;
+  if(next.sharedTabId||prev?.sharedTabId)applySharedSpaceChanges(rt()).catch(error=>console.warn('[shared-spaces] switch:',error.message));
   resetFocusedPane();
   fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
@@ -9233,6 +9522,17 @@ function pushClosedEntry(entry) {
     for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
   }
   list.push(entry);
+  if(isSharedSpacesOffered()&&owner.profileId===DEFAULT_PROFILE_ID&&sync.sharedStatus().enabled) {
+    const context=sharedSpaceRuntimeContext(owner),ctx=sync.sharedContext();
+    for(const item of entry.kind==='tab'?[entry]:(entry.tabs??[])) {
+      if(item.private||item.inheritsDocumentPolicy||documentPolicy.restoredEntryMarker(item)||!/^https?:/.test(item.url))continue;
+      const deleted=context?.blob.tabs[item.sharedTabId]?.deleted;
+      item.syncedId=item.syncedId??item.sharedTabId??require('node:crypto').randomUUID();
+      item.sharedRemote=item.sharedRemoteClose===true&&deleted?.v===true&&deleted.by!==context?.deviceId;
+      item.sharedFrom=item.sharedRemote?(require('./tabsync').getDeviceEntries(ctx)[deleted.by]?.name??syncedClosed.rebind(ctx.accountId).data.devices[deleted.by]?.name??deleted.by):null;
+      syncedClosed.addOwnItem(ctx,{id:item.syncedId,url:item.url,title:item.title,closedAt:entry.closedAt,spaceId:context?.spaceId??null});
+    }
+  }
   entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
     const due = new Set(expireEntries(owner.closedEntries ?? [], { now: Date.now() }));
     if (due.has(entry.id)) forgetClosedEntry(entry.id);
@@ -9258,10 +9558,12 @@ function disposeClosedEntry(entry) {
 /** Remove one entry without reopening it. Renderer ids are proposals; main
  * re-resolves them against the focused window's own list. */
 function forgetClosedEntry(entryId, { broadcast = true } = {}) {
+  if(String(entryId).startsWith('shared:')) {const row=syncedClosed.hide(sync.sharedContext(),String(entryId).slice(7));if(row&&broadcast)broadcastTabs();return !!row;}
   const list = rt().closedEntries ?? [];
   const at = list.findIndex((entry) => entry.id === String(entryId));
   if (at === -1) return false;
   const [entry] = list.splice(at, 1);
+  for(const item of [entry,...(entry.tabs??[])])if(item.syncedId||item.sharedTabId)syncedClosed.hide(sync.sharedContext(),item.syncedId??item.sharedTabId);
   disposeClosedEntry(entry);
   if (hasLiveWindow()) {
     scheduleMenuRebuild();
@@ -9438,6 +9740,7 @@ function closeTab(id) {
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  if(tab.sharedTabId)captureSharedSpaceEdits(rt());
   popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
@@ -10360,7 +10663,7 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
-  const shared=rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
+  const shared=isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
     // Recently Deleted shows each space as it was, so its tile keeps its colour and symbol.
@@ -10375,9 +10678,10 @@ function workspacesProjection() {
       tabCount: workspace.urls.length,
       color: workspace.color,
       symbol: workspace.symbol,
-      ...(shared&&workspace.sharedId?{sharedSync:sync.spaceStatus(workspace.sharedId)}:{}),
+      ...(shared?.enabled&&workspace.sharedId&&workspace.sharedLink!=='dormant'?{sharedSync:{...sync.spaceStatus(workspace.sharedId),state:require('./shared-spaces-surfaces').markState(shared,sync.spaceStatus(workspace.sharedId))}}:{}),
     })),
-    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd}:undefined,
+    recoveryNotice:shared&&namedWorkspaces.list().some(workspace=>workspace.recoveredFrom)&&!sharedSpaceState.snapshot(sync.sharedContext()).recoveryNoticeSeen,
+    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd,busy:!!(shared.waiting||shared.running),slowed:shared.backoff}:undefined,
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,
@@ -10672,6 +10976,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:reopen-entry', (_e, entryId) => {
+    if(reopenSharedClosedEntry(entryId))return;
     // Renderer input is a proposal: main re-resolves the id against its own
     // list; a stale or forged id is a no-op (the moveTabTo rule).
     const list = rt().closedEntries ?? [];
@@ -10681,7 +10986,7 @@ function registerIpcHandlers() {
     reopenEntry(entry);
   });
   chromeHandle('tabs:forget-closed-entry', (_e, entryId) => forgetClosedEntry(entryId));
-  chromeHandle('tabs:clear-closed', () => clearClosedEntries());
+  chromeHandle('tabs:clear-closed', () => clearSharedClosedEntries());
   chromeHandle('tabs:group-many-by-name', (_e, ids, name) => groupTabsByName(ids, name));
   chromeHandle('tabs:select', (_e, id, mode) => selectTabRows(id, mode));
   chromeHandle('tabs:switch', (_e, id) => { clearTabSelection(); return setActiveTab(id); });
@@ -10798,7 +11103,7 @@ function registerIpcHandlers() {
     groups: rt().groups,
     splits: projectSplits(rt()),
     closedSlot: rt().closedSlot,
-    closed: projectEntries(rt().closedEntries ?? []),
+    closed: sharedClosedBand(rt()),
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -11111,12 +11416,14 @@ function registerIpcHandlers() {
     return { ok: true, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-update', (_e, id, patch) => {
+    if(patch?.ackRecovery===true&&isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID){const store=sharedSpaceState.rebind(sync.sharedContext().accountId);store.update(data=>{data.recoveryNoticeSeen=true;});if(!store.flush())return {ok:false,error:'storage-failed'};broadcastWorkspacesUpdated();return {ok:true,...workspacesProjection()};}
     const result = namedWorkspaces.update(id, {
       ...(typeof patch?.name === 'string' ? { name: patch.name } : {}),
       ...(typeof patch?.color === 'string' ? { color: patch.color } : {}),
       ...(typeof patch?.symbol === 'string' ? { symbol: patch.symbol } : {}),
     });
     if (!result.ok) return result; // not-found | invalid-name | duplicate-name | invalid-color | invalid-symbol
+    if(!sharedSharing.metadata(result.workspace??namedWorkspaces.get(id),patch??{}))return {ok:false,error:'storage-failed'};
     broadcastWorkspacesUpdated();
     return { ok: true, ...workspacesProjection() };
   });
@@ -11128,7 +11435,7 @@ function registerIpcHandlers() {
   });
 
   for (const [channel, operation] of [
-    ['chrome:workspaces-restore', (id) => namedWorkspaces.restore(id)],
+    ['chrome:workspaces-restore', (id) => {const result=namedWorkspaces.restore(id);return result.ok&&!sharedSharing.restored(id)?{ok:false,error:'storage-failed'}:result;}],
     ['chrome:workspaces-forget', (id) => namedWorkspaces.forget(id)],
     // The model refuses a negative or non-integer index (invalid-index).
     ['chrome:workspaces-move-to', (id, index) => namedWorkspaces.moveTo(id, index)],
@@ -11136,6 +11443,7 @@ function registerIpcHandlers() {
     chromeHandle(channel, (_event, ...args) => {
       const result = operation(...args);
       if (!result.ok) return result;
+      if(channel==='chrome:workspaces-move-to'&&!sharedSharing.reorder())return {ok:false,error:'storage-failed'};
       broadcastWorkspacesUpdated();
       return { ok: true, ...workspacesProjection() };
     });
@@ -12257,7 +12565,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
       });
     },
   });
-  rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
+  rt().window.on('close', bindWindowRuntime(runtime, event=>closeSharedSpaceWindow(runtime,event,dockReopenLifecycle.onWindowClose)));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     clearIslandHoverTimer(runtime);
     clearIslandAutoHideTimer(runtime);
@@ -14330,6 +14638,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
+    sharedSpaces: { acknowledge:id=>sharedSharing.acknowledge(id), open:id=>{if(!isSharedSpacesOffered()||rt().profileId!==DEFAULT_PROFILE_ID)return {ok:false};return switchWindowToWorkspace(rt(),String(id));}, status:()=>{const openSheet=!!rt().sharedShowSheet;rt().sharedShowSheet=false;return {offered:isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID,...sync.sharedStatus(),question:sharedSharing.question(),openSheet};}, preview:()=>sharedSharing.preview(), apply:payload=>sharedSharing.apply(payload) },
     drm: require('./drm-controls').createDrmControls({ support: drmSupport, restart: restartApp }),
     stringsScript: () => mainI18n.stringsScript(),
     i18n: mainI18n,
@@ -14481,6 +14790,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sentItemsFor: (wc) => (tabs.get(tabIdByWebContentsId.get(wc.id))?.private ? [] : knownSentItems()),
       openSent: (id) => openSentItem(id),
       dismissSent: (id) => dismissSentItem(id),
+      sharedQuestionFor:wc=>startPageSenderIsPrivate(wc)?null:sharedSharing.question(),
+      sharedQuestionAnswer:(wc,id,on)=>{if(startPageSenderIsPrivate(wc))return false;const accepted=sharedSharing.acknowledge(id);if(accepted&&on){rt().sharedShowSheet=true;openSettingsSection('sync');}return accepted;},
       status: startPageStatus,
       visibleFor: (wc) => startPageViewVisible(tabs.get(tabIdByWebContentsId.get(wc.id))),
       // The Settings sheet is no tab, so it gets the ordinary (non-private) state.
@@ -14644,6 +14955,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
+      sharedSpacesTest:async(action,payload)=>{
+        if(action==='enable')return sync.enable(payload);
+        if(action==='pairingPeer'){sharedSharing.armPairing();require('./tabsync').mergeFromSync({devices:{'pseudo-peer':{name:'zzz-peer',platform:'linux',updatedAt:Date.now(),tabs:[],groups:[]}}},sync.sharedContext());return true;}
+        if(action==='disable')return sync.disable({wipeRemote:false});
+        if(action==='apply')return sharedSharing.apply(payload);
+        if(action==='pull')return sync.syncNow(payload);
+        if(action==='capture'){captureSharedSpaceEdits(rt());return true;}
+        if(action==='state')return {shared:sharedSpaceState.snapshot(sync.sharedContext()),context:sync.sharedContext(),closed:sharedClosedBand(rt()),parked:(rt().closedEntries??[]).map(entry=>({id:entry.id,sharedTabId:entry.sharedTabId,held:!!entry.view})),workspaces:workspacesProjection()};
+        return null;
+      },
       prepareDisplayCaptureHelper: () => displayCaptureLazy.prepare(),
       i18nState: () => mainI18n.state(),
       t: mainI18n.t,
@@ -15346,7 +15667,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // sync.js/tabicons.js pull these providers from their own timers/session
     // flows — bind them rather than trust every caller to already be bound.
     tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean).map(tab=>({...tab,sharedSpaceId:sharedSidecarSpace(tab,rt())})),
       groups: rt().groups,
     })));
     tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
@@ -15676,6 +15997,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
+    const restoredTargets = new Map(); // runtime -> quiet tab selected after shared replay
     for (const runtime of restorableRuntimes) {
       const saved = savedByRuntime.get(runtime);
       if (!saved) continue;
@@ -15695,6 +16017,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           managedExtension: restorableUblockTool(url),
           inheritsDocumentPolicy: documentPolicy.restoredMarker(saved, index),
         }));
+        restoredIds.forEach((id,index)=>{if(tabs.get(id))tabs.get(id).sharedTabId=saved.tabIds?.[index]??null;});
         pruneEmptyGroups();
         applySavedLayout(runtime, saved, restoredIds);
         applyRestoredSplits(runtime, saved, restoredIds);
@@ -15712,12 +16035,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         }
         const target = restoreTargetId(restoredIds, saved.activeIndex);
         if (!target) return;
-        // Activate first, then close the startup tab. The inverse briefly wakes
-        // the wrong quiet tab and doubles renderer memory during restore.
-        if (hasLiveWindow()) setActiveTab(target, { focusContent: true });
-        else runtime.activeTabId = target;
+        restoredTargets.set(runtime, target);
         const startupTabId = startupTabIds.get(runtime.id);
-        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
+        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId, { selectReplacement: false });
+        // Select without waking. Deferred shared navigation must materialize
+        // record-only while every restored page is quiet; waking first would
+        // make startup await the page's load before persistence is resumed.
+        runtime.activeTabId = target;
       });
     }
     // De-duplicate: only one window may bind a given workspace id — a second
@@ -15739,6 +16063,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (claimedWorkspaceIds.has(claim)) continue;
       claimedWorkspaceIds.add(claim);
       runtime.workspaceId = workspaceId;
+      runtime.sharedColdRestore = true;
+      try { await withWindowRuntime(runtime,()=>applySharedSpaceChanges(runtime,{force:true})); }
+      finally { runtime.sharedColdRestore = false; }
+    }
+    for (const [runtime,target] of restoredTargets) {
+      if (!windowRuntimes.all().includes(runtime)) continue;
+      const wakeTarget = tabs.has(target) ? target
+        : (tabs.has(runtime.activeTabId) ? runtime.activeTabId : runtime.tabOrder.find(id=>tabs.has(id)));
+      if (!wakeTarget) continue;
+      withWindowRuntime(runtime,()=>wakeRestoredTarget(runtime,wakeTarget));
     }
 
     // Recovery is an ephemeral neutral host. Destroy it while persistence is

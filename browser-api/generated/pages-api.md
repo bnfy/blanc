@@ -144,6 +144,13 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `diagnostics.status` | invoke | `pages:diagnostics:status` | settings | Local diagnostics status. |
 | `diagnostics.export` | invoke | `pages:diagnostics:export` | settings | Export local diagnostics through a native save dialog. |
 | `diagnostics.clear` | invoke | `pages:diagnostics:clear` | settings | Clear local diagnostics. |
+| `settings.sharedSpacesPreview` | invoke | `pages:settings:shared-spaces-preview` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesApply` | invoke | `pages:settings:shared-spaces-apply` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesStatus` | invoke | `pages:settings:shared-spaces-status` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesOpen` | invoke | `pages:settings:shared-spaces-open` | settings | Development-only Shared Spaces consent and selection. |
+| `settings.sharedSpacesAcknowledge` | invoke | `pages:settings:shared-spaces-acknowledge` | settings | Development-only Shared Spaces consent and selection. |
+| `start.sharedQuestion` | invoke | `pages:start:shared-question` | newtab | Development-only Shared Spaces pairing notice. |
+| `start.sharedQuestionAnswer` | invoke | `pages:start:shared-question-answer` | newtab | Development-only Shared Spaces pairing notice. |
 
 ## Signals
 

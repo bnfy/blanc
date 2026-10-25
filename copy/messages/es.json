@@ -7869,6 +7869,130 @@
     "message": "Enviar la página de esta pestaña a otro dispositivo sincronizado",
     "source": "sha256:1d542be7aafa7207a6c34f1c5e2cf7af7ca4ccfa459231580cb7bd0215988b97"
   },
+  "sharedSpaces.switch": {
+    "message": "Mantener Spaces y grupos sincronizados en este dispositivo",
+    "source": "sha256:c02b1330d0aebe0038d68ab7853e3248ed9c0cb053c485c6d84f21705521d43a"
+  },
+  "sharedSpaces.title": {
+    "message": "Elegir Spaces para sincronizar",
+    "source": "sha256:5a18823d575c4e530e97fff1dd445b7fcd198705aa312fc5733c58777aa6d4ad"
+  },
+  "sharedSpaces.explanation": {
+    "message": "Comparte estos Spaces entre los dispositivos de esta cuenta. Se sincronizarán las pestañas abiertas, sus nombres, los grupos y las pestañas fijadas.",
+    "source": "sha256:9cbe2cc56e90aae7ebfbce1c8db73a465559d1fcb865fe6df0eed6533bff312c"
+  },
+  "sharedSpaces.cancel": {
+    "message": "Cancelar",
+    "source": "sha256:25584d4829d0a0d6eac5f5e811cb3a80bf4060707641932d680fd3bf6b139842"
+  },
+  "sharedSpaces.confirm": {
+    "message": "Activar",
+    "source": "sha256:232a70a711593256d6bd4ab2a793561c933e60647dd79c7506fb39364af73c56"
+  },
+  "sharedSpaces.count": {
+    "message": "{count} de {limit} Spaces compartidos",
+    "source": "sha256:22332d672d6af04147d262c050d71c0ee7ec273f33c9b75f4ed9c13465dc55d2"
+  },
+  "sharedSpaces.tabs": {
+    "message": "{count} pestañas",
+    "source": "sha256:08b2f776dccb417d5c5a2ab808e9c2ea63def60febda472b33507f99fd511cea"
+  },
+  "sharedSpaces.rejoin": {
+    "message": "Volver a unirse",
+    "source": "sha256:aeee20618ec647f7a65634e57aaafb267dff265abd9b78487df097301a858f37"
+  },
+  "sharedSpaces.copy": {
+    "message": "Añadir como copia",
+    "source": "sha256:76ae87f2b2fb2d94adf81d9a7750657555df2c2c7603ae98dd6a2217c14ff824"
+  },
+  "sharedSpaces.full": {
+    "message": "Este Space es demasiado grande. Divídelo primero en Spaces más pequeños.",
+    "source": "sha256:7d28403181d90bc1152fc7554361724000f1c481857422f927d734d695a68107"
+  },
+  "sharedSpaces.unavailable": {
+    "message": "La sincronización de Spaces no está disponible. Los favoritos, los ajustes, las pestañas abiertas y Enviar a dispositivo siguen funcionando.",
+    "source": "sha256:6c7e105189e3d937b8eb7698c6657fd4a623e7a839e822e3c8d0a8e8367332b1"
+  },
+  "sharedSpaces.recoveryName": {
+    "message": "{name} · conservado en este dispositivo",
+    "source": "sha256:d5de7ee0869538f52b1327005844a5a5fdc65abd3bdcdfff5f1c56348f8d07eb"
+  },
+  "sharedSpaces.shared": {
+    "message": "Compartido",
+    "source": "sha256:7ab17682809b51881292d18af880a4c99dfdc6e488bce5d9870f5f16142673e1"
+  },
+  "sharedSpaces.waiting": {
+    "message": "Esperando para subir",
+    "source": "sha256:b7545a2b1b00d3bd690b31f2e45e2f8f9bec2df0673cab028cb03f74c0d1548b"
+  },
+  "sharedSpaces.notSynced": {
+    "message": "Sin sincronizar desde {time}",
+    "source": "sha256:95bbaf22532f2e467c33a531a7bc6770e4e53ef56cb2ffd6bacd127efac56fff"
+  },
+  "sharedSpaces.fullState": {
+    "message": "Lleno para sincronizar",
+    "source": "sha256:ef8014f48cb6f9b5b917f57de8b9a5a2c25e98e1ca6890c6872cc55242de7f9c"
+  },
+  "sharedSpaces.unavailableState": {
+    "message": "La sincronización de Spaces no está disponible",
+    "source": "sha256:d86946b151048eaaf96ff3a8d10f731aa139921acd8b801bd047f3bac5b637c5"
+  },
+  "sharedSpaces.closedOn": {
+    "message": "Cerrado en {device}",
+    "source": "sha256:6b2ff6c80fc0e524064036b9d082cd04faef50bc3f3b2c6d1eaa79807b96d29b"
+  },
+  "sharedSpaces.split": {
+    "message": "Abrir para dividir…",
+    "source": "sha256:483a4fdaf6329b555b5543d14438a252dc4dac862f6f17d31a8fc2e360c809cb"
+  },
+  "sharedSpaces.splitHint": {
+    "message": "Mueve pestañas a otro Space y vuelve a intentarlo.",
+    "source": "sha256:3add56a10780753f7ecceb15788ee558e9b7231a3460330cff28a9c7cfec889d"
+  },
+  "sharedSpaces.accountLine": {
+    "message": "Cada dispositivo que lo active podrá cambiar estos Spaces.",
+    "source": "sha256:4214d845051c85c5a378436df7d90f99e62895f391e86fc3972a54fe5872bf66"
+  },
+  "sharedSpaces.offLine": {
+    "message": "Al desactivar se conserva una copia local. Los demás dispositivos siguen sincronizando.",
+    "source": "sha256:95b4a0a22f4e929a7668a793c4f45e60ce37257e06115eae9c922af707e704bb"
+  },
+  "sharedSpaces.tombstones": {
+    "message": "Las pestañas cerradas ocupan espacio de sincronización durante 30 días.",
+    "source": "sha256:e3ce6c214cca3fe6a61b8fb7b62a3873da543710db6a8349df69a047c8e6cebb"
+  },
+  "sharedSpaces.capacity": {
+    "message": "Este Space está lleno para sincronizar. Los cambios locales se conservan.",
+    "source": "sha256:e47ce8a86a5eed56f90df7fa70919c8d8bc702011e85ffd06a38ec605a92c453"
+  },
+  "sharedSpaces.busy": {
+    "message": "La sincronización está ocupada; reintentando.",
+    "source": "sha256:26e3af6153cc1eb99dfff5009b773c400a6f9c000a9b92929806605936806588"
+  },
+  "sharedSpaces.slowed": {
+    "message": "El límite de solicitudes ralentiza la búsqueda de cambios.",
+    "source": "sha256:7d602ab74a3facc17eb511ccbe56fc75f6ecf9e1c5f81cc06912831bcf64ff36"
+  },
+  "sharedSpaces.unsyncedTab": {
+    "message": "Sin sincronizar",
+    "source": "sha256:3d8185c5372f7eed81d6f7d3a7cf6a368ec4a96829cd3faa7329969e01851e09"
+  },
+  "sharedSpaces.pairQuestion": {
+    "message": "{name} se ha unido a tu sincronización. ¿Activar Spaces aquí?",
+    "source": "sha256:a3ac719eff0d70ceb42bb370e3b4cc289152d14045d34f8fc137320db7377cca"
+  },
+  "sharedSpaces.pairDetail": {
+    "message": "Este dispositivo podrá cambiar los Spaces compartidos de tu cuenta.",
+    "source": "sha256:0f429a126d20e307b355977ed531669ff3371ffab44bed5beac8c0fe3e84a6dd"
+  },
+  "sharedSpaces.notNow": {
+    "message": "Ahora no",
+    "source": "sha256:1ce162f407963e3efc46cbe4be00ca28ed94ae5f76ece576a1a64346b974d3ab"
+  },
+  "sharedSpaces.recoveryNote": {
+    "message": "Un Space de recuperación local conserva las pestañas que faltan en una copia compartida antigua.",
+    "source": "sha256:ca7b8b4278e3debe18cf507f99911dd03d156c3947f0c697cfbb5e8f21232e9d"
+  },
   "ios.settings.privacy": {
     "message": "Privacidad",
     "source": "sha256:a54774194924512cd6da78251641574690dc0ca7699ba6a57e6c6238cf7cd527"

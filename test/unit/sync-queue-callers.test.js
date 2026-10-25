@@ -91,3 +91,15 @@ test('an account cannot be adopted while a wipe is draining an old-account PUT',
   const deletes=d.events.filter(e=>e.method==='DELETE');assert.ok(deletes.length>0);
   assert.equal(deletes[0].url.endsWith('/'+account),true,'the old wipe must never target the new account');
 });
+test('off and on again cannot revive an in-flight Space request from the old consent',async t=>{
+ let release;const gate=new Promise(resolve=>{release=resolve;});
+ const d=setup(t,{fetch:async e=>{if(e.method==='GET'&&e.store.startsWith('space-')){await gate;return response(404);}return response(200,{version:'v'});}});
+ const blob=space(1);d.spaces.noteLocalSpace(id(1),blob,{tabs:blob.tabs},d.ctx);
+ const pending=d.sync.syncNow(['space-'+id(1)]);await tick();
+ d.sync.setSyncSpaces(false);d.sync.setSyncSpaces(true);release();await pending;
+ assert.equal(d.events.some(e=>e.method==='PUT'&&e.store==='space-'+id(1)),false);
+ assert.ok(d.spaces.snapshot(d.ctx).pending[id(1)].tabs);
+});
+test('pairing notices discover devices through the same supported sources as Send to device',async t=>{
+ const d=setup(t);assert.deepEqual(d.sync.pairingDevices().map(row=>({id:row.deviceId,name:row.name})),[{id:'phone',name:'Phone'}]);
+});

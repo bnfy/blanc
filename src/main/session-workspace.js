@@ -66,6 +66,7 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
     // Quiet Tabs: titles and favicons for tabs that come back quiet, zipped
     // onto `urls`. A mismatch means a rollback writer moved the URL column.
     meta: Array.isArray(source.meta) && source.meta.length === urls.length ? source.meta : [],
+    ...(Array.isArray(source.tabIds)&&source.tabIds.length===urls.length?{tabIds:source.tabIds.map(id=>typeof id==='string'&&/^[0-9a-f]{32}$/.test(id)?id:null)}:{}),
     ...(Array.isArray(source.localFiles) && source.localFiles.length === urls.length
       ? { localFiles: source.localFiles.map((value) => value === true) } : {}),
     // Recently closed band position among the groups (0 = under Pinned, the
