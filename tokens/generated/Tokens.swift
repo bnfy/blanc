@@ -74,6 +74,13 @@ public enum BlancTokens {
         case .privateBrowsing: return "rgba(245, 245, 245, 0.12)"
         }
     }
+    public static func rowSelected(_ theme: BlancTheme) -> String {
+        switch theme {
+        case .light: return "#728ca6"
+        case .dark: return "#536f8b"
+        case .privateBrowsing: return "#596c83"
+        }
+    }
     public static func sunriseBg(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "#f8f2e8"

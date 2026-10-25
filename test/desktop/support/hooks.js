@@ -352,9 +352,9 @@ BeforeAll({ timeout: 120_000 }, async () => {
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
-  ctx.relaunch = async () => {
+  ctx.relaunch = async (extraEnv = {}) => {
     if (ctx.app) await closeApp(ctx.app);
-    ctx.app = await launchApp();
+    ctx.app = await launchApp(extraEnv);
   };
   // A crash, not a quit: the process is killed, so nothing gets a chance to
   // flush on the way out, and the next launch sees only what was on disk.

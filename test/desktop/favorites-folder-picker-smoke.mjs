@@ -5,6 +5,7 @@ import path from 'node:path';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testHookCall from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 
 // #448: exercise the real Favorites sheet, row transforms, sticky nav,
 // permissioned store writes, and main-process Escape routing in Electron.
@@ -48,7 +49,7 @@ try {
   const menu = sheet.locator('.folder-picker');
   const pressEscape = async () => {
     const contentsId = await call('utilitySheetContentsId');
-    await app.evaluate(({ webContents }, id) => {
+    await inMainTurn(app, ({ webContents }, id) => {
       const wc = webContents.fromId(id);
       wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
       wc.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });

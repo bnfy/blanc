@@ -6,6 +6,7 @@ const ctx = require('../support/context');
 const { overlayPage } = require('../support/overlay');
 const { waitForValue } = require('../support/poll');
 const { frontChromeWindow } = require('../support/tab-drag');
+const { inMainTurn } = require('../support/main-turn');
 
 async function mainChromePage() {
   for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -295,7 +296,7 @@ When('I dismiss the orphaned Change picker with Escape', async function () {
   // path (main's before-input-event on the overlay). CDP-injected keys from
   // page.press bypass before-input-event and land in the overlay's reason-less
   // DOM fallback instead.
-  await ctx.app.evaluate(({ webContents }) => {
+  await inMainTurn(ctx.app, ({ webContents }) => {
     const overlay = webContents.getAllWebContents()
       .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
     if (!overlay) throw new Error('overlay webContents not found');
@@ -508,7 +509,7 @@ When('I choose the slow quiet tab and cancel with Escape before it wakes', async
   await page.press('#glancePickerInput', 'Enter');
   await page.locator('#glancePickerInput[aria-busy="true"]').waitFor();
   // The real cancel path is main's before-input-event on the overlay.
-  await ctx.app.evaluate(({ webContents }) => {
+  await inMainTurn(ctx.app, ({ webContents }) => {
     const overlay = webContents.getAllWebContents()
       .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
     overlay.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
@@ -675,7 +676,7 @@ When('I press the close-tab command in the find bar', async function () {
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'find', 'find capsule');
   const page = await overlayPage();
   await page.locator('#findInput').waitFor();
-  await ctx.app.evaluate(({ Menu, webContents }) => {
+  await inMainTurn(ctx.app, ({ Menu, webContents }) => {
     if (process.platform === 'darwin') {
       Menu.getApplicationMenu().getMenuItemById('browser-close-tab').click();
       return;

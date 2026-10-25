@@ -189,11 +189,11 @@
 
     // ---- editing state ----
     /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }. */
-    function beginNew({ name = '', start = null, original = null } = {}) {
+    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '' } = {}) {
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -273,7 +273,8 @@
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
-      if (state.original) { state = state.original; render(); }
+      if (['tab', 'tabs', 'link'].includes(state.start)) { state = { kind: 'list' }; close({ force: true }); }
+      else if (state.original) { state = state.original; render(); }
       else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
       else if (opened) { state.error = ''; close(); }
@@ -295,11 +296,14 @@
       state.pending = false;
       if (result?.items) data = { ...data, ...result };
       if (!result?.ok) {
-        if (result?.error === 'saved-not-opened') {
+        if (['saved-not-opened', 'saved-not-moved'].includes(result?.error)) {
           // Creation already committed. Leave the user on the list containing
           // that saved row; keeping the editor alive would turn a retry into a
           // misleading duplicate-name failure.
-          state = { kind: 'list', error: errors[result.error] };
+          const batch = state.start === 'tabs';
+          state = { kind: 'list', error: batch ? t('ws.error.movedPartly', { name: data.items.find(item => item.id === result.workspaceId)?.name ?? '', count: result.movedCount ?? 0 }) : result.error === 'saved-not-moved'
+            ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
+            : errors[result.error] };
           render();
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
@@ -329,6 +333,15 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
+      if (['tab', 'tabs', 'link'].includes(state.start)) {
+        const isTabs = state.start === 'tabs';
+        const isLink = state.start === 'link';
+        const tabId = state.tabId;
+        run(() => isLink ? api.createSpaceWithLink(name, identity) : isTabs ? api.createSpaceWithTabs(name, identity, tabId) : api.createSpaceWithTab(name, identity, tabId), () => {
+          state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
+        });
+        return;
+      }
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
       const original = state.original;
       run(() => api.saveWorkspaceAs(name, identity), () => {
@@ -357,6 +370,7 @@
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
       main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');main.append(mark);if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');}
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -420,6 +434,8 @@
     }
     function renderList() {
       const nodes = [];
+      if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));else if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));}
+      if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
       if (undo && data.deleted?.some((d) => d.id === undo.id)) {
@@ -527,6 +543,9 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
+      if (isNew && ['tab', 'tabs', 'link'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : state.start === 'tabs' ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
         for (const [value, text] of [['window', t('ws.editor.thisWindow', { count: data.windowTabCount ?? 0 })], ['empty', t('ws.editor.empty')]]) {
@@ -678,6 +697,14 @@
         if (!same && !state.pending && !['new', 'edit'].includes(state.kind)) render();
       },
       open, close, cancel, render, layout,
+      showLinkError(name, error) {
+        state = { kind: 'list', error: `${t('ws.error.openLinkFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
+      showMoveError(name, error, movedCount = 0) {
+        state = { kind: 'list', error: error === 'moved-partly' ? t('ws.error.movedPartly', { name, count: movedCount }) : `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+        open();
+      },
       /** 'new' (optionally { name, start }), 'edit' a workspace, or 'delete' one at once. */
       begin(kind, workspace = null, options = {}) {
         if (kind === 'new') beginNew(options);

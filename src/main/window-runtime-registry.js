@@ -34,6 +34,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     chromeReady: false,
     pageTintController: null,
     tabOrder: [],
+    selectedTabIds: [],
+    selectionRevision: 0,
+    selectionAnchorId: null,
+    selectionSplits: {},
     activeTabId: null,
     groups: [],
     /** Recently closed band: how many of `groups` sit above it (0 = under

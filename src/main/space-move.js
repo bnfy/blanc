@@ -67,20 +67,22 @@ function runSpaceMove(adapter) {
 function appendTabToCapture(capture, entry) {
   const urls = [...(capture.urls ?? [])];
   const n = urls.length;
+  const column = (key, fallback) => Array.from({ length: n }, (_, i) => capture[key]?.[i] ?? fallback);
   const next = {
     ...capture,
     urls: [...urls, entry.url],
-    groupIds: [...(capture.groupIds ?? []), null],
-    pinned: [...(capture.pinned ?? []), !!entry.pinned],
-    meta: [...(capture.meta ?? []), entry.meta],
+    groupIds: [...column('groupIds', null), null],
+    pinned: [...column('pinned', false), !!entry.pinned],
+    meta: [...column('meta', {}), entry.meta],
   };
   if (Array.isArray(capture.localFiles) || entry.localFile === true) {
-    const prior = Array.isArray(capture.localFiles) ? capture.localFiles : new Array(n).fill(false);
+    const prior = column('localFiles', false);
     next.localFiles = [...prior, entry.localFile === true];
   }
-  if (Array.isArray(capture.splitIds)) next.splitIds = [...capture.splitIds, null];
+  if (Array.isArray(capture.tabIds)) next.tabIds = [...column('tabIds', null), null];
+  if (Array.isArray(capture.splitIds)) next.splitIds = [...column('splitIds', null), null];
   if (capture.documentPolicy !== undefined) {
-    next.inheritsDocumentPolicy = [...(capture.inheritsDocumentPolicy ?? []), entry.inheritsDocumentPolicy === true];
+    next.inheritsDocumentPolicy = [...column('inheritsDocumentPolicy', false), entry.inheritsDocumentPolicy === true];
   }
   return next;
 }
@@ -89,7 +91,7 @@ function appendTabToCapture(capture, entry) {
  * space saved empty, about to be replaced by the moved tab. */
 function emptiedCapture(capture) {
   const next = { ...capture, urls: [], groupIds: [], pinned: [], meta: [], groups: [], activeIndex: 0 };
-  for (const key of ['localFiles', 'splits', 'splitIds', 'closedSlot', 'closedIndex']) delete next[key];
+  for (const key of ['localFiles', 'splits', 'splitIds', 'tabIds', 'closedSlot', 'closedIndex']) delete next[key];
   if (capture.documentPolicy !== undefined) next.inheritsDocumentPolicy = [];
   return next;
 }

@@ -26,6 +26,7 @@ const build = (over = {}) => buildTabContextMenu({
   sendTargets: over.sendTargets === undefined ? null : over.sendTargets,
   spaces: over.spaces ?? [],
   canMoveToSpace: over.canMoveToSpace ?? true,
+  canCreateSpace: over.canCreateSpace ?? false,
   t: englishT,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
@@ -336,6 +337,8 @@ test('Move to Space lists every space, the current one checked, after Move to Gr
   assert.deepEqual(item.submenu.map((i) => [i.id, i.label, i.type, i.checked, i.workspaceId]), [
     ['space-move', 'Work', 'radio', true, 'w1'],
     ['space-move', 'Reading', 'radio', false, 'w2'],
+    [undefined, undefined, 'separator', undefined, undefined],
+    ['space-new', 'New Space…', undefined, undefined, undefined],
   ]);
 });
 
@@ -356,7 +359,7 @@ test('a space that cannot receive a tab right now is a disabled row, and alone d
   const busy = { id: 'w2', name: 'Reading', current: false, enabled: false };
   const mine = { id: 'w1', name: 'Work', current: true };
   const sub = byId(build({ spaces: [mine, busy, { id: 'w3', name: 'Play', current: false }] }), 'space').submenu;
-  assert.deepEqual(sub.map((i) => [i.label, i.enabled]), [['Work', undefined], ['Reading', false], ['Play', undefined]]);
+  assert.deepEqual(sub.filter((i) => i.id === 'space-move').map((i) => [i.label, i.enabled]), [['Work', undefined], ['Reading', false], ['Play', undefined]]);
   assert.equal(byId(build({ spaces: [mine, busy] }), 'space').enabled, false);
 });
 
@@ -366,4 +369,16 @@ test('Open in Glance respects whether the selected tab can leave Split View', ()
     assert.equal(byId(menu, 'glance').enabled, false);
   }
   assert.equal(byId(build({ activeTabId: 2, surface: 'row', canGlance: true }), 'glance').enabled, true);
+});
+
+
+test('New Space is reachable from the only space and disabled at the profile limit', () => {
+  const spaces = [{ id: 'only', name: 'Only', current: true }];
+  const item = byId(build({ spaces, canCreateSpace: true }), 'space');
+  assert.equal(item.submenu.at(-1).id, 'space-new');
+  assert.equal(item.submenu.at(-1).enabled, true);
+  assert.equal(byId(build({ spaces, canCreateSpace: true, canMoveToSpace: false }), 'space').enabled, false);
+  const full = byId(build({ spaces: [...spaces, { id: 'other', name: 'Other' }], canCreateSpace: false }), 'space');
+  assert.equal(full.submenu.at(-1).enabled, false);
+  assert.equal(byId(build({ canCreateSpace: true }), 'space'), undefined);
 });

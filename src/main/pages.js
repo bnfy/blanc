@@ -548,6 +548,11 @@ function setupPages(hooks = {}) {
 
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
+  handle('pages:settings:shared-spaces-acknowledge','settings',id=>hooks.sharedSpaces?.acknowledge(id)??false);
+  handle('pages:settings:shared-spaces-open','settings',id=>hooks.sharedSpaces?.open(id)??{ok:false});
+  handle('pages:settings:shared-spaces-status','settings',()=>hooks.sharedSpaces?.status()??{offered:false});
+  handle('pages:settings:shared-spaces-preview','settings',()=>hooks.sharedSpaces?.preview()??{offered:false});
+  handle('pages:settings:shared-spaces-apply','settings',payload=>hooks.sharedSpaces?.apply(payload??{})??{ok:false});
   handle('pages:settings:sync-get', 'settings', () => syncStatus(sync.status()));
   handle('pages:settings:sync-enable', 'settings', async (payload) => {
     const result = await sync.enable(payload ?? {});
@@ -758,6 +763,8 @@ function setupPages(hooks = {}) {
   );
   // Moving-in checklist: open Settings at an allowlisted section (main owns
   // the allowlist) and persist a one-time dismissal.
+  handleEvent('pages:start:shared-question','newtab',event=>hooks.startPage?.sharedQuestionFor(event.sender)??null);
+  handleEvent('pages:start:shared-question-answer','newtab',(event,id,on)=>hooks.startPage?.sharedQuestionAnswer(event.sender,id,!!on)??false);
   handle('pages:start:open-settings', 'newtab', (section) => hooks.startPage?.openSettingsSection?.(section));
   handle('pages:start:migration-checklist-dismiss', 'newtab', () => hooks.startPage?.dismissMigrationChecklist?.() === true);
   // Patron upgrade pill: closing it snoozes it for 90 days (main owns the clock).

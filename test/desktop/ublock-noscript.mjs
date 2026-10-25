@@ -9,6 +9,7 @@ import http from 'node:http';
 import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import hooks from './support/test-hook-call.js';
+import { inMainTurn } from './support/main-turn.js';
 const { waitForValue } = poll;
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-ubo-noscript-'));
 const profile = path.join(temp, 'profile');
@@ -71,7 +72,7 @@ try {
   await control.page.waitForFunction(() => window.linkRan === true);
   await waitForValue(() => hits.filter(value => value.startsWith('/marker/')).length, value => value === 3, 'active payload controls');
   const protectedStart = hits.length;
-  const policy = await electron.evaluate(async ({ webContents }, tabId) => {
+  const policy = await inMainTurn(electron, async ({ webContents }, tabId) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     return bg.executeJavaScript(`(() => {
       µBlock.toggleHostnameSwitch({ name: 'no-scripting', hostname: '127.0.0.1', state: true, tabId: ${JSON.stringify(tabId)} });
@@ -98,7 +99,7 @@ try {
     eventRan: false, linkRan: false, insertedScriptRan: false, metaRan: false,
     location: '/probe', nodeAccess: 'undefined', noscriptCount: 0 });
   assert.deepEqual(hits.slice(protectedStart).filter(value => value.startsWith('/marker/')), []);
-  const runtime = await electron.evaluate(async ({ app, webContents }, url) => {
+  const runtime = await inMainTurn(electron, async ({ app, webContents }, url) => {
     const wc = webContents.getAllWebContents().find(item => item.getURL() === url);
     const prefs = wc.getLastWebPreferences();
     const bg = webContents.getAllWebContents().find(item => item.getType() === 'backgroundPage');
@@ -114,7 +115,7 @@ try {
   // Linux process sandbox evidence is checked through /proc in the main suite;
   // Electron's app metrics do not expose that observation on Linux.
   if (process.platform !== 'linux') assert.equal(runtime.backgroundSandboxed, true);
-  await electron.evaluate(async ({ webContents }, tabId) => {
+  await inMainTurn(electron, async ({ webContents }, tabId) => {
     const bg = webContents.getAllWebContents().find(wc => wc.getType() === 'backgroundPage');
     await bg.executeJavaScript(`µBlock.toggleHostnameSwitch({ name: 'no-scripting', hostname: '127.0.0.1', state: false, tabId: ${JSON.stringify(tabId)} })`);
   }, protectedPage.id);

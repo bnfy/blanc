@@ -114,6 +114,7 @@
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
   let pendingGroupTabId = null;
+  let pendingGroupTabIds = null;
   // F46: the tab a menu-initiated "Rename Tab…" targets, like pendingGroupTabId.
   let pendingRenameTabId = null;
   // F46: the exact text a rename prompt was opened with. Enter on it unedited
@@ -296,12 +297,30 @@
     announce: announceIsland,
     onActiveChange(active) {
       window.browserAPI.setOverlayDragState(active);
+      if (active) window.browserAPI.selectTab(null, 'clear');
       if (!active && renderQueued && !pointerHeld) {
         renderQueued = false;
         renderList();
       }
     },
   });
+  islandList.addEventListener('click', (event) => {
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary || (!event.shiftKey && !(navigator.platform.includes('Mac') ? event.metaKey : event.ctrlKey))) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.shiftKey ? 'range' : 'toggle');
+  }, true);
+  islandList.addEventListener('keydown', (event) => {
+    if (!event.shiftKey || event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    const primary = event.target.closest('.row-primary[data-selection-tab-id]');
+    if (!primary) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    primary.focus();
+    window.browserAPI.selectTab(primary.dataset.selectionTabId, event.key === 'ArrowUp' ? 'extend-up' : 'extend-down').then(id => {
+      requestAnimationFrame(() => islandList.querySelector(`[data-selection-tab-id="${CSS.escape(id ?? '')}"]`)?.focus());
+    });
+  }, true);
   islandList.addEventListener('keydown', (event) => {
     if (!event.altKey || !event.shiftKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return;
     if (!restingList()) return;
@@ -400,14 +419,17 @@
     const row = document.createElement('div');
     row.className = 'island-row split-row'
       + (tabs.some((t) => t.id === state.activeTabId) ? ' active' : '')
-      + (inGroup ? ' in-group' : '');
+      + (inGroup ? ' in-group' : '')
+      + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ' selected' : '');
     row.dataset.splitId = splitId;
+    row.dataset.tabId = tabs[0]?.id;
     row.setAttribute('role', 'group');
     row.setAttribute('aria-label', blancI18n.t('split.rowName', { titles: titles.join(' + ') }));
     row.dataset.i18nIgnore = 'aria-label'; // page titles
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary split-row-primary';
+    primary.dataset.selectionTabId = tabs[0]?.id;
     const icons = document.createElement('span');
     icons.className = 'split-row-icons';
     for (const tab of tabs.slice(0, 4)) {
@@ -420,7 +442,7 @@
     title.textContent = label;
     title.dataset.i18nIgnore = '';
     primary.append(icons, title);
-    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }));
+    primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: label }) + ((state.selectedTabIds ?? []).includes(tabs[0]?.id) ? ', ' + blancI18n.t('rail.state.selected') : ''));
     primary.dataset.i18nIgnore = 'aria-label';
     const focused = tabs[Math.min(split?.focusedIndex ?? 0, tabs.length - 1)] ?? tabs[0];
     primary.addEventListener('click', () => {
@@ -647,6 +669,7 @@
       const details = [
         ...metadata,
         tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
         tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       ].filter(Boolean).join(', ') || blancI18n.t('glance.picker.openTab');
       row.setAttribute('aria-label', blancI18n.t('glance.picker.optionLabel', { title: title.textContent, details }));
@@ -754,7 +777,8 @@
     row.className =
       'island-row tab-row' +
       (tab.id === state.activeTabId ? ' active' : '') +
-      (tab.asleep ? ' quiet' : '');
+      (tab.asleep ? ' quiet' : '') +
+      ((state.selectedTabIds ?? []).includes(tab.id) ? ' selected' : '');
     row.dataset.tabId = tab.id;
     row.dataset.dragTab = '';
     row.dataset.pinned = String(!!tab.pinned);
@@ -792,6 +816,7 @@
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
+    primary.dataset.selectionTabId = tab.id;
     // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
     // The word a person hears is quiet; the field name stays internal.
     const parts = [
@@ -799,10 +824,12 @@
       tabDomain(tab),
       tab.asleep ? blancI18n.t('rail.state.quiet') : '',
       tab.private ? blancI18n.t('rail.state.private') : '',
+      (state.selectedTabIds ?? []).includes(tab.id) ? blancI18n.t('rail.state.selected') : '',
     ].filter(Boolean);
     primary.setAttribute('aria-label', blancI18n.t('dot.switchTo', { title: parts.join(', ') }));
     if (tab.title) primary.dataset.i18nIgnore = 'aria-label'; // carries the page title
     primary.append(faviconWrap, title);
+    if(tab.syncNotSynced){const mark=document.createElement('span');mark.className='sync-not-synced';mark.textContent='•';mark.setAttribute('aria-label',blancI18n.t('sharedSpaces.unsyncedTab'));mark.title=blancI18n.t('sharedSpaces.unsyncedTab');primary.append(mark);}
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -1117,8 +1144,9 @@
       button.addEventListener('click', async () => {
         // A refused name keeps the menu open with its notice; nothing runs.
         if (!(await commitGroupName({ close: false }))) return;
+        const box = button.getBoundingClientRect();
         closeGroupMenu({ commit: false, closeOverlay: true });
-        run();
+        run(box);
       });
       return button;
     };
@@ -1127,6 +1155,14 @@
     actions.append(
       action(blancI18n.t('groupMenu.newTab'), () => window.browserAPI.newTabInGroup(group.id)),
       action(blancI18n.t('groupMenu.moveToNewWindow'), () => window.browserAPI.moveGroupToNewWindow(group.id), { disabled: holdsEveryTab }),
+    );
+    // Move Group to Space ▸ (D8): shown once the profile has a space, like
+    // Move to Space ▸ in the tab menu. Main lists the spaces in a native menu.
+    if (wsWorkspaces.length) {
+      actions.append(action(blancI18n.t('groupMenu.moveToSpace'),
+        (box) => window.browserAPI.openGroupSpaceMenu(group.id, { x: box.left, y: box.bottom })));
+    }
+    actions.append(
       action(blancI18n.t('groupMenu.ungroup'), () => window.browserAPI.ungroupGroup(group.id)),
       action(blancI18n.t('groupMenu.close'), () => window.browserAPI.closeGroup(group.id)),
     );
@@ -1451,7 +1487,9 @@
       // A context-menu "New Group…" targets the right-clicked tab, not the
       // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
-      if (name && target) window.browserAPI.groupTabByName(target, name);
+      if (pendingGroupTabIds) window.browserAPI.groupTabsByName(pendingGroupTabIds, name);
+      else if (name && target) window.browserAPI.groupTabByName(target, name);
+      pendingGroupTabIds = null;
       pendingGroupTabId = null;
     } },
     { cmd: '/ungroup', hint: blancI18n.t('slash.ungroup.hint'), run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
@@ -1663,6 +1701,7 @@
     title.textContent = entry.tabCount > 1
       ? blancI18n.t('closed.groupTitle', { title: entry.title, count: entry.tabCount })
       : entry.title;
+    if(entry.fromName)title.textContent+=' · '+blancI18n.t('sharedSpaces.closedOn',{device:entry.fromName});
     title.dataset.i18nIgnore = ''; // a closed page or group title is data
     const forget = document.createElement('button');
     forget.type = 'button';
@@ -2856,6 +2895,7 @@
         closedSectionOpen = false;
         devicesDrawerOpen = false;
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
         renamePrefill = null;
         namePrompt = null;
@@ -2875,8 +2915,10 @@
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
+      if (Array.isArray(purpose?.beginGroupTabIds)) { pendingGroupTabIds = purpose.beginGroupTabIds; pendingGroupTabId = null; }
       // "Rename Tab…" (F46): same atomic payload as New Group… above.
       if (purpose && typeof purpose === 'object' && purpose.renameTabId != null) {
         pendingRenameTabId = purpose.renameTabId;
@@ -2887,12 +2929,14 @@
       if (purpose && typeof purpose === 'object' && purpose.renameGroupId != null) {
         namePrompt = { kind: 'group', id: purpose.renameGroupId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // "Rename Device…" from the Other devices drawer: the same prompt.
       if (purpose && typeof purpose === 'object' && purpose.renameDeviceId != null) {
         namePrompt = { kind: 'device', id: purpose.renameDeviceId, prefill: prefill ?? '', notice: '' };
         pendingGroupTabId = null;
+        pendingGroupTabIds = null;
         pendingRenameTabId = null;
       }
       // A workspace row's context menu (main process) has no other channel
@@ -2959,7 +3003,20 @@
     } else if (next === 'spaces') {
       // The menu is the whole overlay here; data refreshes behind the first paint.
       refreshSwitcherData();
-      if (!reshow) openWorkspaceSwitcher();
+      if (purpose?.spaceMoveError) {
+        workspaceUI.showMoveError(purpose.spaceMoveError.name, purpose.spaceMoveError.error, purpose.spaceMoveError.movedCount);
+      } else if (purpose?.spaceLinkError) {
+        workspaceUI.showLinkError(purpose.spaceLinkError.name, purpose.spaceLinkError.error);
+      } else if (purpose?.newSpaceLinkTitle != null) {
+        workspaceUI.begin('new', null, { start: 'link', tabTitle: purpose.newSpaceLinkTitle });
+      } else if (Array.isArray(purpose?.newSpaceTabIds)) {
+        // From Move Group to Space ▸ the editor names the group (user data).
+        workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
+          tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.newSpaceTabId != null) {
+        const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
+        workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
+      } else if (!reshow) openWorkspaceSwitcher();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldChoosing ? shieldPopProvider.querySelector('input:checked:not(:disabled)') || shieldPopBack : shieldPopToggle.hidden ? shieldPopChangeProvider.disabled ? shieldPopSettings : shieldPopChangeProvider : shieldPopToggle).focus();
@@ -3428,6 +3485,7 @@
   // Main's overlay before-input owns Escape; when the workspace popover is
   // open it forwards here instead of hideOverlay so editors dismiss first.
   window.browserAPI.onOverlayEscape(() => {
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { window.browserAPI.selectTab(null, 'clear'); return; }
     if (groupMenu) {
       const fromMode = groupMenu.host === 'mode';
       closeGroupMenu({ commit: false });
@@ -3533,6 +3591,7 @@
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingGroupTabIds = null;
     pendingRenameTabId = null;
     renamePrefill = null;
     namePrompt = null;
@@ -3570,6 +3629,7 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (state.selectedTabIds?.length && ['panel', 'palette'].includes(mode)) { e.preventDefault(); e.stopPropagation(); window.browserAPI.selectTab(null, 'clear'); return; }
     // Prefer the IPC path (overlay:escape from main) — main's before-input
     // consumes Escape before this listener would see it. Kept as a fallback
     // for harnesses that inject keydown into the document directly.
@@ -3868,6 +3928,10 @@
 
   window.browserAPI.onTabsUpdated((payload) => {
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
+    if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
+      const count = payload.selectedTabIds?.length ?? 0;
+      announceIsland(blancI18n.t(count ? 'tabsSelection.count' : 'tabsSelection.cleared', { count }));
+    }
     state = payload;
     noteBangIconPrivacy();
     islandDrag.notePayload(payload);

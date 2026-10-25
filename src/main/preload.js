@@ -35,6 +35,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   reopenClosedEntry: (entryId) => ipcRenderer.invoke('tabs:reopen-entry', entryId),
   forgetClosedEntry: (entryId) => ipcRenderer.invoke('tabs:forget-closed-entry', entryId),
   clearClosedEntries: () => ipcRenderer.invoke('tabs:clear-closed'),
+  selectTab: (tabId, mode) => ipcRenderer.invoke('tabs:select', tabId, mode),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
   search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),
@@ -49,6 +50,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   setGroupColor: (groupId, color) => ipcRenderer.invoke('groups:set-color', groupId, color),
   newTabInGroup: (groupId) => ipcRenderer.invoke('groups:new-tab', groupId),
   moveGroupToNewWindow: (groupId) => ipcRenderer.invoke('groups:move-to-new-window', groupId),
+  openGroupSpaceMenu: (groupId, point) => ipcRenderer.invoke('groups:space-menu', groupId, point),
   ungroupGroup: (groupId) => ipcRenderer.invoke('groups:ungroup', groupId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
   setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
@@ -56,6 +58,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
   openGlanceAsTab: () => ipcRenderer.invoke('tabs:open-glance-as-tab'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
+  groupTabsByName: (tabIds, name) => ipcRenderer.invoke('tabs:group-many-by-name', tabIds, name),
   groupTabByName: (id, name) => ipcRenderer.invoke('tabs:group-by-name', id, name),
   toggleGroupCollapsed: (groupId) => ipcRenderer.invoke('tabs:toggle-group-collapsed', groupId),
   focusGroup: (groupId) => ipcRenderer.invoke('tabs:focus-group', groupId),
@@ -176,6 +179,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   dismissSentItem: (id) => ipcRenderer.invoke('chrome:sent-dismiss', id),
   cancelWorkspaceAction: () => ipcRenderer.send('chrome:workspaces-cancel'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
+  createSpaceWithLink: (name, identity) => ipcRenderer.invoke('chrome:workspaces-create-with-link', name, identity),
+  createSpaceWithTabs: (name, identity, tabIds) => ipcRenderer.invoke('chrome:workspaces-create-with-tabs', name, identity, tabIds),
+  createSpaceWithTab: (name, identity, tabId) => ipcRenderer.invoke('chrome:workspaces-create-with-tab', name, identity, tabId),
   saveWorkspaceAs: (name, identity) => ipcRenderer.invoke('chrome:workspaces-save-as', name, identity),
   // opts: { decision?: string, newWindow?: true } — `decision` echoes the token
   // from an unsaved-scratch result (a confirmed "discard and switch");

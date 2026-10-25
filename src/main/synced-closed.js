@@ -30,15 +30,15 @@ function addOwnItem(ctx,raw) {
   entry.items=model.normalizeItems([item,...entry.items],now);
   s.update(d=>{d.devices={...d.devices,[ctx.deviceId]:entry};});notify();return true;
 }
-const inbox=ctx=>{const s=rebind(ctx.accountId);return model.inbox(s.data.devices,ctx.deviceId,s.data.dismissed,Date.now());};
+const inbox=ctx=>{const s=rebind(ctx.accountId),own=new Set((s.data.devices[ctx.deviceId]?.items??[]).map(item=>item.id));return model.inbox(s.data.devices,ctx.deviceId,s.data.dismissed,Date.now()).filter(item=>!own.has(item.id));};
 function hide(ctx,id) {
   const row=inbox(ctx).find(x=>x.id===id);if(!row)return null;
   ensure().update(d=>{d.dismissed={...d.dismissed,[id]:Date.now()};});notify();return row;
 }
 function clear(ctx) {
   const rows=inbox(ctx),s=rebind(ctx.accountId),now=Date.now();
-  const {entry}=model.ownEntry(s.data.devices[ctx.deviceId],identity(ctx),now,{force:true});entry.items=[];
-  s.update(d=>{d.devices={...d.devices,[ctx.deviceId]:entry};for(const row of rows)d.dismissed[row.id]=now;});notify();
+  const {entry}=model.ownEntry(s.data.devices[ctx.deviceId],identity(ctx),now,{force:true});const ownIds=entry.items.map(item=>item.id);entry.items=[];
+  s.update(d=>{d.devices={...d.devices,[ctx.deviceId]:entry};for(const id of ownIds)d.dismissed[id]=now;for(const row of rows)d.dismissed[row.id]=now;});notify();
 }
 module.exports={rebind,exportForSync,mergeFromSync,addOwnItem,inbox,hide,clear,
   onChanged:fn=>listeners.add(fn),equalsRemote:(a,b)=>canonical(a?.devices??{})===canonical(b?.devices??{}),

@@ -7,6 +7,7 @@ import path from 'node:path';
 import process from 'node:process';
 import testHookCall from './support/test-hook-call.js';
 import poll from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 import { encryptHandoff } from '../../cloudflare/tab-import-worker/src/model.js';
 import browserDataImport from '../../src/main/browser-data-import.js';
 import sessionFixture from '../support/chromium-session-fixture.js';
@@ -330,7 +331,7 @@ try {
     const window = BrowserWindow.getAllWindows().find((win) => win.getTitle().includes('Handoff test'));
     return window?.contentView.children.find((view) => view.webContents?.getURL() === 'blanc://tab-handoff/')?.webContents.id;
   }), Boolean, 'named profile review document');
-  const reviewDom = (script) => app.evaluate(({ webContents }, { id, script }) =>
+  const reviewDom = (script) => inMainTurn(app, ({ webContents }, { id, script }) =>
     webContents.fromId(id).executeJavaScript(script), { id: reviewContentsId, script });
   await waitForValue(() => reviewDom('!document.getElementById("accept").disabled'), Boolean, 'review ready for acceptance');
   assert.equal(await reviewDom('document.getElementById("newWindow").checked'), false);

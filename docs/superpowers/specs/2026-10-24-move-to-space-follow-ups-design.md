@@ -157,7 +157,7 @@ The submenu lists every space in the profile **except this window's own**, since
 The item is **hidden**:
 - in a private tab;
 - when the profile has no space;
-- for a link that Open Link in New Tab refuses (`handOffToOs` targets such as `mailto:` and `tel:`, and `isForbiddenTopLevelUrl`).
+- for a non-HTTP(S) link. The deferred paths need a normal web address that survives saving: OS handoffs, forbidden top-level URLs, internal utility pages and document-scoped blob URLs are not offered. Inspecting the menu never invokes an OS handoff.
 
 ### 5.2 What happens
 
@@ -170,6 +170,8 @@ The item is **hidden**:
 **Saving:**
 - In the second and third rows the record write comes first and is checked. If it fails, nothing is added and the Spaces menu shows the error (§3.2).
 - In the first row the tab opens there and then; the other window's autosave records it, as for any tab opened in that window.
+- If creating a quiet tab throws after the checked write, remove only tabs added by that attempt, then restore the prior capture. Report a failed open. If cleanup throws, retain the write-ahead record; if the restoring write fails, the link may remain saved until the next successful capture. Neither case is reported as success, and pre-existing tabs are untouched.
+- New Space… writes the new space and its link together, without creating a runtime. A failed write keeps the editor and its draft open.
 
 A quiet tab is the recommended default (D2) for three reasons:
 - A page in a set-aside space can't show a permission prompt and can't download: both are refused for set-aside spaces (`setHeldRequesterCheck`, `setDownloadRequesterCheck`). A page loading there could therefore fail with nobody seeing it.
@@ -186,7 +188,7 @@ A quiet tab is the recommended default (D2) for three reasons:
 
 ### 5.3 How
 
-- **Pure module:** `openLinkInSpace(opener, url, workspaceId, deps)` goes beside `openLinkInGlance`. It applies the same guards, then hands off to the §3 orchestrator: steps 2–3 with one appended entry, then, for a set-aside space only, `createTab(url, { asleep: true, title })` in that runtime as step 4.
+- **Pure module:** `space-open-link.js` supplies `openLinkInSpace(opener, url, workspaceId, deps)`. It applies the web-link guards and the §3 write-before-materializing order: a checked appended capture, then, for a set-aside space only, `createTab(url, { asleep: true, title })` in that runtime. It has its own rollback because no source tab is being moved.
 - **Model:** the appending is `appendTabToCapture` (§3.2). It appends to every parallel column (`urls`, `groupIds` → null, `pinned` → false, `meta`) and, when the record carries the `documentPolicy` stamp, adds an explicit `false`. Each column stays the length of `urls`.
 - **Strings:**
   - `contextMenu.openLinkInSpace`: "Open Link in Space"
@@ -362,7 +364,7 @@ Dragging tabs as a group needs its own spec, because `tab-drag.js`'s source mode
 | D5 | Placement actions on several tabs (§6.6, kinds 1 and 2): disabled unless every tab qualifies, or applied to the tabs that can with a note on the rest? Reload and Quiet act per tab either way. Eligibility is all tabs; only kind 1 is also all-or-nothing in execution. | **Disabled unless every tab qualifies.** |
 | D6 | Close Tabs with pinned tabs selected: close them, or skip them like Close Other Tabs? | **Close them.** Selecting them was an explicit choice. |
 | D7 | Moving every tab of a window: allowed, leaving one blank start page, or disabled? | **Allowed.** |
-| D8 | Add Move Group to Space ▸ to the group menu so a group moves with its name and colour? | **Yes.** Small; it mirrors Move Group to New Window, through the §3 orchestrator. |
+| D8 | Add Move Group to Space ▸ to the group menu so a group moves with its name and colour? | **Yes.** Small; it mirrors Move Group to New Window, through the §3 orchestrator. **Built (2026-10-25):** the batch move's write-first path with the group carried along; a target group of the same name (any case) receives the tabs instead, since two groups never differ only by case. F41-75..79. |
 | D9 | Split View from a selection of two to four tabs? | **A separate spec**, out of scope here. |
 | D10 | Visual confirmation after Open Link in Space and Move to Space, beyond the screen-reader announcement? Blanc has no toast surface today; failures already open the Spaces menu (§3.2). | **None in v1.** Revisit if people report not knowing where the tab went. |
 

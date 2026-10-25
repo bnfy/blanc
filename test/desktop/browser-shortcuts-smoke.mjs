@@ -6,6 +6,7 @@ import http from 'node:http';
 import { _electron } from 'playwright';
 import hook from './support/test-hook-call.js';
 import polling from './support/poll.js';
+import { inMainTurn } from './support/main-turn.js';
 import runtime from '../../scripts/preflight-electron-runtime.js';
 const { callTestHook: call } = hook;
 const { waitForValue: wait } = polling;
@@ -234,7 +235,7 @@ try {
   await press('close-tab', 'W', ['control']);
   assert.equal((await call(app, 'closedEntriesSummary')).at(-1).held, true);
   const priorDeliveries = (await call(app, 'browserCommandState')).deliveries.length;
-  await app.evaluate(({ webContents }, { id, inputCount }) => {
+  await inMainTurn(app, ({ webContents }, { id, inputCount }) => {
     const wc = webContents.fromId(id);
     if (!wc) throw new Error('Closed view should remain parked');
     // Electron and the process-wide external-app activation observer remain;

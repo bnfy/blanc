@@ -318,6 +318,10 @@
         "splitId": {
           "type": "string | null",
           "doc": "The Split View (F53) this tab belongs to, or null."
+        },
+        "syncNotSynced": {
+          "type": "boolean",
+          "optional": true
         }
       }
     },
@@ -340,7 +344,7 @@
       }
     },
     "SplitInfo": {
-      "doc": "A Split View (F53): 2–4 tabs shown together, from split-model.js.",
+      "doc": "A Split View (F53): 2\u20134 tabs shown together, from split-model.js.",
       "fields": {
         "id": {
           "type": "string"
@@ -359,7 +363,7 @@
       }
     },
     "SplitSavedLayout": {
-      "doc": "A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2–3 panes, a shared cross for 4.",
+      "doc": "A split's saved layout (split-layout.js normalizeSplitLayout): columns for 2\u20133 panes, a shared cross for 4.",
       "fields": {
         "kind": {
           "type": "'columns' | 'grid'"
@@ -367,17 +371,17 @@
         "widths": {
           "type": "number[]",
           "optional": true,
-          "doc": "Columns: one share per pane, each ≥ 0.2, summing to 1."
+          "doc": "Columns: one share per pane, each \u2265 0.2, summing to 1."
         },
         "column": {
           "type": "number",
           "optional": true,
-          "doc": "Grid: the left column's share, 0.25–0.75."
+          "doc": "Grid: the left column's share, 0.25\u20130.75."
         },
         "row": {
           "type": "number",
           "optional": true,
-          "doc": "Grid: the top row's share, 0.25–0.75."
+          "doc": "Grid: the top row's share, 0.25\u20130.75."
         }
       }
     },
@@ -403,6 +407,10 @@
         },
         "tabCount": {
           "type": "number"
+        },
+        "fromName": {
+          "type": "string",
+          "optional": true
         }
       }
     },
@@ -568,6 +576,7 @@
         "tabs": {
           "type": "TabEntry[]"
         },
+        "selectedTabIds": { "type": "TabId[]" },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -582,7 +591,7 @@
         },
         "closedSlot": {
           "type": "number",
-          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
+          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the \u2318L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -614,6 +623,7 @@
         "tabs": {
           "type": "TabEntry[]"
         },
+        "selectedTabIds": { "type": "TabId[]" },
         "activeTabId": {
           "type": "TabId | null"
         },
@@ -628,7 +638,7 @@
         },
         "closedSlot": {
           "type": "number",
-          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the ⌘L panel (0 = directly under Pinned)."
+          "doc": "How many top-level items (groups and ungrouped tabs) sit above the Recently closed band in the \u2318L panel (0 = directly under Pinned)."
         },
         "tabLayout": {
           "type": "TabLayout"
@@ -726,7 +736,7 @@
         },
         "mode": {
           "type": "'columns' | 'rows' | 'grid' | 'focus'",
-          "doc": "The saved layout, or the fallback that fits (spec §3.2)."
+          "doc": "The saved layout, or the fallback that fits (spec \u00a73.2)."
         },
         "panes": {
           "type": "SplitPane[]"
@@ -839,6 +849,11 @@
         "symbol": {
           "type": "string",
           "optional": true
+        },
+        "ackRecovery": {
+          "type": "boolean",
+          "optional": true,
+          "doc": "Dismiss the development-only recovery explanation on this device."
         }
       }
     },
@@ -856,16 +871,50 @@
     "SharedSpaceAdmission": {
       "doc": "Local writes held from sync, without page contents; only present on a shared Space in Personal.",
       "fields": {
-        "unsyncedTabIds": { "type": "string[]" },
-        "reason": { "type": "'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null" }
+        "unsyncedTabIds": {
+          "type": "string[]"
+        },
+        "reason": {
+          "type": "'full' | 'tombstones' | 'tabs' | 'remote-over-budget' | 'required-state-over-budget' | null"
+        },
+        "state": {
+          "type": "'shared' | 'waiting' | 'notSynced' | 'full' | 'unavailable'",
+          "optional": true
+        },
+        "lastSyncedAt": {
+          "type": "number",
+          "optional": true
+        },
+        "failed": {
+          "type": "boolean",
+          "optional": true
+        },
+        "pending": {
+          "type": "boolean",
+          "optional": true
+        }
       }
     },
     "SharedSpaceLibraryStatus": {
       "doc": "Shared-library capacity. Concurrent remote additions are retained even above the local creation limit.",
       "fields": {
-        "count": { "type": "number" },
-        "limit": { "type": "number" },
-        "canAdd": { "type": "boolean" }
+        "count": {
+          "type": "number"
+        },
+        "limit": {
+          "type": "number"
+        },
+        "canAdd": {
+          "type": "boolean"
+        },
+        "busy": {
+          "type": "boolean",
+          "optional": true
+        },
+        "slowed": {
+          "type": "boolean",
+          "optional": true
+        }
       }
     },
     "WorkspaceListItem": {
@@ -929,6 +978,10 @@
         },
         "sharedSync": {
           "type": "SharedSpaceLibraryStatus | undefined",
+          "optional": true
+        },
+        "recoveryNotice": {
+          "type": "boolean | null",
           "optional": true
         }
       }
@@ -1019,7 +1072,7 @@
         },
         "searchPriorityResults": {
           "type": "boolean",
-          "doc": "Settings → Search priority results: search suggestions lead typed results."
+          "doc": "Settings \u2192 Search priority results: search suggestions lead typed results."
         }
       }
     },
@@ -1060,7 +1113,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
@@ -1074,6 +1127,7 @@
     "WorkspaceActionResult": {
       "doc": "Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail.",
       "fields": {
+        "movedCount": { "type": "number", "optional": true },
         "ok": {
           "type": "boolean"
         },
@@ -1143,6 +1197,10 @@
         },
         "sharedSync": {
           "type": "SharedSpaceLibraryStatus | undefined",
+          "optional": true
+        },
+        "recoveryNotice": {
+          "type": "boolean | null",
           "optional": true
         }
       }
@@ -1299,7 +1357,7 @@
       }
     },
     "SendStatus": {
-      "doc": "What sending a page reports (M7b addendum §6): sent (never \"delivered\"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).",
+      "doc": "What sending a page reports (M7b addendum \u00a76): sent (never \"delivered\"), unavailable (the sync Worker doesn't serve the sends store yet), failed (offline, rate limited, a server error) or invalid (a private, internal or inert tab, or a device that isn't a target).",
       "ts": "'sent' | 'unavailable' | 'failed' | 'invalid'"
     },
     "SendResult": {
@@ -1507,12 +1565,12 @@
         "windowControlsRect": {
           "type": "Rect",
           "optional": true,
-          "doc": "Windows and Linux: where the strip draws its window controls, for the floating Island’s copy."
+          "doc": "Windows and Linux: where the strip draws its window controls, for the floating Island\u2019s copy."
         },
         "menuButtonRect": {
           "type": "Rect",
           "optional": true,
-          "doc": "Windows and Linux: where the strip draws its main-menu button, for the floating Island’s copy."
+          "doc": "Windows and Linux: where the strip draws its main-menu button, for the floating Island\u2019s copy."
         }
       }
     },
@@ -1839,6 +1897,24 @@
       "doc": "Forget every closed entry in this window."
     },
     {
+      "name": "selectTab",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:select",
+      "params": [
+        {
+          "name": "tabId",
+          "type": "TabId | null"
+        },
+        {
+          "name": "mode",
+          "type": "'toggle' | 'range' | 'extend-up' | 'extend-down' | 'clear'"
+        }
+      ],
+      "returns": "TabId | null",
+      "doc": "Change the window-local tab selection and return the focused row id."
+    },
+    {
       "name": "switchTab",
       "group": "tabs",
       "kind": "invoke",
@@ -1999,7 +2075,7 @@
         }
       ],
       "returns": "boolean",
-      "doc": "Move the ⌘L panel's Recently closed band before a group or an ungrouped tab, or to the end with null."
+      "doc": "Move the \u2318L panel's Recently closed band before a group or an ungrouped tab, or to the end with null."
     },
     {
       "name": "renameGroup",
@@ -2064,6 +2140,24 @@
       ],
       "returns": "boolean",
       "doc": "Move every tab of a group, in order, into a new window with the same group. Refused (false) when the group holds every tab in its window or a member is changing quiet state."
+    },
+    {
+      "name": "openGroupSpaceMenu",
+      "group": "groups",
+      "kind": "invoke",
+      "channel": "groups:space-menu",
+      "params": [
+        {
+          "name": "groupId",
+          "type": "GroupId"
+        },
+        {
+          "name": "point",
+          "type": "Point"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move Group to Space: a native menu of the profile's spaces at an overlay point; choosing one moves every tab of the group, in order, into that space as the same group (or into its group of the same name), and New Space… opens the Spaces editor bound to the group. False when the window, the group or every space is gone."
     },
     {
       "name": "ungroupGroup",
@@ -3101,6 +3195,86 @@
       "params": [],
       "returns": "WorkspacesPayload",
       "doc": "List Named Workspaces."
+    },
+    {
+      "name": "createSpaceWithLink",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-link",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a saved space with the link held by the current new-space editor, without loading it."
+    },
+    {
+      "name": "createSpaceWithTabs",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-tabs",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        },
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a space and move the selected whole rows after one checked write."
+    },
+    {
+      "name": "groupTabsByName",
+      "group": "tabs",
+      "kind": "invoke",
+      "channel": "tabs:group-many-by-name",
+      "params": [
+        {
+          "name": "tabIds",
+          "type": "TabId[]"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "returns": "boolean",
+      "doc": "Move the selected whole rows to a named group in one pass."
+    },
+    {
+      "name": "createSpaceWithTab",
+      "group": "workspaces",
+      "kind": "invoke",
+      "channel": "chrome:workspaces-create-with-tab",
+      "params": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "identity",
+          "type": "SpaceIdentityInput"
+        },
+        {
+          "name": "tabId",
+          "type": "TabId"
+        }
+      ],
+      "returns": "WorkspaceActionResult",
+      "doc": "Create a space containing this window’s tab, then move the live tab without switching spaces."
     },
     {
       "name": "saveWorkspaceAs",
