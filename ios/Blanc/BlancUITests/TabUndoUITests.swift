@@ -16,7 +16,8 @@ final class TabUndoUITests: XCTestCase {
     input.typeText("/close\n")
     let undo = app.buttons["banner.undo"]
     XCTAssertTrue(undo.waitForExistence(timeout: 5), "the Undo banner shows")
-    XCTAssertTrue(site.label.contains("example.org"), site.label)
+    // Tap at once: the banner lasts five seconds and a slow runner's queries
+    // eat into them. Which tab is current meanwhile is TabUndoTests' to check.
     undo.tap()
     let back = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.com"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [back], timeout: 5), .completed, "the closed tab is current again")
