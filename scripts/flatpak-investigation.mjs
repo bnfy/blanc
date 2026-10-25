@@ -34,19 +34,21 @@ for(const mode of modes){
   // race or bypass the tab coordinator and legitimately hit its fail-closed guard.
   await delay(3500);
   const previousTargets=new Set(pages.map(p=>p.id));
-  const key=args=>{const input=spawnSync('xdotool',args,{encoding:'utf8'});if(input.status)throw Error(input.stderr);};
-  key(['key','--clearmodifiers','ctrl+t']);await delay(1000);
-  key(['key','--clearmodifiers','ctrl+l']);await delay(500);
-  key(['key','--clearmodifiers','ctrl+a']);
-  key(['type','--clearmodifiers','--delay','30','http://127.0.0.1:8771/probe']);await delay(200);
-  result.addressInputs=[];
-  for(const chrome of pages.filter(p=>p.url.startsWith('blanc-chrome:'))){
-   const inspector=await cdp(chrome.webSocketDebuggerUrl);
-   const input=await inspector.send('Runtime.evaluate',{expression:'({active:document.activeElement?.value,values:[...document.querySelectorAll("input")].map(x=>x.value)})',returnByValue:true});
-   result.addressInputs.push(input.result?.value);inspector.close();
-  }
-  if(!result.addressInputs.some(x=>x?.active==='http://127.0.0.1:8771/probe'))throw Error('Address field was not fully populated; refusing to submit');
-  key(['key','Return']);
+  const chromePage=pages.find(p=>p.url==='blanc-chrome://index/');
+  const overlayPage=pages.find(p=>p.url==='blanc-chrome://overlay/');
+  if(!chromePage||!overlayPage)throw Error('Missing application chrome');
+  const chromeUI=await cdp(chromePage.webSocketDebuggerUrl);
+  const overlayUI=await cdp(overlayPage.webSocketDebuggerUrl);
+  const click=await chromeUI.send('Runtime.evaluate',{expression:'(()=>{const b=document.getElementById("pillNewTab");if(!b)return false;b.click();return true})()',returnByValue:true});
+  if(click.result?.value!==true)throw Error('New Tab button unavailable');
+  await delay(1000);
+  await overlayUI.send('Runtime.evaluate',{expression:'document.getElementById("addressInput").focus()'});
+  await overlayUI.send('Input.insertText',{text:'http://127.0.0.1:8771/probe'});
+  const address=await overlayUI.send('Runtime.evaluate',{expression:'document.getElementById("addressInput").value',returnByValue:true});
+  result.addressValue=address.result?.value;
+  if(result.addressValue!=='http://127.0.0.1:8771/probe')throw Error('Address field was not fully populated; refusing to submit');
+  await overlayUI.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+  await overlayUI.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   for(let i=0;i<25;i++){
    await delay(1000);pages=await(await fetch('http://127.0.0.1:9222/json/list')).json();
    if(pages.some(p=>!previousTargets.has(p.id)&&p.url==='http://127.0.0.1:8771/probe'&&p.title==='Blanc Flatpak sandbox probe'))break;
@@ -57,7 +59,8 @@ for(const mode of modes){
   const client=await cdp(target.webSocketDebuggerUrl);
   await client.send('Page.enable');await delay(1500);
   result.browsing=await client.send('Runtime.evaluate',{expression:'({title:document.title,probe:document.querySelector("#probe")?.textContent,nodeExposed:typeof require!=="undefined",storage:localStorage.getItem("probe")})',returnByValue:true});
-  spawnSync('xdotool',['key','--clearmodifiers','ctrl+r']);await delay(2000);
+  await overlayUI.send('Runtime.evaluate',{expression:'document.getElementById("reloadBtn").click()'});await delay(2000);
+  chromeUI.close();overlayUI.close();
   result.reload=await client.send('Runtime.evaluate',{expression:'({title:document.title,storage:localStorage.getItem("probe")})',returnByValue:true});
   const shot=await client.send('Page.captureScreenshot');fs.writeFileSync(`${root}/${mode}.png`,Buffer.from(shot.data,'base64'));client.close();
  }catch(e){result.browsingError=String(e);}}
