@@ -43,3 +43,14 @@ test('a mixed private selection disables Move to Space instead of moving a subse
   const menu = buildTabsContextMenu({ members: [{ ...members[0], private: true }, members[1]], spaces: [{ id: 's', name: 'Space' }], canPlace: false, t: englishT });
   assert.equal(menu.find(item => item.id === 'batch-space').enabled, false);
 });
+
+test('Remove from Group lands the tabs directly below the group they left, as for one tab', () => {
+  const tab = (id, groupId) => ({ id, groupId, pinned: false });
+  const list = [tab('a', 'G'), tab('b', 'G'), tab('c', 'G'), tab('x', null), tab('y', 'H'), tab('z', 'H')];
+  const order = ids => planTabEdits(list, ids, 'group', { groupId: null }).order;
+  assert.deepEqual(order(['a', 'b']), ['c', 'a', 'b', 'x', 'y', 'z']);
+  // From two groups at once: each set lands below its own group.
+  assert.deepEqual(order(['a', 'y']), ['b', 'c', 'a', 'x', 'z', 'y']);
+  // A group they empty leaves them in place; an ungrouped selected tab stays put.
+  assert.deepEqual(order(['y', 'z', 'x']), ['a', 'b', 'c', 'x', 'y', 'z']);
+});
