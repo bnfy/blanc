@@ -111,8 +111,10 @@ struct PaletteSheet: View {
             dismiss()
         } label: {
             Image(systemName: icon).font(.system(size: 16)).frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel(label)
+        .accessibilityIdentifier("palette." + page)
     }
 
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
