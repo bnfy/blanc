@@ -114,3 +114,67 @@ test('emptiedCapture drops the stand-in start page and everything tied to tab po
   for (const key of ['closedSlot', 'closedIndex', 'localFiles']) assert.equal(key in next, false, key);
   assert.equal(next.documentPolicy, 1);
 });
+
+
+test('failed reconciliation preserves the write-ahead record without attempting a rewrite', () => {
+  const a = adapter({ transfer: 'throw', reconcile: 'throw' });
+  assert.deepEqual(runSpaceMove(a), { ok: false, error: 'move-failed', moved: false, recorded: false });
+  assert.deepEqual(a.calls, ['check', 'prepare', 'write', 'transfer', 'reconcile']);
+});
+
+test('a fresh process recovers the saved tab after transfer and reconciliation both fail', () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const { spawnSync } = require('node:child_process');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-move-restart-'));
+  const file = path.join(dir, 'target.json');
+  try {
+    fs.writeFileSync(file, JSON.stringify({ urls: [] }));
+    const run = spawnSync(process.execPath, ['-e', `
+      const fs = require('node:fs');
+      const { runSpaceMove } = require(process.argv[1]);
+      const file = process.argv[2];
+      const result = runSpaceMove({
+        check: () => ({ ok: true }),
+        prepare: () => ({ ok: true, next: { urls: ['https://recover.test/'] } }),
+        discard() {},
+        write(next) {
+          const fd = fs.openSync(file, 'w');
+          fs.writeFileSync(fd, JSON.stringify(next));
+          fs.fsyncSync(fd);
+          fs.closeSync(fd);
+          return { ok: true };
+        },
+        transfer() { throw new Error('transfer fault'); },
+        reconcile() { throw new Error('reconciliation fault'); },
+        rewrite() {
+          fs.writeFileSync(file, JSON.stringify({ urls: [] }));
+          return { ok: true };
+        },
+        finish() {},
+      });
+      if (result.ok || result.recorded) process.exit(2);
+      process.on('exit', () => fs.writeFileSync(file + '.graceful-exit', 'unexpected'));
+      process.stdout.write('crash-ready\\n');
+      process.kill(process.pid, 'SIGKILL');
+    `, require.resolve('../../src/main/space-move'), file], { encoding: 'utf8' });
+    assert.equal(run.error, undefined, run.stderr);
+    assert.equal(run.stdout, 'crash-ready\n', run.stderr);
+    if (process.platform === 'win32') {
+      // TerminateProcess has no POSIX signal status in Node's Windows result.
+      assert.notEqual(run.status, 0, run.stderr);
+    } else {
+      assert.equal(run.signal, 'SIGKILL', run.stderr);
+    }
+    assert.equal(fs.existsSync(file + '.graceful-exit'), false, 'the exit handler must not run');
+    // A separate process reads only durable bytes, with no module cache or
+    // in-memory tab state from the failed transfer.
+    const restarted = spawnSync(process.execPath, ['-e',
+      "process.stdout.write(require('node:fs').readFileSync(process.argv[1], 'utf8'))", file], { encoding: 'utf8' });
+    assert.equal(restarted.status, 0, restarted.stderr);
+    assert.deepEqual(JSON.parse(restarted.stdout).urls, ['https://recover.test/']);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

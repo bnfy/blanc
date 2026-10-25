@@ -45,7 +45,12 @@ function runSpaceMove(adapter) {
     adapter.transfer();
   } catch {
     let moved = false;
-    try { moved = adapter.reconcile() === true; } catch { /* reported below as not recorded */ }
+    try { moved = adapter.reconcile() === true; } catch {
+      // Ownership is uncertain. Rewriting from an incomplete live target
+      // could erase the only durable copy written before the transfer.
+      // Keep that write-ahead record intact for restart recovery.
+      return { ok: false, error: 'move-failed', moved, recorded: false };
+    }
     let rewritten;
     try { rewritten = adapter.rewrite(); } catch { rewritten = { ok: false }; }
     // recorded: the space's record matches where the tab is. When false, the
