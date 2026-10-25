@@ -725,7 +725,7 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `items` | `WorkspaceListItem[]` |  |
 | `windowTabCount` | `number` | This window's ordinary tabs, for the new-space editor. |
 | `tint` | `SpaceTint` |  |
-| `sharedSync?` | `SharedSpaceLibraryStatus` |  |
+| `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
 
 ### `ThemeAppearance`
 

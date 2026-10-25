@@ -454,7 +454,7 @@ export interface WorkspacesPayload {
   /** This window's ordinary tabs, for the new-space editor. */
   windowTabCount: number;
   tint: SpaceTint;
-  sharedSync?: SharedSpaceLibraryStatus;
+  sharedSync?: SharedSpaceLibraryStatus | undefined;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */

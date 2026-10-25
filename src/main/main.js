@@ -10337,7 +10337,7 @@ function workspacesProjection() {
       symbol: workspace.symbol,
       ...(shared&&workspace.sharedId?{sharedSync:sync.spaceStatus(workspace.sharedId)}:{}),
     })),
-    ...(shared?.enabled?{sharedSync:{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd}}:{}),
+    sharedSync:shared?.enabled?{count:shared.spaces,limit:shared.spaceLimit,canAdd:shared.canAdd}:undefined,
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,

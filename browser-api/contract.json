@@ -928,7 +928,7 @@
           "type": "SpaceTint"
         },
         "sharedSync": {
-          "type": "SharedSpaceLibraryStatus",
+          "type": "SharedSpaceLibraryStatus | undefined",
           "optional": true
         }
       }
