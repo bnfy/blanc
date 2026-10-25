@@ -892,16 +892,17 @@ void AddNavigationResponseGate(content::NavigationThrottleRegistry& registry) {
 #endif
   registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));
 }
-void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
+bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,
                 network::URLLoaderFactoryBuilder& builder) {
   if (!base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets")
 #if BLANC_RESEARCH_HOOKS
       && !UboProbe()
 #endif
-      ) return;
+      ) return false;
   auto [receiver, remote] = builder.Append();
   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),
       Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});
+  return true;
 }
 }

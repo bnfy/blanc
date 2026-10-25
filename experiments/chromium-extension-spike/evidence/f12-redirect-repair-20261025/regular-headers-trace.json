@@ -1,0 +1,192 @@
+[
+  {
+    "args": {
+      "name": "swapper"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 0,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "PerfettoTrace"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 5613,
+    "tid": 9880855,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "CrBrowserMain"
+    },
+    "cat": "__metadata",
+    "name": "thread_name",
+    "ph": "M",
+    "pid": 5572,
+    "tid": 9880229,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "Service: tracing.mojom.TracingService"
+    },
+    "cat": "__metadata",
+    "name": "process_name",
+    "ph": "M",
+    "pid": 5613,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "name": "Browser"
+    },
+    "cat": "__metadata",
+    "name": "process_name",
+    "ph": "M",
+    "pid": 5572,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "uptime": "0"
+    },
+    "cat": "__metadata",
+    "name": "process_uptime_seconds",
+    "ph": "M",
+    "pid": 5613,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "uptime": "2"
+    },
+    "cat": "__metadata",
+    "name": "process_uptime_seconds",
+    "ph": "M",
+    "pid": 5572,
+    "tid": 0,
+    "ts": 0
+  },
+  {
+    "args": {
+      "chrome_active_processes": {
+        "pid": [
+          5572,
+          5600,
+          5601,
+          5602,
+          5604,
+          5605,
+          5606,
+          5607,
+          5609,
+          5610,
+          5611,
+          5612,
+          5613
+        ]
+      }
+    },
+    "cat": "__metadata",
+    "name": "ActiveProcesses",
+    "ph": "I",
+    "pid": 0,
+    "s": "g",
+    "tid": 0,
+    "ts": 431052401492
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": false,
+      "redirect_index": 0,
+      "request_digest": "F06F7E81FFA9486A74F89222EEEF04BBF092C39A936A63BD77F194B99AB57F33",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 5572,
+    "s": "t",
+    "tid": 9880229,
+    "ts": 431052415728,
+    "tts": 854879
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": false,
+      "redirect_index": 1,
+      "request_digest": "F06F7E81FFA9486A74F89222EEEF04BBF092C39A936A63BD77F194B99AB57F33",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 5572,
+    "s": "t",
+    "tid": 9880229,
+    "ts": 431052417859,
+    "tts": 855556
+  },
+  {
+    "args": {
+      "forwarded": true,
+      "modified_headers": 1,
+      "removed_headers": 1,
+      "replacement_url": false,
+      "request_digest": "F06F7E81FFA9486A74F89222EEEF04BBF092C39A936A63BD77F194B99AB57F33"
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RedirectFollow",
+    "ph": "I",
+    "pid": 5572,
+    "s": "t",
+    "tid": 9880229,
+    "ts": 431052426421,
+    "tts": 855930
+  },
+  {
+    "args": {
+      "method": "GET",
+      "private": false,
+      "redirect_index": 2,
+      "request_digest": "F06F7E81FFA9486A74F89222EEEF04BBF092C39A936A63BD77F194B99AB57F33",
+      "result": 0
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RequestDecision",
+    "ph": "I",
+    "pid": 5572,
+    "s": "t",
+    "tid": 9880229,
+    "ts": 431052429135,
+    "tts": 857340
+  },
+  {
+    "args": {
+      "forwarded": true,
+      "modified_headers": 1,
+      "removed_headers": 1,
+      "replacement_url": false,
+      "request_digest": "F06F7E81FFA9486A74F89222EEEF04BBF092C39A936A63BD77F194B99AB57F33"
+    },
+    "cat": "disabled-by-default-blanc.attribution",
+    "name": "Blanc.RedirectFollow",
+    "ph": "I",
+    "pid": 5572,
+    "s": "t",
+    "tid": 9880229,
+    "ts": 431052437384,
+    "tts": 857823
+  }
+]

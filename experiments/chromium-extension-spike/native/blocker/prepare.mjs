@@ -1,3 +1,4 @@
+import { prepareFinalFactory } from './prepare_final_factory.mjs';
 import { writeResearchPolicy, guardResearchHooks } from '../../research-build.mjs';
 // Separate, explicit opt-in to the experimental blocker in the preserved 157 output.
 import fs from 'node:fs';
@@ -21,22 +22,7 @@ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
   services.Add(RunBlancBlocker);`);
 patch('chrome/utility/BUILD.gn','"//chrome/services/blanc_blocker:service"','  public_deps = []\n  deps = [','  public_deps = []\n  deps = [\n    "//chrome/services/blanc_blocker:service",');
 patch('chrome/browser/chrome_content_browser_client.cc','blanc_blocker/blocker_proxy.h','#include "chrome/browser/chrome_content_browser_client.h"','#include "chrome/browser/chrome_content_browser_client.h"\n#include "chrome/services/blanc_blocker/blocker_proxy.h"');
-const browserClient=path.join(src,'chrome/browser/chrome_content_browser_client.cc');
-const previous='  blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), factory_builder);\n\n';
-const previousText=fs.readFileSync(browserClient,'utf8');
-if(!previousText.includes('// Blanc network factories only')&&previousText.includes(previous))write(browserClient,previousText.replace(previous,''));
-const oldCall='blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), factory_builder);';
-const newCall='blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), isolation_info, factory_builder);';
-const current=fs.readFileSync(browserClient,'utf8');
-if(current.includes(oldCall)){
- if(current.split(oldCall).length!==2)throw Error('ambiguous Blanc factory call');
- write(browserClient,current.replace(oldCall,newCall));
-}
-patch('chrome/browser/chrome_content_browser_client.cc','// Blanc network factories only','  // Install the HTTP Header Injection proxying factory.',`  // Blanc network factories only; WebUI/data/file loaders keep their own protocol.
-  if (is_for_network_service)
-    ${newCall}
-
-  // Install the HTTP Header Injection proxying factory.`);
+prepareFinalFactory(src);
 patch('chrome/browser/BUILD.gn','"//chrome/services/blanc_blocker:browser"','    ":universal_web_contents_observers",','    ":universal_web_contents_observers",\n    "//chrome/services/blanc_blocker:browser",');
 console.log('Blanc blocker sources prepared; run unchanged-args GN then the normal build guard.');
 

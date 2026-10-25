@@ -21,7 +21,7 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map);
 void BindDocumentStart(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::DocumentStart> receiver);
 // Opt-in experimental browser hook; no interception when the asset flag is absent.
-void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
+bool MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,
                 int factory_type, const net::IsolationInfo& isolation_info,
                 network::URLLoaderFactoryBuilder& builder);
 }

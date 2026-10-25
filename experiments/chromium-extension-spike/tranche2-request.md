@@ -2820,3 +2820,8 @@ The first fresh-profile control exposed a restore-before-any-session path when `
 ## October23 startup restoration scheduling repair
 
 The macOS Blanc startup restore now runs as a non-nestable main-thread task after the startup stack unwinds. The task owns value inputs, process/profile keep-alives and a weak profile reference; it does not retain the stack-owned creator. Existing restoration, empty/error fallback, shared-group/update notices, explicit preferences, private handling and Quit behavior remain in the native path. This removes the pre-main-loop restoration entry seen in the retained stall stack. Fresh inventory72files/178hunks under the owner's standing patch-consolidation authorization; final signed recovery qualification remains pending. Temporary diagnostic markers were removed byte-for-byte from both inspected session sources. No GN/toolchain change, latency measurement or Electron build.
+
+
+## October25 final-factory repair footprint
+
+The owner's standing October21 consolidation authorization covers the new75existing-upstream-files/184hunks ceiling (+2/+4 from73/180). The added existing files are the internal URL-loader factory utility source/header; the late hook preserves the original context while gating downstream DevTools replacements.151Git dependency checkouts remain clean. One18-planned/23-actual-step incremental build passes, finalguard0. Counts exclude copied Blanc-owned files under the established policy, not their maintenance cost. No cold build, toolchain/GN change, latency or Electron work. See evidence/f12-redirect-repair-20261025.

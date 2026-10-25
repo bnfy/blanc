@@ -1,5 +1,7 @@
 > Current October24: [prerender replacement notarized and72final checks pass](evidence/f12-prerender-notarized-20261024/README.md). Source14706b0e/archive18a0c2ca; technical L7 requalification and explicit owner approval complete. **9/12 (75%),delta+1L7.** No build, Google changes or latency measurement; Electron paused.
 
+> October25: [DevTools replacement repair](evidence/f12-redirect-repair-20261025/README.md) passes42native checks. Existing signed14706b0e remains unchanged; rebuild/signing and affected acceptance are pending before crediting its repair. No new gate closure. Electron paused, Google separate, latency deferred.
+
 > October24 new F12 finding: [privileged DevTools redirect URL replacements bypass blocking](evidence/f12-redirect-overrides-20261024/README.md), confirmed on signed14706b0e with direct blocked-host controls. Header behavior passes. Prior L7 default-mode acceptance is not extended to this untested privileged path; review and repair before claiming F12 complete or release readiness. No new gate credit; Electron paused, Google separate, latency deferred.
 
 October24: [native utility-resume recovery repair](evidence/f12-utility-resume-20261024/README.md) passes24focused regular/private checks. Signed-candidate evidence is unchanged; this does not award another gate. Progress remains9/12, Electron paused, Google separate, latency deferred.
