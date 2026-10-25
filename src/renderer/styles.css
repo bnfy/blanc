@@ -29,6 +29,7 @@
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
   --accent: #111111;
+  --row-selected: #728ca6;
   --accent-dim: rgba(17, 17, 17, 0.08);
   --sunrise-bg: #f8f2e8;
   --sunrise-surface: #f2eade;
@@ -98,6 +99,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --row-selected: #536f8b;
     --bg: #0e0e0e;
     --surface: #171717;
     --surface-raised: #1f1f1f;
@@ -127,6 +129,7 @@
    that depth and an explicit "private" chip rather than a color cast.
    Applied while the active tab is private (keep in sync with pages.css). */
 :root[data-theme="private"] {
+  --row-selected: #596c83;
   --bg: #0a0a0a;
   --surface: #131313;
   --surface-raised: #191919;
@@ -4401,6 +4404,17 @@ html[data-surface="glance"] .glance-header {
   border-radius: calc(var(--glance-card-radius) - 1px) calc(var(--glance-card-radius) - 1px) 0 0;
 }
 
+/* Selected rows remain distinct from both hover and the current page. */
+.vertical-tab-row.selected,
+.vertical-tabs-group .vertical-tab-row.selected,
+.island-row.selected,
+.island-row.selected:hover,
+.island-group-band .island-row.selected,
+.island-group-band .island-row.selected:hover {
+  background: var(--row-selected);
+  color: var(--text);
+}
+.island-row.selected .row-sub { color: var(--text); }
 .ws-sync-mark { font-size: 11px; opacity: .72; margin-inline-start: .4rem; }
 .ws-sync-status { font-size: 12px; margin: .5rem; }
 .sync-not-synced { margin-inline-start: .35rem; color: var(--accent, currentColor); }

@@ -284,6 +284,7 @@ export interface GroupRenameResult {
 /** Result of getAllTabs, built by the tabs:get-all handler in main.js. */
 export interface TabsSnapshot {
   tabs: TabEntry[];
+  selectedTabIds: TabId[];
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -303,6 +304,7 @@ export interface TabsSnapshot {
 /** The tabs:updated broadcast, built by currentTabsPayload() in main.js. */
 export interface TabsUpdatedPayload {
   tabs: TabEntry[];
+  selectedTabIds: TabId[];
   activeTabId: TabId | null;
   glanceTabId: TabId | null;
   groups: TabGroup[];
@@ -551,6 +553,7 @@ export type WorkspaceAction = 'swap' | 'noop' | 'focus';
 
 /** Result of every Named Workspace action. Successes carry the refreshed workspace list; failures carry an error code and, for some codes, extra detail. */
 export interface WorkspaceActionResult {
+  movedCount?: number;
   ok: boolean;
   error?: WorkspaceErrorCode;
   /** Why a saved workspace could not be opened (with saved-not-opened). */
@@ -929,6 +932,11 @@ export interface BlancBrowserAPI {
    * IPC: invoke `tabs:clear-closed`.
    */
   clearClosedEntries(): Promise<boolean>;
+  /**
+   * Change the window-local tab selection and return the focused row id.
+   * IPC: invoke `tabs:select`.
+   */
+  selectTab(tabId: TabId | null, mode: 'toggle' | 'range' | 'extend-up' | 'extend-down' | 'clear'): Promise<TabId | null>;
   /**
    * Activate a tab.
    * IPC: invoke `tabs:switch`.
@@ -1408,6 +1416,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:workspaces-create-with-link`.
    */
   createSpaceWithLink(name: string, identity: SpaceIdentityInput): Promise<WorkspaceActionResult>;
+  /**
+   * Create a space and move the selected whole rows after one checked write.
+   * IPC: invoke `chrome:workspaces-create-with-tabs`.
+   */
+  createSpaceWithTabs(name: string, identity: SpaceIdentityInput, tabIds: TabId[]): Promise<WorkspaceActionResult>;
+  /**
+   * Move the selected whole rows to a named group in one pass.
+   * IPC: invoke `tabs:group-many-by-name`.
+   */
+  groupTabsByName(tabIds: TabId[], name: string): Promise<boolean>;
   /**
    * Create a space containing this window’s tab, then move the live tab without switching spaces.
    * IPC: invoke `chrome:workspaces-create-with-tab`.

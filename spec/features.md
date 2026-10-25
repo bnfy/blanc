@@ -1241,6 +1241,8 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
 
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
 
+- **Several-tab selection (desktop):** ⌘/Ctrl-click toggles rows, Shift-click selects a visible range, and Shift-arrow extends from a focused row in the panel or side list. Splits are selected whole. The current row joins a new selection; plain activation, Escape and a space switch clear it. Selection is owned by main and never saved or synced. The separate menu moves, groups, pins, mutes, reloads, quiets, copies or closes selected tabs. Space moves write the full capture first and retain unmoved tabs after partial failure; other placement edits apply in one pass. Close Tabs records one batch, including split layouts. A drag still moves only its starting row.
+
 ## F42 — Dark websites
 
 - When the person turns on **Dark websites** and Blanc is dark (the Dark

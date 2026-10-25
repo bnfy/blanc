@@ -13,6 +13,7 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
+  --row-selected: #728ca6;
   --sunrise-bg: #f8f2e8;
   --sunrise-surface: #f2eade;
   --sunrise-surface-raised: #ffffff;
@@ -72,6 +73,7 @@
     --text-dim: #9c9c9c;
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
+    --row-selected: #536f8b;
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -97,6 +99,7 @@
   --text-dim: #9c9c9c;
   --accent: #f5f5f5;
   --accent-dim: rgba(245, 245, 245, 0.12);
+  --row-selected: #596c83;
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;
@@ -122,6 +125,7 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
+  --row-selected: #728ca6;
   --sunrise-bg: #f8f2e8;
   --sunrise-surface: #f2eade;
   --sunrise-surface-raised: #ffffff;
@@ -166,6 +170,7 @@
     --text-dim: #9c9c9c;
     --accent: #f5f5f5;
     --accent-dim: rgba(245, 245, 245, 0.12);
+    --row-selected: #536f8b;
     --sunrise-bg: #17130f;
     --sunrise-surface: #2d251d;
     --sunrise-surface-raised: #221d17;
@@ -188,6 +193,7 @@
   --text-dim: #9c9c9c;
   --accent: #f5f5f5;
   --accent-dim: rgba(245, 245, 245, 0.12);
+  --row-selected: #596c83;
   --sunrise-bg: #100d0b;
   --sunrise-surface: #251d17;
   --sunrise-surface-raised: #1a1511;

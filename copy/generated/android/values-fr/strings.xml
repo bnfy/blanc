@@ -2340,4 +2340,30 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ws_announce_opened_in">Ouvert dans %1$s</string>
     <string name="ws_new_with_link">Avec ce lien</string>
     <string name="ws_error_open_link_failed">Impossible d’ouvrir le lien dans %1$s.</string>
+    <string name="rail_state_selected">sélectionné</string>
+    <plurals name="tabs_selection_count">
+        <item quantity="one">%1$d onglet sélectionné</item>
+        <item quantity="many">%1$d onglets sélectionnés</item>
+        <item quantity="other">%1$d onglets sélectionnés</item>
+    </plurals>
+    <string name="tabs_selection_cleared">Sélection effacée</string>
+    <string name="tabs_selection_failed">Impossible de terminer l’action pour ces onglets.</string>
+    <string name="tabs_selection_quieted">%1$s onglets sur %2$s mis en veille.</string>
+    <string name="tabs_selection_reloaded">%1$s onglets sur %2$s rechargés.</string>
+    <plurals name="tabs_menu_header">
+        <item quantity="one">%1$d onglet</item>
+        <item quantity="many">%1$d onglets</item>
+        <item quantity="other">%1$d onglets</item>
+    </plurals>
+    <string name="tabs_menu_new_window">Déplacer les onglets dans une nouvelle fenêtre</string>
+    <string name="tabs_menu_pin">Épingler les onglets</string>
+    <string name="tabs_menu_unpin">Désépingler les onglets</string>
+    <string name="tabs_menu_mute">Couper le son des onglets</string>
+    <string name="tabs_menu_unmute">Rétablir le son des onglets</string>
+    <string name="tabs_menu_reload">Recharger les onglets</string>
+    <string name="tabs_menu_quiet">Mettre les onglets en veille</string>
+    <string name="tabs_menu_copy">Copier les liens</string>
+    <string name="tabs_menu_close">Fermer les onglets</string>
+    <string name="ws_new_with_tabs">Avec ces onglets</string>
+    <string name="ws_error_moved_partly">%1$s onglets déplacés vers %2$s. Les autres sont restés ici.</string>
 </resources>

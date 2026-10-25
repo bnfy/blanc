@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-147 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+150 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -13,6 +13,7 @@
 | `reopenClosedEntry` | tabs | invoke | `tabs:reopen-entry` | `(entryId: ClosedEntryId) => Promise<void>` | all |
 | `forgetClosedEntry` | tabs | invoke | `tabs:forget-closed-entry` | `(entryId: ClosedEntryId) => Promise<boolean>` | all |
 | `clearClosedEntries` | tabs | invoke | `tabs:clear-closed` | `() => Promise<boolean>` | all |
+| `selectTab` | tabs | invoke | `tabs:select` | `(tabId: TabId \| null, mode: 'toggle' \| 'range' \| 'extend-up' \| 'extend-down' \| 'clear') => Promise<TabId \| null>` | all |
 | `switchTab` | tabs | invoke | `tabs:switch` | `(id: TabId) => Promise<void>` | all |
 | `navigate` | navigation | invoke | `tabs:navigate` | `(id: TabId, url: string) => Promise<boolean \| undefined>` | all |
 | `search` | navigation | invoke | `tabs:search` | `(id: TabId, query: string, engine?: string) => Promise<boolean \| string \| undefined>` | all |
@@ -108,6 +109,8 @@
 | `cancelWorkspaceAction` | workspaces | send | `chrome:workspaces-cancel` | `()` | all |
 | `listWorkspaces` | workspaces | invoke | `chrome:workspaces-list` | `() => Promise<WorkspacesPayload>` | all |
 | `createSpaceWithLink` | workspaces | invoke | `chrome:workspaces-create-with-link` | `(name: string, identity: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
+| `createSpaceWithTabs` | workspaces | invoke | `chrome:workspaces-create-with-tabs` | `(name: string, identity: SpaceIdentityInput, tabIds: TabId[]) => Promise<WorkspaceActionResult>` | all |
+| `groupTabsByName` | tabs | invoke | `tabs:group-many-by-name` | `(tabIds: TabId[], name: string) => Promise<boolean>` | all |
 | `createSpaceWithTab` | workspaces | invoke | `chrome:workspaces-create-with-tab` | `(name: string, identity: SpaceIdentityInput, tabId: TabId) => Promise<WorkspaceActionResult>` | all |
 | `saveWorkspaceAs` | workspaces | invoke | `chrome:workspaces-save-as` | `(name: string, identity?: SpaceIdentityInput) => Promise<WorkspaceActionResult>` | all |
 | `openWorkspace` | workspaces | invoke | `chrome:workspaces-open` | `(id: WorkspaceId, opts?: OpenWorkspaceOptions) => Promise<WorkspaceActionResult>` | all |
@@ -525,6 +528,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -545,6 +549,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `tabs` | `TabEntry[]` |  |
+| `selectedTabIds` | `TabId[]` |  |
 | `activeTabId` | `TabId \| null` |  |
 | `glanceTabId` | `TabId \| null` |  |
 | `groups` | `TabGroup[]` |  |
@@ -862,6 +867,7 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 
 | Field | Type | Notes |
 | --- | --- | --- |
+| `movedCount?` | `number` |  |
 | `ok` | `boolean` |  |
 | `error?` | `WorkspaceErrorCode` |  |
 | `cause?` | `WorkspaceErrorCode` | Why a saved workspace could not be opened (with saved-not-opened). |

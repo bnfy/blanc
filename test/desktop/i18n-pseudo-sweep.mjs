@@ -279,6 +279,18 @@ const WORKSPACE_SURFACES = [
       return overlay;
     },
   },
+  {
+    name: 'several-tabs context menu',
+    native: async ({ app, chrome }) => {
+      const { tabs, activeTabId } = await callTestHook(app, 'state');
+      const other = tabs.find(tab => tab.id !== activeTabId && !tab.private);
+      await callTestHook(app, 'selectTabRows', [other.id, 'toggle']);
+      await chrome.evaluate(id => { window.__blancCtxRowTabId = id; }, other.id);
+      const labels = await rightClick(app, 'blanc-chrome://index/', {});
+      await callTestHook(app, 'selectTabRows', [null, 'clear']);
+      return labels;
+    },
+  },
   { name: 'workspace editor (new)', open: switcherStep(['[data-focus-key="new"]', '#workspaceName']) },
   { name: 'workspace editor (edit)', open: switcherStep(editFirst) },
   { name: 'workspace colour picker', open: switcherStep(editFirst, ['[data-focus-key="color:custom"]', '.space-picker']) },

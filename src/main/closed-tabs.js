@@ -4,6 +4,7 @@
 // tab-sleep.js). The clock is injected, never read.
 // See docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md.
 
+const { captureSplits } = require('./split-model');
 const { cloneEntryMarks } = require('./certificate-history');
 const { recordTitle } = require('./inert-local-file');
 const { normalizeTabName } = require('./tab-name');
@@ -199,9 +200,12 @@ function buildGroupEntry(group, members, now = 0) {
  *  one ⌘⇧T, no group created — each member rejoins its recorded group only if
  *  it still exists at restore time (resolved by the caller). Private members
  *  are dropped from the record, same as buildGroupEntry. */
-function buildBatchEntry(members, now = 0) {
+function buildBatchEntry(members, now = 0, splits = []) {
+  const kept = members.filter(member => !member.private);
+  const splitColumns = captureSplits(splits, kept.map(member => member.id));
   return {
     kind: 'batch',
+    ...(splitColumns.splits.length ? splitColumns : {}),
     id: nextEntryId(),
     closedAt: now,
     tabs: members

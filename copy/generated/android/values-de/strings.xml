@@ -26,7 +26,7 @@
     <string name="slash_mute_hint">Diesen Tab stummschalten oder den Ton wieder einschalten</string>
     <string name="slash_rename_hint">Diesem Tab einen Namen geben – leer lassen, um den Titel zurückzusetzen</string>
     <string name="slash_rename_doc">Diesem Tab einen eigenen Namen geben oder ohne Namen zum Seitentitel zurückkehren</string>
-    <string name="slash_sleep_hint">Hintergrund-Tabs ruhen lassen und ihren Speicher freigeben</string>
+    <string name="slash_sleep_hint">Hintergrund-Tabs ruhend stellen und ihren Speicher freigeben</string>
     <string name="slash_group_hint">Leerzeichen, dann einen Gruppennamen eingeben – z. B. „arbeit“</string>
     <string name="slash_group_doc">Diesen Tab in eine Gruppe verschieben (wird beim ersten Mal angelegt)</string>
     <string name="slash_ungroup_hint">Diesen Tab aus seiner Gruppe nehmen</string>
@@ -981,7 +981,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_tab_layout_hint">Tabs in der Island behalten oder in einer linken Leiste zeigen; Suche und Befehle bleiben immer in der Island</string>
     <string name="settings_general_tab_layout_island">Island</string>
     <string name="settings_general_tab_layout_vertical">Vertikale Tabs</string>
-    <string name="settings_general_tab_sleep_label">Inaktive Tabs ruhen lassen</string>
+    <string name="settings_general_tab_sleep_label">Inaktive Tabs ruhend stellen</string>
     <string name="settings_general_tab_sleep_hint">Blanc gibt den Speicher von Tabs frei, die du länger nicht geöffnet hast, und lädt sie neu, wenn du zu ihnen zurückkehrst. Solche Tabs werden zu ruhenden Tabs.</string>
     <string name="settings_general_tab_sleep_off">Aus</string>
     <string name="settings_general_tab_sleep_30m">Nach 30 Minuten</string>
@@ -2271,4 +2271,28 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ws_announce_opened_in">In %1$s geöffnet</string>
     <string name="ws_new_with_link">Mit diesem Link</string>
     <string name="ws_error_open_link_failed">Der Link konnte nicht in %1$s geöffnet werden.</string>
+    <string name="rail_state_selected">ausgewählt</string>
+    <plurals name="tabs_selection_count">
+        <item quantity="one">%1$d Tab ausgewählt</item>
+        <item quantity="other">%1$d Tabs ausgewählt</item>
+    </plurals>
+    <string name="tabs_selection_cleared">Auswahl aufgehoben</string>
+    <string name="tabs_selection_failed">Die Aktion für diese Tabs konnte nicht abgeschlossen werden.</string>
+    <string name="tabs_selection_quieted">%1$s von %2$s Tabs in Ruhe versetzt.</string>
+    <string name="tabs_selection_reloaded">%1$s von %2$s Tabs neu geladen.</string>
+    <plurals name="tabs_menu_header">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <string name="tabs_menu_new_window">Tabs in neues Fenster verschieben</string>
+    <string name="tabs_menu_pin">Tabs anheften</string>
+    <string name="tabs_menu_unpin">Tabs lösen</string>
+    <string name="tabs_menu_mute">Tabs stummschalten</string>
+    <string name="tabs_menu_unmute">Stummschaltung der Tabs aufheben</string>
+    <string name="tabs_menu_reload">Tabs neu laden</string>
+    <string name="tabs_menu_quiet">Tabs ruhend stellen</string>
+    <string name="tabs_menu_copy">Links kopieren</string>
+    <string name="tabs_menu_close">Tabs schließen</string>
+    <string name="ws_new_with_tabs">Mit diesen Tabs</string>
+    <string name="ws_error_moved_partly">%1$s Tabs nach %2$s verschoben. Die anderen Tabs bleiben hier.</string>
 </resources>

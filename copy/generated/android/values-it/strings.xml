@@ -2340,4 +2340,30 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ws_announce_opened_in">Aperto in %1$s</string>
     <string name="ws_new_with_link">Con questo link</string>
     <string name="ws_error_open_link_failed">Impossibile aprire il link in %1$s.</string>
+    <string name="rail_state_selected">selezionata</string>
+    <plurals name="tabs_selection_count">
+        <item quantity="one">%1$d scheda selezionata</item>
+        <item quantity="many">%1$d schede selezionate</item>
+        <item quantity="other">%1$d schede selezionate</item>
+    </plurals>
+    <string name="tabs_selection_cleared">Selezione annullata</string>
+    <string name="tabs_selection_failed">Impossibile completare l’azione per queste schede.</string>
+    <string name="tabs_selection_quieted">%1$s schede su %2$s messe in riposo.</string>
+    <string name="tabs_selection_reloaded">%1$s schede su %2$s ricaricate.</string>
+    <plurals name="tabs_menu_header">
+        <item quantity="one">%1$d scheda</item>
+        <item quantity="many">%1$d schede</item>
+        <item quantity="other">%1$d schede</item>
+    </plurals>
+    <string name="tabs_menu_new_window">Sposta schede in una nuova finestra</string>
+    <string name="tabs_menu_pin">Fissa schede</string>
+    <string name="tabs_menu_unpin">Sblocca schede</string>
+    <string name="tabs_menu_mute">Disattiva audio delle schede</string>
+    <string name="tabs_menu_unmute">Riattiva audio delle schede</string>
+    <string name="tabs_menu_reload">Ricarica schede</string>
+    <string name="tabs_menu_quiet">Metti schede in riposo</string>
+    <string name="tabs_menu_copy">Copia link</string>
+    <string name="tabs_menu_close">Chiudi schede</string>
+    <string name="ws_new_with_tabs">Con queste schede</string>
+    <string name="ws_error_moved_partly">%1$s schede spostate in %2$s. Le altre sono rimaste qui.</string>
 </resources>

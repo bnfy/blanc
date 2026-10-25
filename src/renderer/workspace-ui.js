@@ -193,7 +193,7 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -273,7 +273,7 @@
     function cancel() {
       if (state.pending) return true;
       if (state.kind === 'decision') api.cancelWorkspaceAction?.();
-      if (['tab', 'link'].includes(state.start)) { state = { kind: 'list' }; close({ force: true }); }
+      if (['tab', 'tabs', 'link'].includes(state.start)) { state = { kind: 'list' }; close({ force: true }); }
       else if (state.original) { state = state.original; render(); }
       else if (state.kind === 'edit') { finishEdit(); }
       else if (state.kind !== 'list') { toList(); }
@@ -300,7 +300,8 @@
           // Creation already committed. Leave the user on the list containing
           // that saved row; keeping the editor alive would turn a retry into a
           // misleading duplicate-name failure.
-          state = { kind: 'list', error: result.error === 'saved-not-moved'
+          const batch = state.start === 'tabs';
+          state = { kind: 'list', error: batch ? t('ws.error.movedPartly', { name: data.items.find(item => item.id === result.workspaceId)?.name ?? '', count: result.movedCount ?? 0 }) : result.error === 'saved-not-moved'
             ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
             : errors[result.error] };
           render();
@@ -332,10 +333,11 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
-      if (['tab', 'link'].includes(state.start)) {
+      if (['tab', 'tabs', 'link'].includes(state.start)) {
+        const isTabs = state.start === 'tabs';
         const isLink = state.start === 'link';
         const tabId = state.tabId;
-        run(() => isLink ? api.createSpaceWithLink(name, identity) : api.createSpaceWithTab(name, identity, tabId), () => {
+        run(() => isLink ? api.createSpaceWithLink(name, identity) : isTabs ? api.createSpaceWithTabs(name, identity, tabId) : api.createSpaceWithTab(name, identity, tabId), () => {
           state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
         });
         return;
@@ -541,8 +543,8 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
-      if (isNew && ['tab', 'link'].includes(state.start)) {
-        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      if (isNew && ['tab', 'tabs', 'link'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : state.start === 'tabs' ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
@@ -699,8 +701,8 @@
         state = { kind: 'list', error: `${t('ws.error.openLinkFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
         open();
       },
-      showMoveError(name, error) {
-        state = { kind: 'list', error: `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
+      showMoveError(name, error, movedCount = 0) {
+        state = { kind: 'list', error: error === 'moved-partly' ? t('ws.error.movedPartly', { name, count: movedCount }) : `${t('ws.error.moveFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
         open();
       },
       /** 'new' (optionally { name, start }), 'edit' a workspace, or 'delete' one at once. */
