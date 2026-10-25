@@ -725,6 +725,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
       const removed=await net.fetch(`${ACTIVE_SYNC_ENDPOINT}/v1/blob/${accountId}/space-${id}`,{method:'DELETE'});
       if(run.stale())throw new SyncError('stale');
       if(!removed.ok)throw new SyncError(`http-${removed.status}`);
+      requestQueue?.cancelWhere(op=>op.item==='space-'+id,'retired');
       sharedSpaces.forgetRetiredSpace(id,run.ctx);
     }
   }

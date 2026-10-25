@@ -329,6 +329,13 @@ variable log-persistence and network latency. Linux CI is still a separate
 pending check; the checkbox above does not claim it has passed. Evidence is in
 `docs/security-reviews/2026-10-25-shared-spaces-pr-d.md`.
 
+Review corrections after `cc1937358`: two-client convergence now uses ordinary
+autosave and scheduled discovery after joining, without forced capture/pulls.
+Retention/expiry, dedupe and backoff acceptance now drive actual device stores
+through the Worker fixture, including on-disk unsynced writes and real drawer
+projection. Updated regression and native results are recorded in the candidate
+evidence file. The Linux CI and Gate D checkboxes remain pending.
+
 ### Task 12: Spec, parity, privacy and security records
 
 **Files:** `spec/features.md` (F41: replace "never sync"; add F57 Shared Spaces), `spec/parity-matrix.md` (F41 desktop SHIPPED with sync, iOS PLANNED M17), `docs/security-assessment.md` (a shared-Spaces row under Profile Sync, R3/R5 stated), `test/unit/*` claim tests that read those files. Owner review defers public privacy/FAQ text until release evidence is available in PR E.

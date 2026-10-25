@@ -216,7 +216,11 @@ export class AccountQuota {
     // KV I/O yields outside Durable Object storage input gates. Serialize the
     // full reservation + KV operation so a late larger write cannot land
     // after a smaller reservation has already released its storage budget.
-    const result=this.tail.then(()=>this.handle(request));this.tail=result.catch(()=>{});return result;
+    const result=this.tail.then(()=>this.handle(request)).catch(error=>{
+      // Bootstrap may have rejected, or a failed storage write may have
+      // mutated the cached ledger. Retry from durable state next time.
+      this.initializing=null;throw error;
+    });this.tail=result.catch(()=>{});return result;
   }
   async handle(request) {
     if (request.method === 'DELETE') { if (this.initializing) await this.initializing.catch(()=>{}); await this.state.storage.deleteAll(); this.initializing = null; return new Response(null, { status: 204 }); }

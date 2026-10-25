@@ -15,6 +15,22 @@ async function environment(vars={}) {
 }
 const put=(h,store,blob={ct:'x'})=>h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/${store}`,{method:'PUT',body:JSON.stringify({ifVersion:null,blob}),duplex:'half'}),h.env);
 
+test('a transient quota bootstrap failure is retried on the next write',async()=>{
+ const h=await environment(),list=h.env.SYNC.list;let attempts=0;
+ h.env.SYNC.list=async options=>{if(++attempts===1)throw new Error('temporary list failure');return list(options);};
+ await assert.rejects(put(h,sid(1)),/temporary list failure/);
+ assert.equal((await put(h,sid(1))).status,200);assert.equal(attempts,2);
+});
+test('a failed reservation persistence cannot charge the next write from cached state',async()=>{
+ const mod=await modulePromise,storage=state(),write=storage.storage.put;let writes=0,kvWrites=0;
+ storage.storage.put=async(k,v)=>{if(++writes===2)throw new Error('temporary ledger failure');return write(k,v);};
+ const q=new mod.AccountQuota(storage,{ACCOUNT_STORAGE_MAX_STORES:'1',SYNC:{list:async()=>({keys:[],list_complete:true}),get:async()=>null,put:async()=>{kvWrites++;}}});
+ const request=store=>q.fetch(new Request('https://quota.invalid/write',{method:'POST',body:JSON.stringify({accountId:account,store,stored:'{}'})}));
+ await assert.rejects(request(sid(1)),/temporary ledger failure/);assert.equal(kvWrites,0);
+ assert.equal((await request(sid(2))).status,200);assert.equal(kvWrites,1);
+ assert.deepEqual(Object.keys((await storage.storage.get('ledger')).stores),[sid(2)]);
+});
+
 test('blob reads advertise selective DELETE support for present and absent stores',async()=>{
  const h=await environment(),get=()=>h.worker.fetch(new Request(`https://sync.test/v1/blob/${account}/spaces`),h.env);
  let response=await get();assert.equal(response.status,404);assert.equal(response.headers.get('X-Blanc-Space-Delete'),'1');

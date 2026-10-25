@@ -13,9 +13,9 @@ const tick=()=>new Promise(r=>setTimeout(r,5));
 async function environment(t) {
   let wall=1800000000000;t.mock.method(Date,'now',()=>wall);
   const fixture=await createSyncFixture(),devices=[];
-  function device(name,{seed=true,legacyDelete=false}={}) {
+  function device(name,{seed=true,legacyDelete=false,files={}}={}) {
     const clock=virtualClock(wall);
-    const d=syncDevice({clock,key,endpoint:fixture.url,record:{deviceId:name},fetch:async(url,options)=>{
+    const d=syncDevice({clock,key,files,endpoint:fixture.url,record:{deviceId:name},fetch:async(url,options)=>{
       assert.ok(String(url).startsWith(fixture.url+'/'),'integration requests must never leave the local fixture');
       if(legacyDelete&&options?.method==='DELETE'&&String(url).includes('/space-'))throw new Error('legacy Worker would wipe the whole account');
       const response=await fetch(url,options);if(!legacyDelete)return response;
@@ -37,6 +37,19 @@ async function environment(t) {
   return {fixture,device,drive,read:store=>{const raw=fixture.env.records.get(`blob:${account}:${store}`);return raw?JSON.parse(decrypt(key,JSON.parse(raw).blob)):null;}};
 }
 function createSpace(d) {const local=blob();d.spaces.noteLocalSpace(sid,local,{tabs:local.tabs},d.ctx);d.spaces.setIndex(index(),d.ctx);}
+test('cold-start retirement cancels queued Space work before stale reads can restore deleted content',async t=>{
+ const e=await environment(t),a=e.device('A');createSpace(a);await e.drive(a.sync.syncNow([store]));
+ const saved=a.spaces.snapshot(a.ctx);saved.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);saved.nextClass='I';saved.requestLog=[];
+ await e.drive(a.sync.disable({wipeRemote:false}));
+ const b=e.device('B',{seed:false,files:{'shared-spaces.json':saved}});
+ e.fixture.inject({type:'stale',accountId:account,store,times:1});
+ await e.drive(b.sync.syncNow());
+ assert.equal(e.fixture.env.records.has(`blob:${account}:${store}`),false);
+ assert.equal(b.spaces.snapshot(b.ctx).blobs[sid],undefined);assert.equal(b.spaces.snapshot(b.ctx).pending[sid],undefined);
+ const removed=e.fixture.requests.findIndex(r=>r.method==='DELETE'&&r.store===store);assert.ok(removed>=0);
+ assert.equal(e.fixture.requests.slice(removed+1).some(r=>r.store===store),false,'no queued request may follow successful retirement');
+ await e.drive(b.sync.syncNow());assert.equal(e.fixture.requests.slice(removed+1).some(r=>r.store===store),false,'later full passes must not retain phantom work');
+});
 test('a Worker without selective DELETE capability never receives a per-Space DELETE',async t=>{
   const e=await environment(t),a=e.device('A',{legacyDelete:true});createSpace(a);await e.drive(a.sync.syncNow([store]));
   a.spaces.rebind(account).update(d=>{d.index.spaces[sid].deleted=field(true,Date.now()-model.LIMITS.tombstoneMs-1);});

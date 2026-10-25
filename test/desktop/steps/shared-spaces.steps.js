@@ -129,14 +129,15 @@ Given('a second complete desktop client sharing Work',{timeout:300000},async fun
  const work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await this.peerCall('workspaceAction','open',work.id)).ok,true);
  this.sid=Object.keys(state.shared.blobs)[0];
 });
-async function exchange(world,from,to){await from('sharedSpacesTest','capture');await from('sharedSpacesTest','pull',['space-'+world.sid]);await to('sharedSpacesTest','pull',['space-'+world.sid]);}
 Then('both complete clients exchange quiet tabs in both directions',{timeout:600000},async function(){
  const a=this.call.bind(this),b=this.peerCall;
  this.fromA=this.fixtureUrl('two-client-a');this.fromB=this.fixtureUrl('two-client-b');
- this.newA=await a('openTab',this.fromA);await exchange(this,a,b);
- let state=await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.url===this.fromA),'A tab on B',15000);assert.equal(state.tabs.find(t=>t.url===this.fromA).asleep,true);
- this.newB=await b('openTab',this.fromB);await exchange(this,b,a);
- state=await this.waitForState(s=>s.tabs.some(t=>t.url===this.fromB));assert.equal(state.tabs.find(t=>t.url===this.fromB).asleep,true);
+ // After joining, use ordinary autosave and scheduled synchronization only.
+ // Explicit capture/pull hooks here would hide broken automatic discovery.
+ this.newA=await a('openTab',this.fromA);
+ let state=await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.url===this.fromA),'automatic A tab on B',300000);assert.equal(state.tabs.find(t=>t.url===this.fromA).asleep,true);
+ this.newB=await b('openTab',this.fromB);
+ state=await waitForValue(()=>a('state'),s=>s.tabs.some(t=>t.url===this.fromB),'automatic B tab on A',300000);assert.equal(state.tabs.find(t=>t.url===this.fromB).asleep,true);
 });
 Then('a complete client defers active navigation until its tab changes',{timeout:600000},async function(){
  const a=this.call.bind(this),b=this.peerCall,state=await b('state');this.peerActive=state.activeTabId;
@@ -146,7 +147,7 @@ Then('a complete client defers active navigation until its tab changes',{timeout
  await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&!t.asleep&&!t.isLoading));
  await a('navigateTab',local.id,this.peerNavigated);
  await this.waitForState(s=>s.tabs.some(t=>t.id===local.id&&t.url===this.peerNavigated&&!t.isLoading));
- await exchange(this,a,b);
+ await waitForValue(()=>b('sharedSpacesTest','state'),s=>Object.values(s.shared.windows).some(w=>w.accepted.some(row=>row.op==='nav'&&row.value?.v?.url===this.peerNavigated)),'automatic deferred navigation receipt',300000);
  assert.equal((await b('state')).tabs.find(t=>t.id===this.peerActive).url,this.fromB);
  await b('openTab',this.fixtureUrl('two-client-unprotect'));
  await waitForValue(()=>b('state'),s=>s.tabs.some(t=>t.id===this.peerActive&&t.url===this.peerNavigated),'deferred navigation applied',15000);
@@ -154,17 +155,16 @@ Then('a complete client defers active navigation until its tab changes',{timeout
 Then('a complete client receives one remote close entry',{timeout:600000},async function(){
  const a=this.call.bind(this),b=this.peerCall;
  await b('openTab',this.fixtureUrl('two-client-close-unprotect'));
- await a('closeTab',this.newA);await a('sharedSpacesTest','capture');await a('sharedSpacesTest','pull',['closed','space-'+this.sid]);await b('sharedSpacesTest','pull',['closed','space-'+this.sid]);
- await waitForValue(()=>b('state'),s=>!s.tabs.some(t=>t.url===this.fromA),'remote close applied',15000);
- const state=await b('sharedSpacesTest','state');assert.equal(state.closed.filter(row=>row.title.includes('two-client-a')).length,1,JSON.stringify(state.closed));
+ await a('closeTab',this.newA);
+ await waitForValue(()=>b('state'),s=>!s.tabs.some(t=>t.url===this.fromA),'automatic remote close applied',300000);
+ const state=await waitForValue(()=>b('sharedSpacesTest','state'),s=>s.closed.some(row=>row.title.includes('two-client-a')),'automatic remote close band',300000);assert.equal(state.closed.filter(row=>row.title.includes('two-client-a')).length,1,JSON.stringify(state.closed));
 });
 Then('both complete clients rejoin dormant edits without duplicate tabs',{timeout:600000},async function(){
  const a=this.call.bind(this),b=this.peerCall;
  for(const call of [a,b])assert.equal((await call('sharedSpacesTest','apply',{enabled:false})).ok,true);
  const urls=[this.fixtureUrl('dormant-a'),this.fixtureUrl('dormant-b')];await a('openTab',urls[0]);await b('openTab',urls[1]);
  for(const call of [a,b]){const state=await call('sharedSpacesTest','state'),work=state.workspaces.items.find(w=>w.name==='Work');assert.equal((await call('sharedSpacesTest','apply',{enabled:true,selections:[{id:work.id,mode:'rejoin'}]})).ok,true);}
- await exchange(this,a,b);await exchange(this,b,a);
- for(const call of [a,b]){const state=await call('state');for(const url of urls)assert.equal(state.tabs.filter(t=>t.url===url).length,1);}
+ for(const call of [a,b]){const state=await waitForValue(()=>call('state'),s=>urls.every(url=>s.tabs.some(t=>t.url===url)),'automatic dormant rejoin',300000);for(const url of urls)assert.equal(state.tabs.filter(t=>t.url===url).length,1);}
 });
 Then('the complete clients stay within their request budgets',{timeout:60000},async function(){
  const gets=this.sharedFixture.requests.filter(r=>r.method==='GET');
