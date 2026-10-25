@@ -6469,7 +6469,7 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // and url-less adopted children drop out in lockstep with their metadata.
   syncTabLayout(runtime);
   const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-  const persistedGroups = runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
+  const persistedGroups = runtime.sharedGroupPersistence ? [...runtime.groups] : runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id));
   // The band's place counts only items that are written, so a private tab or
   // a group held only by private tabs never shifts it on the next launch.
   // closedIndex counts groups and ungrouped tabs; closedSlot, the rollback
@@ -7672,6 +7672,7 @@ function sharedSpaceRuntimeContext(runtime) {
   if(!workspace?.sharedId||!sync.status().enabled)return null;
   const ctx=sync.sharedContext(),store=sharedSpaceState.rebind(ctx.accountId),entry=store.data.blobs[workspace.sharedId];
   if(!entry?.blob)return null;
+  runtime.sharedGroupPersistence=true;
   const state=Object.values(store.data.windows).find(item=>item?.spaceId===workspace.sharedId);
   const protectedIds=runtime.resident?[]:[runtime.activeTabId,...visibleSplitTabIds(runtime)].map(id=>tabs.get(id)?.sharedTabId).filter(Boolean);
   return {spaceId:workspace.sharedId,accountId:ctx.accountId,deviceId:ctx.deviceId,blob:entry.blob,window:state,protectedIds,ctx,store,workspace};
@@ -7765,6 +7766,7 @@ const sharedSharing=createSharingService({
     if(!item.blob)return;
     const runtime=windowRuntimes.all().find(runtime=>runtime.profileId===DEFAULT_PROFILE_ID&&runtime.workspaceId===item.workspaceId);
     if(!runtime)return;
+    runtime.sharedGroupPersistence=true;
     const ids=item.tabIds;
     const entries=persistableEntries(runtime.tabOrder.map(id=>tabs.get(id)));
     for(let i=0;i<entries.length;i++)tabs.get(entries[i].id).sharedTabId=ids[i];
