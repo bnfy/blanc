@@ -33,7 +33,7 @@ for(const mode of modes){
   const target=pages.find(p=>p.type==='page'&&!p.url.startsWith('blanc-chrome:')&&!p.url.startsWith('devtools:'));
   if(!target)throw Error('No real content page');
   const client=await cdp(target.webSocketDebuggerUrl);
-  await client.send('Page.enable');await client.send('Page.navigate',{url:'http://127.0.0.1:8771/'+(mode==='wrapper-restart'?'restore':'probe')});await delay(2500);
+  await client.send('Page.enable');await client.send('Page.navigate',{url:'http://127.0.0.1:8771/probe'});await delay(2500);
   result.browsing=await client.send('Runtime.evaluate',{expression:'({title:document.title,probe:document.querySelector("#probe")?.textContent,nodeExposed:typeof require!=="undefined",storage:localStorage.getItem("probe")})',returnByValue:true});
   await client.send('Page.reload');await delay(1500);
   result.reload=await client.send('Runtime.evaluate',{expression:'({title:document.title,storage:localStorage.getItem("probe")})',returnByValue:true});
