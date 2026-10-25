@@ -109,7 +109,7 @@ test('main protects the unfocused active tab and split panes, but not a resident
   const runtime={id:'window',profileId:'default',workspaceId:'work',activeTabId:'one',focused:false};
   const sandbox={isSharedSpacesOffered:()=>true,DEFAULT_PROFILE_ID:'default',namedWorkspaces:{get:()=>({sharedId:sid})},
     sync:{status:()=>({enabled:true}),sharedContext:()=>({accountId:'a',deviceId:'desktop'})},
-    sharedSpaceState:{rebind:()=>({data:{blobs:{[sid]:{blob:{v:1}}},windows:{}}})},visibleSplitTabIds:()=>['one','two'],
+    sharedSpaceState:{rebind:()=>({data:{blobs:{[sid]:{blob:{v:1,spaceId:sid,tabs:{},groups:{}}}},windows:{}}})},visibleSplitTabIds:()=>['one','two'],
     tabs:new Map([['one',{sharedTabId:id(1)}],['two',{sharedTabId:id(2)}]])};
   vm.runInNewContext(code+'\nthis.read=sharedSpaceRuntimeContext;',sandbox);
   assert.deepEqual([...new Set(sandbox.read(runtime).protectedIds)],[id(1),id(2)]);
