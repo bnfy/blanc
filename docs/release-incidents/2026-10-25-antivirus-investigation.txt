@@ -1,6 +1,22 @@
 Antivirus investigation and source-preserving candidate — 2026-10-25
 
 CURRENT UPDATE: EXACT HSLUV MEMBER IDENTIFIED; NARROW SOURCE FIX PREPARED.
+The verified HSLuv source-selection fix is committed as 85ed9cf75.
+The latest Kaspersky controls explicitly report Undetected for the uAssets
+filter-source group (0/61), third-party-list group (0/61), and .github metadata
+group (0/64). A ZIP of the remaining 47 build/metadata members reproduces the
+Mimikatz label (1/62), SHA256
+b2a91c132a3cc9aa1cc18f8c732a195ae27e1c0b9e75cbd6e32fe81f5fb88671.
+URLhaus inside a one-file ZIP is also Undetected by Kaspersky; omitting it from
+the larger source group leaves the exact Mimikatz label. Do not blame or remove
+the protective list. A 37 KB tools/templates/docs-only control, SHA256
+3ac6d6d38a126e1585d38547e08e05828bc7162204439ccb284a47e0b3339035,
+is prepared but remains unsubmitted behind a new CAPTCHA. Approval for that
+current challenge has been requested. This control is not yet a positive
+result, and the exact Kaspersky inner-file trigger remains unknown. The prior
+approved control CAPTCHAs completed successfully, including the multi-image
+challenge used to open the positive metadata sample's Relations view.
+
 HSLuv scripts/secrets.sh, SHA256
 e1ce30a59c2cfda3c4e9b58bfea3cf1ce4d5ae7b374238e2138cc0637880c501,
 independently reproduces the five PUP detections (5/60), including the exact
