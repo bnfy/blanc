@@ -307,17 +307,76 @@ final class TabsManager {
         !tab.isPrivate && ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "")
     }
 
+    // MARK: Closing, with Undo (M11)
+
+    /// The newest close, undoable while its banner shows. The tab itself is
+    /// kept, so Undo brings back its page and history exactly.
+    private(set) var lastClosed: ClosedTab?
+    /// Closed tabs past their Undo, newest first, for /reopen. Only while the
+    /// app runs; never saved.
+    private(set) var reopenList: [ReopenEntry] = []
+    @ObservationIgnored var undoWindow: Duration = .seconds(5)
+    @ObservationIgnored private var undoExpiry: Task<Void, Never>?
+
+    /// Puts the newest closed tab back where it was and makes it current. If
+    /// closing it had opened a blank tab that's still untouched, that goes.
+    func undoClose() {
+        guard let closed = lastClosed else { return }
+        undoExpiry?.cancel()
+        lastClosed = nil
+        if let blankId = closed.blankId, let blank = tabs.first(where: { $0.id == blankId }),
+           blank.currentURL == Self.newTabURL, !blank.canGoBack {
+            tabs.removeAll { $0.id == blankId }
+        }
+        tabs.insert(closed.tab, at: min(closed.index, tabs.count))
+        activeTabId = closed.tab.id
+        persistSession()
+    }
+
+    /// Ends the Undo: the closed tab is let go and its address joins the
+    /// reopen list.
+    func expireUndo() {
+        undoExpiry?.cancel()
+        guard let closed = lastClosed else { return }
+        lastClosed = nil
+        reopenList.insert(ReopenEntry(url: closed.tab.currentURL, title: closed.tab.pageTitle), at: 0)
+        if reopenList.count > 10 { reopenList.removeLast(reopenList.count - 10) }
+    }
+
+    /// Opens the newest closed tab again (/reopen).
+    @discardableResult
+    func reopenLast() -> Bool {
+        expireUndo()
+        guard !reopenList.isEmpty else { return false }
+        createTab(url: reopenList.removeFirst().url)
+        return true
+    }
+
     func closeTab(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         let wasActive = id == activeTabId
+        let closing = tabs[index]
         // If the tab is still queued for a cold-compile drain, drop it so its web view
         // isn't reloaded after it's gone (and isn't kept alive by the pending queue).
         contentBlocker.cancelPending(for: tabs[index].webView)
         tabs.remove(at: index)
         if !tabs.contains(where: \.isPrivate) { privateStore = nil }
+        // Only the newest close is undoable. A private tab's close is final, as
+        // on desktop: no Undo, never in the reopen list.
+        expireUndo()
+        if !closing.isPrivate {
+            lastClosed = ClosedTab(tab: closing, index: index, blankId: nil)
+            let window = undoWindow
+            undoExpiry = Task { [weak self] in
+                do { try await Task.sleep(for: window) } catch { return }
+                guard let self, self.lastClosed?.tab === closing else { return }
+                self.expireUndo()
+            }
+        }
 
         if tabs.isEmpty {
-            createTab()
+            let blank = createTab()
+            if lastClosed != nil { lastClosed = ClosedTab(tab: closing, index: index, blankId: blank) }
             return
         }
 
@@ -463,4 +522,16 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
     }
+}
+
+struct ClosedTab {
+    let tab: TabModel
+    let index: Int
+    /// The blank tab closing the last tab opened, if any.
+    let blankId: UUID?
+}
+
+struct ReopenEntry: Equatable {
+    let url: URL
+    let title: String
 }
