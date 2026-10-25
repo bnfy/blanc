@@ -752,7 +752,7 @@ Overlay modes; every showOverlay() call in main.js passes one of these literals.
 
 Fixed ids of the pill's brief confirmations; the strip owns their text.
 
-`'link-copied'`
+`'link-copied' \| 'clean-link-copied'`
 
 ### `ShieldTrigger`
 

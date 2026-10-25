@@ -193,6 +193,7 @@ const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
 const { buildTabContextMenu, pinLabelKey, closableTabIds, closableBeside, pickSurvivorTabId, isCopyable } = require('./tab-context-menu-model');
+const { cleanLinkForCopy } = require('./clean-link');
 const { attachChromeMenu, attachRowMenu, toElectronTemplate: tabMenuTemplate } = require('./tab-context-menu');
 const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const settings = require('./settings');
@@ -7039,6 +7040,16 @@ function copyBrowserCommandLink(runtime, sender = null) {
   return true;
 }
 
+/** ⌥⇧⌘C and Edit → Copy Clean Link: as Copy Link, minus tracking parameters
+ * (clean-link.js). An address with nothing to strip is copied as it is. */
+function copyCleanBrowserCommandLink(runtime) {
+  const tab = browserCommandTab(runtime);
+  if (!tab || !isCopyable(tab)) return false;
+  clipboard.writeText(cleanLinkForCopy(tab.url));
+  stripSurfaces(runtime).send('chrome:pill-notice', 'clean-link-copied');
+  return true;
+}
+
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
   'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
@@ -11381,6 +11392,11 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
+// macOS-only for the same reason: Ctrl+Alt+Shift+C is AltGr+Shift+C on
+// international layouts, which types a character (Ć on Polish keyboards).
+const COPY_CLEAN_LINK_ACCELERATOR = process.platform === 'darwin'
+  ? 'Cmd+Alt+Shift+C'
+  : null;
 const ONE_PASSWORD_ACCELERATOR = onePasswordAccelerator();
 // [catalog key, accelerator]; labels are translated when the menu is built.
 const COMMON_KEYSTROKES = [
@@ -11392,6 +11408,9 @@ const COMMON_KEYSTROKES = [
   ['menu.searchCommands', 'CmdOrCtrl+L'],
   ['menu.findInPage', 'CmdOrCtrl+F'],
   ['tabMenu.copyLink', 'CmdOrCtrl+Shift+C'],
+  ...(COPY_CLEAN_LINK_ACCELERATOR
+    ? [['menu.copyCleanLink', COPY_CLEAN_LINK_ACCELERATOR]]
+    : []),
   ...(ONE_PASSWORD_ACCELERATOR
     ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
@@ -11514,6 +11533,19 @@ function buildMenuForRuntime(runtime) {
         { role: 'cut', label: t('menu.cut') },
         { role: 'copy', label: t('menu.copy') },
         command('copy-link'),
+        {
+          id: 'copy-clean-link',
+          label: mn(t('menu.copyCleanLink')),
+          ...(COPY_CLEAN_LINK_ACCELERATOR
+            ? { accelerator: COPY_CLEAN_LINK_ACCELERATOR }
+            : {}),
+          click: (_item, window) => {
+            const target = window
+              ? windowRuntimes.all().find(candidate => candidate.window === window)
+              : focusedRuntime ?? runtime;
+            if (target) bindWindowRuntime(target, () => copyCleanBrowserCommandLink(target))();
+          },
+        },
         { role: 'paste', label: t('menu.paste') },
         ...(isMac ? [
           { role: 'pasteAndMatchStyle', label: t('menu.pasteAndMatchStyle') },

@@ -964,7 +964,7 @@
       "doc": "Overlay modes; every showOverlay() call in main.js passes one of these literals."
     },
     "PillNotice": {
-      "ts": "'link-copied'",
+      "ts": "'link-copied' | 'clean-link-copied'",
       "doc": "Fixed ids of the pill's brief confirmations; the strip owns their text."
     },
     "ShieldTrigger": {

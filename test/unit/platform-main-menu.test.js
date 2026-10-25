@@ -202,6 +202,20 @@ test('Tabs exposes the last-active-tab chord only on macOS', () => {
   assert.doesNotMatch(main, /CmdOrCtrl\+Alt\+Z/);
 });
 
+test('Edit exposes the copy-clean-link chord only on macOS', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  assert.match(
+    main,
+    /const COPY_CLEAN_LINK_ACCELERATOR = process\.platform === 'darwin'\s*\? 'Cmd\+Alt\+Shift\+C'\s*: null;/
+  );
+  assert.match(
+    main,
+    /command\('copy-link'\),\s*\{\s*id: 'copy-clean-link',[\s\S]*?label: mn\(t\('menu\.copyCleanLink'\)\),[\s\S]*?COPY_CLEAN_LINK_ACCELERATOR[\s\S]*?copyCleanBrowserCommandLink\(target\)/
+  );
+  // Ctrl+Alt is AltGr on international Windows/Linux layouts.
+  assert.doesNotMatch(main, /'(?:CmdOrCtrl|Ctrl)\+Alt\+Shift\+C'/);
+});
+
 test('chrome markup and IPC keep one native menu definition', () => {
   const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');

@@ -239,6 +239,11 @@
     "note": "Pill label on a blank new tab, inviting the user to open the command bar.",
     "maxLength": 28
   },
+  "pill.notice.cleanLinkCopied": {
+    "message": "Clean link copied",
+    "note": "Brief confirmation shown in the pill's label slot after Copy Clean Link (⌥⇧⌘C on macOS) puts the page address, without tracking parameters, on the clipboard.",
+    "maxLength": 24
+  },
   "pill.notice.linkCopied": {
     "message": "Link copied",
     "note": "Brief confirmation shown in the pill's label slot after Copy Link (⇧⌘C / Ctrl+Shift+C) puts the page address on the clipboard.",
@@ -1723,7 +1728,7 @@
   },
   "menu.copyCleanLink": {
     "message": "Copy Clean Link",
-    "note": "Context menu command (address bar, tab) that copies the link with tracking parameters removed."
+    "note": "Command in the address bar and tab context menus, and in the Edit menu (⌥⇧⌘C on macOS), that copies the link with tracking parameters removed."
   },
   "menu.undo": {
     "message": "Undo",
